@@ -866,12 +866,7 @@ public class Program
             var intervals = ExtractTextIntervals(ref source);
             Assert.Equal(expectedIntervals, intervals.Count);
 
-            var compilation = GetCompilationForEmit(
-                new[] { source },
-                new MetadataReference[] { },
-                TestOptions.ReleaseDll,
-                TestOptions.Regular
-            );
+            var compilation = Compile(source);
 
             compilation.VerifyDiagnostics(diagnostics);
 
@@ -911,7 +906,7 @@ public class Program
 
         private CSharpCompilation Compile(string source)
         {
-            return GetCompilationForEmit(
+            return (CSharpCompilation)GetCompilationForEmit(
                 new[] { source },
                 new MetadataReference[] { },
                 TestOptions.ReleaseDll,

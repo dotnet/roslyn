@@ -817,14 +817,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
             Optional presentationNodes As NodeVerifier() = Nothing
         ) As Task
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Assert.True(hostDocument IsNot Nothing, "Test defined without cursor position")
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim semanticModel = Await document.GetSemanticModelAsync()
                 Dim position As Integer = hostDocument.CursorPosition.Value
-                Dim symbol = SymbolFinder.FindSymbolAtPosition(semanticModel, position, workspace, CancellationToken.None)
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(semanticModel, position, workspace).ConfigureAwait(False)
                 Assert.True(symbol IsNot Nothing, $"Could not find symbol as position, {position}")
 
                 Dim libraryService = document.Project.LanguageServices.GetService(Of ILibraryService)
@@ -855,14 +855,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
             Optional useExpandedHierarchy As Boolean = False
         ) As Task
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Assert.True(hostDocument IsNot Nothing, "Test defined without cursor position")
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim semanticModel = Await document.GetSemanticModelAsync()
                 Dim position As Integer = hostDocument.CursorPosition.Value
-                Dim symbol = SymbolFinder.FindSymbolAtPosition(semanticModel, position, workspace, CancellationToken.None)
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(semanticModel, position, workspace).ConfigureAwait(False)
                 Assert.True(symbol IsNot Nothing, $"Could not find symbol as position, {position}")
 
                 Dim libraryService = document.Project.LanguageServices.GetService(Of ILibraryService)

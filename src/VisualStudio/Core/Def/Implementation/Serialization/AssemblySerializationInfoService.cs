@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     {
         public bool Serializable(Solution solution, string assemblyFilePath)
         {
-            if (assemblyFilePath == null || !File.Exists(assemblyFilePath) || !ReferencePathUtilities.PartOfFrameworkOrReferencePaths(assemblyFilePath))
+            if (assemblyFilePath == null || !File.Exists(assemblyFilePath))
             {
                 return false;
             }

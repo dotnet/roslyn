@@ -1,6 +1,7 @@
 ﻿{
   "dependencies": {
     "System.Collections.Immutable": "1.1.37",
+    "System.Reflection.Metadata": "1.2.0-rc3-23721",
     "xunit": "2.1.0",
     "xunit.runner.console": "2.1.0"
   },

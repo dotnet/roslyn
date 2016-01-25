@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis
                             if (metadata == null)
                             {
                                 // if we failed to get the metadata, check to see if we previously had existing metadata and reuse it instead.
-                                metadata = inProgressCompilation.References.FirstOrDefault(r => solution.GetProjectId(r) == projectReference.ProjectId);
+                                metadata = inProgressCompilation.ExternalReferences.FirstOrDefault(r => solution.GetProjectId(r) == projectReference.ProjectId);
                             }
 
                             if (metadata != null)
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 inProgressProject = inProgressProject.AddProjectReferences(newProjectReferences);
-                if (!Enumerable.SequenceEqual(inProgressCompilation.References, metadataReferences))
+                if (!Enumerable.SequenceEqual(inProgressCompilation.ExternalReferences, metadataReferences))
                 {
                     inProgressCompilation = inProgressCompilation.WithReferences(metadataReferences);
                 }
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    if (!Enumerable.SequenceEqual(compilation.References, newReferences))
+                    if (!Enumerable.SequenceEqual(compilation.ExternalReferences, newReferences))
                     {
                         compilation = compilation.WithReferences(newReferences);
                     }

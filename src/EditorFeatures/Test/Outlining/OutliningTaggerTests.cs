@@ -27,24 +27,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task CSharpOutliningTagger()
         {
-            var code = new string[]
-            {
-                "using System;",
-                "namespace MyNamespace",
-                "{",
-                "#region MyRegion",
-                "    public class MyClass",
-                "    {",
-                "        static void Main(string[] args)",
-                "        {",
-                "            int x = 5;",
-                "        }",
-                "    }",
-                "#endregion",
-                "}"
-            };
+            var code =
+@"using System;
+namespace MyNamespace
+{
+#region MyRegion
+    public class MyClass
+    {
+        static void Main(string[] args)
+        {
+            int x = 5;
+        }
+    }
+#endregion
+}";
 
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
             {
                 var tags = await GetTagsFromWorkspaceAsync(workspace);
 
@@ -70,21 +68,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task VisualBasicOutliningTagger()
         {
-            var code = new string[]
-            {
-                "Imports System",
-                "Namespace MyNamespace",
-                "#Region \"MyRegion\"",
-                "    Module MyClass",
-                "        Sub Main(args As String())",
-                "            Dim x As Integer = 5",
-                "        End Sub",
-                "    End Module",
-                "#End Region",
-                "End Namespace"
-            };
+            var code = @"Imports System
+Namespace MyNamespace
+#Region ""MyRegion""
+    Module MyClass
+        Sub Main(args As String())
+            Dim x As Integer = 5
+        End Sub
+    End Module
+#End Region
+End Namespace";
 
-            using (var workspace = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
+            using (var workspace = await TestWorkspace.CreateVisualBasicAsync(code))
             {
                 var tags = await GetTagsFromWorkspaceAsync(workspace);
 
@@ -110,15 +105,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task OutliningTaggerTooltipText()
         {
-            var code = new string[]
-            {
-                "Module Module1",
-                "    Sub Main(args As String())",
-                "    End Sub",
-                "End Module",
-            };
+            var code = @"Module Module1
+    Sub Main(args As String())
+    End Sub
+End Module";
 
-            using (var workspace = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
+            using (var workspace = await TestWorkspace.CreateVisualBasicAsync(code))
             {
                 var tags = await GetTagsFromWorkspaceAsync(workspace);
 

@@ -1,7 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Test.Utilities
+Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations.ModifierKeywordRecommenderTests
     Public Class InsideInterfaceDeclaration
@@ -9,136 +8,136 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 #Region "Scope Keywords"
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub PublicDoesNotExist()
-            VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Public")
-        End Sub
+        Public Async Function PublicDoesNotExistTest() As Task
+            Await VerifyRecommendationsMissingAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Public")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ProtectedDoesNotExist()
-            VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Protected")
-        End Sub
+        Public Async Function ProtectedDoesNotExistTest() As Task
+            Await VerifyRecommendationsMissingAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Protected")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub PrivateDoesNotExist()
-            VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Private")
-        End Sub
+        Public Async Function PrivateDoesNotExistTest() As Task
+            Await VerifyRecommendationsMissingAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Private")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub FriendDoesNotExist()
-            VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Friend")
-        End Sub
+        Public Async Function FriendDoesNotExistTest() As Task
+            Await VerifyRecommendationsMissingAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Friend")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ProtectedFriendDoesNotExist()
-            VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Protected Friend")
-        End Sub
+        Public Async Function ProtectedFriendDoesNotExistTest() As Task
+            Await VerifyRecommendationsMissingAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Protected Friend")
+        End Function
 
 #End Region
 
 #Region "Narrowing and Widening Keywords"
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NarrowingDoesNotExist()
-            VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Narrowing")
-        End Sub
+        Public Async Function NarrowingDoesNotExistTest() As Task
+            Await VerifyRecommendationsMissingAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Narrowing")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub WideningDoesNotExist()
-            VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Widening")
-        End Sub
+        Public Async Function WideningDoesNotExistTest() As Task
+            Await VerifyRecommendationsMissingAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Widening")
+        End Function
 
 #End Region
 
 #Region "MustInherit and NotInheritable Keywords"
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub MustInheritDoesExist()
-            VerifyRecommendationsContain(<InterfaceDeclaration>|</InterfaceDeclaration>, "MustInherit")
-        End Sub
+        Public Async Function MustInheritDoesExistTest() As Task
+            Await VerifyRecommendationsContainAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "MustInherit")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotInheritableDoesExist()
-            VerifyRecommendationsContain(<InterfaceDeclaration>|</InterfaceDeclaration>, "NotInheritable")
-        End Sub
+        Public Async Function NotInheritableDoesExistTest() As Task
+            Await VerifyRecommendationsContainAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "NotInheritable")
+        End Function
 
 #End Region
 
 #Region "Overrides and Overridable Set of Keywords"
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub OverridesDoesNotExist()
-            VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Overrides")
-        End Sub
+        Public Async Function OverridesDoesNotExistTest() As Task
+            Await VerifyRecommendationsMissingAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Overrides")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub MustOverrideDoesNotExist()
-            VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "MustOverride")
-        End Sub
+        Public Async Function MustOverrideDoesNotExistTest() As Task
+            Await VerifyRecommendationsMissingAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "MustOverride")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub OverridableDoesNotExist()
-            VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Overridable")
-        End Sub
+        Public Async Function OverridableDoesNotExistTest() As Task
+            Await VerifyRecommendationsMissingAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Overridable")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotOverridableDoesNotExist()
-            VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "NotOverridable")
-        End Sub
+        Public Async Function NotOverridableDoesNotExistTest() As Task
+            Await VerifyRecommendationsMissingAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "NotOverridable")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub OverloadsDoesExist()
-            VerifyRecommendationsContain(<InterfaceDeclaration>|</InterfaceDeclaration>, "Overloads")
-        End Sub
+        Public Async Function OverloadsDoesExistTest() As Task
+            Await VerifyRecommendationsContainAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Overloads")
+        End Function
 
 #End Region
 
 #Region "ReadOnly and WriteOnly Keywords"
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ReadOnlyDoesExist()
-            VerifyRecommendationsContain(<InterfaceDeclaration>|</InterfaceDeclaration>, "ReadOnly")
-        End Sub
+        Public Async Function ReadOnlyDoesExistTest() As Task
+            Await VerifyRecommendationsContainAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "ReadOnly")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub WriteOnlyDoesExist()
-            VerifyRecommendationsContain(<InterfaceDeclaration>|</InterfaceDeclaration>, "WriteOnly")
-        End Sub
+        Public Async Function WriteOnlyDoesExistTest() As Task
+            Await VerifyRecommendationsContainAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "WriteOnly")
+        End Function
 
 #End Region
 
 #Region "Partial Keyword"
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub PartialDoesNotExist()
-            VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Partial")
-        End Sub
+        Public Async Function PartialDoesNotExistTest() As Task
+            Await VerifyRecommendationsMissingAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Partial")
+        End Function
 
 #End Region
 
 #Region "Shadows Keyword"
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ShadowsDoesExist()
+        Public Async Function ShadowsDoesExistTest() As Task
             ' This is actually allowed by the spec. Be careful: the MSDN documentation is wrong
             ' here.
-            VerifyRecommendationsContain(<InterfaceDeclaration>|</InterfaceDeclaration>, "Shadows")
-        End Sub
+            Await VerifyRecommendationsContainAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Shadows")
+        End Function
 
 #End Region
 
 #Region "Shared Keyword"
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub SharedDoesNotExist()
-            VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Shared")
-        End Sub
+        Public Async Function SharedDoesNotExistTest() As Task
+            Await VerifyRecommendationsMissingAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Shared")
+        End Function
 
 #End Region
 
         <WorkItem(674791)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotAfterHash()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function NotAfterHashTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 Imports System
 
 #|
@@ -149,7 +148,6 @@ End Module
 
 </File>, "Friend", "Private", "Protected", "Protected Friend", "Shadows", "Shared",
         "ReadOnly", "WriteOnly", "MustOverride", "Overridable", "Public", "Overloads", "Overrides", "WithEvents")
-        End Sub
-
+        End Function
     End Class
 End Namespace

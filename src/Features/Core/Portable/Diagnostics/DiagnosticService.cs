@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
@@ -17,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal partial class DiagnosticService : IDiagnosticService
     {
         private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
+
+        private static readonly DiagnosticEventTaskScheduler s_eventScheduler = new DiagnosticEventTaskScheduler(blockingUpperBound: 100);
 
         private readonly IAsynchronousOperationListener _listener;
         private readonly EventMap _eventMap;
@@ -30,7 +31,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // queue to serialize events.
             _eventMap = new EventMap();
-            _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
+
+            // use diagnostic event task scheduler so that we never flood async events queue with million of events.
+            // queue itself can handle huge number of events but we are seeing OOM due to captured data in pending events.
+            _eventQueue = new SimpleTaskQueue(s_eventScheduler);
 
             _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService);
 

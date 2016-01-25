@@ -321,6 +321,7 @@
     <Compile Include="TestExportProvider.cs" />
     <Compile Include="TestExtensionErrorHandler.cs" />
     <Compile Include="TestOptionsServiceFactory.cs" />
+    <Compile Include="TextEditorFactoryExtensions.cs" />
     <Compile Include="TextEditor\TextBufferAssociatedViewServiceTests.cs" />
     <Compile Include="TextEditor\TryGetDocumentTests.cs" />
     <Compile Include="Threading\AsynchronousWorkerTests.cs" />
@@ -335,7 +336,6 @@
     <Compile Include="Utilities\TestWaitContext.cs" />
     <Compile Include="Utilities\TestWaitIndicator.cs" />
     <Compile Include="Workspaces\CSharpTestWorkspaceFixture.cs" />
-    <Compile Include="Workspaces\CSharpWorkspaceFactory.cs" />
     <Compile Include="Workspaces\MefTestWorkspace.cs" />
     <Compile Include="Workspaces\NoCompilationConstants.cs" />
     <Compile Include="Workspaces\NoCompilationContentTypeDefinitions.cs" />
@@ -348,16 +348,14 @@
     <Compile Include="Workspaces\TestHostDocument.cs" />
     <Compile Include="Workspaces\TestHostProject.cs" />
     <Compile Include="Workspaces\TestHostSolution.cs" />
-    <Compile Include="Workspaces\TestOptionServiceFactory.cs" />
     <Compile Include="Workspaces\TestWorkspace.cs" />
-    <Compile Include="Workspaces\TestWorkspaceFactory.cs" />
-    <Compile Include="Workspaces\TestWorkspaceFactory_XmlConsumption.cs" />
-    <Compile Include="Workspaces\TestWorkspaceFactory_XmlCreation.cs" />
+    <Compile Include="Workspaces\TestWorkspace_Create.cs" />
+    <Compile Include="Workspaces\TestWorkspace_XmlConsumption.cs" />
+    <Compile Include="Workspaces\TestWorkspace_XmlCreation.cs" />
     <Compile Include="Workspaces\TestWorkspaceFixture.cs" />
     <Compile Include="Workspaces\ProjectCacheHostServiceFactoryTests.cs" />
     <Compile Include="Workspaces\TextFactoryTests.cs" />
     <Compile Include="Workspaces\VisualBasicTestWorkspaceFixture.cs" />
-    <Compile Include="Workspaces\VisualBasicWorkspaceFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

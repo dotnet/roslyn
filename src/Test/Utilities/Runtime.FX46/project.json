@@ -10,7 +10,7 @@
     "System.IO.FileSystem": "4.0.0",
     "System.IO.FileSystem.Primitives": "4.0.0",
     "System.Reflection": "4.0.10",
-    "System.Reflection.Metadata": "1.2.0-rc2-23608",
+    "System.Reflection.Metadata": "1.2.0-rc3-23721",
     "System.Runtime": "4.0.20",
     "System.Runtime.Extensions": "4.0.10",
     "System.Runtime.InteropServices": "4.0.20",

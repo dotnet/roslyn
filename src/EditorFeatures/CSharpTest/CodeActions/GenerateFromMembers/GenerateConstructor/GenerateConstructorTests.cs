@@ -173,5 +173,12 @@ index: 1);
 @"class Program { [|int yield ;|] } ",
 @"class Program { int yield ; public Program ( int yield ) { this . yield = yield ; } } ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateConstructorNotOfferedForDuplicate()
+        {
+            await TestMissingAsync(
+"using System ; class X { public X ( string v ) { } static void Test ( ) { new X ( new [|string|] ( ) ) ; } } ");
+        }
     }
 }

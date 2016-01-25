@@ -1807,7 +1807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // - T1 is a better conversion target than T2
-            return BetterConversionTarget(lambdaOpt, t1, t2, ref useSiteDiagnostics, out okToDowngradeToNeither);
+            return BetterConversionTarget(node, t1, conv1, t2, conv2, ref useSiteDiagnostics, out okToDowngradeToNeither);
         }
 
         private bool ExpressionMatchExactly(BoundExpression node, TypeSymbol t, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -1946,7 +1946,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BetterResult BetterConversionTarget(UnboundLambda lambdaOpt, TypeSymbol type1, TypeSymbol type2, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out bool okToDowngradeToNeither)
+        private BetterResult BetterConversionTarget(TypeSymbol type1, TypeSymbol type2, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            bool okToDowngradeToNeither;
+            return BetterConversionTarget(null, type1, default(Conversion), type2, default(Conversion), ref useSiteDiagnostics, out okToDowngradeToNeither);
+        }
+
+        private BetterResult BetterConversionTarget(BoundExpression node, TypeSymbol type1, Conversion conv1, TypeSymbol type2, Conversion conv2, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out bool okToDowngradeToNeither)
         {
             okToDowngradeToNeither = false;
 
@@ -1960,6 +1966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and at least one of the following holds:
             bool type1ToType2 = Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).IsImplicit;
             bool type2ToType1 = Conversions.ClassifyImplicitConversion(type2, type1, ref useSiteDiagnostics).IsImplicit;
+            UnboundLambda lambdaOpt = node as UnboundLambda;
 
             if (type1ToType2)
             {
@@ -1980,7 +1987,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BetterResult.Right;
             }
 
-            bool ignore;
             var task_T = Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
 
             if ((object)task_T != null)
@@ -1990,11 +1996,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (type2.OriginalDefinition == task_T)
                     {
                         // - T1 is Task<S1>, T2 is Task<S2>, and S1 is a better conversion target than S2
-                        return BetterConversionTarget(null,
-                                                      ((NamedTypeSymbol)type1).TypeArgumentsNoUseSiteDiagnostics[0],
+                        return BetterConversionTarget(((NamedTypeSymbol)type1).TypeArgumentsNoUseSiteDiagnostics[0],
                                                       ((NamedTypeSymbol)type2).TypeArgumentsNoUseSiteDiagnostics[0],
-                                                      ref useSiteDiagnostics,
-                                                      out ignore);
+                                                      ref useSiteDiagnostics);
                     }
 
                     // A shortcut, Task<T> type cannot satisfy other rules.
@@ -2025,23 +2029,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         TypeSymbol r1 = invoke1.ReturnType;
                         TypeSymbol r2 = invoke2.ReturnType;
+                        BetterResult delegateResult = BetterResult.Neither;
 
                         if (r1.SpecialType != SpecialType.System_Void)
                         {
                             if (r2.SpecialType == SpecialType.System_Void)
                             {
                                 // - D2 is void returning
-                                return BetterResult.Left;
+                                delegateResult = BetterResult.Left;
                             }
                         }
                         else if (r2.SpecialType != SpecialType.System_Void)
                         {
                             // - D2 is void returning
-                            return BetterResult.Right;
+                            delegateResult = BetterResult.Right;
                         }
 
-                        //  - D2 has a return type S2, and S1 is a better conversion target than S2
-                        return BetterConversionTarget(null, r1, r2, ref useSiteDiagnostics, out ignore);
+                        if (delegateResult == BetterResult.Neither)
+                        {
+                            //  - D2 has a return type S2, and S1 is a better conversion target than S2
+                            delegateResult = BetterConversionTarget(r1, r2, ref useSiteDiagnostics);
+                        }
+
+                        // Downgrade result to Neither if conversion used by the winner isn't actually valid method group conversion.
+                        // This is necessary to preserve compatibility, otherwise we might dismiss "worse", but trully applicable candidate
+                        // based on a "better", but, in reality, erroneous one.
+                        if (node?.Kind == BoundKind.MethodGroup)
+                        {
+                            var group = (BoundMethodGroup)node;
+
+                            if (delegateResult == BetterResult.Left)
+                            {
+                                if (IsMethodGroupConversionIncompatibleWithDelegate(group, d1, conv1))
+                                {
+                                    return BetterResult.Neither;
+                                }
+                            }
+                            else if (delegateResult == BetterResult.Right && IsMethodGroupConversionIncompatibleWithDelegate(group, d2, conv2))
+                            {
+                                return BetterResult.Neither;
+                            }
+                        }
+
+                        return delegateResult;
                     }
                 }
 
@@ -2072,6 +2102,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return BetterResult.Neither;
+        }
+
+        private bool IsMethodGroupConversionIncompatibleWithDelegate(BoundMethodGroup node, NamedTypeSymbol delegateType, Conversion conv)
+        {
+            if (conv.IsMethodGroup)
+            {
+                DiagnosticBag ignore = DiagnosticBag.GetInstance();
+                bool result = !_binder.MethodGroupIsCompatibleWithDelegate(node.ReceiverOpt, conv.IsExtensionMethod, conv.Method, delegateType, Location.None, ignore);
+                ignore.Free();
+                return result;
+            }
+
+            return false;
         }
 
         private bool CanDowngradeConversionFromLambdaToNeither(BetterResult currentResult, UnboundLambda lambda, TypeSymbol type1, TypeSymbol type2, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool fromTypeAnalysis)
@@ -2149,7 +2192,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
                         if (fromTypeAnalysis)
                         {
-                            bool ignore;
                             // Since we are dealing with variance delegate conversion and delegates have identical parameter
                             // lists, return types must be implicitly convertible in the same direction.
                             // Or we might be dealing with error return types and we may have one error delegate matching exactly
@@ -2157,7 +2199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(
                                 r1.IsErrorType() ||
                                 r2.IsErrorType() ||
-                                currentResult == BetterConversionTarget(null, r1, r2, ref useSiteDiagnostics, out ignore));
+                                currentResult == BetterConversionTarget(r1, r2, ref useSiteDiagnostics));
                         }
 #endif
                     }

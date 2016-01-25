@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         End Function
 
         Protected Async Function TestFromXmlAsync(markup As String, ParamArray expectedResults As Action(Of Object)()) As Task
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceAsync(markup)
+            Using workspace = Await TestWorkspace.CreateAsync(markup)
                 Await TestSharedAsync(workspace, workspace.Documents.First().CursorPosition.Value, expectedResults)
             End Using
         End Function
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Dim position As Integer = Nothing
             MarkupTestFile.GetPosition(markup, code, position)
 
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync({code}, Nothing, metadataReferences)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code, Nothing, metadataReferences:=metadataReferences)
                 Await TestSharedAsync(workspace, position, expectedResults)
             End Using
         End Function
@@ -1437,10 +1437,27 @@ End Class
 
             Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; Function C.foo() As Task</File>.ConvertTestSourceTag()
 
-            Dim doc = StringFromLines("", WorkspacesResources.Usage, $"  {VBFeaturesResources.Await} foo()")
+            Dim doc = StringFromLines("", WorkspacesResources.Usage, $"  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} foo()")
 
             Await TestFromXmlAsync(markup,
                  MainDescription(description), Usage(doc))
+        End Function
+
+        <WorkItem(7100, "https://github.com/dotnet/roslyn/issues/7100")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestObjectWithOptionStrictOffIsntAwaitable() As Task
+            Dim markup = "
+Option Strict Off
+Class C
+    Function D() As Object
+        Return Nothing
+    End Function
+    Sub M()
+        D$$()
+    End Sub
+End Class
+"
+            Await TestAsync(markup, MainDescription("Function C.D() As Object"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>

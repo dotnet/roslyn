@@ -86,12 +86,10 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <DebugType>full</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -205,6 +203,7 @@
     <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceCommandHandlerTests.vb" />
     <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests.vb" />
     <Compile Include="Diagnostics\InsertMissingCast\InsertMissingCastTests.vb" />
+    <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.vb" />
     <Compile Include="Diagnostics\MoveToTopOfFile\MoveToTopOfFileTests.vb" />
     <Compile Include="Diagnostics\OverloadBase\OverloadBaseTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.vb" />
@@ -592,6 +591,7 @@
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.UnitTests" />
     <Import Include="Roslyn.Test.Utilities" />
     <Import Include="Roslyn.Utilities" />
+    <Import Include="System.Threading.Tasks" />
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>

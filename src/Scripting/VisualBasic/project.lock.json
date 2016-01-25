@@ -3,7 +3,7 @@
   "version": 1,
   "targets": {
     ".NETPlatform,Version=v5.0": {
-      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
+      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
         "compile": {
           "ref/dotnet/mscorlib.dll": {},
           "ref/dotnet/System.ComponentModel.DataAnnotations.dll": {},
@@ -216,7 +216,7 @@
           "ref/dotnet/System.Reflection.Extensions.dll": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc2-23608": {
+      "System.Reflection.Metadata/1.2.0-rc3-23721": {
         "dependencies": {
           "System.Collections.Immutable": "[1.1.37, )"
         },
@@ -314,8 +314,8 @@
     }
   },
   "libraries": {
-    "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
-      "sha512": "q5wj+WWjvZ/GhT+Q42aub5rIcw45pEE/TvIfFBEgvxK2MTODxsDIKKSBHEdfJablXhfRZfY79YBdTbcfUzZqlA==",
+    "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
+      "sha512": "/12zABXWCTHNRBN6bNHxoqvmnJ1UKVaDSOR1BsAM+sv2aXjGMEM7bcDecvT/1zMKilWDmJpiPJJNCxjdZPQRTA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -349,7 +349,7 @@
         "lib/wp80/_._",
         "lib/wpa81/_._",
         "Microsoft.NETCore.Portable.Compatibility.nuspec",
-        "package/services/metadata/core-properties/850feb86a46b458c8a8875eb3bbc1591.psmdcp",
+        "package/services/metadata/core-properties/59347eb927634aa588ffb5e7d86d33e5.psmdcp",
         "ref/dotnet/mscorlib.dll",
         "ref/dotnet/System.ComponentModel.DataAnnotations.dll",
         "ref/dotnet/System.Core.dll",
@@ -945,8 +945,8 @@
         "System.Reflection.Extensions.nuspec"
       ]
     },
-    "System.Reflection.Metadata/1.2.0-rc2-23608": {
-      "sha512": "OTjZOWW+lJqVLkLeuZNWyNGL4PDSSJZIm5XPig0TOAwag46OyoEVz5t0AvE95SXj3mCaovSVpt8FvaXMiYt91w==",
+    "System.Reflection.Metadata/1.2.0-rc3-23721": {
+      "sha512": "MHnJWfhANEcGdavFd1ftoo669vjCUvCT6H7N6sNzcLkd1EsLaMgVJshVfA4RNUmUITDKKLAnPxxXIHQRW5mH9Q==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -955,7 +955,7 @@
         "lib/dotnet5.2/System.Reflection.Metadata.xml",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml",
-        "package/services/metadata/core-properties/c3d433fae9784b3da60bd437eacfbdd6.psmdcp",
+        "package/services/metadata/core-properties/68cb3065f6c849c58eee471ee8bb094b.psmdcp",
         "System.Reflection.Metadata.nuspec"
       ]
     },

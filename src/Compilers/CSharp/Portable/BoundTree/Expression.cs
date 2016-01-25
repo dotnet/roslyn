@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
@@ -29,7 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         SyntaxNode IOperation.Syntax => this.Syntax;
         
         protected virtual OperationKind ExpressionKind => OperationKind.None;
-        // protected abstract OperationKind ExpressionKind { get; }
     }
 
     internal abstract partial class BoundNode : IOperationSearchable
@@ -64,9 +64,56 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (operation != null)
                 {
                     this.nodes.Add(operation);
+                    // Following operations are not bound node, therefore have to be added explicitly:
+                    //  1. IArgument
+                    //  2. IMemberInitializer
+                    //  3. ICase
+                    switch (operation.Kind)
+                    {
+                        case OperationKind.InvocationExpression:
+                            nodes.AddRange(((IInvocationExpression)operation).ArgumentsInSourceOrder);
+                            break;
+                        case OperationKind.ObjectCreationExpression:
+                            var objCreationExp = (IObjectCreationExpression)operation;
+                            nodes.AddRange(objCreationExp.ConstructorArguments);
+                            nodes.AddRange(objCreationExp.MemberInitializers);
+                            break;
+                        case OperationKind.SwitchStatement:
+                            nodes.AddRange(((ISwitchStatement)operation).Cases);
+                            break;
+                    }
                 }
-
                 return base.Visit(node);
+            }
+
+            // We skip visiting all `BoundLocalDeclaration` nodes in `BoundMultipleLocalDeclarations` 
+            // (but not their children), since they are not statements in this case.
+            public override BoundNode VisitMultipleLocalDeclarations(BoundMultipleLocalDeclarations node)
+            {
+                foreach (var declaration in node.LocalDeclarations)
+                {
+                    this.Visit(declaration.DeclaredType);
+                    this.Visit(declaration.InitializerOpt);
+                    this.VisitList(declaration.ArgumentsOpt);
+                }
+                return null;
+            }
+
+            // Skip visiting `BoundAssignmentOperator` nodes (but not their children) if they are used for initializing members in object creation.
+            // The corresponding operations are covered by `IMemberInitializer`.
+            public override BoundNode VisitObjectInitializerExpression(BoundObjectInitializerExpression node)
+            {
+                foreach (var expression in node.Initializers)
+                {
+                    if (expression.HasErrors)
+                    {
+                        continue;
+                    }
+                    var assignment = (BoundAssignmentOperator) expression;
+                    this.Visit(assignment.Left);
+                    this.Visit(assignment.Right);
+                }
+                return null;
             }
         }
     }
@@ -88,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     IArgument argument = DeriveArgument(this.ArgsToParamsOpt.IsDefault ? argumentIndex : this.ArgsToParamsOpt[argumentIndex], argumentIndex, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Method.Parameters);
                     sourceOrderArguments.Add(argument);
-                    if (argument.Kind == ArgumentKind.ParamArray)
+                    if (argument.ArgumentKind == ArgumentKind.ParamArray)
                     {
                         break;
                     }
@@ -122,17 +169,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentIndex = argumentsToParameters.IndexOf(parameterIndex);
                 }
 
-                if (argumentIndex == -1)
+                // No argument has been supplied for the parameter at `parameterIndex`:
+                // 1. `argumentIndex == -1' when the arguments are specified out of parameter order, and no argument is provided for parameter corresponding to `parameters[parameterIndex]`.
+                // 2. `argumentIndex >= boundArguments.Length` when the arguments are specified in parameter order, and no argument is provided at `parameterIndex`.
+                if (argumentIndex == -1 || argumentIndex >= boundArguments.Length)
                 {
-                    // No argument has been supplied for the parameter.
                     Symbols.ParameterSymbol parameter = parameters[parameterIndex];
+                    // Corresponding parameter is optional with default value.
                     if (parameter.HasExplicitDefaultValue)
                     {
                         arguments.Add(new Argument(ArgumentKind.DefaultValue, parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, null)));
                     }
                     else
                     {
-                        arguments.Add(null);
+                        // If corresponding parameter is Param array, then this means 0 element is provided and an Argument of kind == ParamArray will be added, 
+                        // otherwise it is an error and null is added.
+                        arguments.Add(DeriveArgument(parameterIndex, argumentIndex, boundArguments, argumentNames, argumentRefKinds, parameters));
                     }
                 }
                 else
@@ -144,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return arguments.ToImmutableAndFree();
         }
 
-        private static System.Runtime.CompilerServices.ConditionalWeakTable<BoundExpression, IArgument> ArgumentMappings = new System.Runtime.CompilerServices.ConditionalWeakTable<BoundExpression, IArgument>();
+        private static readonly ConditionalWeakTable<BoundExpression, IArgument> s_argumentMappings = new ConditionalWeakTable<BoundExpression, IArgument>();
 
         private static IArgument DeriveArgument(int parameterIndex, int argumentIndex, ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, ImmutableArray<Symbols.ParameterSymbol> parameters)
         {
@@ -164,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            return ArgumentMappings.GetValue(
+            return s_argumentMappings.GetValue(
                 boundArguments[argumentIndex],
                 (argument) =>
                 {
@@ -172,19 +224,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (name == null)
                     {
-                        RefKind refMode = !argumentRefKinds.IsDefaultOrEmpty ? argumentRefKinds[argumentIndex] : RefKind.None;
-                        return
-                            refMode == RefKind.None
-                            ? (argumentIndex >= parameters.Length - 1 &&
-                               parameters.Length > 0 &&
-                               parameters[parameters.Length - 1].IsParams &&
-                               // An argument that is an array of the appropriate type is not a params argument.
-                               (boundArguments.Length > argumentIndex + 1 ||
-                                argument.Type.TypeKind != TypeKind.Array ||
-                                !argument.Type.Equals(parameters[parameters.Length - 1].Type, true))
-                               ? (IArgument)new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex))
-                               : new SimpleArgument(parameters[parameterIndex], argument))
-                            : (IArgument)new Argument(ArgumentKind.Positional, parameters[parameterIndex], argument);
+                        RefKind refMode = argumentRefKinds.IsDefaultOrEmpty ? RefKind.None : argumentRefKinds[argumentIndex];
+
+                        if (refMode != RefKind.None)
+                        {
+                            return new Argument(ArgumentKind.Positional, parameters[parameterIndex], argument);
+                        }
+
+                        if (argumentIndex >= parameters.Length - 1 &&
+                            parameters.Length > 0 &&
+                            parameters[parameters.Length - 1].IsParams &&
+                            // An argument that is an array of the appropriate type is not a params argument.
+                            (boundArguments.Length > argumentIndex + 1 ||
+                             argument.Type.TypeKind != TypeKind.Array ||
+                             !argument.Type.Equals(parameters[parameters.Length - 1].Type, ignoreCustomModifiersAndArraySizesAndLowerBounds:true)))
+                        {
+                            return new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex));
+                        }
+                        else
+                        {
+                            return new SimpleArgument(parameters[parameterIndex], argument);
+                        }
                     }
 
                     return new Argument(ArgumentKind.Named, parameters[parameterIndex], argument);
@@ -236,43 +296,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             return -1;
         }
 
-        class SimpleArgument : IArgument
+        abstract class ArgumentBase : IArgument
         {
-            public SimpleArgument(IParameterSymbol parameter, IExpression value)
+            public ArgumentBase(IParameterSymbol parameter, IExpression value)
             {
                 this.Value = value;
                 this.Parameter = parameter;
             }
-
-            public ArgumentKind Kind => ArgumentKind.Positional;
-
+            
             public IParameterSymbol Parameter { get; }
 
             public IExpression Value { get; }
 
-            public IExpression InConversion => null;
+            IExpression IArgument.InConversion => null;
 
-            public IExpression OutConversion => null;
+            IExpression IArgument.OutConversion => null;
+
+            bool IOperation.IsInvalid => this.Parameter == null || this.Value.IsInvalid;
+
+            OperationKind IOperation.Kind => OperationKind.Argument;
+
+            SyntaxNode IOperation.Syntax => this.Value.Syntax;
+
+            public abstract ArgumentKind ArgumentKind { get; }
         }
 
-        class Argument : IArgument
+        class SimpleArgument : ArgumentBase
+        {
+            public SimpleArgument(IParameterSymbol parameter, IExpression value)
+                : base(parameter, value)
+            { }
+
+            public override ArgumentKind ArgumentKind => ArgumentKind.Positional;
+        }
+
+        class Argument : ArgumentBase
         {
             public Argument(ArgumentKind kind, IParameterSymbol parameter, IExpression value)
+                : base(parameter, value)
             {
-                this.Value = value;
-                this.Kind = kind;
-                this.Parameter = parameter;
+                this.ArgumentKind = kind;
             }
 
-            public ArgumentKind Kind { get; }
-
-            public IParameterSymbol Parameter { get; }
-            
-            public IExpression Value { get; }
-
-            public IExpression InConversion => null;
-
-            public IExpression OutConversion => null;
+            public override ArgumentKind ArgumentKind { get; }
         }
     }
 
@@ -371,6 +437,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundObjectCreationExpression : IObjectCreationExpression
     {
+        private static readonly ConditionalWeakTable<BoundObjectCreationExpression, object> s_memberInitializersMappings =
+            new ConditionalWeakTable<BoundObjectCreationExpression, object>();
+
         IMethodSymbol IObjectCreationExpression.Constructor => this.Constructor;
 
         ImmutableArray<IArgument> IObjectCreationExpression.ConstructorArguments => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters);
@@ -384,17 +453,85 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                BoundExpression initializer = this.InitializerExpressionOpt;
-                if (initializer != null)
-                {
-                    // ZZZ What's the representation in bound trees?
-                }
+                return (ImmutableArray<IMemberInitializer>)s_memberInitializersMappings.GetValue(this,
+                    objectCreationExpression =>
+                    {
+                        var objectInitializerExpression = this.InitializerExpressionOpt as BoundObjectInitializerExpression;
+                        if (objectInitializerExpression != null)
+                        {
+                            var builder = ArrayBuilder<IMemberInitializer>.GetInstance(objectInitializerExpression.Initializers.Length);
+                            foreach (var memberAssignment in objectInitializerExpression.Initializers)
+                            {
+                                var assignment = memberAssignment as BoundAssignmentOperator;
+                                var leftSymbol = (assignment?.Left as BoundObjectInitializerMember)?.MemberSymbol;
 
-                return ImmutableArray.Create<IMemberInitializer>();
+                                if (leftSymbol == null)
+                                {
+                                    continue;
+                                }
+
+                                switch (leftSymbol.Kind)
+                                {
+                                    case SymbolKind.Field:
+                                        builder.Add(new FieldInitializer(assignment.Syntax, (IFieldSymbol)leftSymbol, assignment.Right));
+                                        break;
+                                    case SymbolKind.Property:
+                                        builder.Add(new PropertyInitializer(assignment.Syntax, ((IPropertySymbol)leftSymbol).SetMethod, assignment.Right));
+                                        break;
+                                }
+                            }
+                            return builder.ToImmutableAndFree();
+                        }                        
+                        return ImmutableArray<IMemberInitializer>.Empty;
+                    });             
             }
         }
 
         protected override OperationKind ExpressionKind => OperationKind.ObjectCreationExpression;
+
+        private class FieldInitializer : IFieldInitializer
+        {
+            public FieldInitializer(SyntaxNode syntax, IFieldSymbol field, IExpression value)
+            {
+                this.Syntax = syntax;
+                this.Field = field;
+                this.Value = value;
+            }
+
+            public IFieldSymbol Field { get; }
+
+            MemberInitializerKind IMemberInitializer.MemberInitializerKind => MemberInitializerKind.Field;
+
+            public IExpression Value { get; }
+
+            OperationKind IOperation.Kind => OperationKind.FieldInitializer;
+
+            public SyntaxNode Syntax { get; }
+
+            bool IOperation.IsInvalid => this.Value.IsInvalid || this.Field == null;
+        }
+
+        private class PropertyInitializer : IPropertyInitializer
+        {
+            public PropertyInitializer(SyntaxNode syntax, IMethodSymbol setter, IExpression value)
+            {
+                this.Syntax = syntax;
+                this.Setter = setter;
+                this.Value = value;
+            }
+
+            public IMethodSymbol Setter { get; }
+
+            public IExpression Value { get; }
+
+            MemberInitializerKind IMemberInitializer.MemberInitializerKind => MemberInitializerKind.Property;
+
+            OperationKind IOperation.Kind => OperationKind.PropertyInitializer;
+
+            public SyntaxNode Syntax { get; }
+
+            bool IOperation.IsInvalid => this.Value.IsInvalid || this.Setter == null;
+        }
     }
 
     partial class UnboundLambda
@@ -415,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IExpression IConversionExpression.Operand => this.Operand;
 
-        Semantics.ConversionKind IConversionExpression.Conversion
+        Semantics.ConversionKind IConversionExpression.ConversionKind
         {
             get
             {
@@ -501,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IExpression IConversionExpression.Operand => this.Operand;
 
-        Semantics.ConversionKind IConversionExpression.Conversion => Semantics.ConversionKind.AsCast;
+        Semantics.ConversionKind IConversionExpression.ConversionKind => Semantics.ConversionKind.AsCast;
 
         bool IConversionExpression.IsExplicit => true;
 
@@ -523,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundSizeOfOperator : ITypeOperationExpression
     {
-        TypeOperationKind ITypeOperationExpression.TypeOperationClass => TypeOperationKind.SizeOf;
+        TypeOperationKind ITypeOperationExpression.TypeOperationKind => TypeOperationKind.SizeOf;
 
         ITypeSymbol ITypeOperationExpression.TypeOperand => this.SourceType.Type;
 
@@ -532,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundTypeOfOperator : ITypeOperationExpression
     {
-        TypeOperationKind ITypeOperationExpression.TypeOperationClass => TypeOperationKind.TypeOf;
+        TypeOperationKind ITypeOperationExpression.TypeOperationKind => TypeOperationKind.TypeOf;
 
         ITypeSymbol ITypeOperationExpression.TypeOperand => this.SourceType.Type;
 
@@ -557,74 +694,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ImmutableArray<IExpression> IArrayCreationExpression.DimensionSizes => this.Bounds.As<IExpression>();
 
-        IArrayInitializer IArrayCreationExpression.ElementValues
-        {
-            get
-            {
-                BoundArrayInitialization initializer = this.InitializerOpt;
-                if (initializer != null)
-                {
-                    return MakeInitializer(initializer);
-                }
-
-                return null; 
-            }
-        }
-
-        private static System.Runtime.CompilerServices.ConditionalWeakTable<BoundArrayInitialization, IArrayInitializer> ArrayInitializerMappings = new System.Runtime.CompilerServices.ConditionalWeakTable<BoundArrayInitialization, IArrayInitializer>();
-
-        IArrayInitializer MakeInitializer(BoundArrayInitialization initializer)
-        {
-            return ArrayInitializerMappings.GetValue(
-                initializer,
-                (arrayInitializer) =>
-                {
-                    ArrayBuilder<IArrayInitializer> dimension = ArrayBuilder<IArrayInitializer>.GetInstance(arrayInitializer.Initializers.Length);
-                    for (int index = 0; index < arrayInitializer.Initializers.Length; index++)
-                    {
-                        BoundExpression elementInitializer = arrayInitializer.Initializers[index];
-                        BoundArrayInitialization elementArray = elementInitializer as BoundArrayInitialization;
-                        dimension[index] = elementArray != null ? MakeInitializer(elementArray) : new ElementInitializer(elementInitializer);
-                    }
-
-                    return new DimensionInitializer(dimension.ToImmutableAndFree());
-                });
-        }
+        IArrayInitializer IArrayCreationExpression.Initializer => this.InitializerOpt;
 
         protected override OperationKind ExpressionKind => OperationKind.ArrayCreationExpression;
-
-        class ElementInitializer : IExpressionArrayInitializer
-        {
-            private readonly BoundExpression _element;
-
-            public ElementInitializer(BoundExpression element)
-            {
-                _element = element;
-            }
-
-            public IExpression ElementValue => _element;
-
-            public ArrayInitializerKind ArrayClass => ArrayInitializerKind.Expression;
-        }
-
-        class DimensionInitializer : IDimensionArrayInitializer
-        {
-            private readonly ImmutableArray<IArrayInitializer> _dimension;
-
-            public DimensionInitializer(ImmutableArray<IArrayInitializer> dimension)
-            {
-                _dimension = dimension;
-            }
-
-            public ImmutableArray<IArrayInitializer> ElementValues => _dimension;
-
-            public ArrayInitializerKind ArrayClass => ArrayInitializerKind.Dimension;
-        }
     }
 
-    partial class BoundArrayInitialization
+    partial class BoundArrayInitialization : IArrayInitializer
     {
-        protected override OperationKind ExpressionKind => OperationKind.None;
+        public ImmutableArray<IExpression> ElementValues => this.Initializers.As<IExpression>();
+
+        protected override OperationKind ExpressionKind => OperationKind.ArrayInitializer;
     }
 
     partial class BoundDefaultOperator
@@ -687,9 +766,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IReferenceExpression IAssignmentExpression.Target => this.Operand as IReferenceExpression;
 
-        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<BoundIncrementOperator, IExpression> IncrementValueMappings = new System.Runtime.CompilerServices.ConditionalWeakTable<BoundIncrementOperator, IExpression>();
+        private static readonly ConditionalWeakTable<BoundIncrementOperator, IExpression> s_incrementValueMappings = new ConditionalWeakTable<BoundIncrementOperator, IExpression>();
 
-        IExpression IAssignmentExpression.Value => IncrementValueMappings.GetValue(this, (increment) => new BoundLiteral(this.Syntax, Semantics.Expression.SynthesizeNumeric(increment.Type, 1), increment.Type));
+        IExpression IAssignmentExpression.Value => s_incrementValueMappings.GetValue(this, (increment) => new BoundLiteral(this.Syntax, Semantics.Expression.SynthesizeNumeric(increment.Type, 1), increment.Type));
 
         bool IHasOperatorExpression.UsesOperatorMethod => (this.OperatorKind & UnaryOperatorKind.TypeMask) == UnaryOperatorKind.UserDefined;
 
@@ -710,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundUnaryOperator : IUnaryOperatorExpression
     {
-        UnaryOperationKind IUnaryOperatorExpression.UnaryKind => Expression.DeriveUnaryOperationKind(this.OperatorKind);
+        UnaryOperationKind IUnaryOperatorExpression.UnaryOperationKind => Expression.DeriveUnaryOperationKind(this.OperatorKind);
 
         IExpression IUnaryOperatorExpression.Operand => this.Operand;
 
@@ -723,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundBinaryOperator : IBinaryOperatorExpression
     {
-        BinaryOperationKind IBinaryOperatorExpression.BinaryKind => Expression.DeriveBinaryOperationKind(this.OperatorKind);
+        BinaryOperationKind IBinaryOperatorExpression.BinaryOperationKind => Expression.DeriveBinaryOperationKind(this.OperatorKind);
 
         IExpression IBinaryOperatorExpression.Left => this.Left;
 

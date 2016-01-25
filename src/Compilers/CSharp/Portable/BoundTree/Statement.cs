@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -124,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return ImmutableArray<IStatement>.Empty;
             }
-            
+
             return ImmutableArray.Create<IStatement>(statement);
         }
     }
@@ -142,20 +144,52 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind StatementKind => OperationKind.LoopStatement;
     }
 
-    partial class BoundSwitchStatement: ISwitchStatement
+    partial class BoundSwitchStatement : ISwitchStatement
     {
+        private static readonly ConditionalWeakTable<BoundSwitchStatement, object> s_switchSectionsMappings =
+            new ConditionalWeakTable<BoundSwitchStatement, object>();
+
         IExpression ISwitchStatement.Value => this.BoundExpression;
 
-        ImmutableArray<ICase> ISwitchStatement.Cases => this.SwitchSections.As<ICase>();
+        ImmutableArray<ICase> ISwitchStatement.Cases
+        {
+            get
+            {
+                return (ImmutableArray<ICase>) s_switchSectionsMappings.GetValue(this, 
+                    switchStatement =>
+                    {
+                        return switchStatement.SwitchSections.SelectAsArray(switchSection => (ICase)new SwitchSection(switchSection));   
+                    });
+            }
+        }
 
         protected override OperationKind StatementKind => OperationKind.SwitchStatement;
+
+        private class SwitchSection : ICase
+        {
+            public SwitchSection(BoundSwitchSection boundNode)
+            {
+                this.Body = boundNode.Statements.As<IStatement>();
+                this.Clauses = boundNode.BoundSwitchLabels.As<ICaseClause>();
+                this.IsInvalid = boundNode.HasErrors;
+                this.Syntax = boundNode.Syntax;
+            }
+
+            public ImmutableArray<IStatement> Body { get; }
+
+            public ImmutableArray<ICaseClause> Clauses { get; }
+
+            public bool IsInvalid { get; }
+
+            public OperationKind Kind => OperationKind.SwitchSection;
+
+            public SyntaxNode Syntax { get; }
+        }
     }
 
-    partial class BoundSwitchSection : ICase
+    partial class BoundSwitchSection
     {
-        ImmutableArray<ICaseClause> ICase.Clauses => this.BoundSwitchLabels.As<ICaseClause>();
-
-        ImmutableArray<IStatement> ICase.Body => this.Statements.As<IStatement>();
+        protected override OperationKind StatementKind => OperationKind.None;
     }
 
     partial class BoundSwitchLabel : ISingleValueCaseClause
@@ -200,6 +234,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         CaseKind ICaseClause.CaseKind => this.ExpressionOpt != null ? CaseKind.SingleValue : CaseKind.Default;
+
+        OperationKind IOperation.Kind => OperationKind.SingleValueCaseClause;
+
+        bool IOperation.IsInvalid => this.HasErrors;
+
+        SyntaxNode IOperation.Syntax => this.Syntax;
     }
 
     partial class BoundTryStatement : ITryStatement
@@ -239,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind StatementKind => OperationKind.FixedStatement;
     }
 
-    partial class BoundUsingStatement: IUsingWithDeclarationStatement, IUsingWithExpressionStatement
+    partial class BoundUsingStatement : IUsingWithDeclarationStatement, IUsingWithExpressionStatement
     {
         IVariableDeclarationStatement IUsingWithDeclarationStatement.Variables => this.DeclarationsOpt;
 
@@ -310,20 +350,38 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind StatementKind => OperationKind.None;
     }
 
-    partial class BoundLocalDeclaration : IVariableDeclarationStatement, IVariable
+    partial class BoundLocalDeclaration : IVariableDeclarationStatement
     {
-        ImmutableArray<IVariable> IVariableDeclarationStatement.Variables => ImmutableArray.Create<IVariable>(this);
+        private static readonly ConditionalWeakTable<BoundLocalDeclaration, object> s_variablesMappings =
+            new ConditionalWeakTable<BoundLocalDeclaration, object>();
 
-        ILocalSymbol IVariable.Variable => this.LocalSymbol;
-
-        IExpression IVariable.InitialValue => this.InitializerOpt;
+        ImmutableArray<IVariable> IVariableDeclarationStatement.Variables
+        {
+            get
+            {
+                return (ImmutableArray<IVariable>) s_variablesMappings.GetValue(this, 
+                    declaration => ImmutableArray.Create<IVariable>(new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
+            }
+        }
 
         protected override OperationKind StatementKind => OperationKind.VariableDeclarationStatement;
     }
 
     partial class BoundMultipleLocalDeclarations : IVariableDeclarationStatement
     {
-        ImmutableArray<IVariable> IVariableDeclarationStatement.Variables => this.LocalDeclarations.As<IVariable>();
+        private static readonly ConditionalWeakTable<BoundMultipleLocalDeclarations, object> s_variablesMappings =
+            new ConditionalWeakTable<BoundMultipleLocalDeclarations, object>();
+
+        ImmutableArray<IVariable> IVariableDeclarationStatement.Variables
+        {
+            get
+            {
+                return (ImmutableArray<IVariable>)s_variablesMappings.GetValue(this,
+                    multipleDeclarations =>
+                        multipleDeclarations.LocalDeclarations.SelectAsArray(declaration => 
+                            (IVariable)new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
+            }
+        }
 
         protected override OperationKind StatementKind => OperationKind.VariableDeclarationStatement;
     }

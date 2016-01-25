@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     {
         private async Task TestWithOptionsAsync(CSharpParseOptions options, string markup, params Action<object>[] expectedResults)
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup, options))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(markup, options))
             {
                 await TestWithOptionsAsync(workspace, expectedResults);
             }
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     </Project>
 </Workspace>", SecurityElement.Escape(markup));
 
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(xmlString))
+            using (var workspace = await TestWorkspace.CreateAsync(xmlString))
             {
                 var position = workspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
                 var documentId = workspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
@@ -256,7 +256,7 @@ using System.Linq;
 
         private async Task VerifyWithReferenceWorkerAsync(string xmlString, params Action<object>[] expectedResults)
         {
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(xmlString))
+            using (var workspace = await TestWorkspace.CreateAsync(xmlString))
             {
                 var position = workspace.Documents.First(d => d.Name == "SourceDocument").CursorPosition.Value;
                 var documentId = workspace.Documents.First(d => d.Name == "SourceDocument").Id;
@@ -1264,6 +1264,23 @@ class C
 }";
             await TestAsync(markup, MainDescription($"({CSharpFeaturesResources.Awaitable}) class System.Threading.Tasks.Task<TResult>"),
                          TypeParameterMap($"\r\nTResult {FeaturesResources.Is} int"));
+        }
+
+        [WorkItem(7100, "https://github.com/dotnet/roslyn/issues/7100")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDynamicIsntAwaitable()
+        {
+            var markup = @"
+class C
+{
+    dynamic D() { return null; }
+    void M()
+    {
+        D$$();
+    }
+}
+";
+            await TestAsync(markup, MainDescription("dynamic C.D()"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -3259,7 +3276,7 @@ class C
 
             var documentation = $@"
 {WorkspacesResources.Usage}
-  {CSharpFeaturesResources.Await} Foo();";
+  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} Foo();";
 
             await VerifyWithMscorlib45Async(markup, new[] { MainDescription(description), Usage(documentation) });
         }
@@ -4227,7 +4244,7 @@ class C
     </Submission>
 </Workspace>
 ";
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive))
+            using (var workspace = await TestWorkspace.CreateAsync(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive))
             {
                 await TestWithOptionsAsync(workspace, MainDescription("(parameter) int x = 1"));
             }

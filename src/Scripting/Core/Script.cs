@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         private async Task<ScriptState<T>> RunSubmissionsAsync(ScriptExecutionState executionState, ImmutableArray<Func<object[], Task>> precedingExecutors, Func<object[], Task> currentExecutor, CancellationToken cancellationToken)
         {
-            var result = await executionState.RunSubmissionsAsync<T>(precedingExecutors, currentExecutor, cancellationToken).ConfigureAwait(continueOnCapturedContext: true);
+            var result = await executionState.RunSubmissionsAsync<T>(precedingExecutors, currentExecutor, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
             return new ScriptState<T>(executionState, result, this);
         }
 

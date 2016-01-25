@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Utilities
     {
         Wpf,
         StaUnitTest,
+        JoinableTask,
         Unknown
     }
 
@@ -28,11 +29,23 @@ namespace Microsoft.CodeAnalysis.Utilities
 
         internal static ForegroundThreadDataKind CreateDefault()
         {
-            var kind = SynchronizationContext.Current?.GetType().FullName == "System.Windows.Threading.DispatcherSynchronizationContext"
-                    ? ForegroundThreadDataKind.Wpf
-                    : ForegroundThreadDataKind.Unknown;
+            var syncConextTypeName = SynchronizationContext.Current?.GetType().FullName;
 
-            return kind;
+            switch (syncConextTypeName)
+            {
+                case "System.Windows.Threading.DispatcherSynchronizationContext":
+
+                    return ForegroundThreadDataKind.Wpf;
+
+                case "Microsoft.VisualStudio.Threading.JoinableTask+JoinableTaskSynchronizationContext":
+
+                    return ForegroundThreadDataKind.JoinableTask;
+
+                default:
+
+                    return ForegroundThreadDataKind.Unknown;
+
+            }
         }
 
         internal static ForegroundThreadDataKind CurrentForegroundThreadDataKind

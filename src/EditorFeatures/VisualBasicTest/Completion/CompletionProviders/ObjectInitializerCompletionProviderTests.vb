@@ -402,7 +402,7 @@ End Program</Document>
                            </Project>
                        </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(text)
+            Using workspace = Await TestWorkspace.CreateAsync(text)
                 Dim hostDocument = workspace.Documents.First()
                 Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)

@@ -17,12 +17,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         Inherits TestBase
 
         Private Async Function TestIsAccessibleWithinAsync(workspaceDefinition As XElement, expectedVisible As Boolean) As Tasks.Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim commonSyntaxToken = (Await document.GetSyntaxTreeAsync()).GetTouchingToken(cursorPosition, Nothing)
+                Dim tree = Await document.GetSyntaxTreeAsync()
+                Dim commonSyntaxToken = Await tree.GetTouchingTokenAsync(cursorPosition, Nothing)
 
                 Dim semanticModel = Await document.GetSemanticModelAsync()
                 Dim symbol = semanticModel.GetSymbols(commonSyntaxToken, document.Project.Solution.Workspace, bindLiteralsToUnderlyingType:=False, cancellationToken:=Nothing).First()

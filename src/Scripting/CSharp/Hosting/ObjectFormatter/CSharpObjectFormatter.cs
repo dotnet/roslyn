@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
+using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 
         internal override string FormatLiteral(string value, bool quote, bool useHexadecimalNumbers = false)
         {
-            var options = ObjectDisplayOptions.None;
+            var options = ObjectDisplayOptions.EscapeNonPrintableCharacters;
             if (quote)
             {
                 options |= ObjectDisplayOptions.UseQuotes;
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 
         internal override string FormatLiteral(char c, bool quote, bool includeCodePoints = false, bool useHexadecimalNumbers = false)
         {
-            var options = ObjectDisplayOptions.None;
+            var options = ObjectDisplayOptions.EscapeNonPrintableCharacters;
             if (quote)
             {
                 options |= ObjectDisplayOptions.UseQuotes;
@@ -65,57 +66,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 
         internal override string FormatLiteral(sbyte value, bool useHexadecimalNumbers = false)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers), UIFormatCulture);
         }
 
         internal override string FormatLiteral(byte value, bool useHexadecimalNumbers = false)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers), UIFormatCulture);
         }
 
         internal override string FormatLiteral(short value, bool useHexadecimalNumbers = false)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers), UIFormatCulture);
         }
 
         internal override string FormatLiteral(ushort value, bool useHexadecimalNumbers = false)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers), UIFormatCulture);
         }
 
         internal override string FormatLiteral(int value, bool useHexadecimalNumbers = false)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers), UIFormatCulture);
         }
 
         internal override string FormatLiteral(uint value, bool useHexadecimalNumbers = false)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers), UIFormatCulture);
         }
 
         internal override string FormatLiteral(long value, bool useHexadecimalNumbers = false)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers), UIFormatCulture);
         }
 
         internal override string FormatLiteral(ulong value, bool useHexadecimalNumbers = false)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers), UIFormatCulture);
         }
 
         internal override string FormatLiteral(double value)
         {
-            return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None);
+            return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None, UIFormatCulture);
         }
 
         internal override string FormatLiteral(float value)
         {
-            return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None);
+            return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None, UIFormatCulture);
         }
 
         internal override string FormatLiteral(decimal value)
         {
-            return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None);
+            return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None, UIFormatCulture);
         }
 
         internal override string FormatLiteral(DateTime value)

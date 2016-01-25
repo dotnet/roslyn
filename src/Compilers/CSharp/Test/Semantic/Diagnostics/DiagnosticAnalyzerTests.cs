@@ -896,7 +896,8 @@ public class B
             var anotherCompilation = CreateCompilationWithMscorlib45(source2);
             var treeInAnotherCompilation = anotherCompilation.SyntaxTrees.Single();
             
-            string message = new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, treeInAnotherCompilation.FilePath), "diagnostic").Message;
+            string message = new ArgumentException(
+                string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, AnalyzerWithInvalidDiagnosticLocation.Descriptor.Id, treeInAnotherCompilation.FilePath), "diagnostic").Message;
 
             compilation.VerifyDiagnostics();
 

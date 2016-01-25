@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         private INavigateToItemProvider _provider;
         private NavigateToTestAggregator _aggregator;
 
-        private async Task<TestWorkspace> SetupWorkspaceAsync(params string[] lines)
+        private async Task<TestWorkspace> SetupWorkspaceAsync(string content)
         {
-            var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(lines);
+            var workspace = await TestWorkspace.CreateCSharpAsync(content);
             var aggregateListener = AggregateAsynchronousOperationListener.CreateEmptyListener();
 
             _provider = new NavigateToItemProvider(
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task NoItemsForEmptyFile()
         {
-            using (var workspace = await SetupWorkspaceAsync())
+            using (var workspace = await SetupWorkspaceAsync(""))
             {
                 Assert.Empty(_aggregator.GetItems("Hello"));
             }
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task DescriptionItems()
         {
-            using (var workspace = await SetupWorkspaceAsync("public", "class", "Foo", "{ }"))
+            using (var workspace = await SetupWorkspaceAsync("public\r\nclass\r\nFoo\r\n{ }"))
             {
                 var item = _aggregator.GetItems("F").Single(x => x.Kind != "Method");
                 var itemDisplay = item.DisplayFactory.CreateItemDisplay(item);
@@ -822,6 +822,7 @@ class D
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WorkItem(7855, "https://github.com/dotnet/Roslyn/issues/7855")]
         public async Task DottedPattern7()
         {
             var source = "namespace Foo { namespace Bar { class Baz<X,Y,Z> { void Quux() { } } } }";
@@ -829,7 +830,7 @@ class D
             {
                 var expecteditems = new List<NavigateToItem>
                 {
-                    new NavigateToItem("Quux", NavigateToItemKind.Method, "csharp", null, null, MatchKind.Exact, true, null)
+                    new NavigateToItem("Quux", NavigateToItemKind.Method, "csharp", null, null, MatchKind.Prefix, true, null)
                 };
 
                 var items = _aggregator.GetItems("Baz.Q");
@@ -842,7 +843,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task NoNavigationToGeneratedFiles()
         {
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(@"
+            using (var workspace = await TestWorkspace.CreateAsync(@"
 <Workspace>
     <Project Language=""C#"" CommonReferences=""true"">
         <Document FilePath=""File1.cs"">

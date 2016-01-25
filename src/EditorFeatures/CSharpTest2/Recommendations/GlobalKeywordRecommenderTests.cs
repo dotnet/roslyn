@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Text;
+using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9,15 +9,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class GlobalKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InMethodBody()
+        public async Task TestInMethodBody()
         {
-            VerifyKeyword(AddInsideMethod(@"$$"));
+            await VerifyKeywordAsync(AddInsideMethod(@"$$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InClassDeclaration()
+        public async Task TestInClassDeclaration()
         {
-            VerifyKeyword(@"
+            await VerifyKeywordAsync(@"
 namespace foo
 {
     class bar
@@ -29,16 +29,16 @@ namespace foo
 
         [WorkItem(543628)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInEnumDeclaration()
+        public async Task TestNotInEnumDeclaration()
         {
-            VerifyAbsence(@"enum Foo { $$ }");
+            await VerifyAbsenceAsync(@"enum Foo { $$ }");
         }
 
         [WorkItem(544219)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInObjectInitializerMemberContext()
+        public async Task TestNotInObjectInitializerMemberContext()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 class C
 {
     public int x, y;

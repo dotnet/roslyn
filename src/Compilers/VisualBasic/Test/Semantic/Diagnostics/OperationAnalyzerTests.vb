@@ -12,83 +12,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits BasicTestBase
 
         <Fact>
-        Public Sub ExplicitVsImplicitInstancesVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
-    Public Overridable Sub M1()
-        Me.M1()
-        M1()
-    End Sub
-    Public Sub M2()
-    End Sub
-End Class
-
-Class D
-    Inherits C
-    Public Overrides Sub M1()
-        MyBase.M1()
-        M1()
-        M2()
-    End Sub
-End Class
-]]>
-                             </file>
-                         </compilation>
-
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({New ExplicitVsImplicitInstanceAnalyzer}, Nothing, Nothing, False,
-               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ExplicitInstanceDescriptor.Id, "Me").WithLocation(3, 9),
-               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M1").WithLocation(4, 9),
-               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ExplicitInstanceDescriptor.Id, "MyBase").WithLocation(13, 9),
-               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M1").WithLocation(14, 9),
-               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M2").WithLocation(15, 9))
-        End Sub
-
-        <Fact>
-        Public Sub EventAndMethodReferencesVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Delegate Sub MumbleEventHandler(sender As Object, args As System.EventArgs)
-
-Class C
-    Public Event Mumble As MumbleEventHandler
-
-    Public Sub OnMumble(args As System.EventArgs)
-        AddHandler Mumble, new MumbleEventHandler(AddressOf Mumbler)
-        RaiseEvent Mumble(Me, args)
-        ' Dim o As object = AddressOf Mumble
-        Dim d As MumbleEventHandler = AddressOf Mumbler
-        Mumbler(Me, Nothing)
-        RemoveHandler Mumble, AddressOf Mumbler
-    End Sub
-
-    Private Sub Mumbler(sender As Object, args As System.EventArgs) 
-    End Sub
-End Class
-]]>
-                             </file>
-                         </compilation>
-
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({New MemberReferenceAnalyzer}, Nothing, Nothing, False,
-                Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, new MumbleEventHandler(AddressOf Mumbler)").WithLocation(7, 9),
-                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "AddHandler Mumble, new MumbleEventHandler(AddressOf Mumbler)").WithLocation(7, 9),
-                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(7, 20),
-                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(7, 51),
-                Diagnostic(MemberReferenceAnalyzer.FieldReferenceDescriptor.Id, "Mumble").WithLocation(8, 20),
-                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(10, 39),
-                Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "RemoveHandler Mumble, AddressOf Mumbler").WithLocation(12, 9),
-                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "RemoveHandler Mumble, AddressOf Mumbler").WithLocation(12, 9),
-                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(12, 23),
-                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(12, 31))
-        End Sub
-
-        <Fact>
         Public Sub EmptyArrayVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -364,6 +287,16 @@ Class C
         M0(1)
         M0(1, 2, 4, 3)
     End Sub
+
+    Public Sub M3(Optional a As Integer = Nothing, Optional b As Integer = 0)
+    End Sub
+
+    Public Sub M4()
+        M3(Nothing, 0)
+        M3(Nothing,)
+        M3(,0)
+        M3(,)
+    End Sub
 End Class
 ]]>
                              </file>
@@ -376,8 +309,8 @@ End Class
                                            Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "1").WithLocation(12, 15),
                                            Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "2").WithLocation(12, 21),
                                            Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "4").WithLocation(12, 33),
-                                           Diagnostic(InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)").WithLocation(14, 9),
-                                           Diagnostic(InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)").WithLocation(15, 9),
+                                           Diagnostic(InvocationTestAnalyzer.BigParamArrayArgumentsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)").WithLocation(14, 9),
+                                           Diagnostic(InvocationTestAnalyzer.BigParamArrayArgumentsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)").WithLocation(15, 9),
                                            Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "3").WithLocation(17, 21))
         End Sub
 
@@ -813,6 +746,432 @@ End Class
                                            Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(28, 29),
                                            Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(33, 42),
                                            Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "M0").WithLocation(12, 9)) ' The M0 diagnostic is an artifact of the VB compiler filling in default values in the high-level bound tree, and is questionable.
+        End Sub
+
+        <Fact>
+        Public Sub NullArgumentVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class Foo
+    Public Sub New(X As String)
+
+    End Sub
+End Class
+
+Class C
+    Public Sub M0(x As String, y As String)
+    End Sub
+
+    Public Sub M1()
+        M0("""", """")
+        M0(Nothing, """")
+        M0("""", Nothing)
+        M0(Nothing, Nothing)
+    End Sub
+
+    Public Sub M2()
+        Dim f1 = New Foo("""")
+        Dim f2 = New Foo(Nothing)
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New NullArgumentTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(13, 12),
+                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(14, 18),
+                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(15, 12),
+                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(15, 21),
+                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(20, 26))
+        End Sub
+
+        <Fact>
+        Public Sub MemberInitializerVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class Bar
+    Public Field As Boolean
+End Class
+
+Class Foo
+    Public Field As Integer
+    Public Property Prop1 As String
+    Public Property Prop2 As Bar
+End Class
+
+Class C
+    Public Sub M1()
+        Dim f1 = New Foo()
+        Dim f2 = New Foo() With {.Field = 10}
+        Dim f3 = New Foo With {.Prop1 = Nothing}
+        Dim f4 = New Foo With {.Field = 10, .Prop1 = Nothing}
+        Dim f5 = New Foo With {.Prop2 = New Bar() With {.Field = True}}
+
+        Dim e1 = New Foo() With {.Prop1 = 10}
+        Dim e2 = New Foo With {10}
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedQualifiedNameInInit, "").WithLocation(20, 32))
+            comp.VerifyAnalyzerDiagnostics({New MemberInitializerTestAnalyzer}, Nothing, Nothing, False,
+                                            Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitializerDescriptor.Id, ".Field = 10").WithLocation(14, 34),
+                                            Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, ".Prop1 = Nothing").WithLocation(15, 32),
+                                            Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitializerDescriptor.Id, ".Field = 10").WithLocation(16, 32),
+                                            Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, ".Prop1 = Nothing").WithLocation(16, 45),
+                                            Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, ".Prop2 = New Bar() With {.Field = True}").WithLocation(17, 32),
+                                            Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitializerDescriptor.Id, ".Field = True").WithLocation(17, 57),
+                                            Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, ".Prop1 = 10").WithLocation(19, 34))
+        End Sub
+
+        <Fact>
+        Public Sub AssignmentVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class Bar
+    Public Field As Boolean
+End Class
+
+Class Foo
+    Public Field As Integer
+    Public Property Prop1 As String
+    Public Property Prop2 As Bar
+End Class
+
+Class C
+    Public Sub M1()
+        Dim f1 = New Foo()
+        Dim f2 = New Foo() With {.Field = 10}
+        Dim f3 = New Foo With {.Prop1 = Nothing}
+        Dim f4 = New Foo With {.Field = 10, .Prop1 = Nothing}
+        Dim f5 = New Foo With {.Prop2 = New Bar() With {.Field = True}}
+    End Sub
+
+    Public Sub M2()
+        Dim f1 = New Foo With {.Prop2 = New Bar() With {.Field = True}}
+        f1.Field = 0
+        f1.Prop1 = Nothing
+
+        Dim f2 = New Bar()
+        f2.Field = True
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New AssignmentTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "f1.Field = 0").WithLocation(22, 9),
+                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "f1.Prop1 = Nothing").WithLocation(23, 9),
+                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "f2.Field = True").WithLocation(26, 9))
+        End Sub
+
+        <Fact>
+        Public Sub ArrayInitializerVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub M1()
+        Dim arr1 = New Integer() {}
+        Dim arr2 As Object = {}
+        Dim arr3 = {}
+
+        Dim arr4 = New Integer() {1, 2, 3}
+        Dim arr5 = {1, 2, 3}
+        Dim arr6 As C() = {Nothing, Nothing, Nothing}
+
+        Dim arr7 = New Integer() {1, 2, 3, 4, 5, 6}                                 ' LargeList
+        Dim arr8 = {1, 2, 3, 4, 5, 6}                                               ' LargeList
+        Dim arr9 As C() = {Nothing, Nothing, Nothing, Nothing, Nothing, Nothing}    ' LargeList
+
+        Dim arr10 As Integer(,) = {{1, 2, 3, 4, 5, 6}}      ' LargeList
+        Dim arr11 = New Integer(,) {{1, 2, 3, 4, 5, 6},     ' LargeList
+                                    {7, 8, 9, 10, 11, 12}}  ' LargeList
+        Dim arr12 As C(,) = {{Nothing, Nothing, Nothing, Nothing, Nothing, Nothing},    ' LargeList
+                            {Nothing, Nothing, Nothing, Nothing, Nothing, Nothing}}     ' LargeList
+        Dim arr13 = {{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}}
+
+        ' jagged array
+        Dim arr14 = {({1, 2, 3}), ({4, 5}), ({6}), ({7})}
+        Dim arr15 = {({({1, 2, 3, 4, 5, 6})})}              ' LargeList
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New ArrayInitializerTestAnalyzer()}, Nothing, Nothing, False,
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{1, 2, 3, 4, 5, 6}").WithLocation(11, 34),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{1, 2, 3, 4, 5, 6}").WithLocation(12, 20),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{Nothing, Nothing, Nothing, Nothing, Nothing, Nothing}").WithLocation(13, 27),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{1, 2, 3, 4, 5, 6}").WithLocation(15, 36),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{1, 2, 3, 4, 5, 6}").WithLocation(16, 37),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{7, 8, 9, 10, 11, 12}").WithLocation(17, 37),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{Nothing, Nothing, Nothing, Nothing, Nothing, Nothing}").WithLocation(18, 30),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{Nothing, Nothing, Nothing, Nothing, Nothing, Nothing}").WithLocation(19, 29),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{1, 2, 3, 4, 5, 6}").WithLocation(24, 25))
+        End Sub
+
+        <Fact>
+        Public Sub VariableDeclarationVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+#Disable Warning BC42024
+    Dim field1, field2, field3, field4 As Integer
+    Public Sub M1()
+        Dim a1 = 10
+        Dim b1 As New Integer, b2, b3, b4 As New Foo(1)         'too many
+        Dim c1, c2 As Integer, c3, c4 As Foo                    'too many
+        Dim d1() As Foo
+        Dim e1 As Integer = 10, e2 = {1, 2, 3}, e3, e4 As C     'too many
+        Dim f1 = 10, f2 = 11, f3 As Integer
+        Dim h1, h2, , h3 As Integer                             'too many
+        Dim i1, i2, i3, i4 As New UndefType                     'too many
+        Dim j1, j2, j3, j4 As UndefType                         'too many
+        Dim k1 As Integer, k2, k3, k4 As New Foo(1)             'too many
+    End Sub
+#Enable Warning BC42024
+End Class
+
+Class Foo
+    Public Sub New(X As Integer)
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_ExpectedIdentifier, "").WithLocation(11, 21),
+                Diagnostic(ERRID.ERR_UndefinedType1, "UndefType").WithArguments("UndefType").WithLocation(12, 35),
+                Diagnostic(ERRID.ERR_UndefinedType1, "UndefType").WithArguments("UndefType").WithLocation(12, 35),
+                Diagnostic(ERRID.ERR_UndefinedType1, "UndefType").WithArguments("UndefType").WithLocation(12, 35),
+                Diagnostic(ERRID.ERR_UndefinedType1, "UndefType").WithArguments("UndefType").WithLocation(12, 35),
+                Diagnostic(ERRID.ERR_UndefinedType1, "UndefType").WithArguments("UndefType").WithLocation(13, 31),
+                Diagnostic(ERRID.ERR_UndefinedType1, "UndefType").WithArguments("UndefType").WithLocation(13, 31),
+                Diagnostic(ERRID.ERR_UndefinedType1, "UndefType").WithArguments("UndefType").WithLocation(13, 31),
+                Diagnostic(ERRID.ERR_UndefinedType1, "UndefType").WithArguments("UndefType").WithLocation(13, 31))
+            comp.VerifyAnalyzerDiagnostics({New VariableDeclarationTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "a1").WithLocation(5, 13),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim b1 As New Integer, b2, b3, b4 As New Foo(1)").WithLocation(6, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "b1").WithLocation(6, 13),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "b2").WithLocation(6, 32),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "b3").WithLocation(6, 36),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "b4").WithLocation(6, 40),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim c1, c2 As Integer, c3, c4 As Foo").WithLocation(7, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim e1 As Integer = 10, e2 = {1, 2, 3}, e3, e4 As C").WithLocation(9, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "e1").WithLocation(9, 13),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "e2").WithLocation(9, 33),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "f1").WithLocation(10, 13),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "f2").WithLocation(10, 22),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim h1, h2, , h3 As Integer").WithLocation(11, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim i1, i2, i3, i4 As New UndefType").WithLocation(12, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim j1, j2, j3, j4 As UndefType").WithLocation(13, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim k1 As Integer, k2, k3, k4 As New Foo(1)").WithLocation(14, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "k2").WithLocation(14, 28),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "k3").WithLocation(14, 32),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "k4").WithLocation(14, 36))
+        End Sub
+        <Fact>
+        Public Sub CaseVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub M1(x As Integer)
+        Select Case x
+            Case 1, 2
+                Exit Select
+            Case = 10
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case = 1000
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 10 To 500
+                Exit Select
+            Case = 1000
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1, 980 To 985
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1 to 3, 980 To 985
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case > 100000
+                Exit Select
+        End Select   
+
+        Select Case x
+            Case Else
+                Exit Select
+        End Select     
+
+        Select Case x
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case
+                Exit Select
+        End Select   
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case =
+                Exit Select
+        End Select  
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case 2 to
+                Exit Select
+        End Select  
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(60, 17),
+                                   Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(68, 1),
+                                   Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(74, 22))
+            comp.VerifyAnalyzerDiagnostics({New CaseTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(CaseTestAnalyzer.MultipleCaseClausesDescriptor.Id,
+"Case 1, 2
+                Exit Select").WithLocation(4, 13),
+                Diagnostic(CaseTestAnalyzer.HasDefaultCaseDescriptor.Id, "Case Else").WithLocation(8, 13),
+                Diagnostic(CaseTestAnalyzer.HasDefaultCaseDescriptor.Id, "Case Else").WithLocation(17, 13),
+                Diagnostic(CaseTestAnalyzer.HasDefaultCaseDescriptor.Id, "Case Else").WithLocation(26, 13),
+                Diagnostic(CaseTestAnalyzer.MultipleCaseClausesDescriptor.Id,
+"Case 1, 980 To 985
+                Exit Select").WithLocation(31, 13),
+                Diagnostic(CaseTestAnalyzer.HasDefaultCaseDescriptor.Id, "Case Else").WithLocation(33, 13),
+                Diagnostic(CaseTestAnalyzer.MultipleCaseClausesDescriptor.Id,
+"Case 1 to 3, 980 To 985
+                Exit Select").WithLocation(38, 13),
+                Diagnostic(CaseTestAnalyzer.HasDefaultCaseDescriptor.Id, "Case Else").WithLocation(50, 13))
+        End Sub
+
+        <Fact>
+        Public Sub ExplicitVsImplicitInstancesVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Overridable Sub M1()
+        Me.M1()
+        M1()
+    End Sub
+    Public Sub M2()
+    End Sub
+End Class
+
+Class D
+    Inherits C
+    Public Overrides Sub M1()
+        MyBase.M1()
+        M1()
+        M2()
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New ExplicitVsImplicitInstanceAnalyzer}, Nothing, Nothing, False,
+               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ExplicitInstanceDescriptor.Id, "Me").WithLocation(3, 9),
+               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M1").WithLocation(4, 9),
+               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ExplicitInstanceDescriptor.Id, "MyBase").WithLocation(13, 9),
+               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M1").WithLocation(14, 9),
+               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M2").WithLocation(15, 9))
+        End Sub
+
+        <Fact>
+        Public Sub EventAndMethodReferencesVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Delegate Sub MumbleEventHandler(sender As Object, args As System.EventArgs)
+
+Class C
+    Public Event Mumble As MumbleEventHandler
+
+    Public Sub OnMumble(args As System.EventArgs)
+        AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)
+        RaiseEvent Mumble(Me, args)
+        ' Dim o As object = AddressOf Mumble
+        Dim d As MumbleEventHandler = AddressOf Mumbler
+        Mumbler(Me, Nothing)
+        RemoveHandler Mumble, AddressOf Mumbler
+    End Sub
+
+    Private Sub Mumbler(sender As Object, args As System.EventArgs) 
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New MemberReferenceAnalyzer}, Nothing, Nothing, False,
+                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)").WithLocation(7, 9),
+                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)").WithLocation(7, 9),
+                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(7, 20),
+                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(7, 51),
+                 Diagnostic(MemberReferenceAnalyzer.FieldReferenceDescriptor.Id, "Mumble").WithLocation(8, 20),
+                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(10, 39),
+                 Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "RemoveHandler Mumble, AddressOf Mumbler").WithLocation(12, 9),
+                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "RemoveHandler Mumble, AddressOf Mumbler").WithLocation(12, 9),
+                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(12, 23),
+                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(12, 31))
         End Sub
 
         <Fact>

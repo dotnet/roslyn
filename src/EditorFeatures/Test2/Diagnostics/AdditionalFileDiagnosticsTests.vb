@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(input)
+            Using workspace = Await TestWorkspace.CreateAsync(input)
                 Dim project = workspace.Projects.First()
                 Dim newSln = workspace.CurrentSolution.AddAdditionalDocument(DocumentId.CreateNewId(project.Id), "App.Config", SourceText.From("false"))
                 workspace.TryApplyChanges(newSln)
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
         Private Function IsSerializationAllowed(options As AnalyzerOptions) As Boolean
             Dim serializationAllowed = False
             For Each item In options.AdditionalFiles
-                If item.Path.EndsWith("App.config", StringComparison.OrdinalIgnoreCase) Then
+                If item.Path.EndsWith("app.config", StringComparison.OrdinalIgnoreCase) Then
                     Dim text = item.GetText()
                     Boolean.TryParse(text.Lines(0).ToString(), serializationAllowed)
                 End If

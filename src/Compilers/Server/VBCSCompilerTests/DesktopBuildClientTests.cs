@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -43,10 +44,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 return _createServerFunc(pipeName);
             }
 
-            protected override int HandleResponse(BuildResponse response, List<string> arguments, BuildPaths buildPaths)
+            protected override RunCompilationResult HandleResponse(BuildResponse response, string[] arguments, BuildPaths buildPaths, TextWriter textWriter)
             {
                 // Override the base so we don't print the compilation output to Console.Out
-                return 0;
+                return RunCompilationResult.Succeeded;
             }
         }
 
@@ -76,11 +77,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 base.Dispose();
             }
 
-            private TestableDesktopBuildClient CreateClient(RequestLanguage? language = null, CompileFunc compileFunc = null)
+            private TestableDesktopBuildClient CreateClient(
+                RequestLanguage? language = null,
+                CompileFunc compileFunc = null,
+                Func<string, bool> createServerFunc = null)
             {
                 language = language ?? RequestLanguage.CSharpCompile;
                 compileFunc = compileFunc ?? delegate { return 0; };
-                return new TestableDesktopBuildClient(language.Value, compileFunc, _pipeName, TryCreateServer);
+                createServerFunc = createServerFunc ?? TryCreateServer;
+                return new TestableDesktopBuildClient(language.Value, compileFunc, _pipeName, createServerFunc);
             }
 
             private bool TryCreateServer(string pipeName)
@@ -94,6 +99,33 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 var serverData = ServerUtil.CreateServer(pipeName);
                 _serverDataList.Add(serverData);
                 return true;
+            }
+
+            [Fact]
+            public void ConnectToServerFails()
+            {
+                // Create and grab the mutex for the server. This should make
+                // the client believe that a server is active and it will try
+                // to connect. When it fails it should fall back to in-proc
+                // compilation.
+                bool holdsMutex;
+                using (var serverMutex = new Mutex(initiallyOwned: true,
+                                                   name: BuildProtocolConstants.GetServerMutexName(_pipeName),
+                                                   createdNew: out holdsMutex))
+                {
+                    Assert.True(holdsMutex);
+                    var ranLocal = false;
+                    // Note: Connecting to a server can take up to a second to time out
+                    var client = CreateClient(
+                        compileFunc: delegate
+                        {
+                            ranLocal = true;
+                            return 0;
+                        });
+                    var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths).ExitCode;
+                    Assert.Equal(0, exitCode);
+                    Assert.True(ranLocal);
+                }
             }
 
             [Fact]
@@ -126,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     return 0;
                 });
 
-                var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths);
+                var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths).ExitCode;
                 Assert.Equal(0, exitCode);
                 Assert.True(ranLocal);
                 Assert.Equal(1, _failedCreatedServerCount);

@@ -361,7 +361,7 @@ class Program
             Assert.Equal(expected, actual);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7803")]
         public void TestConstantDecimalComparisons02()
         {
             var source =

@@ -7,7 +7,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
-using static Roslyn.Utilities.PortableShim;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -55,55 +54,92 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public int Count => _nodes.Count;
 
+        public Task<IEnumerable<ISymbol>> FindAsync(SearchQuery query, IAssemblySymbol assembly, CancellationToken cancellationToken)
+        {
+            return FindAsync(query, new AsyncLazy<IAssemblySymbol>(assembly), cancellationToken);
+        }
+
+        public Task<IEnumerable<ISymbol>> FindAsync(SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, CancellationToken cancellationToken)
+        {
+            // If the query has a specific string provided, then call into the SymbolTreeInfo
+            // helpers optimized for lookup based on an exact name.
+            switch (query.Kind)
+            {
+                case SearchKind.Exact:
+                    return this.FindAsync(lazyAssembly, query.Name, ignoreCase: false, cancellationToken: cancellationToken);
+                case SearchKind.ExactIgnoreCase:
+                    return this.FindAsync(lazyAssembly, query.Name, ignoreCase: true, cancellationToken: cancellationToken);
+                case SearchKind.Fuzzy:
+                    return this.FuzzyFindAsync(lazyAssembly, query.Name, cancellationToken);
+                case SearchKind.Custom:
+                    // Otherwise, we'll have to do a slow linear search over all possible symbols.
+                    return this.FindAsync(lazyAssembly, query.GetPredicate(), cancellationToken);
+            }
+
+            throw new InvalidOperationException();
+        }
+
         /// <summary>
         /// Finds symbols in this assembly that match the provided name in a fuzzy manner.
         /// </summary>
-        public IEnumerable<ISymbol> FuzzyFind(IAssemblySymbol assembly, string name, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ISymbol>> FuzzyFindAsync(AsyncLazy<IAssemblySymbol> lazyAssembly, string name, CancellationToken cancellationToken)
         {
             var similarNames = _spellChecker.FindSimilarWords(name);
-            return similarNames.SelectMany(n => Find(assembly, n, ignoreCase: true, cancellationToken: cancellationToken));
+            var result = new List<ISymbol>();
+
+            foreach (var similarName in similarNames)
+            {
+                var symbols = await FindAsync(lazyAssembly, similarName, ignoreCase: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                result.AddRange(symbols);
+            }
+
+            return result;
         }
 
         /// <summary>
         /// Get all symbols that have a name matching the specified name.
         /// </summary>
-        public IEnumerable<ISymbol> Find(
-            IAssemblySymbol assembly,
+        public async Task<IEnumerable<ISymbol>> FindAsync(
+            AsyncLazy<IAssemblySymbol> lazyAssembly,
             string name,
             bool ignoreCase,
             CancellationToken cancellationToken)
         {
             var comparer = GetComparer(ignoreCase);
+            var result = new List<ISymbol>();
+            IAssemblySymbol assemblySymbol = null;
 
             foreach (var node in FindNodes(name, comparer))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                foreach (var symbol in Bind(node, assembly.GlobalNamespace, cancellationToken))
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    yield return symbol;
-                }
+                assemblySymbol = assemblySymbol ?? await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+                result.AddRange(Bind(node, assemblySymbol.GlobalNamespace, cancellationToken));
             }
+
+            return result;
         }
 
         /// <summary>
         /// Slow, linear scan of all the symbols in this assembly to look for matches.
         /// </summary>
-        public IEnumerable<ISymbol> Find(IAssemblySymbol assembly, Func<string, bool> predicate, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ISymbol>> FindAsync(AsyncLazy<IAssemblySymbol> lazyAssembly, Func<string, bool> predicate, CancellationToken cancellationToken)
         {
+            var result = new List<ISymbol>();
+            IAssemblySymbol assembly = null;
             for (int i = 0, n = _nodes.Count; i < n; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var node = _nodes[i];
                 if (predicate(node.Name))
                 {
-                    foreach (var symbol in Bind(i, assembly.GlobalNamespace, cancellationToken))
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        yield return symbol;
-                    }
+                    assembly = assembly ?? await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+                    result.AddRange(Bind(i, assembly.GlobalNamespace, cancellationToken));
                 }
             }
+
+            return result;
         }
 
         private static StringComparer GetComparer(bool ignoreCase)
@@ -181,24 +217,68 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         #region Construction
 
-        private static readonly ConditionalWeakTable<IAssemblySymbol, SymbolTreeInfo> s_assemblyInfos = new ConditionalWeakTable<IAssemblySymbol, SymbolTreeInfo>();
+        // Cache the symbol tree infos for assembly symbols that share the same underlying metadata.
+        // Generating symbol trees for metadata can be expensive (in large metadata cases).  And it's
+        // common for us to have many threads to want to search the same metadata simultaneously.
+        // As such, we want to only allow one thread to produce the tree for some piece of metadata
+        // at a time.  
+        //
+        // AsyncLazy would normally be an ok choice here.  However, in the case where all clients
+        // cancel their request, we don't want ot keep the AsyncLazy around.  It may capture a lot
+        // of immutable state (like a Solution) that we don't want kept around indefinitely.  So we
+        // only cache results (the symbol tree infos) if they successfully compute to completion.
+        private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim> s_metadataIdToGate = new ConditionalWeakTable<MetadataId, SemaphoreSlim>();
+        private static readonly ConditionalWeakTable<MetadataId, SymbolTreeInfo> s_metadataIdToInfo = new ConditionalWeakTable<MetadataId, SymbolTreeInfo>();
+
+        private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim>.CreateValueCallback s_metadataIdToGateCallback = 
+            _ => new SemaphoreSlim(1);
 
         /// <summary>
         /// this gives you SymbolTreeInfo for a metadata
         /// </summary>
-        public static async Task<SymbolTreeInfo> GetInfoForAssemblyAsync(Solution solution, IAssemblySymbol assembly, string filePath, CancellationToken cancellationToken)
+        public static async Task<SymbolTreeInfo> TryGetInfoForMetadataAssemblyAsync(
+            Solution solution,
+            IAssemblySymbol assembly,
+            PortableExecutableReference reference, 
+            bool loadOnly,
+            CancellationToken cancellationToken)
         {
-            SymbolTreeInfo info;
-            if (s_assemblyInfos.TryGetValue(assembly, out info))
+            var metadata = assembly.GetMetadata();
+            if (metadata == null)
             {
-                return info;
+                return null;
             }
 
-            // IAssemblySymbol is immutable, even if we encounter a race, we might do same work twice but still will be correct.
-            // now, we can't use AsyncLazy here since constructing information requires a solution. if we ever get cancellation before
-            // finishing calculating, async lazy will hold onto solution graph until next call (if it ever gets called)
-            info = await LoadOrCreateAsync(solution, assembly, filePath, cancellationToken).ConfigureAwait(false);
-            return s_assemblyInfos.GetValue(assembly, _ => info);
+            // Find the lock associated with this piece of metadata.  This way only one thread is
+            // computing a symbol tree info for a particular piece of metadata at a time.
+            var gate = s_metadataIdToGate.GetValue(metadata.Id, s_metadataIdToGateCallback);
+            using (await gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                SymbolTreeInfo info;
+                if (s_metadataIdToInfo.TryGetValue(metadata.Id, out info))
+                {
+                    return info;
+                }
+
+                info = await LoadOrCreateAsync(solution, assembly, reference.FilePath, loadOnly, cancellationToken).ConfigureAwait(false);
+                if (info == null && loadOnly)
+                {
+                    return null;
+                }
+
+                return s_metadataIdToInfo.GetValue(metadata.Id, _ => info);
+            }
+        }
+
+        public static async Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
+            Project project, CancellationToken cancellationToken)
+        {
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+            return await LoadOrCreateAsync(
+                project.Solution, compilation.Assembly, project.FilePath, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         internal static SymbolTreeInfo Create(VersionStamp version, IAssemblySymbol assembly, CancellationToken cancellationToken)

@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim textSpan = CompletionUtilities.GetTextChangeSpan(text, position)
 
             Dim compilation = semanticModel.Compilation
-            Dim context = VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
+            Dim context = Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
 
             Return semanticModel.LookupNamespacesAndTypes(position) _
                 .OfType(Of INamedTypeSymbol)() _

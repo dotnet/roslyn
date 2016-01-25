@@ -54,28 +54,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Note that the parsing logic in Csc/Vbc MSBuild tasks to decode command line compiler output relies on diagnostics having a valid ID.
                 // See https://github.com/dotnet/roslyn/issues/4376 for details.
                 throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticIdReported, diagnostic.Id), nameof(diagnostic));
-            } 
+            }
         }
 
         internal static void VerifyDiagnosticLocationsInCompilation(Diagnostic diagnostic, Compilation compilation)
         {
-            VerifyDiagnosticLocationInCompilation(diagnostic.Location, compilation);
+            VerifyDiagnosticLocationInCompilation(diagnostic.Id, diagnostic.Location, compilation);
 
             if (diagnostic.AdditionalLocations != null)
             {
                 foreach (var location in diagnostic.AdditionalLocations)
                 {
-                    VerifyDiagnosticLocationInCompilation(location, compilation);
+                    VerifyDiagnosticLocationInCompilation(diagnostic.Id, diagnostic.Location, compilation);
                 }
             }
         }
 
-        private static void VerifyDiagnosticLocationInCompilation(Location location, Compilation compilation)
+        private static void VerifyDiagnosticLocationInCompilation(string id, Location location, Compilation compilation)
         {
             if (location.IsInSource && !compilation.ContainsSyntaxTree(location.SourceTree))
             {
                 // Disallow diagnostics with source locations outside this compilation.
-                throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, location.SourceTree.FilePath), "diagnostic");
+                throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, id, location.SourceTree.FilePath), "diagnostic");
             }
         }
 

@@ -424,7 +424,7 @@ class C
 {
 }";
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(PickySemanticFactsService)));
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceFromFilesAsync(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, exportProvider))
+            using (var workspace = await TestWorkspace.CreateAsync(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, exportProvider))
             {
                 // This test uses MEF to compose in an ISyntaxFactsService that 
                 // asserts it isn't asked to speculate on nodes inside documentation trivia.
@@ -907,6 +907,11 @@ class C
             }
 
             public TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+
+            public string GetNameForArgument(SyntaxNode argument)
             {
                 throw new NotImplementedException();
             }

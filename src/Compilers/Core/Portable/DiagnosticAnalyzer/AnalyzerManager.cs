@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public async Task<GeneratedCodeAnalysisFlags> GetGeneratedCodeAnalysisFlagsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
         {
             var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-            return sessionScope.GetGeneratedCodeAnalysisFlags(analyzer);                
+            return sessionScope.GetGeneratedCodeAnalysisFlags(analyzer);
         }
 
         /// <summary>

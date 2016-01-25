@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     {
                         var state = stateSet.GetState((StateType)i);
 
-                        if (!(set.Add(ValueTuple.Create(state.Language, state.Name))))
+                        if (!(set.Add(ValueTuple.Create(state.Language_TestingOnly, state.Name_TestingOnly))))
                         {
                             Contract.Fail();
                         }

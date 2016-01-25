@@ -126,13 +126,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return SpecializedTasks.EmptyEnumerable<ISymbol>();
             }
 
-            return FindDeclarationsAsync(project, SearchQuery.Create(name, ignoreCase), includeDirectReferences: true, cancellationToken: cancellationToken);
+            return FindDeclarationsAsync(project, SearchQuery.Create(name, ignoreCase), cancellationToken: cancellationToken);
         }
 
         internal static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
-            Project project, SearchQuery query, bool includeDirectReferences, CancellationToken cancellationToken)
+            Project project, SearchQuery query, CancellationToken cancellationToken)
         {
-            return FindDeclarationsAsync(project, query, SymbolFilter.All, includeDirectReferences, cancellationToken);
+            return FindDeclarationsAsync(project, query, SymbolFilter.All, cancellationToken);
         }
 
         /// <summary>
@@ -151,11 +151,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return SpecializedTasks.EmptyEnumerable<ISymbol>();
             }
 
-            return FindDeclarationsAsync(project, SearchQuery.Create(name, ignoreCase), filter, includeDirectReferences: true, cancellationToken: cancellationToken);
+            return FindDeclarationsAsync(project, SearchQuery.Create(name, ignoreCase), filter, cancellationToken: cancellationToken);
         }
 
         internal static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
-            Project project, SearchQuery query, SymbolFilter filter, bool includeDirectReferences, CancellationToken cancellationToken)
+            Project project, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
         {
             if (project == null)
             {
@@ -169,12 +169,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_FindDeclarationsAsync, cancellationToken))
             {
-                return FindDeclarationsAsyncImpl(project, query, filter, includeDirectReferences, cancellationToken);
+                return FindDeclarationsAsyncImpl(project, query, filter, cancellationToken);
             }
         }
 
         private static async Task<IEnumerable<ISymbol>> FindDeclarationsAsyncImpl(
-            Project project, SearchQuery query, SymbolFilter criteria, bool includeDirectReferences, CancellationToken cancellationToken)
+            Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
@@ -184,21 +184,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             await AddDeclarationsAsync(project, query, criteria, list, cancellationToken).ConfigureAwait(false);
 
             // get declarations from directly referenced projects and metadata
-            if (includeDirectReferences)
+            foreach (var assembly in compilation.GetReferencedAssemblySymbols())
             {
-                foreach (var assembly in compilation.GetReferencedAssemblySymbols())
+                var assemblyProject = project.Solution.GetProject(assembly, cancellationToken);
+                if (assemblyProject != null)
                 {
-                    var assemblyProject = project.Solution.GetProject(assembly, cancellationToken);
-                    if (assemblyProject != null)
-                    {
-                        await AddDeclarationsAsync(assemblyProject, query, criteria, list, compilation, assembly, cancellationToken).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        await AddDeclarationsAsync(
-                            project.Solution, assembly, GetMetadataReferenceFilePath(compilation.GetMetadataReference(assembly)),
-                            query, criteria, list, cancellationToken).ConfigureAwait(false);
-                    }
+                    await AddDeclarationsAsync(assemblyProject, query, criteria, list, compilation, assembly, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    await AddDeclarationsAsync(
+                        project.Solution, assembly, compilation.GetMetadataReference(assembly) as PortableExecutableReference,
+                        query, criteria, list, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -272,7 +269,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         internal static async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
-            Solution solution, IAssemblySymbol assembly, string filePath, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
+            Solution solution, IAssemblySymbol assembly, PortableExecutableReference reference, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
         {
             if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
             {
@@ -280,39 +277,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             var result = new List<ISymbol>();
-            await AddDeclarationsAsync(solution, assembly, filePath, query, filter, result, cancellationToken).ConfigureAwait(false);
+            await AddDeclarationsAsync(solution, assembly, reference, query, filter, result, cancellationToken).ConfigureAwait(false);
             return result;
         }
 
         private static async Task AddDeclarationsAsync(
-            Solution solution, IAssemblySymbol assembly, string filePath, SearchQuery query, SymbolFilter filter, List<ISymbol> list, CancellationToken cancellationToken)
+            Solution solution, IAssemblySymbol assembly, PortableExecutableReference referenceOpt, SearchQuery query, SymbolFilter filter, List<ISymbol> list, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.SymbolFinder_Assembly_AddDeclarationsAsync, cancellationToken))
             {
-                var info = await SymbolTreeInfo.GetInfoForAssemblyAsync(solution, assembly, filePath, cancellationToken).ConfigureAwait(false);
-
-                list.AddRange(FilterByCriteria(Find(query, info, assembly, cancellationToken), filter));
+                if (referenceOpt != null)
+                {
+                    var info = await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(solution, assembly, referenceOpt, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    if (info != null)
+                    {
+                        var symbols = await info.FindAsync(query, assembly, cancellationToken).ConfigureAwait(false);
+                        list.AddRange(FilterByCriteria(symbols, filter));
+                    }
+                }
             }
-        }
-
-        private static IEnumerable<ISymbol> Find(SearchQuery query, SymbolTreeInfo info, IAssemblySymbol assembly, CancellationToken cancellationToken)
-        {
-            // If the query has a specific string provided, then call into the SymbolTreeInfo
-            // helpers optimized for lookup based on an exact name.
-            switch (query.Kind)
-            {
-                case SearchKind.Exact:
-                    return info.Find(assembly, query.Name, ignoreCase: false, cancellationToken: cancellationToken);
-                case SearchKind.ExactIgnoreCase:
-                    return info.Find(assembly, query.Name, ignoreCase: true, cancellationToken: cancellationToken);
-                case SearchKind.Fuzzy:
-                    return info.FuzzyFind(assembly, query.Name, cancellationToken);
-                case SearchKind.Custom:
-                    // Otherwise, we'll have to do a slow linear search over all possible symbols.
-                    return info.Find(assembly, query.GetPredicate(), cancellationToken);
-            }
-
-            throw new InvalidOperationException();
         }
 
         /// <summary>
@@ -495,7 +478,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static IEnumerable<ISymbol> FilterByCriteria(IEnumerable<ISymbol> symbols, SymbolFilter criteria)
+        internal static IEnumerable<ISymbol> FilterByCriteria(IEnumerable<ISymbol> symbols, SymbolFilter criteria)
         {
             foreach (var symbol in symbols)
             {

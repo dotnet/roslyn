@@ -20,7 +20,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
             ' using GetTouchingWord instead of FindToken allows us to test scenarios where cursor is at the end of token (E.g: Foo$$)
-            Dim commonSyntaxToken = (Await document.GetSyntaxTreeAsync()).GetTouchingWord(cursorPosition, languageServiceProvider.GetService(Of ISyntaxFactsService), Nothing)
+            Dim tree = Await document.GetSyntaxTreeAsync()
+            Dim commonSyntaxToken = Await tree.GetTouchingWordAsync(cursorPosition, languageServiceProvider.GetService(Of ISyntaxFactsService), Nothing)
 
             ' For String Literals GetTouchingWord returns Nothing, we still need this for Quick Info. Quick Info code does exactly the following.
             ' caveat: The comment above the previous line of code. Do not put the cursor at the end of the token.
@@ -43,13 +44,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Function
 
         Private Async Function TestCSharpAsync(workspaceDefinition As XElement, expectedDescription As String) As Tasks.Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Await TestAsync(GetLanguageServiceProvider(workspace, LanguageNames.CSharp), workspace, expectedDescription)
             End Using
         End Function
 
         Private Async Function TestBasicAsync(workspaceDefinition As XElement, expectedDescription As String) As Tasks.Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Await TestAsync(GetLanguageServiceProvider(workspace, LanguageNames.VisualBasic), workspace, expectedDescription)
             End Using
         End Function

@@ -29,7 +29,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <NoWarn>1591</NoWarn>
-    <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
@@ -38,7 +37,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>true</Optimize>
     <NoWarn>1591</NoWarn>
-    <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
@@ -67,6 +65,7 @@
     <Compile Include="Compilation\ScriptCompilationInfo.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.GeneratedCodeUtilities.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.CompilationData.cs" />
+    <Compile Include="DiagnosticAnalyzer\AnalysisContextInfo.cs" />
     <Compile Include="DiagnosticAnalyzer\SuppressMessageInfo.cs" />
     <Compile Include="Diagnostic\SuppressionInfo.cs" />
     <Compile Include="InternalUtilities\SetWithInsertionOrder.cs" />
@@ -75,6 +74,8 @@
     <Compile Include="RealParser.cs" />
     <Compile Include="ReferenceManager\MergedAliases.cs" />
     <Compile Include="StrongName\CryptoBlobParser.cs" />
+    <Compile Include="Syntax\ICompilationUnitSyntax.cs" />
+    <Compile Include="Syntax\ISkippedTokensTriviaSyntax.cs" />
     <Compile Include="Text\LargeTextWriter.cs" />
     <Compile Include="Text\SourceTextWriter.cs" />
     <Compile Include="Text\StringTextWriter.cs" />
@@ -94,7 +95,6 @@
     <Compile Include="CodeGen\ILBuilder.cs" />
     <Compile Include="CodeGen\ILBuilderConversions.cs" />
     <Compile Include="CodeGen\ILBuilderEmit.cs" />
-    <Compile Include="CodeGen\ILOpCode.cs" />
     <Compile Include="CodeGen\ILOpCodeExtensions.cs" />
     <Compile Include="CodeGen\ITokenDeferral.cs" />
     <Compile Include="CodeGen\LabelInfo.cs" />
@@ -461,7 +461,6 @@
     <Compile Include="PEWriter\CustomDebugInfoConstants.cs" />
     <Compile Include="PEWriter\CustomDebugInfoWriter.cs" />
     <Compile Include="PEWriter\DebugSourceDocument.cs" />
-    <Compile Include="PEWriter\DirectoryEntry.cs" />
     <Compile Include="PEWriter\ExceptionHandlerRegion.cs" />
     <Compile Include="PEWriter\Expressions.cs" />
     <Compile Include="PEWriter\AssemblyReferenceAlias.cs" />

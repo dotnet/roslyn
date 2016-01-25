@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Dim textSpan As TextSpan
             MarkupTestFile.GetSpan(codeWithMarker.NormalizedValue, codeWithoutMarker, textSpan)
 
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(codeWithoutMarker)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(codeWithoutMarker)
                 Dim treeAfterExtractMethod = Await ExtractMethodAsync(workspace, workspace.Documents.First(), textSpan, succeeded:=False, dontPutOutOrRefOnStruct:=dontPutOutOrRefOnStruct)
             End Using
         End Function
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Dim textSpan As TextSpan
             MarkupTestFile.GetSpan(codeWithMarker.NormalizedValue, codeWithoutMarker, textSpan)
 
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(codeWithoutMarker)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(codeWithoutMarker)
                 Assert.NotNull(Await Record.ExceptionAsync(Async Function()
                                                                Dim tree = Await ExtractMethodAsync(workspace, workspace.Documents.First(), textSpan)
                                                            End Function))
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
 
             Dim metadataReferences = If(metadataReference Is Nothing, Array.Empty(Of String)(), New String() {metadataReference})
 
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFilesAsync(New String() {codeWithMarker}, metadataReferences:=metadataReferences, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(New String() {codeWithMarker}, metadataReferences:=metadataReferences, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
                 Dim document = workspace.Documents.First()
                 Dim subjectBuffer = document.TextBuffer
@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
 
             MarkupTestFile.GetSpans(codeWithMarker.NormalizedValue, codeWithoutMarker, namedSpans)
 
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(codeWithoutMarker)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(codeWithoutMarker)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Assert.NotNull(document)
 
@@ -154,8 +154,8 @@ End Class</text>
             Await TestSelectionAsync(markupWithMarker, expectedFail)
         End Function
 
-        Private Shared Async Function IterateAllAsync(ByVal code As String) As Tasks.Task
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code)
+        Private Shared Async Function IterateAllAsync(code As String) As Tasks.Task
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Assert.NotNull(document)
 

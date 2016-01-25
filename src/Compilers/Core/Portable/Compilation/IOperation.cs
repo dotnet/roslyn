@@ -106,6 +106,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         // Newly added
 
         ConditionalAccessExpression,
-        IncrementExpression
+        IncrementExpression,
+
+        Argument,
+        FieldInitializer,
+        PropertyInitializer,
+        ArrayInitializer,
+        VariableDeclaration,
+        SwitchSection,
+        SingleValueCaseClause,
+        RelationalCaseClause,
+        RangeCaseClause
     }
 }

@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     {
         internal override async Task<IEnumerable<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, CSharpParseOptions options)
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code, options))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(code, options))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
@@ -1401,7 +1402,7 @@ class C
         public async Task TestCreateWithBufferNotInWorkspace()
         {
             // don't crash
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(""))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(""))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
@@ -1410,26 +1411,27 @@ class C
                 var extraBuffer = workspace.ExportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer("", contentType);
 
                 WpfTestCase.RequireWpfFact("Creates an IWpfTextView explicitly with an unrelated buffer");
-                var textView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateTextView(extraBuffer);
-
-                var waiter = new Waiter();
-                var provider = new SemanticClassificationViewTaggerProvider(
-                    workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
-                    workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
-                    workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
-                    SpecializedCollections.SingletonEnumerable(
-                        new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
-                        () => waiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.Classification } }))));
-
-                using (var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(textView, extraBuffer))
+                using (var disposableView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(extraBuffer))
                 {
-                    using (var edit = extraBuffer.CreateEdit())
-                    {
-                        edit.Insert(0, "class A { }");
-                        edit.Apply();
-                    }
+                    var waiter = new Waiter();
+                    var provider = new SemanticClassificationViewTaggerProvider(
+                        workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
+                        workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
+                        workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
+                        SpecializedCollections.SingletonEnumerable(
+                            new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
+                            () => waiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.Classification } }))));
 
-                    await waiter.CreateWaitTask();
+                    using (var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer))
+                    {
+                        using (var edit = extraBuffer.CreateEdit())
+                        {
+                            edit.Insert(0, "class A { }");
+                            edit.Apply();
+                        }
+
+                        await waiter.CreateWaitTask();
+                    }
                 }
             }
         }
@@ -1438,7 +1440,7 @@ class C
         public async Task TestGetTagsOnBufferTagger()
         {
             // don't crash
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync("class C { C c; }"))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync("class C { C c; }"))
             {
                 var document = workspace.Documents.First();
 

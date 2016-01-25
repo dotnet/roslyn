@@ -103,15 +103,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return SpecializedTasks.EmptyTask;
         }
 
-        private bool CheckOption(Workspace workspace, string language, bool documentOpened)
+        private bool CheckOption(Workspace workspace, string language, bool forceAnalysis)
         {
-            var optionService = workspace.Services.GetService<IOptionService>();
-            if (optionService == null || optionService.GetOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, language))
+            if (workspace.Options.GetOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, language) &&
+                workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
             {
                 return true;
             }
 
-            if (documentOpened)
+            if (forceAnalysis)
             {
                 return true;
             }
@@ -124,9 +124,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             Contract.ThrowIfFalse(project.SupportsCompilation);
             Contract.ThrowIfNull(compilation);
 
+            Func<Exception, bool> analyzerExceptionFilter = ex =>
+            {
+                if (project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException))
+                {
+                    // if option is on, crash the host to get crash dump.
+                    FatalError.ReportUnlessCanceled(ex);
+                }
+
+                return true;
+            };
+
             var analysisOptions = new CompilationWithAnalyzersOptions(
                 new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Workspace),
                 GetOnAnalyzerException(project.Id),
+                analyzerExceptionFilter,
                 concurrentAnalysis,
                 logAnalyzerExecutionTime: true,
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics);
@@ -181,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         var data = await _executor.GetSyntaxAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
                         {
-                            RaiseDiagnosticsCreated(StateType.Syntax, document.Id, stateSet, new SolutionArgument(document), data.Items);
+                            RaiseDiagnosticsCreatedFromCacheIfNeeded(StateType.Syntax, document, stateSet, data.Items);
                             continue;
                         }
 
@@ -269,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                         if (data.FromCache)
                         {
-                            RaiseDiagnosticsCreated(StateType.Document, document.Id, stateSet, new SolutionArgument(document), data.Items);
+                            RaiseDiagnosticsCreatedFromCacheIfNeeded(StateType.Document, document, stateSet, data.Items);
                             continue;
                         }
 
@@ -306,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         var data = await _executor.GetDocumentAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
                         {
-                            RaiseDiagnosticsCreated(StateType.Document, document.Id, stateSet, new SolutionArgument(document), data.Items);
+                            RaiseDiagnosticsCreatedFromCacheIfNeeded(StateType.Document, document, stateSet, data.Items);
                             continue;
                         }
 
@@ -338,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             try
             {
                 // Compilation actions can report diagnostics on open files, so "documentOpened = true"
-                if (!CheckOption(project.Solution.Workspace, project.Language, documentOpened: true))
+                if (!CheckOption(project.Solution.Workspace, project.Language, forceAnalysis: false))
                 {
                     return;
                 }
@@ -363,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         var data = await _executor.GetProjectAnalysisDataAsync(analyzerDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
                         {
-                            RaiseProjectDiagnosticsUpdated(project, stateSet, data.Items);
+                            RaiseProjectDiagnosticsUpdatedIfNeeded(project, stateSet, ImmutableArray<DiagnosticData>.Empty, data.Items);
                             continue;
                         }
 
@@ -615,6 +627,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             return VersionStamp.CanReusePersistedVersion(versions.TextVersion, existingData.TextVersion) &&
                    project.CanReusePersistedDependentSemanticVersion(versions.ProjectVersion, versions.DataVersion, existingData.DataVersion);
+        }
+
+        private void RaiseDiagnosticsCreatedFromCacheIfNeeded(StateType type, Document document, StateSet stateSet, ImmutableArray<DiagnosticData> items)
+        {
+            RaiseDocumentDiagnosticsUpdatedIfNeeded(type, document, stateSet, ImmutableArray<DiagnosticData>.Empty, items);
         }
 
         private void RaiseDocumentDiagnosticsUpdatedIfNeeded(

@@ -852,12 +852,13 @@ namespace A
             Optional projectRootFilePath As String = Nothing) As Tasks.Task(Of GenerateTypeDialogViewModel)
 
             Dim workspaceXml = If(content.Name.LocalName = "Workspace", content, GetOneProjectWorkspace(content, languageName, projectName, documentName, projectRootFilePath))
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml)
                 Dim testDoc = workspace.Documents.SingleOrDefault(Function(d) d.CursorPosition.HasValue)
                 Assert.NotNull(testDoc)
                 Dim document = workspace.CurrentSolution.GetDocument(testDoc.Id)
 
-                Dim token = (Await document.GetSyntaxTreeAsync()).GetTouchingWord(testDoc.CursorPosition.Value, document.Project.LanguageServices.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
+                Dim tree = Await document.GetSyntaxTreeAsync()
+                Dim token = Await tree.GetTouchingWordAsync(testDoc.CursorPosition.Value, document.Project.LanguageServices.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
                 Dim typeName = token.ToString()
 
                 Dim testProjectManagementService As IProjectManagementService = Nothing

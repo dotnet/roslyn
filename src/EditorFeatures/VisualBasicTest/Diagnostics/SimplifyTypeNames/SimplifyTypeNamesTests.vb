@@ -345,6 +345,15 @@ index:=1)
         index:=0)
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Async Function TestSimplifyTypeInScriptCode() As Task
+            Await TestAsync(
+        NewLines("Imports System \n [|System.Console.WriteLine(0)|]"),
+        NewLines("Imports System \n Console.WriteLine(0)"),
+        parseOptions:=TestOptions.Script,
+        index:=0)
+        End Function
+
         <WorkItem(542093)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestNoSimplificationOfParenthesizedPredefinedTypes() As Task
@@ -1065,7 +1074,7 @@ End Module
 </Code>
 
             Await TestAsync(source.Value, expected.Value)
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(source.Value, Nothing, Nothing)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source.Value, Nothing, Nothing)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim span = diagnosticAndFix.Item1.Location.SourceSpan
                 Assert.NotEqual(span.Start, 0)
@@ -1113,7 +1122,7 @@ End Namespace
 </Code>
 
             Await TestAsync(source.Value, expected.Value)
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(source.Value, Nothing, Nothing)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source.Value, Nothing, Nothing)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim span = diagnosticAndFix.Item1.Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("new C", StringComparison.Ordinal) + 4)
@@ -1147,7 +1156,7 @@ End Module
 </Code>
 
             Await TestAsync(source.Value, expected.Value)
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(source.Value, Nothing, Nothing)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source.Value, Nothing, Nothing)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim span = diagnosticAndFix.Item1.Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("Console.WriteLine(""foo"")", StringComparison.Ordinal))

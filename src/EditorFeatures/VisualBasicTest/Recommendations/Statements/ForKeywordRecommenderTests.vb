@@ -5,84 +5,84 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
     Public Class ForKeywordRecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ForInMethodBody()
-            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "For")
-        End Sub
+        Public Async Function ForInMethodBodyTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "For")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ForInLambda()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function ForInLambdaTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Dim x = Sub()
 |
         End Sub</MethodBody>, "For")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ForAfterStatement()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function ForAfterStatementTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Dim x
 |</MethodBody>, "For")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ForAfterExitKeyword()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function ForAfterExitKeywordTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 For
 Exit |
 Loop</MethodBody>, "For")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ForAfterContinueKeyword()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function ForAfterContinueKeywordTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 For
 Continue |
 Loop</MethodBody>, "For")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ForNotAfterContinueKeywordOutsideLoop()
-            VerifyRecommendationsMissing(<MethodBody>
+        Public Async Function ForNotAfterContinueKeywordOutsideLoopTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>
 Continue |
 </MethodBody>, "For")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ForNotAfterExitKeywordOutsideLoop()
-            VerifyRecommendationsMissing(<MethodBody>
+        Public Async Function ForNotAfterExitKeywordOutsideLoopTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>
 Exit |
 </MethodBody>, "For")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ForNotInSingleLineLambda()
-            VerifyRecommendationsMissing(<MethodBody>Dim x = Sub() |</MethodBody>, "For")
-        End Sub
+        Public Async Function ForNotInSingleLineLambdaTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = Sub() |</MethodBody>, "For")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoForAfterExitInsideLambdaInsideLoop()
-            VerifyRecommendationsMissing(<MethodBody>
+        Public Async Function NoForAfterExitInsideLambdaInsideLoopTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>
 For Each i In foo
     x = Sub()
             Exit |
         End Sub
 Next
 </MethodBody>, "For")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ForAfterExitInsideForLoopInsideLambda()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function ForAfterExitInsideForLoopInsideLambdaTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Dim x = Sub()
             For Each i in bar
                 Exit |
-            End Sub
+        End Function
         Next
 </MethodBody>, "For")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ForNotAfterExitInsideForLoopInsideFinallyBlock()
+        Public Async Function ForNotAfterExitInsideForLoopInsideFinallyBlockTest() As Task
             Dim code =
 <MethodBody>
 For i = 1 to 100
@@ -91,8 +91,7 @@ For i = 1 to 100
         Exit |
 </MethodBody>
 
-            VerifyRecommendationsMissing(code, "For")
-        End Sub
-
+            Await VerifyRecommendationsMissingAsync(code, "For")
+        End Function
     End Class
 End Namespace

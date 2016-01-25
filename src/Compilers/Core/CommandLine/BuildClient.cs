@@ -13,7 +13,7 @@ using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
-    internal delegate int CompileFunc(string clientDir, string sdkDir, string[] arguments, IAnalyzerAssemblyLoader analyzerAssemblyLoader);
+    internal delegate int CompileFunc(string[] arguments, BuildPaths buildPaths, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerAssemblyLoader);
 
     internal struct BuildPaths
     {
@@ -41,6 +41,23 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
     }
 
+    internal struct RunCompilationResult
+    {
+        internal static readonly RunCompilationResult Succeeded = new RunCompilationResult(CommonCompiler.Succeeded);
+
+        internal static readonly RunCompilationResult Failed = new RunCompilationResult(CommonCompiler.Failed);
+
+        internal int ExitCode { get; }
+
+        internal bool RanOnServer { get; }
+
+        internal RunCompilationResult(int exitCode, bool ranOnServer = false)
+        {
+            ExitCode = exitCode;
+            RanOnServer = ranOnServer;
+        }
+    }
+
     /// <summary>
     /// Client class that handles communication to the server.
     /// </summary>
@@ -53,8 +70,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// to the console. If the compiler server fails, run the fallback
         /// compiler.
         /// </summary>
-        internal int RunCompilation(IEnumerable<string> originalArguments, BuildPaths buildPaths)
+        internal RunCompilationResult RunCompilation(IEnumerable<string> originalArguments, BuildPaths buildPaths, TextWriter textWriter = null)
         {
+            textWriter = textWriter ?? Console.Out;
+
             var args = originalArguments.Select(arg => arg.Trim()).ToArray();
 
             bool hasShared;
@@ -71,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     out errorMessage))
             {
                 Console.Out.WriteLine(errorMessage);
-                return CommonCompiler.Failed;
+                return RunCompilationResult.Failed;
             }
 
             if (hasShared)
@@ -90,46 +109,70 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     var buildResponse = buildResponseTask.Result;
                     if (buildResponse != null)
                     {
-                        return HandleResponse(buildResponse, parsedArgs, buildPaths);
+                        return HandleResponse(buildResponse, parsedArgs.ToArray(), buildPaths, textWriter);
                     }
                 }
-                catch
+                catch (OperationCanceledException)
                 {
-                    // It's okay, and expected, for the server compilation to fail.  In that case just fall 
-                    // back to normal compilation. 
+                    // #7866 tracks cleaning up this code. 
+                    return RunCompilationResult.Succeeded;
                 }
             }
 
-            return RunLocalCompilation(parsedArgs, buildPaths.ClientDirectory, buildPaths.SdkDirectory);
+            // It's okay, and expected, for the server compilation to fail.  In that case just fall 
+            // back to normal compilation. 
+            var exitCode = RunLocalCompilation(parsedArgs.ToArray(), buildPaths, textWriter);
+            return new RunCompilationResult(exitCode);
         }
 
-        protected abstract int RunLocalCompilation(List<string> arguments, string clientDir, string sdkDir);
+        public Task<RunCompilationResult> RunCompilationAsync(IEnumerable<string> originalArguments, BuildPaths buildPaths, TextWriter textWriter = null)
+        {
+            var tcs = new TaskCompletionSource<RunCompilationResult>();
+            ThreadStart action = () =>
+            {
+                try
+                {
+                    var result = RunCompilation(originalArguments, buildPaths, textWriter);
+                    tcs.SetResult(result);
+                }
+                catch (Exception ex)
+                {
+                    tcs.SetException(ex);
+                }
+            };
+
+            var thread = new Thread(action);
+            thread.Start();
+
+            return tcs.Task;
+        }
+
+        protected abstract int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter);
 
         protected abstract Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string sessionName, string keepAlive, string libDirectory, CancellationToken cancellationToken);
 
         protected abstract string GetSessionKey(BuildPaths buildPaths);
 
-        protected virtual int HandleResponse(BuildResponse response, List<string> arguments, BuildPaths buildPaths)
+        protected virtual RunCompilationResult HandleResponse(BuildResponse response, string[] arguments, BuildPaths buildPaths, TextWriter textWriter)
         {
             switch (response.Type)
             {
                 case BuildResponse.ResponseType.MismatchedVersion:
                     Console.Error.WriteLine(CommandLineParser.MismatchedVersionErrorText);
-                    return CommonCompiler.Failed;
+                    return RunCompilationResult.Failed;
 
                 case BuildResponse.ResponseType.Completed:
                     var completedResponse = (CompletedBuildResponse)response;
-                    return ConsoleUtil.RunWithOutput(
-                        completedResponse.Utf8Output,
-                        (outWriter, errorWriter) =>
-                        {
-                            outWriter.Write(completedResponse.Output);
-                            errorWriter.Write(completedResponse.ErrorOutput);
-                            return completedResponse.ReturnCode;
-                        });
+                    return ConsoleUtil.RunWithUtf8Output(completedResponse.Utf8Output, textWriter, tw =>
+                    {
+                        tw.Write(completedResponse.Output);
+                        return new RunCompilationResult(completedResponse.ReturnCode, ranOnServer: true);
+                    });
 
+                case BuildResponse.ResponseType.Rejected:
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
-                    return RunLocalCompilation(arguments, buildPaths.ClientDirectory, buildPaths.SdkDirectory);
+                    var exitCode = RunLocalCompilation(arguments, buildPaths, textWriter);
+                    return new RunCompilationResult(exitCode);
 
                 default:
                     throw new InvalidOperationException("Encountered unknown response type");
