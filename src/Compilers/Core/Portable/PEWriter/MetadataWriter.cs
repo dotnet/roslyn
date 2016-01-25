@@ -1580,20 +1580,6 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private EntityHandle GetTypeDefOrRefCodedIndex(ITypeReference typeReference, bool treatRefAsPotentialTypeSpec)
-        {
-            TypeDefinitionHandle typeDefHandle;
-            var typeDefinition = typeReference.AsTypeDefinition(this.Context);
-            if ((typeDefinition != null) && this.TryGetTypeDefIndex(typeDefinition, out typeDefHandle))
-            {
-                return typeDefHandle; 
-            }
-
-            return treatRefAsPotentialTypeSpec && typeReference.IsTypeSpecification()
-                ? (EntityHandle)GetTypeSpecIndex(typeReference)
-                : GetTypeRefIndex(typeReference);
-        }
-
         private EntityHandle GetDeclaringTypeOrMethod(IGenericParameter genPar)
         {
             IGenericTypeParameter genTypePar = genPar.AsGenericTypeParameter;
@@ -1676,35 +1662,16 @@ namespace Microsoft.Cci
             return result;
         }
 
-        internal void RecordTypeReference(ITypeReference typeReference)
+        internal EntityHandle GetTypeHandle(ITypeReference typeReference, bool treatRefAsPotentialTypeSpec = true)
         {
-            var typeDefinition = typeReference.AsTypeDefinition(this.Context);
             TypeDefinitionHandle handle;
-            if ((typeDefinition != null) && this.TryGetTypeDefIndex(typeDefinition, out handle))
-            {
-                return;
-            }
-
-            if (!typeReference.IsTypeSpecification())
-            {
-                this.GetTypeRefIndex(typeReference);
-            }
-            else
-            {
-                this.GetTypeSpecIndex(typeReference);
-            }
-        }
-
-        internal EntityHandle GetTypeHandle(ITypeReference typeReference)
-        {
-            TypeDefinitionHandle typeDefHandle;
             var typeDefinition = typeReference.AsTypeDefinition(this.Context);
-            if (typeDefinition != null && this.TryGetTypeDefIndex(typeDefinition, out typeDefHandle))
+            if (typeDefinition != null && this.TryGetTypeDefIndex(typeDefinition, out handle))
             {
-                return typeDefHandle;
+                return handle;
             }
 
-            return typeReference.IsTypeSpecification()
+            return treatRefAsPotentialTypeSpec && typeReference.IsTypeSpecification()
                 ? (EntityHandle)GetTypeSpecIndex(typeReference)
                 : GetTypeRefIndex(typeReference);
         }
@@ -2189,7 +2156,7 @@ namespace Microsoft.Cci
                 metadata.AddEvent(
                     attributes: GetEventAttributes(eventDef),
                     name: GetStringIndexForNameAndCheckLength(eventDef.Name, eventDef),
-                    type: GetTypeDefOrRefCodedIndex(eventDef.GetType(Context), true));
+                    type: GetTypeHandle(eventDef.GetType(Context)));
             }
         }
 
@@ -2441,7 +2408,7 @@ namespace Microsoft.Cci
                 {
                     metadata.AddGenericParameterConstraint(
                         genericParameter: genericParameterHandle,
-                        constraint: GetTypeDefOrRefCodedIndex(constraint, true));
+                        constraint: GetTypeHandle(constraint));
                 }
             }
         }
@@ -2479,7 +2446,7 @@ namespace Microsoft.Cci
                 {
                     metadata.AddInterfaceImplementation(
                         type: typeDefHandle,
-                        implementedInterface: GetTypeDefOrRefCodedIndex(interfaceRef, true));
+                        implementedInterface: GetTypeHandle(interfaceRef));
                 }
             }
         }
@@ -2722,7 +2689,7 @@ namespace Microsoft.Cci
                     attributes: GetTypeAttributes(typeDef),
                     @namespace: (namespaceType != null) ? GetStringIndexForNamespaceAndCheckLength(namespaceType, mangledTypeName) : default(StringHandle),
                     name: GetStringIndexForNameAndCheckLength(mangledTypeName, typeDef),
-                    baseType: (baseType != null) ? GetTypeDefOrRefCodedIndex(baseType, true) : default(EntityHandle),
+                    baseType: (baseType != null) ? GetTypeHandle(baseType) : default(EntityHandle),
                     fieldList: GetFieldDefIndex(typeDef),
                     methodList: GetMethodDefIndex(typeDef));
             }
@@ -2998,17 +2965,6 @@ namespace Microsoft.Cci
         private static int ReadInt32(ImmutableArray<byte> buffer, int pos)
         {
             return buffer[pos] | buffer[pos + 1] << 8 | buffer[pos + 2] << 16 | buffer[pos + 3] << 24;
-        }
-
-        private static void WriteUint(byte[] buffer, uint value, int pos)
-        {
-            unchecked
-            {
-                buffer[pos] = (byte)value;
-                buffer[pos + 1] = (byte)(value >> 8);
-                buffer[pos + 2] = (byte)(value >> 16);
-                buffer[pos + 3] = (byte)(value >> 24);
-            }
         }
 
         private int ResolveTokenFromReference(IReference reference)
@@ -3658,7 +3614,7 @@ namespace Microsoft.Cci
 
                     var genericArgsEncoder = encoder.GenericInstantiation(
                         typeReference.IsValueType,
-                        GetTypeDefOrRefCodedIndex(uninstantiatedTypeReference, treatRefAsPotentialTypeSpec: false),
+                        GetTypeHandle(uninstantiatedTypeReference, treatRefAsPotentialTypeSpec: false),
                         consolidatedTypeArguments.Count);
 
                     foreach (ITypeReference typeArgument in consolidatedTypeArguments)
@@ -3670,7 +3626,7 @@ namespace Microsoft.Cci
                     return genericArgsEncoder.EndArguments();
                 }
 
-                return encoder.TypeDefOrRefOrSpec(typeReference.IsValueType, GetTypeDefOrRefCodedIndex(typeReference, true));
+                return encoder.TypeDefOrRefOrSpec(typeReference.IsValueType, GetTypeHandle(typeReference));
             }
         }
 
@@ -3733,7 +3689,7 @@ namespace Microsoft.Cci
             for (int i = 0; i < count; i++)
             {
                 var modifier = modifiers[start + i];
-                encoder = encoder.AddModifier(modifier.IsOptional, GetTypeDefOrRefCodedIndex(modifier.GetModifier(Context), true));
+                encoder = encoder.AddModifier(modifier.IsOptional, GetTypeHandle(modifier.GetModifier(Context)));
             }
 
             return encoder.EndModifiers();
