@@ -60,7 +60,7 @@ Sub Foo() |
 |</File>, "Implements")
         End Function
 
-        <WorkItem(543635)>
+        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ImplementsAfterPropertyNameTest() As Task
             Await VerifyRecommendationsContainAsync(
@@ -75,7 +75,7 @@ Class bar
 "Implements")
         End Function
 
-        <WorkItem(543635)>
+        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoImplementsAfterPropertyOpenParenTest() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -90,7 +90,7 @@ Class bar
 "Implements")
         End Function
 
-        <WorkItem(543635)>
+        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ImplementsAfterPropertyCloseParenTest() As Task
             Await VerifyRecommendationsContainAsync(
@@ -105,7 +105,7 @@ Class bar
 "Implements")
         End Function
 
-        <WorkItem(543635)>
+        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoImplementsAfterPropertyAsTest() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -120,7 +120,7 @@ Class bar
 "Implements")
         End Function
 
-        <WorkItem(543635)>
+        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ImplementsAfterCompletePropertyAsClauseTest() As Task
             Await VerifyRecommendationsContainAsync(
@@ -135,7 +135,7 @@ Class bar
 "Implements")
         End Function
 
-        <WorkItem(543635)>
+        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoImplementsAfterIncompletePropertyAsClauseInitializerTest() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -150,7 +150,7 @@ Class bar
 "Implements")
         End Function
 
-        <WorkItem(543635)>
+        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ImplementsAfterCompletePropertyAsClauseInitializerTest() As Task
             Await VerifyRecommendationsContainAsync(
@@ -165,7 +165,7 @@ Class bar
 "Implements")
         End Function
 
-        <WorkItem(543635)>
+        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoImplementsAfterIncompletePropertyAsNewClauseTest() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -180,7 +180,7 @@ Class bar
 "Implements")
         End Function
 
-        <WorkItem(543635)>
+        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ImplementsAfterCompletePropertyAsNewClauseTest() As Task
             Await VerifyRecommendationsContainAsync(
@@ -195,7 +195,7 @@ Class bar
 "Implements")
         End Function
 
-        <WorkItem(543635)>
+        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoImplementsAfterPropertyAsNewClauseOpenParenTest() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -210,7 +210,7 @@ Class bar
 "Implements")
         End Function
 
-        <WorkItem(543635)>
+        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ImplementsAfterPropertyAsNewClauseCloseParenTest() As Task
             Await VerifyRecommendationsContainAsync(
@@ -225,7 +225,7 @@ Class bar
 "Implements")
         End Function
 
-        <WorkItem(543635)>
+        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoImplementsAfterPropertyAsNamespaceDotTest() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -240,7 +240,7 @@ Class bar
 "Implements")
         End Function
 
-        <WorkItem(543635)>
+        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoImplementsAfterPropertyAsListOfTest() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -256,7 +256,7 @@ Class bar
 "Implements")
         End Function
 
-        <WorkItem(543635)>
+        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoImplementsAfterPropertyAsListOfTypeTest() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -272,7 +272,7 @@ Class bar
 "Implements")
         End Function
 
-        <WorkItem(543635)>
+        <WorkItem(543635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543635")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoImplementsAfterPropertyParameterTest() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -288,7 +288,7 @@ Class bar
 "Implements")
         End Function
 
-        <WorkItem(543811)>
+        <WorkItem(543811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543811")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ImplementsAfterEventNameTest() As Task
             Await VerifyRecommendationsContainAsync(
@@ -303,7 +303,7 @@ Class C1
 "Implements")
         End Function
 
-        <WorkItem(543811)>
+        <WorkItem(543811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543811")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoImplementsAfterEventOpenParenTest() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -318,7 +318,7 @@ Class C1
 "Implements")
         End Function
 
-        <WorkItem(543811)>
+        <WorkItem(543811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543811")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ImplementsAfterEventCloseParenTest() As Task
             Await VerifyRecommendationsContainAsync(
@@ -333,7 +333,7 @@ Class C1
 "Implements")
         End Function
 
-        <WorkItem(546404)>
+        <WorkItem(546404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546404")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ImplementsAfterAsClauseTest() As Task
             Await VerifyRecommendationsContainAsync(
@@ -348,7 +348,7 @@ Class Bar
 "Implements")
         End Function
 
-        <WorkItem(531254)>
+        <WorkItem(531254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531254")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ImplementsInPartialClass1Test() As Task
             Await VerifyRecommendationsContainAsync(
@@ -364,7 +364,7 @@ Partial Public Class Test
 "Implements")
         End Function
 
-        <WorkItem(531254)>
+        <WorkItem(531254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531254")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ImplementsInPartialClass2Test() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -379,7 +379,7 @@ Partial Public Class Test
 "Implements")
         End Function
 
-        <WorkItem(531257)>
+        <WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoImplementsInInterface1Test() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -392,7 +392,7 @@ Public Interface ITest2
 "Implements")
         End Function
 
-        <WorkItem(531257)>
+        <WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoImplementsInInterface2Test() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -406,7 +406,7 @@ Public Interface ITest2
 "Implements")
         End Function
 
-        <WorkItem(531257)>
+        <WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoImplementsInModuleTest() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -419,7 +419,7 @@ Public Module Test2
 "Implements")
         End Function
 
-        <WorkItem(674791)>
+        <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotAfterHashTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>

@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
                 index: 1);
         }
 
-        [WorkItem(542562)]
+        [WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestMissingOnAmbiguity1()
         {
@@ -123,7 +123,7 @@ class A
 }");
         }
 
-        [WorkItem(627092)]
+        [WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestMissingOnLambdaWithDynamic_1()
         {
@@ -158,7 +158,7 @@ class C<T>
     }");
         }
 
-        [WorkItem(627092)]
+        [WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestMissingOnLambdaWithDynamic_2()
         {
@@ -198,7 +198,7 @@ class Casd<T>
     }");
         }
 
-        [WorkItem(544625)]
+        [WorkItem(544625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544625")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task ParenthesizeIfParseChanges()
         {
@@ -237,7 +237,7 @@ class C
             await TestAsync(code, expected, compareTokens: false);
         }
 
-        [WorkItem(545856)]
+        [WorkItem(545856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545856")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestWarningOnSideEffects()
         {
@@ -246,7 +246,7 @@ class C
 @"using System ; class C { void Main ( ) { Func < string > a = {|Warning:new C ()|} . ToString ; } } ");
         }
 
-        [WorkItem(545994)]
+        [WorkItem(545994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545994")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestNonReturnBlockSyntax()
         {

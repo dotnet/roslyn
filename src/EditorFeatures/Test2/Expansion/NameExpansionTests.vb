@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
 
 #Region "C# Tests"
 
-        <WorkItem(604392)>
+        <WorkItem(604392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604392")>
         <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Async Function TestNoExpansionForPropertyNamesOfObjectInitializers() As Task
             Dim input =

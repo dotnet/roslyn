@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region "Targeted Error Tests - please arrange tests in the order of error code"
 
-        [WorkItem(535880, "DevDiv")]
-        [WorkItem(553293, "DevDiv")]
+        [WorkItem(535880, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535880")]
+        [WorkItem(553293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553293")]
         [Fact]
         public void CS0594ERR_FloatOverflow()
         {
@@ -216,7 +216,7 @@ public class C
             );
         }
 
-        [WorkItem(553293, "DevDiv")]
+        [WorkItem(553293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553293")]
         [Fact]
         public void CS1021ERR_IntOverflow()
         {
@@ -283,7 +283,7 @@ public class MainClass
             ParserErrorMessageTests.ParseAndValidate(test, Diagnostic(ErrorCode.ERR_OpenEndedComment, ""));
         }
 
-        [Fact, WorkItem(526993, "DevDiv")]
+        [Fact, WorkItem(526993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/526993")]
         public void CS1039ERR_UnterminatedStringLit()
         {
             // TODO: extra errors
@@ -310,7 +310,7 @@ public class Test
     Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [Fact, WorkItem(536688, "DevDiv")]
+        [Fact, WorkItem(536688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536688")]
         public void CS1040ERR_BadDirectivePlacementpp()
         {
             var test = @"
@@ -323,7 +323,7 @@ class Test
             ParserErrorMessageTests.ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#"));
         }
 
-        [Fact, WorkItem(526994, "DevDiv")]
+        [Fact, WorkItem(526994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/526994")]
         public void CS1056ERR_UnexpectedCharacter()
         {
             // TODO: Extra errors
@@ -384,7 +384,7 @@ int x = 0;
     Diagnostic(ErrorCode.ERR_EOFExpected, ";"));
         }
 
-        [Fact, WorkItem(536882, "DevDiv")]
+        [Fact, WorkItem(536882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536882")]
         public void CS1056RegressDisallowedUnicodeChars()
         {
             var test = @"using S\u0600 = System;
@@ -400,7 +400,7 @@ class A
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u0060"));
         }
 
-        [Fact, WorkItem(535937, "DevDiv")]
+        [Fact, WorkItem(535937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535937")]
         public void CS1646ERR_ExpectedVerbatimLiteral()
         {
             var test = @"
@@ -459,7 +459,7 @@ class Test
 
         #region "Targeted Warning Tests - please arrange tests in the order of error code"
 
-        [Fact, WorkItem(535871, "DevDiv"), WorkItem(527942, "DevDiv")]
+        [Fact, WorkItem(535871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535871"), WorkItem(527942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527942")]
         public void CS0078WRN_LowercaseEllSuffix()
         {
             var test = @"
@@ -482,7 +482,7 @@ Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l"),
 Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l"));
         }
 
-        [Fact, WorkItem(530118, "DevDiv")]
+        [Fact, WorkItem(530118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530118")]
         public void TestEndIfExpectedOnEOF()
         {
             var test = @"
@@ -493,7 +493,7 @@ int 1 = 0;";
 Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(3, 11));
         }
 
-        [Fact, WorkItem(530118, "DevDiv")]
+        [Fact, WorkItem(530118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530118")]
         public void TestEndIfExpectedOnEndRegion()
         {
             var test = @"

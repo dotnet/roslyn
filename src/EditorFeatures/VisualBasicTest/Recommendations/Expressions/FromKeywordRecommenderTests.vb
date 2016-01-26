@@ -140,13 +140,13 @@ Module Program
 End Module</MethodBody>, "From")
         End Function
 
-        <WorkItem(542741)>
+        <WorkItem(542741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542741")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function FromAfterLambdaHeaderTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>Dim q1 As Func(Of Integer()) = Function() |</MethodBody>, "From")
         End Function
 
-        <WorkItem(543291)>
+        <WorkItem(543291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543291")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoFromAfterDotTest() As Task
             Dim code = <File>
@@ -160,7 +160,7 @@ End Class
             Await VerifyRecommendationsMissingAsync(code, "From")
         End Function
 
-        <WorkItem(542252)>
+        <WorkItem(542252, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542252")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoFromIfNotCollectionInitializerTest() As Task
             Dim code = <File>
@@ -181,7 +181,7 @@ End Class
             Await VerifyRecommendationsMissingAsync(code, "From")
         End Function
 
-        <WorkItem(530953)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotAfterEolTest() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -198,7 +198,7 @@ Class C
 End Class</File>, "From")
         End Function
 
-        <WorkItem(530953)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AfterExplicitLineContinuationTest() As Task
             Await VerifyRecommendationsContainAsync(

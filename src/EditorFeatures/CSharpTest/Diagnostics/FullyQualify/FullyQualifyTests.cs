@@ -183,7 +183,7 @@ count: 2);
 @"[System.ObsoleteAttribute]class Class { }");
         }
 
-        [WorkItem(527360)]
+        [WorkItem(527360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527360")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestExtensionMethods()
         {
@@ -191,7 +191,7 @@ count: 2);
 @"using System.Collections.Generic; class Foo { void Bar() { var values = new List<int>() { 1, 2, 3 }; values.[|Where|](i => i > 1); } }");
         }
 
-        [WorkItem(538018)]
+        [WorkItem(538018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538018")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAfterNew()
         {
@@ -240,7 +240,7 @@ count: 2);
 @"class Class { void Test() { System.Math.Sqrt(); }");
         }
 
-        [WorkItem(538136)]
+        [WorkItem(538136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestBeforeNamespace()
         {
@@ -249,7 +249,7 @@ count: 2);
 @"namespace A { class Class { B.C.Test t; } } namespace B { namespace C { class Test { } } }");
         }
 
-        [WorkItem(527395)]
+        [WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestSimpleNameWithLeadingTrivia()
         {
@@ -259,7 +259,7 @@ count: 2);
 compareTokens: false);
         }
 
-        [WorkItem(527395)]
+        [WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericNameWithLeadingTrivia()
         {
@@ -269,7 +269,7 @@ compareTokens: false);
 compareTokens: false);
         }
 
-        [WorkItem(538740)]
+        [WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestFullyQualifyTypeName()
         {
@@ -278,7 +278,7 @@ compareTokens: false);
 @"public class Program { public class Inner { } } class Test { Program.Inner i; }");
         }
 
-        [WorkItem(538740)]
+        [WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestFullyQualifyTypeName_NotForGenericType()
         {
@@ -286,7 +286,7 @@ compareTokens: false);
 @"class Program<T> { public class Inner { } } class Test { [|Inner|] i; }");
         }
 
-        [WorkItem(538764)]
+        [WorkItem(538764, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538764")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestFullyQualifyThroughAlias()
         {
@@ -295,7 +295,7 @@ compareTokens: false);
 @"using Alias = System; class C { Alias.Int32 i; }");
         }
 
-        [WorkItem(538763)]
+        [WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestFullyQualifyPrioritizeTypesOverNamespaces1()
         {
@@ -304,7 +304,7 @@ compareTokens: false);
 @"namespace Outer { namespace C { class C { } } } class Test { Outer.C.C c; }");
         }
 
-        [WorkItem(538763)]
+        [WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestFullyQualifyPrioritizeTypesOverNamespaces2()
         {
@@ -314,7 +314,7 @@ compareTokens: false);
 index: 1);
         }
 
-        [WorkItem(539853)]
+        [WorkItem(539853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task BugFix5950()
         {
@@ -324,7 +324,7 @@ index: 1);
 parseOptions: GetScriptOptions());
         }
 
-        [WorkItem(540318)]
+        [WorkItem(540318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540318")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAfterAlias()
         {
@@ -332,7 +332,7 @@ parseOptions: GetScriptOptions());
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { System :: [|Console|] :: WriteLine ( ""TEST"" ) ; } } ");
         }
 
-        [WorkItem(540942)]
+        [WorkItem(540942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540942")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestMissingOnIncompleteStatement()
         {
@@ -340,7 +340,7 @@ parseOptions: GetScriptOptions());
 @"using System ; using System . IO ; class C { static void Main ( string [ ] args ) { [|Path|] } } ");
         }
 
-        [WorkItem(542643)]
+        [WorkItem(542643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAssemblyAttribute()
         {
@@ -349,7 +349,7 @@ parseOptions: GetScriptOptions());
 @"[ assembly : System . Runtime . CompilerServices . InternalsVisibleTo ( ""Project"" ) ] ");
         }
 
-        [WorkItem(543388)]
+        [WorkItem(543388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543388")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestMissingOnAliasName()
         {
@@ -364,7 +364,7 @@ parseOptions: GetScriptOptions());
 @"using System . Runtime . InteropServices ; class M { [ [|DllImport|] ( ) ] static extern int ? My ( ) ; } ");
         }
 
-        [WorkItem(544950)]
+        [WorkItem(544950, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544950")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestNotOnAbstractConstructor()
         {
@@ -372,7 +372,7 @@ parseOptions: GetScriptOptions());
 @"using System . IO ; class Program { static void Main ( string [ ] args ) { var s = new [|Stream|] ( ) ; } } ");
         }
 
-        [WorkItem(545774)]
+        [WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAttribute()
         {
@@ -384,7 +384,7 @@ input,
 @"[ assembly : System . Runtime . InteropServices . Guid ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ");
         }
 
-        [WorkItem(546027)]
+        [WorkItem(546027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGeneratePropertyFromAttribute()
         {
@@ -392,7 +392,7 @@ input,
 @"using System ; [ AttributeUsage ( AttributeTargets . Class ) ] class MyAttrAttribute : Attribute { } [ MyAttr ( 123 , [|Version|] = 1 ) ] class D { } ");
         }
 
-        [WorkItem(775448)]
+        [WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task ShouldTriggerOnCS0308()
         {
@@ -418,7 +418,7 @@ class Test
 }");
         }
 
-        [WorkItem(947579)]
+        [WorkItem(947579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task AmbiguousTypeFix()
         {
@@ -439,7 +439,7 @@ namespace n1 { class A { }}
 namespace n2 { class A { }}");
         }
 
-        [WorkItem(995857)]
+        [WorkItem(995857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995857")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task NonPublicNamespaces()
         {

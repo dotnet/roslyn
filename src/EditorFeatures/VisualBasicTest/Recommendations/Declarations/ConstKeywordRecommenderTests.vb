@@ -32,25 +32,25 @@ Dim x = Sub() |
 </MethodBody>, "Const")
         End Function
 
-        <WorkItem(544912)>
+        <WorkItem(544912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544912")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ConstAfterDimInClassTest() As Task
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>Dim |</ClassDeclaration>, "Const")
         End Function
 
-        <WorkItem(644881)>
+        <WorkItem(644881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/644881")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ConstAfterFriendInClassTest() As Task
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>Friend |</ClassDeclaration>, "Const")
         End Function
 
-        <WorkItem(644881)>
+        <WorkItem(644881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/644881")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ConstAfterFriendInModuleTest() As Task
             Await VerifyRecommendationsContainAsync(<ModuleDeclaration>Friend |</ModuleDeclaration>, "Const")
         End Function
 
-        <WorkItem(674791)>
+        <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotAfterHashTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>

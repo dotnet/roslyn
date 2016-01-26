@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [WorkItem(923121)]
+        [WorkItem(923121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923121")]
         [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewOpenCloseFile()
         {
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [WorkItem(923196)]
+        [WorkItem(923196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923196")]
         [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewDiagnostic()
         {

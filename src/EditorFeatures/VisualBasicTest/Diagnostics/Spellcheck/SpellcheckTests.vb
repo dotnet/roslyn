@@ -79,7 +79,7 @@ End Module</File>
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
-        <WorkItem(1065708)>
+        <WorkItem(1065708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065708")>
         Public Async Function TestInTypeOfIsExpression() As Task
             Dim text = <File>Imports System
 Public Class Class1
@@ -92,7 +92,7 @@ End Class</File>
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
-        <WorkItem(1065708)>
+        <WorkItem(1065708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065708")>
         Public Async Function TestInTypeOfIsNotExpression() As Task
             Dim text = <File>Imports System
 Public Class Class1
@@ -268,7 +268,7 @@ End Class</File>
             Await TestAsync(text, expected)
         End Function
 
-        <WorkItem(547161)>
+        <WorkItem(547161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547161")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestNotForOverloadResolutionFailure() As Task
             Dim text = <File>Module Program
@@ -287,7 +287,7 @@ End Module</File>
             Await TestMissingAsync(text)
         End Function
 
-        <WorkItem(547169)>
+        <WorkItem(547169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547169")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestHandlePredefinedTypeKeywordCorrectly() As Task
             Dim text = <File>
@@ -316,7 +316,7 @@ End Module</File>
             Await TestAsync(text, expected, index:=0)
         End Function
 
-        <WorkItem(547166)>
+        <WorkItem(547166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547166")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestKeepEscapedIdentifiersEscaped() As Task
             Dim text = <File>
@@ -344,7 +344,7 @@ End Module</File>
             Await TestAsync(text, expected)
         End Function
 
-        <WorkItem(547166)>
+        <WorkItem(547166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547166")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestNoDuplicateCorrections() As Task
             Dim text = <File>
@@ -424,7 +424,7 @@ End Module</File>
             Await TestAsync(text, expected1, index:=1)
         End Function
 
-        <WorkItem(775448)>
+        <WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestShouldTriggerOnBC32045() As Task
             ' BC32045: 'A' has no type parameters and so cannot have type arguments.
@@ -459,7 +459,7 @@ End Class</File>
             Await TestAsync(text, expected, index:=0)
         End Function
 
-        <WorkItem(908322)>
+        <WorkItem(908322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908322")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestTestObjectConstruction() As Task
             Await TestAsync(
@@ -484,7 +484,7 @@ NewLines("<Assembly: Microsoft.CodeAnalysis.[||]>"))
                     New SpellCheckCodeFixProvider())
             End Function
 
-            <WorkItem(829970)>
+            <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
             Public Async Function TestIncompleteStatement() As Task
                 Await TestAsync(

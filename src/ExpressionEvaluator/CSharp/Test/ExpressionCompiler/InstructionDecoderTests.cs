@@ -99,7 +99,7 @@ class Class1
                 GetName(source, "System.Collections.Generic.Comparer.Create", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, typeArguments: new[] { serializedTypeArgumentName }));
         }
 
-        [Fact, WorkItem(1107977)]
+        [Fact, WorkItem(1107977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107977")]
         public void GetNameGenericAsync()
         {
             var source = @"
@@ -233,7 +233,7 @@ static class C
                 GetName(source, "C.M2", DkmVariableInfoFlags.None));
         }
 
-        [Fact, WorkItem(1107978)]
+        [Fact, WorkItem(1107978, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107978")]
         public void GetNameRefAndOutParameters()
         {
             var source = @"
@@ -282,7 +282,7 @@ class C
                 GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names));
         }
 
-        [Fact, WorkItem(1154945, "DevDiv")]
+        [Fact, WorkItem(1154945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154945")]
         public void GetNameIncorrectNumberOfArgumentValues()
         {
             var source = @"
@@ -304,7 +304,7 @@ class C
                 GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues: new string[] { "1", "2", "3" }));
         }
 
-        [Fact, WorkItem(1134081, "DevDiv")]
+        [Fact, WorkItem(1134081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1134081")]
         public void GetFileNameWithoutExtension()
         {
             Assert.Equal(".", MetadataUtilities.GetFileNameWithoutExtension("."));

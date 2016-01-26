@@ -636,7 +636,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <WorkItem(546682, "DevDiv")>
+        <WorkItem(546682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546682")>
         <Fact()>
         Public Sub NewOnCoClassInterface_16543_StrictOn()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -688,7 +688,7 @@ BC30512: Option Strict On disallows implicit conversions from 'C1' to 'I1'.
 </errors>)
         End Sub
 
-        <WorkItem(546682, "DevDiv")>
+        <WorkItem(546682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546682")>
         <Fact()>
         Public Sub NewOnCoClassInterface_16543_StrictOff()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -755,7 +755,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(546595, "DevDiv")>
+        <WorkItem(546595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546595")>
         <Fact()>
         Public Sub NewOnCoClassInterface_UnboundGenericFromMetadata()
             Dim reference = CreateReferenceFromIlCode(<![CDATA[
@@ -801,7 +801,7 @@ BC31450: Type 'A(Of )' cannot be used as an implementing class.
 </errors>)
         End Sub
 
-        <WorkItem(546595, "DevDiv")>
+        <WorkItem(546595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546595")>
         <Fact()>
         Public Sub NewOnCoClassInterface_UnboundGenericFromMetadata2()
             Dim reference = CreateReferenceFromIlCode(<![CDATA[
@@ -863,7 +863,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
         End Sub
 
-        <WorkItem(546595, "DevDiv")>
+        <WorkItem(546595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546595")>
         <Fact()>
         Public Sub NewOnCoClassInterface_UnboundGenericFromMetadata3()
             Dim reference = CreateReferenceFromIlCode(<![CDATA[
@@ -928,7 +928,7 @@ BC31450: Type 'A(Of ).B(Of )' cannot be used as an implementing class.
 </errors>)
         End Sub
 
-        <WorkItem(546595, "DevDiv")>
+        <WorkItem(546595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546595")>
         <Fact()>
         Public Sub NewOnCoClassInterface_UnboundGenericFromMetadata4()
             Dim reference = CreateReferenceFromIlCode(<![CDATA[
@@ -1719,7 +1719,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
         End Sub
 
-        <WorkItem(546560, "DevDiv")>
+        <WorkItem(546560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546560")>
         <Fact()>
         Public Sub RetargetingUseSiteErrorMissingConstraintTypeAndCircularConstraint()
             Dim vbSource1 =
@@ -1772,7 +1772,7 @@ BC30401: 'Bar' cannot implement 'Bar' because there is no matching sub on interf
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(657731, "DevDiv")>
+        <Fact(), WorkItem(657731, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/657731")>
         Public Sub Bug657731()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
                     <compilation>

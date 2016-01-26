@@ -625,7 +625,7 @@ End Property]]>).Value
         .changeType = ChangeType.Remove})
     End Sub
 
-    <WorkItem(537168, "DevDiv")>
+    <WorkItem(537168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537168")>
     <Fact>
     Public Sub IncParseSubBeforePartialClass()
         Dim code As String = (<![CDATA[End Class
@@ -639,7 +639,7 @@ End Class]]>).Value
         .changeType = ChangeType.InsertBefore})
     End Sub
 
-    <WorkItem(537172, "DevDiv")>
+    <WorkItem(537172, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537172")>
     <Fact>
     Public Sub IncParseInterfaceDeleteWithColon()
         Dim code As String = (<![CDATA[Interface I : Sub Foo() : End Interface]]>).Value
@@ -651,7 +651,7 @@ End Class]]>).Value
         .changeType = ChangeType.Remove})
     End Sub
 
-    <WorkItem(537174, "DevDiv")>
+    <WorkItem(537174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537174")>
     <Fact>
     Public Sub IncParseMissingEndAddHandler()
         Dim code As String = (<![CDATA[
@@ -674,7 +674,7 @@ End Class]]>).Value
         .changeType = ChangeType.Remove})
     End Sub
 
-    <WorkItem(539038, "DevDiv")>
+    <WorkItem(539038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539038")>
     <Fact>
     Public Sub IncParseInvalidText()
         Dim code As String = (<![CDATA[1. Verify that INT accepts an constant of each type as the
@@ -687,7 +687,7 @@ End Class]]>).Value
         .changeType = ChangeType.InsertBefore})
     End Sub
 
-    <WorkItem(539053, "DevDiv")>
+    <WorkItem(539053, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539053")>
     <Fact>
     Public Sub IncParseAddSubValid()
         Dim code As String = (<![CDATA[Class CFoo
@@ -722,7 +722,7 @@ End Class]]>).Value
         '.changeType = ChangeType.Insert})
     End Sub
 
-    <WorkItem(538577, "DevDiv")>
+    <WorkItem(538577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538577")>
     <Fact>
     Public Sub IncParseAddSpaceAfterForNext()
         Dim code As String = (<![CDATA[Module M
@@ -749,7 +749,7 @@ End Module
     End Sub
 
     <Fact>
-    <WorkItem(540667, "DevDiv")>
+    <WorkItem(540667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540667")>
     Public Sub IncrementalParseAddSpaceInSingleLineIf()
         ' The code below intentionally is missing a space between the "Then" and "Console"
         Dim code As String = (<![CDATA[
@@ -774,7 +774,7 @@ End Module
     End Sub
 #End Region
 
-    <WorkItem(543489, "DevDiv")>
+    <WorkItem(543489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543489")>
     <Fact>
     Public Sub Bug11296()
 
@@ -825,7 +825,7 @@ End Module
         .changeType = ChangeType.Insert})
     End Sub
 
-    <WorkItem(545667, "DevDiv")>
+    <WorkItem(545667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545667")>
     <Fact>
     Public Sub Bug14266()
         Dim source = <![CDATA[
@@ -842,7 +842,7 @@ End Enum
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
-    <WorkItem(546680, "DevDiv")>
+    <WorkItem(546680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546680")>
     <Fact>
     Public Sub Bug16533()
         Dim source = <![CDATA[
@@ -862,7 +862,7 @@ End Module
         VerifyEquivalent(newTree, oldTree)
     End Sub
 
-    <WorkItem(546685, "DevDiv")>
+    <WorkItem(546685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546685")>
     <Fact>
     Public Sub MultiLineIf()
         Dim source = <![CDATA[
@@ -944,7 +944,7 @@ End Module
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
-    <WorkItem(546692, "DevDiv")>
+    <WorkItem(546692, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546692")>
     <Fact>
     Public Sub Bug16575()
         Dim source = <![CDATA[
@@ -965,7 +965,7 @@ End Module
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
-    <WorkItem(546698, "DevDiv")>
+    <WorkItem(546698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546698")>
     <Fact>
     Public Sub Bug16596()
         Dim source = ToText(<![CDATA[
@@ -986,7 +986,7 @@ End Module
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
-    <WorkItem(530662, "DevDiv")>
+    <WorkItem(530662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530662")>
     <Fact>
     Public Sub Bug16662()
         Dim source = ToText(<![CDATA[
@@ -1006,7 +1006,7 @@ End Module
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
-    <WorkItem(546774, "DevDiv")>
+    <WorkItem(546774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546774")>
     <Fact>
     Public Sub Bug16786()
         Dim source = <![CDATA[
@@ -1033,7 +1033,7 @@ End Class
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
-    <WorkItem(530841, "DevDiv")>
+    <WorkItem(530841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530841")>
     <Fact>
     Public Sub Bug17031()
         Dim source = ToText(<![CDATA[
@@ -1056,7 +1056,7 @@ End Module
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
-    <WorkItem(531017, "DevDiv")>
+    <WorkItem(531017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531017")>
     <Fact>
     Public Sub Bug17409()
         Dim source = ToText(<![CDATA[
@@ -1082,7 +1082,7 @@ End Module
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
-    <Fact, WorkItem(547242, "DevDiv")>
+    <Fact, WorkItem(547242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547242")>
     Public Sub IncParseAddRemoveStopAtAofAs()
         Dim code As String = <![CDATA[
 Module M
@@ -1103,7 +1103,7 @@ Module M
         Assert.Equal(children2.Count, children1.Count)
     End Sub
 
-    <Fact, WorkItem(547242, "DevDiv")>
+    <Fact, WorkItem(547242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547242")>
     Public Sub IncParseAddRemoveStopAtAofAs02()
         Dim code As String = <![CDATA[
 Module M
@@ -1118,7 +1118,7 @@ Module M
         Assert.Equal(fullTree.GetRoot().ToFullString(), newTree.GetRoot().ToFullString())
     End Sub
 
-    <Fact, WorkItem(547251, "DevDiv")>
+    <Fact, WorkItem(547251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547251")>
     Public Sub IncParseAddRemoveStopAtAofPropAs()
         Dim code As String =
         <![CDATA[Class C
@@ -1146,7 +1146,7 @@ Module M
 
     End Sub
 
-    <Fact, WorkItem(547303, "DevDiv")>
+    <Fact, WorkItem(547303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547303")>
     Public Sub IncParseAddRemoveStopAtTofThen()
         Dim code As String = <![CDATA[
 Module M
@@ -1161,7 +1161,7 @@ Module M
         Assert.Equal(fullTree.GetRoot().ToFullString(), newTree.GetRoot().ToFullString())
     End Sub
 
-    <WorkItem(571105, "DevDiv")>
+    <WorkItem(571105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/571105")>
     <Fact()>
     Public Sub IncParseInsertLineBreakBeforeLambda()
         Dim code As String = <![CDATA[
@@ -1182,7 +1182,7 @@ End Module]]>.Value
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
-    <WorkItem(578279, "DevDiv")>
+    <WorkItem(578279, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578279")>
     <Fact()>
     Public Sub IncParseInsertLineBreakBetweenEndSub()
         Dim code As String = <![CDATA[Class C
@@ -1443,7 +1443,7 @@ End Module
 
 #End Region
 
-    <WorkItem(554442, "DevDiv")>
+    <WorkItem(554442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554442")>
     <Fact>
     Public Sub SplitCommentAtPreprocessorSymbol()
         Dim source = ToText(<![CDATA[
@@ -1465,7 +1465,7 @@ End Module
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
-    <WorkItem(586698, "DevDiv")>
+    <WorkItem(586698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586698")>
     <Fact>
     Public Sub SortUsings()
         Dim oldSource = ToText(<![CDATA[
@@ -1531,7 +1531,7 @@ End Class
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
-    <WorkItem(604044, "DevDiv")>
+    <WorkItem(604044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604044")>
     <Fact>
     Public Sub BunchALabels()
         Dim source = ToText(<![CDATA[
@@ -1560,7 +1560,7 @@ End Module
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
-    <WorkItem(625612, "DevDiv")>
+    <WorkItem(625612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/625612")>
     <Fact()>
     Public Sub LabelAfterColon()
         ' Label following another label on separate lines.
@@ -1652,7 +1652,7 @@ End Module
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
-    <WorkItem(529260, "DevDiv")>
+    <WorkItem(529260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529260")>
     <Fact()>
     Public Sub DoNotReuseAnnotatedNodes()
         Dim text As String = <![CDATA[
@@ -2460,7 +2460,7 @@ End Module
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
-    <WorkItem(719787, "DevDiv")>
+    <WorkItem(719787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/719787")>
     <Fact()>
     Public Sub Bug719787_EOF()
         Dim source = <![CDATA[
@@ -2488,7 +2488,7 @@ End Namespace
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
-    <WorkItem(719787, "DevDiv")>
+    <WorkItem(719787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/719787")>
     <Fact>
     Public Sub Bug719787_MultiLineIf()
         Dim source = <![CDATA[

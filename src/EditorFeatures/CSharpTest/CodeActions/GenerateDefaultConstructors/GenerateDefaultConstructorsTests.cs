@@ -112,7 +112,7 @@ index: 2);
 @"class C : [||]B { public C(int x) { } } class B { internal B(int x) { } }");
         }
 
-        [WorkItem(889349)]
+        [WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestDefaultConstructorGeneration_1()
         {
@@ -121,7 +121,7 @@ index: 2);
 @"class C : B { public C(int y) { } internal C(int x) : base(x) { } } class B { internal B(int x) { } }");
         }
 
-        [WorkItem(889349)]
+        [WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestDefaultConstructorGeneration_2()
         {
@@ -139,7 +139,7 @@ count: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        [WorkItem(544070)]
+        [WorkItem(544070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544070")]
         public async Task TestException1()
         {
             await TestAsync(

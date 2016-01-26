@@ -250,7 +250,7 @@ int y = 1;
 </symbols>");
         }
 
-        [WorkItem(729235, "DevDiv")]
+        [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
         [Fact]
         public void NormalizedPath_Tree()
         {
@@ -322,7 +322,7 @@ class C { void M() { } }
 </symbols>");
         }
 
-        [WorkItem(729235, "DevDiv")]
+        [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
         [Fact]
         public void NormalizedPath_LineDirective()
         {
@@ -379,7 +379,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem(729235, "DevDiv")]
+        [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
         [Fact]
         public void NormalizedPath_ChecksumDirective()
         {
@@ -444,7 +444,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem(729235, "DevDiv")]
+        [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
         [Fact]
         public void NormalizedPath_NoBaseDirectory()
         {

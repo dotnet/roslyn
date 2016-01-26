@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region "Mixed Error Tests"
 
-        [WorkItem(543039, "DevDiv")]
+        [WorkItem(543039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
         [Fact]
         public void BadConstantInOtherAssemblyUsedByField()
         {
@@ -50,7 +50,7 @@ public class B
             VerifyEmitDiagnostics(source2, compilation1);
         }
 
-        [WorkItem(543039, "DevDiv")]
+        [WorkItem(543039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
         [Fact]
         public void BadConstantInOtherAssemblyUsedByLocal()
         {
@@ -80,7 +80,7 @@ public class B
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"));
         }
 
-        [WorkItem(543039, "DevDiv")]
+        [WorkItem(543039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
         [Fact]
         public void BadDefaultArgumentInOtherAssembly()
         {
@@ -112,7 +112,7 @@ public class B
                 verify: false);
         }
 
-        [WorkItem(543039, "DevDiv")]
+        [WorkItem(543039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
         [Fact]
         public void BadDefaultArgumentInOtherAssembly_Decimal()
         {
@@ -144,7 +144,7 @@ public class B
                 verify: false);
         }
 
-        [WorkItem(543039, "DevDiv")]
+        [WorkItem(543039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
         [Fact]
         public void BadDefaultArgumentInOtherAssembly_UserDefinedType()
         {
@@ -194,7 +194,7 @@ public class B
 }");
         }
 
-        [WorkItem(543039, "DevDiv")]
+        [WorkItem(543039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543039")]
         [Fact]
         public void BadReturnTypeInOtherAssembly()
         {
@@ -247,7 +247,7 @@ public class B
             }
         }
 
-        [Fact, WorkItem(530211, "DevDiv")]
+        [Fact, WorkItem(530211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530211")]
         public void ModuleNameMismatch()
         {
             var moduleSource = "class Test {}";

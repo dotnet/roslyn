@@ -135,7 +135,7 @@ End Module</File>
             Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <WorkItem(601222)>
+        <WorkItem(601222, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601222")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOnlyMoveOptions() As Task
             Dim text = <File>
@@ -340,7 +340,7 @@ End Module
             Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <WorkItem(600949)>
+        <WorkItem(600949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/600949")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestRemoveAttribute() As Task
             Dim text = <File>
@@ -356,7 +356,7 @@ End Class
             Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=1)
         End Function
 
-        <WorkItem(606857)>
+        <WorkItem(606857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606857")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestMoveImportBeforeAttribute() As Task
             Dim text = <File>
@@ -369,7 +369,7 @@ End Class
             Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=0)
         End Function
 
-        <WorkItem(606877)>
+        <WorkItem(606877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606877")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestNewLineWhenMovingFromEOF() As Task
             Dim text = <File>Imports System
@@ -383,7 +383,7 @@ Imports System
             Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=0)
         End Function
 
-        <WorkItem(606851)>
+        <WorkItem(606851, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606851")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestDoNotMoveLeadingWhitespace() As Task
             Dim text = <File>Imports System
@@ -399,7 +399,7 @@ Imports System
         End Function
 #End Region
 
-        <WorkItem(632305)>
+        <WorkItem(632305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632305")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestTestHiddenRegion() As Task
             Dim code =

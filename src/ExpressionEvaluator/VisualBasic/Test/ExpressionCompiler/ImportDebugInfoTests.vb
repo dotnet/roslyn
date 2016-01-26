@@ -183,7 +183,7 @@ End Namespace
             Assert.Equal("@" & methodToken1, importStrings.Single())
         End Sub
 
-        <WorkItem(999086)>
+        <WorkItem(999086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999086")>
         <Fact>
         Public Sub BadPdb_InvalidAliasTarget()
             Const source = "
@@ -223,7 +223,7 @@ End Class
             Assert.Equal("SC", aliases.Keys.Single())
         End Sub
 
-        <WorkItem(999086)>
+        <WorkItem(999086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999086")>
         <Fact>
         Public Sub BadPdb_InvalidAliasName()
             Const source = "

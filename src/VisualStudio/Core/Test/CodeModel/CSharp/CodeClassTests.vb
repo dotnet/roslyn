@@ -2019,7 +2019,7 @@ class C
             Await TestAddFunction(code, expected, New FunctionData With {.Name = "C", .Kind = EnvDTE.vsCMFunction.vsCMFunctionDestructor, .Type = "void", .Access = EnvDTE.vsCMAccess.vsCMAccessPublic})
         End Function
 
-        <WorkItem(1172038)>
+        <WorkItem(1172038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1172038")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddFunction_AfterIncompleteMember() As Task
             Dim code =
@@ -2527,7 +2527,7 @@ class C
             Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessPublic})
         End Function
 
-        <WorkItem(545238)>
+        <WorkItem(545238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545238")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddVariable14() As Task
             Dim code =
@@ -2548,7 +2548,7 @@ class C
             Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessPrivate})
         End Function
 
-        <WorkItem(546556)>
+        <WorkItem(546556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546556")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddVariable15() As Task
             Dim code =
@@ -2569,7 +2569,7 @@ class C
             Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessProject})
         End Function
 
-        <WorkItem(546556)>
+        <WorkItem(546556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546556")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddVariable16() As Task
             Dim code =
@@ -2590,7 +2590,7 @@ class C
             Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected})
         End Function
 
-        <WorkItem(546556)>
+        <WorkItem(546556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546556")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddVariable17() As Task
             Dim code =
@@ -2638,7 +2638,7 @@ class C
             Await TestAddVariable(code, expected, New VariableData With {.Name = "j", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefInt, .Position = "i"})
         End Function
 
-        <WorkItem(529865)>
+        <WorkItem(529865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529865")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddVariableAfterComment() As Task
             Dim code =

@@ -2138,7 +2138,7 @@ End Class
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
-        <WorkItem(837420, "DevDiv")>
+        <WorkItem(837420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837420")>
         <Fact()>
         Public Sub BC31556ERR_SourceInterfaceMustBeInterface()
             Dim sources0 = <compilation>
@@ -4052,7 +4052,7 @@ BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it
             CompileAndVerify(compilation4, verify:=False)
         End Sub
 
-        <Fact(), WorkItem(673546, "DevDiv")>
+        <Fact(), WorkItem(673546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673546")>
         Public Sub MissingComAwareEventInfo()
             Dim sources0 = <compilation name="0">
                                <file name="a.vb"><![CDATA[

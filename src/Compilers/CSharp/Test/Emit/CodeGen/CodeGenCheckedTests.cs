@@ -2136,7 +2136,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "int.MaxValue + 1"));
         }
 
-        [WorkItem(648109, "DevDiv")]
+        [WorkItem(648109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648109")]
         [Fact(Skip = "648109")]
         public void CheckedExpressionWithDecimal()
         {
@@ -2155,7 +2155,7 @@ class M
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "decimal.MaxValue + 1"));
         }
 
-        [WorkItem(543894, "DevDiv"), WorkItem(543924, "DevDiv")]
+        [WorkItem(543894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543894"), WorkItem(543924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543924")]
         [Fact]
         public void CheckedOperatorOnEnumOverflow()
         {
@@ -2186,7 +2186,7 @@ class Test
                 expectedOutput: "PASS");
         }
 
-        [WorkItem(529263, "DevDiv")]
+        [WorkItem(529263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529263")]
         [Fact]
         public void CheckedOperatorOnLambdaExpr()
         {
@@ -2218,7 +2218,7 @@ class Program
                 expectedOutput: "PASS");
         }
 
-        [Fact, WorkItem(543981, "DevDiv")]
+        [Fact, WorkItem(543981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543981")]
         public void CheckedOperatorOnUnaryExpression()
         {
             var source = @"
@@ -2264,7 +2264,7 @@ class Program
                 expectedOutput: "OV-0");
         }
 
-        [Fact, WorkItem(543983, "DevDiv")]
+        [Fact, WorkItem(543983, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543983")]
         public void CheckedStatementWithCompoundAssignment()
         {
             var source = @"
@@ -2295,7 +2295,7 @@ public class MyClass
                 expectedOutput: "32000OV");
         }
 
-        [Fact, WorkItem(546872, "DevDiv")]
+        [Fact, WorkItem(546872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546872")]
         public void CheckPostIncrementOnBaseProtectedClassMember()
         {
             var source = @"

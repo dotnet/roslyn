@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class NoPIATests : ExpressionCompilerTestBase
     {
-        [WorkItem(1033598)]
+        [WorkItem(1033598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033598")]
         [Fact]
         public void ExplicitEmbeddedType()
         {
@@ -58,7 +58,7 @@ class C
 }");
         }
 
-        [WorkItem(1035310)]
+        [WorkItem(1035310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1035310")]
         [Fact]
         public void EmbeddedType()
         {

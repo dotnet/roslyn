@@ -595,7 +595,7 @@ $$");
        $$");
         }
 
-        [WorkItem(538804)]
+        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInDefault()
         {
@@ -603,7 +603,7 @@ $$");
 @"default($$"));
         }
 
-        [WorkItem(538804)]
+        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInSizeOf()
         {
@@ -611,7 +611,7 @@ $$");
 @"sizeof($$"));
         }
 
-        [WorkItem(544347)]
+        [WorkItem(544347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544347")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInUnsafeDefaultExpression()
         {
@@ -621,7 +621,7 @@ $$");
     static void Method1(void* p1 = default($$");
         }
 
-        [WorkItem(544347)]
+        [WorkItem(544347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544347")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInDefaultExpression()
         {

@@ -170,7 +170,7 @@ namespace N
             testState.VerifyResult(root, EditorFeaturesResources.CallsToOverrides, new[] { "N.D.Baz()" });
         }
 
-        [WpfFact, WorkItem(829705), Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        [WpfFact, WorkItem(829705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829705"), Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public async Task Method_CallToBase()
         {
             var text = @"
@@ -433,7 +433,7 @@ namespace N
             testState.VerifyResult(root, EditorFeaturesResources.Overrides, new[] { "N.G.Foo()" });
         }
 
-        [WorkItem(844613)]
+        [WorkItem(844613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844613")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public async Task AbstractMethodInclusionToOverrides()
         {

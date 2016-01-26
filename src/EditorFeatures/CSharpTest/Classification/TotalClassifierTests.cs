@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification), WorkItem(547068)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification), WorkItem(547068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547068")]
         public async Task Bug17819()
         {
             await TestAsync(@"_ _(){}
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        [WorkItem(543123)]
+        [WorkItem(543123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
         public async Task VarInForeach()
         {
             await TestInMethodAsync(@"foreach (var v in args) { }",
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [WorkItem(545611)]
+        [WorkItem(545611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545611")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVarConstructor()
         {
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(545609)]
+        [WorkItem(545609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545609")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVarTypeParameter()
         {
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(545610)]
+        [WorkItem(545610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545610")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVarAttribute1()
         {
@@ -469,7 +469,7 @@ class var : Attribute { }
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(545610)]
+        [WorkItem(545610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545610")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVarAttribute2()
         {
@@ -492,7 +492,7 @@ class varAttribute : Attribute { }
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(546170)]
+        [WorkItem(546170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546170")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestStandaloneTypeName()
         {
@@ -524,7 +524,7 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(546403)]
+        [WorkItem(546403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546403")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestNamespaceClassAmbiguities()
         {

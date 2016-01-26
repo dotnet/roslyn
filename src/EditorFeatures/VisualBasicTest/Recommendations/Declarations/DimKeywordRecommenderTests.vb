@@ -63,7 +63,7 @@ End Sub</MethodBody>, "Dim")
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Partial |</ClassDeclaration>, "Dim")
         End Function
 
-        <WorkItem(545036)>
+        <WorkItem(545036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545036")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function DimNotAfterDimTest() As Task
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Dim |</ClassDeclaration>, "Dim")
@@ -179,7 +179,7 @@ End Sub</MethodBody>, "Dim")
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>Shared |</ClassDeclaration>, "Dim")
         End Function
 
-        <WorkItem(542720)>
+        <WorkItem(542720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542720")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function DimInSingleLineIfTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>If True Then Di|</MethodBody>, "Dim")
@@ -196,7 +196,7 @@ Dim X = Function() True
             Await VerifyRecommendationsContainAsync(code, "Dim")
         End Function
 
-        <WorkItem(674791)>
+        <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotAfterHashTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>

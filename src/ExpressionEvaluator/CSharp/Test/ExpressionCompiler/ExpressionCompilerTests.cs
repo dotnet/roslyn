@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// Each assembly should have a unique MVID and assembly name.
         /// </summary>
-        [WorkItem(1029280)]
+        [WorkItem(1029280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029280")]
         [Fact]
         public void UniqueModuleVersionId()
         {
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// Diagnostics should be formatted with the CurrentUICulture.
         /// </summary>
-        [WorkItem(941599)]
+        [WorkItem(941599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941599")]
         [Fact]
         public void FormatterCultureInfo()
         {
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// copy/paste of (simple cases of) RHS of assignment in Watch window,
         /// not to allow arbitrary syntax after the semicolon, not even comments.
         /// </summary>
-        [WorkItem(950242)]
+        [WorkItem(950242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/950242")]
         [Fact]
         public void TrailingSemicolon()
         {
@@ -1115,7 +1115,7 @@ class B : A
         /// The custom modifiers are not copied to the corresponding
         /// local in the generated method since there is no need.
         /// </remarks>
-        [WorkItem(884627)]
+        [WorkItem(884627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884627")]
         [Fact]
         public void LocalType_CustomModifiers()
         {
@@ -1165,7 +1165,7 @@ class B : A
 }");
         }
 
-        [WorkItem(1012956)]
+        [WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")]
         [Fact]
         public void LocalType_ByRefOrPinned()
         {
@@ -1332,7 +1332,7 @@ class B : A
 }");
         }
 
-        [WorkItem(1034549)]
+        [WorkItem(1034549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034549")]
         [Fact]
         public void AssignLocal()
         {
@@ -2024,7 +2024,7 @@ class C
             Assert.Equal(error, "error CS1021: Integral constant is too large");
         }
 
-        [WorkItem(986227)]
+        [WorkItem(986227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")]
         [Fact]
         public void RewriteCatchLocal()
         {
@@ -2113,7 +2113,7 @@ class C<T>
 }");
         }
 
-        [WorkItem(986227)]
+        [WorkItem(986227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")]
         [Fact]
         public void RewriteSequenceTemps()
         {
@@ -2278,7 +2278,7 @@ class C<T>
         /// the expression compiler and so an await expression would not
         /// normally be allowed.
         /// </remarks>
-        [WorkItem(1075258)]
+        [WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
         [Fact]
         public void Await()
         {
@@ -2312,7 +2312,7 @@ class C
         /// <remarks>
         /// This would be illegal in any non-debugger context.
         /// </remarks>
-        [WorkItem(1075258)]
+        [WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
         [Fact]
         public void AwaitInUnsafeContext()
         {
@@ -2567,7 +2567,7 @@ class C<T>
             Assert.Equal(((Cci.IMethodDefinition)methodData.Method).CallingConvention, Cci.CallingConvention.Generic);
         }
 
-        [WorkItem(976847)]
+        [WorkItem(976847, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/976847")]
         [Fact]
         public void VarArgMethod()
         {
@@ -2848,7 +2848,7 @@ class B : A
 }");
         }
 
-        [WorkItem(905986)]
+        [WorkItem(905986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/905986")]
         [Fact]
         public void EvaluateLambdaClosedOverBase()
         {
@@ -3017,7 +3017,7 @@ class B : A
 }");
         }
 
-        [WorkItem(994485)]
+        [WorkItem(994485, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994485")]
         [Fact]
         public void Repro994485()
         {
@@ -3531,7 +3531,7 @@ class C
         /// <summary>
         /// DiagnosticsPass must be run on evaluation method.
         /// </summary>
-        [WorkItem(530404)]
+        [WorkItem(530404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530404")]
         [Fact]
         public void DiagnosticsPass()
         {
@@ -3563,7 +3563,7 @@ class C
             Assert.Equal(error, "error CS0845: An expression tree lambda may not contain a coalescing operator with a null literal left-hand side");
         }
 
-        [WorkItem(935651)]
+        [WorkItem(935651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/935651")]
         [Fact]
         public void EvaluatePropertySet()
         {
@@ -3989,7 +3989,7 @@ class C
 }");
         }
 
-        [WorkItem(958448)]
+        [WorkItem(958448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")]
         [Fact]
         public void ConditionalAttribute()
         {
@@ -4024,7 +4024,7 @@ class C
 }");
         }
 
-        [WorkItem(958448)]
+        [WorkItem(958448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")]
         [Fact]
         public void ConditionalAttribute_CollectionInitializer()
         {
@@ -4176,7 +4176,7 @@ class C
 }");
         }
 
-        [WorkItem(984509)]
+        [WorkItem(984509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984509")]
         [Fact]
         public void LambdaContainingIncrementOperator()
         {
@@ -4302,7 +4302,7 @@ class C<T>
 }");
         }
 
-        [WorkItem(1000946)]
+        [WorkItem(1000946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1000946")]
         [Fact]
         public void BaseExpression()
         {
@@ -4362,7 +4362,7 @@ struct S
 }");
         }
 
-        [WorkItem(1010922)]
+        [WorkItem(1010922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010922")]
         [Fact]
         public void IntOverflow()
         {
@@ -4413,7 +4413,7 @@ class C
 }");
         }
 
-        [WorkItem(1012956)]
+        [WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")]
         [Fact]
         public void AssignmentConversion()
         {
@@ -4469,7 +4469,7 @@ class C
 }");
         }
 
-        [WorkItem(1016530)]
+        [WorkItem(1016530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016530")]
         [Fact]
         public void EvaluateStatement()
         {
@@ -4492,7 +4492,7 @@ class C
             Assert.Equal("error CS1525: Invalid expression term 'throw'", error);
         }
 
-        [WorkItem(1016555)]
+        [WorkItem(1016555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016555")]
         [Fact]
         public void UnmatchedCloseAndOpenParens()
         {
@@ -4522,7 +4522,7 @@ class C
             Assert.Equal("error CS1073: Unexpected token ')'", error);
         }
 
-        [WorkItem(1015887)]
+        [WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
         [Fact]
         public void DateTimeFieldConstant()
         {
@@ -4567,7 +4567,7 @@ class C
 }");
         }
 
-        [WorkItem(1015887)]
+        [WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
         [Fact]
         public void DecimalFieldConstant()
         {
@@ -4606,7 +4606,7 @@ struct S
 }");
         }
 
-        [WorkItem(1024137)]
+        [WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         [Fact]
         public void IteratorParameter()
         {
@@ -4642,7 +4642,7 @@ struct S
 ");
         }
 
-        [WorkItem(1024137)]
+        [WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         [Fact]
         public void IteratorGenericLocal()
         {
@@ -4680,7 +4680,7 @@ struct S
 ");
         }
 
-        [WorkItem(1028808)]
+        [WorkItem(1028808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028808")]
         [Fact]
         public void StaticLambdaInDisplayClass()
         {
@@ -5025,7 +5025,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(1055825)]
+        [WorkItem(1055825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1055825")]
         public void FieldLikeEvent()
         {
             var source = @"
@@ -5128,7 +5128,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(1055825)]
+        [WorkItem(1055825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1055825")]
         public void FieldLikeEvent_WinRT()
         {
             var ilSource = @"
@@ -5282,7 +5282,7 @@ class C
 ");
         }
 
-        [WorkItem(1079749)]
+        [WorkItem(1079749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079749")]
         [Fact]
         public void RangeVariableError()
         {
@@ -5316,7 +5316,7 @@ class C
             Assert.Equal(error, "error CS1935: Could not find an implementation of the query pattern for source type 'string'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?");
         }
 
-        [WorkItem(1079762)]
+        [WorkItem(1079762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079762")]
         [Fact]
         public void Bug1079762()
         {
@@ -5354,7 +5354,7 @@ class C
             Assert.Equal(error, "error CS0103: The name 'y' does not exist in the current context");
         }
 
-        [WorkItem(1079762)]
+        [WorkItem(1079762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079762")]
         [Fact]
         public void LambdaParameter()
         {
@@ -5387,7 +5387,7 @@ class C
 }");
         }
 
-        [WorkItem(1084059)]
+        [WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
         [Fact]
         public void StaticTypeImport()
         {
@@ -5424,7 +5424,7 @@ class C
 }");
         }
 
-        [WorkItem(1014763)]
+        [WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")]
         [Fact]
         public void NonStateMachineTypeParameter()
         {
@@ -5459,7 +5459,7 @@ class C
 }");
         }
 
-        [WorkItem(1014763)]
+        [WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")]
         [Fact]
         public void StateMachineTypeParameter()
         {
@@ -5497,7 +5497,7 @@ class C
 }");
         }
 
-        [WorkItem(1085642)]
+        [WorkItem(1085642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085642")]
         [Fact]
         public void ModuleWithBadImageFormat()
         {
@@ -5552,7 +5552,7 @@ class C
             }
         }
 
-        [WorkItem(1089688)]
+        [WorkItem(1089688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")]
         [Fact]
         public void MissingType()
         {
@@ -5619,7 +5619,7 @@ public class C
             verify("0");
         }
 
-        [WorkItem(1089688)]
+        [WorkItem(1089688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")]
         [Fact]
         public void UseSiteWarning()
         {
@@ -5687,7 +5687,7 @@ public class Source
 }");
         }
 
-        [WorkItem(1090458)]
+        [WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")]
         [Fact]
         public void ObsoleteAttribute()
         {
@@ -5715,7 +5715,7 @@ class C
             Assert.Null(error);
         }
 
-        [WorkItem(1090458)]
+        [WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")]
         [Fact]
         public void DeprecatedAttribute()
         {
@@ -5774,7 +5774,7 @@ namespace Windows.Foundation.Metadata
             Assert.Null(error);
         }
 
-        [WorkItem(1089591)]
+        [WorkItem(1089591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089591")]
         [Fact]
         public void BadPdb_MissingMethod()
         {
@@ -5812,7 +5812,7 @@ public class C
 ");
         }
 
-        [WorkItem(1108133)]
+        [WorkItem(1108133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108133")]
         [Fact]
         public void SymUnmanagedReaderNotImplemented()
         {
@@ -5848,7 +5848,7 @@ public class C
 ");
         }
 
-        [WorkItem(1115543)]
+        [WorkItem(1115543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115543")]
         [Fact]
         public void MethodTypeParameterInLambda()
         {
@@ -5887,7 +5887,7 @@ public class C<T>
 ");
         }
 
-        [WorkItem(1136085, "DevDiv")]
+        [WorkItem(1136085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1136085")]
         [Fact]
         public void TypeofOpenGenericType()
         {
@@ -6200,7 +6200,7 @@ class C
         /// DkmClrInstructionAddress.ILOffset is set to uint.MaxValue
         /// if the instruction does not map to an IL offset.
         /// </summary>
-        [WorkItem(1185315)]
+        [WorkItem(1185315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185315")]
         [Fact]
         public void NoILOffset()
         {
@@ -6352,7 +6352,7 @@ class C
 }");
         }
 
-        [WorkItem(2501)]
+        [WorkItem(2501, "https://github.com/dotnet/roslyn/issues/2501")]
         [Fact]
         public void ImportsInAsyncLambda()
         {

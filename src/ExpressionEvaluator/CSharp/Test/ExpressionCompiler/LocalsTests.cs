@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             locals.Free();
         }
 
-        [WorkItem(928113)]
+        [WorkItem(928113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/928113")]
         [Fact]
         public void Constants()
         {
@@ -1509,7 +1509,7 @@ class C
             locals.Free();
         }
 
-        [WorkItem(995976)]
+        [WorkItem(995976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995976")]
         [Fact]
         public void AsyncAndLambda()
         {
@@ -1578,7 +1578,7 @@ class C
             locals.Free();
         }
 
-        [WorkItem(2240)]
+        [WorkItem(2240, "https://github.com/dotnet/roslyn/issues/2240")]
         [Fact]
         public void AsyncLambda()
         {
@@ -1626,7 +1626,7 @@ class C
             locals.Free();
         }
 
-        [WorkItem(996571)]
+        [WorkItem(996571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/996571")]
         [Fact]
         public void MissingReference()
         {
@@ -1682,7 +1682,7 @@ public struct B
             locals.Free();
         }
 
-        [WorkItem(996571)]
+        [WorkItem(996571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/996571")]
         [Fact]
         public void MissingReference_2()
         {
@@ -1794,7 +1794,7 @@ class C
 }");
         }
 
-        [WorkItem(1015887)]
+        [WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
         [Fact]
         public void LocalDoubleConstant()
         {
@@ -1832,7 +1832,7 @@ class C
 }");
         }
 
-        [WorkItem(1015887)]
+        [WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
         [Fact]
         public void LocalByteConstant()
         {
@@ -1875,7 +1875,7 @@ class C
 ");
         }
 
-        [WorkItem(1015887)]
+        [WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
         [Fact]
         public void LocalDecimalConstant()
         {
@@ -1922,7 +1922,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1022165), WorkItem(1028883), WorkItem(1034204)]
+        [Fact, WorkItem(1022165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022165"), WorkItem(1028883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028883"), WorkItem(1034204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034204")]
         public void KeywordIdentifiers()
         {
             var source = @"
@@ -2051,7 +2051,7 @@ static class C
             Assert.Equal(SpecialType.System_Int32, methodData.Method.ReturnType.SpecialType);
         }
 
-        [Fact, WorkItem(1063254)]
+        [Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")]
         public void OverloadedIteratorDifferentParameterTypes_ArgumentsOnly()
         {
             var source = @"
@@ -2140,7 +2140,7 @@ class C
             locals.Free();
         }
 
-        [Fact, WorkItem(1063254)]
+        [Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")]
         public void OverloadedAsyncDifferentParameterTypes_ArgumentsOnly()
         {
             var source = @"
@@ -2226,7 +2226,7 @@ class C
             locals.Free();
         }
 
-        [Fact, WorkItem(1063254)]
+        [Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")]
         public void MultipleLambdasDifferentParameterNames_ArgumentsOnly()
         {
             var source = @"
@@ -2299,7 +2299,7 @@ class C
             locals.Free();
         }
 
-        [Fact, WorkItem(1063254)]
+        [Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")]
         public void OverloadedRegularMethodDifferentParameterTypes_ArgumentsOnly()
         {
             var source = @"
@@ -2395,7 +2395,7 @@ class C
             locals.Free();
         }
 
-        [Fact, WorkItem(1063254)]
+        [Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")]
         public void MultipleMethodsLocalConflictsWithParameterName_ArgumentsOnly()
         {
             var source = @"
@@ -2514,7 +2514,7 @@ class C<T>
             locals.Free();
         }
 
-        [WorkItem(1115030)]
+        [WorkItem(1115030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115030")]
         [Fact]
         public void CatchInAsyncStateMachine()
         {
@@ -2574,7 +2574,7 @@ class C
             locals.Free();
         }
 
-        [WorkItem(1115030)]
+        [WorkItem(1115030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115030")]
         [Fact]
         public void CatchInIteratorStateMachine()
         {
@@ -2635,7 +2635,7 @@ class C
             locals.Free();
         }
 
-        [WorkItem(947)]
+        [WorkItem(947, "unknown")]
         [Fact]
         public void DuplicateEditorBrowsableAttributes()
         {
@@ -2771,7 +2771,7 @@ class C
             locals.Free();
         }
 
-        [WorkItem(1139013, "DevDiv")]
+        [WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")]
         [Fact]
         public void TransparentIdentifiers_FromParameter()
         {
@@ -2855,7 +2855,7 @@ class C
             testData.GetMethodData("<>x.<>m0").VerifyIL(yIL);
         }
 
-        [WorkItem(1139013, "DevDiv")]
+        [WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")]
         [Fact]
         public void TransparentIdentifiers_FromDisplayClassField()
         {

@@ -10,7 +10,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Tests
     Public Class LanguageBlockTests
-        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Async Function TestGetCurrentBlock_NotInImports_VB() As Task
             Await VerifyNoBlockAsync("
 I$$mports System
@@ -23,7 +23,7 @@ End Module
 ", LanguageNames.VisualBasic)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Async Function TestGetCurrentBlock_NotLeadingTriviaOfRootClass_VB() As Task
             Await VerifyNoBlockAsync("
 Imports System
@@ -38,7 +38,7 @@ End Module
 ", LanguageNames.VisualBasic)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Async Function TestGetCurrentBlock_InNamespace_VB() As Task
             Await VerifyBlockAsync("
 [|Namespace N
@@ -52,7 +52,7 @@ End Namespace|]
 ", LanguageNames.VisualBasic, "N")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Async Function TestGetCurrentBlock_InModule_VB() As Task
             Await VerifyBlockAsync("
 Namespace N
@@ -66,7 +66,7 @@ End Namespace
 ", LanguageNames.VisualBasic, "Program")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Async Function TestGetCurrentBlock_InSub() As Task
             Await VerifyBlockAsync("
 Namespace N
@@ -79,7 +79,7 @@ End Namespace
 ", LanguageNames.VisualBasic, "Sub Program.M()")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Async Function TestGetCurrentBlock_InFunction() As Task
             Await VerifyBlockAsync("
 Namespace N
@@ -92,7 +92,7 @@ End Namespace
 ", LanguageNames.VisualBasic, "Function Program.F() As Integer")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Async Function TestGetCurrentBlock_InProperty_VB() As Task
             Await VerifyBlockAsync("
 Namespace N
@@ -107,7 +107,7 @@ End Namespace
 ", LanguageNames.VisualBasic, "Property Program.P() As Integer")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Async Function TestGetCurrentBlock_NotInUsings_CS() As Task
             Await VerifyNoBlockAsync("
 u$$sing System;
@@ -119,7 +119,7 @@ class Program
 ", LanguageNames.CSharp)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Async Function TestGetCurrentBlock_NotLeadingTriviaOfRootClass_CS() As Task
             Await VerifyNoBlockAsync("
 using System;
@@ -133,7 +133,7 @@ class Program
 ", LanguageNames.CSharp)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Async Function TestGetCurrentBlock_InNamespace_CS() As Task
             Await VerifyBlockAsync("
 [|namespace N
@@ -147,7 +147,7 @@ $$
 ", LanguageNames.CSharp, "N")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Async Function TestGetCurrentBlock_InClass_CS() As Task
             Await VerifyBlockAsync("
 namespace N
@@ -161,7 +161,7 @@ namespace N
 ", LanguageNames.CSharp, "Program")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Async Function TestGetCurrentBlock_InMethod() As Task
             Await VerifyBlockAsync("
 namespace N
@@ -177,7 +177,7 @@ namespace N
 ", LanguageNames.CSharp, "void Program.M()")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Async Function TestGetCurrentBlock_InProperty_CS() As Task
             Await VerifyBlockAsync("
 namespace N
@@ -196,7 +196,7 @@ namespace N
 ", LanguageNames.CSharp, "int Program.P")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Async Function TestGetCurrentBlock_DocumentDoesNotSupportSyntax() As Task
             ' NoCompilation is the special Language-Name we use to indicate that a language does not
             ' support SyntaxTrees/SemanticModels.  This test validates that we do not crash in that

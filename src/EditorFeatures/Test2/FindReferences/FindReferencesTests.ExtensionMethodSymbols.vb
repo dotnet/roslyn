@@ -4,7 +4,7 @@ Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WorkItem(541167)>
+        <WorkItem(541167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541167")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestExtensionMethodToDelegateConversion() As Task
             Dim input =
@@ -27,7 +27,7 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WorkItem(541697)>
+        <WorkItem(541697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541697")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestReducedExtensionMethod1() As Task
             Dim input =
@@ -59,7 +59,7 @@ public static class MyExtension
             Await TestAsync(input)
         End Function
 
-        <WorkItem(541697)>
+        <WorkItem(541697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541697")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestReducedExtensionMethod2() As Task
             Dim input =

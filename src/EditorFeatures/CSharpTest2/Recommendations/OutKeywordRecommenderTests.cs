@@ -181,7 +181,7 @@ $$");
     public C(int i, [Foo]$$");
         }
 
-        [WorkItem(933972)]
+        [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterThisConstructorInitializer()
         {
@@ -190,7 +190,7 @@ $$");
     public C():this($$");
         }
 
-        [WorkItem(933972)]
+        [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterThisConstructorInitializerNamedArgument()
         {
@@ -199,7 +199,7 @@ $$");
     public C():this(Foo:$$");
         }
 
-        [WorkItem(933972)]
+        [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterBaseConstructorInitializer()
         {
@@ -208,7 +208,7 @@ $$");
     public C():base($$");
         }
 
-        [WorkItem(933972)]
+        [WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterBaseConstructorInitializerNamedArgument()
         {

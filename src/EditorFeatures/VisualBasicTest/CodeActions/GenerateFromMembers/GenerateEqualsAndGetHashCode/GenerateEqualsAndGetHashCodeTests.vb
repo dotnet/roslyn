@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.G
             Return New GenerateEqualsAndGetHashCodeCodeRefactoringProvider()
         End Function
 
-        <WorkItem(541991)>
+        <WorkItem(541991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541991")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestEqualsOnSingleField() As Task
             Await TestAsync(
@@ -26,7 +26,7 @@ NewLines("Imports System.Collections.Generic \n Class Z \n Private a As Integer 
 index:=0)
         End Function
 
-        <WorkItem(541991)>
+        <WorkItem(541991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541991")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestGetHashCodeOnSingleField() As Task
             Await TestAsync(
@@ -35,7 +35,7 @@ NewLines("Imports System.Collections.Generic \n Class Z \n Private a As Integer 
 index:=1)
         End Function
 
-        <WorkItem(541991)>
+        <WorkItem(541991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541991")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestBothOnSingleField() As Task
             Await TestAsync(
@@ -44,7 +44,7 @@ NewLines("Imports System.Collections.Generic \n Class Z \n Private a As Integer 
 index:=2)
         End Function
 
-        <WorkItem(545205)>
+        <WorkItem(545205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545205")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestTypeWithNumberInName() As Task
             Await TestAsync(

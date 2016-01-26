@@ -251,7 +251,7 @@ class C
         /// Value should not be expandable if all members are marked
         /// [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)].
         /// </summary>
-        [WorkItem(934800)]
+        [WorkItem(934800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/934800")]
         [Fact(Skip = "934800")]
         public void RootHidden_Empty()
         {

@@ -554,7 +554,7 @@ class C1 : I1
 
 #Region "OverrideKind tests"
 
-        <WorkItem(150349)>
+        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestOverrideKind_Abstract() As Task
             Dim code =
@@ -571,7 +571,7 @@ class C
             Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
         End Function
 
-        <WorkItem(150349)>
+        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestOverrideKind_Virtual() As Task
             Dim code =
@@ -593,7 +593,7 @@ class C
             Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual)
         End Function
 
-        <WorkItem(150349)>
+        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestOverrideKind_None() As Task
             Dim code =

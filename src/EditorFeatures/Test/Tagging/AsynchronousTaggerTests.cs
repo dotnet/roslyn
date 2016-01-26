@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         /// I'm leaving this test here because it covers that code path (as shown by code coverage)
         /// </summary>
         [WpfFact]
-        [WorkItem(530368)]
+        [WorkItem(530368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530368")]
         public async Task LargeNumberOfSpans()
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(@"class Program
