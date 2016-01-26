@@ -228,12 +228,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _cancellationToken.ThrowIfCancellationRequested();
                 var results = nugetService.Search(name, arity, _cancellationToken);
 
+                var project = _document.Project;
+                var projectId = project.Id;
+                var workspace = project.Solution.Workspace;
+
                 int weight = 0;
                 foreach (var result in results)
                 {
-                    allReferences.Add(new NugetReference(_owner, installerService,
-                        new SearchResult(name, nameNode, result.NameParts, weight), result.PackageName));
-                    weight++;
+                    if (!installerService.IsInstalled(workspace, projectId, result.PackageName))
+                    {
+                        allReferences.Add(new NugetReference(_owner, installerService,
+                            new SearchResult(name, nameNode, result.NameParts, weight), result.PackageName));
+                        weight++;
+                    }
                 }
             }
 
