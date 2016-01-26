@@ -41,8 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
         }
 
-        internal abstract bool TryInstallPackage(ProjectId projectId, string packageName);
-
         private void OnCacheFlushRequested(object sender, EventArgs e)
         {
             if (_backgroundCompiler != null)

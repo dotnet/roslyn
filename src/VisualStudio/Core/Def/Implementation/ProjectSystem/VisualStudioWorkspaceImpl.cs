@@ -12,12 +12,14 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Nuget;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Feedback.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
+using Microsoft.VisualStudio.LanguageServices.Nuget;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -50,6 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private ISolutionCrawlerRegistrationService _registrationService;
 
         private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
+
+        private NugetPackageInstallerService _nugetInstallerService;
 
         public VisualStudioWorkspaceImpl(
             SVsServiceProvider serviceProvider,
@@ -103,6 +107,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Ensure the options factory services are initialized on the UI thread
             this.Services.GetService<IOptionService>();
+
+            // Ensure the nuget services are initialized on the UI thread.
+            this._nugetInstallerService = (NugetPackageInstallerService)this.Services.GetService<INugetPackageInstallerService>();
+            _nugetInstallerService.Connect(this);
         }
 
         /// <summary>NOTE: Call only from derived class constructor</summary>
@@ -215,35 +223,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal override bool TryInstallPackage(ProjectId projectId, string packageName)
+        internal EnvDTE.Project TryGetDTEProject(ProjectId projectId)
         {
-            var dte = (DTE)this.ServiceProvider.GetService(typeof(SDTE));
+            IVisualStudioHostProject hostProject;
+            IVsHierarchy hierarchy;
+            EnvDTE.Project project;
 
-            try
-            {
-                IVisualStudioHostProject hostProject;
-                IVsHierarchy hierarchy;
-                EnvDTE.Project project;
-                GetProjectData(projectId, out hostProject, out hierarchy, out project);
-
-                var componentModel = (IComponentModel)this.ServiceProvider.GetService(typeof(SComponentModel));
-                var installerServices = componentModel.GetService<IVsPackageInstallerServices>();
-
-                if (!installerServices.IsPackageInstalled(project, packageName))
-                {
-                    dte.StatusBar.Text = $"Installing Nuget package '{packageName}'";
-                    var installer = componentModel.GetService<IVsPackageInstaller>();
-                    installer.InstallPackage(source: null, project: project, packageId: packageName, version: (Version)null, ignoreDependencies: false);
-                    dte.StatusBar.Text = $"Installing package '{packageName}' completed";
-                }
-
-                return true;
-            }
-            catch
-            {
-                dte.StatusBar.Text = "Failed to intall Nuget package.";
-                return false;
-            }
+            return TryGetProjectData(projectId, out hostProject, out hierarchy, out project) ? project : null;
         }
 
         internal bool TryAddReferenceToProject(ProjectId projectId, string assemblyName)
@@ -1018,6 +1004,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected override void Dispose(bool finalize)
         {
+            _nugetInstallerService.Disconnect(this);
+
             // workspace is going away. unregister this workspace from work coordinator
             StopSolutionCrawler();
 

@@ -516,4 +516,13 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="FullSolutionAnalysisOff" xml:space="preserve">
     <value>Low memory detected. Full solution analysis disabled for this solution.</value>
   </data>
+  <data name="Installing_package_0" xml:space="preserve">
+    <value>Installing package '{0}'</value>
+  </data>
+  <data name="Installing_package_0_completed" xml:space="preserve">
+    <value>Installing package '{0}' completed</value>
+  </data>
+  <data name="Installing_package_0_failed" xml:space="preserve">
+    <value>Installing package '{0}' failed</value>
+  </data>
 </root>

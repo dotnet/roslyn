@@ -538,6 +538,33 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Installing package &apos;{0}&apos;.
+        /// </summary>
+        internal static string Installing_package_0 {
+            get {
+                return ResourceManager.GetString("Installing_package_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Installing package &apos;{0}&apos; completed.
+        /// </summary>
+        internal static string Installing_package_0_completed {
+            get {
+                return ResourceManager.GetString("Installing_package_0_completed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Installing package &apos;{0}&apos; failed.
+        /// </summary>
+        internal static string Installing_package_0_failed {
+            get {
+                return ResourceManager.GetString("Installing_package_0_failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Interface name conflicts with an existing type name..
         /// </summary>
         internal static string InterfaceNameConflictsWithTypeName {
