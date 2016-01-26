@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Nuget
 {
-    interface INugetPackageInstallerService : IWorkspaceService
+    interface IPackageInstallerService : IWorkspaceService
     {
         bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName);
 

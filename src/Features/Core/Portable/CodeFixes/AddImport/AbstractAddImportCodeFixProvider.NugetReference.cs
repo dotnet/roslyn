@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
     {
         private class NugetReference : Reference
         {
-            private readonly INugetPackageInstallerService _installerService;
+            private readonly IPackageInstallerService _installerService;
             private readonly string _packageName;
 
             public NugetReference(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
-                INugetPackageInstallerService installerService,
+                IPackageInstallerService installerService,
                 SearchResult searchResult,
                 string packageName)
                 : base(provider, searchResult)
@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private class InstallNugetPackageOperation : CodeActionOperation
             {
                 private readonly Project _project;
-                private readonly INugetPackageInstallerService _installerService;
+                private readonly IPackageInstallerService _installerService;
                 private readonly string _packageName;
 
-                public InstallNugetPackageOperation(INugetPackageInstallerService installerService, Project project, string packageName)
+                public InstallNugetPackageOperation(IPackageInstallerService installerService, Project project, string packageName)
                 {
                     _installerService = installerService;
                     _project = project;

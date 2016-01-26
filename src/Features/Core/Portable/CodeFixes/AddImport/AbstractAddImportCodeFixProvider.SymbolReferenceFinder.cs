@@ -207,8 +207,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private Task FindNugetReferencesAsync(List<Reference> allReferences, TSimpleNameSyntax nameNode, string name, int arity)
             {
                 var workspaceServices = _document.Project.Solution.Workspace.Services;
-                var searchService = workspaceServices.GetService<INugetSearchService>();
-                var installerService = workspaceServices.GetService<INugetPackageInstallerService>();
+                var searchService = workspaceServices.GetService<IPackageSearchService>();
+                var installerService = workspaceServices.GetService<IPackageInstallerService>();
                 if (searchService == null || installerService == null)
                 {
                     return SpecializedTasks.EmptyTask;
@@ -218,8 +218,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             private void FindNugetReferences(
-                INugetSearchService nugetService,
-                INugetPackageInstallerService installerService,
+                IPackageSearchService nugetService,
+                IPackageInstallerService installerService,
                 List<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
                 string name,

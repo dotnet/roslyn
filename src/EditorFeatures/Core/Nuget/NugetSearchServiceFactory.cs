@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Nuget
 {
-    [ExportWorkspaceServiceFactory(typeof(INugetSearchService)), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IPackageSearchService)), Shared]
     internal class NugetSearchServiceFactory : IWorkspaceServiceFactory
     {
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Nuget
             return new NugetSearchService(workspaceServices);
         }
 
-        private class NugetSearchService : INugetSearchService
+        private class NugetSearchService : IPackageSearchService
         {
 #if false
             private static Lazy<IMemberDatabase> s_memberDatabase = new Lazy<IMemberDatabase>(

@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Nuget
 {
-    [ExportWorkspaceServiceFactory(typeof(INugetPackageInstallerService)), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IPackageInstallerService)), Shared]
     internal class NugetPackageInstallerServiceFactory : IWorkspaceServiceFactory
     {
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Nuget
         }
     }
 
-    internal class NugetPackageInstallerService : ForegroundThreadAffinitizedObject, INugetPackageInstallerService
+    internal class NugetPackageInstallerService : ForegroundThreadAffinitizedObject, IPackageInstallerService
     {
         private readonly object gate = new object();
         private readonly HostWorkspaceServices workspaceServices;

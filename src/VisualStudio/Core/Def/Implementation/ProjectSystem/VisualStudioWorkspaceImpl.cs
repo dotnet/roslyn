@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             this.Services.GetService<IOptionService>();
 
             // Ensure the nuget services are initialized on the UI thread.
-            this._nugetInstallerService = (NugetPackageInstallerService)this.Services.GetService<INugetPackageInstallerService>();
+            this._nugetInstallerService = (NugetPackageInstallerService)this.Services.GetService<IPackageInstallerService>();
             _nugetInstallerService.Connect(this);
         }
 

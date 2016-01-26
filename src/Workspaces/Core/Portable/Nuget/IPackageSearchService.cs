@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Nuget
 {
-    internal interface INugetSearchService : IWorkspaceService
+    internal interface IPackageSearchService : IWorkspaceService
     {
         IEnumerable<NugetSearchResult> Search(string name, int arity, CancellationToken cancellationToken);
     }
