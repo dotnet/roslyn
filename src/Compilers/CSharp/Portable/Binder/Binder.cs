@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void ResolveOverloads<TMember>(
             ImmutableArray<TMember> members,
-            ImmutableArray<TypeSymbol> typeArguments,
+            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
             ImmutableArray<ArgumentSyntax> arguments,
             OverloadResolutionResult<TMember> result,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodsBuilder = ArrayBuilder<TMember>.GetInstance(members.Length);
             methodsBuilder.AddRange(members);
 
-            var typeArgumentsBuilder = ArrayBuilder<TypeSymbol>.GetInstance(typeArguments.Length);
+            var typeArgumentsBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(typeArguments.Length);
             typeArgumentsBuilder.AddRange(typeArguments);
 
             var analyzedArguments = AnalyzedArguments.GetInstance();

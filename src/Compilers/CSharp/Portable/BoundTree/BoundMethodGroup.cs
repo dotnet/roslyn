@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public BoundMethodGroup(
             CSharpSyntaxNode syntax,
-            ImmutableArray<TypeSymbol> typeArgumentsOpt,
+            ImmutableArray<TypeSymbolWithAnnotations> typeArgumentsOpt,
             BoundExpression receiverOpt,
             string name,
             ImmutableArray<MethodSymbol> methods,

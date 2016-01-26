@@ -957,7 +957,7 @@
     <!--Non-null type is required, and will always be "dynamic". -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Receiver" Type="BoundExpression"/>
-    <Field Name="TypeArgumentsOpt" Type="ImmutableArray&lt;TypeSymbol&gt;" Null="allow"/>
+    <Field Name="TypeArgumentsOpt" Type="ImmutableArray&lt;TypeSymbolWithAnnotations&gt;" Null="allow"/>
     <Field Name="Name" Type="string" Null="disallow"/>
   
     <!-- TODO (tomat): do we really need these flags here? it should be possible to infer them from the context -->
@@ -1021,7 +1021,7 @@
     <!-- SPEC: A method group is a set of overloaded methods resulting from a member lookup. 
          SPEC: A method group may have an associated instance expression and 
          SPEC: an associated type argument list. -->
-    <Field Name="TypeArgumentsOpt" Type="ImmutableArray&lt;TypeSymbol&gt;" Null="allow"/>
+    <Field Name="TypeArgumentsOpt" Type="ImmutableArray&lt;TypeSymbolWithAnnotations&gt;" Null="allow"/>
     <Field Name="Name" Type="string" Null="disallow"/>
     <Field Name="Methods" Type="ImmutableArray&lt;MethodSymbol&gt;" />
     <Field Name="LookupSymbolOpt" Type="Symbol" Null="allow"/>

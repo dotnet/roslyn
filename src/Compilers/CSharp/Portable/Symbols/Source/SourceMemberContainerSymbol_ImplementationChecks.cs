@@ -672,6 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // As in dev11, we don't compare obsoleteness to the immediately-overridden member,
                         // but to the least-overridden member.
                         var leastOverriddenMember = overriddenMember.GetLeastOverriddenMember(overriddenMember.ContainingType);
+                        CSharpCompilation compilation;
 
                         overridingMember.ForceCompleteObsoleteAttribute();
                         leastOverriddenMember.ForceCompleteObsoleteAttribute();
@@ -706,8 +707,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
                                 !overridingMember.NullableOptOut &&
-                                overridingMember.DeclaringCompilation?.RespectNullableAnnotations(overriddenMember) == true &&
-                                !overridingMemberType.Equals(overriddenMemberType, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes))
+                                (compilation = overridingMember.DeclaringCompilation) != null &&
+                                !overridingMemberType.Equals(compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(overriddenProperty), 
+                                                             TypeSymbolEqualityOptions.SameType | 
+                                                                TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes |
+                                                                TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny))
                             {
                                 diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, overridingMemberLocation);
                             }
@@ -750,8 +754,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
                                 !overridingMember.NullableOptOut &&
-                                overridingMember.DeclaringCompilation?.RespectNullableAnnotations(overriddenMember) == true &&
-                                !overridingMemberType.Equals(overriddenMemberType, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes))
+                                (compilation = overridingMember.DeclaringCompilation) != null &&
+                                !overridingMemberType.Equals(compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(overriddenEvent), 
+                                                             TypeSymbolEqualityOptions.SameType | 
+                                                                TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes |
+                                                                TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny))
                             {
                                 diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, overridingMemberLocation);
                             }
@@ -763,19 +770,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var overridingMethod = (MethodSymbol)overridingMember;
                             var overriddenMethod = (MethodSymbol)overriddenMember;
 
-                            // Ignore custom modifiers, because this diagnostic is based on the C# semantics.
-                            if (!MemberSignatureComparer.HaveSameReturnTypes(overridingMethod, overriddenMethod, TypeSymbolEqualityOptions.SameType))
+                            if (overridingMethod.IsGenericMethod)
                             {
-                                // Suppose we have a virtual base class method M<T>() that returns C<T>, and the overriding
-                                // method M<V> returns void. The error should be "return type must be C<V>", not 
-                                // "return type must be C<T>".
+                                overriddenMethod = overriddenMethod.Construct(overridingMethod.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                            }
 
-                                TypeSymbol returnType = overriddenMethod.IsGenericMethod ?
-                                    overriddenMethod.Construct(overridingMethod.TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>()).ReturnType.TypeSymbol :
-                                    overriddenMethod.ReturnType.TypeSymbol;
-
+                            // Ignore custom modifiers, because this diagnostic is based on the C# semantics.
+                            if (!overridingMethod.ReturnType.Equals(overriddenMethod.ReturnType, TypeSymbolEqualityOptions.SameType))
+                            {
                                 // error CS0508: return type must be 'C<V>' to match overridden member 'M<T>()'
-                                diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, returnType);
+                                diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType.TypeSymbol);
                             }
                             else if (overriddenMethod.IsRuntimeFinalizer())
                             {
@@ -784,8 +788,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
                                 !overridingMember.IsImplicitlyDeclared && !overridingMember.IsAccessor() &&
                                 !overridingMember.NullableOptOut &&
-                                overridingMember.DeclaringCompilation?.RespectNullableAnnotations(overriddenMember) == true &&
-                                !MemberSignatureComparer.HaveSameReturnTypes(overridingMethod, overriddenMethod, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes))
+                                (compilation = overridingMember.DeclaringCompilation) != null &&
+                                !overridingMethod.ReturnType.Equals(compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(overriddenMethod), 
+                                                                    TypeSymbolEqualityOptions.SameType | 
+                                                                        TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes |
+                                                                        TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny))
                             {
                                 diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, overridingMemberLocation);
                             }
@@ -794,7 +801,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
                             !overridingMember.IsImplicitlyDeclared && !overridingMember.IsAccessor() &&
                             !overridingMember.NullableOptOut &&
-                            overridingMember.DeclaringCompilation?.RespectNullableAnnotations(overriddenMember) == true)
+                            (compilation = overridingMember.DeclaringCompilation) != null)
                         {
                             ImmutableArray<ParameterSymbol> overridingParameters = overridingMember.GetParameters();
                             ImmutableArray<ParameterSymbol> overriddenParameters;
@@ -811,8 +818,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             for (int i = 0; i < overridingParameters.Length; i++)
                             {
-                                if (!overridingParameters[i].Type.Equals(overriddenParameters[i].Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes) &&
-                                    overridingParameters[i].Type.Equals(overriddenParameters[i].Type, TypeSymbolEqualityOptions.SameType))
+                                var overridenParameterType = compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(overriddenParameters[i]);
+                                if (!overridingParameters[i].Type.Equals(overridenParameterType, 
+                                                                         TypeSymbolEqualityOptions.SameType | 
+                                                                            TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes |
+                                                                            TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny) &&
+                                    overridingParameters[i].Type.Equals(overridenParameterType, TypeSymbolEqualityOptions.SameType))
                                 {
                                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, overridingMemberLocation, new FormattedSymbol(overridingParameters[i], SymbolDisplayFormat.ShortFormat));
                                 }

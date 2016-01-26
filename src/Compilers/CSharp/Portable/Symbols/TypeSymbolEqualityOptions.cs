@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         IgnoreArraySizesAndLowerBounds = 1 << 1, 
         IgnoreDynamic = 1 << 2,
         CompareNullableModifiersForReferenceTypes = 1 << 3,
+        UnknownNullableModifierMatchesAny = 1 << 4, // Has no impact without CompareNullableModifiersForReferenceTypes
 
         IgnoreCustomModifiersAndArraySizesAndLowerBounds = IgnoreCustomModifiers | IgnoreArraySizesAndLowerBounds,
         SameType = IgnoreDynamic | IgnoreCustomModifiers | IgnoreArraySizesAndLowerBounds,

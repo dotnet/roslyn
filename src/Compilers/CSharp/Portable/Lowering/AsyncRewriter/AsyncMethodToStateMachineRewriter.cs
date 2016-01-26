@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _dynamicFactory.MakeDynamicMemberInvocation(
                 methodName,
                 receiver,
-                typeArguments: ImmutableArray<TypeSymbol>.Empty,
+                typeArguments: ImmutableArray<TypeSymbolWithAnnotations>.Empty,
                 loweredArguments: ImmutableArray<BoundExpression>.Empty,
                 argumentNames: ImmutableArray<string>.Empty,
                 refKinds: ImmutableArray<RefKind>.Empty,

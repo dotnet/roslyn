@@ -98,6 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         InLoadedSyntaxTree = 1 << 28,
 
+        /// <summary>
+        /// This is a <see cref="ContextualAttributeBinder"/>, or has <see cref="ContextualAttributeBinder"/> as its parent.
+        /// </summary>
+        InContectualAttributeBinder = 1 << 29,
+
         // Groups
 
         AllClearedAtExecutableCodeBoundary = InLockBody | InCatchBlock | InCatchFilter | InFinallyBlock | InTryBlockOfTryCatch | InNestedFinallyBlock,

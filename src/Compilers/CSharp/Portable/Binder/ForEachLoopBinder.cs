@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (SatisfiesForEachPattern(ref builder, diagnostics))
                 {
-                    builder.ElementType = ((PropertySymbol)builder.CurrentPropertyGetter.AssociatedSymbol).Type.TypeSymbol;
+                    builder.ElementType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations((PropertySymbol)builder.CurrentPropertyGetter.AssociatedSymbol).TypeSymbol;
 
                     // NOTE: if IDisposable is not available at all, no diagnostics will be reported - we will just assume that
                     // the enumerator is not disposable.  If it has IDisposable in its interface list, there will be a diagnostic there.
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         builder.GetEnumeratorMethod = getEnumeratorMethod.AsMember(collectionType);
 
-                        TypeSymbol enumeratorType = builder.GetEnumeratorMethod.ReturnType.TypeSymbol;
+                        TypeSymbol enumeratorType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(builder.GetEnumeratorMethod).TypeSymbol;
                         Debug.Assert(enumeratorType.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerator_T);
                         MethodSymbol currentPropertyGetter = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerator_T__get_Current, diagnostics, errorLocationSyntax);
                         if ((object)currentPropertyGetter != null)
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private MethodSymbol PerformForEachPatternOverloadResolution(TypeSymbol patternType, ArrayBuilder<MethodSymbol> candidateMethods, bool warningsOnly, DiagnosticBag diagnostics)
         {
-            ArrayBuilder<TypeSymbol> typeArguments = ArrayBuilder<TypeSymbol>.GetInstance();
+            ArrayBuilder<TypeSymbolWithAnnotations> typeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
             AnalyzedArguments arguments = AnalyzedArguments.GetInstance();
             OverloadResolutionResult<MethodSymbol> overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
 
@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)builder.GetEnumeratorMethod != null);
 
             MethodSymbol getEnumeratorMethod = builder.GetEnumeratorMethod;
-            TypeSymbol enumeratorType = getEnumeratorMethod.ReturnType.TypeSymbol;
+            TypeSymbol enumeratorType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(getEnumeratorMethod).TypeSymbol;
 
             switch (enumeratorType.TypeKind)
             {

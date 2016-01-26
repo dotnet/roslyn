@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ImmutableArray<MethodSymbol> originalMethods;
                 LookupResultKind resultKind;
-                ImmutableArray<TypeSymbol> typeArguments;
+                ImmutableArray<TypeSymbolWithAnnotations> typeArguments;
                 if (resolution.OverloadResolutionResult != null)
                 {
                     originalMethods = GetOriginalMethods(resolution.OverloadResolutionResult);
@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We still have to determine if it passes final validation.
 
             var methodResult = result.ValidResult;
-            var returnType = methodResult.Member.ReturnType.TypeSymbol;
+            var returnType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(methodResult.Member).TypeSymbol;
             this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics);
 
             var method = methodResult.Member;
@@ -790,7 +790,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // conversion here.
                 Debug.Assert(method.ParameterCount > 0);
                 Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
-                BoundExpression convertedReceiver = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), method.Parameters[0].Type.TypeSymbol, diagnostics);
+                BoundExpression convertedReceiver = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), 
+                                                                     GetTypeOrReturnTypeWithAdjustedNullableAnnotations(method.Parameters[0]).TypeSymbol, 
+                                                                     diagnostics);
                 builder.Add(convertedReceiver);
 
                 bool first = true;
@@ -889,6 +891,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal TypeSymbolWithAnnotations GetTypeOrReturnTypeWithAdjustedNullableAnnotations(Symbol symbol)
+        {
+            if (((CSharpParseOptions)Compilation.SyntaxTrees.FirstOrDefault()?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
+                !IsBindingModuleLevelAttribute()) // TODO: It is possible to get into cycle while binding module level attributes because Opt-In/Opt-Out state depends on them
+            {
+                return Compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(symbol);
+            }
+
+            return symbol.Kind == SymbolKind.Parameter ? ((ParameterSymbol)symbol).Type : symbol.GetTypeOrReturnType();
+        }
+
+        private bool IsBindingModuleLevelAttribute()
+        {
+            if ((this.Flags & BinderFlags.InContectualAttributeBinder) == 0)
+            {
+                return false;
+            }
+
+            var current = this;
+
+            do
+            {
+                var contextualAttributeBinder = current as ContextualAttributeBinder;
+
+                if (contextualAttributeBinder != null)
+                {
+                    return (object)contextualAttributeBinder.AttributeTarget != null &&
+                           contextualAttributeBinder.AttributeTarget.Kind == SymbolKind.NetModule;
+                }
+
+                current = current.Next;
+            }
+            while (current != null);
+
+            throw ExceptionUtilities.Unreachable;
+        }
+
         /// <param name="node">Invocation syntax node.</param>
         /// <param name="expression">The syntax for the invoked method, including receiver.</param>
         private Location GetLocationForOverloadResolutionDiagnostic(CSharpSyntaxNode node, CSharpSyntaxNode expression)
@@ -972,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiver,
             ImmutableArray<MethodSymbol> methods,
             LookupResultKind resultKind,
-            ImmutableArray<TypeSymbol> typeArguments,
+            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
             AnalyzedArguments analyzedArguments,
             bool invokedAsExtensionMethod,
             bool isDelegate,
@@ -1038,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             switch (oldArgument.Kind)
                             {
                                 case BoundKind.UnboundLambda:
-                                    NamedTypeSymbol parameterType = parameters[i].Type.TypeSymbol as NamedTypeSymbol;
+                                    NamedTypeSymbol parameterType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(parameters[i]).TypeSymbol as NamedTypeSymbol;
                                     if ((object)parameterType != null)
                                     {
                                         newArguments[i] = ((UnboundLambda)oldArgument).Bind(parameterType);

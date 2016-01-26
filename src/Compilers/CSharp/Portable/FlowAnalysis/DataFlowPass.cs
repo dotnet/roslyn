@@ -1094,7 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (written)
                         {
                             NoteWrite(symbol, value, read);
-                            TrackNullableStateForAssignment(node, symbol, symbol.Type, slot, value, valueIsNotNull);
+                            TrackNullableStateForAssignment(node, symbol, slot, value, valueIsNotNull);
                         }
 
                         break;
@@ -1118,7 +1118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (written)
                             {
                                 NoteWrite(local, value, read);
-                                TrackNullableStateForAssignment(node, local.LocalSymbol, local.LocalSymbol.Type, slot, value, valueIsNotNull);
+                                TrackNullableStateForAssignment(node, local.LocalSymbol, slot, value, valueIsNotNull);
                             }
                         }
                         break;
@@ -1132,7 +1132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (written)
                         {
                             NoteWrite(parameter, value, read);
-                            TrackNullableStateForAssignment(node, parameter.ParameterSymbol, parameter.ParameterSymbol.Type, slot, value, valueIsNotNull);
+                            TrackNullableStateForAssignment(node, parameter.ParameterSymbol, slot, value, valueIsNotNull);
                         }
                         break;
                     }
@@ -1145,7 +1145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (written)
                         {
                             NoteWrite(fieldAccess, value, read);
-                            TrackNullableStateForAssignment(node, fieldAccess.FieldSymbol, fieldAccess.FieldSymbol.Type, slot, value, valueIsNotNull);
+                            TrackNullableStateForAssignment(node, fieldAccess.FieldSymbol, slot, value, valueIsNotNull);
                         }
                         break;
                     }
@@ -1158,7 +1158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (written)
                         {
                             NoteWrite(eventAccess, value, read);
-                            TrackNullableStateForAssignment(node, eventAccess.EventSymbol, eventAccess.EventSymbol.Type, slot, value, valueIsNotNull);
+                            TrackNullableStateForAssignment(node, eventAccess.EventSymbol, slot, value, valueIsNotNull);
                         }
                         break;
                     }
@@ -1171,7 +1171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (written)
                         {
                             NoteWrite(propertyAccesss, value, read);
-                            TrackNullableStateForAssignment(node, propertyAccesss.PropertySymbol, propertyAccesss.PropertySymbol.Type, slot, value, valueIsNotNull);
+                            TrackNullableStateForAssignment(node, propertyAccesss.PropertySymbol, slot, value, valueIsNotNull);
                         }
                         break;
                     }
@@ -1181,7 +1181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (written && _performStaticNullChecks && this.State.Reachable)
                         {
                             var indexerAccesss = (BoundIndexerAccess)node;
-                            TrackNullableStateForAssignment(node, indexerAccesss.Indexer, indexerAccesss.Indexer.Type, -1, value, valueIsNotNull);
+                            TrackNullableStateForAssignment(node, indexerAccesss.Indexer, -1, value, valueIsNotNull);
                         }
                         break;
                     }
@@ -1195,8 +1195,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if ((object)elementType != null)
                             {
-                                // Pass array type symbol as the target for the assignment. This isn't accurate, but will do for now.
-                                TrackNullableStateForAssignment(node, arrayAccess.Expression.Type, elementType, -1, value, valueIsNotNull);
+                                // Pass array type symbol as the target for the assignment. 
+                                TrackNullableStateForAssignment(node, arrayAccess.Expression.Type, -1, value, valueIsNotNull);
                             }
                         }
                         break;
@@ -1225,7 +1225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                             }
 
-                            TrackNullableStateForAssignment(node, memberSymbol, memberSymbol.GetTypeOrReturnType(), slot, value, valueIsNotNull);
+                            TrackNullableStateForAssignment(node, memberSymbol, slot, value, valueIsNotNull);
                         }
                     }
                     break;
@@ -1242,7 +1242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if ((object)thisParameter != null)
                             {
-                                TrackNullableStateForAssignment(node, thisParameter, thisParameter.Type, slot, value, valueIsNotNull);
+                                TrackNullableStateForAssignment(node, thisParameter, slot, value, valueIsNotNull);
                             }
                         }
                         break;
@@ -1288,17 +1288,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void TrackNullableStateForAssignment(BoundNode node, Symbol assignmentTarget, TypeSymbolWithAnnotations targetType, int slot, BoundExpression value, bool? valueIsNotNull)
+        private void TrackNullableStateForAssignment(BoundNode node, Symbol assignmentTarget, int slot, BoundExpression value, bool? valueIsNotNull)
         {
             Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
+                // Specially handle array types as assignment targets, the assignment is happening to an array element.
+                TypeSymbolWithAnnotations targetType = assignmentTarget.Kind == SymbolKind.ArrayType ?
+                                                           ((ArrayTypeSymbol)assignmentTarget).ElementType :
+                                                           GetTypeOrReturnTypeWithAdjustedNullableAnnotations(assignmentTarget);
+
                 if (targetType.IsReferenceType)
                 {
                     bool isByRefTarget = IsByRefTarget(slot);
 
-                    // TODO: For now always respect annotations for array elements. Specially handle array types as assignment targets.
-                    if ((assignmentTarget.Kind == SymbolKind.ArrayType || RespectNullableAnnotations(assignmentTarget)) && targetType.IsNullable == false)
+                    if (targetType.IsNullable == false)
                     {
                         if (valueIsNotNull == false)
                         {
@@ -1383,20 +1387,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(targetType))
             {
-                InheritNullableStateOfFieldOrProperty(targetSlot, valueSlot, field, field.Type, isByRefTarget);
+                InheritNullableStateOfFieldOrProperty(targetSlot, valueSlot, field, isByRefTarget);
             }
         }
 
-        private void InheritNullableStateOfFieldOrProperty(int targetContainerSlot, int valueContainerSlot, Symbol fieldOrProperty, TypeSymbolWithAnnotations fieldOrPropertyType, bool isByRefTarget)
+        private void InheritNullableStateOfFieldOrProperty(int targetContainerSlot, int valueContainerSlot, Symbol fieldOrProperty, bool isByRefTarget)
         {
-            var typeSymbol = fieldOrPropertyType.TypeSymbol;
-            if (typeSymbol.IsReferenceType)
-            {
-                bool respectNullableAnnotations = RespectNullableAnnotations(fieldOrProperty);
+            TypeSymbolWithAnnotations fieldOrPropertyType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(fieldOrProperty);
 
+            if (fieldOrPropertyType.IsReferenceType)
+            {
                 // If statically declared as not-nullable, no need to adjust the tracking info. 
                 // Declaration information takes priority.
-                if (!(respectNullableAnnotations && fieldOrPropertyType.IsNullable == false))
+                if (fieldOrPropertyType.IsNullable != false)
                 {
                     int targetMemberSlot = GetOrCreateSlot(fieldOrProperty, targetContainerSlot);
                     if (targetMemberSlot >= this.State.KnownNullState.Capacity) NormalizeNullable(ref this.State);
@@ -1419,31 +1422,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // No tracking information for the value. We need to fill tracking state for the target
                         // with information inferred from the declaration. 
-                        if (respectNullableAnnotations)
-                        {
-                            Debug.Assert(fieldOrPropertyType.IsNullable != false);
-                            this.State.KnownNullState[targetMemberSlot] = (fieldOrPropertyType.IsNullable == true);
-                            this.State.NotNull[targetMemberSlot] = false;
-                        }
-                        else
-                        {
-                            // The declaration doesn't contain any annotation we can/should rely on.
-                            this.State.KnownNullState[targetMemberSlot] = false;
-                            this.State.NotNull[targetMemberSlot] = false;
-                        }
+                        Debug.Assert(fieldOrPropertyType.IsNullable != false);
+
+                        this.State.KnownNullState[targetMemberSlot] = (fieldOrPropertyType.IsNullable == true);
+                        this.State.NotNull[targetMemberSlot] = false;
                     }
                 }
 
-                if (typeSymbol.IsAnonymousType && typeSymbol.IsClassType())
+                if (fieldOrPropertyType.TypeSymbol.IsAnonymousType && fieldOrPropertyType.TypeSymbol.IsClassType())
                 {
-                    InheritNullableStateOfAnonymousTypeInstance(typeSymbol, 
+                    InheritNullableStateOfAnonymousTypeInstance(fieldOrPropertyType.TypeSymbol, 
                                                                 GetOrCreateSlot(fieldOrProperty, targetContainerSlot),
                                                                 valueContainerSlot > 0 ? GetOrCreateSlot(fieldOrProperty, valueContainerSlot) : -1, isByRefTarget);
                 }
             }
-            else if (EmptyStructTypeCache.IsTrackableStructType(typeSymbol))
+            else if (EmptyStructTypeCache.IsTrackableStructType(fieldOrPropertyType.TypeSymbol))
             {
-                InheritNullableStateOfTrackableStruct(typeSymbol, 
+                InheritNullableStateOfTrackableStruct(fieldOrPropertyType.TypeSymbol, 
                                                       GetOrCreateSlot(fieldOrProperty, targetContainerSlot),
                                                       valueContainerSlot > 0 ? GetOrCreateSlot(fieldOrProperty, valueContainerSlot) : -1, isByRefTarget);
             }
@@ -1468,7 +1463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                InheritNullableStateOfFieldOrProperty(targetSlot, valueSlot, propertySymbol, propertySymbol.Type, isByRefTarget);
+                InheritNullableStateOfFieldOrProperty(targetSlot, valueSlot, propertySymbol, isByRefTarget);
             }
         }
 
@@ -1955,7 +1950,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
-                this.State.ResultIsNotNull = IsResultNotNull(node, localSymbol, localSymbol.Type);
+                this.State.ResultIsNotNull = IsResultNotNull(node, localSymbol);
             }
 
             return null;
@@ -2084,7 +2079,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             receiverSlot = GetOrCreateSlot(implicitReceiver);
                         }
 
-                        TrackNullableStateForAssignment(arguments[i], property, property.Type, GetOrCreateSlot(property, receiverSlot), arguments[i], this.State.ResultIsNotNull);
+                        TrackNullableStateForAssignment(arguments[i], property, GetOrCreateSlot(property, receiverSlot), arguments[i], this.State.ResultIsNotNull);
                     }
                 }
 
@@ -2117,8 +2112,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (elementType?.IsReferenceType == true)
                 {
-                    // Pass array type symbol as the target for the assignment. This isn't accurate, but will do for now.
-                    TrackNullableStateForAssignment(elementInitializer, arrayCreation.Type, elementType, -1, elementInitializer, this.State.ResultIsNotNull);
+                    // Pass array type symbol as the target for the assignment. 
+                    TrackNullableStateForAssignment(elementInitializer, arrayCreation.Type, -1, elementInitializer, this.State.ResultIsNotNull);
                 }
             }
 
@@ -2168,7 +2163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((object)methodOpt != null && methodOpt.ParameterCount == 2)
                 {
-                    return IsResultNotNull(methodOpt, methodOpt.ReturnType);
+                    return IsResultNotNull(methodOpt);
                 }
                 else
                 {
@@ -2416,15 +2411,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
-                this.State.ResultIsNotNull = IsResultNotNull(node.Method, node.Method.ReturnType);
+                this.State.ResultIsNotNull = IsResultNotNull(node.Method);
             }
 
             return result;
         }
 
-        private bool? IsResultNotNull(Symbol resultSymbol, TypeSymbolWithAnnotations resultType)
+        private bool? IsResultNotNull(Symbol resultSymbol)
         {
-            if ((object)resultType != null && !resultType.IsVoid && resultType.IsReferenceType && RespectNullableAnnotations(resultSymbol))
+            TypeSymbolWithAnnotations resultType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(resultSymbol);
+
+            if (!resultType.IsVoid && resultType.IsReferenceType)
             {
                 return !resultType.IsNullable;
             }
@@ -2434,13 +2431,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool? IsResultNotNull(BoundExpression node, Symbol resultSymbol, TypeSymbolWithAnnotations resultType)
+        private bool? IsResultNotNull(BoundExpression node, Symbol resultSymbol)
         {
+            TypeSymbolWithAnnotations resultType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(resultSymbol);
+
             if ((object)resultType != null && !resultType.IsVoid && resultType.IsReferenceType)
             {
-                bool respectNullableAnnotations = RespectNullableAnnotations(resultSymbol);
-
-                if (respectNullableAnnotations && resultType.IsNullable == false)
+                if (resultType.IsNullable == false)
                 {
                     // Statically declared as not-nullable. This takes priority.
                     return true;
@@ -2463,18 +2460,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // The node is not trackable, use information from the declaration.
-                if (respectNullableAnnotations)
-                {
-                    Debug.Assert(resultType.IsNullable != false);
-
-                    if (resultType.IsNullable.HasValue)
-                    {
-                        return false;
-                    }
-                }
-
-                // The declaration doesn't contain any annotation we can/should rely on.
-                return null;
+                Debug.Assert(resultType.IsNullable != false);
+                return !resultType.IsNullable;
             }
             else
             {
@@ -2552,7 +2539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.ImplicitUserDefined:
                         if ((object)methodOpt != null && methodOpt.ParameterCount == 1)
                         {
-                            return IsResultNotNull(methodOpt, methodOpt.ReturnType);
+                            return IsResultNotNull(methodOpt);
                         }
                         else
                         {
@@ -2725,7 +2712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
-                this.State.ResultIsNotNull = IsResultNotNull(node, node.ParameterSymbol, node.ParameterSymbol.Type);
+                this.State.ResultIsNotNull = IsResultNotNull(node, node.ParameterSymbol);
             }
 
             return null;
@@ -2760,7 +2747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (RegularPropertyAccess(node.Operand))
                 {
                     PropertySymbol property = ((BoundPropertyAccess)node.Operand).PropertySymbol;
-                    operandIsNotNull = IsResultNotNull(node, property, property.Type);
+                    operandIsNotNull = IsResultNotNull(node, property);
                 }
                 else
                 {
@@ -2811,7 +2798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 resultOfOperandConversionIsNotNull,
                                                 incrementOperator.Parameters[0], expanded: false);
 
-                    resultOfIncrementIsNotNull = IsResultNotNull(incrementOperator, incrementOperator.ReturnType);
+                    resultOfIncrementIsNotNull = IsResultNotNull(incrementOperator);
                 }
 
                 if (node.ResultConversion.IsUserDefined && (object)node.ResultConversion.Method != null && node.ResultConversion.Method.ParameterCount == 1)
@@ -2857,7 +2844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (RegularPropertyAccess(node.Left))
                 {
                     PropertySymbol property = ((BoundPropertyAccess)node.Left).PropertySymbol;
-                    leftIsNotNull = IsResultNotNull(node, property, property.Type);
+                    leftIsNotNull = IsResultNotNull(node, property);
                 }
                 else
                 {
@@ -2980,9 +2967,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void WarnOnNullReferenceArgument(BoundExpression argument, bool? argumentIsNotNull, ParameterSymbol parameter, bool expanded)
         {
             Debug.Assert(_performStaticNullChecks);
-            if (argumentIsNotNull == false && RespectNullableAnnotations(parameter))
+            if (argumentIsNotNull == false)
             {
-                TypeSymbolWithAnnotations paramType = expanded ? ((ArrayTypeSymbol)parameter.Type.TypeSymbol).ElementType : parameter.Type;
+                TypeSymbolWithAnnotations paramType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(parameter);
+
+                if (expanded)
+                {
+                    paramType = ((ArrayTypeSymbol)parameter.Type.TypeSymbol).ElementType;
+                }
 
                 if (paramType.IsReferenceType && paramType.IsNullable == false)
                 {
@@ -2993,9 +2985,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool RespectNullableAnnotations(Symbol symbol)
+        private TypeSymbolWithAnnotations GetTypeOrReturnTypeWithAdjustedNullableAnnotations(Symbol symbol)
         {
-            return compilation.RespectNullableAnnotations(symbol); 
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Local:
+                    return ((LocalSymbol)symbol).Type;
+
+                case SymbolKind.Parameter:
+                    var parameter = (ParameterSymbol)symbol;
+                    if (parameter.IsThis)
+                    {
+                        return parameter.Type;
+                    }
+
+                    goto default;
+
+                default:
+                    return compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(symbol);
+            }
         }
 
         protected override void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol method, ParameterSymbol parameter)
@@ -3011,7 +3019,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             Assign(arg, value: null, 
                    valueIsNotNull: (_performStaticNullChecks && this.State.Reachable &&
-                                    (object)parameter != null && parameter.Type.IsReferenceType && RespectNullableAnnotations(parameter)) ? !parameter.Type.IsNullable : (bool?)null); 
+                                    (object)parameter != null && parameter.Type.IsReferenceType) ? !GetTypeOrReturnTypeWithAdjustedNullableAnnotations(parameter).IsNullable : (bool?)null); 
 
             // Imitate Dev10 behavior: if the argument is passed by ref/out to an external method, then
             // we assume that external method may write and/or read all of its fields (recursively).
@@ -3230,7 +3238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
-                this.State.ResultIsNotNull = IsResultNotNull(node, node.FieldSymbol, node.FieldSymbol.Type);
+                this.State.ResultIsNotNull = IsResultNotNull(node, node.FieldSymbol);
             }
 
             return result;
@@ -3262,7 +3270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_performStaticNullChecks && this.State.Reachable)
             {
                 var property = node.PropertySymbol;
-                this.State.ResultIsNotNull = IsResultNotNull(node, property, property.Type);
+                this.State.ResultIsNotNull = IsResultNotNull(node, property);
             }
 
             return result;
@@ -3275,7 +3283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
-                this.State.ResultIsNotNull = IsResultNotNull(node.Indexer, node.Indexer.Type);
+                this.State.ResultIsNotNull = IsResultNotNull(node.Indexer);
             }
 
             return result;
@@ -3299,7 +3307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
-                this.State.ResultIsNotNull = IsResultNotNull(node, node.EventSymbol, node.EventSymbol.Type);
+                this.State.ResultIsNotNull = IsResultNotNull(node, node.EventSymbol);
             }
 
             return result;
@@ -3404,7 +3412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1)
                 {
-                    return IsResultNotNull(node.MethodOpt, node.MethodOpt.ReturnType);
+                    return IsResultNotNull(node.MethodOpt);
                 }
                 else
                 {
@@ -3463,7 +3471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)node.LogicalOperator != null && node.LogicalOperator.ParameterCount == 2)
             {
-                return IsResultNotNull(node.LogicalOperator, node.LogicalOperator.ReturnType);
+                return IsResultNotNull(node.LogicalOperator);
             }
             else
             {
@@ -3592,7 +3600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    this.State.ResultIsNotNull = IsResultNotNull(node.GetResult, node.GetResult.ReturnType);
+                    this.State.ResultIsNotNull = IsResultNotNull(node.GetResult);
                 }
             }
 
@@ -3980,7 +3988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (type.IsReferenceType)
                 {
-                    bool? memberResultIsNotNull = IsResultNotNull(member, type);
+                    bool? memberResultIsNotNull = IsResultNotNull(member);
                     if (memberResultIsNotNull == false)
                     {
                         // At least one candidate can produce null, assume dynamic access can produce null as well

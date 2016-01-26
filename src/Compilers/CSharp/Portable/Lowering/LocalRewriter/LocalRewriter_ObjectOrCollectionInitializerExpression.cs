@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _dynamicFactory.MakeDynamicMemberInvocation(
                 WellKnownMemberNames.CollectionInitializerAddMethodName,
                 rewrittenReceiver,
-                ImmutableArray<TypeSymbol>.Empty,
+                ImmutableArray<TypeSymbolWithAnnotations>.Empty,
                 rewrittenArguments,
                 default(ImmutableArray<string>),
                 default(ImmutableArray<RefKind>),

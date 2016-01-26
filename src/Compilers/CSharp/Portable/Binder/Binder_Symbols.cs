@@ -906,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static BoundMethodOrPropertyGroup ConstructBoundMemberGroupAndReportOmittedTypeArguments(
             CSharpSyntaxNode syntax,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
-            ImmutableArray<TypeSymbol> typeArguments,
+            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
             BoundExpression receiver,
             string plainName,
             ArrayBuilder<Symbol> members,
@@ -1921,26 +1921,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             // might require us to examine types forwarded by this assembly, thus binding assembly level 
             // attributes again. And the cycle continues. 
             // So, we won't do the analysis in this case, at the expense of better diagnostics.
-            var current = this;
-
-            do
+            if ((this.Flags & BinderFlags.InContectualAttributeBinder) != 0)
             {
-                var contextualAttributeBinder = current as ContextualAttributeBinder;
+                var current = this;
 
-                if (contextualAttributeBinder != null)
+                do
                 {
-                    if ((object)contextualAttributeBinder.AttributeTarget != null &&
-                        contextualAttributeBinder.AttributeTarget.Kind == SymbolKind.Assembly)
+                    var contextualAttributeBinder = current as ContextualAttributeBinder;
+
+                    if (contextualAttributeBinder != null)
                     {
-                        return null;
+                        if ((object)contextualAttributeBinder.AttributeTarget != null &&
+                            contextualAttributeBinder.AttributeTarget.Kind == SymbolKind.Assembly)
+                        {
+                            return null;
+                        }
+
+                        break;
                     }
 
-                    break;
+                    current = current.Next;
                 }
-
-                current = current.Next;
+                while (current != null);
             }
-            while (current != null);
 
             // NOTE: This won't work if the type isn't using CLS-style generic naming (i.e. `arity), but this code is
             // only intended to improve diagnostic messages, so false negatives in corner cases aren't a big deal.

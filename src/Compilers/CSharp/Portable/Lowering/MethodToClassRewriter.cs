@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             method = VisitMethodSymbol(method);
             operand = operand.Update(
-                TypeMap.SubstituteTypesWithoutModifiers(operand.TypeArgumentsOpt),
+                TypeMap.SubstituteTypes(operand.TypeArgumentsOpt),
                 method.Name,
                 operand.Methods,
                 operand.LookupSymbolOpt,

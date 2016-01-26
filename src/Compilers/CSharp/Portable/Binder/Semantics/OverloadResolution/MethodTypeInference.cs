@@ -51,12 +51,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     // Method type inference can fail, but we still might have some best guesses. 
     internal struct MethodTypeInferenceResult
     {
-        public readonly ImmutableArray<TypeSymbol> InferredTypeArguments;
+        public readonly ImmutableArray<TypeSymbolWithAnnotations> InferredTypeArguments;
         public readonly bool Success;
 
         public MethodTypeInferenceResult(
             bool success,
-            ImmutableArray<TypeSymbol> inferredTypeArguments)
+            ImmutableArray<TypeSymbolWithAnnotations> inferredTypeArguments)
         {
             this.Success = success;
             this.InferredTypeArguments = inferredTypeArguments;
@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Indirect = 0x12
         }
 
+        private readonly Binder _binderOpt;
         private readonly ConversionsBase _conversions;
         private readonly ImmutableArray<TypeParameterSymbol> _methodTypeParameters;
         private readonly NamedTypeSymbol _constructedContainingTypeOfMethod;
@@ -218,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Early out: if the method has no formal parameters then we know that inference will fail.
             if (formalParameterTypes.Length == 0)
             {
-                return new MethodTypeInferenceResult(false, default(ImmutableArray<TypeSymbol>));
+                return new MethodTypeInferenceResult(false, default(ImmutableArray<TypeSymbolWithAnnotations>));
 
                 // UNDONE: OPTIMIZATION: We could check to see whether there is a type
                 // UNDONE: parameter which is never used in any formal parameter; if
@@ -226,6 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var inferrer = new MethodTypeInferrer(
+                binder,
                 binder.Conversions,
                 methodTypeParameters,
                 constructedContainingTypeOfMethod,
@@ -233,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 formalParameterRefKinds,
                 argumentTypes,
                 arguments);
-            return inferrer.InferTypeArgs(binder, ref useSiteDiagnostics);
+            return inferrer.InferTypeArgs(ref useSiteDiagnostics);
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -246,6 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // SPEC: with an empty set of bounds.
 
         private MethodTypeInferrer(
+            Binder binderOpt,
             ConversionsBase conversions,
             ImmutableArray<TypeParameterSymbol> methodTypeParameters,
             NamedTypeSymbol constructedContainingTypeOfMethod,
@@ -254,6 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeSymbol> argumentTypes,
             ImmutableArray<BoundExpression> arguments)
         {
+            _binderOpt = binderOpt;
             _conversions = conversions;
             _methodTypeParameters = methodTypeParameters;
             _constructedContainingTypeOfMethod = constructedContainingTypeOfMethod;
@@ -364,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _formalParameterRefKinds.IsDefault ? RefKind.None : _formalParameterRefKinds[index];
         }
 
-        private ImmutableArray<TypeSymbol> GetResults()
+        private ImmutableArray<TypeSymbolWithAnnotations> GetResults()
         {
             // Anything we didn't infer a type for, give the error type.
             // Note: the error type will have the same name as the name
@@ -399,7 +403,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 _fixedResults[i] = new ExtendedErrorTypeSymbol(_constructedContainingTypeOfMethod, _methodTypeParameters[i].Name, 0, null, false);
             }
-            return ImmutableArray.Create<TypeSymbol>(_fixedResults);
+
+            // For now erase all notion about nullability of reference types as the algorithm is not taking it into account yet.
+            var builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(_fixedResults.Length);
+            bool erase = (((CSharpParseOptions)_binderOpt?.Compilation.SyntaxTrees.FirstOrDefault()?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true);
+            foreach (TypeSymbol t in _fixedResults)
+            {
+                TypeSymbolWithAnnotations result;
+
+                if (erase)
+                {
+                    result = TypeSymbolWithAnnotations.Create(t.SetUnknownNullabilityForRefernceTypes(), isNullableIfReferenceType: null);
+                }
+                else
+                {
+                    result = TypeSymbolWithAnnotations.Create(t);
+                }
+
+                builder.Add(result);
+            }
+
+            return builder.ToImmutableAndFree();
         }
 
         private bool ValidIndex(int index)
@@ -508,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Phases
         //
 
-        private MethodTypeInferenceResult InferTypeArgs(Binder binder, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private MethodTypeInferenceResult InferTypeArgs(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC: Type inference takes place in phases. Each phase will try to infer type 
             // SPEC: arguments for more type parameters based on the findings of the previous
@@ -516,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: the second phase fixes type parameters to specific types and infers further
             // SPEC: bounds. The second phase may have to be repeated a number of times.
             InferTypeArgsFirstPhase(ref useSiteDiagnostics);
-            bool success = InferTypeArgsSecondPhase(binder, ref useSiteDiagnostics);
+            bool success = InferTypeArgsSecondPhase(ref useSiteDiagnostics);
             return new MethodTypeInferenceResult(success, GetResults());
         }
 
@@ -609,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The second phase
         //
 
-        private bool InferTypeArgsSecondPhase(Binder binder, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool InferTypeArgsSecondPhase(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC: The second phase proceeds as follows:
             // SPEC: * If no unfixed type parameters exist then type inference succeeds.
@@ -645,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializeDependencies();
             while (true)
             {
-                var res = DoSecondPhase(binder, ref useSiteDiagnostics);
+                var res = DoSecondPhase(ref useSiteDiagnostics);
                 Debug.Assert(res != InferenceResult.NoProgress);
                 if (res == InferenceResult.InferenceFailed)
                 {
@@ -659,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private InferenceResult DoSecondPhase(Binder binder, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private InferenceResult DoSecondPhase(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC: * If no unfixed type parameters exist then type inference succeeds.
             if (AllFixed())
@@ -674,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:       type parameter Xj,
             // SPEC:   then an output type inference is made from all such Ei to Ti.
 
-            MakeOutputTypeInferences(binder, ref useSiteDiagnostics);
+            MakeOutputTypeInferences(ref useSiteDiagnostics);
 
             // SPEC: * Whether or not the previous step actually made an inference, we
             // SPEC:   must now fix at least one type parameter, as follows:
@@ -707,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return InferenceResult.InferenceFailed;
         }
 
-        private void MakeOutputTypeInferences(Binder binder, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private void MakeOutputTypeInferences(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC: Otherwise, for all arguments Ei with corresponding parameter type Ti
             // SPEC: where the output types contain unfixed type parameters but the input
@@ -724,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //UNDONE: {
                     //UNDONE:     argumentType = GetTypeManager().GetErrorSym();
                     //UNDONE: }
-                    OutputTypeInference(binder, argument, argumentType, formalType, ref useSiteDiagnostics);
+                    OutputTypeInference(argument, argumentType, formalType, ref useSiteDiagnostics);
                 }
             }
         }
@@ -1156,7 +1180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         ////////////////////////////////////////////////////////////////////////////////
 
-        private void OutputTypeInference(Binder binder, BoundExpression expression, TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private void OutputTypeInference(BoundExpression expression, TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(expression != null);
             Debug.Assert((object)target != null);
@@ -1175,7 +1199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   type Tb and overload resolution of E with the types T1...Tk
             // SPEC:   yields a single method with return type U then a lower-bound
             // SPEC:   inference is made from U to Tb.
-            if (MethodGroupReturnTypeInference(binder, expression, target, ref useSiteDiagnostics))
+            if (MethodGroupReturnTypeInference(expression, target, ref useSiteDiagnostics))
             {
                 return;
             }
@@ -1222,7 +1246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private bool MethodGroupReturnTypeInference(Binder binder, BoundExpression source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool MethodGroupReturnTypeInference(BoundExpression source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(source != null);
             Debug.Assert((object)target != null);
@@ -1262,7 +1286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var returnType = MethodGroupReturnType(binder, (BoundMethodGroup)source, fixedDelegateParameters, ref useSiteDiagnostics);
+            var returnType = MethodGroupReturnType((BoundMethodGroup)source, fixedDelegateParameters, ref useSiteDiagnostics);
             if ((object)returnType == null || returnType.SpecialType == SpecialType.System_Void)
             {
                 return false;
@@ -1273,12 +1297,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private static TypeSymbol MethodGroupReturnType(Binder binder, BoundMethodGroup source, ImmutableArray<ParameterSymbol> delegateParameters, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private TypeSymbol MethodGroupReturnType(BoundMethodGroup source, ImmutableArray<ParameterSymbol> delegateParameters, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var analyzedArguments = AnalyzedArguments.GetInstance();
-            Conversions.GetDelegateArguments(source.Syntax, analyzedArguments, delegateParameters, binder.Compilation);
+            Conversions.GetDelegateArguments(source.Syntax, analyzedArguments, delegateParameters, _binderOpt.Compilation);
 
-            var resolution = binder.ResolveMethodGroup(source, analyzedArguments, isMethodGroupConversion: true, useSiteDiagnostics: ref useSiteDiagnostics);
+            var resolution = _binderOpt.ResolveMethodGroup(source, analyzedArguments, isMethodGroupConversion: true, useSiteDiagnostics: ref useSiteDiagnostics);
 
             TypeSymbol type = null;
 
@@ -2524,6 +2548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var constructedFromMethod = method.ConstructedFrom;
 
             var inferrer = new MethodTypeInferrer(
+                null,
                 conversions,
                 constructedFromMethod.TypeParameters,
                 constructedFromMethod.ContainingType,

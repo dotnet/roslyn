@@ -573,6 +573,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool ApplyNullableTransforms(ImmutableArray<bool> transforms, ref int position, out TypeSymbol result);
 
+        internal abstract TypeSymbol SetUnknownNullabilityForRefernceTypes();
+
         #region ITypeSymbol Members
 
         INamedTypeSymbol ITypeSymbol.BaseType
@@ -1041,10 +1043,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static void CheckNullableReferenceTypeMismatchOnImplementingMember(Symbol implementingMember, Symbol interfaceMember, bool isExplicit, DiagnosticBag diagnostics)
         {
+            CSharpCompilation compilation;
+
             if (((CSharpParseOptions)implementingMember.Locations[0].SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
                 !implementingMember.IsImplicitlyDeclared && !implementingMember.IsAccessor() &&
                 !implementingMember.NullableOptOut &&
-                implementingMember.DeclaringCompilation?.RespectNullableAnnotations(interfaceMember) == true)
+                (compilation = implementingMember.DeclaringCompilation) != null)
             {
                 Symbol implementedMember;
                 MethodSymbol implementedMethod;
@@ -1059,9 +1063,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 TypeSymbolWithAnnotations implementingMemberType = implementingMember.GetTypeOrReturnType();
-                TypeSymbolWithAnnotations implementedMemberType = implementedMember.GetTypeOrReturnType();
+                TypeSymbolWithAnnotations implementedMemberType = compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(implementedMember);
 
-                if (!implementingMemberType.Equals(implementedMemberType, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes) &&
+                if (!implementingMemberType.Equals(implementedMemberType, 
+                                                   TypeSymbolEqualityOptions.SameType | 
+                                                       TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes |
+                                                       TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny) &&
                     implementingMemberType.Equals(implementedMemberType, TypeSymbolEqualityOptions.SameType))
                 {
                     diagnostics.Add(implementingMember.Kind == SymbolKind.Method ?
@@ -1079,8 +1086,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 for (int i = 0; i < implementingParameters.Length; i++)
                 {
-                    if (!implementingParameters[i].Type.Equals(implementedParameters[i].Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes) &&
-                        implementingParameters[i].Type.Equals(implementedParameters[i].Type, TypeSymbolEqualityOptions.SameType))
+                    var implementedParameterType = compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(implementedParameters[i]);
+
+                    if (!implementingParameters[i].Type.Equals(implementedParameterType, 
+                                                               TypeSymbolEqualityOptions.SameType | 
+                                                                   TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes |
+                                                                   TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny) &&
+                        implementingParameters[i].Type.Equals(implementedParameterType, TypeSymbolEqualityOptions.SameType))
                     {
                         diagnostics.Add(isExplicit ? 
                                             ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation : 

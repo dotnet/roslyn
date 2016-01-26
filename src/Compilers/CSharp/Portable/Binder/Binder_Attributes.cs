@@ -405,14 +405,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SymbolKind.Field:
                         var fieldSymbol = (FieldSymbol)namedArgumentNameSymbol;
-                        namedArgumentType = fieldSymbol.Type.TypeSymbol;
+                        namedArgumentType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(fieldSymbol).TypeSymbol;
                         invalidNamedArgument |= fieldSymbol.IsReadOnly;
                         invalidNamedArgument |= fieldSymbol.IsConst;
                         break;
 
                     case SymbolKind.Property:
                         var propertySymbol = ((PropertySymbol)namedArgumentNameSymbol).GetLeastOverriddenProperty(this.ContainingType);
-                        namedArgumentType = propertySymbol.Type.TypeSymbol;
+                        namedArgumentType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(propertySymbol).TypeSymbol;
                         invalidNamedArgument |= propertySymbol.IsReadOnly;
                         var getMethod = propertySymbol.GetMethod;
                         var setMethod = propertySymbol.SetMethod;

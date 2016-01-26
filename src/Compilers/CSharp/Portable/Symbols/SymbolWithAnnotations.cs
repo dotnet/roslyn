@@ -191,14 +191,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new WithCustomModifiers(typeSymbol, customModifiers);
         }
 
-        public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, bool makeNullableIfReferenceType)
+        public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, bool? isNullableIfReferenceType)
         {
-            if (!makeNullableIfReferenceType || !typeSymbol.IsReferenceType)
+            if (isNullableIfReferenceType == false || !typeSymbol.IsReferenceType)
             {
                 return Create(typeSymbol);
             }
 
-            return new NullableReferenceTypeWithoutCustomModifiers(typeSymbol);
+            if (isNullableIfReferenceType == true)
+            {
+                return new NullableReferenceTypeWithoutCustomModifiers(typeSymbol);
+            }
+
+            return new ReferenceTypeUnknownNullabilityWithoutCustomModifiers(typeSymbol); 
         }
 
         public TypeSymbolWithAnnotations AsNullableReferenceOrValueType(CSharpCompilation compilation, SyntaxReference nullableTypeSyntax)
@@ -295,7 +300,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((options & TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes) != 0 && other.IsNullable != this.IsNullable)
             {
-                return false;
+                if ((options & TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny) == 0 || (this.IsNullable.HasValue && other.IsNullable.HasValue))
+                {
+                    return false;
+                }
             }
 
             return true;
@@ -482,6 +490,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
+        }
+
+        public TypeSymbolWithAnnotations SetUnknownNullabilityForRefernceTypes()
+        {
+            var typeSymbol = TypeSymbol;
+
+            if (IsNullable.HasValue)
+            {
+                if (!typeSymbol.IsNullableType() && typeSymbol.IsReferenceType)
+                {
+                    typeSymbol = typeSymbol.SetUnknownNullabilityForRefernceTypes();
+                    var customModifiers = CustomModifiers;
+
+                    if (customModifiers.IsEmpty)
+                    {
+                        return new ReferenceTypeUnknownNullabilityWithoutCustomModifiers(typeSymbol);
+                    }
+
+                    return new ReferenceTypeUnknownNullabilityWithCustomModifiers(typeSymbol, customModifiers);
+                }
+            }
+
+            var newTypeSymbol = typeSymbol.SetUnknownNullabilityForRefernceTypes();
+
+            if ((object)newTypeSymbol != typeSymbol)
+            {
+                return DoUpdate(newTypeSymbol, CustomModifiers);
+            }
+
+            return this;
         }
 
         private class WithoutCustomModifiers : TypeSymbolWithAnnotations

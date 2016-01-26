@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation,
             Symbol containingSymbol,
             UnboundLambda unboundLambda,
-            ImmutableArray<ParameterSymbol> delegateParameters,
+            NamedTypeSymbol delegateType,
+            UnboundLambdaState.TargetParamInfo paramInfo,
             TypeSymbolWithAnnotations returnType)
         {
             _containingSymbol = containingSymbol;
@@ -38,13 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isSynthesized = unboundLambda.WasCompilerGenerated;
             _isAsync = unboundLambda.IsAsync;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
-            _parameters = MakeParameters(compilation, unboundLambda, delegateParameters);
+            _parameters = MakeParameters(compilation, unboundLambda, delegateType, paramInfo);
         }
 
         public LambdaSymbol(
             Symbol containingSymbol,
-            ImmutableArray<ParameterSymbol> parameters,
-            TypeSymbolWithAnnotations returnType,
             MessageID messageID,
             CSharpSyntaxNode syntax,
             bool isSynthesized,
@@ -53,22 +52,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingSymbol = containingSymbol;
             _messageID = messageID;
             _syntax = syntax;
-            _returnType = returnType ?? ReturnTypeIsBeingInferred; 
+            _returnType = TypeSymbolWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType); 
             _isSynthesized = isSynthesized;
             _isAsync = isAsync;
-            _parameters = parameters.SelectAsArray(CopyParameter, this);
-        }
-
-        internal LambdaSymbol ToContainer(Symbol containingSymbol)
-        {
-            return new LambdaSymbol(
-                containingSymbol,
-                _parameters,
-                _returnType,
-                _messageID,
-                _syntax,
-                _isSynthesized,
-                _isAsync);
+            _parameters = ImmutableArray<ParameterSymbol>.Empty;
         }
 
         public MessageID MessageID { get { return _messageID; } }
@@ -199,7 +186,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((object)inferredReturnType != null);
             Debug.Assert((object)_returnType == ReturnTypeIsBeingInferred);
-            _returnType = TypeSymbolWithAnnotations.Create(inferredReturnType);
+
+            // Use unknown nullability for inferred type
+            if (_syntax.IsFeatureStaticNullCheckingEnabled())
+            {
+                _returnType = TypeSymbolWithAnnotations.Create(inferredReturnType.SetUnknownNullabilityForRefernceTypes(), isNullableIfReferenceType: null);
+            }
+            else
+            {
+                _returnType = TypeSymbolWithAnnotations.Create(inferredReturnType);
+            }
         }
 
         internal override bool IsExplicitInterfaceImplementation
@@ -288,17 +284,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ParameterSymbol> MakeParameters(
             CSharpCompilation compilation,
             UnboundLambda unboundLambda,
-            ImmutableArray<ParameterSymbol> delegateParameters)
+            NamedTypeSymbol delegateType,
+            UnboundLambdaState.TargetParamInfo paramInfo)
         {
+            ArrayBuilder<ParameterSymbol> builder;
+
             if (!unboundLambda.HasSignature || unboundLambda.ParameterCount == 0)
             {
                 // The parameters may be omitted in source, but they are still present on the symbol.
-                return delegateParameters.SelectAsArray(CopyParameter, this);
+                if (paramInfo.Types.IsEmpty)
+                {
+                    return ImmutableArray<ParameterSymbol>.Empty;
+                }
+
+                builder = ArrayBuilder<ParameterSymbol>.GetInstance(paramInfo.Types.Length);
+
+                for (int p = 0; p < paramInfo.Types.Length; ++p)
+                {
+                    builder.Add(new SynthesizedParameterSymbol(
+                        this,
+                        paramInfo.Types[p],
+                        p,
+                        paramInfo.RefKinds[p],
+                        GeneratedNames.LambdaCopyParameterName(delegateType.DelegateInvokeMethod.Parameters[p]))); // Make sure nothing binds to this.
+                }
+
+                return builder.ToImmutableAndFree();
             }
 
-            var builder = ArrayBuilder<ParameterSymbol>.GetInstance();
+            builder = ArrayBuilder<ParameterSymbol>.GetInstance(unboundLambda.ParameterCount);
             var hasExplicitlyTypedParameterList = unboundLambda.HasExplicitlyTypedParameterList;
-            var numDelegateParameters = delegateParameters.IsDefault ? 0 : delegateParameters.Length;
+            var numDelegateParameters = paramInfo.Types.Length;
 
             for (int p = 0; p < unboundLambda.ParameterCount; ++p)
             {
@@ -317,9 +333,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (p < numDelegateParameters)
                 {
-                    ParameterSymbol delegateParameter = delegateParameters[p];
-                    type = delegateParameter.Type;
-                    refKind = delegateParameter.RefKind;
+                    type = paramInfo.Types[p];
+                    refKind = paramInfo.RefKinds[p];
                 }
                 else
                 {
@@ -338,16 +353,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var result = builder.ToImmutableAndFree();
 
             return result;
-        }
-
-        private static ParameterSymbol CopyParameter(ParameterSymbol parameter, MethodSymbol owner)
-        {
-            return new SynthesizedParameterSymbol(
-                    owner,
-                parameter.Type.TypeSymbol,
-                parameter.Ordinal,
-                parameter.RefKind,
-                GeneratedNames.LambdaCopyParameterName(parameter)); // Make sure nothing binds to this.
         }
 
         public sealed override bool Equals(object symbol)

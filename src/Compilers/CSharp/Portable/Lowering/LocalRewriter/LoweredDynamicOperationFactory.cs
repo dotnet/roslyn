@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal LoweredDynamicOperation MakeDynamicMemberInvocation(
             string name,
             BoundExpression loweredReceiver,
-            ImmutableArray<TypeSymbol> typeArguments,
+            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
             ImmutableArray<BoundExpression> loweredArguments,
             ImmutableArray<string> argumentNames,
             ImmutableArray<RefKind> refKinds,

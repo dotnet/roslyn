@@ -896,7 +896,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        public ImmutableArray<BoundExpression> TypeOfs(ImmutableArray<TypeSymbol> typeArguments)
+        public BoundExpression Typeof(TypeSymbolWithAnnotations type)
+        {
+            return new BoundTypeOfOperator(
+                Syntax,
+                Type(type.TypeSymbol),
+                WellKnownMethod(CodeAnalysis.WellKnownMember.System_Type__GetTypeFromHandle),
+                WellKnownType(CodeAnalysis.WellKnownType.System_Type))
+            { WasCompilerGenerated = true };
+        }
+
+        public ImmutableArray<BoundExpression> TypeOfs(ImmutableArray<TypeSymbolWithAnnotations> typeArguments)
         {
             return typeArguments.SelectAsArray(Typeof);
         }

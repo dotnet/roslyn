@@ -400,6 +400,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
+        internal override TypeSymbol SetUnknownNullabilityForRefernceTypes()
+        {
+            TypeSymbolWithAnnotations oldElementType = ElementType;
+            TypeSymbolWithAnnotations newElementType = oldElementType.SetUnknownNullabilityForRefernceTypes();
+
+            if ((object)oldElementType == newElementType)
+            {
+                return this;
+            }
+            else
+            {
+                return IsSZArray ?
+                    ArrayTypeSymbol.CreateSZArray(newElementType, _baseType) :
+                    ArrayTypeSymbol.CreateMDArray(newElementType, Rank, Sizes, LowerBounds, _baseType);
+            }
+        }
+
         public override Accessibility DeclaredAccessibility
         {
             get

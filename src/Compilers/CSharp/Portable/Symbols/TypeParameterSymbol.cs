@@ -540,6 +540,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
+        internal override TypeSymbol SetUnknownNullabilityForRefernceTypes()
+        {
+            return this;
+        }
+
         /// <summary>
         /// Returns a bag of applied custom attributes and data decoded from well-known attributes. Returns null if there are no attributes applied on the symbol.
         /// </summary>
