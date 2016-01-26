@@ -48,8 +48,8 @@ namespace Roslyn.Reflection.Metadata.Ecma335
 
             // the id will be filled in later
             _pdbIdBlob = builder.ReserveBytes(MetadataSizes.PdbIdSize);
-            
-            builder.WriteInt32(MetadataTokens.GetToken(_entryPoint));
+
+            builder.WriteInt32(_entryPoint.IsNil ? 0 : MetadataTokens.GetToken(_entryPoint));
 
             builder.WriteUInt64(MetadataSizes.ExternalTablesMask);
             MetadataWriterUtilities.SerializeRowCounts(builder, MetadataSizes.ExternalRowCounts);

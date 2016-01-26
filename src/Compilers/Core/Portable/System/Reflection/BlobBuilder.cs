@@ -830,7 +830,7 @@ namespace Roslyn.Reflection
         }
 
         /// <exception cref="InvalidOperationException">Builder is not writable, it has been linked with another one.</exception>
-        public void WriteInt16BE(ushort value)
+        public void WriteInt16BE(short value)
         {
             WriteUInt16BE(unchecked((ushort)value));
         }
@@ -843,7 +843,7 @@ namespace Roslyn.Reflection
         }
 
         /// <exception cref="InvalidOperationException">Builder is not writable, it has been linked with another one.</exception>
-        public void WriteInt32BE(uint value)
+        public void WriteInt32BE(int value)
         {
             WriteUInt32BE(unchecked((uint)value));
         }
