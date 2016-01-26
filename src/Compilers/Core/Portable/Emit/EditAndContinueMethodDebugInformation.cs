@@ -9,10 +9,11 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
-using Roslyn.Reflection;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
+    using Roslyn.Reflection;
+    
     /// <summary>
     /// Debugging information associated with the specified method that is emitted by the compiler to support Edit and Continue.
     /// </summary>

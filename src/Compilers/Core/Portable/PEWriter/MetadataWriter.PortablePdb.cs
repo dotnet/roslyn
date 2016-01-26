@@ -14,10 +14,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
-    using Roslyn.Reflection.Metadata.Ecma335.Blobs;
-    using Roslyn.Reflection.Metadata.Ecma335;
     using Roslyn.Reflection;
-
+    using Roslyn.Reflection.Metadata.Ecma335;
+    using Roslyn.Reflection.Metadata.Ecma335.Blobs;
+    
     internal partial class MetadataWriter
     {
         /// <summary>

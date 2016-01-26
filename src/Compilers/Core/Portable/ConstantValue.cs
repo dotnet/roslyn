@@ -9,6 +9,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    using Roslyn.Reflection;
+
     internal enum ConstantValueTypeDiscriminator : byte
     {
         Nothing,

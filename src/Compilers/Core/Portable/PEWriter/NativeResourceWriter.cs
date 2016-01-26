@@ -4,13 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
-using Roslyn.Reflection;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
+    using Roslyn.Reflection;
+
     internal static class NativeResourceWriter
     {
         ////

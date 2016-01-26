@@ -2,10 +2,11 @@
 
 using System.Diagnostics;
 using System.Reflection;
-using Roslyn.Reflection;
 
 namespace Roslyn.Utilities
 {
+    using Roslyn.Reflection;
+
     internal static class HashAlgorithmExtensions
     {
         internal static byte[] ComputeHash(this HashAlgorithm algorithm, BlobBuilder builder)
