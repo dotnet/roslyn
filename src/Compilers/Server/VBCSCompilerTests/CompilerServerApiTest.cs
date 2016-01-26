@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         private static readonly BuildResponse s_emptyBuildResponse = new CompletedBuildResponse(
             returnCode: 0,
             utf8output: false,
-            output: string.Empty,
-            errorOutput: string.Empty);
+            output: string.Empty);
 
         private const string HelloWorldSourceText = @"
 using System;

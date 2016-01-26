@@ -6306,7 +6306,7 @@ class Program
 
             var description = $@"({CSharpFeaturesResources.Awaitable}) Task Program.foo()
 {WorkspacesResources.Usage}
-  {CSharpFeaturesResources.Await} foo();";
+  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} foo();";
 
             await VerifyItemWithMscorlib45Async(markup, "foo", description, "C#");
         }
@@ -6327,7 +6327,7 @@ class Program
 
             var description = $@"({CSharpFeaturesResources.Awaitable}) Task<int> Program.foo()
 {WorkspacesResources.Usage}
-  int x = {CSharpFeaturesResources.Await} foo();";
+  int x = {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} foo();";
 
             await VerifyItemWithMscorlib45Async(markup, "foo", description, "C#");
         }
@@ -8231,6 +8231,44 @@ class C
 
             await VerifyItemExistsAsync(markup, "Foo");
             await VerifyItemExistsAsync(markup, "Bar");
+        }
+
+        [WorkItem(7932, "https://github.com/dotnet/roslyn/issues/7932")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExtensionMethodWithinSameClassOfferedForCompletion()
+        {
+            var markup = @"
+public static class Test
+{
+    static void TestB()
+    {
+        $$
+    }
+    static void TestA(this string s) { }
+}
+";
+            await VerifyItemExistsAsync(markup, "TestA");
+        }
+        
+        [WorkItem(7932, "https://github.com/dotnet/roslyn/issues/7932")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExtensionMethodWithinParentClassOfferedForCompletion()
+        {
+            var markup = @"
+public static class Parent
+{
+    static void TestA(this string s) { }
+    static void TestC(string s) { }
+    public static class Test
+    {
+        static void TestB()
+        {
+            $$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "TestA");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

@@ -101,7 +101,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
                     return HResult.E_FAIL; // TODO: specific error code (ecToHresult)?
                 }
 
-                Guid guid = codeViewData.PdbId;
+                Guid guid = codeViewData.Guid;
                 int age = codeViewData.Age;
                 string pdbFileName = Path.GetFileName(codeViewData.Path);
                 var lazyImport = new LazyMetadataImport(mdImport);
@@ -260,11 +260,11 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 var peStream = PortableShim.File.OpenRead(peFilePath);
                 using (var peReader = new PEReader(peStream))
                 {
-                    foreach (var entry in PEUtilities.ReadDebugDirectory(peReader, peStream))
+                    foreach (var entry in peReader.ReadDebugDirectory())
                     {
-                        if (entry.EntryType == DebugDirectoryEntryType.CodeView)
+                        if (entry.Type == DebugDirectoryEntryType.CodeView)
                         {
-                            codeViewData = PEUtilities.ReadCodeViewDebugDirectoryData(peStream, entry);
+                            codeViewData = peReader.ReadCodeViewDebugDirectoryData(entry);
                             stamp = entry.Stamp;
                             return true;
                         }

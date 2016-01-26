@@ -1,4 +1,6 @@
-﻿using System.Collections.Concurrent;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -190,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             private async Task<IReadOnlyList<Reference>> FindNugetReferencesAsync(
-                TSimpleNameSyntax nameNode,  string name, int arity, bool inAttributeContext)
+                TSimpleNameSyntax nameNode, string name, int arity, bool inAttributeContext)
             {
                 var allReferences = new List<Reference>();
                 await FindNugetReferencesAsync(allReferences, nameNode, name, arity).ConfigureAwait(false);
@@ -383,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // "Select", but that name has no bearing on the code in question that we're
                 // trying to fix up.
                 var extensionMethodSymbols = OfType<IMethodSymbol>(symbols)
-                    .Where(s => s.Symbol.IsExtensionMethod && _owner.IsViableExtensionMethod(type, s.Symbol))
+                    .Where(s => s.Symbol.IsExtensionMethod && _owner.IsViableExtensionMethod(s.Symbol, type))
                     .Select(s => s.WithDesiredName(null))
                     .ToList();
 

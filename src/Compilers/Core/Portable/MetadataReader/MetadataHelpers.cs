@@ -656,6 +656,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Calculates information about types and namespaces immediately contained within a namespace.
         /// </summary>
+        /// <param name="isGlobalNamespace">
+        /// Is current namespace a global namespace?
+        /// </param>
         /// <param name="namespaceNameLength">
         /// Length of the fully-qualified name of this namespace.
         /// </param>
@@ -687,6 +690,7 @@ namespace Microsoft.CodeAnalysis
         /// </param>
         /// <remarks></remarks>
         public static void GetInfoForImmediateNamespaceMembers(
+            bool isGlobalNamespace,
             int namespaceNameLength,
             IEnumerable<IGrouping<string, TypeDefinitionHandle>> typesByNS,
             StringComparer nameComparer,
@@ -695,6 +699,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(typesByNS != null);
             Debug.Assert(namespaceNameLength >= 0);
+            Debug.Assert(!isGlobalNamespace || namespaceNameLength == 0);
 
             // A list of groups of TypeDef row ids for types immediately contained within this namespace.
             var nestedTypes = new List<IGrouping<string, TypeDefinitionHandle>>();
@@ -705,6 +710,7 @@ namespace Microsoft.CodeAnalysis
             //   Value – contains a sequence similar to the one passed to this function, but
             //           calculated for the child namespace. 
             var nestedNamespaces = new List<KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>>();
+            bool possiblyHavePairsWithDuplicateKey = false;
 
             var enumerator = typesByNS.GetEnumerator();
 
@@ -737,7 +743,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // Account for the dot following THIS namespace name.
-                    if (namespaceNameLength != 0)
+                    if (!isGlobalNamespace)
                     {
                         namespaceNameLength++;
                     }
@@ -748,7 +754,8 @@ namespace Microsoft.CodeAnalysis
 
                         string childNamespaceName = ExtractSimpleNameOfChildNamespace(namespaceNameLength, pair.Key);
 
-                        if (nameComparer.Equals(childNamespaceName, lastChildNamespaceName))
+                        int cmp = nameComparer.Compare(lastChildNamespaceName, childNamespaceName);
+                        if (cmp == 0)
                         {
                             // We are still processing the same child namespace
                             typesInLastChildNamespace.Add(pair);
@@ -756,6 +763,12 @@ namespace Microsoft.CodeAnalysis
                         else
                         {
                             // This is a new child namespace
+                            if (cmp > 0)
+                            {
+                                // The sort order is violated for child namespace names. Obfuscation is the likely reason for this. 
+                                Debug.Assert((object)lastChildNamespaceName != null);
+                                possiblyHavePairsWithDuplicateKey = true;
+                            }
 
                             // Preserve information about previous child namespace.
                             if (typesInLastChildNamespace != null)
@@ -768,6 +781,7 @@ namespace Microsoft.CodeAnalysis
 
                             typesInLastChildNamespace = new List<IGrouping<string, TypeDefinitionHandle>>();
                             lastChildNamespaceName = childNamespaceName;
+                            Debug.Assert((object)lastChildNamespaceName != null);
 
                             typesInLastChildNamespace.Add(pair);
                         }
@@ -790,6 +804,37 @@ namespace Microsoft.CodeAnalysis
             } // using
 
             types = nestedTypes;
+
+            // Merge pairs with the same key
+            if (possiblyHavePairsWithDuplicateKey)
+            {
+                var names = new Dictionary<string, int>(nestedNamespaces.Count, nameComparer);
+
+                for (int i = nestedNamespaces.Count - 1; i >= 0; i--)
+                {
+                    names[nestedNamespaces[i].Key] = i;
+                }
+
+                if (names.Count != nestedNamespaces.Count) // nothing to merge otherwise
+                {
+                    for (int i = 1; i < nestedNamespaces.Count; i++)
+                    {
+                        var pair = nestedNamespaces[i];
+                        int keyIndex = names[pair.Key];
+                        if (keyIndex != i)
+                        {
+                            Debug.Assert(keyIndex < i);
+                            var primaryPair = nestedNamespaces[keyIndex];
+                            nestedNamespaces[keyIndex] = KeyValuePair.Create(primaryPair.Key, primaryPair.Value.Concat(pair.Value));
+                            nestedNamespaces[i] = default(KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>);
+                        }
+                    }
+
+                    int removed = nestedNamespaces.RemoveAll(pair => (object)pair.Key == null);
+                    Debug.Assert(removed > 0);
+                }
+            }
+
             namespaces = nestedNamespaces;
 
             Debug.Assert(types != null);

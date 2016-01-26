@@ -372,8 +372,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
                     CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
+                    // Try to get the location of the user-provided build client and server,
+                    // which should be located next to the build task. If not, fall back to
+                    // "pathToTool", which is the compiler in the MSBuild default bin directory.
+                    var clientDir = TryGetClientDir() ?? Path.GetDirectoryName(pathToTool);
+                    pathToTool = Path.Combine(clientDir, ToolExe);
+
+                    // Note: we can't change the "tool path" printed to the console when we run
+                    // the Csc/Vbc task since MSBuild logs it for us before we get here. Instead,
+                    // we'll just print our own message that contains the real client location
+                    Log.LogMessage(ErrorString.UsingSharedCompilation, clientDir);
+
                     var buildPaths = new BuildPaths(
-                        clientDir: TryGetClientDir() ?? Path.GetDirectoryName(pathToTool),
+                        clientDir: clientDir,
                         // MSBuild doesn't need the .NET SDK directory
                         sdkDir: null,
                         workingDir: CurrentDirectoryToUse());
@@ -395,6 +406,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     }
                     else
                     {
+                        Log.LogMessage(ErrorString.SharedCompilationFallback, pathToTool);
+
                         ExitCode = base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                     }
                 }
