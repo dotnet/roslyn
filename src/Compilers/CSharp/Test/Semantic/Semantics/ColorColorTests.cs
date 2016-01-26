@@ -1753,10 +1753,12 @@ public class Example
 
             var semanticModel = comp.GetSemanticModel(syntaxTree, false);
 
-            var actualSymbol = semanticModel.GetSymbolInfo(syntaxRoot.FindNode(TextSpan.FromBounds(130, 138)));
-            var expectedSymbol = semanticModel.GetDeclaredSymbol(syntaxRoot.FindNode(TextSpan.FromBounds(0, 71)));
+            var nameSyntax = syntaxRoot.FindNode(TextSpan.FromBounds(130, 138));
+            Assert.Equal("Lifetime", nameSyntax.ToString());
 
-            Assert.Equal(expectedSymbol, actualSymbol.Symbol);
+            var actualSymbol = semanticModel.GetSymbolInfo(nameSyntax);
+
+            Assert.Equal("Lifetime", actualSymbol.Symbol.ToTestDisplayString());
         }
 
         #endregion Regression cases
