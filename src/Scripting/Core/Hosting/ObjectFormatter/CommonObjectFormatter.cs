@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     /// <summary>
     /// Object pretty printer.
     /// </summary>
-    public abstract partial class CommonObjectFormatter : ObjectFormatter
+    internal abstract partial class CommonObjectFormatter : ObjectFormatter
     {
         public override string FormatObject(object obj, PrintOptions options)
         {

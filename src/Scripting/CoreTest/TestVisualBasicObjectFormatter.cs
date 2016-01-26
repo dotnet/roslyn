@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 {
-    public sealed class TestVisualBasicObjectFormatter : VisualBasicObjectFormatter
+    internal sealed class TestVisualBasicObjectFormatter : VisualBasicObjectFormatter
     {
         private readonly bool _quoteStringsAndCharacters;
         private readonly int _maximumLineLength;

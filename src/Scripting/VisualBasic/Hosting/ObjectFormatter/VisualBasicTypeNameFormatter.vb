@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Scripting.Hosting
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
-    Public Class VisualBasicTypeNameFormatter
+    Friend Class VisualBasicTypeNameFormatter
         Inherits CommonTypeNameFormatter
 
         Protected Overrides ReadOnly Property PrimitiveFormatter As CommonPrimitiveFormatter

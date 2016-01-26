@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    public abstract partial class CommonObjectFormatter
+    internal abstract partial class CommonObjectFormatter
     {
         private sealed partial class Visitor
         {

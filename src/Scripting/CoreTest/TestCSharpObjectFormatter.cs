@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 {
-    public sealed class TestCSharpObjectFormatter : CSharpObjectFormatter
+    internal sealed class TestCSharpObjectFormatter : CSharpObjectFormatter
     {
         private readonly bool _includeCodePoints;
         private readonly bool _quoteStringsAndCharacters;

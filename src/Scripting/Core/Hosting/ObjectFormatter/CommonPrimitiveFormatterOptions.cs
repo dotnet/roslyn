@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    public struct CommonPrimitiveFormatterOptions
+    internal struct CommonPrimitiveFormatterOptions
     {
         /// <remarks>
         /// Since <see cref="CommonPrimitiveFormatter"/> is an extension point, we don't

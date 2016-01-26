@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    public class CommonMemberFilter : MemberFilter
+    internal class CommonMemberFilter : MemberFilter
     {
         public override bool Include(StackFrame frame)
         {

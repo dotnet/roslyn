@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Scripting.Hosting
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
-    Public Class VisualBasicMemberFilter
+    Friend Class VisualBasicMemberFilter
         Inherits CommonMemberFilter
 
         Protected Overrides Function IsGeneratedMemberName(name As String) As Boolean

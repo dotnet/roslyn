@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    public class MemberFilter
+    internal class MemberFilter
     {
         public virtual bool Include(StackFrame frame) => Include(frame.GetMethod());
         public virtual bool Include(MemberInfo member) => true;

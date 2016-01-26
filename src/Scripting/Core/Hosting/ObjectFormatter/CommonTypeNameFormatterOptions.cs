@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    public struct CommonTypeNameFormatterOptions
+    internal struct CommonTypeNameFormatterOptions
     {
         public int ArrayBoundRadix { get; }
         public bool ShowNamespaces { get; }

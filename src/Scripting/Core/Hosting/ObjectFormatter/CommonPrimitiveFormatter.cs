@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     using static ObjectFormatterHelpers;
 
-    public abstract partial class CommonPrimitiveFormatter
+    internal abstract partial class CommonPrimitiveFormatter
     {
         /// <summary>
         /// String that describes "null" literal in the language.

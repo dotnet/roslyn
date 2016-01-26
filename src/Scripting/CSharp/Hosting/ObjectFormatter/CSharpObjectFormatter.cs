@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
-    public class CSharpObjectFormatter : CommonObjectFormatter
+    internal class CSharpObjectFormatter : CommonObjectFormatter
     {
         protected override CommonTypeNameFormatter TypeNameFormatter { get; }
         protected override CommonPrimitiveFormatter PrimitiveFormatter { get; }

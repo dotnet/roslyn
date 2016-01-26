@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatterHelpers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
-    Public Class VisualBasicPrimitiveFormatter
+    Friend Class VisualBasicPrimitiveFormatter
         Inherits CommonPrimitiveFormatter
 
         Protected Overrides ReadOnly Property NullLiteral As String

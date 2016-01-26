@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
     using static ObjectFormatterHelpers;
 
-    public class CSharpPrimitiveFormatter : CommonPrimitiveFormatter
+    internal class CSharpPrimitiveFormatter : CommonPrimitiveFormatter
     {
         protected override string NullLiteral => ObjectDisplay.NullLiteral;
 
