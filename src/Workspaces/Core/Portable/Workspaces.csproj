@@ -383,8 +383,8 @@
     <Compile Include="ExtensionManager\IErrorReportingService.cs" />
     <Compile Include="FindSymbols\DeclaredSymbolInfo.cs" />
     <Compile Include="FindSymbols\FindReferences\Finders\ILanguageServiceReferenceFinder.cs" />
-    <Compile Include="Nuget\IPackageInstallerService.cs" />
-    <Compile Include="Nuget\IPackageSearchService.cs" />
+    <Compile Include="Packaging\IPackageInstallerService.cs" />
+    <Compile Include="Packaging\IPackageSearchService.cs" />
     <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfoCacheService.cs" />
     <Compile Include="Utilities\ArraySlice.cs" />
     <Compile Include="Utilities\BKTree.cs" />

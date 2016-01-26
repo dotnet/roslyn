@@ -12,20 +12,20 @@ using Elfie.Model.Tree;
 #endif
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Nuget;
+using Microsoft.CodeAnalysis.Packaging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Nuget
 {
     [ExportWorkspaceServiceFactory(typeof(IPackageSearchService)), Shared]
-    internal class NugetSearchServiceFactory : IWorkspaceServiceFactory
+    internal class PackageSearchServiceFactory : IWorkspaceServiceFactory
     {
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return new NugetSearchService(workspaceServices);
+            return new PackageSearchService(workspaceServices);
         }
 
-        private class NugetSearchService : IPackageSearchService
+        private class PackageSearchService : IPackageSearchService
         {
 #if false
             private static Lazy<IMemberDatabase> s_memberDatabase = new Lazy<IMemberDatabase>(
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Nuget
 
             private HostWorkspaceServices workspaceServices;
 
-            public NugetSearchService(HostWorkspaceServices workspaceServices)
+            public PackageSearchService(HostWorkspaceServices workspaceServices)
             {
                 this.workspaceServices = workspaceServices;
             }

@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Nuget
+namespace Microsoft.CodeAnalysis.Packaging
 {
     internal interface IPackageSearchService : IWorkspaceService
     {
