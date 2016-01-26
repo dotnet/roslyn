@@ -1755,10 +1755,12 @@ public class Example
 
             var nameSyntax = syntaxRoot.FindNode(TextSpan.FromBounds(130, 138));
             Assert.Equal("Lifetime", nameSyntax.ToString());
+            Assert.Equal("Lifetime.Persistent", nameSyntax.Parent.ToString());
 
             var actualSymbol = semanticModel.GetSymbolInfo(nameSyntax);
 
             Assert.Equal("Lifetime", actualSymbol.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.NamedType, actualSymbol.Symbol.Kind);
         }
 
         #endregion Regression cases
