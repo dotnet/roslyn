@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides Function Visit(node As BoundNode) As BoundNode
                 Dim operation = TryCast(node, IOperation)
-                If operation IsNot Nothing Then
+                If operation IsNot Nothing AndAlso operation.Kind <> OperationKind.None Then
                     Me._nodes.Add(operation)
                     ' Certain child-operation of following operation kinds do not occur in bound nodes, 
                     ' and those child-operation nodes have to be added explicitly.

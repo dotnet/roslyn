@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override BoundNode Visit(BoundNode node)
             {
                 IOperation operation = node as IOperation;
-                if (operation != null)
+                if (operation != null && operation.Kind != OperationKind.None)
                 {
                     this._nodes.Add(operation);
                     // Certain child-operation of following operation kinds do not occur in bound nodes, 

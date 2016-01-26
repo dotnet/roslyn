@@ -1154,5 +1154,25 @@ class C
                 Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5, 6 }").WithLocation(17, 15)
                 );
         }
+
+        [Fact]
+        public void NoneOperationCSharp()
+        {
+            // BoundStatementList is OperationKind.None
+            const string source = @"
+class C
+{
+    public void M0()
+    {
+        int x = 0;
+        int y = x++;
+        int z = y++;
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NoneOperationTestAnalyzer() }, null, null, false);
+        }
     }
 }
