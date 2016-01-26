@@ -131,7 +131,7 @@ namespace Microsoft.Cci
             {
                 _debugMetadataOpt.AddStateMachineMethod(
                     moveNextMethod: methodHandle,
-                    kickoffMethod: GetMethodDefIndex(asyncDebugInfo.KickoffMethod));
+                    kickoffMethod: GetMethodDefinitionHandle(asyncDebugInfo.KickoffMethod));
 
                 SerializeAsyncMethodSteppingInfo(asyncDebugInfo, methodHandle);
             }
@@ -230,7 +230,7 @@ namespace Microsoft.Cci
             // <import> ::= AliasAssemblyReference <alias> <target-assembly>
             writer.WriteByte((byte)ImportDefinitionKind.AliasAssemblyReference);
             writer.WriteCompressedInteger((uint)_debugMetadataOpt.GetHeapOffset(_debugMetadataOpt.GetBlobUtf8(alias.Name)));
-            writer.WriteCompressedInteger((uint)MetadataTokens.GetRowNumber(GetOrAddAssemblyRefIndex(alias.Assembly)));
+            writer.WriteCompressedInteger((uint)MetadataTokens.GetRowNumber(GetOrAddAssemblyReferenceHandle(alias.Assembly)));
         }
 
         private void SerializeImport(BlobBuilder writer, UsedNamespaceOrType import)
@@ -281,7 +281,7 @@ namespace Microsoft.Cci
                         writer.WriteByte((byte)ImportDefinitionKind.ImportAssemblyNamespace);
                     }
 
-                    writer.WriteCompressedInteger((uint)MetadataTokens.GetRowNumber(GetAssemblyRefIndex(import.TargetAssemblyOpt)));
+                    writer.WriteCompressedInteger((uint)MetadataTokens.GetRowNumber(GetAssemblyReferenceHandle(import.TargetAssemblyOpt)));
                 }
                 else
                 {
