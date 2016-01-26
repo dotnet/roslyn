@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             }
         }
 
-        protected override async Task<Document> AddImportAsync(SyntaxNode contextNode, IReadOnlyList<string> nameSpaceParts, Document document, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+        protected override Task<Document> AddImportAsync(SyntaxNode contextNode, IReadOnlyList<string> nameSpaceParts, Document document, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
         {
             var root = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
 
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 simpleUsingDirective, contextNode, placeSystemNamespaceFirst,
                 Formatter.Annotation);
 
-            return document.WithSyntaxRoot(newRoot);
+            return Task.FromResult(document.WithSyntaxRoot(newRoot));
         }
 
         private NameSyntax CreateNameSyntax(IReadOnlyList<string> nameSpaceParts, int index)
