@@ -79,7 +79,6 @@
                       Exclude="$(OutputDirectory)\**\Roslyn.Interactive*" />
 
       <PortableTestAssemblies Include="$(CoreClrTestDirectory)\$(CoreIncludePattern)" />
->>>>>>> 6d3af91... Add netcore test runtime project
     </ItemGroup>
 
 <!--
