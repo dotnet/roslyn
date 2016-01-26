@@ -2782,6 +2782,59 @@ class Class1
 }");
         }
 
+        [WorkItem(8010, "https://github.com/dotnet/roslyn/issues/8010")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodFromStaticProperty()
+        {
+            await TestAsync(
+@"using System ; public class Test { public static int Property { get { return [|Method|] ( ) ; } } } ",
+@"using System ; public class Test { public static int Property { get { return Method ( ) ; } } private static int Method ( ) { throw new NotImplementedException ( ) ; } } ");
+        }
+
+        [WorkItem(8010, "https://github.com/dotnet/roslyn/issues/8010")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodFromStaticProperty_FieldInitializer()
+        {
+            await TestAsync(
+@"using System;
+public class OtherClass {}
+public class Test
+{
+    public static OtherClass Property
+    {
+        get
+        {
+            if ( s_field == null)
+                s_field = [|InitializeProperty|]();
+            return s_field;
+        }
+    }
+
+    private static OtherClass s_field;
+}",
+@"using System;
+public class OtherClass {}
+public class Test
+{
+    public static OtherClass Property
+    {
+        get
+        {
+            if ( s_field == null)
+                s_field = InitializeProperty();
+            return s_field;
+        }
+    }
+
+    private static OtherClass InitializeProperty()
+    {
+        throw new NotImplementedException();
+    }
+
+    private static OtherClass s_field;
+}");
+        }
+
         public class GenerateConversionTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
