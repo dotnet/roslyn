@@ -218,13 +218,5 @@
   <ItemGroup>
     <Service Include="{94E38DFF-614B-4CBD-B67C-F211BB35CE8B}" />
   </ItemGroup>
-  <ItemGroup>
-    <PublishPartLinked Include="$(OutputPath)\$(AssemblyName).dll">
-      <FileType>Reference</FileType>
-      <Visibility>Inter</Visibility>
-      <InProject>False</InProject>
-      <DoNotCopyPDB>True</DoNotCopyPDB>
-    </PublishPartLinked>
-  </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>
