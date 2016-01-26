@@ -107,7 +107,7 @@ namespace Microsoft.Cci
 
         protected override void RecordAssemblyReference(IAssemblyReference assemblyReference)
         {
-            this.metadataWriter.GetAssemblyRefIndex(assemblyReference);
+            this.metadataWriter.GetAssemblyReferenceHandle(assemblyReference);
         }
 
         protected override void ProcessMethodBody(IMethodDefinition method)
@@ -172,12 +172,12 @@ namespace Microsoft.Cci
 
         protected override void RecordTypeMemberReference(ITypeMemberReference typeMemberReference)
         {
-            this.metadataWriter.GetMemberRefIndex(typeMemberReference);
+            this.metadataWriter.GetMemberReferenceHandle(typeMemberReference);
         }
 
         protected override void RecordFileReference(IFileReference fileReference)
         {
-            this.metadataWriter.GetFileRefIndex(fileReference);
+            this.metadataWriter.GetAssemblyFileHandle(fileReference);
         }
 
         protected override void ReserveMethodToken(IMethodReference methodReference)
@@ -192,12 +192,12 @@ namespace Microsoft.Cci
 
         protected override void RecordModuleReference(IModuleReference moduleReference)
         {
-            this.metadataWriter.GetModuleRefIndex(moduleReference.Name);
+            this.metadataWriter.GetModuleReferenceHandle(moduleReference.Name);
         }
 
         public override void Visit(IPlatformInvokeInformation platformInvokeInformation)
         {
-            this.metadataWriter.GetModuleRefIndex(platformInvokeInformation.ModuleName);
+            this.metadataWriter.GetModuleReferenceHandle(platformInvokeInformation.ModuleName);
         }
     }
 }

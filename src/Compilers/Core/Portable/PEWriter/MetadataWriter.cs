@@ -150,23 +150,21 @@ namespace Microsoft.Cci
         protected abstract Guid EncBaseId { get; }
 
         /// <summary>
-        /// Returns true and the 1-based index of the type definition
+        /// Returns true and full metadata handle of the type definition
         /// if the type definition is recognized. Otherwise returns false.
-        /// The index is into the full metadata.
         /// </summary>
-        protected abstract bool TryGetTypeDefIndex(ITypeDefinition def, out TypeDefinitionHandle index);
+        protected abstract bool TryGetTypeDefinitionHandle(ITypeDefinition def, out TypeDefinitionHandle handle);
 
         /// <summary>
-        /// The 1-based index of the type definition.
-        /// The index is into the full metadata.
+        /// Get full metadata handle of the type definition.
         /// </summary>
-        protected abstract TypeDefinitionHandle GetTypeDefIndex(ITypeDefinition def);
+        protected abstract TypeDefinitionHandle GetTypeDefinitionHandle(ITypeDefinition def);
 
         /// <summary>
-        /// The type definition at the 1-based index into the full set. Deltas
-        /// are only required to support indexing into current generation.
+        /// The type definition corresponding to full metadata type handle.
+        /// Deltas are only required to support indexing into current generation.
         /// </summary>
-        protected abstract ITypeDefinition GetTypeDef(TypeDefinitionHandle index);
+        protected abstract ITypeDefinition GetTypeDef(TypeDefinitionHandle handle);
 
         /// <summary>
         /// The type definitions to be emitted, in row order. These
@@ -175,10 +173,9 @@ namespace Microsoft.Cci
         protected abstract IReadOnlyList<ITypeDefinition> GetTypeDefs();
 
         /// <summary>
-        /// The 1-based index of the event definition.
-        /// The index is into the full metadata.
+        /// Get full metadata handle of the event definition.
         /// </summary>
-        protected abstract EventDefinitionHandle GetEventDefIndex(IEventDefinition def);
+        protected abstract EventDefinitionHandle GetEventDefinitionHandle(IEventDefinition def);
 
         /// <summary>
         /// The event definitions to be emitted, in row order. These
@@ -187,10 +184,9 @@ namespace Microsoft.Cci
         protected abstract IReadOnlyList<IEventDefinition> GetEventDefs();
 
         /// <summary>
-        /// The 1-based index of the field definition.
-        /// The index is into the full metadata.
+        /// Get full metadata handle of the field definition.
         /// </summary>
-        protected abstract FieldDefinitionHandle GetFieldDefIndex(IFieldDefinition def);
+        protected abstract FieldDefinitionHandle GetFieldDefinitionHandle(IFieldDefinition def);
 
         /// <summary>
         /// The field definitions to be emitted, in row order. These
@@ -199,23 +195,22 @@ namespace Microsoft.Cci
         protected abstract IReadOnlyList<IFieldDefinition> GetFieldDefs();
 
         /// <summary>
-        /// Returns true and the 1-based index of the method definition
+        /// Returns true and handle of the method definition
         /// if the method definition is recognized. Otherwise returns false.
         /// The index is into the full metadata.
         /// </summary>
-        protected abstract bool TryGetMethodDefIndex(IMethodDefinition def, out MethodDefinitionHandle index);
+        protected abstract bool TryGetMethodDefinitionHandle(IMethodDefinition def, out MethodDefinitionHandle handle);
 
         /// <summary>
-        /// The 1-based index of the method definition.
-        /// The index is into the full metadata.
+        /// Get full metadata handle of the method definition.
         /// </summary>
-        protected abstract MethodDefinitionHandle GetMethodDefIndex(IMethodDefinition def);
+        protected abstract MethodDefinitionHandle GetMethodDefinitionHandle(IMethodDefinition def);
 
         /// <summary>
-        /// The method definition at the 1-based index into the full set. Deltas
-        /// are only required to support indexing into current generation.
+        /// The method definition corresponding to full metadata method handle. 
+        /// Deltas are only required to support indexing into current generation.
         /// </summary>
-        protected abstract IMethodDefinition GetMethodDef(MethodDefinitionHandle index);
+        protected abstract IMethodDefinition GetMethodDef(MethodDefinitionHandle handle);
 
         /// <summary>
         /// The method definitions to be emitted, in row order. These
@@ -224,8 +219,7 @@ namespace Microsoft.Cci
         protected abstract IReadOnlyList<IMethodDefinition> GetMethodDefs();
 
         /// <summary>
-        /// The 1-based index of the property definition.
-        /// The index is into the full metadata.
+        /// Get full metadata handle of the property definition.
         /// </summary>
         protected abstract PropertyDefinitionHandle GetPropertyDefIndex(IPropertyDefinition def);
 
@@ -236,10 +230,9 @@ namespace Microsoft.Cci
         protected abstract IReadOnlyList<IPropertyDefinition> GetPropertyDefs();
 
         /// <summary>
-        /// The 1-based index of the parameter definition.
-        /// The index is into the full metadata.
+        /// The full metadata handle of the parameter definition.
         /// </summary>
-        protected abstract ParameterHandle GetParameterDefIndex(IParameterDefinition def);
+        protected abstract ParameterHandle GetParameterHandle(IParameterDefinition def);
 
         /// <summary>
         /// The parameter definitions to be emitted, in row order. These
@@ -254,27 +247,26 @@ namespace Microsoft.Cci
         protected abstract IReadOnlyList<IGenericParameter> GetGenericParameters();
 
         /// <summary>
-        /// The 1-based index of the first field of the type.
+        /// The handle of the first field of the type.
         /// </summary>
-        protected abstract FieldDefinitionHandle GetFieldDefIndex(INamedTypeDefinition typeDef);
+        protected abstract FieldDefinitionHandle GetFirstFieldDefinitionHandle(INamedTypeDefinition typeDef);
 
         /// <summary>
-        /// The 1-based index of the first method of the type.
+        /// The handle of the first method of the type.
         /// </summary>
-        protected abstract MethodDefinitionHandle GetMethodDefIndex(INamedTypeDefinition typeDef);
+        protected abstract MethodDefinitionHandle GetFirstMethodDefinitionHandle(INamedTypeDefinition typeDef);
 
         /// <summary>
-        /// The 1-based index of the first parameter of the method.
+        /// The handle of the first parameter of the method.
         /// </summary>
-        protected abstract ParameterHandle GetParameterDefIndex(IMethodDefinition methodDef);
+        protected abstract ParameterHandle GetFirstParameterHandle(IMethodDefinition methodDef);
 
         /// <summary>
-        /// Return the 1-based index of the assembly reference, adding
+        /// Return full metadata handle of the assembly reference, adding
         /// the reference to the index for this generation if missing.
-        /// The index is into the full metadata. However, deltas
-        /// are not required to return rows from previous generations.
+        /// Deltas are not required to return rows from previous generations.
         /// </summary>
-        protected abstract AssemblyReferenceHandle GetOrAddAssemblyRefIndex(IAssemblyReference reference);
+        protected abstract AssemblyReferenceHandle GetOrAddAssemblyReferenceHandle(IAssemblyReference reference);
 
         /// <summary>
         /// The assembly references to be emitted, in row order. These
@@ -293,12 +285,11 @@ namespace Microsoft.Cci
         // Entries aren't added for P/Invoked modules.
 
         /// <summary>
-        /// Return the 1-based index of the module reference, adding
+        /// Return full metadata handle of the module reference, adding
         /// the reference to the index for this generation if missing.
-        /// The index is into the full metadata. However, deltas
-        /// are not required to return rows from previous generations.
+        /// Deltas are not required to return rows from previous generations.
         /// </summary>
-        protected abstract ModuleReferenceHandle GetOrAddModuleRefIndex(string reference);
+        protected abstract ModuleReferenceHandle GetOrAddModuleReferenceHandle(string reference);
 
         /// <summary>
         /// The module references to be emitted, in row order. These
@@ -307,12 +298,11 @@ namespace Microsoft.Cci
         protected abstract IReadOnlyList<string> GetModuleRefs();
 
         /// <summary>
-        /// Return the 1-based index of the member reference, adding
+        /// Return full metadata handle of the member reference, adding
         /// the reference to the index for this generation if missing.
-        /// The index is into the full metadata. However, deltas
-        /// are not required to return rows from previous generations.
+        /// Deltas are not required to return rows from previous generations.
         /// </summary>
-        protected abstract MemberReferenceHandle GetOrAddMemberRefIndex(ITypeMemberReference reference);
+        protected abstract MemberReferenceHandle GetOrAddMemberReferenceHandle(ITypeMemberReference reference);
 
         /// <summary>
         /// The member references to be emitted, in row order. These
@@ -321,12 +311,11 @@ namespace Microsoft.Cci
         protected abstract IReadOnlyList<ITypeMemberReference> GetMemberRefs();
 
         /// <summary>
-        /// Return the 1-based index of the method spec, adding
+        /// Return full metadata handle of the method spec, adding
         /// the spec to the index for this generation if missing.
-        /// The index is into the full metadata. However, deltas
-        /// are not required to return rows from previous generations.
+        /// Deltas are not required to return rows from previous generations.
         /// </summary>
-        protected abstract MethodSpecificationHandle GetOrAddMethodSpecIndex(IGenericMethodInstanceReference reference);
+        protected abstract MethodSpecificationHandle GetOrAddMethodSpecificationHandle(IGenericMethodInstanceReference reference);
 
         /// <summary>
         /// The method specs to be emitted, in row order. These
@@ -335,20 +324,18 @@ namespace Microsoft.Cci
         protected abstract IReadOnlyList<IGenericMethodInstanceReference> GetMethodSpecs();
 
         /// <summary>
-        /// Return true and the 1-based index of the type reference
+        /// Return true and full metadata handle of the type reference
         /// if the reference is available in the current generation.
-        /// The index is into the full metadata. However, deltas
-        /// are not required to return rows from previous generations.
+        /// Deltas are not required to return rows from previous generations.
         /// </summary>
-        protected abstract bool TryGetTypeRefIndex(ITypeReference reference, out TypeReferenceHandle index);
+        protected abstract bool TryGetTypeRefeferenceHandle(ITypeReference reference, out TypeReferenceHandle handle);
 
         /// <summary>
-        /// Return the 1-based index of the type reference, adding
+        /// Return full metadata handle of the type reference, adding
         /// the reference to the index for this generation if missing.
-        /// The index is into the full metadata. However, deltas
-        /// are not required to return rows from previous generations.
+        /// Deltas are not required to return rows from previous generations.
         /// </summary>
-        protected abstract TypeReferenceHandle GetOrAddTypeRefIndex(ITypeReference reference);
+        protected abstract TypeReferenceHandle GetOrAddTypeReferenceHandle(ITypeReference reference);
 
         /// <summary>
         /// The type references to be emitted, in row order. These
@@ -357,12 +344,11 @@ namespace Microsoft.Cci
         protected abstract IReadOnlyList<ITypeReference> GetTypeRefs();
 
         /// <summary>
-        /// Return the 1-based index of the type spec, adding
+        /// Returns full metadata handle of the type spec, adding
         /// the spec to the index for this generation if missing.
-        /// The index is into the full metadata. However, deltas
-        /// are not required to return rows from previous generations.
+        /// Deltas are not required to return rows from previous generations.
         /// </summary>
-        protected abstract TypeSpecificationHandle GetOrAddTypeSpecIndex(ITypeReference reference);
+        protected abstract TypeSpecificationHandle GetOrAddTypeSpecificationHandle(ITypeReference reference);
 
         /// <summary>
         /// The type specs to be emitted, in row order. These
@@ -371,18 +357,17 @@ namespace Microsoft.Cci
         protected abstract IReadOnlyList<ITypeReference> GetTypeSpecs();
 
         /// <summary>
-        /// Return the 1-based index of the signature index, adding
+        /// Returns full metadata handle the stanadlone signature, adding
         /// the signature to the index for this generation if missing.
-        /// The index is into the full metadata. However, deltas
-        /// are not required to return rows from previous generations.
+        /// Deltas are not required to return rows from previous generations.
         /// </summary>
-        protected abstract StandaloneSignatureHandle GetOrAddStandAloneSignatureIndex(BlobHandle blobIndex);
+        protected abstract StandaloneSignatureHandle GetOrAddStandaloneSignatureHandle(BlobHandle handle);
 
         /// <summary>
-        /// The signature indices to be emitted, in row order. These
+        /// The signature blob handles to be emitted, in row order. These
         /// are just the signature indices from the current generation.
         /// </summary>
-        protected abstract IReadOnlyList<BlobHandle> GetStandAloneSignatures();
+        protected abstract IReadOnlyList<BlobHandle> GetStandaloneSignatureBlobHandles();
 
         protected abstract IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(IModule module);
 
@@ -659,7 +644,7 @@ namespace Microsoft.Cci
             Debug.Assert(!_tableIndicesAreComplete);
             foreach (IAssemblyReference assemblyRef in this.module.GetAssemblyReferences(Context))
             {
-                this.GetOrAddAssemblyRefIndex(assemblyRef);
+                this.GetOrAddAssemblyReferenceHandle(assemblyRef);
             }
         }
 
@@ -700,7 +685,7 @@ namespace Microsoft.Cci
             }
         }
 
-        internal AssemblyReferenceHandle GetAssemblyRefIndex(IAssemblyReference assemblyReference)
+        internal AssemblyReferenceHandle GetAssemblyReferenceHandle(IAssemblyReference assemblyReference)
         {
             var containingAssembly = this.module.GetContainingAssembly(Context);
 
@@ -709,12 +694,12 @@ namespace Microsoft.Cci
                 return default(AssemblyReferenceHandle);
             }
 
-            return this.GetOrAddAssemblyRefIndex(assemblyReference);
+            return this.GetOrAddAssemblyReferenceHandle(assemblyReference);
         }
 
-        internal ModuleReferenceHandle GetModuleRefIndex(string moduleName)
+        internal ModuleReferenceHandle GetModuleReferenceHandle(string moduleName)
         {
-            return this.GetOrAddModuleRefIndex(moduleName);
+            return this.GetOrAddModuleReferenceHandle(moduleName);
         }
 
         private BlobHandle GetCustomAttributeSignatureIndex(ICustomAttribute customAttribute)
@@ -743,8 +728,8 @@ namespace Microsoft.Cci
             }
 
             return methodDef != null
-                ? (EntityHandle)GetMethodDefIndex(methodDef)
-                : GetMemberRefIndex(methodReference);
+                ? (EntityHandle)GetMethodDefinitionHandle(methodDef)
+                : GetMemberReferenceHandle(methodReference);
         }
 
         public static EventAttributes GetEventAttributes(IEventDefinition eventDef)
@@ -846,11 +831,11 @@ namespace Microsoft.Cci
             }
 
             return fieldDef != null
-                ? (EntityHandle)GetFieldDefIndex(fieldDef)
-                : GetMemberRefIndex(fieldReference);
+                ? (EntityHandle)GetFieldDefinitionHandle(fieldDef)
+                : GetMemberReferenceHandle(fieldReference);
         }
 
-        internal AssemblyFileHandle GetFileRefIndex(IFileReference fileReference)
+        internal AssemblyFileHandle GetAssemblyFileHandle(IFileReference fileReference)
         {
             string key = fileReference.FileName;
             int index;
@@ -864,7 +849,7 @@ namespace Microsoft.Cci
             return MetadataTokens.AssemblyFileHandle(index);
         }
 
-        private AssemblyFileHandle GetFileRefIndex(IModuleReference mref)
+        private AssemblyFileHandle GetAssemblyFileHandle(IModuleReference mref)
         {
             return MetadataTokens.AssemblyFileHandle(_fileRefIndex[mref.Name]);
         }
@@ -900,20 +885,20 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private EntityHandle GetImplementationCodedIndex(INamespaceTypeReference namespaceRef)
+        private EntityHandle GetExportedTypeImplementation(INamespaceTypeReference namespaceRef)
         {
             IUnitReference uref = namespaceRef.GetUnit(Context);
             var aref = uref as IAssemblyReference;
             if (aref != null)
             {
-                return GetAssemblyRefIndex(aref);
+                return GetAssemblyReferenceHandle(aref);
             }
 
             var mref = (IModuleReference)uref;
             aref = mref.GetContainingAssembly(Context);
             return aref == null || ReferenceEquals(aref, this.module.GetContainingAssembly(Context))
-                ? (EntityHandle)GetFileRefIndex(mref)
-                : GetAssemblyRefIndex(aref);
+                ? (EntityHandle)GetAssemblyFileHandle(mref)
+                : GetAssemblyReferenceHandle(aref);
         }
 
         private static uint GetManagedResourceOffset(ManagedResource resource, BlobBuilder resourceWriter)
@@ -937,18 +922,18 @@ namespace Microsoft.Cci
                 : unmangledName;
         }
 
-        internal MemberReferenceHandle GetMemberRefIndex(ITypeMemberReference memberRef)
+        internal MemberReferenceHandle GetMemberReferenceHandle(ITypeMemberReference memberRef)
         {
-            return this.GetOrAddMemberRefIndex(memberRef);
+            return this.GetOrAddMemberReferenceHandle(memberRef);
         }
 
-        internal EntityHandle GetMemberRefParentCodedIndex(ITypeMemberReference memberRef)
+        internal EntityHandle GetMemberReferenceParent(ITypeMemberReference memberRef)
         {
             ITypeDefinition parentTypeDef = memberRef.GetContainingType(Context).AsTypeDefinition(Context);
             if (parentTypeDef != null)
             {
                 TypeDefinitionHandle parentTypeDefHandle;
-                TryGetTypeDefIndex(parentTypeDef, out parentTypeDefHandle);
+                TryGetTypeDefinitionHandle(parentTypeDef, out parentTypeDefHandle);
 
                 if (!parentTypeDefHandle.IsNil)
                 {
@@ -963,7 +948,7 @@ namespace Microsoft.Cci
                         if (methodRef.AcceptsExtraArguments)
                         {
                             MethodDefinitionHandle methodHandle;
-                            if (this.TryGetMethodDefIndex(methodRef.GetResolvedMethod(Context), out methodHandle))
+                            if (this.TryGetMethodDefinitionHandle(methodRef.GetResolvedMethod(Context), out methodHandle))
                             {
                                 return methodHandle;
                             }
@@ -976,12 +961,13 @@ namespace Microsoft.Cci
             }
 
             // TODO: special treatment for global fields and methods. Object model support would be nice.
-            return memberRef.GetContainingType(Context).IsTypeSpecification()
-                ? (EntityHandle)GetTypeSpecIndex(memberRef.GetContainingType(Context))
-                : GetTypeRefIndex(memberRef.GetContainingType(Context));
+            var containingType = memberRef.GetContainingType(Context);
+            return containingType.IsTypeSpecification()
+                ? (EntityHandle)GetTypeSpecificationHandle(containingType)
+                : GetTypeReferenceHandle(containingType);
         }
 
-        internal EntityHandle GetMethodDefOrRefCodedIndex(IMethodReference methodReference)
+        internal EntityHandle GetMethodDefinitionOrReferenceHandle(IMethodReference methodReference)
         {
             IMethodDefinition methodDef = null;
             IUnitReference definingUnit = GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
@@ -991,8 +977,8 @@ namespace Microsoft.Cci
             }
 
             return methodDef != null
-                ? (EntityHandle)GetMethodDefIndex(methodDef)
-                : GetMemberRefIndex(methodReference);
+                ? (EntityHandle)GetMethodDefinitionHandle(methodDef)
+                : GetMemberReferenceHandle(methodReference);
         }
 
         public static MethodAttributes GetMethodAttributes(IMethodDefinition methodDef)
@@ -1061,7 +1047,7 @@ namespace Microsoft.Cci
             return result;
         }
 
-        internal BlobHandle GetMethodInstanceSignatureIndex(IGenericMethodInstanceReference methodInstanceReference)
+        internal BlobHandle GetMethodSpecificationSignatureHandle(IGenericMethodInstanceReference methodInstanceReference)
         {
             BlobHandle result;
             if (_methodInstanceSignatureIndex.TryGetValue(methodInstanceReference, out result))
@@ -1086,7 +1072,7 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private BlobHandle GetMarshallingDescriptorIndex(IMarshallingInformation marshallingInformation)
+        private BlobHandle GetMarshallingDescriptorHandle(IMarshallingInformation marshallingInformation)
         {
             BlobHandle result;
             if (_marshallingDescriptorIndex.TryGetValue(marshallingInformation, out result))
@@ -1102,12 +1088,12 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private BlobHandle GetMarshallingDescriptorIndex(ImmutableArray<byte> descriptor)
+        private BlobHandle GetMarshallingDescriptorHandle(ImmutableArray<byte> descriptor)
         {
             return metadata.GetBlob(descriptor);
         }
 
-        private BlobHandle GetMemberRefSignatureIndex(ITypeMemberReference memberRef)
+        private BlobHandle GetMemberReferenceSignatureHandle(ITypeMemberReference memberRef)
         {
             IFieldReference fieldReference = memberRef as IFieldReference;
             if (fieldReference != null)
@@ -1118,26 +1104,26 @@ namespace Microsoft.Cci
             IMethodReference methodReference = memberRef as IMethodReference;
             if (methodReference != null)
             {
-                return this.GetMethodSignatureIndex(methodReference);
+                return this.GetMethodSignatureHandle(methodReference);
             }
 
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal BlobHandle GetMethodSignatureIndex(IMethodReference methodReference)
+        internal BlobHandle GetMethodSignatureHandle(IMethodReference methodReference)
         {
             ImmutableArray<byte> signatureBlob;
-            return GetMethodSignatureIndexAndBlob(methodReference, out signatureBlob);
+            return GetMethodSignatureHandleAndBlob(methodReference, out signatureBlob);
         }
 
         internal byte[] GetMethodSignature(IMethodReference methodReference)
         {
             ImmutableArray<byte> signatureBlob;
-            GetMethodSignatureIndexAndBlob(methodReference, out signatureBlob);
+            GetMethodSignatureHandleAndBlob(methodReference, out signatureBlob);
             return signatureBlob.ToArray();
         }
 
-        private BlobHandle GetMethodSignatureIndexAndBlob(IMethodReference methodReference, out ImmutableArray<byte> signatureBlob)
+        private BlobHandle GetMethodSignatureHandleAndBlob(IMethodReference methodReference, out ImmutableArray<byte> signatureBlob)
         {
             BlobHandle result;
             ISpecializedMethodReference specializedMethodReference = methodReference.AsSpecializedMethodReference;
@@ -1172,18 +1158,18 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private BlobHandle GetGenericMethodInstanceIndex(IGenericMethodInstanceReference genericMethodInstanceReference)
+        private BlobHandle GetMethodSpecificationBlobHandle(IGenericMethodInstanceReference genericMethodInstanceReference)
         {
             var writer = PooledBlobBuilder.GetInstance();
-            this.SerializeGenericMethodInstanceSignature(writer, genericMethodInstanceReference);
+            SerializeMethodSpecificationSignature(writer, genericMethodInstanceReference);
             BlobHandle result = metadata.GetBlob(writer);
             writer.Free();
             return result;
         }
 
-        private MethodSpecificationHandle GetMethodSpecIndex(IGenericMethodInstanceReference methodSpec)
+        private MethodSpecificationHandle GetMethodSpecificationHandle(IGenericMethodInstanceReference methodSpec)
         {
-            return this.GetOrAddMethodSpecIndex(methodSpec);
+            return this.GetOrAddMethodSpecificationHandle(methodSpec);
         }
 
         internal EntityHandle GetMethodHandle(IMethodReference methodReference)
@@ -1196,15 +1182,15 @@ namespace Microsoft.Cci
                 methodDef = methodReference.GetResolvedMethod(Context);
             }
 
-            if (methodDef != null && (methodReference == methodDef || !methodReference.AcceptsExtraArguments) && this.TryGetMethodDefIndex(methodDef, out methodDefHandle))
+            if (methodDef != null && (methodReference == methodDef || !methodReference.AcceptsExtraArguments) && this.TryGetMethodDefinitionHandle(methodDef, out methodDefHandle))
             {
                 return methodDefHandle;
             }
 
             IGenericMethodInstanceReference methodSpec = methodReference.AsGenericMethodInstanceReference;
             return methodSpec != null
-                ? (EntityHandle)GetMethodSpecIndex(methodSpec)
-                : GetMemberRefIndex(methodReference);
+                ? (EntityHandle)GetMethodSpecificationHandle(methodSpec)
+                : GetMemberReferenceHandle(methodReference);
         }
 
         public static ParameterAttributes GetParameterAttributes(IParameterDefinition parDef)
@@ -1243,7 +1229,7 @@ namespace Microsoft.Cci
             return constant.CompileTimeValue.Type.TypeCode(Context);
         }
 
-        private BlobHandle GetPermissionSetIndex(ImmutableArray<ICustomAttribute> permissionSet)
+        private BlobHandle GetPermissionSetBlobHandle(ImmutableArray<ICustomAttribute> permissionSet)
         {
             var writer = PooledBlobBuilder.GetInstance();
             BlobHandle result;
@@ -1283,7 +1269,7 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private BlobHandle GetPropertySignatureIndex(IPropertyDefinition propertyDef)
+        private BlobHandle GetPropertySignatureHandle(IPropertyDefinition propertyDef)
         {
             KeyValuePair<BlobHandle, ImmutableArray<byte>> existing;
             if (_signatureIndex.TryGetValue(propertyDef, out existing))
@@ -1306,12 +1292,12 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private EntityHandle GetResolutionScopeCodedIndex(IUnitReference unitReference)
+        private EntityHandle GetResolutionScopeHandle(IUnitReference unitReference)
         {
             var aref = unitReference as IAssemblyReference;
             if (aref != null)
             {
-                return GetAssemblyRefIndex(aref);
+                return GetAssemblyReferenceHandle(aref);
             }
 
             // If this is a module from a referenced multi-module assembly,
@@ -1321,19 +1307,19 @@ namespace Microsoft.Cci
 
             if (aref != null && aref != module.AsAssembly)
             {
-                return GetAssemblyRefIndex(aref);
+                return GetAssemblyReferenceHandle(aref);
             }
 
-            return GetModuleRefIndex(mref.Name);
+            return GetModuleReferenceHandle(mref.Name);
         }
 
-        private StringHandle GetStringIndexForPathAndCheckLength(string path, INamedEntity errorEntity = null)
+        private StringHandle GetStringHandleForPathAndCheckLength(string path, INamedEntity errorEntity = null)
         {
             CheckPathLength(path, errorEntity);
             return metadata.GetString(path);
         }
 
-        private StringHandle GetStringIndexForNameAndCheckLength(string name, INamedEntity errorEntity = null)
+        private StringHandle GetStringHandleForNameAndCheckLength(string name, INamedEntity errorEntity = null)
         {
             CheckNameLength(name, errorEntity);
             return metadata.GetString(name);
@@ -1348,7 +1334,7 @@ namespace Microsoft.Cci
         /// <param name="namespaceType">We're trying to add the containing namespace of this type to the string heap.</param>
         /// <param name="mangledTypeName">Namespace names are never used on their own - this is the type that is adding the namespace name.
         /// Used only for length checking.</param>
-        private StringHandle GetStringIndexForNamespaceAndCheckLength(INamespaceTypeReference namespaceType, string mangledTypeName)
+        private StringHandle GetStringHandleForNamespaceAndCheckLength(INamespaceTypeReference namespaceType, string mangledTypeName)
         {
             string namespaceName = namespaceType.NamespaceName;
             if (namespaceName.Length == 0) // Optimization: CheckNamespaceLength is relatively expensive.
@@ -1579,27 +1565,27 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private EntityHandle GetDeclaringTypeOrMethod(IGenericParameter genPar)
+        private EntityHandle GetDeclaringTypeOrMethodHandle(IGenericParameter genPar)
         {
             IGenericTypeParameter genTypePar = genPar.AsGenericTypeParameter;
             if (genTypePar != null)
             {
-                return GetTypeDefIndex(genTypePar.DefiningType);
+                return GetTypeDefinitionHandle(genTypePar.DefiningType);
             }
 
             IGenericMethodParameter genMethPar = genPar.AsGenericMethodParameter;
             if (genMethPar != null)
             {
-                return GetMethodDefIndex(genMethPar.DefiningMethod);
+                return GetMethodDefinitionHandle(genMethPar.DefiningMethod);
             }
 
             throw ExceptionUtilities.Unreachable;
         }
 
-        private TypeReferenceHandle GetTypeRefIndex(ITypeReference typeReference)
+        private TypeReferenceHandle GetTypeReferenceHandle(ITypeReference typeReference)
         {
             TypeReferenceHandle result;
-            if (this.TryGetTypeRefIndex(typeReference, out result))
+            if (this.TryGetTypeRefeferenceHandle(typeReference, out result))
             {
                 return result;
             }
@@ -1613,15 +1599,15 @@ namespace Microsoft.Cci
             INestedTypeReference nestedTypeRef = typeReference.AsNestedTypeReference;
             if (nestedTypeRef != null)
             {
-                GetTypeRefIndex(nestedTypeRef.GetContainingType(this.Context));
+                GetTypeReferenceHandle(nestedTypeRef.GetContainingType(this.Context));
             }
 
-            return this.GetOrAddTypeRefIndex(typeReference);
+            return this.GetOrAddTypeReferenceHandle(typeReference);
         }
 
-        private TypeSpecificationHandle GetTypeSpecIndex(ITypeReference typeReference)
+        private TypeSpecificationHandle GetTypeSpecificationHandle(ITypeReference typeReference)
         {
-            return this.GetOrAddTypeSpecIndex(typeReference);
+            return this.GetOrAddTypeSpecificationHandle(typeReference);
         }
 
         internal ITypeDefinition GetTypeDefinition(uint token)
@@ -1665,14 +1651,14 @@ namespace Microsoft.Cci
         {
             TypeDefinitionHandle handle;
             var typeDefinition = typeReference.AsTypeDefinition(this.Context);
-            if (typeDefinition != null && this.TryGetTypeDefIndex(typeDefinition, out handle))
+            if (typeDefinition != null && this.TryGetTypeDefinitionHandle(typeDefinition, out handle))
             {
                 return handle;
             }
 
             return treatRefAsPotentialTypeSpec && typeReference.IsTypeSpecification()
-                ? (EntityHandle)GetTypeSpecIndex(typeReference)
-                : GetTypeRefIndex(typeReference);
+                ? (EntityHandle)GetTypeSpecificationHandle(typeReference)
+                : GetTypeReferenceHandle(typeReference);
         }
 
         internal EntityHandle GetDefinitionHandle(IDefinition definition)
@@ -1680,25 +1666,25 @@ namespace Microsoft.Cci
             ITypeDefinition typeDef = definition as ITypeDefinition;
             if (typeDef != null)
             {
-                return GetTypeDefIndex(typeDef);
+                return GetTypeDefinitionHandle(typeDef);
             }
 
             IMethodDefinition methodDef = definition as IMethodDefinition;
             if (methodDef != null)
             {
-                return GetMethodDefIndex(methodDef);
+                return GetMethodDefinitionHandle(methodDef);
             }
 
             IFieldDefinition fieldDef = definition as IFieldDefinition;
             if (fieldDef != null)
             {
-                return GetFieldDefIndex(fieldDef);
+                return GetFieldDefinitionHandle(fieldDef);
             }
 
             IEventDefinition eventDef = definition as IEventDefinition;
             if (eventDef != null)
             {
-                return GetEventDefIndex(eventDef);
+                return GetEventDefinitionHandle(eventDef);
             }
 
             IPropertyDefinition propertyDef = definition as IPropertyDefinition;
@@ -1811,7 +1797,7 @@ namespace Microsoft.Cci
             return GetGenericParameters().OrderBy((x, y) =>
             {
                 // Spec: GenericParam table is sorted by Owner and then by Number.
-                int result = (int)CodedIndex.ToTypeOrMethodDef(GetDeclaringTypeOrMethod(x)) - (int)CodedIndex.ToTypeOrMethodDef(GetDeclaringTypeOrMethod(y));
+                int result = (int)CodedIndex.ToTypeOrMethodDef(GetDeclaringTypeOrMethodHandle(x)) - (int)CodedIndex.ToTypeOrMethodDef(GetDeclaringTypeOrMethodHandle(y));
                 if (result != 0)
                 {
                     return result;
@@ -1880,7 +1866,7 @@ namespace Microsoft.Cci
                 
                 // reference has token, not full public key
                 metadata.AddAssemblyReference(
-                    name: GetStringIndexForPathAndCheckLength(assemblyRef.Name, assemblyRef),
+                    name: GetStringHandleForPathAndCheckLength(assemblyRef.Name, assemblyRef),
                     version: assemblyRef.Version,
                     culture: metadata.GetString(assemblyRef.Culture),
                     publicKeyOrToken: metadata.GetBlob(assemblyRef.PublicKeyToken),
@@ -1936,7 +1922,7 @@ namespace Microsoft.Cci
                 hashAlgorithm: assembly.HashAlgorithm,
                 version: assembly.Version,
                 publicKey: metadata.GetBlob(assembly.PublicKey),
-                name: GetStringIndexForPathAndCheckLength(assembly.Name, assembly),
+                name: GetStringHandleForPathAndCheckLength(assembly.Name, assembly),
                 culture: metadata.GetString(assembly.Culture));
         }
         
@@ -1947,12 +1933,12 @@ namespace Microsoft.Cci
                 this.AddAssemblyAttributesToTable();
             }
 
-            this.AddCustomAttributesToTable(GetMethodDefs(), def => GetMethodDefIndex(def));
-            this.AddCustomAttributesToTable(GetFieldDefs(), def => GetFieldDefIndex(def));
+            this.AddCustomAttributesToTable(GetMethodDefs(), def => GetMethodDefinitionHandle(def));
+            this.AddCustomAttributesToTable(GetFieldDefs(), def => GetFieldDefinitionHandle(def));
 
             // this.AddCustomAttributesToTable(this.typeRefList, 2);
-            this.AddCustomAttributesToTable(GetTypeDefs(), def => GetTypeDefIndex(def));
-            this.AddCustomAttributesToTable(GetParameterDefs(), def => GetParameterDefIndex(def));
+            this.AddCustomAttributesToTable(GetTypeDefs(), def => GetTypeDefinitionHandle(def));
+            this.AddCustomAttributesToTable(GetParameterDefs(), def => GetParameterHandle(def));
 
             // TODO: attributes on interface implementation entries 5
             // TODO: attributes on member reference entries 6
@@ -1963,7 +1949,7 @@ namespace Microsoft.Cci
 
             // TODO: declarative security entries 8
             this.AddCustomAttributesToTable(GetPropertyDefs(), def => GetPropertyDefIndex(def));
-            this.AddCustomAttributesToTable(GetEventDefs(), def => GetEventDefIndex(def));
+            this.AddCustomAttributesToTable(GetEventDefs(), def => GetEventDefinitionHandle(def));
 
             // TODO: standalone signature entries 11
             if (this.IsFullMetadata)
@@ -2032,7 +2018,7 @@ namespace Microsoft.Cci
             if (_dummyAssemblyAttributeParent[iS, iM].IsNil)
             {
                 _dummyAssemblyAttributeParent[iS, iM] = metadata.AddTypeReference(
-                    resolutionScope: GetResolutionScopeCodedIndex(module.GetCorLibrary(Context)),
+                    resolutionScope: GetResolutionScopeHandle(module.GetCorLibrary(Context)),
                     @namespace: metadata.GetString(dummyAssemblyAttributeParentNamespace),
                     name: metadata.GetString(dummyAssemblyAttributeParentName + dummyAssemblyAttributeParentQualifier[iS, iM]));
             }
@@ -2099,7 +2085,7 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                this.PopulateDeclSecurityTableRowsFor(GetTypeDefIndex(typeDef), typeDef.SecurityAttributes);
+                this.PopulateDeclSecurityTableRowsFor(GetTypeDefinitionHandle(typeDef), typeDef.SecurityAttributes);
             }
 
             foreach (IMethodDefinition methodDef in this.GetMethodDefs())
@@ -2109,7 +2095,7 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                this.PopulateDeclSecurityTableRowsFor(GetMethodDefIndex(methodDef), methodDef.SecurityAttributes);
+                this.PopulateDeclSecurityTableRowsFor(GetMethodDefinitionHandle(methodDef), methodDef.SecurityAttributes);
             }
         }
 
@@ -2133,7 +2119,7 @@ namespace Microsoft.Cci
                 metadata.AddDeclarativeSecurityAttribute(
                     parent: parentHandle,
                     action: securityAction,
-                    permissionSet: GetPermissionSetIndex(groupedSecurityAttributes[securityAction]));
+                    permissionSet: GetPermissionSetBlobHandle(groupedSecurityAttributes[securityAction]));
             }
 
             groupedSecurityAttributes.Free();
@@ -2148,7 +2134,7 @@ namespace Microsoft.Cci
             {
                 metadata.AddEvent(
                     attributes: GetEventAttributes(eventDef),
-                    name: GetStringIndexForNameAndCheckLength(eventDef.Name, eventDef),
+                    name: GetStringHandleForNameAndCheckLength(eventDef.Name, eventDef),
                     type: GetTypeHandle(eventDef.GetType(Context)));
             }
         }
@@ -2175,9 +2161,9 @@ namespace Microsoft.Cci
                         flags = TypeFlags.PublicAccess;
 
                         string mangledTypeName = GetMangledName(namespaceTypeRef);
-                        typeName = this.GetStringIndexForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
-                        typeNamespace = this.GetStringIndexForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
-                        implementation = GetImplementationCodedIndex(namespaceTypeRef);
+                        typeName = this.GetStringHandleForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
+                        typeNamespace = this.GetStringHandleForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
+                        implementation = GetExportedTypeImplementation(namespaceTypeRef);
 
                         if (implementation.Kind == HandleKind.AssemblyReference)
                         {
@@ -2188,7 +2174,7 @@ namespace Microsoft.Cci
                     else if ((nestedRef = exportedType.AsNestedTypeReference) != null)
                     {
                         flags = TypeFlags.NestedPublicAccess;
-                        typeName = this.GetStringIndexForNameAndCheckLength(GetMangledName(nestedRef), nestedRef);
+                        typeName = this.GetStringHandleForNameAndCheckLength(GetMangledName(nestedRef), nestedRef);
                         typeNamespace = default(StringHandle);
 
                         ITypeReference containingType = nestedRef.GetContainingType(Context);
@@ -2241,7 +2227,7 @@ namespace Microsoft.Cci
                 }
 
                 metadata.AddFieldLayout(
-                    field: GetFieldDefIndex(fieldDef),
+                    field: GetFieldDefinitionHandle(fieldDef),
                     offset: fieldDef.Offset);
             }
         }
@@ -2258,11 +2244,11 @@ namespace Microsoft.Cci
                 var marshallingInformation = fieldDef.MarshallingInformation;
 
                 BlobHandle descriptor = (marshallingInformation != null)
-                    ? GetMarshallingDescriptorIndex(marshallingInformation)
-                    : GetMarshallingDescriptorIndex(fieldDef.MarshallingDescriptor);
+                    ? GetMarshallingDescriptorHandle(marshallingInformation)
+                    : GetMarshallingDescriptorHandle(fieldDef.MarshallingDescriptor);
 
                 metadata.AddMarshallingDescriptor(
-                    parent: GetFieldDefIndex(fieldDef),
+                    parent: GetFieldDefinitionHandle(fieldDef),
                     descriptor: descriptor);
             }
 
@@ -2276,11 +2262,11 @@ namespace Microsoft.Cci
                 var marshallingInformation = parDef.MarshallingInformation;
 
                BlobHandle descriptor = (marshallingInformation != null)
-                    ? GetMarshallingDescriptorIndex(marshallingInformation)
-                    : GetMarshallingDescriptorIndex(parDef.MarshallingDescriptor);
+                    ? GetMarshallingDescriptorHandle(marshallingInformation)
+                    : GetMarshallingDescriptorHandle(parDef.MarshallingDescriptor);
 
                 metadata.AddMarshallingDescriptor(
-                    parent: GetParameterDefIndex(parDef),
+                    parent: GetParameterHandle(parDef),
                     descriptor: descriptor);
             }
         }
@@ -2299,7 +2285,7 @@ namespace Microsoft.Cci
                 mappedFieldDataWriter.Align(ManagedTextSection.MappedFieldDataAlignment);
 
                 metadata.AddFieldRelativeVirtualAddress(
-                    field: GetFieldDefIndex(fieldDef),
+                    field: GetFieldDefinitionHandle(fieldDef),
                     relativeVirtualAddress: rva);
             }
         }
@@ -2318,7 +2304,7 @@ namespace Microsoft.Cci
 
                 metadata.AddFieldDefinition(
                     attributes: GetFieldAttributes(fieldDef),
-                    name: GetStringIndexForNameAndCheckLength(fieldDef.Name, fieldDef),
+                    name: GetStringHandleForNameAndCheckLength(fieldDef.Name, fieldDef),
                     signature: GetFieldSignatureIndex(fieldDef));
             }
         }
@@ -2334,7 +2320,7 @@ namespace Microsoft.Cci
                 }
 
                 metadata.AddConstant(
-                    parent: GetFieldDefIndex(fieldDef),
+                    parent: GetFieldDefinitionHandle(fieldDef),
                     value: constant.Value);
             }
 
@@ -2347,7 +2333,7 @@ namespace Microsoft.Cci
                 }
 
                 metadata.AddConstant(
-                    parent: GetParameterDefIndex(parDef),
+                    parent: GetParameterHandle(parDef),
                     value: defaultValue.Value);
             }
 
@@ -2378,7 +2364,7 @@ namespace Microsoft.Cci
             foreach (IFileReference fileReference in _fileRefList)
             {
                 metadata.AddAssemblyFile(
-                    name: GetStringIndexForPathAndCheckLength(fileReference.FileName),
+                    name: GetStringHandleForPathAndCheckLength(fileReference.FileName),
                     hashValue: metadata.GetBlob(fileReference.GetHashValue(hashAlgorithm)),
                     containsMetadata: fileReference.HasMetadata);
             }
@@ -2392,9 +2378,9 @@ namespace Microsoft.Cci
                 // but they go in the same string heap as all the other declaration names, so it stands to reason that
                 // they should be restricted in the same way.
                 var genericParameterHandle = metadata.AddGenericParameter(
-                    parent: GetDeclaringTypeOrMethod(genericParameter),
+                    parent: GetDeclaringTypeOrMethodHandle(genericParameter),
                     attributes: GetGenericParameterAttributes(genericParameter),
-                    name: GetStringIndexForNameAndCheckLength(genericParameter.Name, genericParameter),
+                    name: GetStringHandleForNameAndCheckLength(genericParameter.Name, genericParameter),
                     index: genericParameter.Index);
 
                 foreach (ITypeReference constraint in genericParameter.GetConstraints(Context))
@@ -2419,14 +2405,14 @@ namespace Microsoft.Cci
                 string entryPointName = data.EntryPointName;
 
                 StringHandle importName = (entryPointName != null)
-                    ? GetStringIndexForNameAndCheckLength(entryPointName, methodDef)
+                    ? GetStringHandleForNameAndCheckLength(entryPointName, methodDef)
                     : metadata.GetString(methodDef.Name); // Length checked while populating the method def table.
 
                 metadata.AddMethodImport(
-                    member: GetMethodDefIndex(methodDef),
+                    member: GetMethodDefinitionHandle(methodDef),
                     attributes: data.Flags,
                     name: importName,
-                    module: GetModuleRefIndex(data.ModuleName));
+                    module: GetModuleReferenceHandle(data.ModuleName));
             }
         }
 
@@ -2434,7 +2420,7 @@ namespace Microsoft.Cci
         {
             foreach (ITypeDefinition typeDef in this.GetTypeDefs())
             {
-                var typeDefHandle = GetTypeDefIndex(typeDef);
+                var typeDefHandle = GetTypeDefinitionHandle(typeDef);
                 foreach (ITypeReference interfaceRef in typeDef.Interfaces(Context))
                 {
                     metadata.AddInterfaceImplementation(
@@ -2452,7 +2438,7 @@ namespace Microsoft.Cci
                 if (resource.ExternalFile != null)
                 {
                     // Length checked on insertion into the file table.
-                    implementation = GetFileRefIndex(resource.ExternalFile);
+                    implementation = GetAssemblyFileHandle(resource.ExternalFile);
                 }
                 else
                 {
@@ -2462,7 +2448,7 @@ namespace Microsoft.Cci
 
                 metadata.AddManifestResource(
                     attributes: resource.IsPublic ? ManifestResourceAttributes.Public : ManifestResourceAttributes.Private,
-                    name: GetStringIndexForNameAndCheckLength(resource.Name),
+                    name: GetStringHandleForNameAndCheckLength(resource.Name),
                     implementation: implementation,
                     offset: GetManagedResourceOffset(resource, resourceDataWriter));
             }
@@ -2479,9 +2465,9 @@ namespace Microsoft.Cci
             foreach (ITypeMemberReference memberRef in memberRefs)
             {
                 metadata.AddMemberReference(
-                    parent: GetMemberRefParentCodedIndex(memberRef),
-                    name: GetStringIndexForNameAndCheckLength(memberRef.Name, memberRef), 
-                    signature: GetMemberRefSignatureIndex(memberRef));
+                    parent: GetMemberReferenceParent(memberRef),
+                    name: GetStringHandleForNameAndCheckLength(memberRef.Name, memberRef), 
+                    signature: GetMemberReferenceSignatureHandle(memberRef));
             }
         }
         
@@ -2492,9 +2478,9 @@ namespace Microsoft.Cci
             foreach (MethodImplementation methodImplementation in this.methodImplList)
             {
                 metadata.AddMethodImplementation(
-                    type: GetTypeDefIndex(methodImplementation.ContainingType),
-                    methodBody: GetMethodDefOrRefCodedIndex(methodImplementation.ImplementingMethod),
-                    methodDeclaration: GetMethodDefOrRefCodedIndex(methodImplementation.ImplementedMethod));
+                    type: GetTypeDefinitionHandle(methodImplementation.ContainingType),
+                    methodBody: GetMethodDefinitionOrReferenceHandle(methodImplementation.ImplementingMethod),
+                    methodDeclaration: GetMethodDefinitionOrReferenceHandle(methodImplementation.ImplementedMethod));
             }
         }
         
@@ -2506,8 +2492,8 @@ namespace Microsoft.Cci
             foreach (IGenericMethodInstanceReference genericMethodInstanceReference in methodSpecs)
             {
                 metadata.AddMethodSpecification(
-                    method: GetMethodDefOrRefCodedIndex(genericMethodInstanceReference.GetGenericMethod(Context)),
-                    instantiation: GetGenericMethodInstanceIndex(genericMethodInstanceReference));
+                    method: GetMethodDefinitionOrReferenceHandle(genericMethodInstanceReference.GetGenericMethod(Context)),
+                    instantiation: GetMethodSpecificationBlobHandle(genericMethodInstanceReference));
             }
         }
 
@@ -2522,10 +2508,10 @@ namespace Microsoft.Cci
                 metadata.AddMethodDefinition(
                     attributes: GetMethodAttributes(methodDef),
                     implAttributes: methodDef.GetImplementationAttributes(Context),
-                    name: GetStringIndexForNameAndCheckLength(methodDef.Name, methodDef),
-                    signature: GetMethodSignatureIndex(methodDef),
+                    name: GetStringHandleForNameAndCheckLength(methodDef.Name, methodDef),
+                    signature: GetMethodSignatureHandle(methodDef),
                     bodyOffset: methodBodyOffsets[i],
-                    paramList: GetParameterDefIndex(methodDef));
+                    paramList: GetFirstParameterHandle(methodDef));
 
                 i++;
             }
@@ -2561,13 +2547,13 @@ namespace Microsoft.Cci
                     metadata.AddMethodSemantics(
                         association: association,
                         semantics: semantics,
-                        methodDefinition: GetMethodDefIndex(accessorMethod.GetResolvedMethod(Context)));
+                        methodDefinition: GetMethodDefinitionHandle(accessorMethod.GetResolvedMethod(Context)));
                 }
             }
 
             foreach (IEventDefinition eventDef in this.GetEventDefs())
             {
-                var association = GetEventDefIndex(eventDef);
+                var association = GetEventDefinitionHandle(eventDef);
                 foreach (IMethodReference accessorMethod in eventDef.Accessors)
                 {
                     ushort semantics;
@@ -2591,7 +2577,7 @@ namespace Microsoft.Cci
                     metadata.AddMethodSemantics(
                         association: association,
                         semantics: semantics,
-                        methodDefinition: GetMethodDefIndex(accessorMethod.GetResolvedMethod(Context)));
+                        methodDefinition: GetMethodDefinitionHandle(accessorMethod.GetResolvedMethod(Context)));
                 }
             }
         }
@@ -2603,7 +2589,7 @@ namespace Microsoft.Cci
 
             foreach (string moduleName in moduleRefs)
             {
-                metadata.AddModuleReference(GetStringIndexForPathAndCheckLength(moduleName));
+                metadata.AddModuleReference(GetStringHandleForPathAndCheckLength(moduleName));
             }
         }
 
@@ -2649,7 +2635,7 @@ namespace Microsoft.Cci
                 metadata.AddParameter(
                     attributes: GetParameterAttributes(parDef),
                     sequenceNumber: (parDef is ReturnValueParameter) ? 0 : parDef.Index + 1,
-                    name: GetStringIndexForNameAndCheckLength(parDef.Name, parDef));
+                    name: GetStringHandleForNameAndCheckLength(parDef.Name, parDef));
             }
         }
 
@@ -2662,8 +2648,8 @@ namespace Microsoft.Cci
             {
                 metadata.AddProperty(
                     attributes: GetPropertyAttributes(propertyDef),
-                    name: GetStringIndexForNameAndCheckLength(propertyDef.Name, propertyDef),
-                    signature: GetPropertySignatureIndex(propertyDef));
+                    name: GetStringHandleForNameAndCheckLength(propertyDef.Name, propertyDef),
+                    signature: GetPropertySignatureHandle(propertyDef));
             }
         }
         
@@ -2680,11 +2666,11 @@ namespace Microsoft.Cci
 
                 metadata.AddTypeDefinition(
                     attributes: GetTypeAttributes(typeDef),
-                    @namespace: (namespaceType != null) ? GetStringIndexForNamespaceAndCheckLength(namespaceType, mangledTypeName) : default(StringHandle),
-                    name: GetStringIndexForNameAndCheckLength(mangledTypeName, typeDef),
+                    @namespace: (namespaceType != null) ? GetStringHandleForNamespaceAndCheckLength(namespaceType, mangledTypeName) : default(StringHandle),
+                    name: GetStringHandleForNameAndCheckLength(mangledTypeName, typeDef),
                     baseType: (baseType != null) ? GetTypeHandle(baseType) : default(EntityHandle),
-                    fieldList: GetFieldDefIndex(typeDef),
-                    methodList: GetMethodDefIndex(typeDef));
+                    fieldList: GetFirstFieldDefinitionHandle(typeDef),
+                    methodList: GetFirstMethodDefinitionHandle(typeDef));
             }
         }
 
@@ -2699,8 +2685,8 @@ namespace Microsoft.Cci
                 }
 
                 metadata.AddNestedType(
-                    type: GetTypeDefIndex(typeDef),
-                    enclosingType: GetTypeDefIndex(nestedTypeDef.ContainingTypeDefinition));
+                    type: GetTypeDefinitionHandle(typeDef),
+                    enclosingType: GetTypeDefinitionHandle(nestedTypeDef.ContainingTypeDefinition));
             }
         }
 
@@ -2714,7 +2700,7 @@ namespace Microsoft.Cci
                 }
 
                 metadata.AddTypeLayout(
-                    type: GetTypeDefIndex(typeDef),
+                    type: GetTypeDefinitionHandle(typeDef),
                     packingSize: typeDef.Alignment,
                     size: typeDef.SizeOf);
             }
@@ -2746,8 +2732,8 @@ namespace Microsoft.Cci
                         scopeTypeRef = nestedTypeRef.GetContainingType(Context);
                     }
 
-                    resolutionScope = GetTypeRefIndex(scopeTypeRef);
-                    name = this.GetStringIndexForNameAndCheckLength(GetMangledName(nestedTypeRef), nestedTypeRef);
+                    resolutionScope = GetTypeReferenceHandle(scopeTypeRef);
+                    name = this.GetStringHandleForNameAndCheckLength(GetMangledName(nestedTypeRef), nestedTypeRef);
                     @namespace = default(StringHandle);
                 }
                 else
@@ -2758,10 +2744,10 @@ namespace Microsoft.Cci
                         throw ExceptionUtilities.UnexpectedValue(typeRef);
                     }
 
-                    resolutionScope = this.GetResolutionScopeCodedIndex(namespaceTypeRef.GetUnit(Context));
+                    resolutionScope = this.GetResolutionScopeHandle(namespaceTypeRef.GetUnit(Context));
                     string mangledTypeName = GetMangledName(namespaceTypeRef);
-                    name = this.GetStringIndexForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
-                    @namespace = this.GetStringIndexForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
+                    name = this.GetStringHandleForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
+                    @namespace = this.GetStringHandleForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
                 }
 
                 metadata.AddTypeReference(
@@ -2784,7 +2770,7 @@ namespace Microsoft.Cci
 
         private void PopulateStandaloneSignatures()
         {
-            var signatures = GetStandAloneSignatures();
+            var signatures = GetStandaloneSignatureBlobHandles();
 
             foreach (BlobHandle signature in signatures)
             {
@@ -2914,7 +2900,7 @@ namespace Microsoft.Cci
 
             BlobHandle blobIndex = metadata.GetBlob(builder);
 
-            var handle = GetOrAddStandAloneSignatureIndex(blobIndex);
+            var handle = GetOrAddStandaloneSignatureHandle(blobIndex);
             builder.Free();
 
             return handle;
@@ -2949,7 +2935,7 @@ namespace Microsoft.Cci
             SerializeTypeReference(typeEncoder, localConstant.Type);
 
             BlobHandle blobIndex = metadata.GetBlob(builder);
-            var signatureHandle = GetOrAddStandAloneSignatureIndex(blobIndex);
+            var signatureHandle = GetOrAddStandaloneSignatureHandle(blobIndex);
             builder.Free();
 
             return signatureHandle;
@@ -3156,7 +3142,7 @@ namespace Microsoft.Cci
             SerializeTypeReference(typeEncoder, fieldReference.GetType(Context));
         }
 
-        private void SerializeGenericMethodInstanceSignature(BlobBuilder builder, IGenericMethodInstanceReference genericMethodInstanceReference)
+        private void SerializeMethodSpecificationSignature(BlobBuilder builder, IGenericMethodInstanceReference genericMethodInstanceReference)
         {
             var argsEncoder = new BlobEncoder(builder).MethodSpecificationSignature(genericMethodInstanceReference.GetGenericMethod(Context).GenericParameterCount);
             foreach (ITypeReference genericArgument in genericMethodInstanceReference.GetGenericArguments(Context))

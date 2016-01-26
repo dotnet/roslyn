@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var addedOrChangedMethodsByIndex = new Dictionary<int, AddedOrChangedMethodInfo>();
             foreach (var pair in _addedOrChangedMethods)
             {
-                addedOrChangedMethodsByIndex.Add(MetadataTokens.GetRowNumber(GetMethodDefIndex(pair.Key)), pair.Value);
+                addedOrChangedMethodsByIndex.Add(MetadataTokens.GetRowNumber(GetMethodDefinitionHandle(pair.Key)), pair.Value);
             }
 
             var previousTableSizes = _previousGeneration.TableEntriesAdded;
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Emit
             get { return _previousGeneration.EncId; }
         }
 
-        protected override EventDefinitionHandle GetEventDefIndex(IEventDefinition def)
+        protected override EventDefinitionHandle GetEventDefinitionHandle(IEventDefinition def)
         {
             return MetadataTokens.EventDefinitionHandle(_eventDefs[def]);
         }
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return _eventDefs.GetRows();
         }
 
-        protected override FieldDefinitionHandle GetFieldDefIndex(IFieldDefinition def)
+        protected override FieldDefinitionHandle GetFieldDefinitionHandle(IFieldDefinition def)
         {
             return MetadataTokens.FieldDefinitionHandle(_fieldDefs[def]);
         }
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return _fieldDefs.GetRows();
         }
 
-        protected override bool TryGetTypeDefIndex(ITypeDefinition def, out TypeDefinitionHandle handle)
+        protected override bool TryGetTypeDefinitionHandle(ITypeDefinition def, out TypeDefinitionHandle handle)
         {
             int index;
             bool result = _typeDefs.TryGetValue(def, out index);
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return result;
         }
 
-        protected override TypeDefinitionHandle GetTypeDefIndex(ITypeDefinition def)
+        protected override TypeDefinitionHandle GetTypeDefinitionHandle(ITypeDefinition def)
         {
             return MetadataTokens.TypeDefinitionHandle(_typeDefs[def]);
         }
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return _typeDefs.GetRows();
         }
 
-        protected override bool TryGetMethodDefIndex(IMethodDefinition def, out MethodDefinitionHandle handle)
+        protected override bool TryGetMethodDefinitionHandle(IMethodDefinition def, out MethodDefinitionHandle handle)
         {
             int index;
             bool result = _methodDefs.TryGetValue(def, out index);
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return result;
         }
 
-        protected override MethodDefinitionHandle GetMethodDefIndex(IMethodDefinition def)
+        protected override MethodDefinitionHandle GetMethodDefinitionHandle(IMethodDefinition def)
         {
             return MetadataTokens.MethodDefinitionHandle(_methodDefs[def]);
         }
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return _propertyDefs.GetRows();
         }
 
-        protected override ParameterHandle GetParameterDefIndex(IParameterDefinition def)
+        protected override ParameterHandle GetParameterHandle(IParameterDefinition def)
         {
             return MetadataTokens.ParameterHandle(_parameterDefs[def]);
         }
@@ -325,28 +325,28 @@ namespace Microsoft.CodeAnalysis.Emit
             return _genericParameters.GetRows();
         }
 
-        protected override FieldDefinitionHandle GetFieldDefIndex(INamedTypeDefinition typeDef)
+        protected override FieldDefinitionHandle GetFirstFieldDefinitionHandle(INamedTypeDefinition typeDef)
         {
             // Fields are associated with the
             // type through the EncLog table.
             return default(FieldDefinitionHandle);
         }
 
-        protected override MethodDefinitionHandle GetMethodDefIndex(INamedTypeDefinition typeDef)
+        protected override MethodDefinitionHandle GetFirstMethodDefinitionHandle(INamedTypeDefinition typeDef)
         {
             // Methods are associated with the
             // type through the EncLog table.
             return default(MethodDefinitionHandle);
         }
 
-        protected override ParameterHandle GetParameterDefIndex(IMethodDefinition methodDef)
+        protected override ParameterHandle GetFirstParameterHandle(IMethodDefinition methodDef)
         {
             // Parameters are associated with the
             // method through the EncLog table.
             return default(ParameterHandle);
         }
 
-        protected override AssemblyReferenceHandle GetOrAddAssemblyRefIndex(IAssemblyReference reference)
+        protected override AssemblyReferenceHandle GetOrAddAssemblyReferenceHandle(IAssemblyReference reference)
         {
             return MetadataTokens.AssemblyReferenceHandle(_assemblyRefIndex.GetOrAdd(reference));
         }
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return _assemblyRefIndex.Rows;
         }
 
-        protected override ModuleReferenceHandle GetOrAddModuleRefIndex(string reference)
+        protected override ModuleReferenceHandle GetOrAddModuleReferenceHandle(string reference)
         {
             return MetadataTokens.ModuleReferenceHandle(_moduleRefIndex.GetOrAdd(reference));
         }
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return _moduleRefIndex.Rows;
         }
 
-        protected override MemberReferenceHandle GetOrAddMemberRefIndex(ITypeMemberReference reference)
+        protected override MemberReferenceHandle GetOrAddMemberReferenceHandle(ITypeMemberReference reference)
         {
             return MetadataTokens.MemberReferenceHandle(_memberRefIndex.GetOrAdd(reference));
         }
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return _memberRefIndex.Rows;
         }
 
-        protected override MethodSpecificationHandle GetOrAddMethodSpecIndex(IGenericMethodInstanceReference reference)
+        protected override MethodSpecificationHandle GetOrAddMethodSpecificationHandle(IGenericMethodInstanceReference reference)
         {
             return MetadataTokens.MethodSpecificationHandle(_methodSpecIndex.GetOrAdd(reference));
         }
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return _methodSpecIndex.Rows;
         }
 
-        protected override bool TryGetTypeRefIndex(ITypeReference reference, out TypeReferenceHandle handle)
+        protected override bool TryGetTypeRefeferenceHandle(ITypeReference reference, out TypeReferenceHandle handle)
         {
             int index;
             bool result = _typeRefIndex.TryGetValue(reference, out index);
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return result;
         }
 
-        protected override TypeReferenceHandle GetOrAddTypeRefIndex(ITypeReference reference)
+        protected override TypeReferenceHandle GetOrAddTypeReferenceHandle(ITypeReference reference)
         {
             return MetadataTokens.TypeReferenceHandle(_typeRefIndex.GetOrAdd(reference));
         }
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return _typeRefIndex.Rows;
         }
 
-        protected override TypeSpecificationHandle GetOrAddTypeSpecIndex(ITypeReference reference)
+        protected override TypeSpecificationHandle GetOrAddTypeSpecificationHandle(ITypeReference reference)
         {
             return MetadataTokens.TypeSpecificationHandle(_typeSpecIndex.GetOrAdd(reference));
         }
@@ -414,12 +414,12 @@ namespace Microsoft.CodeAnalysis.Emit
             return _typeSpecIndex.Rows;
         }
 
-        protected override StandaloneSignatureHandle GetOrAddStandAloneSignatureIndex(BlobHandle blobIndex)
+        protected override StandaloneSignatureHandle GetOrAddStandaloneSignatureHandle(BlobHandle blobIndex)
         {
             return MetadataTokens.StandaloneSignatureHandle(_standAloneSignatureIndex.GetOrAdd(blobIndex));
         }
 
-        protected override IReadOnlyList<BlobHandle> GetStandAloneSignatures()
+        protected override IReadOnlyList<BlobHandle> GetStandaloneSignatureBlobHandles()
         {
             return _standAloneSignatureIndex.Rows;
         }
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 
                 BlobHandle blobIndex = metadata.GetBlob(writer);
                 
-                localSignatureHandle = GetOrAddStandAloneSignatureIndex(blobIndex);
+                localSignatureHandle = GetOrAddStandaloneSignatureHandle(blobIndex);
                 writer.Free();
             }
             else
