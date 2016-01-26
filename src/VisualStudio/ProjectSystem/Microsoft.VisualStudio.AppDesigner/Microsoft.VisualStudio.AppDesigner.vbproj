@@ -27,7 +27,6 @@
     <Import Include="VSConstants=Microsoft.VisualStudio.VSConstants" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Accessibility" />
     <Reference Include="envdte" />
     <Reference Include="envdte80" />
     <Reference Include="Microsoft.VisualStudio.CommonIDE" />
