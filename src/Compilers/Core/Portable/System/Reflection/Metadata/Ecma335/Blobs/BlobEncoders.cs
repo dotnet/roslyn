@@ -843,7 +843,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
         public T TypeDefOrRefOrSpec(bool isValueType, EntityHandle typeRefDefSpec)
         {
             ClassOrValue(isValueType);
-            Builder.WriteCompressedInteger(CodedIndex.ToTypeDefOrRef(typeRefDefSpec));
+            Builder.WriteCompressedInteger(CodedIndex.ToTypeDefOrRefOrSpec(typeRefDefSpec));
             return _continuation;
         }
 
@@ -875,7 +875,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
         {
             Builder.WriteByte((byte)SignatureTypeCode.GenericTypeInstance);
             ClassOrValue(isValueType);
-            Builder.WriteCompressedInteger(CodedIndex.ToTypeDefOrRef(typeRefDefSpec));
+            Builder.WriteCompressedInteger(CodedIndex.ToTypeDefOrRefOrSpec(typeRefDefSpec));
             Builder.WriteCompressedInteger(genericArgumentCount);
             return new GenericTypeArgumentsEncoder<T>(_continuation, genericArgumentCount);
         }
@@ -944,7 +944,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
                 Builder.WriteByte((byte)SignatureTypeCode.RequiredModifier);
             }
 
-            Builder.WriteCompressedInteger(CodedIndex.ToTypeDefOrRef(typeDefRefSpec));
+            Builder.WriteCompressedInteger(CodedIndex.ToTypeDefOrRefOrSpec(typeDefRefSpec));
             return this;
         }
 

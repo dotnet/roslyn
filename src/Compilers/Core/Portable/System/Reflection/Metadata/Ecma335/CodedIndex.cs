@@ -26,7 +26,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         private static int ToCodedIndex(this int rowId, MemberRefParent tag) => (rowId << (int)MemberRefParent.__bits) | (int)tag;
         private static int ToCodedIndex(this int rowId, MethodDefOrRef tag) => (rowId << (int)MethodDefOrRef.__bits) | (int)tag;
         private static int ToCodedIndex(this int rowId, ResolutionScope tag) => (rowId << (int)ResolutionScope.__bits) | (int)tag;
-        private static int ToCodedIndex(this int rowId, TypeDefOrRef tag) => (rowId << (int)TypeDefOrRef.__bits) | (int)tag;
+        private static int ToCodedIndex(this int rowId, TypeDefOrRefOrSpec tag) => (rowId << (int)TypeDefOrRefOrSpec.__bits) | (int)tag;
         private static int ToCodedIndex(this int rowId, TypeOrMethodDef tag) => (rowId << (int)TypeOrMethodDef.__bits) | (int)tag;
         private static int ToCodedIndex(this int rowId, HasCustomDebugInformation tag) => (rowId << (int)HasCustomDebugInformation.__bits) | (int)tag;
 
@@ -41,7 +41,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         public static int ToMemberRefParent(EntityHandle handle) => MetadataTokens.GetRowNumber(handle).ToCodedIndex(ToMemberRefParentTag(handle.Kind));
         public static int ToMethodDefOrRef(EntityHandle handle) => MetadataTokens.GetRowNumber(handle).ToCodedIndex(ToMethodDefOrRefTag(handle.Kind));
         public static int ToResolutionScope(EntityHandle handle) => MetadataTokens.GetRowNumber(handle).ToCodedIndex(ToResolutionScopeTag(handle.Kind));
-        public static int ToTypeDefOrRef(EntityHandle handle) => MetadataTokens.GetRowNumber(handle).ToCodedIndex(ToTypeDefOrRefTag(handle.Kind));
+        public static int ToTypeDefOrRefOrSpec(EntityHandle handle) => MetadataTokens.GetRowNumber(handle).ToCodedIndex(ToTypeDefOrRefOrSpecTag(handle.Kind));
         public static int ToTypeOrMethodDef(EntityHandle handle) => MetadataTokens.GetRowNumber(handle).ToCodedIndex(ToTypeOrMethodDefTag(handle.Kind));
         public static int ToHasCustomDebugInformation(EntityHandle handle) => MetadataTokens.GetRowNumber(handle).ToCodedIndex(ToHasCustomDebugInformationTag(handle.Kind));
 
@@ -324,7 +324,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             }
         }
 
-        private enum TypeDefOrRef
+        private enum TypeDefOrRefOrSpec
         {
             TypeDef = 0,
             TypeRef = 1,
@@ -333,13 +333,13 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             __bits = 2
         }
 
-        private static TypeDefOrRef ToTypeDefOrRefTag(HandleKind kind)
+        private static TypeDefOrRefOrSpec ToTypeDefOrRefOrSpecTag(HandleKind kind)
         {
             switch (kind)
             {
-                case HandleKind.TypeDefinition: return TypeDefOrRef.TypeDef;
-                case HandleKind.TypeReference: return TypeDefOrRef.TypeRef;
-                case HandleKind.TypeSpecification: return TypeDefOrRef.TypeSpec;
+                case HandleKind.TypeDefinition: return TypeDefOrRefOrSpec.TypeDef;
+                case HandleKind.TypeReference: return TypeDefOrRefOrSpec.TypeRef;
+                case HandleKind.TypeSpecification: return TypeDefOrRefOrSpec.TypeSpec;
 
                 default:
                     throw new ArgumentException($"Unexpected kind of handle: {kind}");
