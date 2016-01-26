@@ -143,6 +143,7 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="DesignerFramework\SourceCodeControlManager.vb" />
+    <Compile Include="GlobalSuppressions.vb" />
     <Compile Include="InternalException.vb" />
     <Compile Include="interop\ILangInactiveCfgPropertyNotifySink.vb" />
     <Compile Include="interop\ISpecifyPropertyPages.vb" />
