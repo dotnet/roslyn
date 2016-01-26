@@ -181,7 +181,7 @@ Type ""#help"" for more information.
 5
 > div(10, 0)
 «Red»
-Attempted to divide by zero.
+{new System.DivideByZeroException().Message}
 «DarkRed»
   + Submission#0.div(Int32 a, Int32 b)
 «Gray»
