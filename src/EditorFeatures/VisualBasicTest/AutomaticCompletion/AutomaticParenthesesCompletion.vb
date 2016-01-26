@@ -301,6 +301,58 @@ End Class</code>
             End Using
         End Function
 
+        <WorkItem(5607, "https://github.com/dotnet/roslyn/issues/5607")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        Public Async Function TestOverTypeAfterIntegerLiteral() As Task
+            Dim code = <code>Imports System.Collections.Generic
+Class C
+    Sub Method()
+        Dim lines As New List(Of String)
+        lines.RemoveAt$$
+    End Sub
+End Class</code>
+
+            Using session = Await CreateSessionAsync(code)
+                Assert.NotNull(session)
+                CheckStart(session.Session)
+                Type(session.Session, "0")
+                CheckOverType(session.Session)
+            End Using
+        End Function
+
+        <WorkItem(5607, "https://github.com/dotnet/roslyn/issues/5607")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        Public Async Function TestOverTypeAfterDateLiteral() As Task
+            Dim code = <code>Class C
+    Sub Method()
+        Test(#1AM#)$$
+    End Sub
+    Sub Test(d As Date)
+    End Sub
+End Class</code>
+
+            Using session = Await CreateSessionAsync(code)
+                Assert.NotNull(session)
+                CheckOverType(session.Session)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        Public Async Function TestOverTypeAfterStringLiteral() As Task
+            Dim code = <code>Class C
+    Sub Method()
+        Console.Write$$
+    End Sub
+End Class</code>
+
+            Using session = Await CreateSessionAsync(code)
+                Assert.NotNull(session)
+                CheckStart(session.Session)
+                Type(session.Session, """a""")
+                CheckOverType(session.Session)
+            End Using
+        End Function
+
         Friend Overloads Function CreateSessionAsync(code As XElement) As Threading.Tasks.Task(Of Holder)
             Return CreateSessionAsync(code.NormalizedValue())
         End Function
