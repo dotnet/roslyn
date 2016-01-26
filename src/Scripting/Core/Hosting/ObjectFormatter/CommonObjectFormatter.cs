@@ -46,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 numberRadix: printOptions.NumberRadix,
                 includeCodePoints: false,
                 quoteStringsAndCharacters: true,
-                escapeNonPrintableCharacters: printOptions.EscapeNonPrintableCharacters);
+                escapeNonPrintableCharacters: printOptions.EscapeNonPrintableCharacters,
+                cultureInfo: CultureInfo.CurrentUICulture);
 
         protected virtual CommonTypeNameFormatterOptions GetTypeNameOptions(PrintOptions printOptions) =>
             new CommonTypeNameFormatterOptions(

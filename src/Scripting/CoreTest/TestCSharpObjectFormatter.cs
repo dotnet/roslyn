@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
@@ -10,12 +11,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
         private readonly bool _includeCodePoints;
         private readonly bool _quoteStringsAndCharacters;
         private readonly int _maximumLineLength;
+        private readonly CultureInfo _cultureInfo;
 
-        public TestCSharpObjectFormatter(bool includeCodePoints = false, bool quoteStringsAndCharacters = true, int maximumLineLength = int.MaxValue)
+        public TestCSharpObjectFormatter(bool includeCodePoints = false, bool quoteStringsAndCharacters = true, int maximumLineLength = int.MaxValue, CultureInfo cultureInfo = null)
         {
             _includeCodePoints = includeCodePoints;
             _quoteStringsAndCharacters = quoteStringsAndCharacters;
             _maximumLineLength = maximumLineLength;
+            _cultureInfo = cultureInfo ?? CultureInfo.InvariantCulture;
         }
 
         internal override BuilderOptions GetInternalBuilderOptions(PrintOptions printOptions) =>
@@ -31,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
                 numberRadix: printOptions.NumberRadix,
                 includeCodePoints: _includeCodePoints,
                 escapeNonPrintableCharacters: printOptions.EscapeNonPrintableCharacters,
-                quoteStringsAndCharacters: _quoteStringsAndCharacters);
+                quoteStringsAndCharacters: _quoteStringsAndCharacters,
+                cultureInfo: _cultureInfo);
     }
 }

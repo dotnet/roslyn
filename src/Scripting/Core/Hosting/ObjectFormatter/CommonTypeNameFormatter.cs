@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -200,7 +201,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         private void AppendArrayBound(StringBuilder sb, long bound, int numberRadix)
         {
-            var options = new CommonPrimitiveFormatterOptions(numberRadix, includeCodePoints: false, quoteStringsAndCharacters: true, escapeNonPrintableCharacters: true);
+            var options = new CommonPrimitiveFormatterOptions(
+                numberRadix: numberRadix, 
+                includeCodePoints: false, 
+                quoteStringsAndCharacters: true, 
+                escapeNonPrintableCharacters: true,
+                cultureInfo: CultureInfo.InvariantCulture);
             var formatted = int.MinValue <= bound && bound <= int.MaxValue
                 ? PrimitiveFormatter.FormatPrimitive((int)bound, options)
                 : PrimitiveFormatter.FormatPrimitive(bound, options);

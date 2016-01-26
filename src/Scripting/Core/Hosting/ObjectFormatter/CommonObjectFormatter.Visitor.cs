@@ -804,7 +804,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                                         _primitiveOptions.NumberRadix, 
                                         _primitiveOptions.IncludeCharacterCodePoints, 
                                         quoteStringsAndCharacters: !noQuotes, 
-                                        escapeNonPrintableCharacters: _primitiveOptions.EscapeNonPrintableCharacters);
+                                        escapeNonPrintableCharacters: _primitiveOptions.EscapeNonPrintableCharacters,
+                                        cultureInfo: _primitiveOptions.CultureInfo);
 
                                     string _;
                                     FormatObjectRecursive(result, value, isRoot: false, debuggerDisplayName: out _);
