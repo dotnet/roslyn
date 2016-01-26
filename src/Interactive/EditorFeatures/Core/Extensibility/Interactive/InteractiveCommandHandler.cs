@@ -1,9 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.InteractiveWindow;
@@ -13,6 +11,8 @@ using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
+using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Host;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
@@ -23,49 +23,52 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly IWaitIndicator _waitIndicator;
 
         protected InteractiveCommandHandler(
             IContentTypeRegistryService contentTypeRegistryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            IWaitIndicator waitIndicator)
         {
             _contentTypeRegistryService = contentTypeRegistryService;
             _editorOptionsFactoryService = editorOptionsFactoryService;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _waitIndicator = waitIndicator;
         }
 
         protected IContentTypeRegistryService ContentTypeRegistryService { get { return _contentTypeRegistryService; } }
 
         protected abstract IInteractiveWindow OpenInteractiveWindow(bool focus);
 
-        private static IEnumerable<SnapshotSpan> GetSelectedSpans(CommandArgs args)
-        {
-            return args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer).Where(ss => ss.Length > 0);
-        }
+        protected abstract ISendToInteractiveSubmissionProvider SendToInteractiveSubmissionProvider { get; }
 
-        private string GetSelectedText(CommandArgs args)
+        private string GetSelectedText(CommandArgs args, CancellationToken cancellationToken)
         {
             var editorOptions = _editorOptionsFactoryService.GetOptions(args.SubjectBuffer);
-
-            // If we have multiple selections, that's probably a box-selection scenario.
-            // So let's join the text together with newlines
-            return string.Join(editorOptions.GetNewLineCharacter(), GetSelectedSpans(args).Select(ss => ss.GetText()));
+            return SendToInteractiveSubmissionProvider.GetSelectedText(editorOptions, args, cancellationToken);
         }
 
         CommandState ICommandHandler<ExecuteInInteractiveCommandArgs>.GetCommandState(ExecuteInInteractiveCommandArgs args, Func<CommandState> nextHandler)
         {
-            return GetSelectedSpans(args).Any() ? CommandState.Available : CommandState.Unavailable;
+            return CommandState.Available;
         }
 
         void ICommandHandler<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args, Action nextHandler)
         {
             var window = OpenInteractiveWindow(focus: false);
-            window.SubmitAsync(new[] { GetSelectedText(args) });
+            _waitIndicator.Wait(
+                InteractiveEditorFeaturesResources.ExecuteInInteractiveDescription,
+                allowCancel: true,
+                action: context =>
+                {
+                    window.SubmitAsync(new[] { GetSelectedText(args, context.CancellationToken) });
+                });
         }
 
         CommandState ICommandHandler<CopyToInteractiveCommandArgs>.GetCommandState(CopyToInteractiveCommandArgs args, Func<CommandState> nextHandler)
         {
-            return GetSelectedSpans(args).Any() ? CommandState.Available : CommandState.Unavailable;
+            return CommandState.Available;
         }
 
         void ICommandHandler<CopyToInteractiveCommandArgs>.ExecuteCommand(CopyToInteractiveCommandArgs args, Action nextHandler)
@@ -97,20 +100,26 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             using (var edit = buffer.CreateEdit())
             {
-                var text = GetSelectedText(args);
+                _waitIndicator.Wait(
+                    InteractiveEditorFeaturesResources.CopyToInteractiveDescription,
+                    allowCancel: true,
+                    action: context =>
+                    {
+                        var text = GetSelectedText(args, context.CancellationToken);
 
-                // If the last line isn't empty in the existing submission buffer, we will prepend a
-                // newline
-                var lastLine = buffer.CurrentSnapshot.GetLineFromLineNumber(buffer.CurrentSnapshot.LineCount - 1);
-                if (lastLine.Extent.Length > 0)
-                {
-                    var editorOptions = _editorOptionsFactoryService.GetOptions(args.SubjectBuffer);
-                    text = editorOptions.GetNewLineCharacter() + text;
+                        // If the last line isn't empty in the existing submission buffer, we will prepend a
+                        // newline
+                        var lastLine = buffer.CurrentSnapshot.GetLineFromLineNumber(buffer.CurrentSnapshot.LineCount - 1);
+                        if (lastLine.Extent.Length > 0)
+                        {
+                            var editorOptions = _editorOptionsFactoryService.GetOptions(args.SubjectBuffer);
+                            text = editorOptions.GetNewLineCharacter() + text;
+                        }
+
+                        edit.Insert(buffer.CurrentSnapshot.Length, text);
+                        edit.Apply();
+                    });
                 }
-
-                edit.Insert(buffer.CurrentSnapshot.Length, text);
-                edit.Apply();
-            }
 
             // Move the caret to the end
             var editorOperations = _editorOperationsFactoryService.GetEditorOperations(window.TextView);

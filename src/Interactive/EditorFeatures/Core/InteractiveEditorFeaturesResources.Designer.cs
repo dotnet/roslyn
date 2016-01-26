@@ -70,6 +70,24 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Copying selection to interactive window..
+        /// </summary>
+        internal static string CopyToInteractiveDescription {
+            get {
+                return ResourceManager.GetString("CopyToInteractiveDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Executing selection in interactive window..
+        /// </summary>
+        internal static string ExecuteInInteractiveDescription {
+            get {
+                return ResourceManager.GetString("ExecuteInInteractiveDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Print a list of referenced assemblies..
         /// </summary>
         internal static string ReferencesCommandDescription {
