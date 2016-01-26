@@ -34,7 +34,6 @@
     <Reference Include="Microsoft.VisualStudio.CommonIDE" />
     <Reference Include="Microsoft.VisualStudio.Data.Core" />
     <Reference Include="Microsoft.VisualStudio.Data.Services" />
-    <Reference Include="Microsoft.VisualStudio.DataTools.Interop" />
     <Reference Include="Microsoft.VisualStudio.TemplateWizardInterface" />
     <Reference Include="Microsoft.VisualStudio.Designer.Interfaces" />
     <Reference Include="Microsoft.VisualStudio.OLE.Interop" />
@@ -48,8 +47,6 @@
     <Reference Include="Microsoft.VisualStudio.Shell.14.0" />
     <Reference Include="Microsoft.VisualStudio.TextManager.Interop" />
     <Reference Include="Microsoft.VisualStudio.VSHelp" />
-    <Reference Include="mscorcfg" />
-    <Reference Include="Microsoft.Build.Tasks.v3.5" />
     <Reference Include="Microsoft.VisualStudio.ManagedInterfaces" />
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -75,20 +72,17 @@
     <Reference Include="Microsoft.VisualStudio.WCFReference.Interop" />
     <Reference Include="Microsoft.VisualStudio.WCFReference.Interop" />
     <Reference Include="Microsoft.VisualStudio.XmlEditor" />
-    <Reference Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime" />
-    <Reference Include="Microsoft.Internal.VisualStudio.Sqm.Interop.DesignTime">
-      <EmbedInteropTypes>true</EmbedInteropTypes>
-    </Reference>
-    <Reference Include="Microsoft.Internal.VisualStudio.Sqm.Datapoints.DesignTime" />
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Common\IVsSqm.vb">
+      <Link>IVsSqm.vb</Link>
+    </Compile>
     <Compile Include="..\..\..\Common\ManagedCodeMarkers.vb">
       <Link>ManagedCodeMarkers.vb</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Interop\IVsSQM.cs" />
     <Compile Include="ApplicationDesigner\ApplicationDesignerEditorFactory.vb" />
     <Compile Include="ApplicationDesigner\ApplicationDesignerLoader.vb" />
     <Compile Include="ApplicationDesigner\ApplicationDesignerPanel.vb">
@@ -235,9 +229,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\..\vscommon\CodeMarkers\CodeMarkerValues.txt">
-      <Link>-Links\CodeMarkerValues.txt</Link>
-    </Content>
     <EmbeddedResource Include="DesignerFramework\ErrorControl.resx">
       <DependentUpon>ErrorControl.vb</DependentUpon>
     </EmbeddedResource>

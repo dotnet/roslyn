@@ -20,7 +20,7 @@ Namespace Microsoft.Internal.Performance
 
             ' ********************* Imported Win32 functions *********************
             '///// Code markers test function imports
-#If Codemarkers_IncludeAppEnum Then            
+#If Codemarkers_IncludeAppEnum Then
             <DllImport(TestDllName, EntryPoint:="InitPerf")> _
             Public Shared Sub TestDllInitPerf(ByVal iApp As System.Int32)
             End Sub
@@ -29,13 +29,13 @@ Namespace Microsoft.Internal.Performance
             Public Shared Sub TestDllUnInitPerf(ByVal iApp As System.Int32)
             End Sub
 #End If 'Codemarkers_IncludeAppEnum           
-           
-            <DllImport(TestDllName, EntryPoint:="PerfCodeMarker")> _
+
+            <DllImport(TestDllName, EntryPoint:="PerfCodeMarker")>
             Public Shared Sub TestDllPerfCodeMarker(ByVal nTimerID As System.Int32, ByVal uiLow As System.UInt32, ByVal uiHigh As System.UInt32)
             End Sub
-            
+
             '///// Code markers product function imports
-#If Codemarkers_IncludeAppEnum Then                
+#If Codemarkers_IncludeAppEnum Then
             <DllImport(ProductDllName, EntryPoint:="InitPerf")> _
             Public Shared Sub ProductDllInitPerf(ByVal iApp As System.Int32)
             End Sub
@@ -44,17 +44,17 @@ Namespace Microsoft.Internal.Performance
             Public Shared Sub ProductDllUnInitPerf(ByVal iApp As System.Int32)
             End Sub
 #End If 'Codemarkers_IncludeAppEnum           
-           
-            <DllImport(ProductDllName, EntryPoint:="PerfCodeMarker")> _
+
+            <DllImport(ProductDllName, EntryPoint:="PerfCodeMarker")>
             Public Shared Sub ProductDllPerfCodeMarker(ByVal nTimerID As System.Int32, ByVal uiLow As System.UInt32, ByVal uiHigh As System.UInt32)
             End Sub
-                        
+
             '///// global native method imports
-            <DllImport("kernel32.dll", CharSet:=CharSet.Unicode)> _
+            <DllImport("kernel32.dll", CharSet:=CharSet.Unicode)>
             Public Shared Function FindAtom(ByVal lpString As String) As System.UInt16
             End Function
-            
-#If Codemarkers_IncludeAppEnum Then               
+
+#If Codemarkers_IncludeAppEnum Then
             <DllImport("kernel32.dll", CharSet:=CharSet.Unicode)> _
             Public Shared Function AddAtom(ByVal lpString As String) As UInt16
             End Function
@@ -63,9 +63,9 @@ Namespace Microsoft.Internal.Performance
             Public Shared Function DeleteAtom(ByVal atom As UInt16) As UInt16
             End Function
 #End If 'Codemarkers_IncludeAppEnum                     
-                 
-            <DllImport("kernel32.dll", CharSet:=CharSet.Unicode)> _
-            Public Shared Function GetModuleHandle(ByVal lpString As String) AS IntPtr
+
+            <DllImport("kernel32.dll", CharSet:=CharSet.Unicode)>
+            Public Shared Function GetModuleHandle(ByVal lpString As String) As IntPtr
             End Function
 
         End Class 'NativeMethods
@@ -81,16 +81,17 @@ Namespace Microsoft.Internal.Performance
 
         ' Product CodeMarkers DLL name
         Private Const ProductDllName As String = "Microsoft.VisualStudio.CodeMarkers.dll"
-              
+
         ' Do we want to use code markers?
         Private fUseCodeMarkers As Boolean
-                
+
         ' should CodeMarker events be fired to the test or product CodeMarker DLL
-        Private fShouldUseTestDll As  Boolean?
+        Private fShouldUseTestDll As Boolean?
         Private regroot As String
         Private ReadOnly Property ShouldUseTestDll As Boolean
             Get
-                If Not fShouldUseTestDll.HasValue
+                If Not fShouldUseTestDll.HasValue Then
+
                     Try
                         ' this code can either be used in an InitPerf (loads CodeMarker DLL) or AttachPerf context (CodeMarker DLL already loaded)
                         ' in the InitPerf context we have a regroot and should check for the test DLL registration
@@ -106,37 +107,37 @@ Namespace Microsoft.Internal.Performance
                         fShouldUseTestDll = True
                     End Try
                 End If
-                
+
                 Return fShouldUseTestDll.Value
             End Get
         End Property
-        
+
         ' Constructor. Do not call directly. Use CodeMarkers.Instance to access the singleton
         ' Checks to see if code markers are enabled by looking for a named ATOM
-        Private Sub New()        
+        Private Sub New()
             ' This ATOM will be set by the native Code Markers host
-            fUseCodeMarkers = (NativeMethods.FindAtom(AtomName) <> 0)                       
+            fUseCodeMarkers = (NativeMethods.FindAtom(AtomName) <> 0)
         End Sub 'New
-            
+
         ' Implements sending the code marker value nTimerID.
         ' Implements sending the code marker value nTimerID.
         Public Sub CodeMarker(ByVal nTimerID As Integer)
             If Not fUseCodeMarkers Then
                 Return
             End If
-            Try            
+            Try
                 If ShouldUseTestDll Then
                     NativeMethods.TestDllPerfCodeMarker(nTimerID, 0, 0)
                 Else
                     NativeMethods.ProductDllPerfCodeMarker(nTimerID, 0, 0)
-                End If                
+                End If
             Catch ex As DllNotFoundException
                 ' If the DLL doesn't load or the entry point doesn't exist, then
                 ' abandon all further attempts to send codemarkers.
                 fUseCodeMarkers = False
             End Try
         End Sub 'CodeMarker
-        
+
         ' Checks the registry to see if code markers are enabled
         Private Shared Function UsePrivateCodeMarkers(ByVal strRegRoot As String) As Boolean
 
@@ -165,7 +166,7 @@ Namespace Microsoft.Internal.Performance
             End Using
             Return str
         End Function 'SubKeyExist
-        
+
 #If Codemarkers_IncludeAppEnum Then
         ' Check the registry and, if appropriate, loads and initializes the code markers dll.
         ' Must be used only if your code is called from outside of VS.
@@ -243,5 +244,13 @@ Namespace Microsoft.Internal.Performance
         End Sub
     End Structure
 #End If
+
+    Enum CodeMarkerEvent
+
+        perfMSVSEditorsShowTabBegin = 8400
+        perfMSVSEditorsShowTabEnd = 8401
+        perfMSVSEditorsActivateLogicalViewStart = 8402
+        perfMSVSEditorsActivateLogicalViewEnd = 8403
+    End Enum
 
 End Namespace
