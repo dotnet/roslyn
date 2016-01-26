@@ -24,11 +24,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
         End Function
 
         Protected Overrides Function FormatLiteral(value As String, useQuotes As Boolean, escapeNonPrintable As Boolean, Optional numberRadix As Integer = NumberRadixDecimal) As String
+            If escapeNonPrintable AndAlso Not useQuotes Then
+                Throw New ArgumentException(ExceptionEscapeWithoutQuote, NameOf(escapeNonPrintable))
+            End If
+
             Dim options As ObjectDisplayOptions = GetObjectDisplayOptions(useQuotes:=useQuotes, escapeNonPrintable:=escapeNonPrintable, numberRadix:=numberRadix)
             Return ObjectDisplay.FormatLiteral(value, options)
         End Function
 
         Protected Overrides Function FormatLiteral(c As Char, useQuotes As Boolean, escapeNonPrintable As Boolean, Optional includeCodePoints As Boolean = False, Optional numberRadix As Integer = NumberRadixDecimal) As String
+            If escapeNonPrintable AndAlso Not useQuotes Then
+                Throw New ArgumentException(ExceptionEscapeWithoutQuote, NameOf(escapeNonPrintable))
+            End If
+
             Dim options As ObjectDisplayOptions = GetObjectDisplayOptions(useQuotes:=useQuotes, escapeNonPrintable:=escapeNonPrintable, includeCodePoints:=includeCodePoints, numberRadix:=numberRadix)
             Return ObjectDisplay.FormatLiteral(c, options)
         End Function

@@ -74,6 +74,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.UnitTests
             Assert.Equal("Sort { aB=-1, ab=1, Ac=-1, Ad=1, ad=-1, aE=1, aF=-1, AG=1 }", str)
         End Sub
 
+        <Fact>
+        Public Sub EscapeWithoutQuotes()
+            Dim primitiveFormatter As New TestPrimitiveObjectFormatter()
+            Assert.Throws(Of ArgumentException)(Sub() primitiveFormatter.TestEscapeStringWithoutQuotes())
+            Assert.Throws(Of ArgumentException)(Sub() primitiveFormatter.TestEscapeCharWithoutQuotes())
+        End Sub
+
+        Private Class TestPrimitiveObjectFormatter
+            Inherits VisualBasicPrimitiveFormatter
+
+            Public Sub TestEscapeStringWithoutQuotes()
+                FormatLiteral("a", useQuotes:=False, escapeNonPrintable:=True)
+            End Sub
+
+            Public Sub TestEscapeCharWithoutQuotes()
+                FormatLiteral("a"c, useQuotes:=False, escapeNonPrintable:=True)
+            End Sub
+        End Class
+
         ' TODO: port tests from C#
     End Class
 
