@@ -28,7 +28,6 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Accessibility" />
-    <Reference Include="CustomMarshalers" />
     <Reference Include="envdte" />
     <Reference Include="envdte80" />
     <Reference Include="Microsoft.VisualStudio.CommonIDE" />
