@@ -10,15 +10,15 @@ namespace Microsoft.CodeAnalysis.Nuget
 {
     internal interface IPackageSearchService : IWorkspaceService
     {
-        IEnumerable<NugetSearchResult> Search(string name, int arity, CancellationToken cancellationToken);
+        IEnumerable<PackageSearchResult> Search(string name, int arity, CancellationToken cancellationToken);
     }
 
-    internal struct NugetSearchResult
+    internal struct PackageSearchResult
     {
         public readonly IReadOnlyList<string> NameParts;
         public readonly string PackageName;
 
-        public NugetSearchResult(IReadOnlyList<string> nameParts, string packageName)
+        public PackageSearchResult(IReadOnlyList<string> nameParts, string packageName)
         {
             NameParts = nameParts;
             PackageName = packageName;

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Nuget
                 this.workspaceServices = workspaceServices;
             }
 
-            public IEnumerable<NugetSearchResult> Search(string name, int arity, CancellationToken cancellationToken)
+            public IEnumerable<PackageSearchResult> Search(string name, int arity, CancellationToken cancellationToken)
             {
 #if false
                 var database = s_memberDatabase.Value;
