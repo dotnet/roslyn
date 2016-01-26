@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw ExceptionUtilities.Unreachable
         End Sub
 
-        Public Overridable Overloads Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult Implements IOperation.Accept
+        Public Overridable Overloads Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
             Throw ExceptionUtilities.Unreachable
         End Function
     End Class
@@ -69,8 +69,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitIfStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitIfStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitIfStatement(Me, argument)
         End Function
     End Class
 
@@ -104,8 +104,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitSwitchStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitSwitchStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitSwitchStatement(Me, argument)
         End Function
 
         Private NotInheritable Class CaseBlock
@@ -135,8 +135,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 visitor.VisitCase(Me)
             End Sub
 
-            Public Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult Implements IOperation.Accept
-                Return visitor.VisitCase(Me, arg)
+            Public Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
+                Return visitor.VisitCase(Me, argument)
             End Function
 
             Public ReadOnly Property Body As ImmutableArray(Of IStatement) Implements ICase.Body
@@ -182,8 +182,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     visitor.VisitSingleValueCaseClause(Me)
                 End Sub
 
-                Public Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult Implements IOperation.Accept
-                    Return visitor.VisitSingleValueCaseClause(Me, arg)
+                Public Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
+                    Return visitor.VisitSingleValueCaseClause(Me, argument)
                 End Function
 
                 Public ReadOnly Property Equality As BinaryOperationKind Implements ISingleValueCaseClause.Equality
@@ -253,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public MustOverride Overloads Sub Accept(visitor As IOperationVisitor) Implements IOperation.Accept
 
-        Public MustOverride Overloads Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult Implements IOperation.Accept
+        Public MustOverride Overloads Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
     End Class
 
     Partial Class BoundSimpleCaseClause
@@ -317,8 +317,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitSingleValueCaseClause(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitSingleValueCaseClause(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitSingleValueCaseClause(Me, argument)
         End Function
     End Class
 
@@ -375,8 +375,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitRangeCaseClause(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitRangeCaseClause(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitRangeCaseClause(Me, argument)
         End Function
     End Class
 
@@ -423,8 +423,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitRelationalCaseClause(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitRelationalCaseClause(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitRelationalCaseClause(Me, argument)
         End Function
     End Class
 
@@ -477,8 +477,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitWhileUntilLoopStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitWhileUntilLoopStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitWhileUntilLoopStatement(Me, argument)
         End Function
     End Class
 
@@ -621,8 +621,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitForLoopStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitForLoopStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitForLoopStatement(Me, argument)
         End Function
 
         Private NotInheritable Class Temporary
@@ -642,8 +642,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 visitor.VisitSyntheticLocalReferenceExpression(Me)
             End Sub
 
-            Public Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult Implements IOperation.Accept
-                Return visitor.VisitSyntheticLocalReferenceExpression(Me, arg)
+            Public Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
+                Return visitor.VisitSyntheticLocalReferenceExpression(Me, argument)
             End Function
 
             Public ReadOnly Property ConstantValue As [Optional](Of Object) Implements IExpression.ConstantValue
@@ -730,8 +730,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitForEachLoopStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitForEachLoopStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitForEachLoopStatement(Me, argument)
         End Function
     End Class
 
@@ -764,8 +764,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitTryStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitTryStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitTryStatement(Me, argument)
         End Function
     End Class
 
@@ -823,8 +823,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitCatch(Me)
         End Sub
 
-        Public Overloads Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult Implements IOperation.Accept
-            Return visitor.VisitCatch(Me, arg)
+        Public Overloads Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
+            Return visitor.VisitCatch(Me, argument)
         End Function
     End Class
 
@@ -851,8 +851,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitBlockStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitBlockStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitBlockStatement(Me, argument)
         End Function
     End Class
 
@@ -865,8 +865,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitInvalidStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitInvalidStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitInvalidStatement(Me, argument)
         End Function
     End Class
 
@@ -887,8 +887,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitReturnStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitReturnStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitReturnStatement(Me, argument)
         End Function
     End Class
 
@@ -909,8 +909,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitThrowStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitThrowStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitThrowStatement(Me, argument)
         End Function
     End Class
 
@@ -955,8 +955,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitWhileUntilLoopStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitWhileUntilLoopStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitWhileUntilLoopStatement(Me, argument)
         End Function
     End Class
 
@@ -995,8 +995,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitVariableDeclarationStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitVariableDeclarationStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitVariableDeclarationStatement(Me, argument)
         End Function
     End Class
 
@@ -1016,8 +1016,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitReturnStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitReturnStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitReturnStatement(Me, argument)
         End Function
     End Class
 
@@ -1038,8 +1038,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitLabelStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitLabelStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitLabelStatement(Me, argument)
         End Function
     End Class
 
@@ -1060,8 +1060,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitBranchStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitBranchStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitBranchStatement(Me, argument)
         End Function
     End Class
 
@@ -1082,8 +1082,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitBranchStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitBranchStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitBranchStatement(Me, argument)
         End Function
     End Class
 
@@ -1104,8 +1104,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitBranchStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitBranchStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitBranchStatement(Me, argument)
         End Function
     End Class
 
@@ -1132,8 +1132,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitLockStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitLockStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitLockStatement(Me, argument)
         End Function
     End Class
 
@@ -1146,8 +1146,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitEmptyStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitEmptyStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitEmptyStatement(Me, argument)
         End Function
     End Class
 
@@ -1178,8 +1178,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitStopStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitStopStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitStopStatement(Me, argument)
         End Function
     End Class
 
@@ -1192,8 +1192,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitEndStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitEndStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitEndStatement(Me, argument)
         End Function
     End Class
 
@@ -1220,8 +1220,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitWithStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitWithStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitWithStatement(Me, argument)
         End Function
     End Class
 
@@ -1264,11 +1264,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
             If Me.StatementKind() = OperationKind.UsingWithDeclarationStatement Then
-                Return visitor.VisitUsingWithDeclarationStatement(Me, arg)
+                Return visitor.VisitUsingWithDeclarationStatement(Me, argument)
             Else
-                Return visitor.VisitUsingWithExpressionStatement(Me, arg)
+                Return visitor.VisitUsingWithExpressionStatement(Me, argument)
             End If
         End Function
 
@@ -1285,8 +1285,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 visitor.VisitVariableDeclarationStatement(Me)
             End Sub
 
-            Public Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult Implements IOperation.Accept
-                Return visitor.VisitVariableDeclarationStatement(Me, arg)
+            Public Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
+                Return visitor.VisitVariableDeclarationStatement(Me, argument)
             End Function
 
             Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
@@ -1332,8 +1332,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitExpressionStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitExpressionStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitExpressionStatement(Me, argument)
         End Function
     End Class
 
@@ -1352,8 +1352,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitExpressionStatement(Me)
         End Sub
 
-        Public Overrides Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult
-            Return visitor.VisitExpressionStatement(Me, arg)
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitExpressionStatement(Me, argument)
         End Function
 
         Protected NotInheritable Class EventAssignmentExpression
@@ -1371,8 +1371,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 visitor.VisitEventAssignmentExpression(Me)
             End Sub
 
-            Public Function Accept(Of TArg, TResult)(visitor As IOperationVisitor(Of TArg, TResult), arg As TArg) As TResult Implements IOperation.Accept
-                Return visitor.VisitEventAssignmentExpression(Me, arg)
+            Public Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
+                Return visitor.VisitEventAssignmentExpression(Me, argument)
             End Function
 
             Public ReadOnly Property Adds As Boolean Implements IEventAssignmentExpression.Adds

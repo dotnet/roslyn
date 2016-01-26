@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             visitor.VisitVariable(this);
         }
 
-        public TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitVariable(this, arg);
+            return visitor.VisitVariable(this, argument);
         }
     }
 }

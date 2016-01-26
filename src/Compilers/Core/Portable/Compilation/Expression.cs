@@ -113,9 +113,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             visitor.VisitConditionalChoiceExpression(this);
         }
 
-        public TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitConditionalChoiceExpression(this, arg);
+            return visitor.VisitConditionalChoiceExpression(this, argument);
         }
     }
 
@@ -142,9 +142,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             visitor.VisitExpressionStatement(this);
         }
 
-        public TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitExpressionStatement(this, arg);
+            return visitor.VisitExpressionStatement(this, argument);
         }
 
         private sealed class AssignmentExpression : IAssignmentExpression
@@ -175,9 +175,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 visitor.VisitAssignmentExpression(this);
             }
 
-            public TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+            public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
             {
-                return visitor.VisitAssignmentExpression(this, arg);
+                return visitor.VisitAssignmentExpression(this, argument);
             }
         }
     }
@@ -205,9 +205,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             visitor.VisitExpressionStatement(this);
         }
 
-        public TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitExpressionStatement(this, arg);
+            return visitor.VisitExpressionStatement(this, argument);
         }
 
         private sealed class CompoundAssignmentExpression : ICompoundAssignmentExpression
@@ -246,9 +246,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 visitor.VisitCompoundAssignmentExpression(this);
             }
 
-            public TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+            public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
             {
-                return visitor.VisitCompoundAssignmentExpression(this, arg);
+                return visitor.VisitCompoundAssignmentExpression(this, argument);
             }
         }
     }
@@ -281,9 +281,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             visitor.VisitLiteralExpression(this);
         }
 
-        public TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitLiteralExpression(this, arg);
+            return visitor.VisitLiteralExpression(this, argument);
         }
     }
 
@@ -315,9 +315,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             visitor.VisitLiteralExpression(this);
         }
 
-        public TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitLiteralExpression(this, arg);
+            return visitor.VisitLiteralExpression(this, argument);
         }
     }
 
@@ -357,9 +357,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             visitor.VisitBinaryOperatorExpression(this);
         }
 
-        public TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitBinaryOperatorExpression(this, arg);
+            return visitor.VisitBinaryOperatorExpression(this, argument);
         }
     }
 
@@ -396,9 +396,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             visitor.VisitArrayCreationExpression(this);
         }
 
-        public TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitArrayCreationExpression(this, arg);
+            return visitor.VisitArrayCreationExpression(this, argument);
         }
 
         public Optional<object> ConstantValue => default(Optional<object>);
@@ -429,9 +429,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 visitor.VisitArrayInitializer(this);
             }
 
-            public TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+            public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
             {
-                return visitor.VisitArrayInitializer(this, arg);
+                return visitor.VisitArrayInitializer(this, argument);
             }
         }
     }

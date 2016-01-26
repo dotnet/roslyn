@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        public virtual TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public virtual TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitBlockStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitBlockStatement(this, arg);
+            return visitor.VisitBlockStatement(this, argument);
         }
     }
 
@@ -59,9 +59,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitBranchStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitBranchStatement(this, arg);
+            return visitor.VisitBranchStatement(this, argument);
         }
     }
 
@@ -76,9 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitBranchStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitBranchStatement(this, arg);
+            return visitor.VisitBranchStatement(this, argument);
         }
     }
 
@@ -91,9 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitYieldBreakStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitYieldBreakStatement(this, arg);
+            return visitor.VisitYieldBreakStatement(this, argument);
         }
     }
 
@@ -108,9 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitBranchStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitBranchStatement(this, arg);
+            return visitor.VisitBranchStatement(this, argument);
         }
     }
 
@@ -123,9 +123,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitEmptyStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitEmptyStatement(this, arg);
+            return visitor.VisitEmptyStatement(this, argument);
         }
     }
 
@@ -144,9 +144,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitIfStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitIfStatement(this, arg);
+            return visitor.VisitIfStatement(this, argument);
         }
     }
 
@@ -169,9 +169,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitWhileUntilLoopStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitWhileUntilLoopStatement(this, arg);
+            return visitor.VisitWhileUntilLoopStatement(this, argument);
         }
     }
 
@@ -194,9 +194,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitWhileUntilLoopStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitWhileUntilLoopStatement(this, arg);
+            return visitor.VisitWhileUntilLoopStatement(this, argument);
         }
     }
 
@@ -236,9 +236,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitForLoopStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitForLoopStatement(this, arg);
+            return visitor.VisitForLoopStatement(this, argument);
         }
     }
 
@@ -259,9 +259,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitForEachLoopStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitForEachLoopStatement(this, arg);
+            return visitor.VisitForEachLoopStatement(this, argument);
         }
     }
 
@@ -291,9 +291,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitSwitchStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitSwitchStatement(this, arg);
+            return visitor.VisitSwitchStatement(this, argument);
         }
 
         private sealed class SwitchSection : ICase
@@ -321,9 +321,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 visitor.VisitCase(this);
             }
             
-            TResult IOperation.Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+            TResult IOperation.Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
             {
-                return visitor.VisitCase(this, arg);
+                return visitor.VisitCase(this, argument);
             }
         }
     }
@@ -387,9 +387,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitSingleValueCaseClause(this);
         }
 
-        TResult IOperation.Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        TResult IOperation.Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitSingleValueCaseClause(this, arg);
+            return visitor.VisitSingleValueCaseClause(this, argument);
         }
     }
 
@@ -408,9 +408,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitTryStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitTryStatement(this, arg);
+            return visitor.VisitTryStatement(this, argument);
         }
     }
 
@@ -435,9 +435,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitCatch(this);
         }
 
-        TResult IOperation.Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        TResult IOperation.Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitCatch(this, arg);
+            return visitor.VisitCatch(this, argument);
         }
     }
 
@@ -454,9 +454,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitFixedStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitFixedStatement(this, arg);
+            return visitor.VisitFixedStatement(this, argument);
         }
     }
 
@@ -482,11 +482,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return this.StatementKind == OperationKind.UsingWithExpressionStatement
-                    ? visitor.VisitUsingWithExpressionStatement(this, arg)
-                    : visitor.VisitUsingWithDeclarationStatement(this, arg);
+                    ? visitor.VisitUsingWithExpressionStatement(this, argument)
+                    : visitor.VisitUsingWithDeclarationStatement(this, argument);
         }
     }
 
@@ -501,9 +501,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitThrowStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitThrowStatement(this, arg);
+            return visitor.VisitThrowStatement(this, argument);
         }
     }
 
@@ -518,9 +518,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitReturnStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitReturnStatement(this, arg);
+            return visitor.VisitReturnStatement(this, argument);
         }
     }
 
@@ -535,9 +535,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitReturnStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitReturnStatement(this, arg);
+            return visitor.VisitReturnStatement(this, argument);
         }
     }
 
@@ -554,9 +554,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitLockStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitLockStatement(this, arg);
+            return visitor.VisitLockStatement(this, argument);
         }
     }
 
@@ -569,9 +569,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitInvalidStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitInvalidStatement(this, arg);
+            return visitor.VisitInvalidStatement(this, argument);
         }
     }
 
@@ -621,9 +621,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitVariableDeclarationStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitVariableDeclarationStatement(this, arg);
+            return visitor.VisitVariableDeclarationStatement(this, argument);
         }
     }
 
@@ -650,9 +650,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitVariableDeclarationStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitVariableDeclarationStatement(this, arg);
+            return visitor.VisitVariableDeclarationStatement(this, argument);
         }
     }
 
@@ -667,9 +667,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitLabelStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitLabelStatement(this, arg);
+            return visitor.VisitLabelStatement(this, argument);
         }
     }
 
@@ -686,9 +686,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitLabeledStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitLabeledStatement(this, arg);
+            return visitor.VisitLabeledStatement(this, argument);
         }
     }
 
@@ -703,9 +703,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             visitor.VisitExpressionStatement(this);
         }
 
-        public override TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg)
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitExpressionStatement(this, arg);
+            return visitor.VisitExpressionStatement(this, argument);
         }
     }
 }

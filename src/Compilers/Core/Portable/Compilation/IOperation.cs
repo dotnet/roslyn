@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         void Accept(IOperationVisitor visitor);
 
-        TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg);
+        TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument);
     }
 
     /// <summary>
