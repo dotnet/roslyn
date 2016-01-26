@@ -87,7 +87,7 @@ namespace GitMergeBot
 
             // pullRequest could be null if we are running in debug mode.
             // Only write the comment if the pull request can be automatically merged.
-            if (pullRequest != null && (pullRequest.Mergeable ?? false))
+            if ((pullRequest?.Mergeable).HasValue && pullRequest.Mergeable.Value)
             {
                 // The reason for this delay is twofold:
                 //
