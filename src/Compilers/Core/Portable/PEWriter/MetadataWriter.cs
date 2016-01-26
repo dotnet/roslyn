@@ -11,7 +11,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using Roslyn.Reflection.Metadata.Ecma335.Blobs;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -22,12 +21,14 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
-using Roslyn.Reflection.Metadata.Ecma335;
-using Roslyn.Reflection;
-using Roslyn.Reflection.PortableExecutable;
 
 namespace Microsoft.Cci
 {
+    using Roslyn.Reflection;
+    using Roslyn.Reflection.Metadata.Ecma335;
+    using Roslyn.Reflection.Metadata.Ecma335.Blobs;
+    using Roslyn.Reflection.PortableExecutable;
+
     internal abstract partial class MetadataWriter
     {
         private static readonly Encoding s_utf8Encoding = Encoding.UTF8;

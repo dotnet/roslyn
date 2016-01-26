@@ -8,12 +8,13 @@ using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
-using Roslyn.Reflection;
 using Roslyn.Utilities;
 using CDI = Microsoft.Cci.CustomDebugInfoConstants;
 
 namespace Microsoft.Cci
 {
+    using Roslyn.Reflection;
+
     internal sealed class CustomDebugInfoWriter
     {
         private int _methodTokenWithModuleInfo;

@@ -6,11 +6,12 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Reflection;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    using Roslyn.Reflection;
+
     internal abstract class CryptographicHashProvider
     {
         private ImmutableArray<byte> _lazySHA1Hash;

@@ -18,11 +18,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
-using Roslyn.Reflection.PortableExecutable;
 using OP = Microsoft.Cci.PdbLogger.PdbWriterOperation;
 
 namespace Microsoft.Cci
 {
+    using Roslyn.Reflection.PortableExecutable;
+
     /// <summary>
     /// Exception to enable callers to catch all of the exceptions originating
     /// from writing PDBs. We resurface such exceptions as this type, to eventually

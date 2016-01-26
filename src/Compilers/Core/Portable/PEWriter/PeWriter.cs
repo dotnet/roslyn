@@ -10,12 +10,13 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Roslyn.Reflection;
-using Roslyn.Reflection.PortableExecutable;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
+    using Roslyn.Reflection;
+    using Roslyn.Reflection.PortableExecutable;
+
     internal sealed class PeWritingException : Exception
     {
         public PeWritingException(Exception inner)

@@ -9,7 +9,6 @@ using BitArithmeticUtilities = System.Reflection.Internal.BitArithmetic;
 #else
 using System.Reflection.PortableExecutable;
 using Roslyn.Utilities;
-using DirectoryEntry = Microsoft.Cci.DirectoryEntry;
 #endif
 
 #if SRM

@@ -10,12 +10,13 @@ using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Collections;
-using Roslyn.Reflection;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
 {
+    using Roslyn.Reflection;
+
     public class BlobTests
     {
         [Fact]

@@ -58,7 +58,6 @@
     <Compile Include="System\Reflection\BlobBuilder.Enumerators.cs" />
     <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\ExceptionRegionEncoder.cs" />
     <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\InstructionEncoder.cs" />
-    <Compile Include="System\Reflection\Metadata\ILOpCode.cs" />
     <Compile Include="System\Reflection\Metadata\Ecma335\CodedIndex.cs" />
     <Compile Include="System\Reflection\Metadata\Ecma335\MetadataSerializer.cs" />
     <Compile Include="System\Reflection\Metadata\Ecma335\MetadataBuilder.Tables.cs" />
@@ -69,7 +68,6 @@
     <Compile Include="System\Reflection\Metadata\Internal\HeapSizeFlag.cs" />
     <Compile Include="System\Reflection\Metadata\Internal\MetadataWriterUtilities.cs" />
     <Compile Include="System\Reflection\PortableExecutable\ContentId.cs" />
-    <Compile Include="System\Reflection\PortableExecutable\DirectoryEntry.cs" />
     <Compile Include="System\Reflection\PortableExecutable\ManagedPEBuilder.cs" />
     <Compile Include="System\Reflection\PortableExecutable\ManagedTextSection.cs" />
     <Compile Include="System\Reflection\PortableExecutable\PEBuilder.cs" />

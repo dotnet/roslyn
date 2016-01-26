@@ -7,17 +7,16 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using Roslyn.Reflection.Metadata.Ecma335;
-using Roslyn.Reflection.Metadata.Ecma335.Blobs;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGen;
 using Roslyn.Utilities;
-using MetadataSizes = Microsoft.Cci.MetadataSizes;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
+    using Roslyn.Reflection.Metadata.Ecma335;
+    using Roslyn.Reflection.Metadata.Ecma335.Blobs;
+
     internal sealed class DeltaMetadataWriter : MetadataWriter
     {
         private readonly EmitBaseline _previousGeneration;

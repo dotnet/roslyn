@@ -7,14 +7,14 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using Roslyn.Reflection.Metadata.Ecma335.Blobs;
-
 using Microsoft.CodeAnalysis;
-using Roslyn.Reflection.Metadata.Ecma335;
-using Roslyn.Reflection;
 
 namespace Microsoft.Cci
 {
+    using Roslyn.Reflection;
+    using Roslyn.Reflection.Metadata.Ecma335;
+    using Roslyn.Reflection.Metadata.Ecma335.Blobs;
+
     partial class MetadataWriter
     {
         private readonly Dictionary<DebugSourceDocument, DocumentHandle> _documentIndex = new Dictionary<DebugSourceDocument, DocumentHandle>();
