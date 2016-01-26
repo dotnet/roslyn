@@ -90,10 +90,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 var snapshot = _subjectBuffer.CurrentSnapshot;
                 var oldTagTree = GetTagTree(snapshot, oldTagTrees);
-                var newTagTree = GetTagTree(snapshot, this.CachedTagTrees);
 
-                var difference = ComputeDifference(snapshot, newTagTree, oldTagTree);
-                RaiseTagsChanged(snapshot.TextBuffer, difference);
+                // everything from old tree is removed.
+                RaiseTagsChanged(snapshot.TextBuffer, new DiffResult(added: null, removed: oldTagTree.GetSpans(snapshot).Select(s => s.Span)));
             }
 
             private void OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)
@@ -190,14 +189,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 var snapshot = e.After;
 
-                var oldTagTrees = this.CachedTagTrees;
-                this.CachedTagTrees = oldTagTrees.SetItem(snapshot.TextBuffer, newTagTree);
+                this.CachedTagTrees = this.CachedTagTrees.SetItem(snapshot.TextBuffer, newTagTree);
 
-                // Grab our old tags. We might not have any, so in this case we'll just pretend it's
-                // empty
-                var oldTagTree = GetTagTree(snapshot, oldTagTrees);
+                // Not sure why we are diffing when we already have tagsToRemove. is it due to _tagSpanComparer might return
+                // different result than GetIntersectingSpans?
+                //
+                // treeForBuffer basically points to oldTagTrees. case where oldTagTrees not exist is already taken cared by
+                // CachedTagTrees.TryGetValue.
+                var difference = ComputeDifference(snapshot, newTagTree, treeForBuffer);
 
-                var difference = ComputeDifference(snapshot, newTagTree, oldTagTree);
                 RaiseTagsChanged(snapshot.TextBuffer, difference);
             }
 
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 object newState,
                 CancellationToken cancellationToken)
             {
-                var bufferToChanges = new Dictionary<ITextBuffer, NormalizedSnapshotSpanCollection>();
+                var bufferToChanges = new Dictionary<ITextBuffer, DiffResult>();
                 using (Logger.LogBlock(FunctionId.Tagger_TagSource_ProcessNewTags, cancellationToken))
                 {
                     foreach (var latestBuffer in newTagTrees.Keys)
@@ -609,8 +609,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         else
                         {
                             // It's a new buffer, so report all spans are changed
-                            var allSpans = new NormalizedSnapshotSpanCollection(newTagTrees[latestBuffer].GetSpans(snapshot).Select(t => t.Span));
-                            bufferToChanges[latestBuffer] = allSpans;
+                            bufferToChanges[latestBuffer] = new DiffResult(added: newTagTrees[latestBuffer].GetSpans(snapshot).Select(t => t.Span), removed: null);
                         }
                     }
 
@@ -619,8 +618,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         if (!newTagTrees.ContainsKey(oldBuffer))
                         {
                             // This buffer disappeared, so let's notify that the old tags are gone
-                            var allSpans = new NormalizedSnapshotSpanCollection(oldTagTrees[oldBuffer].GetSpans(oldBuffer.CurrentSnapshot).Select(t => t.Span));
-                            bufferToChanges[oldBuffer] = allSpans;
+                            bufferToChanges[oldBuffer] = new DiffResult(added: null, removed: oldTagTrees[oldBuffer].GetSpans(oldBuffer.CurrentSnapshot).Select(t => t.Span));
                         }
                     }
                 }
@@ -640,7 +638,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void UpdateStateAndReportChanges(
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
-                Dictionary<ITextBuffer, NormalizedSnapshotSpanCollection> bufferToChanges,
+                Dictionary<ITextBuffer, DiffResult> bufferToChanges,
                 object newState)
             {
                 _workQueue.AssertIsForeground();
@@ -673,13 +671,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 RaiseTagsChanged(bufferToChanges);
             }
 
-            private NormalizedSnapshotSpanCollection ComputeDifference(
+            private DiffResult ComputeDifference(
                 ITextSnapshot snapshot,
                 TagSpanIntervalTree<TTag> latestSpans,
                 TagSpanIntervalTree<TTag> previousSpans)
             {
-                return new NormalizedSnapshotSpanCollection(
-                    Difference(latestSpans.GetSpans(snapshot), previousSpans.GetSpans(snapshot), _dataSource.TagComparer));
+                return Difference(latestSpans.GetSpans(snapshot), previousSpans.GetSpans(snapshot), _dataSource.TagComparer);
             }
 
             /// <summary>

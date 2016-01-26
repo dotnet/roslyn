@@ -325,7 +325,7 @@
     <value>_Move local declaration to the extracted method if it is not used elsewhere</value>
   </data>
   <data name="Option_ClosedFileDiagnostics" xml:space="preserve">
-    <value>Show diagnostics for closed _files</value>
+    <value>Enable full solution _analysis</value>
   </data>
   <data name="Option_DisplayLineSeparators" xml:space="preserve">
     <value>_Show procedure line separators</value>

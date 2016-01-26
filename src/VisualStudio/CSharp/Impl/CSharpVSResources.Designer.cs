@@ -385,7 +385,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Show diagnostics for closed _files.
+        ///   Looks up a localized string similar to Enable full solution _analysis.
         /// </summary>
         internal static string Option_ClosedFileDiagnostics {
             get {
