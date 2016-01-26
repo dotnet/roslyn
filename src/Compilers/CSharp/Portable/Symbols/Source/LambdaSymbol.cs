@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (hasExplicitlyTypedParameterList)
                 {
                     type = unboundLambda.ParameterType(p);
-                    refKind = unboundLambda.RefKind(p);
+                    refKind = unboundLambda.ParameterRefKind(p);
                 }
                 else if (p < numDelegateParameters)
                 {
@@ -327,9 +327,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var name = unboundLambda.ParameterName(p);
+                var isReadOnly = unboundLambda.ParameterIsReadOnly(p);
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = ImmutableArray.Create<Location>(location);
-                var parameter = new SourceSimpleParameterSymbol(this, type, p, refKind, name, locations);
+
+                var parameter = isReadOnly
+                    ? new SourceComplexParameterSymbol(this, p, type, refKind, isReadOnly, name, locations, syntaxRef: null, defaultSyntaxValue: null, isParams: false, isExtensionMethodThis: false)
+                    : (SourceParameterSymbol)new SourceSimpleParameterSymbol(this, type, p, refKind, name, locations);
 
                 builder.Add(parameter);
             }

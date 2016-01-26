@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -41,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var name = identifier.ValueText;
             var locations = ImmutableArray.Create<Location>(new SourceLocation(identifier));
+            var isReadOnly = syntax.Modifiers.Any(SyntaxKind.ReadOnlyKeyword);
 
             if (isParams)
             {
@@ -51,7 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     identifier.Parent.GetLocation());
             }
 
-            if (!isParams &&
+            if (!isReadOnly &&
+                !isParams &&
                 !isExtensionMethodThis &&
                 (syntax.Default == null) &&
                 (syntax.AttributeLists.Count == 0) &&
@@ -69,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ordinal,
                     parameterType,
                     refKind,
+                    isReadOnly,
                     false,
                     name,
                     locations,
@@ -83,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ordinal,
                 parameterType,
                 refKind,
+                isReadOnly,
                 name,
                 locations,
                 syntax.GetReference(),
@@ -123,6 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     this.Ordinal,
                     newType,
                     _refKind,
+                    this.IsReadOnly,
                     _name,
                     _locations,
                     this.SyntaxReference,
@@ -136,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.Ordinal,
                 newType,
                 _refKind,
+                this.IsReadOnly,
                 newCustomModifiers,
                 countOfCustomModifiersPrecedingByRef,
                 _name,

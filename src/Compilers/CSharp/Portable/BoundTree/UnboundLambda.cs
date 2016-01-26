@@ -214,6 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode syntax,
             Binder binder,
             ImmutableArray<RefKind> refKinds,
+            ImmutableArray<bool> isReadOnly,
             ImmutableArray<TypeSymbol> types,
             ImmutableArray<string> names,
             bool isAsync,
@@ -222,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(binder != null);
             Debug.Assert(syntax.IsAnonymousFunction());
-            this.Data = new PlainUnboundLambdaState(this, binder, names, types, refKinds, isAsync);
+            this.Data = new PlainUnboundLambdaState(this, binder, names, types, refKinds, isReadOnly, isAsync);
         }
 
         public MessageID MessageID { get { return Data.MessageID; } }
@@ -233,13 +234,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool HasExplicitlyTypedParameterList { get { return Data.HasExplicitlyTypedParameterList; } }
         public int ParameterCount { get { return Data.ParameterCount; } }
         public TypeSymbol InferReturnType(NamedTypeSymbol delegateType, ref HashSet<DiagnosticInfo> useSiteDiagnostics) { return Data.InferReturnType(delegateType, ref useSiteDiagnostics); }
-        public RefKind RefKind(int index) { return Data.RefKind(index); }
         public void GenerateAnonymousFunctionConversionError(DiagnosticBag diagnostics, TypeSymbol targetType) { Data.GenerateAnonymousFunctionConversionError(diagnostics, targetType); }
         public bool GenerateSummaryErrors(DiagnosticBag diagnostics) { return Data.GenerateSummaryErrors(diagnostics); }
         public bool IsAsync { get { return Data.IsAsync; } }
-        public TypeSymbol ParameterType(int index) { return Data.ParameterType(index); }
         public Location ParameterLocation(int index) { return Data.ParameterLocation(index); }
-        public string ParameterName(int index) { return Data.ParameterName(index); }
+
+        public bool ParameterIsReadOnly(int index) => Data.ParameterIsReadOnly(index);
+        public RefKind ParameterRefKind(int index) => Data.ParameterRefKind(index);
+        public TypeSymbol ParameterType(int index) => Data.ParameterType(index);
+        public string ParameterName(int index) => Data.ParameterName(index);
     }
 
     internal abstract class UnboundLambdaState
@@ -280,7 +283,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract Location ParameterLocation(int index);
         public abstract TypeSymbol ParameterType(int index);
         //public abstract SyntaxToken ParameterIdentifier(int index);
-        public abstract RefKind RefKind(int index);
+        public abstract RefKind ParameterRefKind(int index);
+        public abstract bool ParameterIsReadOnly(int index);
         protected abstract BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics);
 
         public virtual void GenerateAnonymousFunctionConversionError(DiagnosticBag diagnostics, TypeSymbol targetType)
@@ -737,6 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<string> _parameterNames;
         private readonly ImmutableArray<TypeSymbol> _parameterTypes;
         private readonly ImmutableArray<RefKind> _parameterRefKinds;
+        private readonly ImmutableArray<bool> _parameterIsReadOnly;
         private readonly bool _isAsync;
 
         internal PlainUnboundLambdaState(
@@ -745,12 +750,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string> parameterNames,
             ImmutableArray<TypeSymbol> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
+            ImmutableArray<bool> parameterIsReadOnly,
             bool isAsync)
             : base(binder, unboundLambda)
         {
             _parameterNames = parameterNames;
             _parameterTypes = parameterTypes;
             _parameterRefKinds = parameterRefKinds;
+            _parameterIsReadOnly = parameterIsReadOnly;
             _isAsync = isAsync;
         }
 
@@ -807,10 +814,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _parameterNames[index];
         }
 
-        public override RefKind RefKind(int index)
+        public override RefKind ParameterRefKind(int index)
         {
             Debug.Assert(0 <= index && index < _parameterTypes.Length);
             return _parameterRefKinds.IsDefault ? Microsoft.CodeAnalysis.RefKind.None : _parameterRefKinds[index];
+        }
+
+        public override bool ParameterIsReadOnly(int index)
+        {
+            return _parameterIsReadOnly.IsDefault ? false : _parameterIsReadOnly[index];
         }
 
         public override TypeSymbol ParameterType(int index)

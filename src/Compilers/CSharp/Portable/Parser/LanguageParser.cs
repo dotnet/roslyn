@@ -3999,6 +3999,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.OutKeyword:
                 case SyntaxKind.ParamsKeyword:
                 case SyntaxKind.ArgListKeyword:
+                case SyntaxKind.ReadOnlyKeyword:
                     return true;
                 case SyntaxKind.ThisKeyword:
                     return allowThisKeyword;
@@ -4154,6 +4155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Ref = 0x02,
             Out = 0x04,
             Params = 0x08,
+            ReadOnly = 0x10,
         }
 
         private static ParamFlags GetParamFlags(SyntaxKind kind, bool allowThisKeyword)
@@ -4171,6 +4173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return ParamFlags.Out;
                 case SyntaxKind.ParamsKeyword:
                     return ParamFlags.Params;
+                case SyntaxKind.ReadOnlyKeyword:
+                    return ParamFlags.ReadOnly;
                 default:
                     return ParamFlags.None;
             }
@@ -4187,7 +4191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (mod.Kind == SyntaxKind.ThisKeyword ||
                     mod.Kind == SyntaxKind.RefKeyword ||
                     mod.Kind == SyntaxKind.OutKeyword ||
-                    mod.Kind == SyntaxKind.ParamsKeyword)
+                    mod.Kind == SyntaxKind.ParamsKeyword ||
+                    mod.Kind == SyntaxKind.ReadOnlyKeyword)
                 {
                     if (mod.Kind == SyntaxKind.ThisKeyword)
                     {
@@ -4232,6 +4237,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         {
                             mod = this.AddError(mod, ErrorCode.ERR_MultiParamMod);
                         }
+                        else if ((flags & ParamFlags.ReadOnly) != 0)
+                        {
+                            mod = this.AddError(mod, ErrorCode.ERR_The_parameter_modifier_ref_cannot_be_used_with_readonly);
+                        }
                         else
                         {
                             flags |= ParamFlags.Ref;
@@ -4255,6 +4264,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         {
                             mod = this.AddError(mod, ErrorCode.ERR_MultiParamMod);
                         }
+                        else if ((flags & ParamFlags.ReadOnly) != 0)
+                        {
+                            mod = this.AddError(mod, ErrorCode.ERR_The_parameter_modifier_out_cannot_be_used_with_readonly);
+                        }
                         else
                         {
                             flags |= ParamFlags.Out;
@@ -4277,6 +4290,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         else
                         {
                             flags |= ParamFlags.Params;
+                        }
+                    }
+                    else if (mod.Kind == SyntaxKind.ReadOnlyKeyword)
+                    {
+                        mod = CheckFeatureAvailability(mod, MessageID.IDS_FeatureReadOnlyParameters);
+
+                        if ((flags & ParamFlags.ReadOnly) != 0)
+                        {
+                            mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
+                        }
+                        else if ((flags & ParamFlags.Ref) != 0)
+                        {
+                            mod = this.AddError(mod, ErrorCode.ERR_The_parameter_modifier_ref_cannot_be_used_with_readonly);
+                        }
+                        else if ((flags & ParamFlags.Out) != 0)
+                        {
+                            mod = this.AddError(mod, ErrorCode.ERR_The_parameter_modifier_out_cannot_be_used_with_readonly);
+                        }
+                        else
+                        {
+                            flags |= ParamFlags.ReadOnly;
                         }
                     }
                 }
@@ -6536,6 +6570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.UncheckedKeyword:
                     return this.ParseCheckedStatement();
                 case SyntaxKind.ConstKeyword:
+                case SyntaxKind.ReadOnlyKeyword:
                     return null;
                 case SyntaxKind.DoKeyword:
                     return this.ParseDoStatement();
@@ -7131,6 +7166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var @fixed = this.EatToken(SyntaxKind.FixedKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
+            openParen = EatErrantReadOnlyKeyword(openParen);
+
             TypeSyntax type;
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             try
@@ -7478,6 +7515,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var @for = this.EatToken(SyntaxKind.ForKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
+            openParen = EatErrantReadOnlyKeyword(openParen);
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfForStatementArgument;
@@ -7624,6 +7662,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
+            openParen = EatErrantReadOnlyKeyword(openParen);
+
             var type = this.ParseType(false);
             SyntaxToken name;
             if (this.CurrentToken.Kind == SyntaxKind.InKeyword)
@@ -7642,6 +7682,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var statement = this.ParseEmbeddedStatement(true);
 
             return _syntaxFactory.ForEachStatement(@foreach, openParen, type, name, @in, expression, closeParen, statement);
+        }
+
+        private SyntaxToken EatErrantReadOnlyKeyword(SyntaxToken openParen)
+        {
+            if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword)
+            {
+                var readonlyKeyword = this.EatToken();
+                readonlyKeyword = this.AddError(readonlyKeyword, ErrorCode.ERR_BadMemberFlag, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
+                openParen = AddTrailingSkippedSyntax(openParen, readonlyKeyword);
+            }
+
+            return openParen;
         }
 
         private GotoStatementSyntax ParseGotoStatement()
@@ -7875,6 +7927,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var @using = this.EatToken(SyntaxKind.UsingKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
+            openParen = EatErrantReadOnlyKeyword(openParen);
 
             VariableDeclarationSyntax declaration = null;
             ExpressionSyntax expression = null;
@@ -8032,6 +8085,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             try
             {
                 this.ParseDeclarationModifiers(mods);
+
                 LocalFunctionStatementSyntax localFunction;
                 this.ParseDeclaration(out type, variables, true, mods.ToTokenList(), out localFunction);
                 if (localFunction != null)
@@ -8039,14 +8093,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     Debug.Assert(variables.Count == 0);
                     return localFunction;
                 }
-                for (int i = 0; i < mods.Count; i++)
-                {
-                    var mod = (SyntaxToken)mods[i];
-                    if (IsAdditionalLocalFunctionModifier(mod.ContextualKind))
-                    {
-                        mods[i] = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
-                    }
-                }
+
+                CheckLocalDeclarationModifiers(mods);
+
                 var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
                 return _syntaxFactory.LocalDeclarationStatement(
                     mods.ToTokenList(),
@@ -8057,6 +8106,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 _pool.Free(variables);
                 _pool.Free(mods);
+            }
+        }
+
+        private void CheckLocalDeclarationModifiers(SyntaxListBuilder mods)
+        {
+            for (int i = 0; i < mods.Count; i++)
+            {
+                var mod = (SyntaxToken)mods[i];
+                if (IsAdditionalLocalFunctionModifier(mod.ContextualKind))
+                {
+                    mods[i] = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
+                }
             }
         }
 
@@ -8124,20 +8185,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (k == SyntaxKind.AsyncKeyword)
                 {
                     // check for things like "async async()" where async is the type and/or the function name
+                    var resetPoint = this.GetResetPoint();
+
+                    var invalid = !IsPossibleStartOfTypeDeclaration(this.EatToken().Kind) &&
+                        !IsDeclarationModifier(this.CurrentToken.Kind) && !IsAdditionalLocalFunctionModifier(this.CurrentToken.Kind) &&
+                        (ScanType() == ScanTypeFlags.NotType || this.CurrentToken.Kind != SyntaxKind.IdentifierToken);
+
+                    this.Reset(ref resetPoint);
+                    this.Release(ref resetPoint);
+
+                    if (invalid)
                     {
-                        var resetPoint = this.GetResetPoint();
-
-                        var invalid = !IsPossibleStartOfTypeDeclaration(this.EatToken().Kind) &&
-                            !IsDeclarationModifier(this.CurrentToken.Kind) && !IsAdditionalLocalFunctionModifier(this.CurrentToken.Kind) &&
-                            (ScanType() == ScanTypeFlags.NotType || this.CurrentToken.Kind != SyntaxKind.IdentifierToken);
-
-                        this.Reset(ref resetPoint);
-                        this.Release(ref resetPoint);
-
-                        if (invalid)
-                        {
-                            break;
-                        }
+                        break;
                     }
 
                     mod = this.EatContextualToken(k);
@@ -8150,7 +8209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     mod = this.EatToken();
                 }
-                if (k == SyntaxKind.StaticKeyword || k == SyntaxKind.ReadOnlyKeyword || k == SyntaxKind.VolatileKeyword)
+
+                if (k == SyntaxKind.ReadOnlyKeyword|| k == SyntaxKind.StaticKeyword || k == SyntaxKind.VolatileKeyword)
                 {
                     mod = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
                 }
@@ -8216,13 +8276,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         IsInAsync = true;
                         forceAccept = true;
                         break;
+
                     case SyntaxKind.UnsafeKeyword:
                         forceAccept = true;
                         break;
-                    case SyntaxKind.StaticKeyword:
+
                     case SyntaxKind.ReadOnlyKeyword:
+                    case SyntaxKind.StaticKeyword:
                     case SyntaxKind.VolatileKeyword:
                         break; // already reported earlier, no need to report again
+
                     default:
                         if (badBuilder == null)
                         {
@@ -9273,6 +9336,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return true;
             }
 
+            // case 5:  ( readonly
+            if (this.PeekToken(1).Kind == SyntaxKind.ReadOnlyKeyword)
+            {
+                return true;
+            }
+
             return false;
         }
 
@@ -10292,6 +10361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ParamsKeyword:
                 // params is not actually legal in a lambda, but we allow it for error
                 // recovery purposes and then give an error during semantic analysis.
+                case SyntaxKind.ReadOnlyKeyword:
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
                     return true;
@@ -10314,11 +10384,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             TypeSyntax paramType = null;
             SyntaxToken paramName = null;
-            SyntaxToken refOrOutOrParams = null;
+            SyntaxToken refOrOutOrParamsOrReadonly = null;
 
             // Params are actually illegal in a lambda, but we'll allow it for error recovery purposes and
             // give the "params unexpected" error at semantic analysis time.
-            bool isRefOrOutOrParams = this.CurrentToken.Kind == SyntaxKind.RefKeyword || this.CurrentToken.Kind == SyntaxKind.OutKeyword || this.CurrentToken.Kind == SyntaxKind.ParamsKeyword;
+            bool isRefOrOutOrParams = this.CurrentToken.Kind == SyntaxKind.RefKeyword ||
+                                      this.CurrentToken.Kind == SyntaxKind.OutKeyword ||
+                                      this.CurrentToken.Kind == SyntaxKind.ParamsKeyword;
+
+            bool isReadOnly = this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword;
+            if (isReadOnly)
+            {
+                refOrOutOrParamsOrReadonly = CheckFeatureAvailability(this.EatToken(), MessageID.IDS_FeatureReadOnlyParameters);
+            }
+
             var pk = this.PeekToken(1).Kind;
             if (isRefOrOutOrParams
                 || (pk != SyntaxKind.CommaToken && pk != SyntaxKind.CloseParenToken && (hasTypes || isFirst))
@@ -10326,7 +10405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (isRefOrOutOrParams)
                 {
-                    refOrOutOrParams = this.EatToken();
+                    refOrOutOrParamsOrReadonly = this.EatToken();
                 }
 
                 paramType = this.ParseType(true);
@@ -10347,7 +10426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 paramName = this.AddError(paramName, ErrorCode.ERR_InconsistentLambdaParameterUsage);
             }
 
-            return _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), refOrOutOrParams, paramType, paramName, null);
+            return _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), refOrOutOrParamsOrReadonly, paramType, paramName, null);
         }
 
         private bool IsCurrentTokenQueryContextualKeyword

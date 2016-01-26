@@ -236,6 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get { return _underlyingParameter.CountOfCustomModifiersPrecedingByRef; }
         }
 
+        public override bool IsReadOnly => _underlyingParameter.IsReadOnly;
+
         #endregion
     }
 

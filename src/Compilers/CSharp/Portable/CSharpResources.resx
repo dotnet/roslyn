@@ -234,6 +234,9 @@
   <data name="IDS_FeatureExtensionMethod" xml:space="preserve">
     <value>extension method</value>
   </data>
+  <data name="IDS_FeatureReadOnlyParameters" xml:space="preserve">
+    <value>readonly parameters</value>
+  </data>
   <data name="IDS_FeaturePartialMethod" xml:space="preserve">
     <value>partial method</value>
   </data>
@@ -278,6 +281,9 @@
   </data>
   <data name="IDS_FIXEDLOCAL" xml:space="preserve">
     <value>fixed variable</value>
+  </data>
+  <data name="IDS_readonly_parameter" xml:space="preserve">
+    <value>readonly parameter</value>
   </data>
   <data name="IDS_USINGLOCAL" xml:space="preserve">
     <value>using variable</value>
@@ -2311,6 +2317,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_BadOutWithThis" xml:space="preserve">
     <value> The parameter modifier 'out' cannot be used with 'this' </value>
   </data>
+  <data name="ERR_The_parameter_modifier_out_cannot_be_used_with_readonly" xml:space="preserve">
+    <value> The parameter modifier 'out' cannot be used with 'readonly' </value>
+  </data>
+  <data name="ERR_The_parameter_modifier_ref_cannot_be_used_with_readonly" xml:space="preserve">
+    <value> The parameter modifier 'ref' cannot be used with 'readonly' </value>
+  </data>
   <data name="ERR_BadTypeforThis" xml:space="preserve">
     <value>The first parameter of an extension method cannot be of type '{0}'</value>
   </data>
@@ -3538,6 +3550,9 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   </data>
   <data name="ERR_BadAsyncLacksBody" xml:space="preserve">
     <value>The 'async' modifier can only be used in methods that have a body.</value>
+  </data>
+  <data name="ERR_The_readonly_modifier_can_only_be_used_with_members_that_have_a_body" xml:space="preserve">
+    <value>The 'readonly' modifier can only be used with members that have a body</value>
   </data>
   <data name="ERR_BadSpecialByRefLocal" xml:space="preserve">
     <value>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</value>

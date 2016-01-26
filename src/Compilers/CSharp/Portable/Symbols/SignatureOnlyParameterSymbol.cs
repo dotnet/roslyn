@@ -109,5 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         _isParams.GetHashCode(),
                         _refKind.GetHashCode())));
         }
+
+        public override bool IsReadOnly => false;
     }
 }

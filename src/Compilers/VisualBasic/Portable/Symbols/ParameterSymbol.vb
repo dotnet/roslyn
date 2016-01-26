@@ -331,6 +331,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IParameterSymbol_IsReadOnly As Boolean Implements IParameterSymbol.IsReadOnly
+            Get
+                ' No VB parameters are read-only.
+                Return False
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As SymbolVisitor)
             visitor.VisitParameter(Me)
         End Sub

@@ -58,5 +58,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             return options.WithFeature("localFunctions", "true");
         }
+
+        public static CSharpParseOptions WithReadOnlyVariablesFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeature("readOnlyVariables", "true");
+        }
+
+        public static CSharpParseOptions WithReadOnlyParametersFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeature("readOnlyParameters", "true");
+        }
     }
 }

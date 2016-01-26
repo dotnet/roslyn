@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis
     public interface IParameterSymbol : ISymbol
     {
         /// <summary>
+        /// Whether this parameter is read-only.
+        /// </summary>
+        bool IsReadOnly { get; }
+
+        /// <summary>
         /// Whether the parameter passed by value or by reference.
         /// </summary>
         RefKind RefKind { get; }

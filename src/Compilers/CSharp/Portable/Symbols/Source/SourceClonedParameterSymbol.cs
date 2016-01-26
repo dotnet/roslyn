@@ -151,6 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.IsCallerMemberName; }
         }
 
+        public override bool IsReadOnly => _originalParam.IsReadOnly;
+
         #endregion
     }
 }
