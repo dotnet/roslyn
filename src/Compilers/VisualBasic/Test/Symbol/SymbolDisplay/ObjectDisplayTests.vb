@@ -209,14 +209,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Dim decimalValue As New Decimal(12.5)
                 Assert.Equal("12,5", decimalValue.ToString())
                 Assert.Equal("12.5", FormatPrimitive(decimalValue))
+                Assert.Equal("12.5", ObjectDisplay.FormatLiteral(decimalValue, ObjectDisplayOptions.None, CultureInfo.InvariantCulture))
+                Assert.Equal("12,5", ObjectDisplay.FormatLiteral(decimalValue, ObjectDisplayOptions.None, CurrentThread.CurrentCulture))
 
                 Dim doubleValue As Double = 12.5
                 Assert.Equal("12,5", doubleValue.ToString())
                 Assert.Equal("12.5", FormatPrimitive(doubleValue))
+                Assert.Equal("12.5", ObjectDisplay.FormatLiteral(doubleValue, ObjectDisplayOptions.None, CultureInfo.InvariantCulture))
+                Assert.Equal("12,5", ObjectDisplay.FormatLiteral(doubleValue, ObjectDisplayOptions.None, CurrentThread.CurrentCulture))
 
                 Dim singleValue As Single = 12.5
                 Assert.Equal("12,5", singleValue.ToString())
                 Assert.Equal("12.5", FormatPrimitive(singleValue))
+                Assert.Equal("12.5", ObjectDisplay.FormatLiteral(singleValue, ObjectDisplayOptions.None, CultureInfo.InvariantCulture))
+                Assert.Equal("12,5", ObjectDisplay.FormatLiteral(singleValue, ObjectDisplayOptions.None, CurrentThread.CurrentCulture))
+
             Finally
                 CurrentThread.CurrentCulture = originalCulture
             End Try

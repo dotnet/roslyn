@@ -9,9 +9,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Shared.Options
 {
     [ExportOptionProvider, Shared]
-    internal class ServiceFeatureOnOffOptionsProvider : IOptionProvider
+    internal class RuntimeOptionsProvider : IOptionProvider
     {
-        private readonly IEnumerable<IOption> _options = SpecializedCollections.SingletonEnumerable(ServiceFeatureOnOffOptions.ClosedFileDiagnostic);
+        private readonly IEnumerable<IOption> _options = SpecializedCollections.SingletonEnumerable(RuntimeOptions.FullSolutionAnalysis);
         public IEnumerable<IOption> GetOptions() => _options;
     }
 }
