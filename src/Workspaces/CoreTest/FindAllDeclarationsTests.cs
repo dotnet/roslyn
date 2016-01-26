@@ -6,10 +6,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Extensions;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -597,5 +597,30 @@ Inner i;
         }
 
         #endregion
+
+        [Fact, WorkItem(7941, "https://github.com/dotnet/roslyn/pull/7941")]
+        public async Task FindDeclarationsInErrorSymbolsDoesntCrash()
+        {
+            var source = @"
+' missing `Class` keyword
+Public Class1
+    Public Event MyEvent(ByVal a As String)
+End Class
+";
+
+            // create solution
+            var pid = ProjectId.CreateNewId();
+            var solution = CreateSolution()
+                .AddProject(pid, "VBProject", "VBProject", LanguageNames.VisualBasic)
+                .AddMetadataReference(pid, MscorlibRef);
+            var did = DocumentId.CreateNewId(pid);
+            solution = solution.AddDocument(did, "VBDocument.vb", SourceText.From(source));
+            var project = solution.Projects.Single();
+
+            // perform the search
+            var foundDeclarations = await SymbolFinder.FindDeclarationsAsync(project, name: "MyEvent", ignoreCase: true);
+            Assert.Equal(1, foundDeclarations.Count());
+            Assert.False(foundDeclarations.Any(decl => decl == null));
+        }
     }
 }
