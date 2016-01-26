@@ -107,30 +107,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                                         }
                                     });
                             }
-                            else
-                            {
-                                // Track field initializations.
-                                IFieldSymbol containingField = operationBlockContext.OwningSymbol as IFieldSymbol;
-                                if (containingField != null)
-                                {
-                                    IFieldInitializer initializer = operationBlockContext.OperationBlocks[0] as IFieldInitializer;
-                                    if (initializer != null)
-                                    {
-                                        AssignTo(containingField, containingField.Type, fieldsSourceTypes, initializer.Value);
-                                    }
-                                    else
-                                    {
-                                        // Visual Basic "As New" field declarations don't produce field initializations--they just produce object creation expressions.
-                                        // This is a bug in the VB semantic model support, and requires a subtle fix. For now, code around the issue in this analyzer.
-                                        IExpression expression = operationBlockContext.OperationBlocks[0] as IExpression;
-                                        if (expression != null)
-                                        {
-                                            AssignTo(containingField, containingField.Type, fieldsSourceTypes, expression);
-                                        }
-                                    }
-                                }
-                            }
                         });
+
+                    // Track field initializations.
+                    compilationContext.RegisterOperationAction(
+                        (operationContext) =>
+                        {
+                            IFieldInitializer initializer = (IFieldInitializer)operationContext.Operation;
+                            foreach (IFieldSymbol initializedField in initializer.InitializedFields)
+                            {
+                                AssignTo(initializedField, initializedField.Type, fieldsSourceTypes, initializer.Value);
+                            }
+                        },
+                        OperationKind.FieldInitializerAtDeclaration);
 
                     // Report fields that could have more specific types.
                     compilationContext.RegisterCompilationEndAction(

@@ -378,7 +378,7 @@ Microsoft.CodeAnalysis.Semantics.IExpressionExtensions
 Microsoft.CodeAnalysis.Semantics.IExpressionStatement
 Microsoft.CodeAnalysis.Semantics.IExpressionStatement.Expression.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IFieldInitializer
-Microsoft.CodeAnalysis.Semantics.IFieldInitializer.InitializedField.get -> Microsoft.CodeAnalysis.IFieldSymbol
+Microsoft.CodeAnalysis.Semantics.IFieldInitializer.InitializedFields.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IFieldSymbol>
 Microsoft.CodeAnalysis.Semantics.IFieldReferenceExpression
 Microsoft.CodeAnalysis.Semantics.IFieldReferenceExpression.Field.get -> Microsoft.CodeAnalysis.IFieldSymbol
 Microsoft.CodeAnalysis.Semantics.IFixedStatement

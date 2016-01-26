@@ -812,9 +812,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IFieldInitializer : ISymbolInitializer
     {
         /// <summary>
-        /// Initialized field.
+        /// Initialized fields. There can be multiple fields for Visual Basic fields declared with As New.
         /// </summary>
-        IFieldSymbol InitializedField { get; }
+        ImmutableArray<IFieldSymbol> InitializedFields { get; }
     }
 
     /// <summary>

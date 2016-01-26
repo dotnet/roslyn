@@ -1070,9 +1070,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _value = value
             End Sub
 
-            Public ReadOnly Property InitializedField As IFieldSymbol Implements IFieldInitializer.InitializedField
+            Public ReadOnly Property InitializedFields As ImmutableArray(Of IFieldSymbol) Implements IFieldInitializer.InitializedFields
                 Get
-                    Return _field
+                    Return ImmutableArray.Create(_field)
                 End Get
             End Property
 
@@ -1084,7 +1084,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
                 Get
-                    Return Me.Value.IsInvalid OrElse Me.InitializedField Is Nothing
+                    Return Me.Value.IsInvalid OrElse _field Is Nothing
                 End Get
             End Property
 
@@ -1373,9 +1373,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundFieldInitializer
         Implements IFieldInitializer
 
-        Private ReadOnly Property IInitializedField As IFieldSymbol Implements IFieldInitializer.InitializedField
+        Private ReadOnly Property IInitializedFields As ImmutableArray(Of IFieldSymbol) Implements IFieldInitializer.InitializedFields
             Get
-                Return Me.InitializedFields.FirstOrDefault()
+                Return Me.InitializedFields.Cast(Of IFieldSymbol)().ToImmutableArray()
             End Get
         End Property
 

@@ -493,6 +493,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public IFieldSymbol InitializedField { get; }
 
+            public ImmutableArray<IFieldSymbol> InitializedFields => ImmutableArray.Create(this.InitializedField);
+
             public IExpression Value { get; }
 
             OperationKind IOperation.Kind => OperationKind.FieldInitializerInCreation;
@@ -913,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundFieldEqualsValue : IFieldInitializer
     {
-        IFieldSymbol IFieldInitializer.InitializedField => this.Field;
+        ImmutableArray<IFieldSymbol> IFieldInitializer.InitializedFields => ImmutableArray.Create<IFieldSymbol>(this.Field);
         
         protected override OperationKind OperationKind => OperationKind.FieldInitializerAtDeclaration;
     }
