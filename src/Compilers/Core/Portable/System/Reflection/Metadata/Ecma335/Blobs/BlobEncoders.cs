@@ -61,7 +61,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
             // TODO: arg validation
 
             Builder.WriteByte((byte)SignatureKind.MethodSpecification);
-            Builder.WriteCompressedInteger((uint)genericArgumentCount);
+            Builder.WriteCompressedInteger(genericArgumentCount);
 
             return new GenericTypeArgumentsEncoder<BlobEncoder>(this, genericArgumentCount);
         }
@@ -81,7 +81,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
 
             if (genericParameterCount != 0)
             {
-                Builder.WriteCompressedInteger((uint)genericParameterCount);
+                Builder.WriteCompressedInteger(genericParameterCount);
             }
 
             return new MethodSignatureEncoder<BlobEncoder>(this, isVarArg: convention == SignatureCallingConvention.VarArgs);
@@ -109,7 +109,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
         public LocalVariablesEncoder<BlobEncoder> LocalVariableSignature(int count)
         {
             Builder.WriteByte((byte)SignatureKind.LocalVariables);
-            Builder.WriteCompressedInteger((uint)count);
+            Builder.WriteCompressedInteger(count);
             return new LocalVariablesEncoder<BlobEncoder>(this, count);
         }
 
@@ -122,7 +122,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
         public PermissionSetEncoder<BlobEncoder> PermissionSetBlob(int attributeCount)
         {
             Builder.WriteByte((byte)'.');
-            Builder.WriteCompressedInteger((uint)attributeCount);
+            Builder.WriteCompressedInteger(attributeCount);
 
             return new PermissionSetEncoder<BlobEncoder>(this, attributeCount);
         }
@@ -134,7 +134,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
                 throw new ArgumentOutOfRangeException(nameof(argumentCount));
             }
 
-            Builder.WriteCompressedInteger((uint)argumentCount);
+            Builder.WriteCompressedInteger(argumentCount);
             return new NamedArgumentsEncoder<BlobEncoder>(this, (ushort)argumentCount, writeCount: false);
         }
 
@@ -163,7 +163,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
 
         public ReturnTypeEncoder<ParametersEncoder<T>> Parameters(int parameterCount)
         {
-            Builder.WriteCompressedInteger((uint)parameterCount);
+            Builder.WriteCompressedInteger(parameterCount);
 
             return new ReturnTypeEncoder<ParametersEncoder<T>>(
                 new ParametersEncoder<T>(_continuation, parameterCount, allowOptional: _isVarArg));
@@ -319,7 +319,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
         {
             Builder.WriteSerializedString(typeName);
             //return new NamedArgumentsBuilder<T>(_continuation, propertyCount, CountFormat.Compressed);
-            Builder.WriteCompressedInteger((uint)arguments.Count);
+            Builder.WriteCompressedInteger(arguments.Count);
             arguments.WriteContentTo(Builder);
             return new PermissionSetEncoder<T>(_continuation, _count - 1);
         }
@@ -843,7 +843,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
         public T TypeDefOrRefOrSpec(bool isValueType, EntityHandle typeRefDefSpec)
         {
             ClassOrValue(isValueType);
-            Builder.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(typeRefDefSpec));
+            Builder.WriteCompressedInteger(CodedIndex.ToTypeDefOrRef(typeRefDefSpec));
             return _continuation;
         }
 
@@ -865,7 +865,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
 
             if (genericParameterCount != 0)
             {
-                Builder.WriteCompressedInteger((uint)genericParameterCount);
+                Builder.WriteCompressedInteger(genericParameterCount);
             }
 
             return new MethodSignatureEncoder<T>(_continuation, isVarArg: convention == SignatureCallingConvention.VarArgs);
@@ -875,19 +875,19 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
         {
             Builder.WriteByte((byte)SignatureTypeCode.GenericTypeInstance);
             ClassOrValue(isValueType);
-            Builder.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(typeRefDefSpec));
-            Builder.WriteCompressedInteger((uint)genericArgumentCount);
+            Builder.WriteCompressedInteger(CodedIndex.ToTypeDefOrRef(typeRefDefSpec));
+            Builder.WriteCompressedInteger(genericArgumentCount);
             return new GenericTypeArgumentsEncoder<T>(_continuation, genericArgumentCount);
         }
 
         public T GenericMethodTypeParameter(int parameterIndex)
         {
             Builder.WriteByte((byte)SignatureTypeCode.GenericMethodParameter);
-            Builder.WriteCompressedInteger((uint)parameterIndex);
+            Builder.WriteCompressedInteger(parameterIndex);
             return _continuation;
         }
 
-        public T GenericTypeParameter(uint parameterIndex)
+        public T GenericTypeParameter(int parameterIndex)
         {
             Builder.WriteByte((byte)SignatureTypeCode.GenericTypeParameter);
             Builder.WriteCompressedInteger(parameterIndex);
@@ -944,7 +944,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
                 Builder.WriteByte((byte)SignatureTypeCode.RequiredModifier);
             }
 
-            Builder.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(typeDefRefSpec));
+            Builder.WriteCompressedInteger(CodedIndex.ToTypeDefOrRef(typeDefRefSpec));
             return this;
         }
 
@@ -967,16 +967,16 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
 
         public T Shape(int rank, ImmutableArray<int> sizes, ImmutableArray<int> lowerBounds)
         {
-            Builder.WriteCompressedInteger((uint)rank);
-            Builder.WriteCompressedInteger((uint)sizes.Length);
+            Builder.WriteCompressedInteger(rank);
+            Builder.WriteCompressedInteger(sizes.Length);
             foreach (int size in sizes)
             {
-                Builder.WriteCompressedInteger((uint)size);
+                Builder.WriteCompressedInteger(size);
             }
 
             if (lowerBounds.IsDefault)
             {
-                Builder.WriteCompressedInteger((uint)rank);
+                Builder.WriteCompressedInteger(rank);
                 for (int i = 0; i < rank; i++)
                 {
                     Builder.WriteCompressedSignedInteger(0);
@@ -984,7 +984,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
             }
             else
             {
-                Builder.WriteCompressedInteger((uint)lowerBounds.Length);
+                Builder.WriteCompressedInteger(lowerBounds.Length);
                 foreach (int lowerBound in lowerBounds)
                 {
                     Builder.WriteCompressedSignedInteger(lowerBound);

@@ -219,7 +219,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
 
                 index = _userStringWriter.Position + _userStringHeapStartOffset;
                 _userStrings.Add(str, index);
-                _userStringWriter.WriteCompressedInteger((uint)str.Length * 2 + 1);
+                _userStringWriter.WriteCompressedInteger(str.Length * 2 + 1);
 
                 _userStringWriter.WriteUTF16(str);
 
@@ -392,7 +392,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
                 var blob = entry.Key;
 
                 writer.Offset = heapOffset;
-                writer.WriteCompressedInteger((uint)blob.Length);
+                writer.WriteCompressedInteger(blob.Length);
                 writer.WriteBytes(blob);
             }
 

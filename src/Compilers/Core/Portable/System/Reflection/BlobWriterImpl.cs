@@ -40,7 +40,7 @@ namespace Roslyn.Reflection
             throw new ArgumentOutOfRangeException("value");
         }
 
-        internal static void WriteCompressedInteger(ref BlobWriter writer, uint value)
+        internal static void WriteCompressedInteger(ref BlobWriter writer, int value)
         {
             unchecked
             {
@@ -54,7 +54,7 @@ namespace Roslyn.Reflection
                 }
                 else if (value <= MaxCompressedIntegerValue)
                 {
-                    writer.WriteUInt32BE(0xc0000000 | value);
+                    writer.WriteUInt32BE(0xc0000000 | (uint)value);
                 }
                 else
                 {
@@ -63,7 +63,7 @@ namespace Roslyn.Reflection
             }
         }
 
-        internal static void WriteCompressedInteger(BlobBuilder writer, uint value)
+        internal static void WriteCompressedInteger(BlobBuilder writer, int value)
         {
             unchecked
             {
@@ -77,7 +77,7 @@ namespace Roslyn.Reflection
                 }
                 else if (value <= MaxCompressedIntegerValue)
                 {
-                    writer.WriteUInt32BE(0xc0000000 | value);
+                    writer.WriteUInt32BE(0xc0000000 | (uint)value);
                 }
                 else
                 {

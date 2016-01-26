@@ -534,11 +534,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
         private static void TestCompressedUnsignedInteger(byte[] expected, int value)
         {
             var writer = new BlobWriter(4);
-            writer.WriteCompressedInteger((uint)value);
+            writer.WriteCompressedInteger(value);
             AssertEx.Equal(expected, writer.ToArray());
 
             var builder = new BlobBuilder();
-            builder.WriteCompressedInteger((uint)value);
+            builder.WriteCompressedInteger(value);
             AssertEx.Equal(expected, builder.ToArray());
         }
 
