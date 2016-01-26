@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
-        private class NugetReference : Reference
+        private class PackageReference : Reference
         {
             private readonly IPackageInstallerService _installerService;
             private readonly string _packageName;
 
-            public NugetReference(
+            public PackageReference(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
                 IPackageInstallerService installerService,
                 SearchResult searchResult,
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             public override string GetDescription(SemanticModel semanticModel, SyntaxNode node)
             {
-                return $"using { string.Join(".", this.SearchResult.NameParts) } (from {_packageName})";
+                return $"{provider.GetDescription(SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, _packageName)})";
             }
 
             public override async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)

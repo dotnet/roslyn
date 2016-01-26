@@ -375,6 +375,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             return operation != null;
         }
 
+        protected override string GetDescription(IReadOnlyList<string> nameParts)
+        {
+            return $"using { string.Join(".", nameParts) };";
+        }
+
         protected override string GetDescription(INamespaceOrTypeSymbol namespaceSymbol, SemanticModel semanticModel, SyntaxNode contextNode)
         {
             var root = GetCompilationUnitSyntaxNode(contextNode);

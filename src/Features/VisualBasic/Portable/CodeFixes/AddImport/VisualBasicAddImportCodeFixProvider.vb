@@ -229,6 +229,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
             Return Nothing
         End Function
 
+        Protected Overrides Function GetDescription(nameParts As IReadOnlyList(Of String)) As String
+            Return $"Imports { String.Join(".", nameParts) }"
+        End Function
+
         Protected Overrides Function GetDescription(namespaceSymbol As INamespaceOrTypeSymbol, semanticModel As SemanticModel, root As SyntaxNode) As String
             Return $"Imports {namespaceSymbol.ToDisplayString()}"
         End Function

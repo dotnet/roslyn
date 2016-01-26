@@ -845,6 +845,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to from {0}.
+        /// </summary>
+        internal static string from_0 {
+            get {
+                return ResourceManager.GetString("from_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate {0} &apos;{1}&apos;.
         /// </summary>
         internal static string Generate_0_1 {

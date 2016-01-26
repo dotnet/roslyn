@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 {
                     if (!installerService.IsInstalled(workspace, projectId, result.PackageName))
                     {
-                        allReferences.Add(new NugetReference(_owner, installerService,
+                        allReferences.Add(new PackageReference(_owner, installerService,
                             new SearchResult(name, nameNode, result.NameParts, weight), result.PackageName));
                         weight++;
                     }
