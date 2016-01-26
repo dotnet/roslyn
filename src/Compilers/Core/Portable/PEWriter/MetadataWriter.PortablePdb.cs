@@ -170,14 +170,14 @@ namespace Microsoft.Cci
             if (value is decimal)
             {
                 builder.WriteByte(0x11);
-                builder.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(GetTypeHandle(type)));
+                builder.WriteCompressedInteger(CodedIndex.ToTypeDefOrRef(GetTypeHandle(type)));
 
                 builder.WriteDecimal((decimal)value);
             }
             else if (value is DateTime)
             {
                 builder.WriteByte(0x11);
-                builder.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(GetTypeHandle(type)));
+                builder.WriteCompressedInteger(CodedIndex.ToTypeDefOrRef(GetTypeHandle(type)));
 
                 builder.WriteDateTime((DateTime)value);
             }
@@ -205,7 +205,7 @@ namespace Microsoft.Cci
                 // EnumType
                 if (type.IsEnum)
                 {
-                    builder.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(GetTypeHandle(type)));
+                    builder.WriteCompressedInteger(CodedIndex.ToTypeDefOrRef(GetTypeHandle(type)));
                 }
             }
             else if (this.module.IsPlatformType(type, PlatformType.SystemObject))
@@ -215,7 +215,7 @@ namespace Microsoft.Cci
             else
             {
                 builder.WriteByte((byte)(type.IsValueType ? 0x11 : 0x12));
-                builder.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(GetTypeHandle(type)));
+                builder.WriteCompressedInteger(CodedIndex.ToTypeDefOrRef(GetTypeHandle(type)));
             }
 
             return _debugMetadataOpt.GetBlob(builder);
@@ -229,8 +229,8 @@ namespace Microsoft.Cci
         {
             // <import> ::= AliasAssemblyReference <alias> <target-assembly>
             writer.WriteByte((byte)ImportDefinitionKind.AliasAssemblyReference);
-            writer.WriteCompressedInteger((uint)_debugMetadataOpt.GetHeapOffset(_debugMetadataOpt.GetBlobUtf8(alias.Name)));
-            writer.WriteCompressedInteger((uint)MetadataTokens.GetRowNumber(GetOrAddAssemblyReferenceHandle(alias.Assembly)));
+            writer.WriteCompressedInteger(_debugMetadataOpt.GetHeapOffset(_debugMetadataOpt.GetBlobUtf8(alias.Name)));
+            writer.WriteCompressedInteger(MetadataTokens.GetRowNumber(GetOrAddAssemblyReferenceHandle(alias.Assembly)));
         }
 
         private void SerializeImport(BlobBuilder writer, UsedNamespaceOrType import)
@@ -243,8 +243,8 @@ namespace Microsoft.Cci
 
                 // <import> ::= ImportXmlNamespace <alias> <target-namespace>
                 writer.WriteByte((byte)ImportDefinitionKind.ImportXmlNamespace);
-                writer.WriteCompressedInteger((uint)_debugMetadataOpt.GetHeapOffset(_debugMetadataOpt.GetBlobUtf8(import.AliasOpt)));
-                writer.WriteCompressedInteger((uint)_debugMetadataOpt.GetHeapOffset(_debugMetadataOpt.GetBlobUtf8(import.TargetXmlNamespaceOpt)));
+                writer.WriteCompressedInteger(_debugMetadataOpt.GetHeapOffset(_debugMetadataOpt.GetBlobUtf8(import.AliasOpt)));
+                writer.WriteCompressedInteger(_debugMetadataOpt.GetHeapOffset(_debugMetadataOpt.GetBlobUtf8(import.TargetXmlNamespaceOpt)));
             }
             else if (import.TargetTypeOpt != null)
             {
@@ -255,7 +255,7 @@ namespace Microsoft.Cci
                 {
                     // <import> ::= AliasType <alias> <target-type>
                     writer.WriteByte((byte)ImportDefinitionKind.AliasType);
-                    writer.WriteCompressedInteger((uint)_debugMetadataOpt.GetHeapOffset(_debugMetadataOpt.GetBlobUtf8(import.AliasOpt)));
+                    writer.WriteCompressedInteger(_debugMetadataOpt.GetHeapOffset(_debugMetadataOpt.GetBlobUtf8(import.AliasOpt)));
                 }
                 else
                 {
@@ -263,7 +263,7 @@ namespace Microsoft.Cci
                     writer.WriteByte((byte)ImportDefinitionKind.ImportType);
                 }
 
-                writer.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(GetTypeHandle(import.TargetTypeOpt))); // TODO: index in release build
+                writer.WriteCompressedInteger(CodedIndex.ToTypeDefOrRef(GetTypeHandle(import.TargetTypeOpt))); // TODO: index in release build
             }
             else if (import.TargetNamespaceOpt != null)
             {
@@ -273,7 +273,7 @@ namespace Microsoft.Cci
                     {
                         // <import> ::= AliasAssemblyNamespace <alias> <target-assembly> <target-namespace>
                         writer.WriteByte((byte)ImportDefinitionKind.AliasAssemblyNamespace);
-                        writer.WriteCompressedInteger((uint)_debugMetadataOpt.GetHeapOffset(_debugMetadataOpt.GetBlobUtf8(import.AliasOpt)));
+                        writer.WriteCompressedInteger(_debugMetadataOpt.GetHeapOffset(_debugMetadataOpt.GetBlobUtf8(import.AliasOpt)));
                     }
                     else
                     {
@@ -281,7 +281,7 @@ namespace Microsoft.Cci
                         writer.WriteByte((byte)ImportDefinitionKind.ImportAssemblyNamespace);
                     }
 
-                    writer.WriteCompressedInteger((uint)MetadataTokens.GetRowNumber(GetAssemblyReferenceHandle(import.TargetAssemblyOpt)));
+                    writer.WriteCompressedInteger(MetadataTokens.GetRowNumber(GetAssemblyReferenceHandle(import.TargetAssemblyOpt)));
                 }
                 else
                 {
@@ -289,7 +289,7 @@ namespace Microsoft.Cci
                     {
                         // <import> ::= AliasNamespace <alias> <target-namespace>
                         writer.WriteByte((byte)ImportDefinitionKind.AliasNamespace);
-                        writer.WriteCompressedInteger((uint)_debugMetadataOpt.GetHeapOffset(_debugMetadataOpt.GetBlobUtf8(import.AliasOpt)));
+                        writer.WriteCompressedInteger(_debugMetadataOpt.GetHeapOffset(_debugMetadataOpt.GetBlobUtf8(import.AliasOpt)));
                     }
                     else
                     {
@@ -300,8 +300,7 @@ namespace Microsoft.Cci
 
                 // TODO: cache?
                 string namespaceName = TypeNameSerializer.BuildQualifiedNamespaceName(import.TargetNamespaceOpt);
-
-                writer.WriteCompressedInteger((uint)_debugMetadataOpt.GetHeapOffset(_debugMetadataOpt.GetBlobUtf8(namespaceName)));
+                writer.WriteCompressedInteger(_debugMetadataOpt.GetHeapOffset(_debugMetadataOpt.GetBlobUtf8(namespaceName)));
             }
             else
             {
@@ -310,7 +309,7 @@ namespace Microsoft.Cci
                 Debug.Assert(import.TargetAssemblyOpt == null);
 
                 writer.WriteByte((byte)ImportDefinitionKind.ImportAssemblyReferenceAlias);
-                writer.WriteCompressedInteger((uint)_debugMetadataOpt.GetHeapOffset(_debugMetadataOpt.GetBlobUtf8(import.AliasOpt)));
+                writer.WriteCompressedInteger(_debugMetadataOpt.GetHeapOffset(_debugMetadataOpt.GetBlobUtf8(import.AliasOpt)));
             }
         }
 
@@ -466,7 +465,7 @@ namespace Microsoft.Cci
             {
                 writer.WriteUInt32((uint)asyncInfo.YieldOffsets[i]);
                 writer.WriteUInt32((uint)asyncInfo.ResumeOffsets[i]);
-                writer.WriteCompressedInteger((uint)MetadataTokens.GetRowNumber(moveNextMethod));
+                writer.WriteCompressedInteger(MetadataTokens.GetRowNumber(moveNextMethod));
             }
 
             _debugMetadataOpt.AddCustomDebugInformation(
@@ -519,7 +518,7 @@ namespace Microsoft.Cci
             int previousNonHiddenStartColumn = -1;
 
             // header:
-            writer.WriteCompressedInteger((uint)MetadataTokens.GetRowNumber(localSignatureHandleOpt));
+            writer.WriteCompressedInteger(MetadataTokens.GetRowNumber(localSignatureHandleOpt));
 
             var previousDocument = TryGetSingleDocument(sequencePoints);
             singleDocumentHandle = (previousDocument != null) ? GetOrAddDocument(previousDocument, documentIndex) : default(DocumentHandle);
@@ -537,18 +536,18 @@ namespace Microsoft.Cci
                         writer.WriteCompressedInteger(0);
                     }
 
-                    writer.WriteCompressedInteger((uint)MetadataTokens.GetRowNumber(documentHandle));
+                    writer.WriteCompressedInteger(MetadataTokens.GetRowNumber(documentHandle));
                     previousDocument = currentDocument;
                 }
 
                 // delta IL offset:
                 if (i > 0)
                 {
-                    writer.WriteCompressedInteger((uint)(sequencePoints[i].Offset - sequencePoints[i - 1].Offset));
+                    writer.WriteCompressedInteger(sequencePoints[i].Offset - sequencePoints[i - 1].Offset);
                 }
                 else
                 {
-                    writer.WriteCompressedInteger((uint)sequencePoints[i].Offset);
+                    writer.WriteCompressedInteger(sequencePoints[i].Offset);
                 }
 
                 if (sequencePoints[i].IsHidden)
@@ -564,8 +563,8 @@ namespace Microsoft.Cci
                 if (previousNonHiddenStartLine < 0)
                 {
                     Debug.Assert(previousNonHiddenStartColumn < 0);
-                    writer.WriteCompressedInteger((uint)sequencePoints[i].StartLine);
-                    writer.WriteCompressedInteger((uint)sequencePoints[i].StartColumn);
+                    writer.WriteCompressedInteger(sequencePoints[i].StartLine);
+                    writer.WriteCompressedInteger(sequencePoints[i].StartColumn);
                 }
                 else
                 {
@@ -602,11 +601,11 @@ namespace Microsoft.Cci
             // only hidden sequence points have zero width
             Debug.Assert(deltaLines != 0 || deltaColumns != 0 || sequencePoint.IsHidden);
 
-            writer.WriteCompressedInteger((uint)deltaLines);
+            writer.WriteCompressedInteger(deltaLines);
 
             if (deltaLines == 0)
             {
-                writer.WriteCompressedInteger((uint)deltaColumns);
+                writer.WriteCompressedInteger(deltaColumns);
             }
             else
             {
@@ -656,7 +655,7 @@ namespace Microsoft.Cci
             foreach (var part in name.Split(separator))
             {
                 BlobHandle partIndex = _debugMetadataOpt.GetBlob(ImmutableArray.Create(s_utf8Encoding.GetBytes(part)));
-                writer.WriteCompressedInteger((uint)_debugMetadataOpt.GetHeapOffset(partIndex));
+                writer.WriteCompressedInteger(_debugMetadataOpt.GetHeapOffset(partIndex));
             }
 
             return _debugMetadataOpt.GetBlob(writer);

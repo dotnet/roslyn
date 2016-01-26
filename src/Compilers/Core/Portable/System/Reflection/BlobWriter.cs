@@ -301,13 +301,23 @@ namespace Roslyn.Reflection
             _buffer.WriteUInt16(start, value);
         }
 
-        internal void WriteUInt16BE(ushort value)
+        public void WriteInt16BE(short value)
+        {
+            WriteUInt16BE(unchecked((ushort)value));
+        }
+
+        public void WriteUInt16BE(ushort value)
         {
             int start = Advance(sizeof(ushort));
             _buffer.WriteUInt16BE(start, value);
         }
 
-        internal void WriteUInt32BE(uint value)
+        public void WriteInt32BE(int value)
+        {
+            WriteUInt32BE(unchecked((uint)value));
+        }
+
+        public void WriteUInt32BE(uint value)
         {
             int start = Advance(sizeof(uint));
             _buffer.WriteUInt32BE(start, value);
@@ -445,7 +455,7 @@ namespace Roslyn.Reflection
 
                 if (prependSize)
                 {
-                    WriteCompressedInteger((uint)byteCount);
+                    WriteCompressedInteger(byteCount);
                 }
 
                 int startOffset = Advance(byteCount);
@@ -485,7 +495,7 @@ namespace Roslyn.Reflection
         /// Otherwise, encode as a 4-byte integer, with bit 31 set, bit 30 set, bit 29 clear (value held in bits 28 through 0).
         /// </remarks>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> can't be represented as a compressed signed integer.</exception>
-        public void WriteCompressedInteger(uint value)
+        public void WriteCompressedInteger(int value)
         {
             BlobWriterImpl.WriteCompressedInteger(ref this, value);
         }

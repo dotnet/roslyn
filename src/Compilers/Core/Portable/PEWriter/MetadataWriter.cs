@@ -1261,7 +1261,7 @@ namespace Microsoft.Cci
             try
             {
                 writer.WriteByte((byte)'.');
-                writer.WriteCompressedInteger((uint)permissionSet.Length);
+                writer.WriteCompressedInteger(permissionSet.Length);
                 this.SerializePermissionSet(permissionSet, writer);
                 result = metadata.GetBlob(writer);
             }
@@ -3295,15 +3295,15 @@ namespace Microsoft.Cci
 
         private void SerializeMarshallingDescriptor(IMarshallingInformation marshallingInformation, BlobBuilder writer)
         {
-            writer.WriteCompressedInteger((uint)marshallingInformation.UnmanagedType);
+            writer.WriteCompressedInteger((int)marshallingInformation.UnmanagedType);
             switch (marshallingInformation.UnmanagedType)
             {
                 case UnmanagedType.ByValArray: // NATIVE_TYPE_FIXEDARRAY
                     Debug.Assert(marshallingInformation.NumberOfElements >= 0);
-                    writer.WriteCompressedInteger((uint)marshallingInformation.NumberOfElements);
+                    writer.WriteCompressedInteger(marshallingInformation.NumberOfElements);
                     if (marshallingInformation.ElementType >= 0)
                     {
-                        writer.WriteCompressedInteger((uint)marshallingInformation.ElementType);
+                        writer.WriteCompressedInteger((int)marshallingInformation.ElementType);
                     }
 
                     break;
@@ -3340,20 +3340,20 @@ namespace Microsoft.Cci
 
                 case UnmanagedType.LPArray: // NATIVE_TYPE_ARRAY
                     Debug.Assert(marshallingInformation.ElementType >= 0);
-                    writer.WriteCompressedInteger((uint)marshallingInformation.ElementType);
+                    writer.WriteCompressedInteger((int)marshallingInformation.ElementType);
                     if (marshallingInformation.ParamIndex >= 0)
                     {
-                        writer.WriteCompressedInteger((uint)marshallingInformation.ParamIndex);
+                        writer.WriteCompressedInteger(marshallingInformation.ParamIndex);
                         if (marshallingInformation.NumberOfElements >= 0)
                         {
-                            writer.WriteCompressedInteger((uint)marshallingInformation.NumberOfElements);
+                            writer.WriteCompressedInteger(marshallingInformation.NumberOfElements);
                             writer.WriteByte(1); // The parameter number is valid
                         }
                     }
                     else if (marshallingInformation.NumberOfElements >= 0)
                     {
                         writer.WriteByte(0); // Dummy parameter value emitted so that NumberOfElements can be in a known position
-                        writer.WriteCompressedInteger((uint)marshallingInformation.NumberOfElements);
+                        writer.WriteCompressedInteger(marshallingInformation.NumberOfElements);
                         writer.WriteByte(0); // The parameter number is not valid
                     }
 
@@ -3362,7 +3362,7 @@ namespace Microsoft.Cci
                 case UnmanagedType.SafeArray:
                     if (marshallingInformation.SafeArrayElementSubtype >= 0)
                     {
-                        writer.WriteCompressedInteger((uint)marshallingInformation.SafeArrayElementSubtype);
+                        writer.WriteCompressedInteger((int)marshallingInformation.SafeArrayElementSubtype);
                         var elementType = marshallingInformation.GetSafeArrayElementUserDefinedSubtype(Context);
                         if (elementType != null)
                         {
@@ -3373,7 +3373,7 @@ namespace Microsoft.Cci
                     break;
 
                 case UnmanagedType.ByValTStr: // NATIVE_TYPE_FIXEDSYSSTRING
-                    writer.WriteCompressedInteger((uint)marshallingInformation.NumberOfElements);
+                    writer.WriteCompressedInteger(marshallingInformation.NumberOfElements);
                     break;
 
                 case UnmanagedType.Interface:
@@ -3381,7 +3381,7 @@ namespace Microsoft.Cci
                 case UnmanagedType.IUnknown:
                     if (marshallingInformation.IidParameterIndex >= 0)
                     {
-                        writer.WriteCompressedInteger((uint)marshallingInformation.IidParameterIndex);
+                        writer.WriteCompressedInteger(marshallingInformation.IidParameterIndex);
                     }
 
                     break;
@@ -3465,7 +3465,7 @@ namespace Microsoft.Cci
                 var customAttributeArgsBuilder = PooledBlobBuilder.GetInstance();
                 var namedArgsEncoder = new BlobEncoder(customAttributeArgsBuilder).PermissionSetArguments(customAttribute.NamedArgumentCount);
                 SerializeCustomAttributeNamedArguments(namedArgsEncoder, customAttribute);
-                writer.WriteCompressedInteger((uint)customAttributeArgsBuilder.Count);
+                writer.WriteCompressedInteger(customAttributeArgsBuilder.Count);
 
                 customAttributeArgsBuilder.WriteContentTo(writer);
                 customAttributeArgsBuilder.Free();
@@ -3686,7 +3686,7 @@ namespace Microsoft.Cci
             return encoder.EndModifiers();
         }
 
-        private uint GetNumberOfInheritedTypeParameters(ITypeReference type)
+        private int GetNumberOfInheritedTypeParameters(ITypeReference type)
         {
             INestedTypeReference nestedType = type.AsNestedTypeReference;
             if (nestedType == null)
@@ -3700,7 +3700,7 @@ namespace Microsoft.Cci
                 nestedType = specializedNestedType.UnspecializedVersion;
             }
 
-            uint result = 0;
+            int result = 0;
             type = nestedType.GetContainingType(Context);
             nestedType = type.AsNestedTypeReference;
             while (nestedType != null)

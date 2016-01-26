@@ -6,9 +6,9 @@ using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using Roslyn.Reflection.Metadata.Ecma335.Blobs;
 using System.Reflection.PortableExecutable;
 using Xunit;
+using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     using Roslyn.Reflection.Metadata;
     using Roslyn.Reflection.Metadata.Ecma335;
     using Roslyn.Reflection.PortableExecutable;
+    using Roslyn.Reflection.Metadata.Ecma335.Blobs;
 
     public class PEBuilderTests
     {
