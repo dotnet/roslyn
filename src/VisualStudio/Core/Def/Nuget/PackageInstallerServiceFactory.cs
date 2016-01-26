@@ -19,15 +19,15 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Nuget
 {
     [ExportWorkspaceServiceFactory(typeof(IPackageInstallerService)), Shared]
-    internal class NugetPackageInstallerServiceFactory : IWorkspaceServiceFactory
+    internal class PackageInstallerServiceFactory : IWorkspaceServiceFactory
     {
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return new NugetPackageInstallerService(workspaceServices);
+            return new PackageInstallerService(workspaceServices);
         }
     }
 
-    internal class NugetPackageInstallerService : ForegroundThreadAffinitizedObject, IPackageInstallerService
+    internal class PackageInstallerService : ForegroundThreadAffinitizedObject, IPackageInstallerService
     {
         private readonly object gate = new object();
         private readonly HostWorkspaceServices workspaceServices;
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Nuget
 
         private readonly ConcurrentDictionary<ProjectId, HashSet<string>> projectToInstalledPackages = new ConcurrentDictionary<ProjectId, HashSet<string>>();
 
-        public NugetPackageInstallerService(HostWorkspaceServices workspaceServices)
+        public PackageInstallerService(HostWorkspaceServices workspaceServices)
         {
             this.workspaceServices = workspaceServices;
         }
