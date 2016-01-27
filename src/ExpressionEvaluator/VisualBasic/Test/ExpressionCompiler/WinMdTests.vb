@@ -4,15 +4,16 @@ Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
-Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
+Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Xunit
-Imports Resources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources
+Imports CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 
     Public Class WinMdTests
         Inherits ExpressionCompilerTestBase
@@ -64,15 +65,15 @@ End Class"
             CompileTimeAndRuntimeAssemblies(
                 ImmutableArray.Create(
                     MscorlibRef,
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.Windows)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.LibraryA)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(Resources.LibraryB).GetReference()),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(CommonResources.Windows)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(CommonResources.LibraryA)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(CommonResources.LibraryB).GetReference()),
                 ImmutableArray.Create(
                     MscorlibRef,
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.Windows_Data)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.Windows_Storage)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.LibraryA)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(Resources.LibraryB).GetReference()),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(CommonResources.Windows_Data)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(CommonResources.Windows_Storage)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(CommonResources.LibraryA)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(CommonResources.LibraryB).GetReference()),
                 "Windows.Storage")
         End Sub
 
@@ -81,15 +82,15 @@ End Class"
             CompileTimeAndRuntimeAssemblies(
                 ImmutableArray.Create(
                     MscorlibRef,
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.Windows)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.LibraryA)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(Resources.LibraryB).GetReference()),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(CommonResources.Windows)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(CommonResources.LibraryA)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(CommonResources.LibraryB).GetReference()),
                 ImmutableArray.Create(
                     MscorlibRef,
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.Windows_Data)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.Windows_Storage)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.LibraryA)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(Resources.LibraryB).GetReference()),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(CommonResources.Windows_Data)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(CommonResources.Windows_Storage)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(CommonResources.LibraryA)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(CommonResources.LibraryB).GetReference()),
                 "Windows.Storage")
         End Sub
 
@@ -98,15 +99,15 @@ End Class"
             CompileTimeAndRuntimeAssemblies(
                 ImmutableArray.Create(
                     MscorlibRef,
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.Windows_Data)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.Windows_Storage)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.LibraryA)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(Resources.LibraryB).GetReference()),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(CommonResources.Windows_Data)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(CommonResources.Windows_Storage)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(CommonResources.LibraryA)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(CommonResources.LibraryB).GetReference()),
                 ImmutableArray.Create(
                     MscorlibRef,
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.Windows)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.LibraryA)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(Resources.LibraryB).GetReference()),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(CommonResources.Windows)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(CommonResources.LibraryA)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(CommonResources.LibraryB).GetReference()),
                 "Windows")
         End Sub
 

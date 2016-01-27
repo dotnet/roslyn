@@ -4,18 +4,18 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Resources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
+using CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class ReferencedModulesTests : ExpressionCompilerTestBase
     {
@@ -510,7 +510,7 @@ class C
 
             // Include an empty assembly to verify that not all assemblies
             // with no references are treated as mscorlib.
-            var referenceC = AssemblyMetadata.CreateFromImage(Resources.Empty).GetReference();
+            var referenceC = AssemblyMetadata.CreateFromImage(CommonResources.Empty).GetReference();
 
             // At runtime System.Runtime.dll contract assembly is replaced
             // by mscorlib.dll and System.Runtime.dll facade assemblies.

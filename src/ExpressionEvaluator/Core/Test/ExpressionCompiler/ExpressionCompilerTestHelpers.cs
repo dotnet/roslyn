@@ -28,7 +28,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using PDB::Roslyn.Test.MetadataUtilities;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
     internal sealed class Scope
     {

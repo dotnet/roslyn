@@ -11,16 +11,16 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using System.IO;
 using System.Reflection.PortableExecutable;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
     internal sealed class RuntimeInstance : IDisposable
     {
+        internal readonly ImmutableArray<ModuleInstance> Modules;
+
         internal RuntimeInstance(ImmutableArray<ModuleInstance> modules)
         {
             this.Modules = modules;
         }
-
-        internal readonly ImmutableArray<ModuleInstance> Modules;
 
         void IDisposable.Dispose()
         {

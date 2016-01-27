@@ -7,7 +7,7 @@ Imports System.Reflection
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 
     Public Class ResultsViewTests
         Inherits VisualBasicResultProviderTestBase

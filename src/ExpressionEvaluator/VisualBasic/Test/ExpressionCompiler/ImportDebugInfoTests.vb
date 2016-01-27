@@ -5,20 +5,18 @@ Imports System.IO
 Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
-Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.ExpressionEvaluator
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Microsoft.DiaSymReader
 Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
     Public Class ImportsDebugInfoTests
         Inherits ExpressionCompilerTestBase
 
@@ -124,8 +122,8 @@ End Namespace
                     compilation.Emit(exebits, pdbbits)
 
                     exebits.Position = 0
-                    Using metadata = modulemetadata.CreateFromStream(exebits, leaveOpen:=True)
-                        Dim [module] = metadata.module
+                    Using metadata = ModuleMetadata.CreateFromStream(exebits, leaveOpen:=True)
+                        Dim [module] = metadata.Module
                         Dim metadataReader = [module].MetadataReader
                         Dim methodHandle = metadataReader.MethodDefinitions.Single(Function(mh) metadataReader.GetString(metadataReader.GetMethodDefinition(mh).Name) = methodName)
                         Dim methodToken = metadataReader.GetToken(methodHandle)

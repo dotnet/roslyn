@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Xunit;
 using Roslyn.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class DynamicViewTests : CSharpResultProviderTestBase
     {
