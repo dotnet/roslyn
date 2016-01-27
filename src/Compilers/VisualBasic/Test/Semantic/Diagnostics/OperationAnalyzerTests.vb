@@ -1210,5 +1210,37 @@ End Class
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15),
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15))
         End Sub
+
+        <Fact>
+        Public Sub FieldInitializersVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public F1 As Integer = 44
+    Public F2 As String = "Hello"
+    Public F3 As Integer = Foo()
+
+    Public Shared Function Foo()
+        Return 10
+    End Function
+
+    Public Shared Function Bar(Optional P1 As Integer = 10, Optional F2 As Integer = 20)
+        Return P1 + F2
+    End Function
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New EqualsValueTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 44").WithLocation(2, 26),
+                                           Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= ""Hello""").WithLocation(3, 25),
+                                           Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= Foo()").WithLocation(4, 26),
+                                           Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 20").WithLocation(10, 84))
+
+        End Sub
     End Class
 End Namespace
