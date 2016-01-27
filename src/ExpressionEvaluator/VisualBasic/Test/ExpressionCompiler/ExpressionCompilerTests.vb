@@ -196,7 +196,7 @@ Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp, includeSymbols:=False)
+            Dim runtime = CreateRuntimeInstance(comp, debugFormat:=Nothing)
             For Each moduleInstance In runtime.Modules
                 Assert.Null(moduleInstance.SymReader)
             Next
@@ -405,7 +405,7 @@ Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp, includeSymbols:=False)
+            Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, methodName:="C.F")
             Dim errorMessage As String = Nothing
 
@@ -3730,8 +3730,7 @@ End Class
             Dim exeBytes As Byte() = Nothing
             Dim pdbBytes As Byte() = Nothing
             Dim unusedReferences As ImmutableArray(Of MetadataReference) = Nothing
-            Dim result = comp.EmitAndGetReferences(exeBytes, pdbBytes, unusedReferences)
-            Assert.True(result)
+            comp.EmitAndGetReferences(exeBytes, pdbBytes, unusedReferences)
 
             Dim runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.Create(MscorlibRef), exeBytes, SymReaderFactory.CreateReader(pdbBytes))
             Dim context = CreateMethodContext(runtime, "C.M")
@@ -3862,8 +3861,7 @@ End Class
             Dim exeBytes As Byte() = Nothing
             Dim unusedPdbBytes As Byte() = Nothing
             Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            Dim result = comp.EmitAndGetReferences(exeBytes, unusedPdbBytes, references)
-            Assert.True(result)
+            comp.EmitAndGetReferences(exeBytes, unusedPdbBytes, references)
 
             Dim symReader As ISymUnmanagedReader = New MockSymUnmanagedReader(ImmutableDictionary(Of Integer, MethodDebugInfoBytes).Empty)
 
@@ -3898,8 +3896,7 @@ End Class
             Dim exeBytes As Byte() = Nothing
             Dim unusedPdbBytes As Byte() = Nothing
             Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            Dim result = comp.EmitAndGetReferences(exeBytes, unusedPdbBytes, references)
-            Assert.True(result)
+            comp.EmitAndGetReferences(exeBytes, unusedPdbBytes, references)
 
             Dim runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, NotImplementedSymUnmanagedReader.Instance)
             Dim evalContext = CreateMethodContext(runtime, "C.Main")

@@ -33,7 +33,7 @@ class C
     object Q { get { return 4; } }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0, includeSymbols: false);
+            var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateTypeContext(runtime, "C");
             // Static field.
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
@@ -87,7 +87,7 @@ class C
     const int G = 2;
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0, includeSymbols: false);
+            var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateTypeContext(runtime, "C");
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 CompileExpression(context, "F[G]"),
@@ -115,7 +115,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0, includeSymbols: false);
+            var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateTypeContext(runtime, "C");
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 CompileExpression(context, "F(this)"),
@@ -149,7 +149,7 @@ class B : A
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0, includeSymbols: false);
+            var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateTypeContext(runtime, "B");
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 CompileExpression(context, "base.F()"),
@@ -179,7 +179,7 @@ class A<T> where T : class
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0, includeSymbols: false);
+            var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateTypeContext(runtime, "A.B");
             string error;
             var testData = new CompilationTestData();
@@ -230,7 +230,7 @@ namespace N
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0, includeSymbols: false);
+            var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateTypeContext(runtime, "N.C");
             string error;
             var testData = new CompilationTestData();
@@ -271,7 +271,7 @@ class C
 {
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0, includeSymbols: false);
+            var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateTypeContext(runtime, "C");
             string error;
             var testData = new CompilationTestData();
@@ -292,7 +292,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0, includeSymbols: false);
+            var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateTypeContext(runtime, "C");
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
 @"{
@@ -321,7 +321,7 @@ class C
     object F = ""f"";
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0, includeSymbols: false);
+            var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateTypeContext(runtime, "C");
             // No format specifiers.
             string error;
@@ -360,7 +360,7 @@ public class Derived : Base
 }
 ";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0, includeSymbols: false);
+            var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateTypeContext(runtime, "Derived");
             string error;
             var testData = new CompilationTestData();

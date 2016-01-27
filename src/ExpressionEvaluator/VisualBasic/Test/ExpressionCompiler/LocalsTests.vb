@@ -2647,8 +2647,7 @@ End Class
             Dim exeBytes As Byte() = Nothing
             Dim pdbBytes As Byte() = Nothing
             Dim unusedReferences As ImmutableArray(Of MetadataReference) = Nothing
-            Dim result = comp.EmitAndGetReferences(exeBytes, pdbBytes, unusedReferences)
-            Assert.True(result)
+            comp.EmitAndGetReferences(exeBytes, pdbBytes, unusedReferences)
 
             ' Referencing SystemCoreRef and SystemXmlLinqRef will cause Microsoft.VisualBasic.Embedded to be compiled
             ' and it depends on EditorBrowsableAttribute.

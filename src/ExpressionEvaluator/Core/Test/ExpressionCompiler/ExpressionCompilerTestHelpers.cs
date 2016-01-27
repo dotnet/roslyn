@@ -396,53 +396,34 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        internal static bool EmitAndGetReferences(
+        internal static void EmitAndGetReferences(
             this Compilation compilation,
             out byte[] exeBytes,
             out byte[] pdbBytes,
             out ImmutableArray<MetadataReference> references)
         {
-            using (var pdbStream = new MemoryStream())
-            {
-                using (var exeStream = new MemoryStream())
-                {
-                    var result = compilation.Emit(
-                        peStream: exeStream,
-                        pdbStream: pdbStream,
-                        xmlDocumentationStream: null,
-                        win32Resources: null,
-                        manifestResources: null,
-                        options: EmitOptions.Default,
-                        debugEntryPoint: null,
-                        testData: null,
-                        getHostDiagnostics: null,
-                        cancellationToken: default(CancellationToken));
+            var pdbStream = new MemoryStream();
+            var peImage = compilation.EmitToArray(EmitOptions.Default, pdbStream: pdbStream);
 
-                    if (!result.Success)
-                    {
-                        result.Diagnostics.Verify();
-                        exeBytes = null;
-                        pdbBytes = null;
-                        references = default(ImmutableArray<MetadataReference>);
-                        return false;
-                    }
+            exeBytes = peImage.ToArray();
+            pdbBytes = pdbStream.ToArray();
+            references = GetEmittedReferences(compilation, peImage);
+        }
 
-                    exeBytes = exeStream.ToArray();
-                    pdbBytes = pdbStream.ToArray();
-                }
-            }
-
+        internal static ImmutableArray<MetadataReference> GetEmittedReferences(this Compilation compilation, ImmutableArray<byte> peImage)
+        {
+            ImmutableArray<MetadataReference> references;
             // Determine the set of references that were actually used
             // and ignore any references that were dropped in emit.
             HashSet<string> referenceNames;
-            using (var metadata = ModuleMetadata.CreateFromImage(exeBytes))
+            using (var metadata = ModuleMetadata.CreateFromImage(peImage))
             {
                 var reader = metadata.MetadataReader;
                 referenceNames = new HashSet<string>(reader.AssemblyReferences.Select(h => GetAssemblyReferenceName(reader, h)));
             }
 
             references = ImmutableArray.CreateRange(compilation.References.Where(r => IsReferenced(r, referenceNames)));
-            return true;
+            return references;
         }
 
         internal static ImmutableArray<Scope> GetScopes(this ISymUnmanagedReader symReader, int methodToken, int methodVersion, bool isEndInclusive)

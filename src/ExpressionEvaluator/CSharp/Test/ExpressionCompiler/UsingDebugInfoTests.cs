@@ -335,8 +335,7 @@ public class C
             byte[] exeBytes;
             byte[] unusedPdbBytes;
             ImmutableArray<MetadataReference> references;
-            var result = comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
-            Assert.True(result);
+            comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
 
             var symReader = ExpressionCompilerTestHelpers.ConstructSymReaderWithImports(
                 exeBytes,
@@ -371,8 +370,7 @@ public class C
             byte[] exeBytes;
             byte[] unusedPdbBytes;
             ImmutableArray<MetadataReference> references;
-            var result = comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
-            Assert.True(result);
+            comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
 
             var symReader = ExpressionCompilerTestHelpers.ConstructSymReaderWithImports(
                 exeBytes,
@@ -407,8 +405,7 @@ public class C
             byte[] exeBytes;
             byte[] unusedPdbBytes;
             ImmutableArray<MetadataReference> references;
-            var result = comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
-            Assert.True(result);
+            comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
 
             ISymUnmanagedReader symReader;
             using (var peReader = new PEReader(ImmutableArray.Create(exeBytes)))
@@ -452,8 +449,7 @@ namespace N
             byte[] exeBytes;
             byte[] unusedPdbBytes;
             ImmutableArray<MetadataReference> references;
-            var result = comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
-            Assert.True(result);
+            comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
 
             ISymUnmanagedReader symReader;
             using (var peReader = new PEReader(ImmutableArray.Create(exeBytes)))
@@ -497,8 +493,7 @@ namespace N
             byte[] exeBytes;
             byte[] unusedPdbBytes;
             ImmutableArray<MetadataReference> references;
-            var result = comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
-            Assert.True(result);
+            comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
 
             ISymUnmanagedReader symReader;
             using (var peReader = new PEReader(ImmutableArray.Create(exeBytes)))
@@ -543,7 +538,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();
@@ -576,7 +571,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();
@@ -619,7 +614,7 @@ namespace A
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "A.C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single()).AsEnumerable().ToArray();
             Assert.Equal(2, importsList.Length);
 
@@ -655,7 +650,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();
@@ -695,7 +690,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();
@@ -725,7 +720,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();
@@ -779,7 +774,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();
@@ -828,7 +823,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();
@@ -867,7 +862,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("X")) });
             comp.VerifyDiagnostics();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();
@@ -912,7 +907,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("X")) });
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();
@@ -958,7 +953,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("global", "X")) });
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();

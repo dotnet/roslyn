@@ -10,24 +10,6 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal sealed class RuntimeInstance : IDisposable
-    {
-        internal RuntimeInstance(ImmutableArray<ModuleInstance> modules)
-        {
-            this.Modules = modules;
-        }
-
-        internal readonly ImmutableArray<ModuleInstance> Modules;
-
-        void IDisposable.Dispose()
-        {
-            foreach (var module in this.Modules)
-            {
-                module.Dispose();
-            }
-        }
-    }
-
     internal sealed class ModuleInstance : IDisposable
     {
         internal ModuleInstance(

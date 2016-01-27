@@ -198,8 +198,7 @@ End Class
             Dim exeBytes As Byte() = Nothing
             Dim unusedPdbBytes As Byte() = Nothing
             Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            Dim result = comp.EmitAndGetReferences(exeBytes, unusedPdbBytes, references)
-            Assert.True(result)
+            comp.EmitAndGetReferences(exeBytes, unusedPdbBytes, references)
 
             Dim symReader = ExpressionCompilerTestHelpers.ConstructSymReaderWithImports(
                 exeBytes,
@@ -238,8 +237,7 @@ End Class
             Dim exeBytes As Byte() = Nothing
             Dim unusedPdbBypes As Byte() = Nothing
             Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            Dim result = comp.EmitAndGetReferences(exeBytes, unusedPdbBypes, references)
-            Assert.True(result)
+            comp.EmitAndGetReferences(exeBytes, unusedPdbBypes, references)
 
             Dim symReader = ExpressionCompilerTestHelpers.ConstructSymReaderWithImports(
                 exeBytes,
@@ -337,7 +335,7 @@ End Namespace
             Dim aliases As Dictionary(Of String, AliasAndImportsClausePosition) = Nothing
             Dim xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
 
-            Dim runtime = CreateRuntimeInstance(comp, includeSymbols:=True)
+            Dim runtime = CreateRuntimeInstance(comp)
             GetImports(
                 runtime,
                 "root.N.C.M",
@@ -387,7 +385,7 @@ End Namespace
                 Dim aliases As Dictionary(Of String, AliasAndImportsClausePosition) = Nothing
                 Dim xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
 
-                Dim runtime = CreateRuntimeInstance(comp, includeSymbols:=True)
+                Dim runtime = CreateRuntimeInstance(comp)
                 GetImports(
                     runtime,
                     "N.C.M",
@@ -444,7 +442,7 @@ End Namespace
             Dim aliases As Dictionary(Of String, AliasAndImportsClausePosition) = Nothing
             Dim xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
 
-            Dim runtime = CreateRuntimeInstance(comp, includeSymbols:=True)
+            Dim runtime = CreateRuntimeInstance(comp)
             GetImports(
                 runtime,
                 "root.N.C.M",

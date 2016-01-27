@@ -7,6 +7,7 @@ Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -45,17 +46,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Friend Function CreateRuntimeInstance(
             compilation As Compilation,
-            Optional includeSymbols As Boolean = True) As RuntimeInstance
+            Optional debugFormat As DebugInformationFormat = DebugInformationFormat.Pdb) As RuntimeInstance
 
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            compilation.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Return CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                references.AddIntrinsicAssembly(),
-                exeBytes,
-                If(includeSymbols, SymReaderFactory.CreateReader(pdbBytes, exeBytes), Nothing))
+            Dim instance = RuntimeInstance.Create(compilation, debugFormat)
+            _runtimeInstances.Add(instance)
+            Return instance
         End Function
 
         Friend Function CreateRuntimeInstance(
@@ -65,17 +60,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             symReader As ISymUnmanagedReader,
             Optional includeLocalSignatures As Boolean = True) As RuntimeInstance
 
-            Dim exeReference = AssemblyMetadata.CreateFromImage(exeBytes).GetReference(display:=assemblyName)
-            Dim modulesBuilder = ArrayBuilder(Of ModuleInstance).GetInstance()
-            ' Create modules for the references.
-            modulesBuilder.AddRange(references.Select(Function(r) r.ToModuleInstance(fullImage:=Nothing, symReader:=Nothing, includeLocalSignatures:=includeLocalSignatures)))
-            ' Create a module for the exe.
-            modulesBuilder.Add(exeReference.ToModuleInstance(exeBytes, symReader, includeLocalSignatures:=includeLocalSignatures))
-
-            Dim modules = modulesBuilder.ToImmutableAndFree()
-            modules.VerifyAllModules()
-
-            Return CreateRuntimeInstance(modules)
+            Dim instance = RuntimeInstance.Create(assemblyName, references, exeBytes.ToImmutableArray(), symReader, includeLocalSignatures)
+            _runtimeInstances.Add(instance)
+            Return instance
         End Function
 
         Friend Function CreateRuntimeInstance(modules As ImmutableArray(Of ModuleInstance)) As RuntimeInstance
@@ -202,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 {MscorlibRef_v4_0_30316_17626, SystemRef, MsvbRef},
                 options:=If(outputKind = OutputKind.DynamicallyLinkedLibrary, TestOptions.DebugDll, TestOptions.DebugExe))
 
-            Dim runtime = CreateRuntimeInstance(compilation0, includeSymbols)
+            Dim runtime = CreateRuntimeInstance(compilation0, If(includeSymbols, DebugInformationFormat.Pdb, Nothing))
             Dim context = CreateMethodContext(runtime, methodName, atLineNumber)
             Dim testData = New CompilationTestData()
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing

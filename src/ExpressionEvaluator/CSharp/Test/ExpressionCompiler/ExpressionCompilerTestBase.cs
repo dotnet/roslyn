@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Roslyn.Test.PdbUtilities;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -45,19 +46,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             _runtimeInstances.Free();
         }
 
-        internal RuntimeInstance CreateRuntimeInstance(
-            Compilation compilation,
-            bool includeSymbols = true)
+        internal RuntimeInstance CreateRuntimeInstance(Compilation compilation, DebugInformationFormat debugFormat = DebugInformationFormat.Pdb)
         {
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            compilation.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-            return CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                references.AddIntrinsicAssembly(),
-                exeBytes,
-                includeSymbols ? SymReaderFactory.CreateReader(pdbBytes, exeBytes) : null);
+            var instance = RuntimeInstance.Create(compilation, debugFormat);
+            _runtimeInstances.Add(instance);
+            return instance;
         }
 
         internal RuntimeInstance CreateRuntimeInstance(
@@ -67,17 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             ISymUnmanagedReader symReader,
             bool includeLocalSignatures = true)
         {
-            var exeReference = AssemblyMetadata.CreateFromImage(exeBytes).GetReference(display: assemblyName);
-            var modulesBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
-            // Create modules for the references
-            modulesBuilder.AddRange(references.Select(r => r.ToModuleInstance(fullImage: null, symReader: null, includeLocalSignatures: includeLocalSignatures)));
-            // Create a module for the exe.
-            modulesBuilder.Add(exeReference.ToModuleInstance(exeBytes, symReader, includeLocalSignatures: includeLocalSignatures));
-
-            var modules = modulesBuilder.ToImmutableAndFree();
-            modules.VerifyAllModules();
-
-            var instance = new RuntimeInstance(modules);
+            var instance = RuntimeInstance.Create(assemblyName, references, exeBytes.ToImmutableArray(), symReader, includeLocalSignatures);
             _runtimeInstances.Add(instance);
             return instance;
         }
@@ -192,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 source,
                 options: (outputKind == OutputKind.DynamicallyLinkedLibrary) ? TestOptions.DebugDll : TestOptions.DebugExe);
 
-            var runtime = CreateRuntimeInstance(compilation0, includeSymbols);
+            var runtime = CreateRuntimeInstance(compilation0, includeSymbols ? DebugInformationFormat.Pdb : 0);
             var context = CreateMethodContext(runtime, methodName, atLineNumber);
             var testData = new CompilationTestData();
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;

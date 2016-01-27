@@ -336,8 +336,7 @@ End Class
             Dim exeBytes As Byte() = Nothing
             Dim pdbBytes As Byte() = Nothing
             Dim unusedReferences As ImmutableArray(Of MetadataReference) = Nothing
-            Dim result = comp.EmitAndGetReferences(exeBytes, pdbBytes, unusedReferences)
-            Assert.True(result)
+            comp.EmitAndGetReferences(exeBytes, pdbBytes, unusedReferences)
 
             Dim runtime = CreateRuntimeInstance(
                 GetUniqueName(),
@@ -577,8 +576,7 @@ End Class"
             Dim exeBytes As Byte() = Nothing
             Dim pdbBytes As Byte() = Nothing
             Dim unusedReferences As ImmutableArray(Of MetadataReference) = Nothing
-            Dim result = comp.EmitAndGetReferences(exeBytes, pdbBytes, unusedReferences)
-            Assert.True(result)
+            comp.EmitAndGetReferences(exeBytes, pdbBytes, unusedReferences)
 
             Dim runtime = CreateRuntimeInstance(GetUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes))
             Return CreateMethodContext(runtime, methodName)

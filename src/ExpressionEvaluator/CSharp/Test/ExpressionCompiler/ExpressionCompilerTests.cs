@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 source,
                 options: TestOptions.DebugDll,
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0, includeSymbols: false);
+            var runtime = CreateRuntimeInstance(compilation0, debugFormat: 0);
             foreach (var module in runtime.Modules)
             {
                 Assert.Null(module.SymReader);
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
-            var runtime = CreateRuntimeInstance(compilation0, includeSymbols: false);
+            var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, methodName: "C.F");
             string error;
             var result = context.CompileExpression("x;", out error);
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
-            var runtime = CreateRuntimeInstance(compilation0, includeSymbols: false);
+            var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, methodName: "C.F");
             string error;
             // No format specifiers.
@@ -3930,8 +3930,7 @@ class C
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
-                expr: "sizeof(S)",
-                includeSymbols: false);
+                expr: "sizeof(S)");
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        7 (0x7)
@@ -4154,8 +4153,8 @@ class C
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
-                expr: "((D)(x => x + x))(1)",
-                includeSymbols: false);
+                expr: "((D)(x => x + x))(1)");
+
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"
 {
@@ -5577,8 +5576,7 @@ public class C
             byte[] exeBytes;
             byte[] pdbBytes;
             ImmutableArray<MetadataReference> unusedReferences;
-            var result = comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out unusedReferences);
-            Assert.True(result);
+            comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out unusedReferences);
 
             var runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.Create(MscorlibRef), exeBytes, SymReaderFactory.CreateReader(pdbBytes));
             var context = CreateMethodContext(runtime, "C.M");
@@ -5663,8 +5661,7 @@ public class Source
             byte[] exeBytes;
             byte[] pdbBytes;
             ImmutableArray<MetadataReference> unusedReferences;
-            var result = comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out unusedReferences);
-            Assert.True(result);
+            comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out unusedReferences);
 
             var runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.Create(MscorlibRef, libAv1Ref, libBv2Ref), exeBytes, SymReaderFactory.CreateReader(pdbBytes));
             var context = CreateMethodContext(runtime, "Source.Test");
@@ -5791,8 +5788,7 @@ public class C
             byte[] exeBytes;
             byte[] unusedPdbBytes;
             ImmutableArray<MetadataReference> references;
-            var result = comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
-            Assert.True(result);
+            comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
 
             ISymUnmanagedReader symReader = new MockSymUnmanagedReader(ImmutableDictionary<int, MethodDebugInfoBytes>.Empty);
 
@@ -5829,8 +5825,7 @@ public class C
             byte[] exeBytes;
             byte[] unusedPdbBytes;
             ImmutableArray<MetadataReference> references;
-            var result = comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
-            Assert.True(result);
+            comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
 
             var runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, NotImplementedSymUnmanagedReader.Instance);
             var evalContext = CreateMethodContext(runtime, "C.Main");

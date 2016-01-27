@@ -32,7 +32,7 @@ Public Class Derived
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp, includeSymbols:=False)
+            Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateTypeContext(runtime, "Derived")
             Dim errorMessage As String = Nothing
             Dim testData As New CompilationTestData()

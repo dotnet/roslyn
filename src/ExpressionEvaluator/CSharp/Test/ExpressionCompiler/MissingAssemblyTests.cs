@@ -747,8 +747,7 @@ class UseLinq
             byte[] exeBytes;
             byte[] pdbBytes;
             ImmutableArray<MetadataReference> unusedReferences;
-            var result = comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out unusedReferences);
-            Assert.True(result);
+            comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out unusedReferences);
 
             var runtime = CreateRuntimeInstance(GetUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes));
             return CreateMethodContext(runtime, methodName);

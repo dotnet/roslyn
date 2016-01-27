@@ -2672,8 +2672,7 @@ class C
             byte[] exeBytes;
             byte[] pdbBytes;
             ImmutableArray<MetadataReference> unusedReferences;
-            var result = comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out unusedReferences);
-            Assert.True(result);
+            comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out unusedReferences);
 
             var runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.Create(MscorlibRef, SystemRef, SystemCoreRef, SystemXmlLinqRef, libRef), exeBytes, SymReaderFactory.CreateReader(pdbBytes));
 
