@@ -407,6 +407,7 @@
     <Compile Include="DesignerFramework\WrapCheckBox.vb">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="GlobalSuppressions.vb" />
     <Compile Include="HelpKeywords.vb" />
     <Compile Include="interop\__PROJECTREFERENCETYPE.vb" />
     <Compile Include="interop\_LOGFONTW.vb" />
