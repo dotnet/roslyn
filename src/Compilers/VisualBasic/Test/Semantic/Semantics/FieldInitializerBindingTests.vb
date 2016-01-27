@@ -1545,13 +1545,13 @@ String
                     End If
                     Dim initValueLineNumber = syntaxTree.GetLineSpan(initValueSyntax.Span).StartLinePosition.Line
                     Assert.Equal(expectedInitializer.LineNumber, initValueLineNumber)
-                    Dim fieldSymbol As Symbol
+                    Dim fieldOrPropertySymbol As Symbol
                     If boundInit.Kind = BoundKind.FieldInitializer Then
-                        fieldSymbol = DirectCast(boundFieldInit, BoundFieldInitializer).InitializedFields.First
+                        fieldOrPropertySymbol = DirectCast(boundFieldInit, BoundFieldInitializer).InitializedFields.First
                     Else
-                        fieldSymbol = DirectCast(boundFieldInit, BoundPropertyInitializer).InitializedProperties.First
+                        fieldOrPropertySymbol = DirectCast(boundFieldInit, BoundPropertyInitializer).InitializedProperties.First
                     End If
-                    Assert.Equal(expectedInitializer.FieldName, fieldSymbol.Name)
+                    Assert.Equal(expectedInitializer.FieldName, fieldOrPropertySymbol.Name)
 
                     Dim boundReceiver As BoundExpression
                     Select Case boundFieldInit.MemberAccessExpressionOpt.Kind

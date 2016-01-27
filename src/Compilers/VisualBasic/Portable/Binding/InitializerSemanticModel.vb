@@ -114,38 +114,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         boundInitializers.Free()
                     End If
 
+                    Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)
+                    If expressionInitializer IsNot Nothing Then
+                        Return New BoundFieldInitializer(initializer, ImmutableArray.Create(DirectCast(Me.MemberSymbol, FieldSymbol)), Nothing, expressionInitializer)
+                    End If
+
                 Case SymbolKind.Property
                     '  get property symbol
-                    Dim propertySymbol = DirectCast(Me.MemberSymbol, SourcePropertySymbol)
+                    Dim propertySymbol = DirectCast(Me.MemberSymbol, PropertySymbol)
                     Dim boundInitializers = ArrayBuilder(Of BoundInitializer).GetInstance
-                    binder.BindPropertyInitializer(ImmutableArray.Create(Of PropertySymbol)(propertySymbol), initializer, boundInitializers, diagnostics)
+                    binder.BindPropertyInitializer(ImmutableArray.Create(propertySymbol), initializer, boundInitializers, diagnostics)
                     boundInitializer = boundInitializers.First
                     boundInitializers.Free()
+
+                    Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)
+                    If expressionInitializer IsNot Nothing Then
+                        Return New BoundPropertyInitializer(initializer, ImmutableArray.Create(propertySymbol), Nothing, expressionInitializer)
+                    End If
 
                 Case SymbolKind.Parameter
                     Debug.Assert(initializer IsNot Nothing)
                     If initializer.Kind = SyntaxKind.EqualsValue Then
                         Dim parameterSymbol = DirectCast(Me.RootBinder.ContainingMember, SourceComplexParameterSymbol)
                         boundInitializer = binder.BindParameterDefaultValue(parameterSymbol.Type, DirectCast(initializer, EqualsValueSyntax), diagnostics, constValue:=Nothing)
+
+                        Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)
+                        If expressionInitializer IsNot Nothing Then
+                            Return New BoundParameterEqualsValue(initializer, parameterSymbol, expressionInitializer)
+                        End If
                     End If
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(Me.MemberSymbol.Kind)
             End Select
-
-            Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)
-            If expressionInitializer IsNot Nothing Then
-                Select Case Me.MemberSymbol.Kind
-                    Case SymbolKind.Parameter
-                        Return New BoundParameterEqualsValue(initializer, DirectCast(Me.RootBinder.ContainingMember, ParameterSymbol), expressionInitializer)
-                    Case SymbolKind.Property
-                        Return New BoundPropertyInitializer(initializer, ImmutableArray.Create(DirectCast(Me.MemberSymbol, PropertySymbol)), Nothing, expressionInitializer)
-                    Case SymbolKind.Field
-                        Return New BoundFieldInitializer(initializer, ImmutableArray.Create(DirectCast(Me.MemberSymbol, FieldSymbol)), Nothing, expressionInitializer)
-                    Case Else
-                        Throw ExceptionUtilities.Unreachable
-                End Select
-            End If
 
             Return boundInitializer
         End Function

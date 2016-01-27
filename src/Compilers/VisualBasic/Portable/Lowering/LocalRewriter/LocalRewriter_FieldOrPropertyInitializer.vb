@@ -13,11 +13,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
 
         Public Overrides Function VisitFieldInitializer(node As BoundFieldInitializer) As BoundNode
-            Return VisitFieldOrPropertyInitializer(node, node.InitializedFields.Cast(Of Symbol)().ToImmutableArray())
+            Return VisitFieldOrPropertyInitializer(node, ImmutableArray(Of Symbol).CastUp(node.InitializedFields))
         End Function
 
         Public Overrides Function VisitPropertyInitializer(node As BoundPropertyInitializer) As BoundNode
-            Return VisitFieldOrPropertyInitializer(node, node.InitializedProperties.Cast(Of Symbol)().ToImmutableArray())
+            Return VisitFieldOrPropertyInitializer(node, ImmutableArray(Of Symbol).CastUp(node.InitializedProperties))
         End Function
 
         ''' <summary>

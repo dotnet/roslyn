@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Semantics
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -1128,7 +1127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
                 Get
-                    Return Me.Value.IsInvalid OrElse Me.InitializedProperty Is Nothing
+                    Return Me.Value.IsInvalid OrElse Me.InitializedProperty Is Nothing OrElse Me.InitializedProperty.SetMethod Is Nothing
                 End Get
             End Property
 
@@ -1375,7 +1374,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IInitializedFields As ImmutableArray(Of IFieldSymbol) Implements IFieldInitializer.InitializedFields
             Get
-                Return Me.InitializedFields.Cast(Of IFieldSymbol)().ToImmutableArray()
+                Return ImmutableArray(Of IFieldSymbol).CastUp(Me.InitializedFields)
             End Get
         End Property
 
@@ -1415,7 +1414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IIsInvalid As Boolean Implements IOperation.IsInvalid
             Get
-                Return (DirectCast(Me.Value, IExpression)).IsInvalid
+                Return DirectCast(Me.Value, IExpression).IsInvalid
             End Get
         End Property
 
