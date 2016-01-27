@@ -6,6 +6,7 @@ Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.Args.get -> Sy
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.CommandLineScriptGlobals(System.IO.TextWriter outputWriter, Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter objectFormatter) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.Print(object value) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.PrintOptions.get -> Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions
+Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter
 Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy
 Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy.FullPath.get -> string
 Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy.OriginalPath.get -> string
@@ -122,6 +123,8 @@ Microsoft.CodeAnalysis.Scripting.ScriptVariable.Value.set -> void
 abstract Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.FormatObject(object obj, Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions options) -> string
 abstract Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.FormatUnhandledException(System.Exception e) -> string
 abstract Microsoft.CodeAnalysis.Scripting.Script.ReturnType.get -> System.Type
+override Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.FormatObject(object obj, Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions options) -> string
+override Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.FormatUnhandledException(System.Exception e) -> string
 override Microsoft.CodeAnalysis.Scripting.Script<T>.ReturnType.get -> System.Type
 override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.Equals(object other) -> bool
 override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.GetHashCode() -> int

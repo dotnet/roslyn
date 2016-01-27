@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     /// <summary>
     /// Object pretty printer.
     /// </summary>
-    internal abstract partial class CommonObjectFormatter
+    public abstract partial class CommonObjectFormatter
     {
         /// <remarks>
         /// Internal for testing.

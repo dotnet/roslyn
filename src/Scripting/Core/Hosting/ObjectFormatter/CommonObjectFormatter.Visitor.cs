@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     using static ObjectFormatterHelpers;
     using TypeInfo = System.Reflection.TypeInfo;
 
-    internal abstract partial class CommonObjectFormatter
+    public abstract partial class CommonObjectFormatter
     {
         private sealed partial class Visitor
         {

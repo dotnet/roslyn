@@ -12,8 +12,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     /// <summary>
     /// Object pretty printer.
     /// </summary>
-    internal abstract partial class CommonObjectFormatter : ObjectFormatter
+    public abstract partial class CommonObjectFormatter : ObjectFormatter
     {
+        internal CommonObjectFormatter()
+        {
+            // Restrict subtyping.
+        }
+
         public override string FormatObject(object obj, PrintOptions options)
         {
             if (options == null)
@@ -28,10 +33,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return visitor.FormatObject(obj);
         }
 
-        protected virtual MemberFilter Filter { get; } = new CommonMemberFilter();
+        internal virtual MemberFilter Filter { get; } = new CommonMemberFilter();
 
-        protected abstract CommonTypeNameFormatter TypeNameFormatter { get; }
-        protected abstract CommonPrimitiveFormatter PrimitiveFormatter { get; }
+        internal abstract CommonTypeNameFormatter TypeNameFormatter { get; }
+        internal abstract CommonPrimitiveFormatter PrimitiveFormatter { get; }
 
         internal virtual BuilderOptions GetInternalBuilderOptions(PrintOptions printOptions) =>
             new BuilderOptions(
@@ -41,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 maximumLineLength: int.MaxValue,
                 maximumOutputLength: printOptions.MaximumOutputLength);
 
-        protected virtual CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions) =>
+        internal virtual CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions) =>
             new CommonPrimitiveFormatterOptions(
                 numberRadix: printOptions.NumberRadix,
                 includeCodePoints: false,
@@ -49,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 escapeNonPrintableCharacters: printOptions.EscapeNonPrintableCharacters,
                 cultureInfo: CultureInfo.CurrentUICulture);
 
-        protected virtual CommonTypeNameFormatterOptions GetTypeNameOptions(PrintOptions printOptions) =>
+        internal virtual CommonTypeNameFormatterOptions GetTypeNameOptions(PrintOptions printOptions) =>
             new CommonTypeNameFormatterOptions(
                 arrayBoundRadix: printOptions.NumberRadix,
                 showNamespaces: false);
@@ -137,6 +142,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return pooled.ToStringAndFree();
         }
 
-        protected abstract string FormatRefKind(ParameterInfo parameter);
+        internal abstract string FormatRefKind(ParameterInfo parameter);
     }
 }
