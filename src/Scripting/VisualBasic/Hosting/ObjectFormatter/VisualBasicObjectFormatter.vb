@@ -5,20 +5,22 @@ Imports Microsoft.CodeAnalysis.Scripting.Hosting
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
-    Friend Class VisualBasicObjectFormatter
+    Public Class VisualBasicObjectFormatter
         Inherits CommonObjectFormatter
 
-        Protected Overrides ReadOnly Property TypeNameFormatter As CommonTypeNameFormatter
-        Protected Overrides ReadOnly Property PrimitiveFormatter As CommonPrimitiveFormatter
-        Protected Overrides ReadOnly Property Filter As MemberFilter
+        Public Shared ReadOnly Property Instance As New VisualBasicObjectFormatter()
 
-        Public Sub New()
+        Friend Overrides ReadOnly Property TypeNameFormatter As CommonTypeNameFormatter
+        Friend Overrides ReadOnly Property PrimitiveFormatter As CommonPrimitiveFormatter
+        Friend Overrides ReadOnly Property Filter As MemberFilter
+
+        Friend Sub New()
             PrimitiveFormatter = New VisualBasicPrimitiveFormatter()
             TypeNameFormatter = New VisualBasicTypeNameFormatter(PrimitiveFormatter)
             Filter = New VisualBasicMemberFilter()
         End Sub
 
-        Protected Overrides Function FormatRefKind(parameter As ParameterInfo) As String
+        Friend Overrides Function FormatRefKind(parameter As ParameterInfo) As String
             Return If(parameter.IsOut, "ByRef", "")
         End Function
     End Class
