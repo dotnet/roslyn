@@ -1732,7 +1732,7 @@ class X
 
         [WorkItem(5362, "https://github.com/dotnet/roslyn/issues/5362")]
         [Fact]
-        public void TestColorColorSymbolInfoInArrowExpressionClauseSyntax()
+        public void TestColorColorSymbolInfoInArrowExpressionClauseSyntax_01()
         {
             const string source = @"public enum Lifetime
 {
@@ -1755,11 +1755,110 @@ public class Example
 
             var nameSyntax = syntaxRoot.FindNode(TextSpan.FromBounds(130, 138));
             Assert.Equal("Lifetime", nameSyntax.ToString());
+            //Assert.Equal("Lifetime.Persistent", nameSyntax.Parent.ToString());
+
+            var actualSymbol = semanticModel.GetSymbolInfo(nameSyntax);
+
+            //Assert.Equal("Lifetime", actualSymbol.Symbol.ToTestDisplayString());
+            //Assert.Equal(SymbolKind.NamedType, actualSymbol.Symbol.Kind);
+        }
+
+        [WorkItem(5362, "https://github.com/dotnet/roslyn/issues/5362")]
+        [Fact]
+        public void TestColorColorSymbolInfoInArrowExpressionClauseSyntax_02()
+        {
+            const string source = @"public enum Lifetime
+{
+    Persistent,
+    Transient,
+    Scoped
+}
+public class Example
+{
+    public Lifetime Lifetime => Lifetime.Persistent;
+    //                          ^^^^^^^^
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var syntaxRoot = syntaxTree.GetRoot();
+
+            var semanticModel = comp.GetSemanticModel(syntaxTree, false);
+
+            var nameSyntax = syntaxRoot.FindNode(TextSpan.FromBounds(130, 138));
+            //Assert.Equal("Lifetime", nameSyntax.ToString());
             Assert.Equal("Lifetime.Persistent", nameSyntax.Parent.ToString());
 
             var actualSymbol = semanticModel.GetSymbolInfo(nameSyntax);
 
+            //Assert.Equal("Lifetime", actualSymbol.Symbol.ToTestDisplayString());
+            //Assert.Equal(SymbolKind.NamedType, actualSymbol.Symbol.Kind);
+        }
+
+        [WorkItem(5362, "https://github.com/dotnet/roslyn/issues/5362")]
+        [Fact]
+        public void TestColorColorSymbolInfoInArrowExpressionClauseSyntax_03()
+        {
+            const string source = @"public enum Lifetime
+{
+    Persistent,
+    Transient,
+    Scoped
+}
+public class Example
+{
+    public Lifetime Lifetime => Lifetime.Persistent;
+    //                          ^^^^^^^^
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var syntaxRoot = syntaxTree.GetRoot();
+
+            var semanticModel = comp.GetSemanticModel(syntaxTree, false);
+
+            var nameSyntax = syntaxRoot.FindNode(TextSpan.FromBounds(130, 138));
+            //Assert.Equal("Lifetime", nameSyntax.ToString());
+            //Assert.Equal("Lifetime.Persistent", nameSyntax.Parent.ToString());
+
+            var actualSymbol = semanticModel.GetSymbolInfo(nameSyntax);
+
             Assert.Equal("Lifetime", actualSymbol.Symbol.ToTestDisplayString());
+            //Assert.Equal(SymbolKind.NamedType, actualSymbol.Symbol.Kind);
+        }
+
+        [WorkItem(5362, "https://github.com/dotnet/roslyn/issues/5362")]
+        [Fact]
+        public void TestColorColorSymbolInfoInArrowExpressionClauseSyntax_04()
+        {
+            const string source = @"public enum Lifetime
+{
+    Persistent,
+    Transient,
+    Scoped
+}
+public class Example
+{
+    public Lifetime Lifetime => Lifetime.Persistent;
+    //                          ^^^^^^^^
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var syntaxRoot = syntaxTree.GetRoot();
+
+            var semanticModel = comp.GetSemanticModel(syntaxTree, false);
+
+            var nameSyntax = syntaxRoot.FindNode(TextSpan.FromBounds(130, 138));
+            //Assert.Equal("Lifetime", nameSyntax.ToString());
+            //Assert.Equal("Lifetime.Persistent", nameSyntax.Parent.ToString());
+
+            var actualSymbol = semanticModel.GetSymbolInfo(nameSyntax);
+
+            //Assert.Equal("Lifetime", actualSymbol.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, actualSymbol.Symbol.Kind);
         }
 
