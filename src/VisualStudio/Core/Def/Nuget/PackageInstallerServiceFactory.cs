@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -36,7 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Nuget
         private IVsPackageInstallerServices _packageInstallerServices;
         private IVsPackageInstaller _packageInstaller;
 
-        private Task updateTask;
+        private CancellationTokenSource tokenSource = new CancellationTokenSource();
+        private bool solutionChanged;
+        private HashSet<ProjectId> changedProjects = new HashSet<ProjectId>();
 
         private readonly ConcurrentDictionary<ProjectId, HashSet<string>> projectToInstalledPackages = new ConcurrentDictionary<ProjectId, HashSet<string>>();
 
@@ -101,41 +104,61 @@ namespace Microsoft.VisualStudio.LanguageServices.Nuget
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
             // Can be called on any thread.
-
+            bool localSolutionChanged = false;
+            ProjectId localChangedProject = null;
             switch (e.Kind)
             {
+                default:
+                    // Nothing to do for any other events.
+                    return;
                 case WorkspaceChangeKind.ProjectAdded:
                 case WorkspaceChangeKind.ProjectChanged:
                 case WorkspaceChangeKind.ProjectReloaded:
                 case WorkspaceChangeKind.ProjectRemoved:
+                    localChangedProject = e.ProjectId;
+                    break;
+
                 case WorkspaceChangeKind.SolutionAdded:
                 case WorkspaceChangeKind.SolutionChanged:
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionReloaded:
                 case WorkspaceChangeKind.SolutionRemoved:
-                    lock (gate)
-                    {
-                        if (updateTask != null)
-                        {
-                            // There is already a pending update task.  Nothing to do.
-                            return;
-                        }
-
-                        // Because we may get a lot of events, we attempt to throttle things so that
-                        // we only update our nuget information once a second has passed.
-                        updateTask = Task.Delay(TimeSpan.FromSeconds(1)).ContinueWith(_ => OnWorkspaceChangedOnForeground(e), this.ForegroundTaskScheduler);
-                    }
+                    localSolutionChanged = true;
                     break;
+            }
+
+            lock (gate)
+            {
+                // Cancel any existing update task.
+                tokenSource.Cancel();
+                tokenSource = new CancellationTokenSource();
+
+                this.solutionChanged |= localSolutionChanged;
+                if (localChangedProject != null)
+                {
+                    this.changedProjects.Add(localChangedProject);
+                }
+
+                // Because we may get a lot of events, we attempt to throttle things so that
+                // we only update our nuget information once a second has passed.
+                var cancellationToken = tokenSource.Token;
+                Task.Delay(TimeSpan.FromSeconds(1), cancellationToken)
+                    .ContinueWith(OnWorkspaceChangedOnForeground, cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, this.ForegroundTaskScheduler);
             }
         }
 
-        private void OnWorkspaceChangedOnForeground(WorkspaceChangeEventArgs e)
+        private void OnWorkspaceChangedOnForeground(Task task)
         {
             this.AssertIsForeground();
+            bool localSolutionChanged;
+            HashSet<ProjectId> localChangedProjects;
             lock (gate)
             {
-                // clear out the existing 
-                updateTask = null;
+                localSolutionChanged = solutionChanged;
+                localChangedProjects = changedProjects;
+
+                solutionChanged = false;
+                changedProjects = new HashSet<ProjectId>();
             }
 
             if (_workspace == null || _packageInstallerServices == null)
@@ -143,21 +166,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Nuget
                 return;
             }
 
-            switch (e.Kind)
+            if (solutionChanged)
             {
-                case WorkspaceChangeKind.ProjectAdded:
-                case WorkspaceChangeKind.ProjectChanged:
-                case WorkspaceChangeKind.ProjectReloaded:
-                case WorkspaceChangeKind.ProjectRemoved:
-                    ProcessProjectChange(_workspace.CurrentSolution, e.ProjectId);
-                    break;
-                case WorkspaceChangeKind.SolutionAdded:
-                case WorkspaceChangeKind.SolutionChanged:
-                case WorkspaceChangeKind.SolutionCleared:
-                case WorkspaceChangeKind.SolutionReloaded:
-                case WorkspaceChangeKind.SolutionRemoved:
-                    ProcessSolutionChange();
-                    break;
+                ProcessSolutionChange();
+            }
+            else
+            {
+                var solution = _workspace.CurrentSolution;
+                foreach (var projectId in changedProjects)
+                {
+                    ProcessProjectChange(solution, projectId);
+                }
             }
         }
 
