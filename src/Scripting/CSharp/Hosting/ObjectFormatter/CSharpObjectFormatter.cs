@@ -5,20 +5,22 @@ using Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
-    internal class CSharpObjectFormatter : CommonObjectFormatter
+    public class CSharpObjectFormatter : CommonObjectFormatter
     {
-        protected override CommonTypeNameFormatter TypeNameFormatter { get; }
-        protected override CommonPrimitiveFormatter PrimitiveFormatter { get; }
-        protected override MemberFilter Filter { get; }
+        public static CSharpObjectFormatter Instance { get; } = new CSharpObjectFormatter();
 
-        public CSharpObjectFormatter()
+        internal override CommonTypeNameFormatter TypeNameFormatter { get; }
+        internal override CommonPrimitiveFormatter PrimitiveFormatter { get; }
+        internal override MemberFilter Filter { get; }
+
+        internal CSharpObjectFormatter()
         {
             PrimitiveFormatter = new CSharpPrimitiveFormatter();
             TypeNameFormatter = new CSharpTypeNameFormatter(PrimitiveFormatter);
             Filter = new CSharpMemberFilter();
         }
 
-        protected override string FormatRefKind(ParameterInfo parameter)
+        internal override string FormatRefKind(ParameterInfo parameter)
         {
             return parameter.IsOut
                 ? parameter.IsIn
