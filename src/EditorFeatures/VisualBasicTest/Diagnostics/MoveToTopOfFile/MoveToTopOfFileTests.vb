@@ -196,18 +196,18 @@ End Module</File>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOptionsWithTriviaMovedNextToOtherOptions() As Task
             Dim text = <File>
-Imports Microsoft
+Option Explicit Off
 
 Module Program
     Sub Main(args As String())
 
     End Sub
 End Module
-[|Imports System|] 'Comment</File>
+[|Option Compare Binary|] 'Comment</File>
 
             Dim expected = <File>
-Imports Microsoft
-Imports System 'Comment
+Option Explicit Off
+Option Compare Binary 'Comment
 
 Module Program
     Sub Main(args As String())
