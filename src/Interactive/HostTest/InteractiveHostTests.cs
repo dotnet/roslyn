@@ -48,8 +48,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             var remoteService = Host.TryGetService();
             Assert.NotNull(remoteService);
 
-            remoteService.SetTestObjectFormattingOptions();
-
             Host.SetPathsAsync(new[] { s_fxDir }, new[] { s_homeDir }, s_homeDir).Wait();
 
             // assert and remove logo:
@@ -1150,7 +1148,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
 
             Assert.Equal("", output);
             Assert.DoesNotContain("Unexpected", error, StringComparison.OrdinalIgnoreCase);
-            Assert.True(error.StartsWith(new Exception().ToString()));
+            Assert.True(error.StartsWith(new Exception().Message));
         }
 
         #region Submission result printing - null/void/value.
