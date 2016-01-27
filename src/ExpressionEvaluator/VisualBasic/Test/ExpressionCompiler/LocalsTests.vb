@@ -2578,7 +2578,6 @@ End Class"
             locals.Free()
         End Sub
 
-        <WorkItem(947, "unknown")>
         <Fact>
         Public Sub DuplicateEditorBrowsableAttributes()
             Const libSource = "

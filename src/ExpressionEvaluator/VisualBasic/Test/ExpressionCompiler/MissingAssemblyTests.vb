@@ -519,7 +519,6 @@ End Class
             Assert.Equal($"error BC30652: Reference required to assembly '{missingIdentity}' containing the type 'MissingType'. Add one to your project.", errorMessage)
         End Sub
 
-        <WorkItem(2547, "unknown")>
         <Fact>
         Public Sub TryDifferentLinqLibraryOnRetry()
             Dim source = "
