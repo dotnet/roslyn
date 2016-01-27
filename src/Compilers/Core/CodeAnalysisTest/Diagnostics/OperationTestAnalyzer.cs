@@ -636,19 +636,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterOperationAction(
                  (operationContext) =>
                  {
-                     var initializer = (IMemberInitializer)operationContext.Operation;
-                     switch (initializer.MemberInitializerKind)
-                     {
-                         case MemberInitializerKind.Field:
-                             Report(operationContext, initializer.Syntax, DoNotUseFieldInitializerDescriptor);
-                             break;
-                         case MemberInitializerKind.Property:
-                             Report(operationContext, initializer.Syntax, DoNotUsePropertyInitializerDescriptor);
-                             break;
-                     }
+                     var initializer = (ISymbolInitializer)operationContext.Operation;
+                     Report(operationContext, initializer.Syntax, initializer.Kind == OperationKind.FieldInitializerInCreation ? DoNotUseFieldInitializerDescriptor : DoNotUsePropertyInitializerDescriptor);
                  },
-                 OperationKind.FieldInitializer,
-                 OperationKind.PropertyInitializer);
+                 OperationKind.FieldInitializerInCreation,
+                 OperationKind.PropertyInitializerInCreation);
         }
 
         private static void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
@@ -1064,6 +1056,45 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             }
 
             return 0;
+        }
+    }
+
+    /// <summary>Analyzer used to test for initializer constructs for members and parameters.</summary>
+    public class EqualsValueTestAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor EqualsValueDescriptor = new DiagnosticDescriptor(
+            "EqualsValue",
+            "Equals Value",
+            "Equals value found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(EqualsValueDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     IFieldInitializer equalsValue = (IFieldInitializer)operationContext.Operation;
+                     if (equalsValue.InitializedFields[0].Name.StartsWith("F"))
+                     {
+                         operationContext.ReportDiagnostic(Diagnostic.Create(EqualsValueDescriptor, equalsValue.Syntax.GetLocation()));
+                     }
+                 },
+                 OperationKind.FieldInitializerAtDeclaration);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     IParameterInitializer equalsValue = (IParameterInitializer)operationContext.Operation;
+                     if (equalsValue.Parameter.Name.StartsWith("F"))
+                     {
+                         operationContext.ReportDiagnostic(Diagnostic.Create(EqualsValueDescriptor, equalsValue.Syntax.GetLocation()));
+                     }
+                 },
+                 OperationKind.ParameterInitializerAtDeclaration);
         }
     }
 }

@@ -46,7 +46,7 @@ Sub Foo()
 </File>, "Handles")
         End Function
 
-        <WorkItem(577941)>
+        <WorkItem(577941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577941")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoHandlesAfterIteratorTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>

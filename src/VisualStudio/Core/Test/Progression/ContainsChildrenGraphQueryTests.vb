@@ -67,8 +67,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WorkItem(789685)>
-        <WorkItem(794846)>
+        <WorkItem(789685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789685")>
+        <WorkItem(794846, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/794846")>
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function ContainsChildrenForNotYetLoadedSolution() As Task
             Using testState = Await ProgressionTestState.CreateAsync(

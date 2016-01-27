@@ -36,7 +36,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(958593)>
+        <WorkItem(958593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958593")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationInsideStringLiteral() As Task
             Dim markup = <a><![CDATA[
@@ -194,7 +194,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(968188)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationOnBaseExpression_ProtectedAccessibility() As Task
             Dim markup = <a><![CDATA[
@@ -221,7 +221,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(968188)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationOnBaseExpression_AbstractBase() As Task
             Dim markup = <a><![CDATA[
@@ -248,7 +248,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(968188)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationOnThisExpression_ProtectedAccessibility() As Task
             Dim markup = <a><![CDATA[
@@ -272,7 +272,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(968188)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationOnThisExpression_ProtectedAccessibility_Overridden() As Task
             Dim markup = <a><![CDATA[
@@ -298,7 +298,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(968188)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase() As Task
             Dim markup = <a><![CDATA[
@@ -322,7 +322,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(968188)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase_Overridden() As Task
             Dim markup = <a><![CDATA[
@@ -348,7 +348,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(968188)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationOnBaseExpression_ProtectedFriendAccessibility() As Task
             Dim markup = <a><![CDATA[
@@ -374,7 +374,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(968188)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationOnBaseMember_ProtectedAccessibility_ThroughType() As Task
             Dim markup = <a><![CDATA[
@@ -398,7 +398,7 @@ End Class
             Await TestAsync(markup, Nothing)
         End Function
 
-        <WorkItem(968188)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationOnBaseExpression_PrivateAccessibility() As Task
             Dim markup = <a><![CDATA[
@@ -422,7 +422,7 @@ End Class
             Await TestAsync(markup, Nothing)
         End Function
 
-        <WorkItem(968188)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationOnBaseExpression_Constructor() As Task
             Dim markup = <a><![CDATA[
@@ -445,7 +445,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(968188), WorkItem(544989)>
+        <WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188"), WorkItem(544989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544989")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationOnBaseExpression_Finalizer() As Task
             Dim markup = <a><![CDATA[
@@ -579,7 +579,7 @@ End Class]]></a>.Value
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(544068)>
+        <WorkItem(544068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544068")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestExtension() As Task
             Dim markup = <a><![CDATA[
@@ -639,7 +639,7 @@ $"List(Of 'a).Add(item As 'a)
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(545118)>
+        <WorkItem(545118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestStatic1() As Task
             Dim markup = <a><![CDATA[
@@ -665,7 +665,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(545118)>
+        <WorkItem(545118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestStatic2() As Task
             Dim markup = <a><![CDATA[
@@ -692,7 +692,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(539111)>
+        <WorkItem(539111, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539111")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestFilteringInOverloadedGenericMethods() As Task
             Dim markup = <a><![CDATA[
@@ -1737,7 +1737,7 @@ End Class
 
 #End Region
 
-        <WorkItem(543038)>
+        <WorkItem(543038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543038")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestSignatureHelpWhenALambdaExpressionDeclaredAndInvokedAtTheSameTime() As Task
             Dim markup = <text>
@@ -1813,7 +1813,7 @@ class C
         End Function
 
         <WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")>
-        <WorkItem(1068424)>
+        <WorkItem(1068424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestGenericParameters1() As Task
             Dim markup = <a><![CDATA[
@@ -1840,7 +1840,7 @@ End Class
         End Function
 
         <WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")>
-        <WorkItem(1068424)>
+        <WorkItem(1068424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestGenericParameters2() As Task
             Dim markup = <a><![CDATA[

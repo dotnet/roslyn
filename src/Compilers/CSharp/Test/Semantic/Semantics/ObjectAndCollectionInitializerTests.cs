@@ -521,7 +521,7 @@ class MyList<T> : ICollection<T>
         #region "Error Tests"
 
         [Fact]
-        [WorkItem(629368, "DevDiv")]
+        [WorkItem(629368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
         public void AddFieldUsedLikeMethod()
         {
             string source = @"
@@ -548,7 +548,7 @@ public class A : IEnumerable<int>
         }
 
         [Fact]
-        [WorkItem(629368, "DevDiv")]
+        [WorkItem(629368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
         public void AddPropertyUsedLikeMethod()
         {
             string source = @"
@@ -796,7 +796,7 @@ public class MemberInitializerTest
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(6, 21));
         }
 
-        [WorkItem(543936, "DevDiv")]
+        [WorkItem(543936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543936")]
         [Fact]
         public void CS0246_ERR_SingleTypeNameNotFound_02()
         {
@@ -1483,7 +1483,7 @@ public class E : IEnumerable
                 Diagnostic(ErrorCode.ERR_BadAccess, "1").WithArguments("E.Add(int)").WithLocation(12, 27));
         }
 
-        [WorkItem(543933, "DevDiv")]
+        [WorkItem(543933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543933")]
         [Fact]
         public void ObjectInitializerTest_InvalidComplexElementInitializerExpression()
         {
@@ -1512,7 +1512,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "{ x = 1 }").WithLocation(10, 44));
         }
 
-        [WorkItem(543933, "DevDiv")]
+        [WorkItem(543933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543933")]
         [Fact]
         public void ObjectInitializerTest_IncompleteComplexElementInitializerExpression()
         {
@@ -1550,7 +1550,7 @@ class Program
                 );
         }
 
-        [WorkItem(543961, "DevDiv")]
+        [WorkItem(543961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543961")]
         [Fact]
         public void CollectionInitializerTest_InvalidComplexElementInitializerSyntax()
         {
@@ -1587,7 +1587,7 @@ class Test
                 );
         }
 
-        [WorkItem(544484, "DevDiv")]
+        [WorkItem(544484, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544484")]
         [Fact]
         public void EmptyCollectionInitPredefinedType()
         {
@@ -1602,7 +1602,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "new int { }").WithArguments("Program.value"));
         }
 
-        [WorkItem(544349, "DevDiv")]
+        [WorkItem(544349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544349")]
         [Fact]
         public void CollectionInitializerTest_Bug_12635()
         {
@@ -1622,7 +1622,7 @@ class A
                 Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "Count").WithArguments("System.Collections.Generic.List<int>.Count", "int"));
         }
 
-        [WorkItem(544349, "DevDiv")]
+        [WorkItem(544349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544349")]
         [Fact]
         public void CollectionInitializerTest_Bug_12635_02()
         {
@@ -1661,7 +1661,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "StructProp").WithArguments("N.C.StructProp", "N.Struct"));
         }
 
-        [WorkItem(544570, "DevDiv")]
+        [WorkItem(544570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544570")]
         [Fact]
         public void CollectionInitializerTest_Bug_12977()
         {
@@ -1721,7 +1721,7 @@ public class A : IEnumerable
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
         }
 
-        [WorkItem(545123, "DevDiv")]
+        [WorkItem(545123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
         [Fact]
         public void VoidElementType_Bug_13402()
         {
@@ -1875,7 +1875,7 @@ class Test
 
         #endregion
 
-        [WorkItem(529787, "DevDiv")]
+        [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_01()
         {
@@ -1920,7 +1920,7 @@ class X : List<int>
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
         }
 
-        [WorkItem(529787, "DevDiv")]
+        [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_02()
         {
@@ -1963,7 +1963,7 @@ class X : Base
                          symbolInfo.CandidateSymbols.Select(s => s.ToTestDisplayString()).Order().ToArray());
         }
 
-        [WorkItem(529787, "DevDiv")]
+        [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_03()
         {
@@ -2017,7 +2017,7 @@ class Y
             Assert.Equal("void X.Add(System.String x)", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
         }
 
-        [WorkItem(529787, "DevDiv")]
+        [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_04()
         {
@@ -2054,7 +2054,7 @@ class X : List<int>
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
         }
 
-        [WorkItem(529787, "DevDiv")]
+        [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_05()
         {
@@ -2093,7 +2093,7 @@ class X : List<int>
             }
         }
 
-        [WorkItem(1084686, "DevDiv"), WorkItem(390, "CodePlex")]
+        [WorkItem(1084686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084686"), WorkItem(390, "CodePlex")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_CollectionInitializerWithinObjectInitializer_01()
         {
@@ -2136,7 +2136,7 @@ class Test
             }
         }
 
-        [WorkItem(1084686, "DevDiv"), WorkItem(390, "CodePlex")]
+        [WorkItem(1084686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084686"), WorkItem(390, "CodePlex")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_CollectionInitializerWithinObjectInitializer_02()
         {
@@ -2186,7 +2186,7 @@ class Test2
             }
         }
 
-        [WorkItem(1084686, "DevDiv"), WorkItem(390, "CodePlex")]
+        [WorkItem(1084686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084686"), WorkItem(390, "CodePlex")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_CollectionInitializerWithinObjectInitializer_03()
         {
@@ -2230,7 +2230,7 @@ class C : System.Collections.Generic.List<C>
             }
         }
 
-        [Fact, WorkItem(1073330)]
+        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerArray()
         {
             var source = @"
@@ -2251,7 +2251,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("C.a").WithLocation(4, 11));
         }
 
-        [Fact, WorkItem(1073330)]
+        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerMDArray()
         {
             var source = @"
@@ -2272,7 +2272,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("C.a").WithLocation(4, 12));
         }
 
-        [Fact, WorkItem(1073330)]
+        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerArraySemanticInfo()
         {
             var source = @"

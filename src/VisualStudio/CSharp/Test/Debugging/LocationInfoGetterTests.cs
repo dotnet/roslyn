@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        [WorkItem(527668), WorkItem(538415)]
+        [WorkItem(527668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668"), WorkItem(538415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538415")]
         public async Task TestMethod()
         {
             await TestAsync(
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        [WorkItem(527668)]
+        [WorkItem(527668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668")]
         public async Task TestNamespace()
         {
             await TestAsync(
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        [WorkItem(527668)]
+        [WorkItem(527668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668")]
         public async Task TestDottedNamespace()
         {
             await TestAsync(
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        [WorkItem(527668)]
+        [WorkItem(527668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668")]
         public async Task TestNestedType()
         {
             await TestAsync(
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        [WorkItem(527668)]
+        [WorkItem(527668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668")]
         public async Task TestPropertyGetter()
         {
             await TestAsync(
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        [WorkItem(527668)]
+        [WorkItem(527668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668")]
         public async Task TestPropertySetter()
         {
             await TestAsync(
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        [WorkItem(538415)]
+        [WorkItem(538415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538415")]
         public async Task TestField()
         {
             await TestAsync(
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        [WorkItem(543494)]
+        [WorkItem(543494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543494")]
         public async Task TestLambdaInFieldInitializer()
         {
             await TestAsync(
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        [WorkItem(543494)]
+        [WorkItem(543494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543494")]
         public async Task TestMultipleFields()
         {
             await TestAsync(

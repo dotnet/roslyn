@@ -559,7 +559,7 @@ class C
 ");
         }
 
-        [WorkItem(540146, "DevDiv")]
+        [WorkItem(540146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540146")]
         [Fact]
         public void NestedClosureThisConstructorInitializer()
         {
@@ -675,7 +675,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "xxxpass");
         }
 
-        [WorkItem(541258, "DevDiv")]
+        [WorkItem(541258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541258")]
         [Fact]
         public void CatchVarLifted1()
         {
@@ -3227,7 +3227,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "12");
         }
 
-        [WorkItem(539346, "DevDiv")]
+        [WorkItem(539346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539346")]
         [Fact]
         public void CachedLambdas()
         {
@@ -3993,7 +3993,7 @@ public class C
 
         #region "Regressions"
 
-        [WorkItem(539439, "DevDiv")]
+        [WorkItem(539439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539439")]
         [Fact]
         public void LambdaWithReturn()
         {
@@ -4016,7 +4016,7 @@ class Program
         /// Based on MadsT blog post:
         /// http://blogs.msdn.com/b/madst/archive/2007/05/11/recursive-lambda-expressions.aspx
         /// </remarks>
-        [WorkItem(540034, "DevDiv")]
+        [WorkItem(540034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540034")]
         [Fact]
         public void YCombinatorTest()
         {
@@ -4073,7 +4073,7 @@ public class Program
 );
         }
 
-        [WorkItem(540035, "DevDiv")]
+        [WorkItem(540035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540035")]
         [Fact]
         public void LongNameTest()
         {
@@ -4125,7 +4125,7 @@ namespace Lambda.Bugs
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "() => x").WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo>b__0").WithLocation(19, 31));
         }
 
-        [WorkItem(540049, "DevDiv")]
+        [WorkItem(540049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540049")]
         [Fact]
         public void LambdaWithUnreachableCode()
         {
@@ -4146,7 +4146,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "7");
         }
 
-        [WorkItem(1019237, "DevDiv")]
+        [WorkItem(1019237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019237")]
         [Fact]
         public void OrderOfDelegateMembers()
         {
@@ -4181,7 +4181,7 @@ Int32 EndInvoke(System.IAsyncResult)
 ");
         }
 
-        [WorkItem(540092, "DevDiv")]
+        [WorkItem(540092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540092")]
         [Fact]
         public void NestedAnonymousMethodsusingLocalAndField()
         {
@@ -4227,7 +4227,7 @@ class Test
             CompileAndVerify(source, expectedOutput: "111");
         }
 
-        [WorkItem(540129, "DevDiv")]
+        [WorkItem(540129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540129")]
         [Fact]
         public void CacheStaticAnonymousMethodInField()
         {
@@ -4264,7 +4264,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: "PASS");
         }
 
-        [WorkItem(540147, "DevDiv")]
+        [WorkItem(540147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540147")]
         [Fact]
         public void CapturedVariableNamedThis()
         {
@@ -4348,7 +4348,7 @@ False");
         }
 
 
-        [WorkItem(540178, "DevDiv")]
+        [WorkItem(540178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540178")]
         [Fact]
         public void NestedGenericLambda()
         {
@@ -4375,7 +4375,7 @@ class Program
                 expectedOutput: "");
         }
 
-        [WorkItem(540768, "DevDiv")]
+        [WorkItem(540768, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540768")]
         [Fact]
         public void TestClosureMethodAccessibility()
         {
@@ -4401,7 +4401,7 @@ class Test
             });
         }
 
-        [WorkItem(541008, "DevDiv")]
+        [WorkItem(541008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541008")]
         [Fact]
         public void TooEarlyForThis()
         {
@@ -4433,7 +4433,7 @@ class Program
                 expectedOutput: "11102");
         }
 
-        [WorkItem(542062, "DevDiv")]
+        [WorkItem(542062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542062")]
         [Fact]
         public void TestLambdaNoClosureClass()
         {
@@ -4469,7 +4469,7 @@ class Test
 ");
         }
 
-        [WorkItem(543087, "DevDiv")]
+        [WorkItem(543087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543087")]
         [Fact]
         public void LambdaInGenericMethod()
         {
@@ -4508,7 +4508,7 @@ class Test
                 expectedOutput: "True");
         }
 
-        [WorkItem(543344, "DevDiv")]
+        [WorkItem(543344, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543344")]
         [Fact]
         public void AnonymousMethodOmitParameterList()
         {
@@ -4535,7 +4535,7 @@ class C
                 expectedOutput: "0");
         }
 
-        [WorkItem(543345, "DevDiv")]
+        [WorkItem(543345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543345")]
         [Fact()]
         public void ExtraCompilerGeneratedAttribute()
         {
@@ -4575,7 +4575,7 @@ class Test
             var compilation = CompileAndVerify(source, expectedOutput: "0");
         }
 
-        [WorkItem(545430, "DevDiv")]
+        [WorkItem(545430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545430")]
         [Fact]
         public void CacheNonStaticLambdaInGenericMethod()
         {
@@ -4917,7 +4917,7 @@ class D
         }
 
 
-        [WorkItem(546211, "DevDiv")]
+        [WorkItem(546211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546211")]
         [Fact]
         public void LambdaInCatchInLambdaInInstance()
         {
@@ -4959,7 +4959,7 @@ class VsCatalogProvider
             var compilation = CompileAndVerify(source, expectedOutput: "success");
         }
 
-        [WorkItem(546748, "DevDiv")]
+        [WorkItem(546748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546748")]
         [Fact]
         public void LambdaWithCatchTypeParameter()
         {
@@ -4986,7 +4986,7 @@ class Program
             CompileAndVerify(source);
         }
 
-        [WorkItem(546748, "DevDiv")]
+        [WorkItem(546748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546748")]
         [Fact]
         public void LambdaWithCapturedCatchTypeParameter()
         {
@@ -5016,7 +5016,7 @@ class Program
             var compilation = CompileAndVerify(source);
         }
 
-        [WorkItem(530911, "DevDiv")]
+        [WorkItem(530911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530911")]
         [Fact]
         public void LambdaWithOutParameter()
         {
@@ -5047,7 +5047,7 @@ class Program
             var compilation = CompileAndVerify(source);
         }
 
-        [WorkItem(691006, "DevDiv")]
+        [WorkItem(691006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691006")]
         [Fact]
         public void LambdaWithSwitch()
         {

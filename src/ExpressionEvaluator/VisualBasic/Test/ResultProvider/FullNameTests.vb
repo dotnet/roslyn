@@ -141,7 +141,7 @@ End Class
             Assert.Equal("a, ac, raw", root.FullName)
         End Sub
 
-        <Fact, WorkItem(1022165)>
+        <Fact, WorkItem(1022165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022165")>
         Public Sub Keywords_Root()
             Dim source = "
 Class C

@@ -218,7 +218,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86))>
-        <WorkItem(530374, "DevDiv")>
+        <WorkItem(530374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530374")>
         Public Sub RoundtripSerializeDeepExpression()
             Dim text = <Foo><![CDATA[
 Module Module15
@@ -425,7 +425,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(530374, "DevDiv")>
+        <WorkItem(530374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530374")>
         Public Sub RoundtripSerializeDeepExpression2()
             Dim text = <Foo><![CDATA[
 Module GroupJoin2
@@ -439,7 +439,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(1038237)>
+        <WorkItem(1038237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038237")>
         Public Sub RoundTripPragmaDirective()
             Dim text = <Foo><![CDATA[
 #Disable Warning BC40000

@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public Class ModuleNameSimplifierTest
         Inherits AbstractSimplificationTests
 
-        <WorkItem(624131)>
+        <WorkItem(624131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624131")>
         <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyModuleNameInNewStatement() As Task
             Dim input =
@@ -162,7 +162,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(608198)>
+        <WorkItem(608198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608198")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontSimplifyModuleNameInFieldInitializerAndConflictOfModuleNameAndField() As Task
             Dim input =
@@ -186,7 +186,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(608198)>
+        <WorkItem(608198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608198")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontSimplifyModuleNameInFieldInitializerAndConflictOfModuleNameAndField_2() As Task
             Dim input =

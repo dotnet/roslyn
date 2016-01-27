@@ -154,7 +154,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(544000, "DevDiv")>
+        <WorkItem(544000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544000")>
         Public Sub TestLambdaNameStability()
             Dim source =
             <compilation>
@@ -471,7 +471,7 @@ End Class
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery()
             Dim source =
@@ -631,7 +631,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_01()
             Dim source =
@@ -709,7 +709,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_02()
             Dim source =
@@ -814,7 +814,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_03()
             Dim source =
@@ -901,7 +901,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_04()
             Dim source =
@@ -997,7 +997,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_05()
             Dim source =
@@ -1084,7 +1084,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_06()
             Dim source =
@@ -1171,7 +1171,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_07()
             Dim source =
@@ -1259,7 +1259,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_08()
             Dim source =
@@ -1365,7 +1365,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_09()
             Dim source =
@@ -1485,7 +1485,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_10()
             Dim source =
@@ -1592,7 +1592,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_11()
             Dim source =
@@ -1766,7 +1766,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_12()
             Dim source =
@@ -1885,7 +1885,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_13()
             Dim source =
@@ -1982,7 +1982,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_14()
             Dim source =
@@ -2079,7 +2079,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_15()
             Dim source =
@@ -2176,7 +2176,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_16()
             Dim source =
@@ -2251,7 +2251,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_17()
             Dim source =
@@ -2326,7 +2326,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_18()
             Dim source =
@@ -2425,7 +2425,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_19()
             Dim source =
@@ -2542,7 +2542,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_20()
             Dim source =
@@ -2661,7 +2661,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_21()
             Dim source =
@@ -2767,7 +2767,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_22()
             Dim source =
@@ -2883,7 +2883,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_23()
             Dim source =
@@ -2999,7 +2999,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_24()
             Dim source =
@@ -3107,7 +3107,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_25()
             Dim source =
@@ -3234,7 +3234,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_26()
             Dim source =
@@ -3370,7 +3370,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_27()
             Dim source =
@@ -3487,7 +3487,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_28()
             Dim source =
@@ -3623,7 +3623,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_29()
             Dim source =
@@ -3768,7 +3768,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_30()
             Dim source =
@@ -3858,7 +3858,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
+        <WorkItem(824944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824944")>
         <Fact()>
         Public Sub SequencePointsInAQuery_31()
             Dim source =
@@ -3959,7 +3959,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(841361, "DevDiv")>
+        <WorkItem(841361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/841361")>
         <Fact()>
         Public Sub SequencePointsInAQuery_32()
             Dim source =

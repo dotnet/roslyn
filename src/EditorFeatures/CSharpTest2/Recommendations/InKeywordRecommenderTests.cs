@@ -107,7 +107,7 @@ $$");
           join z in $$"));
         }
 
-        [WorkItem(544158)]
+        [WorkItem(544158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterJoinPredefinedType()
         {
@@ -121,7 +121,7 @@ class C {
                 join int $$");
         }
 
-        [WorkItem(544158)]
+        [WorkItem(544158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterJoinType()
         {
@@ -276,7 +276,7 @@ class C {
 @"var q2 = from x $$ ((IEnumerable)src))"));
         }
 
-        [WorkItem(544158)]
+        [WorkItem(544158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterFromPredefinedType()
         {
@@ -289,7 +289,7 @@ class C {
         var q = from int $$");
         }
 
-        [WorkItem(544158)]
+        [WorkItem(544158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterFromType()
         {

@@ -1400,7 +1400,7 @@ End Class
             locals.Free()
         End Sub
 
-        <Fact, WorkItem(1002672, "DevDiv")>
+        <Fact, WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
         Public Sub Async_InstanceMethod_Generic()
             Const source = "
 Imports System.Threading.Tasks
@@ -1489,7 +1489,7 @@ End Structure
             locals.Free()
         End Sub
 
-        <Fact, WorkItem(1002672, "DevDiv")>
+        <Fact, WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
         Public Sub Async_StaticMethod()
             Const source = "
 Imports System.Threading.Tasks
@@ -1555,10 +1555,10 @@ End Class
             locals.Free()
         End Sub
 
-        <WorkItem(995976)>
-        <WorkItem(997613)>
-        <WorkItem(1002672)>
-        <WorkItem(1085911)>
+        <WorkItem(995976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995976")>
+        <WorkItem(997613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997613")>
+        <WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
+        <WorkItem(1085911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085911")>
         <Fact>
         Public Sub AsyncAndLambda()
             Const source =
@@ -1627,7 +1627,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <WorkItem(2240)>
+        <WorkItem(2240, "https://github.com/dotnet/roslyn/issues/2240")>
         <Fact>
         Public Sub AsyncLambda()
             Const source =
@@ -1679,7 +1679,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <WorkItem(996571)>
+        <WorkItem(996571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/996571")>
         <Fact>
         Public Sub MissingReference()
             Const source0 =
@@ -1759,7 +1759,7 @@ End Class
 }")
         End Sub
 
-        <WorkItem(1015887)>
+        <WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")>
         <Fact>
         Public Sub LocalDateConstant()
             Const source = "
@@ -1809,7 +1809,7 @@ End Class
 }")
         End Sub
 
-        <WorkItem(1015887)>
+        <WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")>
         <Fact>
         Public Sub LocalDecimalConstant()
             Const source = "
@@ -1853,7 +1853,7 @@ End Class
 }")
         End Sub
 
-        <Fact, WorkItem(1022165), WorkItem(1028883), WorkItem(1034204)>
+        <Fact, WorkItem(1022165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022165"), WorkItem(1028883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028883"), WorkItem(1034204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034204")>
         Public Sub KeywordIdentifiers()
             Const source = "
 Class C
@@ -1978,7 +1978,7 @@ End Module
             Assert.Equal(SpecialType.System_Int32, methodData.Method.ReturnType.SpecialType)
         End Sub
 
-        <WorkItem(1014763)>
+        <WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")>
         <Fact>
         Public Sub TypeVariablesTypeParameterNames()
             Const source = "
@@ -2012,7 +2012,7 @@ End Class
             Assert.Equal("T", typeVariablesType.TypeArguments.Single().Name)
         End Sub
 
-        <Fact, WorkItem(1063254)>
+        <Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")>
         Public Sub OverloadedIteratorDifferentParameterTypes_ArgumentsOnly()
             Dim source = "
 Imports System.Collections.Generic
@@ -2095,7 +2095,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <Fact, WorkItem(1063254)>
+        <Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")>
         Public Sub OverloadedAsyncDifferentParameterTypes_ArgumentsOnly()
             Dim source = "
 Imports System.Threading.Tasks
@@ -2175,7 +2175,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <Fact, WorkItem(1063254)>
+        <Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")>
         Public Sub MultipleLambdasDifferentParameterNames_ArgumentsOnly()
             Dim source = "
 Imports System
@@ -2245,7 +2245,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <Fact, WorkItem(1063254)>
+        <Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")>
         Public Sub OverloadedRegularMethodDifferentParameterTypes_ArgumentsOnly()
             Dim source = "
 Class C
@@ -2334,7 +2334,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <Fact, WorkItem(1063254)>
+        <Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")>
         Public Sub MultipleMethodsLocalConflictsWithParameterName_ArgumentsOnly()
             Dim source = "
 Imports System.Collections.Generic
@@ -2445,7 +2445,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <WorkItem(1115044, "DevDiv")>
+        <WorkItem(1115044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115044")>
         <Fact>
         Public Sub CaseSensitivity()
             Const source = "
@@ -2491,7 +2491,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1115030)>
+        <WorkItem(1115030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115030")>
         <Fact>
         Public Sub CatchInAsyncStateMachine()
             Const source =
@@ -2550,7 +2550,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <WorkItem(1115030)>
+        <WorkItem(1115030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115030")>
         <Fact>
         Public Sub CatchInIteratorStateMachine()
             Const source =
@@ -2610,7 +2610,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <WorkItem(947)>
+        <WorkItem(947, "unknown")>
         <Fact>
         Public Sub DuplicateEditorBrowsableAttributes()
             Const libSource = "
@@ -2750,7 +2750,7 @@ End Class
             locals.Free()
         End Sub
 
-        <WorkItem(1139013, "DevDiv")>
+        <WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
         <Fact>
         Public Sub TransparentIdentifiers_FromParameter()
             Const source = "
@@ -2833,7 +2833,7 @@ End Class
             testData.GetMethodData("<>x.<>m0").VerifyIL(yIL)
         End Sub
 
-        <WorkItem(1139013, "DevDiv")>
+        <WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
         <Fact>
         Public Sub TransparentIdentifiers_FromDisplayClassField()
             Const source = "
@@ -2938,7 +2938,7 @@ End Class
             testData.GetMethodData("<>x.<>m0").VerifyIL(yIL)
         End Sub
 
-        <WorkItem(1139013, "DevDiv")>
+        <WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
         <Fact>
         Public Sub TransparentIdentifiers_It1()
             Const source = "
@@ -3017,7 +3017,7 @@ End Class
             testData.GetMethodData("<>x.<>m0").VerifyIL(yIL)
         End Sub
 
-        <WorkItem(1139013, "DevDiv")>
+        <WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
         <Fact>
         Public Sub TransparentIdentifiers_It2()
             Const source = "
@@ -3097,7 +3097,7 @@ End Class
             testData.GetMethodData("<>x.<>m0").VerifyIL(zIL)
         End Sub
 
-        <WorkItem(1139013, "DevDiv")>
+        <WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
         <Fact>
         Public Sub TransparentIdentifiers_ItAnonymous()
             Const source = "

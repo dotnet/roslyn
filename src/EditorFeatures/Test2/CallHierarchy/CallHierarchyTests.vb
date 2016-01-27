@@ -174,7 +174,7 @@ public class D : I
             testState.VerifyResult(root, String.Format(EditorFeaturesResources.ImplementsArg, "foo"), {"C.C.foo()"}, CallHierarchySearchScope.CurrentDocument, documents)
         End Function
 
-        <WorkItem(981869)>
+        <WorkItem(981869, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981869")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Async Function TestCallHierarchyCrossProjectNavigation() As Task
             Dim input =
@@ -213,7 +213,7 @@ class CSharpIt : IChangeSignatureOptionsService
                                  CallHierarchySearchScope.EntireSolution)
         End Function
 
-        <WorkItem(844613)>
+        <WorkItem(844613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844613")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Async Function TestMustInheritMethodInclusionToOverrides() As Task
             Dim input =
@@ -240,7 +240,7 @@ End Class
             testState.VerifyResult(root, EditorFeaturesResources.Overrides, {"Derived.M()"})
         End Function
 
-        <WorkItem(1022864)>
+        <WorkItem(1022864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022864")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Async Function TestNavigateCrossProject() As Task
             Dim input =
@@ -273,7 +273,7 @@ class D : C
             Assert.NotNull(mockNavigationService.TryNavigateToSymbolProvidedProject)
         End Function
 
-        <WorkItem(1022864)>
+        <WorkItem(1022864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022864")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Async Function TestUseDocumentIdWhenNavigating() As Task
             Dim input =
@@ -312,7 +312,7 @@ namespace N
             Assert.NotEqual(navigationService.ProvidedTextSpan, Nothing)
         End Function
 
-        <WorkItem(1098507)>
+        <WorkItem(1098507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098507")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Async Function TestDisplayErrorWhenNotOnMemberCS() As Task
             Dim input =
@@ -334,7 +334,7 @@ cla$$ss C
             Assert.NotNull(testState.NotificationMessage)
         End Function
 
-        <WorkItem(1098507)>
+        <WorkItem(1098507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098507")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Async Function TestDisplayErrorWhenNotOnMemberVB() As Task
             Dim input =

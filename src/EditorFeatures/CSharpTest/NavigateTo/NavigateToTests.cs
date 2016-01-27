@@ -839,7 +839,7 @@ class D
             }
         }
 
-        [WorkItem(1174255)]
+        [WorkItem(1174255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174255")]
         [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task NoNavigationToGeneratedFiles()
         {

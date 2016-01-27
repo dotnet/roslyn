@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("OtherSymbol", (d3.Info as CustomErrorInfo).OtherSymbol);
         }
 
-        [WorkItem(537801, "DevDiv")]
+        [WorkItem(537801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537801")]
         [Fact]
         public void MissingNamespaceOpenBracket()
         {
@@ -74,7 +74,7 @@ End namespace
             Assert.InRange(actualErrors.Count(), 1, int.MaxValue);
         }
 
-        [WorkItem(540086, "DevDiv")]
+        [WorkItem(540086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540086")]
         [Fact]
         public void ErrorApplyIndexingToMethod()
         {
@@ -111,7 +111,7 @@ public class A
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadIndexLHS, Line = 10, Column = 34 });
         }
 
-        [WorkItem(540329, "DevDiv")]
+        [WorkItem(540329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540329")]
         [Fact]
         public void ErrorMemberAccessOnLiteralToken()
         {
@@ -132,7 +132,7 @@ class X
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, @"null.Length").WithArguments(".", "<null>"));
         }
 
-        [WorkItem(542911, "DevDiv")]
+        [WorkItem(542911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542911")]
         [Fact]
         public void WarningLevel_1()
         {
@@ -153,7 +153,7 @@ class X
             }
         }
 
-        [WorkItem(542911, "DevDiv")]
+        [WorkItem(542911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542911")]
         [Fact]
         public void WarningLevel_2()
         {
@@ -1895,7 +1895,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_IdentifierOrNumericLiteralExpected, ","));
         }
 
-        [WorkItem(546814, "DevDiv")]
+        [WorkItem(546814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546814")]
         [Fact]
         public void PragmaWarning_NoValidationForErrorCodes4()
         {
@@ -1918,7 +1918,7 @@ class Program
             CreateCompilationWithMscorlib(text, options: commonoption).VerifyDiagnostics();
         }
 
-        [WorkItem(546814, "DevDiv")]
+        [WorkItem(546814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546814")]
         [Fact]
         public void PragmaWarning_NoValidationForErrorCodes5()
         {
@@ -1993,7 +1993,7 @@ class Program
             Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "var y").Start));
         }
 
-        [WorkItem(545407, "DevDiv")]
+        [WorkItem(545407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545407")]
         [Fact]
         public void PragmaWarningDirectiveMapAtTheFirstLine()
         {
@@ -2017,7 +2017,7 @@ class Program
             return new TextSpan(index, textToFind.Length);
         }
 
-        [WorkItem(543705, "DevDiv")]
+        [WorkItem(543705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543705")]
         [Fact]
         public void GetDiagnosticsCalledTwice()
         {

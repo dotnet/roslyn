@@ -3185,7 +3185,7 @@ BC30521: Overload resolution failed because no accessible 'Foo' is most specific
 </expected>)
         End Sub
 
-        <WorkItem(545633, "DevDiv")>
+        <WorkItem(545633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545633")>
         <Fact>
         Public Sub Bug14186a()
 
@@ -3214,7 +3214,7 @@ End Module
             CompileAndVerify(compilationDef, expectedOutput:="A;")
         End Sub
 
-        <WorkItem(545633, "DevDiv")>
+        <WorkItem(545633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545633")>
         <Fact>
         Public Sub Bug14186b()
 
@@ -3249,7 +3249,7 @@ BC30518: Overload resolution failed because no accessible 'Equal' can be called 
 </expected>)
         End Sub
 
-        <WorkItem(545633, "DevDiv")>
+        <WorkItem(545633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545633")>
         <Fact>
         Public Sub Bug14186c()
 
@@ -3290,7 +3290,7 @@ BC30521: Overload resolution failed because no accessible 'Equal' is most specif
 </expected>)
         End Sub
 
-        <WorkItem(545633, "DevDiv")>
+        <WorkItem(545633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545633")>
         <Fact>
         Public Sub Bug14186d()
 
@@ -3326,7 +3326,7 @@ End Module
             CompileAndVerify(compilationDef, expectedOutput:="B;A;")
         End Sub
 
-        <WorkItem(545633, "DevDiv")>
+        <WorkItem(545633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545633")>
         <Fact>
         Public Sub Bug14186e()
 
@@ -3893,7 +3893,7 @@ BC30519: Overload resolution failed because no accessible 'F2' can be called wit
 
 
 
-        <Fact(), WorkItem(527622, "DevDiv")>
+        <Fact(), WorkItem(527622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527622")>
         Public Sub NoisyDiagnostics()
 
             Dim compilationDef =
@@ -4115,7 +4115,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Object' to 'Strin
 </expected>)
         End Sub
 
-        <WorkItem(539850, "DevDiv")>
+        <WorkItem(539850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539850")>
         <Fact>
         Public Sub TestConversionFromZeroLiteralToEnum()
 
@@ -4147,7 +4147,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="abc")
         End Sub
 
-        <WorkItem(528006, "DevDiv")>
+        <WorkItem(528006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528006")>
         <Fact()>
         Public Sub TestConversionFromZeroLiteralToNullableEnum()
 
@@ -4174,7 +4174,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="abc")
         End Sub
 
-        <WorkItem(528011, "DevDiv")>
+        <WorkItem(528011, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528011")>
         <Fact()>
         Public Sub TestInvocationWithNamedArgumentInLambda()
 
@@ -4260,7 +4260,7 @@ BC30521: Overload resolution failed because no accessible 'Bar' is most specific
                       ~~~]]>)
         End Sub
 
-        <WorkItem(539994, "DevDiv")>
+        <WorkItem(539994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539994")>
         <Fact>
         Public Sub MethodTypeParameterInferenceBadArg()
             ' Method type parameter inference should complete in the case where
@@ -4475,7 +4475,7 @@ BC30389: 'Module2.P2(x As Integer)' is not accessible in this context because it
 
         End Sub
 
-        <Fact, WorkItem(545574, "DevDiv")>
+        <Fact, WorkItem(545574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545574")>
         Public Sub OverloadWithIntermediateDifferentMember1()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -4511,7 +4511,7 @@ BC40004: function 'Foo' conflicts with property 'Foo' in the base class 'B' and 
                                                             </expected>)
         End Sub
 
-        <Fact, WorkItem(545574, "DevDiv")>
+        <Fact, WorkItem(545574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545574")>
         Public Sub OverloadWithIntermediateDifferentMember2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -4550,7 +4550,7 @@ BC40004: function 'Foo' conflicts with property 'Foo' in the base class 'B' and 
                                                             </expected>)
         End Sub
 
-        <Fact, WorkItem(545574, "DevDiv")>
+        <Fact, WorkItem(545574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545574")>
         Public Sub OverloadWithIntermediateDifferentMember3()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -4587,7 +4587,7 @@ BC40004: function 'Foo' conflicts with property 'Foo' in the base interface 'B' 
                                                             </expected>)
         End Sub
 
-        <Fact, WorkItem(545520, "DevDiv")>
+        <Fact, WorkItem(545520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545520")>
         Public Sub OverloadSameSigBetweenFunctionAndSub()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -4617,7 +4617,7 @@ BC32016: 'Public Shared Overloads Sub Foo()' has no parameters and its return ty
                                                             </expected>)
         End Sub
 
-        <Fact, WorkItem(545520, "DevDiv")>
+        <Fact, WorkItem(545520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545520")>
         Public Sub OverloadSameSigBetweenFunctionAndSub2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -4650,7 +4650,7 @@ BC30491: Expression does not produce a value.
                                                             </expected>)
         End Sub
 
-        <Fact, WorkItem(545520, "DevDiv")>
+        <Fact, WorkItem(545520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545520")>
         Public Sub OverloadSameSigBetweenFunctionAndSub3()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -4677,7 +4677,7 @@ End Class    ]]></file>
                                                                  </expected>)
         End Sub
 
-        <Fact, WorkItem(545520, "DevDiv")>
+        <Fact, WorkItem(545520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545520")>
         Public Sub OverloadSameSigBetweenFunctionAndSub4()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -4713,7 +4713,7 @@ BC30516: Overload resolution failed because no accessible 'Foo' accepts this num
         End Sub
 
 
-        <Fact, WorkItem(546129, "DevDiv")>
+        <Fact, WorkItem(546129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546129")>
         Public Sub SameMethodNameDifferentCase()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -4740,7 +4740,7 @@ End Module
 
         End Sub
 
-        <WorkItem(544657, "DevDiv")>
+        <WorkItem(544657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544657")>
         <Fact()>
         Public Sub Regress14728()
 
@@ -4773,7 +4773,7 @@ End Module
             CompileAndVerify(Compilation, expectedOutput:="1qq")
         End Sub
 
-        <Fact(), WorkItem(544657, "DevDiv")>
+        <Fact(), WorkItem(544657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544657")>
         Public Sub Regress14728Err()
             Dim compilationDef =
 <compilation>
@@ -4809,7 +4809,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="1qq")
         End Sub
 
-        <Fact, WorkItem(546747, "DevDiv")>
+        <Fact, WorkItem(546747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546747")>
         Public Sub Bug16716_1()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -4849,7 +4849,7 @@ BC30519: Overload resolution failed because no accessible 'New' can be called wi
             Assert.Equal("Sub ProvideMenuResourceAttribute..ctor(x As System.Int16, y As System.Int32)", TNuggetPackage.GetAttributes()(0).AttributeConstructor.ToTestDisplayString())
         End Sub
 
-        <Fact, WorkItem(546747, "DevDiv")>
+        <Fact, WorkItem(546747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546747")>
         Public Sub Bug16716_2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -4882,7 +4882,7 @@ BC30519: Overload resolution failed because no accessible 'New' can be called wi
 ]]></expected>)
         End Sub
 
-        <Fact, WorkItem(546747, "DevDiv")>
+        <Fact, WorkItem(546747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546747")>
         Public Sub Bug16716_3()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -4908,7 +4908,7 @@ BC30934: Conversion from 'Integer' to 'String' cannot occur in a constant expres
 ]]></expected>)
         End Sub
 
-        <Fact, WorkItem(546875, "DevDiv"), WorkItem(530930, "DevDiv")>
+        <Fact, WorkItem(546875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546875"), WorkItem(530930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530930")>
         Public Sub BigVisitor()
             Dim source =
                 <compilation>
@@ -4975,7 +4975,7 @@ BC30521: Overload resolution failed because no accessible 'Add' is most specific
                                                </expected>)
         End Sub
 
-        <Fact(), WorkItem(738688, "DevDiv")>
+        <Fact(), WorkItem(738688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/738688")>
         Public Sub Regress738688_1()
             Dim compilationDef =
 <compilation>
@@ -5027,7 +5027,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="CType2CType4")
         End Sub
 
-        <Fact(), WorkItem(738688, "DevDiv")>
+        <Fact(), WorkItem(738688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/738688")>
         Public Sub Regress738688_2()
             Dim compilationDef =
 <compilation>
@@ -5062,7 +5062,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="1")
         End Sub
 
-        <Fact(), WorkItem(738688, "DevDiv")>
+        <Fact(), WorkItem(738688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/738688")>
         Public Sub Regress738688Err()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -5125,7 +5125,7 @@ BC30521: Overload resolution failed because no accessible 'Foo' is most specific
 ]]></expected>)
         End Sub
 
-        <Fact(), WorkItem(738688, "DevDiv")>
+        <Fact(), WorkItem(738688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/738688")>
         Public Sub Regress738688Err01()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -5171,7 +5171,7 @@ BC30521: Overload resolution failed because no accessible 'foo' is most specific
 ]]></expected>)
         End Sub
 
-        <Fact(), WorkItem(32)>
+        <Fact(), WorkItem(32, "https://roslyn.codeplex.com/workitem/31")>
         Public Sub BugCodePlex_32()
             Dim compilationDef =
 <compilation>
@@ -5207,7 +5207,7 @@ End Class
         End Sub
 
 
-        <Fact(), WorkItem(918579, "DevDiv"), WorkItem(34, "CodePlex")>
+        <Fact(), WorkItem(918579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918579"), WorkItem(34, "CodePlex")>
         Public Sub Bug918579_01()
             Dim compilationDef =
 <compilation>
@@ -5267,7 +5267,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="IDerived_X")
         End Sub
 
-        <Fact(), WorkItem(918579, "DevDiv"), WorkItem(34, "CodePlex")>
+        <Fact(), WorkItem(918579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918579"), WorkItem(34, "CodePlex")>
         Public Sub Bug918579_02()
             Dim compilationDef =
 <compilation>
@@ -5332,7 +5332,7 @@ IBase2_X
 IDerived_X")
         End Sub
 
-        <Fact(), WorkItem(918579, "DevDiv"), WorkItem(34, "CodePlex")>
+        <Fact(), WorkItem(918579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918579"), WorkItem(34, "CodePlex")>
         Public Sub Bug918579_03()
             Dim compilationDef =
 <compilation>
@@ -5375,7 +5375,7 @@ End Interface
             CompileAndVerify(compilation)
         End Sub
 
-        <Fact, WorkItem(1034429, "DevDiv")>
+        <Fact, WorkItem(1034429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034429")>
         Public Sub Bug1034429()
 
             Dim compilationDef =

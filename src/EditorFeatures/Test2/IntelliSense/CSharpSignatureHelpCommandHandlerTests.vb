@@ -111,7 +111,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(544547)>
+        <WorkItem(544547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544547")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestNoSigHelpOnGenericNamespace() As Task
             Using state = TestState.CreateCSharpTestState(
@@ -124,7 +124,7 @@ namespace global::F$$
             End Using
         End Function
 
-        <WorkItem(544547)>
+        <WorkItem(544547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544547")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestSigHelpOnExtraSpace() As Task
             Using state = TestState.CreateCSharpTestState(
@@ -145,7 +145,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(544551)>
+        <WorkItem(544551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544551")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestFilterOnNamedParameters1() As Task
             Using state = TestState.CreateCSharpTestState(
@@ -185,7 +185,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(545488)>
+        <WorkItem(545488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545488")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestKeepSelectedItemWhenNoneAreViable() As Task
             Using state = TestState.CreateCSharpTestState(
@@ -213,7 +213,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(691648)>
+        <WorkItem(691648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691648")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestKeepSelectedItemAfterComma() As Task
             Using state = TestState.CreateCSharpTestState(
@@ -244,9 +244,9 @@ class C
             End Using
         End Function
 
-        <WorkItem(819063)>
-        <WorkItem(843508)>
-        <WorkItem(636117)>
+        <WorkItem(819063, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819063")>
+        <WorkItem(843508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843508")>
+        <WorkItem(636117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636117")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestSessionMaintainedDuringIndexerErrorToleranceTransition() As Task
             Using state = TestState.CreateCSharpTestState(
@@ -310,7 +310,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(1060850)>
+        <WorkItem(1060850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1060850")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestSigHelpNotDismissedAfterQuote() As Task
             Using state = TestState.CreateCSharpTestState(
@@ -336,7 +336,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(1060850)>
+        <WorkItem(1060850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1060850")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestSigHelpDismissedAfterComment() As Task
             Using state = TestState.CreateCSharpTestState(

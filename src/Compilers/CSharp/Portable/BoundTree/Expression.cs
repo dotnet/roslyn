@@ -449,17 +449,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BoundCall.ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Constructor, parameter);
         }
 
-        ImmutableArray<IMemberInitializer> IObjectCreationExpression.MemberInitializers
+        ImmutableArray<ISymbolInitializer> IObjectCreationExpression.MemberInitializers
         {
             get
             {
-                return (ImmutableArray<IMemberInitializer>)s_memberInitializersMappings.GetValue(this,
+                return (ImmutableArray<ISymbolInitializer>)s_memberInitializersMappings.GetValue(this,
                     objectCreationExpression =>
                     {
                         var objectInitializerExpression = this.InitializerExpressionOpt as BoundObjectInitializerExpression;
                         if (objectInitializerExpression != null)
                         {
-                            var builder = ArrayBuilder<IMemberInitializer>.GetInstance(objectInitializerExpression.Initializers.Length);
+                            var builder = ArrayBuilder<ISymbolInitializer>.GetInstance(objectInitializerExpression.Initializers.Length);
                             foreach (var memberAssignment in objectInitializerExpression.Initializers)
                             {
                                 var assignment = memberAssignment as BoundAssignmentOperator;
@@ -476,13 +476,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         builder.Add(new FieldInitializer(assignment.Syntax, (IFieldSymbol)leftSymbol, assignment.Right));
                                         break;
                                     case SymbolKind.Property:
-                                        builder.Add(new PropertyInitializer(assignment.Syntax, ((IPropertySymbol)leftSymbol).SetMethod, assignment.Right));
+                                        builder.Add(new PropertyInitializer(assignment.Syntax, (IPropertySymbol)leftSymbol, assignment.Right));
                                         break;
                                 }
                             }
                             return builder.ToImmutableAndFree();
                         }                        
-                        return ImmutableArray<IMemberInitializer>.Empty;
+                        return ImmutableArray<ISymbolInitializer>.Empty;
                     });             
             }
         }
@@ -491,46 +491,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class FieldInitializer : IFieldInitializer
         {
-            public FieldInitializer(SyntaxNode syntax, IFieldSymbol field, IExpression value)
+            public FieldInitializer(SyntaxNode syntax, IFieldSymbol initializedField, IExpression value)
             {
                 this.Syntax = syntax;
-                this.Field = field;
+                this.InitializedField = initializedField;
                 this.Value = value;
             }
 
-            public IFieldSymbol Field { get; }
+            public IFieldSymbol InitializedField { get; }
 
-            MemberInitializerKind IMemberInitializer.MemberInitializerKind => MemberInitializerKind.Field;
+            public ImmutableArray<IFieldSymbol> InitializedFields => ImmutableArray.Create(this.InitializedField);
 
             public IExpression Value { get; }
 
-            OperationKind IOperation.Kind => OperationKind.FieldInitializer;
+            OperationKind IOperation.Kind => OperationKind.FieldInitializerInCreation;
 
             public SyntaxNode Syntax { get; }
 
-            bool IOperation.IsInvalid => this.Value.IsInvalid || this.Field == null;
+            bool IOperation.IsInvalid => this.Value.IsInvalid || this.InitializedField == null;
         }
 
         private class PropertyInitializer : IPropertyInitializer
         {
-            public PropertyInitializer(SyntaxNode syntax, IMethodSymbol setter, IExpression value)
+            public PropertyInitializer(SyntaxNode syntax, IPropertySymbol initializedProperty, IExpression value)
             {
                 this.Syntax = syntax;
-                this.Setter = setter;
+                this.InitializedProperty = initializedProperty;
                 this.Value = value;
             }
 
-            public IMethodSymbol Setter { get; }
+            public IPropertySymbol InitializedProperty { get; }
 
             public IExpression Value { get; }
 
-            MemberInitializerKind IMemberInitializer.MemberInitializerKind => MemberInitializerKind.Property;
-
-            OperationKind IOperation.Kind => OperationKind.PropertyInitializer;
+            OperationKind IOperation.Kind => OperationKind.PropertyInitializerInCreation;
 
             public SyntaxNode Syntax { get; }
 
-            bool IOperation.IsInvalid => this.Value.IsInvalid || this.Setter == null;
+            bool IOperation.IsInvalid => this.Value.IsInvalid || this.InitializedProperty == null;
         }
     }
 
@@ -907,6 +905,40 @@ namespace Microsoft.CodeAnalysis.CSharp
         IExpression IConditionalAccessExpression.Access => this.AccessExpression;
 
         protected override OperationKind ExpressionKind => OperationKind.ConditionalAccessExpression;
+    }
+
+    partial class BoundEqualsValue : ISymbolInitializer
+    {
+        IExpression ISymbolInitializer.Value => this.Value;
+
+        SyntaxNode IOperation.Syntax => this.Syntax;
+
+        bool IOperation.IsInvalid => ((IOperation)this.Value).IsInvalid;
+
+        OperationKind IOperation.Kind => this.OperationKind;
+
+        protected abstract OperationKind OperationKind { get; }
+    }
+
+    partial class BoundFieldEqualsValue : IFieldInitializer
+    {
+        ImmutableArray<IFieldSymbol> IFieldInitializer.InitializedFields => ImmutableArray.Create<IFieldSymbol>(this.Field);
+        
+        protected override OperationKind OperationKind => OperationKind.FieldInitializerAtDeclaration;
+    }
+
+    partial class BoundPropertyEqualsValue : IPropertyInitializer
+    {
+        IPropertySymbol IPropertyInitializer.InitializedProperty => this.Property;
+
+        protected override OperationKind OperationKind => OperationKind.PropertyInitializerAtDeclaration;
+    }
+
+    partial class BoundParameterEqualsValue : IParameterInitializer
+    {
+        IParameterSymbol IParameterInitializer.Parameter => this.Parameter;
+
+        protected override OperationKind OperationKind => OperationKind.ParameterInitializerAtDeclaration;
     }
 
     class Expression

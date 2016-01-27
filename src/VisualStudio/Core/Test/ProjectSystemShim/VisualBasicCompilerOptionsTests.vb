@@ -10,7 +10,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class VisualBasicCompilerOptions
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        <WorkItem(867840)>
+        <WorkItem(867840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867840")>
         Public Sub ConditionalCompilationOptionsIncludesTargetAndVersion()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -29,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        <WorkItem(530980)>
+        <WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")>
         Public Sub DocumentationModeSetToDiagnoseIfProducingDocFile()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -49,7 +49,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        <WorkItem(530980)>
+        <WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")>
         Public Sub DocumentationModeSetToParseIfNotProducingDocFile()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -69,9 +69,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        <WorkItem(1092636)>
-        <WorkItem(1040247)>
-        <WorkItem(1048368)>
+        <WorkItem(1092636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092636")>
+        <WorkItem(1040247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040247")>
+        <WorkItem(1048368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1048368")>
         Public Sub ProjectWarningsOptionSetAndUnset()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")

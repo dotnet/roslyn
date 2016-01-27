@@ -1287,7 +1287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
         #endregion
 
-        [WorkItem(530209, "DevDiv")]
+        [WorkItem(530209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void Bug530209()
         {

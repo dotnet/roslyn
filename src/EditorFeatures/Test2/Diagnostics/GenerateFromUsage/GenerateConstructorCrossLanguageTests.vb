@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateConstructo
             End If
         End Function
 
-        <WorkItem(546671)>
+        <WorkItem(546671, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546671")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function Test_CSharpToVisualBasic1() As System.Threading.Tasks.Task
             Dim input =

@@ -85,7 +85,7 @@ End Class
             DiagnosticsHelper.VerifyDiagnostics(model, sourceText, "bracadabra[\r\n]+", ErrorId)
         End Sub
 
-        <Fact, WorkItem(1066483)>
+        <Fact, WorkItem(1066483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066483")>
         Public Sub TestDiagnosticWithSeverity()
             Dim source = <project><file>
 Class C

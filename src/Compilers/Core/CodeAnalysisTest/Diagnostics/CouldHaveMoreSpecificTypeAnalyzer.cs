@@ -107,16 +107,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                                         }
                                     });
                             }
-                            else
-                            {
-                                // Track field initializations.
-                                IFieldSymbol containingField = operationBlockContext.OwningSymbol as IFieldSymbol;
-                                if (containingField != null)
-                                {
-                                    AssignTo(containingField, containingField.Type, fieldsSourceTypes, (IExpression)operationBlockContext.OperationBlocks[0]);
-                                }
-                            }
                         });
+
+                    // Track field initializations.
+                    compilationContext.RegisterOperationAction(
+                        (operationContext) =>
+                        {
+                            IFieldInitializer initializer = (IFieldInitializer)operationContext.Operation;
+                            foreach (IFieldSymbol initializedField in initializer.InitializedFields)
+                            {
+                                AssignTo(initializedField, initializedField.Type, fieldsSourceTypes, initializer.Value);
+                            }
+                        },
+                        OperationKind.FieldInitializerAtDeclaration);
 
                     // Report fields that could have more specific types.
                     compilationContext.RegisterCompilationEndAction(

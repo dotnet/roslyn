@@ -316,7 +316,7 @@ End Module
             CompileAndVerify(compilation)
         End Sub
 
-        <WorkItem(540643, "DevDiv")>
+        <WorkItem(540643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540643")>
         <Fact>
         Public Sub Bug6981()
             ' tests different casing of the method
@@ -790,7 +790,7 @@ End Module
             Assert.Equal(CType(&H8560, UShort), peHeaders.PEHeader.DllCharacteristics)  'DYNAMIC_BASE | NX_COMPAT | NO_SEH | TERMINAL_SERVER_AWARE | HIGH_ENTROPY_VA (0x20)
         End Sub
 
-        <WorkItem(764418, "DevDiv")>
+        <WorkItem(764418, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/764418")>
         <Fact()>
         Public Sub CheckDllCharacteristicsWinRtApp()
             Dim source =
@@ -2034,7 +2034,7 @@ End Class
             Dim result = compilation.Emit(New MemoryStream(), options:=New EmitOptions(outputNameOverride:=" "))
         End Sub
 
-        <WorkItem(545084, "DevDiv"), WorkItem(529492, "DevDiv")>
+        <WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")>
         <Fact>
         Public Sub PermissionSetAttribute_Fixup()
             Dim tempDir = Temp.CreateDirectory()
@@ -2100,7 +2100,7 @@ End Class
                         hexFileContent})
         End Sub
 
-        <WorkItem(545084, "DevDiv"), WorkItem(529492, "DevDiv")>
+        <WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")>
         <Fact>
         Public Sub PermissionSetAttributeInvalidFile()
             Dim source =
@@ -2140,7 +2140,7 @@ end class
                 Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=""NonExistentFile.xml""").WithArguments("NonExistentFile.xml", "File").WithLocation(3, 46))
         End Sub
 
-        <WorkItem(546074, "DevDiv")>
+        <WorkItem(546074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546074")>
         <Fact()>
         Public Sub ReDimPreserve()
             Dim source =
@@ -2159,7 +2159,7 @@ End Module
             CompileAndVerify(comp)
         End Sub
 
-        <WorkItem(546074, "DevDiv")>
+        <WorkItem(546074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546074")>
         <Fact()>
         Public Sub ReDimPreserve2()
             Dim source =
@@ -2178,7 +2178,7 @@ End Module
             CompileAndVerify(comp)
         End Sub
 
-        <WorkItem(546074, "DevDiv")>
+        <WorkItem(546074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546074")>
         <Fact()>
         Public Sub ReDimPreserve3()
             Dim source =
@@ -2199,7 +2199,7 @@ End Module
             CompileAndVerify(comp)
         End Sub
 
-        <WorkItem(545084, "DevDiv"), WorkItem(529492, "DevDiv")>
+        <WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")>
         <Fact>
         Public Sub PermissionSetAttributeFileReadError()
             Dim tempDir = Temp.CreateDirectory()
@@ -2252,7 +2252,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem(654522, "DevDiv")>
+        <WorkItem(654522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654522")>
         <Fact>
         Public Sub Bug654522()
             Dim refSource =
@@ -2292,7 +2292,7 @@ Public Interface I(Of W As Structure) : End Interface
             CompileAndVerify(comp, symbolValidator:=metadataValidator)
         End Sub
 
-        <WorkItem(546450, "DevDiv")>
+        <WorkItem(546450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546450")>
         <Fact>
         Public Sub EmitNetModuleWithReferencedNetModule()
             Dim source1 =
@@ -2750,7 +2750,7 @@ End interface
 </expected>)
         End Sub
 
-        <Fact, WorkItem(769741, "DevDiv"), WorkItem(1001945)>
+        <Fact, WorkItem(769741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769741"), WorkItem(1001945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1001945")>
         Public Sub Bug769741()
             Dim source =
 <compilation>

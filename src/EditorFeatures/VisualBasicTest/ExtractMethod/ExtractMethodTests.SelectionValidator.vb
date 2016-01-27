@@ -379,7 +379,7 @@ End Class</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(540082)>
+            <WorkItem(540082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectionTest39() As Task
                 Dim code = <text>Class A
@@ -390,7 +390,7 @@ End Class</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(540082)>
+            <WorkItem(540082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectionTest40() As Task
                 Dim code = <text>Class A
@@ -401,7 +401,7 @@ End Class</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(540082)>
+            <WorkItem(540082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectionTest41() As Task
                 Dim code = <text>Class A
@@ -412,7 +412,7 @@ End Class</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(540082)>
+            <WorkItem(540082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectionTest42() As Task
                 Dim code = <text>Class A
@@ -423,7 +423,7 @@ End Class</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(540082)>
+            <WorkItem(540082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectionTest43() As Task
                 Dim code = <text>Class A
@@ -434,7 +434,7 @@ End Class</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(540082)>
+            <WorkItem(540082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectionTest44() As Task
                 Dim code = <text>Class A
@@ -445,7 +445,7 @@ End Class</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(539397)>
+            <WorkItem(539397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539397")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectionTest45() As Task
                 Dim code = <text>Imports System
@@ -462,7 +462,7 @@ End Module
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(539242)>
+            <WorkItem(539242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539242")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectionTest46() As Task
                 Dim code = <text>Module Program
@@ -474,7 +474,7 @@ End Module</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(539242)>
+            <WorkItem(539242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539242")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectionTest47() As Task
                 Dim code = <text>Module Program
@@ -486,7 +486,7 @@ End Module</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(540375)>
+            <WorkItem(540375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540375")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectIfThatAlwaysReturns() As Task
                 Dim code = <text>Module Program
@@ -500,7 +500,7 @@ End Module</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(540375)>
+            <WorkItem(540375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540375")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectConstIfWithReturn() As Task
                 Dim code = <text>Class A
@@ -642,7 +642,7 @@ End Class</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(540463)>
+            <WorkItem(540463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540463")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectInnerBlockPartially() As Task
                 Dim code = <text>Imports System.Collections
@@ -680,7 +680,7 @@ End Class</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(540463)>
+            <WorkItem(540463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540463")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectAcrossBlocks1() As Task
                 Dim code = <text>Imports System.Collections
@@ -761,7 +761,7 @@ End Class</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(540471)>
+            <WorkItem(540471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540471")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestBugFix6737() As Task
                 Dim code = <text>Module Program
@@ -775,7 +775,7 @@ End Module</text>
                 Await TestSelectionAsync(code, expectedFail:=True)
             End Function
 
-            <WorkItem(540471)>
+            <WorkItem(540471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540471")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectLabel() As Task
                 Dim code = <text>Module Program
@@ -835,7 +835,7 @@ End Class</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(540471)>
+            <WorkItem(540471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540471")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectGotoWithLabel1() As Task
                 Dim code = <text>Class Program
@@ -851,7 +851,7 @@ End Class</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(540497)>
+            <WorkItem(540497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540497")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectAutoPropInitializer() As Task
                 Dim code = <text>Class B
@@ -890,7 +890,7 @@ End Module</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(540200)>
+            <WorkItem(540200, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540200")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestBugFix6376() As Task
                 Dim code = <text>Imports System
@@ -918,7 +918,7 @@ End Module</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <WorkItem(540465)>
+            <WorkItem(540465, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540465")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestBugFix6731() As Task
                 Dim code = <text>Imports System
@@ -938,7 +938,7 @@ End Class</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(540481)>
+            <WorkItem(540481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540481")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestBugFix6750() As Task
                 Dim code = <text>Imports System
@@ -952,7 +952,7 @@ End Class</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(540481)>
+            <WorkItem(540481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540481")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestBugFix6750_1() As Task
                 Dim code = <text>Imports System
@@ -967,13 +967,13 @@ End Class</text>
             End Function
 
             <WorkItem(10071, "DevDiv_Projects/Roslyn")>
-            <WorkItem(544602)>
+            <WorkItem(544602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544602")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestDontCrash() As Task
                 Await IterateAllAsync(TestResource.AllInOneVisualBasicCode)
             End Function
 
-            <WorkItem(541091)>
+            <WorkItem(541091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541091")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestBugFix7660_1() As Task
                 Dim code = <text>Class Program
@@ -1002,7 +1002,7 @@ End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <WorkItem(541091)>
+            <WorkItem(541091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541091")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestBugFix7660_2() As Task
                 Dim code = <text>Class Program
@@ -1030,7 +1030,7 @@ End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <WorkItem(541091)>
+            <WorkItem(541091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541091")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestBugFix7660_3() As Task
                 Dim code = <text>Class Program
@@ -1061,7 +1061,7 @@ End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <WorkItem(541620)>
+            <WorkItem(541620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541620")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestCatchVariable() As Task
                 Dim code = <text>Class SomeOtherClass
@@ -1075,7 +1075,7 @@ End Class</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(541695)>
+            <WorkItem(541695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541695")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestEmptySelectionWithMissingToken() As Task
                 Dim code = <text>Module Program
@@ -1089,7 +1089,7 @@ End Module
                 Await TestSelectionAsync(code, expectedFail:=True)
             End Function
 
-            <WorkItem(541411)>
+            <WorkItem(541411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541411")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestControlVariableInForStatement() As Task
                 Dim code = <text>Module Program
@@ -1105,7 +1105,7 @@ End Module
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(541411)>
+            <WorkItem(541411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541411")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestControlVariableInForEachStatement() As Task
                 Dim code = <text>Module Program
@@ -1119,7 +1119,7 @@ End Module
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(541416)>
+            <WorkItem(541416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541416")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestControlVariablesInNextStatement() As Task
                 Dim code = <text>Module Program
@@ -1134,7 +1134,7 @@ End Module
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(528654)>
+            <WorkItem(528654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528654")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestReDimSelectionValidator() As Task
                 Dim code = <text>Module M
@@ -1146,7 +1146,7 @@ End Module</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(542248)>
+            <WorkItem(542248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542248")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestInvalidCode_NoOuterType() As Task
                 Dim code = <text>Imports System
@@ -1163,7 +1163,7 @@ End Module
                 Await TestSelectionAsync(code, expectedFail:=True)
             End Function
 
-            <WorkItem(542274)>
+            <WorkItem(542274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542274")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestObjectMemberInitializer1() As Task
                 Dim code = <text>Imports System
@@ -1179,7 +1179,7 @@ End Module</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(542274)>
+            <WorkItem(542274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542274")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestObjectMemberInitializer2() As Task
                 Dim code = <text>Imports System
@@ -1195,7 +1195,7 @@ End Module</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(542274)>
+            <WorkItem(542274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542274")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestObjectMemberInitializer3() As Task
                 Dim code = <text>Imports System
@@ -1211,7 +1211,7 @@ End Module</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(542274)>
+            <WorkItem(542274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542274")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestObjectMemberInitializer4() As Task
                 Dim code = <text>Imports System
@@ -1227,7 +1227,7 @@ End Module</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(542274)>
+            <WorkItem(542274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542274")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestObjectMemberInitializer5() As Task
                 Dim code = <text>Imports System
@@ -1247,7 +1247,7 @@ End Module</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(542274)>
+            <WorkItem(542274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542274")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestObjectMemberInitializer6() As Task
                 Dim code = <text>Imports System
@@ -1409,7 +1409,7 @@ End Namespace</text>
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            <WorkItem(542800)>
+            <WorkItem(542800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542800")>
             Public Async Function TestXmlNode() As Task
                 Dim code = <text>
 Namespace N
@@ -1687,7 +1687,7 @@ foo:
                 Await TestInMethodAsync(code)
             End Function
 
-            <WorkItem(542859)>
+            <WorkItem(542859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542859")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestIdentifierInCallStatement() As Task
                 Dim code = <text>
@@ -1696,7 +1696,7 @@ foo:
                 Await TestInMethodAsync(code)
             End Function
 
-            <WorkItem(542884)>
+            <WorkItem(542884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542884")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestInferredFieldInitializer() As Task
                 Dim code = <text>
@@ -1706,7 +1706,7 @@ foo:
                 Await TestInMethodAsync(code)
             End Function
 
-            <WorkItem(542938)>
+            <WorkItem(542938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542938")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestMyBaseExpression() As Task
                 Dim code = <text>
@@ -1715,7 +1715,7 @@ foo:
                 Await TestInMethodAsync(code)
             End Function
 
-            <WorkItem(542938)>
+            <WorkItem(542938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542938")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestMyClassExpression() As Task
                 Dim code = <text>
@@ -1724,7 +1724,7 @@ foo:
                 Await TestInMethodAsync(code)
             End Function
 
-            <WorkItem(543019)>
+            <WorkItem(543019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543019")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestCatchStatement() As Task
                 Dim code = <text>Imports System
@@ -1743,7 +1743,7 @@ End Enum</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(543184)>
+            <WorkItem(543184, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543184")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestRangeVariable() As Task
                 Dim code = <text>Imports System
@@ -1758,7 +1758,7 @@ End Module</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(543184)>
+            <WorkItem(543184, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543184")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestRangeVariable2() As Task
                 Dim code = <text>Imports System
@@ -1773,7 +1773,7 @@ End Module</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(543244)>
+            <WorkItem(543244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543244")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestMultipleNamesWithInitializerLocalDecl() As Task
                 Dim code = <text>
@@ -1793,7 +1793,7 @@ End Module</text>
                 Await TestSelectionAsync(code, expectedFail:=True)
             End Function
 
-            <WorkItem(543184)>
+            <WorkItem(543184, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543184")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestRangeVariable3() As Task
                 Dim code = <text>Imports System
@@ -1812,7 +1812,7 @@ End Module</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(543685)>
+            <WorkItem(543685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543685")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestAnonymousLambda() As Task
                 Dim code = <text>
@@ -1831,7 +1831,7 @@ End Module</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(544374)>
+            <WorkItem(544374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544374")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestDotNameFieldInitializer() As Task
                 Dim code = <text>Imports System
@@ -1854,7 +1854,7 @@ End Class
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(545379)>
+            <WorkItem(545379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545379")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestLambdaWithTrailingStatementTerminator() As Task
                 Dim code = <text>Imports System
@@ -1870,7 +1870,7 @@ End Module</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <WorkItem(530771)>
+            <WorkItem(530771, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530771")>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestImplicitMemberAccessInMultipleStatements() As Task
                 Dim code = <text>Module Program

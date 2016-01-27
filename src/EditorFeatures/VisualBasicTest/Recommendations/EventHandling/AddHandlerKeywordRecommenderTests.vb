@@ -46,7 +46,7 @@ Dim x
         End Function
 
         <Fact>
-        <WorkItem(808406)>
+        <WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddHandlerInCustomEventTest() As Task
             Dim code = <File>
@@ -60,7 +60,7 @@ End Class</File>
         End Function
 
         <Fact>
-        <WorkItem(808406)>
+        <WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotAddHandlerInCustomEventWithAddHandlerTest() As Task
             Dim code = <File>

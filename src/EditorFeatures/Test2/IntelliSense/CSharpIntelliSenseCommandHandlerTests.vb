@@ -33,7 +33,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(543913)>
+        <WorkItem(543913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543913")>
         <WpfFact>
         Public Async Function TestEscapeDismissesCompletionFirst() As Task
             Using state = TestState.CreateCSharpTestState(
@@ -61,7 +61,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(531149)>
+        <WorkItem(531149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531149")>
         <WpfFact>
         Public Async Function TestCutDismissesCompletion() As Task
             Using state = TestState.CreateCSharpTestState(
@@ -84,7 +84,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(531149)>
+        <WorkItem(531149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531149")>
         <WpfFact>
         Public Async Function TestPasteDismissesCompletion() As Task
             Using state = TestState.CreateCSharpTestState(

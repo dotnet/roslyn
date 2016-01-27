@@ -1104,7 +1104,7 @@ End Module
         End Sub
 
         ' Call MyBase in Query
-        <WorkItem(543465, "DevDiv")>
+        <WorkItem(543465, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543465")>
         <Fact()>
         Public Sub UseMyBaseInQuery()
 

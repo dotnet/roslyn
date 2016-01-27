@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnec
 @"using System . Linq ; class Program { static void Main ( string [ ] args ) { args . Where ( a => a . Length > 10 ) ; } } ");
         }
 
-        [WorkItem(541827)]
+        [WorkItem(541827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541827")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestExtensionMethodLinq()
         {
@@ -132,7 +132,7 @@ namespace SomeNS
 @"using System ; namespace N { using System ; class Program { static void Main ( string [ ] args ) { DateTime d ; } } } class F { DateTime d ; } ");
         }
 
-        [WorkItem(712656)]
+        [WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestNestedUsedUsings2()
         {
@@ -297,7 +297,7 @@ compareTokens: false);
 compareTokens: false);
         }
 
-        [WorkItem(541817)]
+        [WorkItem(541817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541817")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestComments8718()
         {
@@ -354,7 +354,7 @@ namespace Foo2
 compareTokens: false);
         }
 
-        [WorkItem(528609)]
+        [WorkItem(528609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528609")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestComments()
         {
@@ -400,7 +400,7 @@ class Program
 compareTokens: false);
         }
 
-        [WorkItem(541827)]
+        [WorkItem(541827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541827")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestSimpleQuery()
         {
@@ -477,7 +477,7 @@ namespace SomeNS
 }");
         }
 
-        [WorkItem(541817)]
+        [WorkItem(541817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541817")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveTrailingComment()
         {
@@ -503,7 +503,7 @@ class Program
 compareTokens: false);
         }
 
-        [WorkItem(541914)]
+        [WorkItem(541914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541914")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemovingUnbindableUsing()
         {
@@ -512,7 +512,7 @@ compareTokens: false);
 @"public static class Program { } ");
         }
 
-        [WorkItem(541937)]
+        [WorkItem(541937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541937")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestAliasInUse()
         {
@@ -535,7 +535,7 @@ namespace Foo
 }|]");
         }
 
-        [WorkItem(541914)]
+        [WorkItem(541914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541914")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveUnboundUsing()
         {
@@ -544,7 +544,7 @@ namespace Foo
 @"public static class Program { }");
         }
 
-        [WorkItem(542016)]
+        [WorkItem(542016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542016")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestLeadingNewlines1()
         {
@@ -570,7 +570,7 @@ class Program
 compareTokens: false);
         }
 
-        [WorkItem(542016)]
+        [WorkItem(542016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542016")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveLeadingNewLines2()
         {
@@ -602,7 +602,7 @@ compareTokens: false);
 compareTokens: false);
         }
 
-        [WorkItem(542134)]
+        [WorkItem(542134, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542134")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestImportedTypeUsedAsGenericTypeArgument()
         {
@@ -628,7 +628,7 @@ public class Program
 }|]");
         }
 
-        [WorkItem(542723)]
+        [WorkItem(542723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542723")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveCorrectUsing1()
         {
@@ -638,7 +638,7 @@ public class Program
 parseOptions: null);
         }
 
-        [WorkItem(542723)]
+        [WorkItem(542723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542723")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveCorrectUsing2()
         {
@@ -661,7 +661,7 @@ parseOptions: null);
 }");
         }
 
-        [WorkItem(543000)]
+        [WorkItem(543000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543000")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestMissingWhenErrorsWouldBeGenerated()
         {
@@ -669,7 +669,7 @@ parseOptions: null);
 @"[|using System ; using X ; using Y ; class B { static void Main ( ) { Bar ( x => x . Foo ( ) ) ; } static void Bar ( Action < int > x ) { } static void Bar ( Action < string > x ) { } } namespace X { public static class A { public static void Foo ( this int x ) { } public static void Foo ( this string x ) { } } } namespace Y { public static class B { public static void Foo ( this int x ) { } } } |]");
         }
 
-        [WorkItem(544976)]
+        [WorkItem(544976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544976")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestMissingWhenMeaningWouldChangeInLambda()
         {
@@ -708,7 +708,7 @@ namespace Y
 }|]");
         }
 
-        [WorkItem(544976)]
+        [WorkItem(544976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544976")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestCasesWithLambdas1()
         {
@@ -748,7 +748,7 @@ namespace Y
 }|]");
         }
 
-        [WorkItem(545646)]
+        [WorkItem(545646, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545646")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestCasesWithLambdas2()
         {
@@ -782,7 +782,7 @@ namespace N
 }|]");
         }
 
-        [WorkItem(545741)]
+        [WorkItem(545741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545741")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestMissingOnAliasedVar()
         {
@@ -790,7 +790,7 @@ namespace N
 @"[|using var = var ; class var { } class B { static void Main ( ) { var a = 1 ; } }|] ");
         }
 
-        [WorkItem(546115)]
+        [WorkItem(546115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546115")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestBrokenCode()
         {
@@ -808,7 +808,7 @@ public class QueryExpressionTest
 }|]");
         }
 
-        [WorkItem(530980)]
+        [WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestReferenceInCref()
         {
@@ -826,7 +826,7 @@ public class QueryExpressionTest
  class C { }|] ", Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose));
         }
 
-        [WorkItem(751283)]
+        [WorkItem(751283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751283")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUnusedUsingOverLinq()
         {

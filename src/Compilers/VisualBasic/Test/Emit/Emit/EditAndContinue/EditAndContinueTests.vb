@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class EditAndContinueTests
         Inherits EditAndContinueTestBase
 
-        <WorkItem(962219)>
+        <WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")>
         <Fact>
         Public Sub PartialMethod()
             Dim source =
@@ -237,7 +237,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, WorkItem(930065)>
+        <Fact, WorkItem(930065, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/930065")>
         Public Sub ModifyConstructorBodyInPresenceOfExplicitInterfaceImplementation()
             Dim source =
 <compilation>
@@ -422,7 +422,7 @@ End Namespace
 ")
         End Sub
 
-        <WorkItem(829353, "DevDiv")>
+        <WorkItem(829353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829353")>
         <Fact()>
         Public Sub PrivateImplementationDetails_ArrayInitializer_FromMetadata()
             Dim sources0 = <compilation>
@@ -515,7 +515,7 @@ End Class
         ''' Should not generate method for string switch since
         ''' the CLR only allows adding private members.
         ''' </summary>
-        <WorkItem(834086, "DevDiv")>
+        <WorkItem(834086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834086")>
         <Fact()>
         Public Sub PrivateImplementationDetails_ComputeStringHash()
             Dim sources = <compilation>
@@ -864,7 +864,7 @@ End Class
             Assert.Equal(nModifiers, DirectCast(other.ReturnType, ArrayTypeSymbol).CustomModifiers.Length)
         End Sub
 
-        <WorkItem(844472, "DevDiv")>
+        <WorkItem(844472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844472")>
         <Fact()>
         Public Sub MethodSignatureWithNoPIAType()
             Dim sourcesPIA = <compilation>
@@ -1048,7 +1048,7 @@ BC37230: Cannot continue since the edit includes a reference to an embedded type
             End Using
         End Sub
 
-        <WorkItem(844536, "DevDiv")>
+        <WorkItem(844536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844536")>
         <Fact()>
         Public Sub NoPIATypeInNamespace()
             Dim sourcesPIA = <compilation>
@@ -1119,7 +1119,7 @@ BC37230: Cannot continue since the edit includes a reference to an embedded type
             End Using
         End Sub
 
-        <Fact, WorkItem(1175704, "DevDiv")>
+        <Fact, WorkItem(1175704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1175704")>
         Public Sub EventFields()
             Dim source0 = MarkedSource("
 Imports System
@@ -1193,7 +1193,7 @@ End Class
         ''' Should use TypeDef rather than TypeRef for unrecognized
         ''' local of a type defined in the original assembly.
         ''' </summary>
-        <WorkItem(910777)>
+        <WorkItem(910777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910777")>
         <Fact()>
         Public Sub UnrecognizedLocalOfTypeFromAssembly()
             Dim source =
@@ -1256,7 +1256,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, WorkItem(837315, "DevDiv")>
+        <Fact, WorkItem(837315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837315")>
         Public Sub AddingSetAccessor()
             Dim source0 =
 <compilation>
@@ -1393,7 +1393,7 @@ End Module</file>
         End Sub
 
 #Region "Local Slots"
-        <Fact, WorkItem(828389, "DevDiv")>
+        <Fact, WorkItem(828389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828389")>
         Public Sub CatchClause()
             Dim source0 =
 <compilation>
@@ -1840,7 +1840,7 @@ End Class
         ''' used by the method body, since there may be existing
         ''' references to that slot, in a Watch window for instance.
         ''' </summary>
-        <WorkItem(843320, "DevDiv")>
+        <WorkItem(843320, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843320")>
         <Fact>
         Public Sub PreserveLocalTypes()
             Dim sources0 = <compilation>
@@ -4380,7 +4380,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(839414, "DevDiv")>
+        <WorkItem(839414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/839414")>
         <Fact>
         Public Sub Bug839414()
             Dim source0 =
@@ -4416,7 +4416,7 @@ End Module
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
         End Sub
 
-        <WorkItem(849649, "DevDiv")>
+        <WorkItem(849649, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849649")>
         <Fact>
         Public Sub Bug849649()
             Dim source0 =
@@ -4508,7 +4508,7 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(1003274)>
+        <WorkItem(1003274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003274")>
         <Fact>
         Public Sub ConditionalAttribute()
             Const source0 = "

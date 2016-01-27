@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                             .GetMembers("Test").Single().GetDocumentationCommentId())
         End Sub
 
-        <WorkItem(766313, "DevDiv")>
+        <WorkItem(766313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766313")>
         <Fact>
         Public Sub TestMethodWithGenericDeclaringTypeAsParameter()
             Assert.Equal("M:Acme.MyList`1.Zip(Acme.MyList{`0})",
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                             .GetMembers("Zip").Single().GetDocumentationCommentId())
         End Sub
 
-        <WorkItem(766313, "DevDiv")>
+        <WorkItem(766313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766313")>
         <Fact>
         Public Sub TestMethodWithGenericDeclaringTypeAsTypeParameter()
             Assert.Equal("M:Acme.MyList`1.ReallyZip(Acme.MyList{Acme.MyList{`0}})",
@@ -192,7 +192,7 @@ End Class
             Next
         End Sub
 
-        <Fact, WorkItem(530924, "DevDiv")>
+        <Fact, WorkItem(530924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530924")>
         Public Sub TestConversionOperator()
             Assert.Equal("M:Acme.ValueType.op_Implicit(System.Byte)~Acme.ValueType",
                          _acmeNamespace.GetTypeMembers("ValueType").Single() _

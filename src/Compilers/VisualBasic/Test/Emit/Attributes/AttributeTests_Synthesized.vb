@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Return DirectCast(attributes.Single(Function(a) a.AttributeClass.Name = "DebuggerBrowsableAttribute").ConstructorArguments(0).Value(), DebuggerBrowsableState)
         End Function
 
-        <Fact, WorkItem(546956, "DevDiv")>
+        <Fact, WorkItem(546956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546956")>
         Public Sub PrivateImplementationDetails()
             Dim source =
 <compilation>
@@ -90,7 +90,7 @@ End Class
 
         End Sub
 
-        <Fact, WorkItem(546899, "DevDiv")>
+        <Fact, WorkItem(546899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546899")>
         Public Sub Accessors()
             Dim source =
 <compilation>
@@ -147,7 +147,7 @@ End Class
             Next
         End Sub
 
-        <WorkItem(543254, "DevDiv")>
+        <WorkItem(543254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543254")>
         <Fact()>
         Public Sub Constructors()
             Dim source =

@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.E
             Return New ExtractMethodCodeRefactoringProvider()
         End Function
 
-        <WorkItem(540686)>
+        <WorkItem(540686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540686")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestExtractReturnExpression() As Task
             Await TestAsync(
@@ -32,7 +32,7 @@ NewLines("Class Module1 \n Private Delegate Function Func(i As Integer) \n Share
 index:=0)
         End Function
 
-        <WorkItem(540755)>
+        <WorkItem(540755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540755")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestExtractMultilineLambda() As Task
             Await TestAsync(
@@ -41,7 +41,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=0)
         End Function
 
-        <WorkItem(541515)>
+        <WorkItem(541515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541515")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestCollectionInitializerInObjectCollectionInitializer() As Task
             Await TestAsync(
@@ -50,8 +50,8 @@ NewLines("Class Program \n Sub Main() \n {|Rename:NewMethod|}() \n End Sub \n Pr
 index:=0)
         End Function
 
-        <WorkItem(542251)>
-        <WorkItem(543030)>
+        <WorkItem(542251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542251")>
+        <WorkItem(543030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543030")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestLambdaSelection() As Task
             Await TestAsync(
@@ -59,7 +59,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim q As Object \n If True Then q = {|Rename:NewMethod|}() \n End Sub \n Private Function NewMethod() As Object \n Return Sub() \n End Sub \n End Function \n End Module"))
         End Function
 
-        <WorkItem(542904)>
+        <WorkItem(542904, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542904")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestFormatBeforeAttribute() As Task
             Await TestAsync(
@@ -90,7 +90,7 @@ End Module
 compareTokens:=False)
         End Function
 
-        <WorkItem(545262)>
+        <WorkItem(545262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545262")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestInTernaryConditional() As Task
             Await TestAsync(
@@ -98,7 +98,7 @@ NewLines("Module Program \n Sub Main(args As String()) \n Dim p As Object = Noth
 NewLines("Module Program \n Sub Main(args As String()) \n Dim p As Object = Nothing \n Dim Obj1 = If(New With {.a = True}.a, p, {|Rename:NewMethod|}()) \n End Sub \n Private Function NewMethod() As Object \n Return Nothing \n End Function \n End Module"))
         End Function
 
-        <WorkItem(545547)>
+        <WorkItem(545547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545547")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestInRangeArgumentUpperBound() As Task
             Await TestAsync(
@@ -106,7 +106,7 @@ NewLines("Module Program \n Sub Main() \n Dim x(0 To [|1 + 2|]) ' Extract method
 NewLines("Module Program \n Sub Main() \n Dim x(0 To {|Rename:NewMethod|}()) ' Extract method \n End Sub \n Private Function NewMethod() As Integer \n Return 1 + 2 \n End Function \n End Module"))
         End Function
 
-        <WorkItem(545655)>
+        <WorkItem(545655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545655")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestInWhileUntilCondition() As Task
             Await TestAsync(
@@ -150,7 +150,7 @@ End Module"),
 compareTokens:=False)
         End Function
 
-        <WorkItem(545829)>
+        <WorkItem(545829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545829")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestMissingOnImplicitMemberAccess() As Task
             Await TestAsync(
@@ -158,7 +158,7 @@ NewLines("Module Program \n Sub Main() \n With """""""" \n Dim x = [|.GetHashCod
 NewLines("Module Program \n Sub Main() \n {|Rename:NewMethod|}() \n End Sub \n Private Sub NewMethod() \n With """""""" \n Dim x = .GetHashCode Xor &H7F3E ' Introduce Local \n End With \n End Sub \n End Module"))
         End Function
 
-        <WorkItem(984831)>
+        <WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestPreserveCommentsBeforeDeclaration_1() As Task
             Await TestAsync(
@@ -203,7 +203,7 @@ End Class
 compareTokens:=False)
         End Function
 
-        <WorkItem(984831)>
+        <WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestPreserveCommentsBeforeDeclaration_2() As Task
             Await TestAsync(
@@ -252,7 +252,7 @@ End Class
 compareTokens:=False)
         End Function
 
-        <WorkItem(984831)>
+        <WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestPreserveCommentsBeforeDeclaration_3() As Task
             Await TestAsync(
