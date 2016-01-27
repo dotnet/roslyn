@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
                 maximumLineLength: _maximumLineLength,
                 maximumOutputLength: printOptions.MaximumOutputLength);
 
-        protected override CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions) =>
+        internal override CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions) =>
             new CommonPrimitiveFormatterOptions(
                 numberRadix: printOptions.NumberRadix, 
                 includeCodePoints: false,
