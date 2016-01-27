@@ -1,6 +1,6 @@
 The scripting APIs enable .NET applications to instatiate a C# engine and execute code snippets against host-supplied objects. Below are examples of how to get started with the scripting APIs and some common samples. You can also view the Scripting API [source code](https://github.com/dotnet/roslyn/tree/a7319e2bc8cac34c34527031e6204d383d29d4ab/src/Scripting).
 
-## Supported platforms
+## Supported Platforms
 
 Scripting APIs require desktop .NET Framework 4.6 or CoreCLR 1.0. 
 
