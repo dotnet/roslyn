@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 
@@ -97,6 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
         {
             return EvaluateAsync<object>(code, options, globals, globalsType, cancellationToken);
         }
+
+        public static ObjectFormatter DefaultFormatter { get; } = new CSharpObjectFormatter();
     }
 }
 
