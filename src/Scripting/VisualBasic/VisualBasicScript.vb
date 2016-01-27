@@ -4,6 +4,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
+Imports Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting
 
@@ -73,6 +74,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting
                                              Optional cancellationToken As CancellationToken = Nothing) As Task(Of Object)
             Return EvaluateAsync(Of Object)(code, Nothing, globals, cancellationToken)
         End Function
+
+        ' TODO (https://github.com/dotnet/roslyn-analyzers/issues/821): Needs entry in public API file
+        Public Shared ReadOnly Property DefaultFormatter As ObjectFormatter = New VisualBasicObjectFormatter()
     End Class
 
 End Namespace
