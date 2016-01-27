@@ -170,12 +170,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return GetMatchingTypes(searchScope, name, arity, inAttributeContext, symbols, hasIncompleteParentMember);
             }
 
-            internal async Task<IReadOnlyList<Reference>> FindNugetReferencesAsync()
+            internal async Task FindNugetReferencesAsync(List<Reference> allReferences)
             {
+                if (allReferences.Count > 0)
+                {
+                    // Only do this if none of the project searches or nuget searches produced any results.
+                    // We may have a lot of metadata to search through, and it would be good to avoid that 
+                    // if we can.
+                    return;
+                }
+
                 TSimpleNameSyntax nameNode;
                 if (!_owner.CanAddImportForType(_diagnostic, _node, out nameNode))
                 {
-                    return null;
+                    return;
                 }
 
                 string name;
@@ -185,23 +193,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 if (ExpressionBinds(nameNode, checkForExtensionMethods: false))
                 {
-                    return null;
+                    return;
                 }
 
-                return await FindNugetReferencesAsync(nameNode, name, arity, inAttributeContext).ConfigureAwait(false);
+                await FindNugetReferencesAsync(allReferences, nameNode, name, arity, inAttributeContext).ConfigureAwait(false);
             }
 
-            private async Task<IReadOnlyList<Reference>> FindNugetReferencesAsync(
-                TSimpleNameSyntax nameNode, string name, int arity, bool inAttributeContext)
+            private async Task FindNugetReferencesAsync(
+                List<Reference> allReferences, TSimpleNameSyntax nameNode, string name, int arity, bool inAttributeContext)
             {
-                var allReferences = new List<Reference>();
                 await FindNugetReferencesAsync(allReferences, nameNode, name, arity).ConfigureAwait(false);
                 if (arity == 0 && inAttributeContext)
                 {
                     await FindNugetReferencesAsync(allReferences, nameNode, name + AttributeSuffix, arity).ConfigureAwait(false);
                 }
-
-                return allReferences;
             }
 
             private Task FindNugetReferencesAsync(List<Reference> allReferences, TSimpleNameSyntax nameNode, string name, int arity)

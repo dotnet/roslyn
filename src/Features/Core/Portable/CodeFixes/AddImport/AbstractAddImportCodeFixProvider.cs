@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return fuzzyReferences;
             }
 
-            return await finder.FindNugetReferencesAsync().ConfigureAwait(false);
+            return null;
         }
 
         private async Task<List<Reference>> FindResultsAsync(
@@ -139,6 +139,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             // Now search unreferenced projects, and see if they have any source symbols that match
             // the search string.
             await FindResultsInUnreferencedProjectSourceSymbolsAsync(projectToAssembly, project, allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+
+            // We only support searching NuGet in an exact manner currently. 
+            if (exact)
+            {
+                await finder.FindNugetReferencesAsync(allReferences).ConfigureAwait(false);
+            }
 
             // Finally, check and see if we have any metadata symbols that match the search string.
             await FindResultsInUnreferencedMetadataSymbolsAsync(referenceToCompilation, project, allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
@@ -186,9 +192,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         {
             if (allSymbolReferences.Count > 0)
             {
-                // Only do this if none of the project searches produced any results.  We may have
-                // a lot of metadata to search through, and it would be good to avoid that if we
-                // can.
+                // Only do this if none of the project searches or nuget searches produced any results.
+                // We may have a lot of metadata to search through, and it would be good to avoid that 
+                // if we can.
                 return;
             }
 
