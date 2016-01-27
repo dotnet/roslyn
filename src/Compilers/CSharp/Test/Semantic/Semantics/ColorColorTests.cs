@@ -1753,7 +1753,7 @@ public class Example
 
             var semanticModel = comp.GetSemanticModel(syntaxTree, false);
 
-            var nameSyntax = syntaxRoot.FindNode(TextSpan.FromBounds(130, 138));
+            var nameSyntax = syntaxRoot.DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Lifetime").Last();
             Assert.Equal("Lifetime", nameSyntax.ToString());
             //Assert.Equal("Lifetime.Persistent", nameSyntax.Parent.ToString());
 
@@ -1786,7 +1786,7 @@ public class Example
 
             var semanticModel = comp.GetSemanticModel(syntaxTree, false);
 
-            var nameSyntax = syntaxRoot.FindNode(TextSpan.FromBounds(130, 138));
+            var nameSyntax = syntaxRoot.DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Lifetime").Last();
             //Assert.Equal("Lifetime", nameSyntax.ToString());
             Assert.Equal("Lifetime.Persistent", nameSyntax.Parent.ToString());
 
@@ -1819,7 +1819,7 @@ public class Example
 
             var semanticModel = comp.GetSemanticModel(syntaxTree, false);
 
-            var nameSyntax = syntaxRoot.FindNode(TextSpan.FromBounds(130, 138));
+            var nameSyntax = syntaxRoot.DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Lifetime").Last();
             //Assert.Equal("Lifetime", nameSyntax.ToString());
             //Assert.Equal("Lifetime.Persistent", nameSyntax.Parent.ToString());
 
@@ -1852,7 +1852,7 @@ public class Example
 
             var semanticModel = comp.GetSemanticModel(syntaxTree, false);
 
-            var nameSyntax = syntaxRoot.FindNode(TextSpan.FromBounds(130, 138));
+            var nameSyntax = syntaxRoot.DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Lifetime").Last();
             //Assert.Equal("Lifetime", nameSyntax.ToString());
             //Assert.Equal("Lifetime.Persistent", nameSyntax.Parent.ToString());
 
