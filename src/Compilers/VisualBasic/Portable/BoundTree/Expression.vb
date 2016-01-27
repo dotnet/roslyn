@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim operation = TryCast(node, IOperation)
                 If operation IsNot Nothing AndAlso operation.Kind <> OperationKind.None Then
                     Me._nodes.Add(operation)
-                    ' Certain child-operation of following operation kinds do not occur in bound nodes, 
+                    ' Certain child operations of the following operation kinds do not occur in bound nodes, 
                     ' and those child-operation nodes have to be added explicitly.
                     '   1. IArgument
                     '   2. IMemberInitializer
@@ -1725,6 +1725,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.FieldInitializerAtDeclaration
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitFieldInitializer(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitFieldInitializer(Me, argument)
+        End Function
     End Class
 
     Partial Class BoundPropertyInitializer
@@ -1744,6 +1752,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.PropertyInitializerAtDeclaration
+        End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitPropertyInitializer(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitPropertyInitializer(Me, argument)
         End Function
     End Class
 
@@ -1779,6 +1795,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me._Parameter
             End Get
         End Property
+
+        Public Overloads Sub Accept(visitor As IOperationVisitor) Implements IOperation.Accept
+            visitor.VisitParameterInitializer(Me)
+        End Sub
+
+        Public Overloads Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
+            Return visitor.VisitParameterInitializer(Me, argument)
+        End Function
     End Class
 
     Module Expression

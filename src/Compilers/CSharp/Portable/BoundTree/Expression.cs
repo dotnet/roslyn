@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (operation != null && operation.Kind != OperationKind.None)
                 {
                     this._nodes.Add(operation);
-                    // Certain child-operation of following operation kinds do not occur in bound nodes, 
+                    // Certain child operations of the following operation kinds do not occur in bound nodes, 
                     // and those child-operation nodes have to be added explicitly.
                     //  1. IArgument
                     //  2. IMemberInitializer
@@ -1337,6 +1337,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         OperationKind IOperation.Kind => this.OperationKind;
 
         protected abstract OperationKind OperationKind { get; }
+
+        public abstract void Accept(IOperationVisitor visitor);
+
+        public abstract TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument);
     }
 
     partial class BoundFieldEqualsValue : IFieldInitializer
@@ -1344,6 +1348,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImmutableArray<IFieldSymbol> IFieldInitializer.InitializedFields => ImmutableArray.Create<IFieldSymbol>(this.Field);
         
         protected override OperationKind OperationKind => OperationKind.FieldInitializerAtDeclaration;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitFieldInitializer(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitFieldInitializer(this, argument);
+        }
     }
 
     partial class BoundPropertyEqualsValue : IPropertyInitializer
@@ -1351,6 +1365,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         IPropertySymbol IPropertyInitializer.InitializedProperty => this.Property;
 
         protected override OperationKind OperationKind => OperationKind.PropertyInitializerAtDeclaration;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitPropertyInitializer(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitPropertyInitializer(this, argument);
+        }
     }
 
     partial class BoundParameterEqualsValue : IParameterInitializer
@@ -1358,6 +1382,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         IParameterSymbol IParameterInitializer.Parameter => this.Parameter;
 
         protected override OperationKind OperationKind => OperationKind.ParameterInitializerAtDeclaration;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitParameterInitializer(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitParameterInitializer(this, argument);
+        }
     }
 
     class Expression

@@ -1177,6 +1177,7 @@ class C
                 Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= Foo()").WithLocation(6, 19),
                 Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 33").WithLocation(9, 40)
                 );
+        }
 
         [Fact]
         public void NoneOperationCSharp()

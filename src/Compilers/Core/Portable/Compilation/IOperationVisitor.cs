@@ -308,6 +308,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
+        public virtual void VisitParameterInitializer(IParameterInitializer operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitArrayCreationExpression(IArrayCreationExpression operation)
         {
             DefaultVisit(operation);
@@ -679,6 +684,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitPropertyInitializer(IPropertyInitializer operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitParameterInitializer(IParameterInitializer operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

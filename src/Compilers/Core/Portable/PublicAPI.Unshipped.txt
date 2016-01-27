@@ -425,6 +425,8 @@ Microsoft.CodeAnalysis.Semantics.IOperation.Kind.get -> Microsoft.CodeAnalysis.S
 Microsoft.CodeAnalysis.Semantics.IOperation.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Semantics.IOperationVisitor
 Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>
+Microsoft.CodeAnalysis.Semantics.IParameterInitializer
+Microsoft.CodeAnalysis.Semantics.IParameterInitializer.Parameter.get -> Microsoft.CodeAnalysis.IParameterSymbol
 Microsoft.CodeAnalysis.Semantics.IParameterReferenceExpression
 Microsoft.CodeAnalysis.Semantics.IParameterReferenceExpression.Parameter.get -> Microsoft.CodeAnalysis.IParameterSymbol
 Microsoft.CodeAnalysis.Semantics.IParenthesizedExpression
@@ -700,6 +702,7 @@ virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitMethodBindingExp
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitNullCoalescingExpression(Microsoft.CodeAnalysis.Semantics.INullCoalescingExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitObjectCreationExpression(Microsoft.CodeAnalysis.Semantics.IObjectCreationExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitOmittedArgumentExpression(Microsoft.CodeAnalysis.Semantics.IExpression operation) -> void
+virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitParameterInitializer(Microsoft.CodeAnalysis.Semantics.IParameterInitializer operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitParameterReferenceExpression(Microsoft.CodeAnalysis.Semantics.IParameterReferenceExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitParenthesizedExpression(Microsoft.CodeAnalysis.Semantics.IParenthesizedExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitPointerIndirectionReferenceExpression(Microsoft.CodeAnalysis.Semantics.IPointerIndirectionReferenceExpression operation) -> void
@@ -772,6 +775,7 @@ virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.V
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitNullCoalescingExpression(Microsoft.CodeAnalysis.Semantics.INullCoalescingExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitObjectCreationExpression(Microsoft.CodeAnalysis.Semantics.IObjectCreationExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitOmittedArgumentExpression(Microsoft.CodeAnalysis.Semantics.IExpression operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitParameterInitializer(Microsoft.CodeAnalysis.Semantics.IParameterInitializer operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitParameterReferenceExpression(Microsoft.CodeAnalysis.Semantics.IParameterReferenceExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitParenthesizedExpression(Microsoft.CodeAnalysis.Semantics.IParenthesizedExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitPointerIndirectionReferenceExpression(Microsoft.CodeAnalysis.Semantics.IPointerIndirectionReferenceExpression operation, TArgument argument) -> TResult
