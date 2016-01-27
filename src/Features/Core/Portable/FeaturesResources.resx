@@ -888,4 +888,13 @@ Do you want to continue?</value>
   <data name="from_0" xml:space="preserve">
     <value>from {0}</value>
   </data>
+  <data name="Install_latest_version" xml:space="preserve">
+    <value>Install latest version</value>
+  </data>
+  <data name="Install_NuGet_package" xml:space="preserve">
+    <value>Install NuGet package '{0}'</value>
+  </data>
+  <data name="Install_version_0" xml:space="preserve">
+    <value>Install version '{0}'</value>
+  </data>
 </root>

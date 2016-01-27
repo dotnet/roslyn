@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
@@ -28,21 +28,95 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _packageName = packageName;
             }
 
-            public override string GetDescription(SemanticModel semanticModel, SyntaxNode node)
+            public override Task<CodeAction> CreateCodeActionAsync(
+                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
-                return $"{provider.GetDescription(SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, _packageName)})";
+                return Task.FromResult<CodeAction>(new PackageReferenceCodeAction(this, document, node, placeSystemNamespaceFirst));
             }
 
-            public override async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+            private class PackageReferenceCodeAction : CodeAction
             {
-                var newDocument = await provider.AddImportAsync(node, SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
-                var newSolution = newDocument.Project.Solution;
+                private readonly PackageReference _reference;
+                private readonly string _title;
+                private readonly ImmutableArray<CodeAction> _childCodeActions;
 
-                var operation1 = new ApplyChangesOperation(newSolution);
-                var operation2 = new InstallNugetPackageOperation(_installerService, document.Project, _packageName);
+                public override string Title => _title;
 
-                var operations = ImmutableArray.Create<CodeActionOperation>(operation1, operation2);
-                return operations;
+                internal override bool HasCodeActions => true;
+
+                internal override ImmutableArray<CodeAction> GetCodeActions() => _childCodeActions;
+
+
+                public PackageReferenceCodeAction(
+                    PackageReference reference,
+                    Document document,
+                    SyntaxNode node,
+                    bool placeSystemNamespaceFirst) 
+                {
+                    _reference = reference;
+
+                    _title = $"{reference.provider.GetDescription(reference.SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, reference._packageName)})";
+
+                    var installedVersions = reference._installerService.GetInstalledVersions(reference._packageName);
+                    var versionsAndSplits = installedVersions.Select(v => new { Version = v, Split = v.Split('.') }).ToList();
+
+                    versionsAndSplits.Sort((v1, v2) =>
+                    {
+                        var diff = CompareSplit(v1.Split, v2.Split);
+                        return diff != 0 ? diff : v1.Version.CompareTo(v2.Version);
+                    });
+
+                    var codeActions = new List<CodeAction>();
+
+                    // Add an action 
+                    codeActions.AddRange(installedVersions.Select(v => CreateCodeAction(document, node, placeSystemNamespaceFirst, versionOpt: v)));
+                    codeActions.Add(CreateCodeAction(document, node, placeSystemNamespaceFirst, versionOpt: null));
+
+                    _childCodeActions = codeActions.ToImmutableArray();
+                }
+
+                private int CompareSplit(string[] split1, string[] split2)
+                {
+                    for (int i = 0, n = Math.Min(split1.Length, split2.Length); i < n; i++)
+                    {
+                        var diff = LogicalStringComparer.Instance.Compare(split1[i], split2[i]);
+                        if (diff != 0)
+                        {
+                            return diff;
+                        }
+                    }
+
+                    // Choose the one with less parts.
+                    return split1.Length - split2.Length;
+                }
+
+                private CodeAction CreateCodeAction(
+                    Document document,
+                    SyntaxNode node,
+                    bool placeSystemNamespaceFirst,
+                    string versionOpt)
+                {
+                    var title = versionOpt == null
+                        ? FeaturesResources.Install_latest_version
+                        : string.Format(FeaturesResources.Install_version_0, versionOpt);
+                    return new OperationBasedCodeAction(
+                        title, c => GetOperationsAsync(versionOpt, document, node, placeSystemNamespaceFirst, c));
+                }
+
+                private async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
+                    String versionOpt, Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+                {
+                    var newDocument = await _reference.provider.AddImportAsync(
+                        node, _reference.SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                    var newSolution = newDocument.Project.Solution;
+
+                    var operation1 = new ApplyChangesOperation(newSolution);
+                    var operation2 = new InstallNugetPackageOperation(
+                        _reference._installerService, document.Project, _reference._packageName, versionOpt);
+
+                    var operations = ImmutableArray.Create<CodeActionOperation>(operation1, operation2);
+                    return operations;
+                }
             }
 
             private class InstallNugetPackageOperation : CodeActionOperation
@@ -50,20 +124,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 private readonly Project _project;
                 private readonly IPackageInstallerService _installerService;
                 private readonly string _packageName;
+                private readonly string _versionOpt;
 
-                public InstallNugetPackageOperation(IPackageInstallerService installerService, Project project, string packageName)
+                public InstallNugetPackageOperation(IPackageInstallerService installerService, Project project, string packageName, string versionOpt)
                 {
                     _installerService = installerService;
                     _project = project;
                     _packageName = packageName;
+                    _versionOpt = versionOpt;
                 }
 
-                public override string Title => $"Install Nuget package '{_packageName}'";
+                public override string Title => string.Format(FeaturesResources.Install_NuGet_package, _packageName);
 
                 public override void Apply(Workspace workspace, CancellationToken cancellationToken)
                 {
                     var currentProject = workspace.CurrentSolution.GetProject(_project.Id);
-                    _installerService.TryInstallPackage(workspace, currentProject.Id, _packageName);
+                    _installerService.TryInstallPackage(workspace, currentProject.Id, _packageName, _versionOpt);
                 }
             }
         }

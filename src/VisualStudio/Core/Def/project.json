@@ -3,7 +3,7 @@
     "ManagedEsent": "1.9.2.0",
     "Microsoft.Composition": "1.0.27",
     "Microsoft.DiaSymReader": "1.0.7-beta1-51221",
-    "NuGet.VisualStudio": "2.8.6",
+    "NuGet.VisualStudio": { "version": "2.8.6", "embedInteropTypes": "true" },
     "System.Collections": "4.0.10",
     "System.Diagnostics.Debug": "4.0.10",
     "System.Globalization": "4.0.10",

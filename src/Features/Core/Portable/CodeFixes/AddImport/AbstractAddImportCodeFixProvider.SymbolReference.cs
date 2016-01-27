@@ -26,12 +26,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 this.SymbolResult = symbolResult;
             }
 
-            public override string GetDescription(SemanticModel semanticModel, SyntaxNode node)
-            {
-                return provider.GetDescription(SymbolResult.Symbol, semanticModel, node);
-            }
+            protected abstract Solution UpdateSolution(Document newDocument);
 
-            public override async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
+            private async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
                 var newSolution = await UpdateSolutionAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
@@ -78,7 +75,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 }
             }
 
-            protected abstract Solution UpdateSolution(Document newDocument);
+            public override async Task<CodeAction> CreateCodeActionAsync(
+                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+            {
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var description = provider.GetDescription(SymbolResult.Symbol, semanticModel, node);
+                if (description == null)
+                {
+                    return null;
+                }
+
+                return new OperationBasedCodeAction(description, c => this.GetOperationsAsync(document, node, placeSystemNamespaceFirst, c));
+            }
         }
     }
 }

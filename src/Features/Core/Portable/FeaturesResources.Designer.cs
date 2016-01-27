@@ -1196,6 +1196,33 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Install latest version.
+        /// </summary>
+        internal static string Install_latest_version {
+            get {
+                return ResourceManager.GetString("Install_latest_version", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Install NuGet package &apos;{0}&apos;.
+        /// </summary>
+        internal static string Install_NuGet_package {
+            get {
+                return ResourceManager.GetString("Install_NuGet_package", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Install version &apos;{0}&apos;.
+        /// </summary>
+        internal static string Install_version_0 {
+            get {
+                return ResourceManager.GetString("Install_version_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Interactive Host not initialized..
         /// </summary>
         internal static string InteractiveHostNotInitialized {

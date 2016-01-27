@@ -86,12 +86,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            var description = reference.GetDescription(semanticModel, node);// this.GetDescription(reference.SearchResult.Symbol, semanticModel, node);
-                            if (description != null)
+                            var codeAction = await reference.CreateCodeActionAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                            if (codeAction != null)
                             {
-                                var action = new MyCodeAction(description, 
-                                    c => reference.GetOperationsAsync(document, node, placeSystemNamespaceFirst, c));
-                                context.RegisterCodeFix(action, diagnostic);
+                                context.RegisterCodeFix(codeAction, diagnostic);
                             }
                         }
                     }
@@ -362,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             return reference.SymbolResult.Symbol != null;
         }
 
-        private class MyCodeAction : CodeAction
+        private class OperationBasedCodeAction : CodeAction
         {
             private readonly string _title;
             private readonly Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>> _getOperations;
@@ -370,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             public override string Title => _title;
             public override string EquivalenceKey => _title;
 
-            public MyCodeAction(string title, Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>> getOperations)
+            public OperationBasedCodeAction(string title, Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>> getOperations)
             {
                 _title = title;
                 _getOperations = getOperations;

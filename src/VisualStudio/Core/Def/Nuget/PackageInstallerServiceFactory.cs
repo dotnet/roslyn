@@ -41,14 +41,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Nuget
         private bool solutionChanged;
         private HashSet<ProjectId> changedProjects = new HashSet<ProjectId>();
 
-        private readonly ConcurrentDictionary<ProjectId, HashSet<string>> projectToInstalledPackages = new ConcurrentDictionary<ProjectId, HashSet<string>>();
+        private readonly ConcurrentDictionary<ProjectId, Dictionary<string, string>> projectToInstalledPackageAndVersion =
+            new ConcurrentDictionary<ProjectId, Dictionary<string, string>>();
 
         public PackageInstallerService(HostWorkspaceServices workspaceServices)
         {
             this.workspaceServices = workspaceServices;
         }
 
-        public bool TryInstallPackage(Workspace workspace, ProjectId projectId, string packageName)
+        public bool TryInstallPackage(Workspace workspace, ProjectId projectId, string packageName, string versionOpt)
         {
             this.AssertIsForeground();
 
@@ -63,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Nuget
                         if (!_packageInstallerServices.IsPackageInstalled(dteProject, packageName))
                         {
                             dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_package_0, packageName);
-                            _packageInstaller.InstallPackage(source: null, project: dteProject, packageId: packageName, version: (Version)null, ignoreDependencies: false);
+                            _packageInstaller.InstallPackage(source: null, project: dteProject, packageId: packageName, version: versionOpt, ignoreDependencies: false);
                             dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_package_0_completed, packageName);
                         }
 
@@ -185,7 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Nuget
             this.AssertIsForeground();
 
             // Just clear out everything we have and start over in the case of a solution change.
-            projectToInstalledPackages.Clear();
+            projectToInstalledPackageAndVersion.Clear();
 
             var solution = _workspace.CurrentSolution;
             foreach (var projectId in _workspace.CurrentSolution.ProjectIds)
@@ -199,8 +200,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Nuget
             this.AssertIsForeground();
 
             // Remove anything we have associated with this project.
-            HashSet<string> installedPackages;
-            projectToInstalledPackages.TryRemove(projectId, out installedPackages);
+            Dictionary<string, string> installedPackages;
+            projectToInstalledPackageAndVersion.TryRemove(projectId, out installedPackages);
 
             if (!solution.ContainsProject(projectId))
             {
@@ -216,29 +217,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Nuget
                 return;
             }
 
-            installedPackages = new HashSet<string>();
+            installedPackages = new Dictionary<string, string>();
 
             // Calling into nuget.  Assume they may fail for any reason.
             try
             {
                 var installedPackageMetadata = _packageInstallerServices.GetInstalledPackages(dteProject);
-                installedPackages.AddRange(installedPackageMetadata.Select(m => m.Id));
+                installedPackages.AddRange(installedPackageMetadata.Select(m => new KeyValuePair<string,string>(m.Id, m.VersionString)));
             }
             catch
             {
                 // TODO(cyrusn): Telemetry on this.
             }
 
-            projectToInstalledPackages.AddOrUpdate(projectId, installedPackages, (_1, _2) => installedPackages);
+            projectToInstalledPackageAndVersion.AddOrUpdate(projectId, installedPackages, (_1, _2) => installedPackages);
         }
 
         public bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName)
         {
             // Can be called on any thread.
 
-            HashSet<string> installedPackages;
-            return projectToInstalledPackages.TryGetValue(projectId, out installedPackages) &&
-                installedPackages.Contains(packageName);
+            Dictionary<string, string> installedPackages;
+            return projectToInstalledPackageAndVersion.TryGetValue(projectId, out installedPackages) &&
+                installedPackages.ContainsKey(packageName);
+        }
+
+        public IEnumerable<string> GetInstalledVersions(string packageName)
+        {
+            var result = new HashSet<string>();
+            foreach (var installedPackages in projectToInstalledPackageAndVersion.Values)
+            {
+                string version = installedPackages?[packageName];
+                if (version != null)
+                {
+                    result.Add(version);
+                }
+            }
+
+            return result;
         }
     }
 }

@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.Packaging
     {
         bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName);
 
-        bool TryInstallPackage(Workspace workspace, ProjectId projectId, string packageName);
+        bool TryInstallPackage(Workspace workspace, ProjectId projectId, string packageName, string versionOpt);
+        
+        IEnumerable<string> GetInstalledVersions(string packageName);
     }
 }

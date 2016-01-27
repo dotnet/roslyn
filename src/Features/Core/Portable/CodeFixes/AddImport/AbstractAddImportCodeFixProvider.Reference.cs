@@ -59,10 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return Hash.CombineValues(this.SearchResult.NameParts);
             }
 
-            public abstract string GetDescription(SemanticModel semanticModel, SyntaxNode node);
-
-            public abstract Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
+            public abstract Task<CodeAction> CreateCodeActionAsync(Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
         }
     }
 }
