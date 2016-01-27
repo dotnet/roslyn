@@ -20,7 +20,7 @@ class C
     void M() { }
 }]]></document>
 
-        <WorkItem(726497)>
+        <WorkItem(726497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726497")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SnippetExpansionNoteAddedToDescription_ExactMatch() As Threading.Tasks.Task
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interface")
@@ -32,7 +32,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(726497)>
+        <WorkItem(726497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726497")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SnippetExpansionNoteAddedToDescription_DifferentSnippetShortcutCasing() As Threading.Tasks.Task
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "intErfaCE")
@@ -43,7 +43,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(726497)>
+        <WorkItem(726497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726497")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Sub SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSubstringOfInsertedText()
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interfac")
@@ -55,7 +55,7 @@ class C
             End Using
         End Sub
 
-        <WorkItem(726497)>
+        <WorkItem(726497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726497")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Sub SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSuperstringOfInsertedText()
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interfaces")
@@ -65,7 +65,7 @@ class C
             End Using
         End Sub
 
-        <WorkItem(726497)>
+        <WorkItem(726497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726497")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Sub SnippetExpansionNoteAddedToDescription_DisplayTextDoesNotMatchShortcutButInsertionTextDoes()
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "InsertionText")

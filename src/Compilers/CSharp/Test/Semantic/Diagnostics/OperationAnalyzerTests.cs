@@ -1156,6 +1156,29 @@ class C
         }
 
         [Fact]
+        public void FieldInitializersCSharp()
+        {
+            const string source = @"
+class C
+{
+    public int F1 = 44;
+    public string F2 = ""Hello"";
+    public int F3 = Foo();
+
+    static int Foo() { return 10; }
+    static int Bar(int P1 = 15, int F2 = 33) { return P1 + F2; }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new EqualsValueTestAnalyzer() }, null, null, false,
+                Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 44").WithLocation(4, 19),
+                Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= \"Hello\"").WithLocation(5, 22),
+                Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= Foo()").WithLocation(6, 19),
+                Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 33").WithLocation(9, 40)
+                );
+
+        [Fact]
         public void NoneOperationCSharp()
         {
             // BoundStatementList is OperationKind.None

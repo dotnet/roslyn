@@ -67,7 +67,7 @@ $$");
 @"var q = foo.Current $$"));
         }
 
-        [WorkItem(543041)]
+        [WorkItem(543041, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543041")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterVarInForLoop()
         {
@@ -75,7 +75,7 @@ $$");
 @"for (var $$"));
         }
 
-        [WorkItem(1064811)]
+        [WorkItem(1064811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotBeforeFirstStringHole()
         {
@@ -83,7 +83,7 @@ $$");
 @"var x = ""\{0}$$\{1}\{2}"""));
         }
 
-        [WorkItem(1064811)]
+        [WorkItem(1064811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotBetweenStringHoles()
         {
@@ -91,7 +91,7 @@ $$");
 @"var x = ""\{0}\{1}$$\{2}"""));
         }
 
-        [WorkItem(1064811)]
+        [WorkItem(1064811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterStringHoles()
         {
@@ -99,7 +99,7 @@ $$");
 @"var x = ""\{0}\{1}\{2}$$"""));
         }
 
-        [WorkItem(1064811)]
+        [WorkItem(1064811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterLastStringHole()
         {

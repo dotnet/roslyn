@@ -309,7 +309,7 @@ $$");
     sealed $$");
         }
 
-        [WorkItem(543975)]
+        [WorkItem(543975, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543975")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterUnsafe()
         {

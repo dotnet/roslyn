@@ -489,5 +489,15 @@ namespace Roslyn.Test.Utilities
 
             return "file://" + compareCmd;
         }
+
+        public static void Empty<T>(IEnumerable<T> items, string message = "")
+        {
+            // realize the list in case it can't be traversed twice via .Count()/.Any() and .Select()
+            var list = items.ToList();
+            if (list.Count != 0)
+            {
+                Fail($"Expected 0 items but found {list.Count}: {message}\r\nItems:\r\n    {string.Join("\r\n    ", list)}");
+            }
+        }
     }
 }

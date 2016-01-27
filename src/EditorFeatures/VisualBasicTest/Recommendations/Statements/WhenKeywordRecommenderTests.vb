@@ -21,14 +21,14 @@ Catch x |
 End Try</MethodBody>, "When")
         End Function
 
-        <WorkItem(542803)>
+        <WorkItem(542803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542803")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoWhenAfterDimStatementTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>Dim ex As Exception |</MethodBody>, "When")
         End Function
 
-        <WorkItem(542803)>
+        <WorkItem(542803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542803")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoWhenAfterLambdaInExceptionFilterTest() As Task
@@ -43,7 +43,7 @@ End Try
  "When")
         End Function
 
-        <WorkItem(530953)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotAfterEolTest() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -54,7 +54,7 @@ Catch x As Exception
 End Try</MethodBody>, "When")
         End Function
 
-        <WorkItem(530953)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AfterExplicitLineContinuationTest() As Task
             Await VerifyRecommendationsContainAsync(

@@ -267,7 +267,7 @@ End Class")
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo), WorkItem(780993)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo), WorkItem(780993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780993")>
         Public Async Function TestFindEvent() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo
 Public Event Bar as EventHandler
@@ -706,7 +706,7 @@ End Class")
             End Using
         End Function
 
-        <WorkItem(1111131)>
+        <WorkItem(1111131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1111131")>
         <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindClassInNamespaceWithGlobalPrefix() As Task
             Using worker = Await SetupWorkspaceAsync("Namespace Global.MyNS
@@ -719,7 +719,7 @@ End Namespace")
             End Using
         End Function
 
-        <WorkItem(1121267)>
+        <WorkItem(1121267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1121267")>
         <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindClassInGlobalNamespace() As Task
             Using worker = Await SetupWorkspaceAsync("Namespace Global

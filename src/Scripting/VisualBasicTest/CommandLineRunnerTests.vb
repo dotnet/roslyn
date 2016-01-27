@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
                 io,
                 compiler,
                 VisualBasicScriptCompiler.Instance,
-                VisualBasicObjectFormatter.Instance)
+                New VisualBasicObjectFormatter())
         End Function
 
         <Fact()>
@@ -126,6 +126,57 @@ Type ""#help"" for more information.
 «Red»
 (1) : error BC2017: could not find library '://invalidfilepath'
 «Gray»
+>", runner.Console.Out.ToString())
+        End Sub
+
+        <Fact()>
+        <WorkItem(7133)>
+        Public Sub TestDisplayResultsWithCurrentUICulture()
+            Dim runner = CreateRunner(args:={}, input:="Imports System.Globalization
+System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
+? System.Math.PI
+System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""de-DE"")
+? System.Math.PI")
+
+            runner.RunInteractive()
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+"Microsoft (R) Visual Basic Interactive Compiler version " + CompilerVersion + "
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> Imports System.Globalization
+> System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
+> ? System.Math.PI
+3.1415926535897931
+> System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""de-DE"")
+> ? System.Math.PI
+3,1415926535897931
+>", runner.Console.Out.ToString())
+
+            ' Tests that DefaultThreadCurrentUICulture is respected and not DefaultThreadCurrentCulture.
+            runner = CreateRunner(args:={}, input:="Imports System.Globalization
+System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
+System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
+? System.Math.PI
+System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.GetCultureInfo(""de-DE"")
+? System.Math.PI")
+
+            runner.RunInteractive()
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+"Microsoft (R) Visual Basic Interactive Compiler version " + CompilerVersion + "
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> Imports System.Globalization
+> System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
+> System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
+> ? System.Math.PI
+3.1415926535897931
+> System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.GetCultureInfo(""de-DE"")
+> ? System.Math.PI
+3.1415926535897931
 >", runner.Console.Out.ToString())
         End Sub
 

@@ -5,6 +5,7 @@ Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.Args.get -> System.Collections.Generic.IList<string>
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.CommandLineScriptGlobals(System.IO.TextWriter outputWriter, Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter objectFormatter) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.Print(object value) -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.PrintOptions.get -> Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions
 Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy
 Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy.FullPath.get -> string
 Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy.OriginalPath.get -> string
@@ -17,8 +18,13 @@ Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.Args.get -> System.Collections.Generic.IList<string>
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.InteractiveScriptGlobals(System.IO.TextWriter outputWriter, Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter objectFormatter) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.Print(object value) -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.PrintOptions.get -> Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.ReferencePaths.get -> System.Collections.Generic.IList<string>
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.SourcePaths.get -> System.Collections.Generic.IList<string>
+Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat
+Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat.Hidden = 2 -> Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat
+Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat.SeparateLines = 1 -> Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat
+Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat.SingleLine = 0 -> Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopy
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopy.DocumentationFile.get -> Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopy.Metadata.get -> Microsoft.CodeAnalysis.Metadata
@@ -32,7 +38,17 @@ Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.MetadataShad
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.NeedsShadowCopy(string fullPath) -> bool
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.SuppressShadowCopy(string originalPath) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter
-Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.FormatObject(object obj) -> string
+Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions
+Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.Ellipsis.get -> string
+Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.Ellipsis.set -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.EscapeNonPrintableCharacters.get -> bool
+Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.EscapeNonPrintableCharacters.set -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.MaximumOutputLength.get -> int
+Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.MaximumOutputLength.set -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.MemberDisplayFormat.get -> Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat
+Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.MemberDisplayFormat.set -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.NumberRadix.get -> int
+Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.NumberRadix.set -> void
 Microsoft.CodeAnalysis.Scripting.Script
 Microsoft.CodeAnalysis.Scripting.Script.Code.get -> string
 Microsoft.CodeAnalysis.Scripting.Script.Compile(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
@@ -103,6 +119,8 @@ Microsoft.CodeAnalysis.Scripting.ScriptVariable.Name.get -> string
 Microsoft.CodeAnalysis.Scripting.ScriptVariable.Type.get -> System.Type
 Microsoft.CodeAnalysis.Scripting.ScriptVariable.Value.get -> object
 Microsoft.CodeAnalysis.Scripting.ScriptVariable.Value.set -> void
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.FormatObject(object obj, Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions options) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.FormatUnhandledException(System.Exception e) -> string
 abstract Microsoft.CodeAnalysis.Scripting.Script.ReturnType.get -> System.Type
 override Microsoft.CodeAnalysis.Scripting.Script<T>.ReturnType.get -> System.Type
 override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.Equals(object other) -> bool
@@ -115,3 +133,4 @@ override Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.GetHashCode() -> 
 static Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.Default.get -> Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver
 static Microsoft.CodeAnalysis.Scripting.ScriptOptions.Default.get -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 static Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.Default.get -> Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver
+virtual Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.IsValidRadix(int radix) -> bool

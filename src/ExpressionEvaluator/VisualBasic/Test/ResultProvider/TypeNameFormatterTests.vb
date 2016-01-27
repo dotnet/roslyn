@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Assert.Equal("Date", GetType(Date).GetTypeName())
         End Sub
 
-        <Fact, WorkItem(1016796)>
+        <Fact, WorkItem(1016796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016796")>
         Public Sub NestedTypes()
             Dim source = "
 Public Class A
@@ -266,14 +266,14 @@ End Namespace
             Assert.Equal("[Return].[From](Of [Return].[False].[Nothing]).[Await]", constructedAwaitType.GetTypeName(escapeKeywordIdentifiers:=True))
         End Sub
 
-        <WorkItem(1087216)>
+        <WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")>
         <Fact>
         Public Sub DynamicAttribute_ValidFlags()
             Assert.Equal("Object", GetType(Object).GetTypeName({True}))
             Assert.Equal("Object()", GetType(Object()).GetTypeName({False, True}))
         End Sub
 
-        <WorkItem(1087216)>
+        <WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")>
         <Fact>
         Public Sub DynamicAttribute_OtherGuid()
             Dim typeInfo = DkmClrCustomTypeInfo.Create(Guid.NewGuid(), New ReadOnlyCollection(Of Byte)({1}))

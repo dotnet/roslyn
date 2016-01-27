@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>Shared |</ClassDeclaration>, "Function")
         End Function
 
-        <WorkItem(543270)>
+        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function FunctionInDelegateCreationTest() As Task
             Dim code =
@@ -190,7 +190,7 @@ Function M() As Boolean
             Await VerifyRecommendationsMissingAsync(code, "Function")
         End Function
 
-        <WorkItem(530953)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotAfterEolTest() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -201,7 +201,7 @@ Function M() As Boolean
 </ClassDeclaration>, "Function")
         End Function
 
-        <WorkItem(530953)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AfterExplicitLineContinuationTest() As Task
             Await VerifyRecommendationsContainAsync(
@@ -212,7 +212,7 @@ Function M() As Boolean
 </ClassDeclaration>, "Function")
         End Function
 
-        <WorkItem(547254)>
+        <WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AfterAsyncTest() As Task
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>Async |</ClassDeclaration>, "Function")
@@ -223,7 +223,7 @@ Function M() As Boolean
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>Iterator |</ClassDeclaration>, "Function")
         End Function
 
-        <WorkItem(531638)>
+        <WorkItem(531638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531638")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function InModuleAfterMethodTest() As Task
             Await VerifyRecommendationsContainAsync(
@@ -237,7 +237,7 @@ End Module
 </File>, "Function")
         End Function
 
-        <WorkItem(674791)>
+        <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotAfterHashTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>

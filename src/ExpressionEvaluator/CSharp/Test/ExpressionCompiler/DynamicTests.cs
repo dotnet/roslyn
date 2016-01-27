@@ -272,7 +272,7 @@ class Generic<T>
             locals.Free();
         }
 
-        [WorkItem(4106)]
+        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
         [Fact]
         public void LocalDuplicateConstantAndNonConstantDynamic()
         {
@@ -319,7 +319,7 @@ class Generic<T>
             locals.Free();
         }
 
-        [WorkItem(4106)]
+        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
         [Fact]
         public void LocalDuplicateConstantAndNonConstantNonDynamic()
         {
@@ -366,7 +366,7 @@ class Generic<T>
             locals.Free();
         }
 
-        [WorkItem(4106)]
+        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
         [Fact]
         public void LocalDuplicateConstantAndConstantDynamic()
         {
@@ -433,7 +433,7 @@ class Generic<T>
             locals.Free();
         }
 
-        [WorkItem(4106)]
+        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
         [Fact]
         public void LocalDuplicateConstantAndConstantNonDynamic()
         {
@@ -641,7 +641,7 @@ class Generic<T>
             locals.Free();
         }
 
-        [WorkItem(1087216, "DevDiv")]
+        [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
         [Fact]
         public void ComplexDynamicType()
         {
@@ -910,7 +910,7 @@ class C
 ");
         }
 
-        [WorkItem(1160855, "DevDiv")]
+        [WorkItem(1160855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1160855")]
         [Fact]
         public void AwaitDynamic()
         {
@@ -1138,7 +1138,7 @@ class C
 ");
         }
 
-        [WorkItem(1072296)]
+        [WorkItem(1072296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072296")]
         [Fact]
         public void InvokeStaticMemberInLambda()
         {
@@ -1245,7 +1245,7 @@ class C
 }");
         }
 
-        [WorkItem(1095613)]
+        [WorkItem(1095613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095613")]
         [Fact(Skip = "1095613")]
         public void HoistedLocalsLoseDynamicAttribute()
         {

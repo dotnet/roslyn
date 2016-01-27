@@ -71,7 +71,7 @@ class Program
 }");
         }
 
-        [WorkItem(907052)]
+        [WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInFinally()
         {
@@ -86,7 +86,7 @@ class Program
 }");
         }
 
-        [WorkItem(907052)]
+        [WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInCatch()
         {

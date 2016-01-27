@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(545493)>
+        <WorkItem(545493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545493")>
         Public Async Function TestNoCommitOnSingleLinePaste() As Task
             Using testData = Await CommitTestData.CreateAsync(<Workspace>
                                                                   <Project Language="Visual Basic" CommonReferences="true">
@@ -95,7 +95,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
-        <WorkItem(545493)>
+        <WorkItem(545493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545493")>
         Public Async Function TestPerformAddMissingTokenOnFormatDocument() As Task
             Using testData = Await CommitTestData.CreateAsync(<Workspace>
                                                                   <Project Language="Visual Basic" CommonReferences="true">
@@ -118,7 +118,7 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
-        <WorkItem(867153)>
+        <WorkItem(867153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867153")>
         Public Async Function TestFormatDocumentWithPrettyListingDisabled() As Task
             Using testData = Await CommitTestData.CreateAsync(<Workspace>
                                                                   <Project Language="Visual Basic" CommonReferences="true">

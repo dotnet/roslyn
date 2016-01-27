@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -10,6 +9,7 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
@@ -39,28 +39,50 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 IVsInfoBarUIFactory factory;
                 if (_workspace.TryGetInfoBarData(out frame, out factory))
                 {
-                    CreateInfoBar(codefixName, OnEnableClicked, OnEnableAndIgnoreClicked, OnClose, frame, factory);
+                    CreateInfoBar(factory, frame, string.Format(ServicesVSResources.CodefixOrRefactoringEncounteredError, codefixName), OnClose, OnEnableClicked, OnEnableAndIgnoreClicked);
                 }
             }, _listener.BeginAsyncOperation("Show InfoBar"));
         }
 
-        private void CreateInfoBar(string name, Action onEnableClicked, Action onEnableAndIgnoreClicked, Action onClose, IVsWindowFrame frame, IVsInfoBarUIFactory factory)
+        public void ShowErrorInfo(string title, Action OnClose)
+        {
+            // We can be called from any thread since errors can occur anywhere, however we can only construct and InfoBar from the UI thread.
+            _foregroundNotificationService.RegisterNotification(() =>
+            {
+                IVsWindowFrame frame;
+                IVsInfoBarUIFactory factory;
+                if (_workspace.TryGetInfoBarData(out frame, out factory))
+                {
+                    CreateInfoBar(factory, frame, title, OnClose);
+                }
+            }, _listener.BeginAsyncOperation("Show InfoBar"));
+        }
+
+        private void CreateInfoBar(IVsInfoBarUIFactory factory, IVsWindowFrame frame, string title, Action onClose, Action onEnableClicked = null, Action onEnableAndIgnoreClicked = null)
         {
             object unknown;
             if (frame.GetProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, out unknown) == VSConstants.S_OK)
             {
                 var textSpans = new List<IVsInfoBarTextSpan>()
                 {
-                    new InfoBarTextSpan(string.Format(ServicesVSResources.CodefixOrRefactoringEncounteredError, name)),
+                    new InfoBarTextSpan(title)
                 };
+
+                // create action item list
+                var actionItems = new List<IVsInfoBarActionItem>();
+                if (onEnableClicked != null)
+                {
+                    actionItems.Add(s_enableItem);
+                }
+
+                if (onEnableAndIgnoreClicked != null)
+                {
+                    actionItems.Add(s_enableAndIgnoreItem);
+                }
 
                 var infoBarModel = new InfoBarModel(
                     textSpans,
-                    new IVsInfoBarActionItem[]
-                        {
-                            s_enableItem,
-                            s_enableAndIgnoreItem
-                        },
+                    actionItems.ToArray(),
                     KnownMonikers.StatusInformation,
                     isCloseButtonVisible: true);
 
@@ -68,14 +90,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 if (TryCreateInfoBarUI(factory, infoBarModel, out infoBarUI))
                 {
                     uint? infoBarCookie = null;
-                    InfoBarEvents eventSink = new InfoBarEvents(onEnableClicked, onEnableAndIgnoreClicked, () =>
+                    InfoBarEvents eventSink = new InfoBarEvents(() =>
                     {
                         onClose();
                         if (infoBarCookie.HasValue)
                         {
                             infoBarUI.Unadvise(infoBarCookie.Value);
                         }
-                    });
+                    }, onEnableClicked, onEnableAndIgnoreClicked);
 
                     uint cookie;
                     infoBarUI.Advise(eventSink, out cookie);
@@ -99,23 +121,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private readonly Action _onEnableAndIgnoreClicked;
             private readonly Action _onEnableClicked;
 
-            public InfoBarEvents(Action onEnableClicked, Action onEnableAndIgnoreClicked, Action onClose)
+            public InfoBarEvents(Action onClose, Action onEnableClicked = null, Action onEnableAndIgnoreClicked = null)
             {
+                Contract.ThrowIfNull(onClose);
+
+                _onClosed = onClose;
                 _onEnableClicked = onEnableClicked;
                 _onEnableAndIgnoreClicked = onEnableAndIgnoreClicked;
-                _onClosed = onClose;
             }
 
             public void OnActionItemClicked(IVsInfoBarUIElement infoBarUIElement, IVsInfoBarActionItem actionItem)
             {
                 if (actionItem.Equals(s_enableItem))
                 {
-                    _onEnableClicked();
+                    _onEnableClicked?.Invoke();
                 }
 
                 if (actionItem.Equals(s_enableAndIgnoreItem))
                 {
-                    _onEnableAndIgnoreClicked();
+                    _onEnableAndIgnoreClicked?.Invoke();
                 }
 
                 infoBarUIElement.Close();

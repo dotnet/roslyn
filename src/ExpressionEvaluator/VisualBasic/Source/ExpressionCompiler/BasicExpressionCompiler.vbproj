@@ -45,12 +45,10 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <DebugType>full</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <VsdConfigXml Include="BasicExpressionCompiler.vsdconfigxml">

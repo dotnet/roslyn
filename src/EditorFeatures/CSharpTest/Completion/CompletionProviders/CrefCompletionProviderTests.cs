@@ -108,7 +108,7 @@ namespace Foo
             await VerifyItemExistsAsync(text, "Q");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion), WorkItem(530887)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion), WorkItem(530887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530887")]
         public async Task PrivateMember()
         {
             var text = @"using System;
@@ -142,7 +142,7 @@ namespace Foo
             await VerifyItemExistsAsync(text, "Exception");
         }
 
-        [WorkItem(531315)]
+        [WorkItem(531315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531315")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EscapePredefinedTypeName()
         {
@@ -153,8 +153,8 @@ class @void { }
             await VerifyItemExistsAsync(text, "@void");
         }
 
-        [WorkItem(531345)]
-        [WorkItem(598159)]
+        [WorkItem(531345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531345")]
+        [WorkItem(598159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598159")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ShowParameterNames()
         {
@@ -172,7 +172,7 @@ class C
             await VerifyItemExistsAsync(text, "M{T}(T)");
         }
 
-        [WorkItem(531345)]
+        [WorkItem(531345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531345")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ShowTypeParameterNames()
         {
@@ -188,7 +188,7 @@ class C<TFoo>
             await VerifyItemExistsAsync(text, "C{TFoo}");
         }
 
-        [WorkItem(531156)]
+        [WorkItem(531156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531156")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ShowConstructors()
         {
@@ -210,7 +210,7 @@ class C<T>
             await VerifyItemExistsAsync(text, "C(int)");
         }
 
-        [WorkItem(598679)]
+        [WorkItem(598679, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598679")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoParamsModifier()
         {
@@ -228,7 +228,7 @@ class C
             await VerifyItemExistsAsync(text, "M(long[])");
         }
 
-        [WorkItem(607773)]
+        [WorkItem(607773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607773")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UnqualifiedTypes()
         {
@@ -240,7 +240,7 @@ class C { }
             await VerifyItemExistsAsync(text, "Enumerator");
         }
 
-        [WorkItem(607773)]
+        [WorkItem(607773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607773")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitUnqualifiedTypes()
         {
@@ -258,7 +258,7 @@ class C { }
             await VerifyProviderCommitAsync(text, "Enumerator", expected, ' ', "Enum");
         }
 
-        [WorkItem(642285)]
+        [WorkItem(642285, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642285")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SuggestOperators()
         {
@@ -290,7 +290,7 @@ class Test
             await VerifyItemExistsAsync(text, "operator false(Test)");
         }
 
-        [WorkItem(641096)]
+        [WorkItem(641096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641096")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SuggestIndexers()
         {
@@ -309,7 +309,7 @@ class Program
             await VerifyItemExistsAsync(text, "this[int]");
         }
 
-        [WorkItem(531315)]
+        [WorkItem(531315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531315")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitEscapedPredefinedTypeName()
         {
@@ -325,7 +325,7 @@ class @void { }
             await VerifyProviderCommitAsync(text, "@void", expected, ' ', "@vo");
         }
 
-        [WorkItem(598159)]
+        [WorkItem(598159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598159")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task RefOutModifiers()
         {
@@ -343,7 +343,7 @@ class C
             await VerifyItemExistsAsync(text, "M(out long)");
         }
 
-        [WorkItem(673587)]
+        [WorkItem(673587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673587")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedNamespaces()
         {
@@ -373,7 +373,7 @@ class Program
             await VerifyItemExistsAsync(text, "C");
         }
 
-        [WorkItem(730338)]
+        [WorkItem(730338, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730338")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PermitTypingTypeParameters()
         {
@@ -391,7 +391,7 @@ class C { }
             await VerifyProviderCommitAsync(text, "List{T}", expected, '{', "List");
         }
 
-        [WorkItem(730338)]
+        [WorkItem(730338, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730338")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PermitTypingParameterTypes()
         {
@@ -907,6 +907,11 @@ class C
             }
 
             public TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+
+            public string GetNameForArgument(SyntaxNode argument)
             {
                 throw new NotImplementedException();
             }

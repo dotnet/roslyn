@@ -165,7 +165,7 @@ Imports G=   H.I
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        <WorkItem(640961)>
+        <WorkItem(640961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640961")>
         Public Async Function TestAddImport_BadNamespaceGetsAdded() As Task
             Dim originalCode = <![CDATA[]]>.Value
             Dim namespacesToAdd = {"$system"}
@@ -175,7 +175,7 @@ Imports G=   H.I
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        <WorkItem(640961)>
+        <WorkItem(640961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640961")>
         Public Async Function TestAddImport_TrailingTriviaIsIncluded() As Task
             Dim originalCode = <![CDATA[]]>.Value
             Dim namespacesToAdd = {"System.Data ' Trivia!"}
@@ -185,7 +185,7 @@ Imports G=   H.I
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        <WorkItem(640961)>
+        <WorkItem(640961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640961")>
         Public Async Function TestAddImport_TrailingTriviaNotUsedInDuplicationDetection() As Task
             Dim originalCode = <![CDATA[Imports System.Data ' Original trivia!
 ]]>.Value

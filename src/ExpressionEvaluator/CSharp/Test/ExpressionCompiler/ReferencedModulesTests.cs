@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// MakeAssemblyReferences should drop unreferenced assemblies.
         /// </summary>
-        [WorkItem(1141029)]
+        [WorkItem(1141029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1141029")]
         [Fact]
         public void AssemblyDuplicateReferences()
         {
@@ -463,7 +463,7 @@ public class B
         /// mscorlib.dll is not directly referenced from an assembly
         /// compiled against portable framework assemblies.
         /// </summary>
-        [WorkItem(1150981)]
+        [WorkItem(1150981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1150981")]
         [Fact]
         public void MissingMscorlib()
         {
@@ -558,7 +558,7 @@ class C
             }
         }
 
-        [WorkItem(1170032)]
+        [WorkItem(1170032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170032")]
         [Fact]
         public void DuplicateTypesInMscorlib()
         {
@@ -659,7 +659,7 @@ class C
         /// <summary>
         /// Intrinsic methods assembly should not be dropped.
         /// </summary>
-        [WorkItem(4140)]
+        [WorkItem(4140, "https://github.com/dotnet/roslyn/issues/4140")]
         [Fact]
         public void IntrinsicMethods()
         {

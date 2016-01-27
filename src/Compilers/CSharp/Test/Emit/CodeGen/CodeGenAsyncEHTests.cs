@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         }
 
         [Fact]
-        [WorkItem(624970, "DevDiv")]
+        [WorkItem(624970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624970")]
         public void AsyncWithEH()
         {
             var source = @"
@@ -143,7 +143,7 @@ class Test
             CompileAndVerify(source, expectedOutput: expected);
         }
 
-        [Fact, WorkItem(855080, "DevDiv")]
+        [Fact, WorkItem(855080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855080")]
         public void GenericCatchVariableInAsyncMethod()
         {
             var source = @"

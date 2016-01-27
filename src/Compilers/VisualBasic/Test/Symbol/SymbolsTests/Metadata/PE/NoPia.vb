@@ -1013,7 +1013,7 @@ End interface
             GC.KeepAlive(tc7)
         End Sub
 
-        <Fact(), WorkItem(546735, "DevDiv")>
+        <Fact(), WorkItem(546735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
         Public Sub Bug16689_1()
             Dim ilSource =
             <![CDATA[
@@ -1080,7 +1080,7 @@ Derived
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(546735, "DevDiv")>
+        <Fact(), WorkItem(546735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
         Public Sub Bug16689_2()
             Dim ilSource =
             <![CDATA[
@@ -1151,7 +1151,7 @@ Derived
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(546735, "DevDiv")>
+        <Fact(), WorkItem(546735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
         Public Sub Bug16689_3()
 
             Dim i3Def =

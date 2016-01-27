@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
                 args ?? DefaultArgs,
                 new NotImplementedAnalyzerLoader());
 
-            return new CommandLineRunner(io, compiler, CSharpScriptCompiler.Instance, CSharpObjectFormatter.Instance);
+            return new CommandLineRunner(io, compiler, CSharpScriptCompiler.Instance, new CSharpObjectFormatter());
         }
 
         [Fact]
@@ -79,6 +79,65 @@ Type ""#help"" for more information.
 . select x * x
 Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
 > ", runner.Console.Out.ToString());
+        }
+
+        [Fact]
+        [WorkItem(7133)]
+        public void TestDisplayResultsWithCurrentUICulture()
+        {
+            var runner = CreateRunner(input:
+@"using static System.Globalization.CultureInfo;
+DefaultThreadCurrentUICulture = GetCultureInfo(""en-GB"")
+Math.PI
+DefaultThreadCurrentUICulture = GetCultureInfo(""de-DE"")
+Math.PI
+");
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> using static System.Globalization.CultureInfo;
+> DefaultThreadCurrentUICulture = GetCultureInfo(""en-GB"")
+[en-GB]
+> Math.PI
+3.1415926535897931
+> DefaultThreadCurrentUICulture = GetCultureInfo(""de-DE"")
+[de-DE]
+> Math.PI
+3,1415926535897931
+>", runner.Console.Out.ToString());
+
+            // Tests that DefaultThreadCurrentUICulture is respected and not DefaultThreadCurrentCulture.
+            runner = CreateRunner(input:
+@"using static System.Globalization.CultureInfo;
+DefaultThreadCurrentUICulture = GetCultureInfo(""en-GB"")
+DefaultThreadCurrentCulture = GetCultureInfo(""en-GB"")
+Math.PI
+DefaultThreadCurrentCulture = GetCultureInfo(""de-DE"")
+Math.PI
+");
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> using static System.Globalization.CultureInfo;
+> DefaultThreadCurrentUICulture = GetCultureInfo(""en-GB"")
+[en-GB]
+> DefaultThreadCurrentCulture = GetCultureInfo(""en-GB"")
+[en-GB]
+> Math.PI
+3.1415926535897931
+> DefaultThreadCurrentCulture = GetCultureInfo(""de-DE"")
+[de-DE]
+> Math.PI
+3.1415926535897931
+>", runner.Console.Out.ToString());
         }
 
         [Fact]
@@ -122,9 +181,34 @@ Type ""#help"" for more information.
 5
 > div(10, 0)
 «Red»
-Attempted to divide by zero.
-«DarkRed»
-  + Submission#0.div(Int32 a, Int32 b)
+{new System.DivideByZeroException().Message}
+  + Submission#0.div(int, int)
+«Gray»
+> ", runner.Console.Out.ToString());
+        }
+
+        [Fact]
+        public void ExceptionInGeneric()
+        {
+            var runner = CreateRunner(input:
+@"static class C<T> { public static int div<U>(int a, int b) => a/b; }
+C<string>.div<bool>(10, 2)
+C<string>.div<bool>(10, 0)
+");
+            Assert.Equal(0, runner.RunInteractive());
+
+            Assert.Equal(
+$@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> static class C<T> {{ public static int div<U>(int a, int b) => a/b; }}
+> C<string>.div<bool>(10, 2)
+5
+> C<string>.div<bool>(10, 0)
+«Red»
+{new System.DivideByZeroException().Message}
+  + Submission#0.C<T>.div<U>(int, int)
 «Gray»
 > ", runner.Console.Out.ToString());
         }
@@ -371,7 +455,7 @@ Type ""#help"" for more information.
 > ", runner.Console.Out.ToString());
         }
 
-        [WorkItem(5748)]
+        [WorkItem(5748, "unknown")]
         [Fact]
         public void RelativePath()
         {

@@ -1028,7 +1028,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             await SubmitAsync("1").ConfigureAwait(true);
         }
 
-        [WorkItem(5964)]
+        [WorkItem(5964, "https://github.com/dotnet/roslyn/issues/5964")]
         [WpfFact]
         public async Task SubmitAsyncMultiple()
         {

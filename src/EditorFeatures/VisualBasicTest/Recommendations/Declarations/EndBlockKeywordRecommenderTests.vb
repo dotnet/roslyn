@@ -199,7 +199,7 @@ Enum Foo
 End |</File>, "Enum")
         End Function
 
-        <WorkItem(539311)>
+        <WorkItem(539311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539311")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function EndBlockMissingInPreprocessorTest() As Task
@@ -213,7 +213,7 @@ End Module
 </ClassDeclaration>, {"End Module", "End Sub"})
         End Function
 
-        <WorkItem(540069)>
+        <WorkItem(540069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function EndSubSuggestFunctionTest() As Task
@@ -221,15 +221,15 @@ End Module
 End |</ClassDeclaration>, "Function", "Sub")
         End Function
 
-        <WorkItem(540069)>
-        <WorkItem(530599)>
+        <WorkItem(540069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
+        <WorkItem(530599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530599")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function EndFunctionDoesNotSuggestEndSubTest() As Task
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Function Foo()
 |</ClassDeclaration>, "End Sub")
         End Function
 
-        <WorkItem(540069)>
+        <WorkItem(540069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function EndFunctionSuggestSubTest() As Task
@@ -237,7 +237,7 @@ End |</ClassDeclaration>, "Function", "Sub")
 End |</ClassDeclaration>, "Function", "Sub")
         End Function
 
-        <WorkItem(540069)>
+        <WorkItem(540069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function EndSubNotClassSuggestedTest() As Task
@@ -245,7 +245,7 @@ End |</ClassDeclaration>, "Function", "Sub")
 |</ClassDeclaration>, "End Class", "End Module", "End Structure", "End Interface")
         End Function
 
-        <WorkItem(969097)>
+        <WorkItem(969097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969097")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function EndClassPairingsTest() As Task
@@ -253,7 +253,7 @@ End |</ClassDeclaration>, "Function", "Sub")
 End |</File>, "Module", "Interface", "Structure")
         End Function
 
-        <WorkItem(969097)>
+        <WorkItem(969097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969097")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function EndModulePairingsTest() As Task
@@ -261,7 +261,7 @@ End |</File>, "Module", "Interface", "Structure")
 End |</File>, "Class", "Interface", "Structure")
         End Function
 
-        <WorkItem(540069)>
+        <WorkItem(540069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function EndModuleNotSubSuggestedTest() As Task

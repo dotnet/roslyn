@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, tname.ToString());
         }
 
-        [WorkItem(545778, "DevDiv")]
+        [WorkItem(545778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545778")]
         [Fact]
         public void TestFormattingCharacter()
         {
@@ -697,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(SyntaxFacts.ContainsDroppedIdentifierCharacters(tok.ValueText));
         }
 
-        [WorkItem(959148, "DevDiv")]
+        [WorkItem(959148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/959148")]
         [Fact]
         public void TestSoftHyphen()
         {
@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(SyntaxFacts.ContainsDroppedIdentifierCharacters(tok.ValueText));
         }
 
-        [WorkItem(545778, "DevDiv")]
+        [WorkItem(545778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545778")]
         [Fact]
         public void ContainsDroppedIdentifierCharacters()
         {

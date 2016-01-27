@@ -168,7 +168,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(538834, "DevDiv")>
+        <WorkItem(538834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538834")>
         <Fact>
         Public Sub AssertPassMultipleArgumentsWithByRef()
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
@@ -213,7 +213,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem(538870, "DevDiv")>
+        <WorkItem(538870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538870")>
         <Fact>
         Public Sub AssertInvalidArrayInitializer()
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
@@ -254,7 +254,7 @@ BC30987: '{' expected.
         End Sub
 
 
-        <WorkItem(538967, "DevDiv")>
+        <WorkItem(538967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538967")>
         <Fact>
         Public Sub Bug4745()
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
@@ -280,7 +280,7 @@ Shared x As Integer = 10
 </expected>)
         End Sub
 
-        <WorkItem(538491, "DevDiv")>
+        <WorkItem(538491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538491")>
         <Fact>
         Public Sub Bug4118()
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
@@ -301,7 +301,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(542234, "DevDiv")>
+        <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub BindCatchStatementLocal()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -343,7 +343,7 @@ End Class
             Assert.Equal("ex", sym2.Name)
         End Sub
 
-        <WorkItem(542234, "DevDiv")>
+        <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub BindCatchStatementNonLocal()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -397,7 +397,7 @@ End Module
             Assert.Null(sym3)
         End Sub
 
-        <WorkItem(529206, "DevDiv")>
+        <WorkItem(529206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529206")>
         <Fact>
         Public Sub IntrinsicAliases_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -437,7 +437,7 @@ BC30002: Type 'System.Integer' is not defined.
 </expected>)
         End Sub
 
-        <WorkItem(529206, "DevDiv")>
+        <WorkItem(529206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529206")>
         <Fact>
         Public Sub IntrinsicAliases_2()
             Dim compilation = CompilationUtils.CreateCompilationWithoutReferences(
@@ -472,7 +472,7 @@ BC30456: 'MinValue' is not a member of 'Integer'.
 </expected>)
         End Sub
 
-        <WorkItem(529206, "DevDiv")>
+        <WorkItem(529206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529206")>
         <Fact>
         Public Sub IntrinsicAliases_3()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(

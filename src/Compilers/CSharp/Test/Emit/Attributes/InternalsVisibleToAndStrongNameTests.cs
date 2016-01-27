@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #region Naming Tests
 
-        [Fact, WorkItem(529419, "DevDiv")]
+        [Fact, WorkItem(529419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529419")]
         public void AssemblyKeyFileAttributeNotExistFile()
         {
             string source = @"
@@ -901,7 +901,7 @@ public class A
             requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, arguments: new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2" }));
         }
 
-        [WorkItem(820450, "DevDiv")]
+        [WorkItem(820450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820450")]
         [Fact]
         public void IVTGivesAccessToUsingDifferentKeys()
         {
@@ -1115,7 +1115,7 @@ public class Z
             other.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("bogus", CodeAnalysisResources.FileNotFound));
         }
 
-        [WorkItem(531195, "DevDiv")]
+        [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
         [Fact()]
         public void SignModuleKeyContainerCmdLine()
         {
@@ -1130,7 +1130,7 @@ public class Z
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyNameAttribute);
         }
 
-        [WorkItem(531195, "DevDiv")]
+        [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
         [Fact()]
         public void SignModuleKeyContainerCmdLine_1()
         {
@@ -1148,7 +1148,7 @@ public class C {}";
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyNameAttribute);
         }
 
-        [WorkItem(531195, "DevDiv")]
+        [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
         [Fact()]
         public void SignModuleKeyContainerCmdLine_2()
         {
@@ -1167,7 +1167,7 @@ public class C {}";
                 );
         }
 
-        [WorkItem(531195, "DevDiv")]
+        [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
         [Fact()]
         public void SignModuleKeyFileCmdLine()
         {
@@ -1182,7 +1182,7 @@ public class C {}";
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyFileAttribute);
         }
 
-        [WorkItem(531195, "DevDiv")]
+        [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
         [Fact()]
         public void SignModuleKeyFileCmdLine_1()
         {
@@ -1198,7 +1198,7 @@ public class C {}";
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyFileAttribute);
         }
 
-        [WorkItem(531195, "DevDiv")]
+        [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
         [Fact()]
         public void SignModuleKeyFileCmdLine_2()
         {
@@ -1359,8 +1359,8 @@ public class C
             }
         }
 
-        [WorkItem(545720, "DevDiv")]
-        [WorkItem(530050, "DevDiv")]
+        [WorkItem(545720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545720")]
+        [WorkItem(530050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530050")]
         [Fact]
         public void InvalidAssemblyName()
         {
@@ -1401,7 +1401,7 @@ class Derived : Base
                 Diagnostic(ErrorCode.ERR_BadAccess, "Base").WithArguments("Base"));
         }
 
-        [WorkItem(546331, "DevDiv")]
+        [WorkItem(546331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546331")]
         [Fact]
         public void IvtVirtualCall1()
         {
@@ -1507,7 +1507,7 @@ public class C : B
 ");
         }
 
-        [WorkItem(546331, "DevDiv")]
+        [WorkItem(546331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546331")]
         [Fact]
         public void IvtVirtualCall2()
         {
@@ -1752,7 +1752,7 @@ public class C : B
         }
 
         [Fact]
-        [WorkItem(529779, "DevDiv")]
+        [WorkItem(529779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529779")]
         public void Bug529779_1()
         {
             CSharpCompilation unsigned = CreateCompilationWithMscorlib(
@@ -1779,7 +1779,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(529779, "DevDiv")]
+        [WorkItem(529779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529779")]
         public void Bug529779_2()
         {
             CSharpCompilation unsigned = CreateCompilationWithMscorlib(
@@ -2040,7 +2040,7 @@ public class C
             }
         }
 
-        [Fact, WorkItem(769840, "DevDiv")]
+        [Fact, WorkItem(769840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769840")]
         public void Bug769840()
         {
             var ca = CreateCompilationWithMscorlib(
@@ -2071,7 +2071,7 @@ internal class B
             CompileAndVerify(cb, verify: false).Diagnostics.Verify();
         }
 
-        [Fact, WorkItem(1072350, "DevDiv")]
+        [Fact, WorkItem(1072350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072350")]
         public void Bug1072350()
         {
             const string sourceA = @"
@@ -2097,7 +2097,7 @@ class B
             CompileAndVerify(cb, expectedOutput: "42").Diagnostics.Verify();
         }
 
-        [Fact, WorkItem(1072339, "DevDiv")]
+        [Fact, WorkItem(1072339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072339")]
         public void Bug1072339()
         {
             const string sourceA = @"
@@ -2123,7 +2123,7 @@ class B
             CompileAndVerify(cb, expectedOutput: "42").Diagnostics.Verify();
         }
 
-        [Fact, WorkItem(1095618, "DevDiv")]
+        [Fact, WorkItem(1095618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095618")]
         public void Bug1095618()
         {
             const string source = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""System.Runtime.Serialization, PublicKey = 10000000000000000400000000000000"")]";

@@ -881,7 +881,7 @@ Public Delegate Sub MyDeleg()
         End Sub
 
         <Fact>
-        <WorkItem(546636, "DevDiv")>
+        <WorkItem(546636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546636")>
         Public Sub TestObsoleteAttributeOnAttributes()
             Dim source =
 <compilation>
@@ -1016,7 +1016,7 @@ End Class
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "a.b.c2(Of Integer).E(Of Integer)").WithArguments("A.B.C2(Of Integer).E(Of Integer)"))
         End Sub
 
-        <WorkItem(578023, "DevDiv")>
+        <WorkItem(578023, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578023")>
         <Fact>
         Public Sub TestObsoleteInAlias()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1067,7 +1067,7 @@ Imports A(Of C()).B
      </errors>)
         End Sub
 
-        <WorkItem(580832, "DevDiv")>
+        <WorkItem(580832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")>
         <Fact>
         Public Sub TestObsoleteOnVirtualMethod()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1341,7 +1341,7 @@ BC40000: 'Public Sub Bar()' is obsolete: 'hi'.
             compilation3.AssertTheseDiagnostics(expected2)
         End Sub
 
-        <Fact(), WorkItem(858839, "DevDiv")>
+        <Fact(), WorkItem(858839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858839")>
         Public Sub Bug858839_1()
             Dim source1 =
 <compilation>
@@ -1433,7 +1433,7 @@ BC40000: 'Sub Foo()' is obsolete: 'IFoo1.Foo has been deprecated'.
             compilation1.AssertTheseDiagnostics(expected)
         End Sub
 
-        <Fact(), WorkItem(858839, "DevDiv")>
+        <Fact(), WorkItem(858839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858839")>
         Public Sub Bug858839_2()
             Dim source0 =
 <compilation>

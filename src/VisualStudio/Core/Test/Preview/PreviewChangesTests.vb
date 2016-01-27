@@ -56,7 +56,7 @@ Class C
             End Using
         End Function
 
-        <WpfFact, WorkItem(1036455)>
+        <WpfFact, WorkItem(1036455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
         Public Async Function TestListStructure_AddedDeletedDocuments() As Task
             Dim workspaceXml =
                 <Workspace>
@@ -162,7 +162,7 @@ Class C
             End Using
         End Function
 
-        <WpfFact, WorkItem(1036455)>
+        <WpfFact, WorkItem(1036455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
         Public Async Function TestCheckedItems_AddedDeletedDocuments() As Task
             Dim workspaceXml =
                 <Workspace>

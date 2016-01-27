@@ -88,7 +88,7 @@ class C : Abracadabra
             DiagnosticsHelper.VerifyDiagnostics(model, source, @"bracadabra[\r\n]+", ErrorId);
         }
 
-        [Fact, WorkItem(1066483)]
+        [Fact, WorkItem(1066483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066483")]
         public void TestDiagnosticWithSeverity()
         {
             var source = @"

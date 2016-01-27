@@ -6089,7 +6089,7 @@ class C
             Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[0].Code);
         }
 
-        [WorkItem(537210, "DevDiv")]
+        [WorkItem(537210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537210")]
         [Fact]
         public void RegressException4UseValueInAccessor()
         {
@@ -6151,7 +6151,7 @@ class C
             Assert.True(file.ContainsDiagnostics);
         }
 
-        [WorkItem(537214, "DevDiv")]
+        [WorkItem(537214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537214")]
         [Fact]
         public void RegressWarning4UseContextKeyword()
         {
@@ -6172,7 +6172,7 @@ class C
             Assert.False(file.ContainsDiagnostics);
         }
 
-        [WorkItem(537150, "DevDiv")]
+        [WorkItem(537150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537150")]
         [Fact]
         public void ParseStartOfAccessor()
         {
@@ -6191,7 +6191,7 @@ class C
             Assert.Equal((int)ErrorCode.ERR_GetOrSetExpected, file.Errors()[0].Code);
         }
 
-        [WorkItem(536050, "DevDiv")]
+        [WorkItem(536050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536050")]
         [Fact]
         public void ParseMethodWithConstructorInitializer()
         {
@@ -6227,7 +6227,7 @@ class C
             Assert.False(methodBody.ContainsDiagnostics);
         }
 
-        [WorkItem(537157, "DevDiv")]
+        [WorkItem(537157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537157")]
         [Fact]
         public void MissingInternalNode()
         {
@@ -6261,7 +6261,7 @@ class C
             Assert.True(identifierToken.IsMissing);
         }
 
-        [WorkItem(538469, "DevDiv")]
+        [WorkItem(538469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538469")]
         [Fact]
         public void FromKeyword()
         {
@@ -6289,7 +6289,7 @@ public class QueryExpressionTest
             Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[2].Code); //we inserted a missing semicolon in a place we didn't expect
         }
 
-        [WorkItem(538971, "DevDiv")]
+        [WorkItem(538971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538971")]
         [Fact]
         public void UnclosedGenericInExplicitInterfaceName()
         {
@@ -6313,7 +6313,7 @@ class C : I<int>
             Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code); //expecting close angle bracket
         }
 
-        [WorkItem(540788, "DevDiv")]
+        [WorkItem(540788, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540788")]
         [Fact]
         public void IncompleteForEachStatement()
         {
@@ -6336,7 +6336,7 @@ public class Test
             Assert.Equal(3, foreachNode.ChildNodes().ToList().Count);
         }
 
-        [WorkItem(542236, "DevDiv")]
+        [WorkItem(542236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542236")]
         [ClrOnlyFact]
         public void InsertOpenBraceBeforeCodes()
         {
@@ -6366,7 +6366,7 @@ public class Test
             }));
         }
 
-        [WorkItem(542352, "DevDiv")]
+        [WorkItem(542352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542352")]
         [Fact]
         public void IncompleteTopLevelOperator()
         {
@@ -6394,7 +6394,7 @@ class C { }
             }));
         }
 
-        [WorkItem(545647, "DevDiv")]
+        [WorkItem(545647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545647")]
         [Fact]
         public void IncompleteVariableDeclarationAboveDotMemberAccess()
         {
@@ -6419,7 +6419,7 @@ class C
             }));
         }
 
-        [WorkItem(545647, "DevDiv")]
+        [WorkItem(545647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545647")]
         [Fact]
         public void IncompleteVariableDeclarationAbovePointerMemberAccess()
         {
@@ -6444,7 +6444,7 @@ class C
             }));
         }
 
-        [WorkItem(545647, "DevDiv")]
+        [WorkItem(545647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545647")]
         [Fact]
         public void IncompleteVariableDeclarationAboveBinaryExpression()
         {
@@ -6469,7 +6469,7 @@ class C
             }));
         }
 
-        [WorkItem(545647, "DevDiv")]
+        [WorkItem(545647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545647")]
         [Fact]
         public void IncompleteVariableDeclarationAboveMemberAccess_MultiLine()
         {
@@ -6495,7 +6495,7 @@ class C
             }));
         }
 
-        [WorkItem(545647, "DevDiv")]
+        [WorkItem(545647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545647")]
         [Fact]
         public void IncompleteVariableDeclarationBeforeMemberAccessOnSameLine()
         {
@@ -6519,7 +6519,7 @@ class C
             }));
         }
 
-        [WorkItem(545647, "DevDiv")]
+        [WorkItem(545647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545647")]
         [Fact]
         public void EqualsIsNotAmbiguous()
         {
@@ -6540,7 +6540,7 @@ class C
             Assert.Empty(syntaxTree.GetDiagnostics());
         }
 
-        [WorkItem(547120, "DevDiv")]
+        [WorkItem(547120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547120")]
         [Fact]
         public void ColonColonInExplicitInterfaceMember()
         {
@@ -6572,7 +6572,7 @@ _ _::this
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [WorkItem(649806, "DevDiv")]
+        [WorkItem(649806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649806")]
         [Fact]
         public void Repro649806()
         {
@@ -6583,7 +6583,7 @@ _ _::this
             Assert.Equal(1, diags.Count(d => d.Code == (int)ErrorCode.ERR_AliasQualAsExpression));
         }
 
-        [WorkItem(674564, "DevDiv")]
+        [WorkItem(674564, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674564")]
         [Fact]
         public void Repro674564()
         {
@@ -6612,7 +6612,7 @@ class C
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "."));
         }
 
-        [WorkItem(680733, "DevDiv")]
+        [WorkItem(680733, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/680733")]
         [Fact]
         public void Repro680733a()
         {
@@ -6628,7 +6628,7 @@ class Test
             AssertEqualRoundtrip(source);
         }
 
-        [WorkItem(680733, "DevDiv")]
+        [WorkItem(680733, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/680733")]
         [Fact]
         public void Repro680733b()
         {
@@ -6646,7 +6646,7 @@ class Test
             AssertEqualRoundtrip(source);
         }
 
-        [WorkItem(680739, "DevDiv")]
+        [WorkItem(680739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/680739")]
         [Fact]
         public void Repro680739()
         {
@@ -6654,7 +6654,7 @@ class Test
             AssertEqualRoundtrip(source);
         }
 
-        [WorkItem(675600, "DevDiv")]
+        [WorkItem(675600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/675600")]
         [Fact]
         public void TestBracesToOperatorDoubleGreaterThan()
         {
@@ -6682,7 +6682,7 @@ class C {}");
             Assert.Equal(source, toString);
         }
 
-        [WorkItem(684816, "DevDiv")]
+        [WorkItem(684816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684816")]
         [Fact]
         public void GenericPropertyWithMissingIdentifier()
         {
@@ -6713,7 +6713,7 @@ class C : I
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [WorkItem(684816, "DevDiv")]
+        [WorkItem(684816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684816")]
         [Fact]
         public void GenericEventWithMissingIdentifier()
         {
@@ -6747,7 +6747,7 @@ class C : I
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [WorkItem(684816, "DevDiv")]
+        [WorkItem(684816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684816")]
         [Fact]
         public void ExplicitImplementationEventWithColonColon()
         {
@@ -6772,7 +6772,7 @@ class C : I
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [WorkItem(684816, "DevDiv")]
+        [WorkItem(684816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684816")]
         [Fact]
         public void EventNamedThis()
         {
@@ -6800,7 +6800,7 @@ class C
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [WorkItem(697022, "DevDiv")]
+        [WorkItem(697022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697022")]
         [Fact]
         public void GenericEnumWithMissingIdentifiers()
         {
@@ -6815,7 +6815,7 @@ enum
             tree.GetDiagnostics().ToArray();
         }
 
-        [WorkItem(703809, "DevDiv")]
+        [WorkItem(703809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703809")]
         [Fact]
         public void ReplaceOmittedArrayRankWithMissingIdentifier()
         {
@@ -6829,7 +6829,7 @@ static
             tree.GetDiagnostics().ToArray();
         }
 
-        [WorkItem(716245, "DevDiv")]
+        [WorkItem(716245, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716245")]
         [Fact]
         public void ManySkippedTokens()
         {
@@ -6842,7 +6842,7 @@ static
         }
 
 
-        [WorkItem(947819, "DevDiv")]
+        [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
         [ClrOnlyFact]
         public void MissingOpenBraceForClass()
         {
@@ -6859,7 +6859,7 @@ static
             Assert.Equal(new Text.TextSpan(16, 13), classDecl.FullSpan);
         }
 
-        [WorkItem(947819, "DevDiv")]
+        [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
         [ClrOnlyFact]
         public void MissingOpenBraceForStruct()
         {
@@ -6876,7 +6876,7 @@ static
             Assert.Equal(new Text.TextSpan(16, 18), structDecl.FullSpan);
         }
 
-        [WorkItem(947819, "DevDiv")]
+        [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
         [ClrOnlyFact]
         public void MissingNameForStruct()
         {
@@ -6895,7 +6895,7 @@ static
             Assert.Equal(new Text.TextSpan(16, 30), structDecl.FullSpan);
         }
 
-        [WorkItem(947819, "DevDiv")]
+        [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
         [ClrOnlyFact]
         public void MissingNameForClass()
         {

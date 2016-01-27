@@ -51,7 +51,7 @@ BC30002: Type 'Microsoft.VisualBasic.Embedded' is not defined.
 
         ' The Embedded attribute should only be available for 
         ' user-define code if vb runtime is included.
-        <WorkItem(546059, "DevDiv")>
+        <WorkItem(546059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546059")>
         <Fact()>
         Public Sub EmbeddedAttributeRequiresOtherEmbeddedCode2()
             Dim sources = <compilation>
@@ -76,7 +76,7 @@ BC30002: Type 'Microsoft.VisualBasic.Embedded' is not defined.
 
         ' The Embedded attribute should only be available for 
         ' user-define code if vb runtime is included.
-        <WorkItem(546059, "DevDiv")>
+        <WorkItem(546059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546059")>
         <Fact()>
         Public Sub EmbeddedAttributeRequiresOtherEmbeddedCode3()
             Dim sources = <compilation>
@@ -199,7 +199,7 @@ End Class
             compilationVerifier.Compilation.AssertNoErrors()
         End Sub
 
-        <WorkItem(545438, "DevDiv"), WorkItem(546887, "DevDiv")>
+        <WorkItem(545438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545438"), WorkItem(546887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546887")>
         <Fact()>
         Public Sub InternalXmlHelper_ValueProperty()
             Dim symbols = <expected>
@@ -1707,7 +1707,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        <WorkItem(544511, "DevDiv")>
+        <WorkItem(544511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544511")>
         Public Sub VbCore_SingleSymbol_Strings_AscW_Char()
             CompileAndVerify(
 <compilation>
@@ -3059,7 +3059,7 @@ End Namespace
             Next
         End Sub
 
-        <Fact, WorkItem(544291, "DevDiv")>
+        <Fact, WorkItem(544291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544291")>
         Public Sub VbCoreSyncLockOnObject()
             CompileAndVerify(
 <compilation>
@@ -3102,7 +3102,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(545772, "DevDiv")>
+        <Fact(), WorkItem(545772, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545772")>
         Public Sub VbCoreNoStdLib()
             Dim source =
 <compilation>

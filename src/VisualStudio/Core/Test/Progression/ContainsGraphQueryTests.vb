@@ -224,7 +224,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        <WorkItem(543892)>
+        <WorkItem(543892, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543892")>
         Public Async Function NestedTypesContainedInClass() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -255,7 +255,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545018)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545018")>
         Public Async Function EnumMembersInEnum() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -286,7 +286,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(610147)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(610147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610147")>
         Public Async Function NothingInBrokenCode() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -315,7 +315,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(610147)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(610147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610147")>
         Public Async Function NothingInBrokenCode2() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -344,7 +344,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(608653)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(608653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608653")>
         Public Async Function NothingInBrokenCode3() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>

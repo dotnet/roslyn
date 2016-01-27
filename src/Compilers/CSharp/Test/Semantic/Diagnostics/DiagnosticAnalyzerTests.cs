@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [WorkItem(892467, "DevDiv")]
+        [WorkItem(892467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892467")]
         [Fact]
         public void SimplestDiagnosticAnalyzerTest()
         {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 );
         }
 
-        [WorkItem(892467, "DevDiv")]
+        [WorkItem(892467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892467")]
         [Fact]
         public void SimplestDiagnosticAnalyzerTestInInitializer()
         {
@@ -115,7 +115,7 @@ public class C : NotFound
                 );
         }
 
-        [WorkItem(892467, "DevDiv")]
+        [WorkItem(892467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892467")]
         [Fact]
         public void DiagnosticAnalyzerSuppressDiagnostic()
         {
@@ -138,7 +138,7 @@ public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound"));
         }
 
-        [WorkItem(892467, "DevDiv")]
+        [WorkItem(892467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892467")]
         [Fact]
         public void DiagnosticAnalyzerWarnAsError()
         {
@@ -172,7 +172,7 @@ public class C : NotFound
                 );
         }
 
-        [WorkItem(892467, "DevDiv")]
+        [WorkItem(892467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892467")]
         [Fact]
         public void DiagnosticAnalyzerWarnAsErrorGlobal()
         {
@@ -204,7 +204,7 @@ public class C : NotFound
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x3").WithArguments("x3").WithWarningAsError(true));
         }
 
-        [Fact, WorkItem(1038025)]
+        [Fact, WorkItem(1038025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038025")]
         public void TestImplicitlyDeclaredSymbolsNotAnalyzed()
         {
             string source = @"
@@ -262,7 +262,7 @@ public class C
             }
         }
 
-        [WorkItem(914236, "DevDiv")]
+        [WorkItem(914236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/914236")]
         [Fact]
         public void DiagnosticAnalyzerSyntaxNodeAndSymbolAnalysis()
         {
@@ -530,7 +530,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             Assert.True(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
         }
 
-        [Fact, WorkItem(1008059)]
+        [Fact, WorkItem(1008059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1008059")]
         public void TestCodeBlockAnalyzersForNoExecutableCode()
         {
             string noExecutableCodeSource = @"
@@ -547,7 +547,7 @@ public abstract class C
                 .VerifyAnalyzerDiagnostics(analyzers);
         }
 
-        [Fact, WorkItem(1008059)]
+        [Fact, WorkItem(1008059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1008059")]
         public void TestCodeBlockAnalyzersForBaseConstructorInitializer()
         {
             string baseCtorSource = @"
@@ -570,7 +570,7 @@ public class C : B
                     Diagnostic("CodeBlockDiagnostic"));
         }
 
-        [Fact, WorkItem(1067286)]
+        [Fact, WorkItem(1067286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067286")]
         public void TestCodeBlockAnalyzersForExpressionBody()
         {
             string source = @"
@@ -593,7 +593,7 @@ public class B
                     Diagnostic("MethodExpressionBodyDiagnostic"));
         }
 
-        [Fact, WorkItem(592)]
+        [Fact, WorkItem(592, "https://github.com/dotnet/roslyn/issues/592")]
         public void TestSyntaxNodeAnalyzersForExpressionBody()
         {
             string source = @"
@@ -613,7 +613,7 @@ public class B
                     Diagnostic("MethodExpressionBodyDiagnostic"));
         }
 
-        [Fact, WorkItem(592)]
+        [Fact, WorkItem(592, "https://github.com/dotnet/roslyn/issues/592")]
         public void TestMethodSymbolAnalyzersForExpressionBody()
         {
             string source = @"
@@ -674,7 +674,7 @@ public class B
                      Diagnostic("MyFieldDiagnostic", @"public string field = ""field"";").WithLocation(4, 5));
         }
 
-        [Fact, WorkItem(565)]
+        [Fact, WorkItem(565, "https://github.com/dotnet/roslyn/issues/565")]
         public void TestCallbacksForFieldDeclarationWithMultipleVariables()
         {
             string source = @"
@@ -694,7 +694,7 @@ public class B
                      Diagnostic("MyFieldDiagnostic", @"public int field5, field6 = 1;").WithLocation(6, 5));
         }
 
-        [Fact, WorkItem(1096600)]
+        [Fact, WorkItem(1096600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1096600")]
         public void TestDescriptorForConfigurableCompilerDiagnostics()
         {
             // Verify that all configurable compiler diagnostics, i.e. all non-error diagnostics,
@@ -1079,7 +1079,7 @@ class MyClass
         }
 
         [Fact]
-        [WorkItem(1107500, "DevDiv")]
+        [WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
         [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
         public void EffectiveSeverity_DiagnosticDefault1()
         {
@@ -1087,7 +1087,7 @@ class MyClass
         }
 
         [Fact]
-        [WorkItem(1107500, "DevDiv")]
+        [WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
         [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
         public void EffectiveSeverity_DiagnosticDefault2()
         {
@@ -1098,7 +1098,7 @@ class MyClass
         }
 
         [Fact]
-        [WorkItem(1107500, "DevDiv")]
+        [WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
         [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
         public void EffectiveSeverity_GeneralOption()
         {
@@ -1107,7 +1107,7 @@ class MyClass
         }
 
         [Fact]
-        [WorkItem(1107500, "DevDiv")]
+        [WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
         [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
         public void EffectiveSeverity_SpecificOption()
         {
@@ -1119,7 +1119,7 @@ class MyClass
         }
 
         [Fact]
-        [WorkItem(1107500, "DevDiv")]
+        [WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
         [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
         public void EffectiveSeverity_GeneralOptionDoesNotEnableDisabledDiagnostic()
         {
@@ -1131,7 +1131,7 @@ class MyClass
 
 
         [Fact()]
-        [WorkItem(1107500, "DevDiv")]
+        [WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
         [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
         public void EffectiveSeverity_SpecificOptionEnablesDisabledDiagnostic()
         {

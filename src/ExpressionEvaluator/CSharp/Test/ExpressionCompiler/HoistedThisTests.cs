@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class HoistedThisTests : ExpressionCompilerTestBase
     {
-        [WorkItem(1067379)]
+        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         [Fact]
         public void InstanceIterator_NoCapturing()
         {
@@ -43,7 +43,7 @@ class C
             VerifyHasThis(source, "C.<F>d__0.MoveNext", "C", expectedIL);
         }
 
-        [WorkItem(1067379)]
+        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         [Fact]
         public void InstanceAsync_NoCapturing()
         {
@@ -75,7 +75,7 @@ class C
             VerifyHasThis(source, "C.<F>d__0.MoveNext", "C", expectedIL);
         }
 
-        [WorkItem(1067379)]
+        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         [Fact]
         public void InstanceLambda_NoCapturing()
         {
@@ -202,7 +202,7 @@ class C
             VerifyHasThis(source, "C.<>c__DisplayClass1_0.<M>b__0", "C", expectedIL, thisCanBeElided: false);
         }
 
-        [WorkItem(1067379)]
+        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         [Fact]
         public void InstanceLambda_CapturedThis_NoDisplayClass()
         {
@@ -508,7 +508,7 @@ class C : I<int>
             VerifyHasThis(source, "C.<>c__DisplayClass1_0.<I<System.Int32>.M>b__0", "C", expectedIL, thisCanBeElided: false);
         }
 
-        [WorkItem(1066489)]
+        [WorkItem(1066489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066489")]
         [Fact]
         public void InstanceIterator_ExplicitInterfaceImplementation_OldName()
         {
@@ -751,7 +751,7 @@ static class C
             VerifyNoThis(source, "C.<>c__DisplayClass0_0.<F>b__0");
         }
 
-        [WorkItem(1072296)]
+        [WorkItem(1072296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072296")]
         [Fact]
         public void OldStyleNonCapturingLambda()
         {
@@ -797,7 +797,7 @@ static class C
             VerifyNoThis(context);
         }
 
-        [WorkItem(1067379)]
+        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         [Fact]
         public void LambdaLocations_Instance()
         {
@@ -1045,7 +1045,7 @@ class C
             locals.Free();
         }
 
-        [WorkItem(1024137)]
+        [WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         [Fact]
         public void InstanceMembersInIterator()
         {
@@ -1079,7 +1079,7 @@ class C
 }");
         }
 
-        [WorkItem(1024137)]
+        [WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         [Fact]
         public void InstanceMembersInAsync()
         {
@@ -1119,7 +1119,7 @@ class C
 }");
         }
 
-        [WorkItem(1024137)]
+        [WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         [Fact]
         public void InstanceMembersInLambda()
         {

@@ -415,7 +415,7 @@ F");
         }
 
         [Fact]
-        [WorkItem(679120, "DevDiv")]
+        [WorkItem(679120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679120")]
         public void ConcatEmptyArray()
         {
             var source = @"
@@ -467,7 +467,7 @@ End");
 ");
         }
 
-        [WorkItem(529064, "DevDiv")]
+        [WorkItem(529064, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529064")]
         [Fact]
         public void TestStringConcatOnLiteralAndCompound()
         {
@@ -736,7 +736,7 @@ public class Test
 ");
         }
 
-        [Fact, WorkItem(1092853, "DevDiv")]
+        [Fact, WorkItem(1092853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092853")]
         public void ConcatWithNullCoalescedNullLiteral()
         {
             const string source = @"
@@ -773,7 +773,7 @@ class Repro
 ");
         }
 
-        [Fact, WorkItem(1092853, "DevDiv")]
+        [Fact, WorkItem(1092853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092853")]
         public void ConcatWithNullCoalescedNullLiteral_2()
         {
             const string source = @"

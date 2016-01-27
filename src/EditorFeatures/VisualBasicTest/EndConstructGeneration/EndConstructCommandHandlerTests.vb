@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 #End If
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        <WorkItem(544556)>
+        <WorkItem(544556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544556")>
         Public Async Function EndConstruct_AfterCodeCleanup() As Threading.Tasks.Task
             Dim code = <code>Class C
     Sub Main(args As String())
@@ -69,7 +69,7 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        <WorkItem(546798)>
+        <WorkItem(546798, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546798")>
         Public Async Function EndConstruct_AfterCodeCleanup_FormatOnlyTouched() As Threading.Tasks.Task
             Dim code = <code>Class C1
     Sub M1()
@@ -88,7 +88,7 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        <WorkItem(531347)>
+        <WorkItem(531347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531347")>
         Public Async Function EndConstruct_AfterCodeCleanup_FormatOnly_WhenContainsDiagnostics() As Threading.Tasks.Task
             Dim code = <code>Module Program
     Sub Main(args As String())
@@ -112,7 +112,7 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)
             Await VerifyAppliedAfterReturnUsingCommandHandlerAsync(code, {4, -1}, expected, {5, 8})
         End Function
 
-        <WorkItem(628656)>
+        <WorkItem(628656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628656")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function EndConstruct_NotOnLineFollowingToken() As Threading.Tasks.Task
             Await VerifyStatementEndConstructNotAppliedAsync(

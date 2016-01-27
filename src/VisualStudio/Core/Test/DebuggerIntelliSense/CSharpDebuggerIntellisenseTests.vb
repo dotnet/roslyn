@@ -426,7 +426,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Using
         End Function
 
-        <WorkItem(531165)>
+        <WorkItem(531165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531165")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Sub ClassDesigner1()
             Dim text = <Workspace>
@@ -455,7 +455,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Using
         End Sub
 
-        <WorkItem(531167)>
+        <WorkItem(531167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531167")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Sub ClassDesigner2()
             Dim text = <Workspace>
@@ -481,7 +481,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Using
         End Sub
 
-        <WorkItem(1124544)>
+        <WorkItem(1124544, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124544")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Sub CompletionUsesContextBufferPositions()
             Dim text = <Workspace>

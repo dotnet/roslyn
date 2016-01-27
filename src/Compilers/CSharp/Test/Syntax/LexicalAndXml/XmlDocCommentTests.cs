@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
         }
 
-        [WorkItem(537500, "DevDiv")]
+        [WorkItem(537500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537500")]
         [Fact]
         public void TestFourOrMoreSlashesIsNotXmlComment()
         {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, leading[0].ToFullString());
         }
 
-        [WorkItem(537500, "DevDiv")]
+        [WorkItem(537500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537500")]
         [Fact]
         public void TestFourOrMoreSlashesInsideXmlCommentIsNotXmlComment()
         {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SingleLineCommentTrivia, leading[1].Kind());
         }
 
-        [WorkItem(537500, "DevDiv")]
+        [WorkItem(537500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537500")]
         [Fact]
         public void TestThreeOrMoreAsterisksIsNotXmlComment()
         {
@@ -2601,7 +2601,7 @@ class C{}";
             Assert.Equal(typeof(XmlElementSyntax), doc.Content[0].GetType());
         }
 
-        [WorkItem(537113, "DevDiv")]
+        [WorkItem(537113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537113")]
         [Fact]
         public void TestSingleLineXmlCommentWithAttributeWithoutQuotes()
         {
@@ -2710,7 +2710,7 @@ class A {}";
             VerifyDiagnostics(doc, new List<TestError>() { new TestError(1570, true), new TestError(1570, true) });
         }
 
-        [WorkItem(536748, "DevDiv")]
+        [WorkItem(536748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536748")]
         [Fact]
         public void AttributesInEndTag()
         {
@@ -2736,7 +2736,7 @@ class A
             Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
-        [WorkItem(546989, "DevDiv")]
+        [WorkItem(546989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546989")]
         [Fact]
         public void NonAsciiQuotationMarks()
         {
@@ -2779,7 +2779,7 @@ class A
                 Diagnostic(ErrorCode.WRN_XMLParseError, "").WithArguments("other"));
         }
 
-        [WorkItem(546989, "DevDiv")]
+        [WorkItem(546989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546989")]
         [Fact]
         public void Microsoft_TeamFoundation_Client_Dll()
         {
@@ -2832,7 +2832,7 @@ public class Program
                 Diagnostic(ErrorCode.WRN_XMLParseError, "").WithArguments("summary"));
         }
 
-        [WorkItem(547188, "DevDiv")]
+        [WorkItem(547188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547188")]
         [Fact]
         public void WhitespaceInXmlName()
         {

@@ -425,7 +425,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(544091)]
+        [WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InvokingGenericMethodWith2ParametersOn1()
         {
@@ -454,7 +454,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(544091)]
+        [WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InvokingGenericMethodWith2ParametersOn2()
         {
@@ -475,7 +475,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(544091)]
+        [WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InvokingGenericMethodWith2ParametersOn1XmlDoc()
         {
@@ -501,7 +501,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(544091)]
+        [WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InvokingGenericMethodWith2ParametersOn2XmlDoc()
         {
@@ -559,7 +559,7 @@ static class FooClass
 
         #region "Constraints on generic methods"
 
-        [WorkItem(544091)]
+        [WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InvokingGenericMethodWithConstraintsMixed1()
         {
@@ -591,7 +591,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(544091)]
+        [WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InvokingGenericMethodWithConstraintsMixed2()
         {
@@ -805,7 +805,7 @@ public class C<T>
         }
         #endregion
 
-        [WorkItem(1083601)]
+        [WorkItem(1083601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083601")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task DeclaringGenericTypeWithBadTypeArgumentList()
         {

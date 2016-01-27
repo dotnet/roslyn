@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class TypeOfKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(543541)]
+        [WorkItem(543541, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543541")]
         public async Task TestOfferedInAttributeConstructorArgumentList()
         {
             await VerifyKeywordAsync("using System.ComponentModel; [DefaultValue($$ class C { }");
@@ -47,7 +47,7 @@ $$");
 $$");
         }
 
-        [WorkItem(538264)]
+        [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInConstMemberInitializer1()
         {
@@ -57,7 +57,7 @@ $$");
 }");
         }
 
-        [WorkItem(538264)]
+        [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInConstLocalInitializer1()
         {
@@ -69,7 +69,7 @@ $$");
 }");
         }
 
-        [WorkItem(538264)]
+        [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInMemberInitializer1()
         {
@@ -79,7 +79,7 @@ $$");
 }");
         }
 
-        [WorkItem(538804)]
+        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInTypeOf()
         {
@@ -87,7 +87,7 @@ $$");
 @"typeof($$"));
         }
 
-        [WorkItem(538804)]
+        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInDefault()
         {
@@ -95,7 +95,7 @@ $$");
 @"default($$"));
         }
 
-        [WorkItem(538804)]
+        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInSizeOf()
         {
@@ -103,7 +103,7 @@ $$");
 @"sizeof($$"));
         }
 
-        [WorkItem(544219)]
+        [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInObjectInitializerMemberContext()
         {

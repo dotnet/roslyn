@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             Await VerifyRecommendationsContainAsync(<File>Public |</File>, "Module")
         End Function
 
-        <Fact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ModuleAfterEndModuleTest() As Task
             Dim code =

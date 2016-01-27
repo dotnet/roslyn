@@ -287,7 +287,7 @@ class C
 1");
         }
 
-        [WorkItem(543521, "DevDiv")]
+        [WorkItem(543521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543521")]
         [Fact()]
         public void TestConstructorWithOutParameter()
         {

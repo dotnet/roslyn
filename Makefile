@@ -1,6 +1,6 @@
 SHELL = /bin/bash
 OS_NAME = $(shell uname -s)
-NUGET_PACKAGE_NAME = nuget.45
+NUGET_PACKAGE_NAME = nuget.46
 BUILD_CONFIGURATION = Debug
 BOOTSTRAP_PATH = $(shell pwd)/Binaries/Bootstrap
 BUILD_LOG_PATH =
@@ -41,7 +41,7 @@ bootstrap: toolset
 	mkdir -p $(BOOTSTRAP_PATH) ; \
 	cp Binaries/$(BUILD_CONFIGURATION)/csccore/* $(BOOTSTRAP_PATH) ; \
 	cp Binaries/$(BUILD_CONFIGURATION)/vbccore/* $(BOOTSTRAP_PATH) ; \
-	build/scripts/crossgen.sh $(BOOTSTRAP_PATH) ; \
+	# build/scripts/crossgen.sh $(BOOTSTRAP_PATH) ;
 	rm -rf Binaries/$(BUILD_CONFIGURATION)
 
 test:

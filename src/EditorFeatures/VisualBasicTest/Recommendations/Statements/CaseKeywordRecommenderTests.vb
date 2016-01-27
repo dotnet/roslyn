@@ -65,7 +65,7 @@ End Select</MethodBody>, "Case Else")
         End Function
 
         <Fact>
-        <WorkItem(543384)>
+        <WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoCaseInSelectBlockIfAfterCaseElseTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>
@@ -77,7 +77,7 @@ End Select</MethodBody>, "Case")
         End Function
 
         <Fact>
-        <WorkItem(543384)>
+        <WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function CaseInSelectBlockBeforeCaseElseTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>

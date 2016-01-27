@@ -541,7 +541,7 @@ End Class
 
         End Sub
 
-        <WorkItem(539286, "DevDiv")>
+        <WorkItem(539286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")>
         <Fact>
         Public Sub Bug5181()
             Dim source =
@@ -622,7 +622,7 @@ End Class
             Assert.Equal(firstMeFSymbol.Name, "C2")
         End Sub
 
-        <WorkItem(542375, "DevDiv")>
+        <WorkItem(542375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542375")>
         <Fact>
         Public Sub ConstFieldNonConstValueAsArrayBoundary()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1536,7 +1536,7 @@ String
                 For Each expectedInitializer In expectedInitializers
                     Dim boundInit = boundInitializers(i)
                     i += 1
-                    Assert.Equal(BoundKind.FieldOrPropertyInitializer, boundInit.Kind)
+                    Assert.[True](boundInit.Kind = BoundKind.FieldInitializer OrElse boundInit.Kind = BoundKind.PropertyInitializer)
                     Dim boundFieldInit = DirectCast(boundInit, BoundFieldOrPropertyInitializer)
                     Dim initValueSyntax = boundFieldInit.InitialValue.Syntax
                     If boundInit.Syntax.Kind <> SyntaxKind.AsNewClause Then
@@ -1545,8 +1545,13 @@ String
                     End If
                     Dim initValueLineNumber = syntaxTree.GetLineSpan(initValueSyntax.Span).StartLinePosition.Line
                     Assert.Equal(expectedInitializer.LineNumber, initValueLineNumber)
-                    Dim fieldSymbol = boundFieldInit.InitializedSymbols.First
-                    Assert.Equal(expectedInitializer.FieldName, fieldSymbol.Name)
+                    Dim fieldOrPropertySymbol As Symbol
+                    If boundInit.Kind = BoundKind.FieldInitializer Then
+                        fieldOrPropertySymbol = DirectCast(boundFieldInit, BoundFieldInitializer).InitializedFields.First
+                    Else
+                        fieldOrPropertySymbol = DirectCast(boundFieldInit, BoundPropertyInitializer).InitializedProperties.First
+                    End If
+                    Assert.Equal(expectedInitializer.FieldName, fieldOrPropertySymbol.Name)
 
                     Dim boundReceiver As BoundExpression
                     Select Case boundFieldInit.MemberAccessExpressionOpt.Kind

@@ -1106,7 +1106,7 @@ $$    [|private int i = 3;|]
         }
 
         [Fact]
-        [WorkItem(538777)]
+        [WorkItem(538777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538777")]
         public void VariableDeclarator0()
         {
             TestMissing("class C { void Foo() { int$$ } }");
@@ -3387,7 +3387,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [WorkItem(932711)]
+        [WorkItem(932711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932711")]
         [Fact]
         public void OnPropertyWithInitializer()
         {
@@ -3738,7 +3738,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [WorkItem(543968)]
+        [WorkItem(543968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543968")]
         [Fact]
         public void ConstructorInitializer()
         {
@@ -3896,7 +3896,7 @@ $$ [method: Obsolete]
 }");
         }
 
-        [WorkItem(538058)]
+        [WorkItem(538058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538058")]
         [Fact]
         public void InInactivePPRegion()
         {
@@ -3908,7 +3908,7 @@ $$fooby
 #endif");
         }
 
-        [WorkItem(538777)]
+        [WorkItem(538777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538777")]
         [Fact]
         public void WithIncompleteDeclaration()
         {
@@ -3923,7 +3923,7 @@ $$        int
 }");
         }
 
-        [WorkItem(937290)]
+        [WorkItem(937290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937290")]
         [Fact]
         public void OnGetter()
         {
@@ -3952,7 +3952,7 @@ $$        int
 }");
         }
 
-        [WorkItem(937290)]
+        [WorkItem(937290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937290")]
         [Fact]
         public void OnSetter()
         {

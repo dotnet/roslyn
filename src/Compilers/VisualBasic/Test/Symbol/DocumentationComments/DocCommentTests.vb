@@ -199,7 +199,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(720931, "DevDiv")>
+        <WorkItem(720931, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720931")>
         <Fact>
         Public Sub Bug720931()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -240,7 +240,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(705788, "DevDiv")>
+        <WorkItem(705788, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705788")>
         <Fact>
         Public Sub Bug705788()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -313,7 +313,7 @@ Bug705788
 </xml>)
         End Sub
 
-        <WorkItem(658453, "DevDiv")>
+        <WorkItem(658453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658453")>
         <Fact>
         Public Sub Bug658453()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -373,7 +373,7 @@ EmptyCref
             CheckSymbolInfoAndTypeInfo(model, names(0), "TState")
         End Sub
 
-        <WorkItem(762687, "DevDiv")>
+        <WorkItem(762687, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762687")>
         <Fact>
         Public Sub Bug762687a()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -415,7 +415,7 @@ Bug762687
 </xml>)
         End Sub
 
-        <WorkItem(762687, "DevDiv")>
+        <WorkItem(762687, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762687")>
         <Fact>
         Public Sub Bug762687b()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -457,7 +457,7 @@ Bug762687
 </xml>)
         End Sub
 
-        <WorkItem(664943, "DevDiv")>
+        <WorkItem(664943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/664943")>
         <Fact>
         Public Sub Bug664943()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -494,7 +494,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(679833, "DevDiv")>
+        <WorkItem(679833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679833")>
         <Fact>
         Public Sub Bug679833_DontCrash()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -559,7 +559,7 @@ End Enum
 </error>)
         End Sub
 
-        <WorkItem(665883, "DevDiv")>
+        <WorkItem(665883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665883")>
         <Fact>
         Public Sub Bug665883()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -594,7 +594,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(666241, "DevDiv")>
+        <WorkItem(666241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666241")>
         <Fact>
         Public Sub Bug666241()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -638,7 +638,7 @@ End Namespace
             CompilationUtils.AssertTheseDiagnostics(model.GetDiagnostics(), <error></error>)
         End Sub
 
-        <WorkItem(658793, "DevDiv")>
+        <WorkItem(658793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658793")>
         <Fact>
         Public Sub Bug658793()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -663,7 +663,7 @@ BC42309: XML comment has a tag with a 'cref' attribute '(' that could not be res
 </error>)
         End Sub
 
-        <WorkItem(721582, "DevDiv")>
+        <WorkItem(721582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/721582")>
         <Fact>
         Public Sub Bug721582()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -708,7 +708,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(657426, "DevDiv")>
+        <WorkItem(657426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/657426")>
         <Fact>
         Public Sub Bug657426()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -749,7 +749,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(658322, "DevDiv")>
+        <WorkItem(658322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658322")>
         <Fact>
         Public Sub Bug658322a()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -786,7 +786,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(658322, "DevDiv")>
+        <WorkItem(658322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658322")>
         <Fact>
         Public Sub Bug658322b()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -844,7 +844,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(658322, "DevDiv")>
+        <WorkItem(658322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658322")>
         <Fact>
         Public Sub Bug658322c()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -902,7 +902,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(658322, "DevDiv")>
+        <WorkItem(658322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658322")>
         <Fact>
         Public Sub Bug658322d()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -962,7 +962,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(658322, "DevDiv")>
+        <WorkItem(658322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658322")>
         <Fact()>
         Public Sub Bug658322e()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -1032,7 +1032,7 @@ AssemblyName
             CheckSymbolInfoAndTypeInfo(model, names(6), "TAttribute")
         End Sub
 
-        <WorkItem(665961, "DevDiv")>
+        <WorkItem(665961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665961")>
         <Fact()>
         Public Sub Bug665961()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -1072,7 +1072,7 @@ BC42024: Unused local variable: 'x'.
             Assert.Equal("Public Sub Main()", TryCast(model, SemanticModel).GetEnclosingSymbol(names(0).SpanStart).ToDisplayString())
         End Sub
 
-        <WorkItem(685473, "DevDiv")>
+        <WorkItem(685473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685473")>
         <Fact()>
         Public Sub Bug685473()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -4669,7 +4669,7 @@ AssemblyName
 </xml>)
         End Sub
 
-        <WorkItem(751828, "DevDiv")>
+        <WorkItem(751828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751828")>
         <Fact()>
         Public Sub GetSymbolInfo_Bug_751828()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -4696,7 +4696,7 @@ End Class
             Assert.True(expSymInfo1.IsEmpty)
         End Sub
 
-        <WorkItem(768639, "DevDiv")>
+        <WorkItem(768639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768639")>
         <Fact()>
         Public Sub GetSymbolInfo_Bug_768639a()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -4728,7 +4728,7 @@ End Class
             Assert.NotNull(expSymInfo1.Symbol)
         End Sub
 
-        <WorkItem(768639, "DevDiv")>
+        <WorkItem(768639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768639")>
         <Fact()>
         Public Sub GetSymbolInfo_Bug_768639b()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -4762,7 +4762,7 @@ End Class
             Assert.NotNull(expSymInfo1.Symbol)
         End Sub
 
-        <WorkItem(768639, "DevDiv")>
+        <WorkItem(768639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768639")>
         <Fact()>
         Public Sub GetSymbolInfo_Bug_768639c()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -4794,7 +4794,7 @@ End Class
             Assert.NotNull(expSymInfo1.Symbol)
         End Sub
 
-        <WorkItem(768639, "DevDiv")>
+        <WorkItem(768639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768639")>
         <Fact()>
         Public Sub GetSymbolInfo_Bug_768639d()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -7404,7 +7404,7 @@ AssemblyName
             stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
-        <WorkItem(684184, "DevDiv")>
+        <WorkItem(684184, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684184")>
         <Fact>
         Public Sub Bug684184()
             Dim xmlText =
@@ -9077,7 +9077,7 @@ AssemblyName
                           New NameSyntaxInfo("TestStruct", {"TestStruct"}, {"TestStruct"}))
         End Sub
 
-        <WorkItem(703587, "DevDiv")>
+        <WorkItem(703587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703587")>
         <Fact()>
         Private Sub ObjectMemberViaInterfaceA()
             Dim xmlSource =
@@ -9141,7 +9141,7 @@ BC42309: XML comment has a tag with a 'cref' attribute 'IEquatable(Of T).GetHash
 xmlDoc)
         End Sub
 
-        <WorkItem(703587, "DevDiv")>
+        <WorkItem(703587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703587")>
         <Fact()>
         Private Sub ObjectMemberViaInterfaceB()
             Dim xmlSource =
@@ -11122,7 +11122,7 @@ AssemblyName
                             New AliasInfo("aNamespace", "System.Collections.Generic"))
         End Sub
 
-        <WorkItem(757110, "DevDiv")>
+        <WorkItem(757110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/757110")>
         <Fact>
         Public Sub NoAssemblyElementForNetModule()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -11356,7 +11356,7 @@ AssemblyName
                             New AliasInfo("ToString", Nothing))
         End Sub
 
-        <WorkItem(568006, "DevDiv")>
+        <WorkItem(568006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568006")>
         <Fact>
         Public Sub Inaccessible1()
             Dim source =
@@ -11383,7 +11383,7 @@ End Class
             compilation.AssertNoDiagnostics()
         End Sub
 
-        <WorkItem(568006, "DevDiv")>
+        <WorkItem(568006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568006")>
         <Fact>
         Public Sub Inaccessible2()
             Dim source =
@@ -11412,7 +11412,7 @@ End Class
             compilation.AssertNoDiagnostics()
         End Sub
 
-        <WorkItem(568006, "DevDiv")>
+        <WorkItem(568006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568006")>
         <Fact>
         Public Sub Inaccessible3()
             Dim lib1Source =
@@ -11462,8 +11462,8 @@ End Class
             Assert.Equal("B", symbols(1).ContainingAssembly.Name)
         End Sub
 
-        <WorkItem(568006, "DevDiv")>
-        <WorkItem(709199, "DevDiv")>
+        <WorkItem(568006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568006")>
+        <WorkItem(709199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709199")>
         <Fact>
         Public Sub ProtectedInstanceBaseMember()
             Dim source =
@@ -11498,8 +11498,8 @@ End Class
             Assert.Equal(expectedSymbol, actualSymbol)
         End Sub
 
-        <WorkItem(568006, "DevDiv")>
-        <WorkItem(709199, "DevDiv")>
+        <WorkItem(568006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568006")>
+        <WorkItem(709199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709199")>
         <Fact>
         Public Sub ProtectedSharedBaseMember()
             Dim source =
@@ -11534,7 +11534,7 @@ End Class
             Assert.Equal(expectedSymbol, actualSymbol)
         End Sub
 
-        <WorkItem(768624, "DevDiv")>
+        <WorkItem(768624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768624")>
         <Fact>
         Public Sub CrefsOnDelegate()
             Dim source =
@@ -11567,7 +11567,7 @@ BC42309: XML comment has a tag with a 'cref' attribute 'ToString' that could not
 ]]></errors>)
         End Sub
 
-        <WorkItem(768624, "DevDiv")>
+        <WorkItem(768624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768624")>
         <Fact>
         Public Sub TypeParametersOfAssociatedSymbol()
             Dim source =
@@ -11617,7 +11617,7 @@ BC42309: XML comment has a tag with a 'cref' attribute 'V' that could not be res
             Assert.True(model.GetSymbolInfo(crefSyntaxes(2)).IsEmpty)
         End Sub
 
-        <WorkItem(768624, "DevDiv")>
+        <WorkItem(768624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768624")>
         <Fact>
         Public Sub MembersOfAssociatedSymbol()
             Dim source =
@@ -11667,7 +11667,7 @@ End Enum
             Assert.Equal("E.F", model.GetSymbolInfo(crefSyntaxes(4)).Symbol.ToTestDisplayString())
         End Sub
 
-        <WorkItem(768624, "DevDiv")>
+        <WorkItem(768624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768624")>
         <Fact>
         Public Sub InnerVersusOuter()
             Dim source =
@@ -11697,7 +11697,7 @@ End Class
             Assert.Equal("Outer.Inner.F As System.Int32", model.GetSymbolInfo(crefSyntax).Symbol.ToTestDisplayString())
         End Sub
 
-        <WorkItem(531505, "DevDiv")>
+        <WorkItem(531505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531505")>
         <Fact>
         Private Sub Pia()
             Dim xmlSource =
@@ -11752,7 +11752,7 @@ AssemblyName
             CompileAndVerify(comp2, symbolValidator:=validator)
         End Sub
 
-        <WorkItem(790978, "DevDiv")>
+        <WorkItem(790978, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/790978")>
         <Fact>
         Public Sub SingleSymbol()
             Dim source =
@@ -11792,7 +11792,7 @@ End Class
             Assert.Equal(expectedXmlText, metadataSymbol.GetDocumentationCommentXml())
         End Sub
 
-        <Fact, WorkItem(908893, "DevDiv")>
+        <Fact, WorkItem(908893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908893")>
         Private Sub GenericTypeWithinGenericType()
             Dim xmlSource =
 <compilation name="AssemblyName">
@@ -12163,7 +12163,7 @@ xmlDoc)
 
 #End Region
 
-        <WorkItem(1087447, "DevDiv"), WorkItem(436, "CodePlex")>
+        <WorkItem(1087447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087447"), WorkItem(436, "CodePlex")>
         <Fact>
         Public Sub Bug1087447_01()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -12223,7 +12223,7 @@ EmptyCref
 
         End Sub
 
-        <WorkItem(1087447, "DevDiv"), WorkItem(436, "CodePlex")>
+        <WorkItem(1087447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087447"), WorkItem(436, "CodePlex")>
         <Fact>
         Public Sub Bug1087447_02()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -12282,7 +12282,7 @@ EmptyCref
             Assert.Equal("?", symbolInfo.Symbol.ToTestDisplayString())
         End Sub
 
-        <Fact, WorkItem(1115058, "DevDiv")>
+        <Fact, WorkItem(1115058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115058")>
         Public Sub UnterminatedElement()
             Dim sources =
 <compilation>

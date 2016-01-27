@@ -113,13 +113,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         IncrementExpression,
 
         Argument,
-        FieldInitializer,
-        PropertyInitializer,
+        FieldInitializerInCreation,
+        PropertyInitializerInCreation,
         ArrayInitializer,
         VariableDeclaration,
         SwitchSection,
         SingleValueCaseClause,
         RelationalCaseClause,
-        RangeCaseClause
+        RangeCaseClause,
+
+        ParameterInitializerAtDeclaration,
+        FieldInitializerAtDeclaration,
+        PropertyInitializerAtDeclaration
     }
 }
