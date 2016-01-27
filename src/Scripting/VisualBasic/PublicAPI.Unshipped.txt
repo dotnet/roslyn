@@ -1,34 +1,4 @@
-Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicMemberFilter
-Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicObjectFormatter
-Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicObjectFormatter.New() -> Void
-Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter
-Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter
-Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.New(pFormatter As Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter) -> Void
 Microsoft.CodeAnalysis.VisualBasic.Scripting.VisualBasicScript
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicMemberFilter.IsGeneratedMemberName(name As String) -> Boolean
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicObjectFormatter.FormatRefKind(parameter As System.Reflection.ParameterInfo) -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(c As Char, useQuotes As Boolean, escapeNonPrintable As Boolean, includeCodePoints As Boolean = False, numberRadix As Integer = 10) -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Boolean) -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Byte, numberRadix As Integer = 10) -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Date) -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Decimal) -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Double) -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Integer, numberRadix As Integer = 10) -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Long, numberRadix As Integer = 10) -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As SByte, numberRadix As Integer = 10) -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Short, numberRadix As Integer = 10) -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Single) -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As String, useQuotes As Boolean, escapeNonPrintable As Boolean, numberRadix As Integer = 10) -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As UInteger, numberRadix As Integer = 10) -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As ULong, numberRadix As Integer = 10) -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As UShort, numberRadix As Integer = 10) -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.NullLiteral() -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.ArrayClosing() -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.ArrayOpening() -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.FormatTypeName(type As System.Type, options As Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatterOptions) -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.GenericParameterClosing() -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.GenericParameterOpening() -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.GetPrimitiveTypeName(type As Microsoft.CodeAnalysis.SpecialType) -> String
 Shared Microsoft.CodeAnalysis.VisualBasic.Scripting.VisualBasicScript.Create(Of T)(code As String, options As Microsoft.CodeAnalysis.Scripting.ScriptOptions = Nothing, globalsType As System.Type = Nothing, assemblyLoader As Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader = Nothing) -> Microsoft.CodeAnalysis.Scripting.Script(Of T)
 Shared Microsoft.CodeAnalysis.VisualBasic.Scripting.VisualBasicScript.Create(code As String, options As Microsoft.CodeAnalysis.Scripting.ScriptOptions = Nothing, globalsType As System.Type = Nothing, assemblyLoader As Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader = Nothing) -> Microsoft.CodeAnalysis.Scripting.Script(Of Object)
 Shared Microsoft.CodeAnalysis.VisualBasic.Scripting.VisualBasicScript.EvaluateAsync(Of T)(code As String, options As Microsoft.CodeAnalysis.Scripting.ScriptOptions = Nothing, globals As Object = Nothing, cancellationToken As System.Threading.CancellationToken = Nothing) -> System.Threading.Tasks.Task(Of T)

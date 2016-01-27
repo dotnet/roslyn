@@ -1,38 +1,4 @@
 Microsoft.CodeAnalysis.CSharp.Scripting.CSharpScript
-Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpMemberFilter
-Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter
-Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.CSharpObjectFormatter() -> void
-Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter
-Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpTypeNameFormatter
-Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpTypeNameFormatter.CSharpTypeNameFormatter(Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter primitiveFormatter) -> void
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpMemberFilter.IsGeneratedMemberName(string name) -> bool
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.Filter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.MemberFilter
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.FormatRefKind(System.Reflection.ParameterInfo parameter) -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.PrimitiveFormatter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.TypeNameFormatter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter.FormatLiteral(System.DateTime value) -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter.FormatLiteral(bool value) -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter.FormatLiteral(byte value, int numberRadix = 10) -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter.FormatLiteral(char c, bool useQuotes, bool escapeNonPrintable, bool includeCodePoints = false, int numberRadix = 10) -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter.FormatLiteral(decimal value) -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter.FormatLiteral(double value) -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter.FormatLiteral(float value) -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter.FormatLiteral(int value, int numberRadix = 10) -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter.FormatLiteral(long value, int numberRadix = 10) -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter.FormatLiteral(sbyte value, int numberRadix = 10) -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter.FormatLiteral(short value, int numberRadix = 10) -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter.FormatLiteral(string value, bool useQuotes, bool escapeNonPrintable, int numberRadix = 10) -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter.FormatLiteral(uint value, int numberRadix = 10) -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter.FormatLiteral(ulong value, int numberRadix = 10) -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter.FormatLiteral(ushort value, int numberRadix = 10) -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter.NullLiteral.get -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpTypeNameFormatter.ArrayClosing.get -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpTypeNameFormatter.ArrayOpening.get -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpTypeNameFormatter.FormatTypeName(System.Type type, Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatterOptions options) -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpTypeNameFormatter.GenericParameterClosing.get -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpTypeNameFormatter.GenericParameterOpening.get -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpTypeNameFormatter.GetPrimitiveTypeName(Microsoft.CodeAnalysis.SpecialType type) -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpTypeNameFormatter.PrimitiveFormatter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter
 static Microsoft.CodeAnalysis.CSharp.Scripting.CSharpScript.Create(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, System.Type globalsType = null, Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader assemblyLoader = null) -> Microsoft.CodeAnalysis.Scripting.Script<object>
 static Microsoft.CodeAnalysis.CSharp.Scripting.CSharpScript.Create<T>(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, System.Type globalsType = null, Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader assemblyLoader = null) -> Microsoft.CodeAnalysis.Scripting.Script<T>
 static Microsoft.CodeAnalysis.CSharp.Scripting.CSharpScript.EvaluateAsync(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, object globals = null, System.Type globalsType = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<object>
