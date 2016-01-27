@@ -271,6 +271,34 @@ End Module</File>
 
         <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestOptionsMovedAfterBannerTextThatFollowsEndOfLineTrivia() As Task
+            Dim text = <File>
+
+' Copyright
+
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+End Module
+[|Option Explicit Off|]</File>
+
+            Dim expected = <File>
+
+' Copyright
+Option Explicit Off
+
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+End Module</File>
+
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+        End Function
+
+        <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOptionsMovedAfterBannerTextFollowedByOtherOptions() As Task
             Dim text = <File>
 ' Copyright
@@ -313,6 +341,38 @@ End Module
             Dim expected = <File>
 Option Compare Binary
 #Const A = 5
+
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+End Module</File>
+
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+        End Function
+
+        <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestOptionsMovedAfterBannerTextWithImports() As Task
+            Dim text = <File>
+
+' Copyright
+Imports System
+Imports System.Collections.Generic
+
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+End Module
+[|Option Compare Binary|]</File>
+
+            Dim expected = <File>
+
+' Copyright
+Option Compare Binary
+Imports System
+Imports System.Collections.Generic
 
 Module Program
     Sub Main(args As String())
