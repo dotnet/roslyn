@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "localFunctions";
 
                 case MessageID.IDS_FeatureRefLocalsReturns:
-                    return "RefLocalsAndReturns";
+                    return "refLocalsAndReturns";
                 default:
                     return null;
             }

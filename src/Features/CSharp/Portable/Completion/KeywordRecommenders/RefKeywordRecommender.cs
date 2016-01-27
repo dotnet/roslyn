@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
                 context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
                 context.TargetToken.IsXmlCrefParameterModifierContext() ||
-                (syntaxTree.Options.Features.ContainsKey("RefLocalsAndReturns") && 
+                (syntaxTree.Options.Features.ContainsKey("refLocalsAndReturns") && 
                     IsValidNewByRefContext(syntaxTree, position, context, cancellationToken));
         }
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             // 
-            //  static ref Foo
+            //  ref Foo(int x, ...
             // 
             if (context.IsGlobalStatementContext)
             {
