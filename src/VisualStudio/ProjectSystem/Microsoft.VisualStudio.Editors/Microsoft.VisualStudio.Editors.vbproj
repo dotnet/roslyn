@@ -708,15 +708,6 @@
     <Compile Include="XmlToSchema\Wizard.vb" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\vscommon\CodeMarkers\CodeMarkerValues.txt">
-      <Link>-Links\CodeMarkerValues.txt</Link>
-    </None>
-    <None Include="..\..\..\vscommon\idl\DiscoveryService90.idl">
-      <Link>-Links\DiscoveryService90.idl</Link>
-    </None>
-    <None Include="..\..\..\vscommon\idl\WCFReferences.idl">
-      <Link>-Links\WCFReferences.idl</Link>
-    </None>
     <None Include="Docs\app-designer-visual-spec-1.png" />
     <None Include="Docs\app-designer-visual-spec-1-detail1.png" />
     <None Include="Docs\app-designer-visual-spec-1-detail2.png" />
@@ -738,33 +729,6 @@
     </Content>
     <Content Include="..\..\..\vscommon\idl\DiscoveryService90.idl">
       <Link>-Links\DiscoveryService90.idl</Link>
-    </Content>
-    <Content Include="..\..\..\vscommon\idl\VSLangProj.idl">
-      <Link>-Links\VSLangProj.idl</Link>
-    </Content>
-    <Content Include="..\..\..\vscommon\idl\vslangproj2.idl">
-      <Link>-Links\vslangproj2.idl</Link>
-    </Content>
-    <Content Include="..\..\..\vscommon\idl\vslangproj80.idl">
-      <Link>-Links\vslangproj80.idl</Link>
-    </Content>
-    <Content Include="..\..\..\vscommon\idl\vslangproj90.idl">
-      <Link>-Links\vslangproj90.idl</Link>
-    </Content>
-    <Content Include="..\..\..\vscommon\idl\vsshell.idl">
-      <Link>-Links\vsshell.idl</Link>
-    </Content>
-    <Content Include="..\..\..\vscommon\idl\vsshell100.idl">
-      <Link>-Links\vsshell90.idl</Link>
-    </Content>
-    <Content Include="..\..\..\vscommon\idl\vsshell2.idl">
-      <Link>-Links\vsshell2.idl</Link>
-    </Content>
-    <Content Include="..\..\..\vscommon\idl\vsshell80.idl">
-      <Link>-Links\vsshell80.idl</Link>
-    </Content>
-    <Content Include="..\..\..\vscommon\idl\vsshell90.idl">
-      <Link>-Links\vsshell90.idl</Link>
     </Content>
     <Content Include="..\..\..\vscommon\idl\WCFReferences.idl">
       <Link>-Links\WCFReferences.idl</Link>
