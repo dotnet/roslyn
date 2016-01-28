@@ -30,6 +30,12 @@ namespace Microsoft.CodeAnalysis.Editor
         public const string ClassView = "Class View";
 
         /// <summary>
+        /// Command handler name for Comment Block Completion.
+        /// </summary>
+        /// <remarks></remarks>
+        public const string CommentBlockCompletion = "Comment Block Completion Command Handler";
+
+        /// <summary>
         /// Command handler name for Comment Selection.
         /// </summary>
         /// <remarks></remarks>

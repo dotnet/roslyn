@@ -89,6 +89,7 @@
     <Compile Include="CallHierarchy\CallHierarchyCommandHandler.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureCommandHandler.cs" />
     <Compile Include="Classification\CSharpEditorClassificationService.cs" />
+    <Compile Include="CommentBlockCompletion\CommentBlockCompletionCommandHandler.cs" />
     <Compile Include="CommentSelection\CSharpCommentUncommentService.cs" />
     <Compile Include="Completion\CompletionProviders\OverrideCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\PartialCompletionProvider.cs" />
