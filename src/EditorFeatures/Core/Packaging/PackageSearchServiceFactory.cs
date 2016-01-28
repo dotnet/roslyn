@@ -2,10 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 #if ELFIE_ENABLED
 using Elfie.Model;
 using Elfie.Model.Structures;
@@ -14,7 +11,6 @@ using Elfie.Model.Tree;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Nuget
 {
@@ -47,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Nuget
                 var database = s_memberDatabase.Value;
                 var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
 
-                var symbols = new PartialArray<Symbol>(3);
+                var symbols = new PartialArray<Symbol>(1);
                 if (query.TryFindMembers(database, ref symbols))
                 {
                     var result = new List<PackageSearchResult>();
@@ -59,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Nuget
                         if (nameParts.Count > 0)
                         {
                             yield return new PackageSearchResult(nameParts, symbol.PackageName.ToString());
+                            yield break;
                         }
                     }
                 }
