@@ -1,32 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Reflection;
+using System;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
-    public class CSharpObjectFormatter : CommonObjectFormatter
+    public class CSharpObjectFormatter : ObjectFormatter
     {
         public static CSharpObjectFormatter Instance { get; } = new CSharpObjectFormatter();
 
-        internal override CommonTypeNameFormatter TypeNameFormatter { get; }
-        internal override CommonPrimitiveFormatter PrimitiveFormatter { get; }
-        internal override MemberFilter Filter { get; }
+        private static readonly ObjectFormatter _impl = new CSharpObjectFormatterImpl();
 
-        internal CSharpObjectFormatter()
+        private CSharpObjectFormatter()
         {
-            PrimitiveFormatter = new CSharpPrimitiveFormatter();
-            TypeNameFormatter = new CSharpTypeNameFormatter(PrimitiveFormatter);
-            Filter = new CSharpMemberFilter();
         }
 
-        internal override string FormatRefKind(ParameterInfo parameter)
-        {
-            return parameter.IsOut
-                ? parameter.IsIn
-                    ? "ref"
-                    : "out"
-                : "";
-        }
+        public override string FormatObject(object obj, PrintOptions options) => _impl.FormatObject(obj, options);
+
+        public override string FormatUnhandledException(Exception e) => _impl.FormatUnhandledException(e);
     }
 }

@@ -12,13 +12,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     /// <summary>
     /// Object pretty printer.
     /// </summary>
-    public abstract partial class CommonObjectFormatter : ObjectFormatter
+    internal abstract partial class CommonObjectFormatter : ObjectFormatter
     {
-        internal CommonObjectFormatter()
-        {
-            // Restrict subtyping.
-        }
-
         public override string FormatObject(object obj, PrintOptions options)
         {
             if (options == null)
@@ -33,12 +28,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return visitor.FormatObject(obj);
         }
 
-        internal virtual MemberFilter Filter { get; } = new CommonMemberFilter();
+        protected virtual MemberFilter Filter { get; } = new CommonMemberFilter();
 
-        internal abstract CommonTypeNameFormatter TypeNameFormatter { get; }
-        internal abstract CommonPrimitiveFormatter PrimitiveFormatter { get; }
+        protected abstract CommonTypeNameFormatter TypeNameFormatter { get; }
+        protected abstract CommonPrimitiveFormatter PrimitiveFormatter { get; }
 
-        internal virtual BuilderOptions GetInternalBuilderOptions(PrintOptions printOptions) =>
+        protected virtual BuilderOptions GetInternalBuilderOptions(PrintOptions printOptions) =>
             new BuilderOptions(
                 indentation: "  ",
                 newLine: Environment.NewLine,
@@ -46,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 maximumLineLength: int.MaxValue,
                 maximumOutputLength: printOptions.MaximumOutputLength);
 
-        internal virtual CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions) =>
+        protected virtual CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions) =>
             new CommonPrimitiveFormatterOptions(
                 numberRadix: printOptions.NumberRadix,
                 includeCodePoints: false,
@@ -54,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 escapeNonPrintableCharacters: printOptions.EscapeNonPrintableCharacters,
                 cultureInfo: CultureInfo.CurrentUICulture);
 
-        internal virtual CommonTypeNameFormatterOptions GetTypeNameOptions(PrintOptions printOptions) =>
+        protected virtual CommonTypeNameFormatterOptions GetTypeNameOptions(PrintOptions printOptions) =>
             new CommonTypeNameFormatterOptions(
                 arrayBoundRadix: printOptions.NumberRadix,
                 showNamespaces: false);
@@ -106,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// Returns a method signature display string. Used to display stack frames.
         /// </summary>
         /// <returns>Null if the method is a compiler generated method that shouldn't be displayed to the user.</returns>
-        internal virtual string FormatMethodSignature(MethodBase method)
+        protected virtual string FormatMethodSignature(MethodBase method)
         {
             var pooled = PooledStringBuilder.GetInstance();
             var builder = pooled.Builder;
@@ -142,6 +137,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return pooled.ToStringAndFree();
         }
 
-        internal abstract string FormatRefKind(ParameterInfo parameter);
+        protected abstract string FormatRefKind(ParameterInfo parameter);
     }
 }

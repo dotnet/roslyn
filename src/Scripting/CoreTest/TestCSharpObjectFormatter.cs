@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 {
-    internal sealed class TestCSharpObjectFormatter : CSharpObjectFormatter
+    internal sealed class TestCSharpObjectFormatter : CSharpObjectFormatterImpl
     {
         private readonly bool _includeCodePoints;
         private readonly bool _quoteStringsAndCharacters;
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
             _cultureInfo = cultureInfo ?? CultureInfo.InvariantCulture;
         }
 
-        internal override BuilderOptions GetInternalBuilderOptions(PrintOptions printOptions) =>
+        protected override BuilderOptions GetInternalBuilderOptions(PrintOptions printOptions) =>
             new BuilderOptions(
                 indentation: "  ",
                 newLine: Environment.NewLine,
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
                 maximumLineLength: _maximumLineLength,
                 maximumOutputLength: printOptions.MaximumOutputLength);
 
-        internal override CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions) =>
+        protected override CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions) =>
             new CommonPrimitiveFormatterOptions(
                 numberRadix: printOptions.NumberRadix,
                 includeCodePoints: _includeCodePoints,

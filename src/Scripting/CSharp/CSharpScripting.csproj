@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="Hosting\CommandLine\Csi.cs" />
     <Compile Include="CSharpMemberFilter.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CSharpObjectFormatterImpl.cs" />
     <Compile Include="Hosting\ObjectFormatter\CSharpPrimitiveFormatter.cs" />
     <Compile Include="Hosting\ObjectFormatter\CSharpTypeNameFormatter.cs" />
     <Compile Include="Hosting\ObjectFormatter\CSharpObjectFormatter.cs" />
