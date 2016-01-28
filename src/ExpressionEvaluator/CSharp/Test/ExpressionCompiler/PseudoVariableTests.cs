@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// Dev12 syntax "[0-9]+#" not supported.
         /// </summary>
-        [WorkItem(1071347)]
+        [WorkItem(1071347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1071347")]
         [Fact]
         public void ObjectId_EarlierSyntax()
         {
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }");
         }
 
-        [WorkItem(1101017)]
+        [WorkItem(1101017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101017")]
         [Fact]
         public void NestedGenericValueType()
         {
@@ -667,7 +667,7 @@ class C
             Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
         }
 
-        [WorkItem(1100849)]
+        [WorkItem(1100849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100849")]
         [Fact]
         public void PassByRef()
         {
@@ -900,7 +900,7 @@ class C
         /// Assembly-qualified type names from the debugger refer to runtime assemblies
         /// which may be different versions than the assembly references in metadata.
         /// </summary>
-        [WorkItem(1087458)]
+        [WorkItem(1087458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087458")]
         [Fact]
         public void DifferentAssemblyVersion()
         {
@@ -994,7 +994,7 @@ class C
         /// The assembly-qualified type may reference an assembly
         /// outside of the current module and its references.
         /// </summary>
-        [WorkItem(1092680)]
+        [WorkItem(1092680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092680")]
         [Fact]
         public void TypeOutsideModule()
         {

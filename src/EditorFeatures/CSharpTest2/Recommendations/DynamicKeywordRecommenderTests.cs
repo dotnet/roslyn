@@ -504,7 +504,7 @@ $$");
 @"new $$"));
         }
 
-        [WorkItem(538804)]
+        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInTypeOf()
         {
@@ -512,7 +512,7 @@ $$");
 @"typeof($$"));
         }
 
-        [WorkItem(538804)]
+        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInDefault()
         {
@@ -520,7 +520,7 @@ $$");
 @"default($$"));
         }
 
-        [WorkItem(538804)]
+        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInSizeOf()
         {
@@ -528,7 +528,7 @@ $$");
 @"sizeof($$"));
         }
 
-        [WorkItem(545303)]
+        [WorkItem(545303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545303")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInPreProcessor()
         {

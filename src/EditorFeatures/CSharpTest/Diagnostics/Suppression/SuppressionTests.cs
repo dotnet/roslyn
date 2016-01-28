@@ -236,7 +236,7 @@ class Class
 }}");
                 }
 
-                [WorkItem(956453)]
+                [WorkItem(956453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956453")]
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestWholeFilePragmaWarningDirective()
                 {
@@ -247,7 +247,7 @@ class Class {{ void Method() {{ int x = 0; }} }}
 #pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}");
                 }
 
-                [WorkItem(970129)]
+                [WorkItem(970129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/970129")]
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestSuppressionAroundSingleToken()
                 {
@@ -278,7 +278,7 @@ class Program
 }}");
                 }
 
-                [WorkItem(1066576)]
+                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestPragmaWarningDirectiveAroundTrivia1()
                 {
@@ -317,7 +317,7 @@ class Class
 }}");
                 }
 
-                [WorkItem(1066576)]
+                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestPragmaWarningDirectiveAroundTrivia2()
                 {
@@ -328,7 +328,7 @@ class Class
 #pragma warning restore CS1633 // {CSharpResources.WRN_IllegalPragma_Title}");
                 }
 
-                [WorkItem(1066576)]
+                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestPragmaWarningDirectiveAroundTrivia3()
                 {
@@ -339,7 +339,7 @@ class Class
 #pragma warning restore CS1633 // {CSharpResources.WRN_IllegalPragma_Title}");
                 }
 
-                [WorkItem(1066576)]
+                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestPragmaWarningDirectiveAroundTrivia4()
                 {
@@ -360,7 +360,7 @@ class C {{ }}
 ");
                 }
 
-                [WorkItem(1066576)]
+                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestPragmaWarningDirectiveAroundTrivia5()
                 {
@@ -377,7 +377,7 @@ class C2 {{ }}
 class C3 {{ }}");
                 }
 
-                [WorkItem(1066576)]
+                [WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestPragmaWarningDirectiveAroundTrivia6()
                 {
@@ -1569,7 +1569,7 @@ class Class { }
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-            [WorkItem(1073825)]
+            [WorkItem(1073825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073825")]
             public async Task TestDiagnosticWithoutLocationCanBeSuppressed()
             {
                 await TestAsync(

@@ -31,7 +31,7 @@ Dim x
             Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = Function() |</MethodBody>, "End")
         End Function
 
-        <WorkItem(530599)>
+        <WorkItem(530599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530599")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function EndNotOutsideOfMethodBodyTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>Class C

@@ -305,7 +305,7 @@ index: 2);
 index: 2);
         }
 
-        [WorkItem(538346)]
+        [WorkItem(538346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538346")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassWhereKeywordBecomesTypeName()
         {
@@ -337,7 +337,7 @@ index: 2);
 @"class Class { void Method() { System.Console.[|Write|](5); } }");
         }
 
-        [WorkItem(538409)]
+        [WorkItem(538409, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538409")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateIntoRightPart()
         {
@@ -347,7 +347,7 @@ index: 2);
 index: 2);
         }
 
-        [WorkItem(538408)]
+        [WorkItem(538408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538408")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeIntoCompilationUnit()
         {
@@ -357,7 +357,7 @@ index: 2);
 index: 1);
         }
 
-        [WorkItem(538408)]
+        [WorkItem(538408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538408")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeIntoNamespace()
         {
@@ -367,7 +367,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(538115)]
+        [WorkItem(538115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538115")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithPreprocessor()
         {
@@ -394,7 +394,7 @@ index: 2,
 compareTokens: false);
         }
 
-        [WorkItem(538495)]
+        [WorkItem(538495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538495")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeIntoContainingNamespace()
         {
@@ -404,7 +404,7 @@ compareTokens: false);
 index: 1);
         }
 
-        [WorkItem(538516)]
+        [WorkItem(538516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538516")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromIntoNewNamespace()
         {
@@ -415,7 +415,7 @@ expectedContainers: new List<string> { "N" },
 expectedDocumentName: "C.cs");
         }
 
-        [WorkItem(538558)]
+        [WorkItem(538558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538558")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task NegativeTestGlobalAlias()
         {
@@ -426,7 +426,7 @@ expectedDocumentName: "C.cs");
 @"class Class { void Method() { global::[|System|].String s; } }");
         }
 
-        [WorkItem(538069)]
+        [WorkItem(538069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538069")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeFromArrayCreation1()
         {
@@ -437,7 +437,7 @@ index: 1,
 parseOptions: null);
         }
 
-        [WorkItem(538069)]
+        [WorkItem(538069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538069")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeFromArrayCreation2()
         {
@@ -448,7 +448,7 @@ index: 1,
 parseOptions: null);
         }
 
-        [WorkItem(538069)]
+        [WorkItem(538069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538069")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeFromArrayCreation3()
         {
@@ -459,7 +459,7 @@ index: 1,
 parseOptions: null);
         }
 
-        [WorkItem(539329)]
+        [WorkItem(539329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539329")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task NegativeTestNotInUsingDirective()
         {
@@ -860,7 +860,7 @@ index: 1,
 options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
         }
 
-        [WorkItem(942568)]
+        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithPreferIntrinsicPredefinedKeywordFalse()
         {
@@ -930,7 +930,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(538519)]
+        [WorkItem(538519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538519")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateInterfaceFromBaseList2()
         {
@@ -940,7 +940,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(538519)]
+        [WorkItem(538519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538519")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateInterfaceFromTypeConstraints2()
         {
@@ -961,7 +961,7 @@ index: 1);
 
         #endregion
 
-        [WorkItem(539339)]
+        [WorkItem(539339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539339")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task NotInLeftSideOfAssignment()
         {
@@ -969,7 +969,7 @@ index: 1);
 @"class Class { void M(int i) { [|Foo|] = 2; } }");
         }
 
-        [WorkItem(539339)]
+        [WorkItem(539339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539339")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task InLeftSideOfAssignment()
         {
@@ -979,7 +979,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(539339)]
+        [WorkItem(539339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539339")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task NotInRightSideOfAssignment()
         {
@@ -987,7 +987,7 @@ index: 1);
 @"class Class { void M(int i) { x = [|Foo|]; } }");
         }
 
-        [WorkItem(539339)]
+        [WorkItem(539339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539339")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task InRightSideOfAssignment()
         {
@@ -997,7 +997,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(539489)]
+        [WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestEscapedName()
         {
@@ -1007,7 +1007,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(539489)]
+        [WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestEscapedKeyword()
         {
@@ -1017,7 +1017,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(539535)]
+        [WorkItem(539535, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539535")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateIntoNewFile()
         {
@@ -1028,7 +1028,7 @@ expectedContainers: new List<string> { "Foo" },
 expectedDocumentName: "Bar.cs");
         }
 
-        [WorkItem(539620)]
+        [WorkItem(539620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539620")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestDeclarationSpan()
         {
@@ -1038,7 +1038,7 @@ expectedDocumentName: "Bar.cs");
 index: 1);
         }
 
-        [WorkItem(539674)]
+        [WorkItem(539674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539674")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestNotInEnumBaseList()
         {
@@ -1046,7 +1046,7 @@ index: 1);
 @"enum E : [|A|] { }");
         }
 
-        [WorkItem(539681)]
+        [WorkItem(539681, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539681")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestNotInConditional()
         {
@@ -1070,7 +1070,7 @@ index: 1);
 @"delegate void D ( int x ) ; class C { void M ( ) { D d = new D ( [|Test|] ) ; } } ");
         }
 
-        [WorkItem(539754)]
+        [WorkItem(539754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539754")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestMissingOnVar()
         {
@@ -1078,7 +1078,7 @@ index: 1);
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { [|var|] x = new Program ( ) ; } } ");
         }
 
-        [WorkItem(539765)]
+        [WorkItem(539765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539765")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestElideDefaultConstructor()
         {
@@ -1089,7 +1089,7 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        [WorkItem(539783)]
+        [WorkItem(539783, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539783")]
         public async Task RegressionFor5867ErrorToleranceTopLevel()
         {
             await TestMissingAsync(
@@ -1097,7 +1097,7 @@ index: 1);
 GetScriptOptions());
         }
 
-        [WorkItem(539799)]
+        [WorkItem(539799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539799")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestOnInaccessibleType()
         {
@@ -1105,7 +1105,7 @@ GetScriptOptions());
 @"class C { private class D { } } class A { void M ( ) { C . [|D|] d = new C . D ( ) ; } } ");
         }
 
-        [WorkItem(539794)]
+        [WorkItem(539794, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539794")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestDefaultConstructorInTypeDerivingFromInterface()
         {
@@ -1133,7 +1133,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(539739)]
+        [WorkItem(539739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539739")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestNotGenerateInDelegateConstructor()
         {
@@ -1150,7 +1150,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(539870)]
+        [WorkItem(539870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539870")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenericWhenNonGenericExists()
         {
@@ -1160,7 +1160,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(539930)]
+        [WorkItem(539930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539930")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestInheritedTypeParameters()
         {
@@ -1170,7 +1170,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(539971)]
+        [WorkItem(539971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539971")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestDoNotUseOuterTypeParameters()
         {
@@ -1180,7 +1180,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(539970)]
+        [WorkItem(539970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539970")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestReferencingTypeParameters1()
         {
@@ -1190,7 +1190,7 @@ index: 2);
 index: 1);
         }
 
-        [WorkItem(539970)]
+        [WorkItem(539970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539970")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestReferencingTypeParameters2()
         {
@@ -1200,7 +1200,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(539972)]
+        [WorkItem(539972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539972")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestReferencingTypeParameters3()
         {
@@ -1210,7 +1210,7 @@ index: 2);
 index: 1);
         }
 
-        [WorkItem(539972)]
+        [WorkItem(539972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539972")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestReferencingTypeParameters4()
         {
@@ -1220,7 +1220,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(539992)]
+        [WorkItem(539992, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539992")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestNotPassingEmptyIssueListToCtor()
         {
@@ -1228,7 +1228,7 @@ index: 2);
 @"using System . Linq ; class Program { void Main ( ) { Enumerable . [|T|] Enumerable . Select ( Enumerable . Range ( 0 , 9 ) , i => char . Parse ( i . ToString ( ) ) ) } } ");
         }
 
-        [WorkItem(540644)]
+        [WorkItem(540644, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540644")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateWithVoidArg()
         {
@@ -1238,7 +1238,7 @@ index: 2);
 index: 1);
         }
 
-        [WorkItem(540989)]
+        [WorkItem(540989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540989")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestMissingOnInaccessibleType()
         {
@@ -1246,7 +1246,7 @@ index: 1);
 @"class Outer { class Inner { } } class A { Outer . [|Inner|] inner ; } ");
         }
 
-        [WorkItem(540766)]
+        [WorkItem(540766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540766")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestMissingOnInvalidGlobalCode()
         {
@@ -1255,7 +1255,7 @@ index: 1);
 parseOptions: null);
         }
 
-        [WorkItem(539985)]
+        [WorkItem(539985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539985")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestDoNotInferTypeWithWrongArity()
         {
@@ -1272,7 +1272,7 @@ index: 1);
 @"class Program { static void Main ( ) { new [|Program|] ( 1 ) ; } } ");
         }
 
-        [WorkItem(541263)]
+        [WorkItem(541263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541263")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestAccessibilityConstraint()
         {
@@ -1381,7 +1381,7 @@ index: 2);
 index: 1);
         }
 
-        [WorkItem(541654)]
+        [WorkItem(541654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541654")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateVarType()
         {
@@ -1391,7 +1391,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(541641)]
+        [WorkItem(541641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541641")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestOnBadAttribute()
         {
@@ -1409,7 +1409,7 @@ internal class AttClassAttribute { }",
 index: 1);
         }
 
-        [WorkItem(542528)]
+        [WorkItem(542528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542528")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateStruct1()
         {
@@ -1419,7 +1419,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(542480)]
+        [WorkItem(542480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542480")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestCopyConstraints1()
         {
@@ -1429,7 +1429,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(542528)]
+        [WorkItem(542528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542528")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateStruct2()
         {
@@ -1439,7 +1439,7 @@ index: 1);
 index: 0);
         }
 
-        [WorkItem(542528)]
+        [WorkItem(542528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542528")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateStruct3()
         {
@@ -1449,7 +1449,7 @@ index: 0);
 index: 0);
         }
 
-        [WorkItem(542761)]
+        [WorkItem(542761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542761")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateOpenType1()
         {
@@ -1459,7 +1459,7 @@ index: 0);
 index: 1);
         }
 
-        [WorkItem(542766)]
+        [WorkItem(542766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542766")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateAttributeInGenericType()
         {
@@ -1474,7 +1474,7 @@ class A<T>
 count: 3);
         }
 
-        [WorkItem(543061)]
+        [WorkItem(543061, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543061")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestNestedGenericAccessibility()
         {
@@ -1484,7 +1484,7 @@ count: 3);
 index: 1);
         }
 
-        [WorkItem(543493)]
+        [WorkItem(543493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543493")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task MissingIfNotInTypeStatementOrExpressionContext()
         {
@@ -1493,7 +1493,7 @@ index: 1);
             await TestMissingAsync(@"class C { void M ( ) { a b c [|d|] } } ");
         }
 
-        [WorkItem(542641)]
+        [WorkItem(542641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542641")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestAttributeSuffixOnAttributeSubclasses()
         {
@@ -1503,7 +1503,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(543853)]
+        [WorkItem(543853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543853")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestDisplayStringForGlobalNamespace()
         {
@@ -1512,7 +1512,7 @@ index: 1);
 string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", FeaturesResources.GlobalNamespace));
         }
 
-        [WorkItem(543853)]
+        [WorkItem(543853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543853")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestAddDocumentForGlobalNamespace()
         {
@@ -1523,7 +1523,7 @@ Array.Empty<string>(),
 "Foo.cs");
         }
 
-        [WorkItem(543886)]
+        [WorkItem(543886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543886")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestVerbatimAttribute()
         {
@@ -1533,7 +1533,7 @@ Array.Empty<string>(),
 index: 1);
         }
 
-        [WorkItem(531220)]
+        [WorkItem(531220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531220")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task CompareIncompleteMembersToEqual()
         {
@@ -1550,7 +1550,7 @@ x,x)private class x
 index: 2);
         }
 
-        [WorkItem(544168)]
+        [WorkItem(544168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544168")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestNotOnAbstractClassCreation()
         {
@@ -1558,7 +1558,7 @@ index: 2);
 @"abstract class Foo { } class SomeClass { void foo ( ) { var q = new [|Foo|] ( ) ; } } ");
         }
 
-        [WorkItem(545362)]
+        [WorkItem(545362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545362")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateInVenus1()
         {
@@ -1604,7 +1604,7 @@ class Program
 ", index: 1, compareTokens: false);
         }
 
-        [WorkItem(869506)]
+        [WorkItem(869506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869506")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateTypeOutsideCurrentProject()
         {
@@ -1653,7 +1653,7 @@ namespace A
             await TestAsync(code, expected, compareTokens: false);
         }
 
-        [WorkItem(932602)]
+        [WorkItem(932602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateTypeInFolderNotDefaultNamespace_0()
         {
@@ -1685,7 +1685,7 @@ namespace Namespace1.Namespace2
                 isLine: false);
         }
 
-        [WorkItem(932602)]
+        [WorkItem(932602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateTypeInFolderNotDefaultNamespace_1()
         {
@@ -1717,7 +1717,7 @@ namespace Namespace1.Namespace2.Namespace3
                 isLine: false);
         }
 
-        [WorkItem(612700)]
+        [WorkItem(612700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612700")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateTypeWithNoBraces()
         {
@@ -1731,7 +1731,7 @@ internal class Base
             await TestAsync(code, expected, index: 1);
         }
 
-        [WorkItem(940003)]
+        [WorkItem(940003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestWithProperties1()
         {
@@ -1773,7 +1773,7 @@ internal class Customer
             await TestAsync(code, expected, index: 1);
         }
 
-        [WorkItem(940003)]
+        [WorkItem(940003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestWithProperties2()
         {
@@ -1815,7 +1815,7 @@ internal class Customer
             await TestAsync(code, expected, index: 1);
         }
 
-        [WorkItem(940003)]
+        [WorkItem(940003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestWithProperties3()
         {
@@ -1857,7 +1857,7 @@ internal class Customer
             await TestAsync(code, expected, index: 1);
         }
 
-        [WorkItem(1082031)]
+        [WorkItem(1082031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082031")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestWithProperties4()
         {
@@ -1890,7 +1890,7 @@ internal class Customer
             await TestAsync(code, expected, index: 1);
         }
 
-        [WorkItem(1032176), WorkItem(1073099)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestWithNameOf()
         {
@@ -1918,7 +1918,7 @@ internal class Z
             await TestAsync(code, expected, index: 1);
         }
 
-        [WorkItem(1032176), WorkItem(1073099)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestWithNameOf2()
         {
@@ -1960,7 +1960,7 @@ index: 1);
             await TestMissingAsync(@"using [|Sample|] ; ");
         }
 
-        [WorkItem(1107929)]
+        [WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestAccessibilityForPublicFields()
         {
@@ -1970,7 +1970,7 @@ index: 1);
 index: 0);
         }
 
-        [WorkItem(1107929)]
+        [WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestAccessibilityForPublicFields2()
         {
@@ -1980,7 +1980,7 @@ index: 0);
 index: 1);
         }
 
-        [WorkItem(1107929)]
+        [WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestAccessibilityForPublicFields3()
         {
@@ -1990,7 +1990,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(1107929)]
+        [WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestAccessibilityForPublicFields4()
         {
@@ -2000,7 +2000,7 @@ index: 2);
 index: 0);
         }
 
-        [WorkItem(1107929)]
+        [WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestAccessibilityForPublicFields5()
         {
@@ -2010,7 +2010,7 @@ index: 0);
 index: 1);
         }
 
-        [WorkItem(1107929)]
+        [WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestAccessibilityForPublicFields6()
         {

@@ -51,7 +51,7 @@ class D
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(636117)]
+        [WorkItem(636117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636117")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnExpression()
         {
@@ -621,7 +621,7 @@ public class Foo
 
         #region Indexed Property tests
 
-        [WorkItem(530811)]
+        [WorkItem(530811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530811")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task IndexedProperty()
         {
@@ -762,7 +762,7 @@ class C
                 return new ElementAccessExpressionSignatureHelpProvider();
             }
 
-            [WorkItem(636117)]
+            [WorkItem(636117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636117")]
             [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
             public async Task TestInvocation()
             {
@@ -791,7 +791,7 @@ class D
                 await TestAsync(markup, expectedOrderedItems);
             }
 
-            [WorkItem(939417)]
+            [WorkItem(939417, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939417")]
             [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
             public async Task ConditionalIndexer()
             {
@@ -834,7 +834,7 @@ public class P
                 await TestAsync(@"class C { void M() { (null as System.Collections.Generic.List<int>)?[$$ } }", new[] { new SignatureHelpTestItem("int System.Collections.Generic.List<int>[int index]") });
             }
 
-            [WorkItem(1067933)]
+            [WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
             [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
             public async Task InvokedWithNoToken()
             {

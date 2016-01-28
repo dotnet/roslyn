@@ -447,7 +447,7 @@ class C
             await TestAsync(code, expected, compareTokens: false);
         }
 
-        [WorkItem(538094)]
+        [WorkItem(538094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538094")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParseAmbiguity1()
         {
@@ -475,7 +475,7 @@ class C
 }", index: 0, compareTokens: false);
         }
 
-        [WorkItem(538094), WorkItem(541462)]
+        [WorkItem(538094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538094"), WorkItem(541462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541462")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParseAmbiguity2()
         {
@@ -503,7 +503,7 @@ class C
 }", index: 0, compareTokens: false);
         }
 
-        [WorkItem(538094)]
+        [WorkItem(538094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538094")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParseAmbiguity3()
         {
@@ -532,7 +532,7 @@ class C
  index: 0, compareTokens: false);
         }
 
-        [WorkItem(544924)]
+        [WorkItem(544924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544924")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParseAmbiguity4()
         {
@@ -566,7 +566,7 @@ class Program
 }", index: 0, compareTokens: false);
         }
 
-        [WorkItem(544613)]
+        [WorkItem(544613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544613")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParseAmbiguity5()
         {
@@ -592,7 +592,7 @@ class Program
 }", index: 0, compareTokens: false);
         }
 
-        [WorkItem(538131)]
+        [WorkItem(538131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538131")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestArrayInitializer()
         {
@@ -600,7 +600,7 @@ class Program
                        @"{ int a = Array.IndexOf(new int[] { 3, 4, 5 }, 3);  }");
         }
 
-        [WorkItem(545657)]
+        [WorkItem(545657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545657")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestArrayInitializer2()
         {
@@ -626,7 +626,7 @@ class Program
             await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(545657)]
+        [WorkItem(545657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545657")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestArrayInitializer3()
         {
@@ -1252,7 +1252,7 @@ class C
             await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(545342)]
+        [WorkItem(545342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545342")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestConflict_UsedBeforeDeclaration()
         {
@@ -1354,7 +1354,7 @@ compareTokens: false);
 compareTokens: false);
         }
 
-        [WorkItem(540164)]
+        [WorkItem(540164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540164")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TriviaOnArrayInitializer()
         {
@@ -1380,7 +1380,7 @@ compareTokens: false);
             await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(540156)]
+        [WorkItem(540156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540156")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ProperlyFormatWhenRemovingDeclarator1()
         {
@@ -1407,7 +1407,7 @@ compareTokens: false);
             await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(540156)]
+        [WorkItem(540156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540156")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ProperlyFormatWhenRemovingDeclarator2()
         {
@@ -1434,7 +1434,7 @@ compareTokens: false);
             await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(540156)]
+        [WorkItem(540156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540156")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ProperlyFormatWhenRemovingDeclarator3()
         {
@@ -1461,7 +1461,7 @@ compareTokens: false);
             await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(540186)]
+        [WorkItem(540186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540186")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ProperlyFormatAnonymousTypeMember()
         {
@@ -1513,7 +1513,7 @@ compareTokens: false);
             await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(528075)]
+        [WorkItem(528075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528075")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineIntoDelegateInvocation()
         {
@@ -1541,7 +1541,7 @@ class Program
             await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(541341)]
+        [WorkItem(541341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541341")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineAnonymousMethodIntoNullCoalescingExpression()
         {
@@ -1571,7 +1571,7 @@ class Program
             await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(541341)]
+        [WorkItem(541341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541341")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineLambdaIntoNullCoalescingExpression()
         {
@@ -1601,7 +1601,7 @@ class Program
             await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(538079)]
+        [WorkItem(538079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastForBoxingOperation1()
         {
@@ -1631,7 +1631,7 @@ class A
             await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(538079)]
+        [WorkItem(538079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastForBoxingOperation2()
         {
@@ -1663,7 +1663,7 @@ class A
             await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(538079)]
+        [WorkItem(538079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastForBoxingOperation3()
         {
@@ -1693,7 +1693,7 @@ class A
             await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(538079)]
+        [WorkItem(538079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastForBoxingOperation4()
         {
@@ -1723,7 +1723,7 @@ class A
             await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(538079)]
+        [WorkItem(538079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastForBoxingOperation5()
         {
@@ -1753,7 +1753,7 @@ class A
             await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(540278)]
+        [WorkItem(540278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540278")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestLeadingTrivia()
         {
@@ -1781,7 +1781,7 @@ index: 0,
 compareTokens: false);
         }
 
-        [WorkItem(540278)]
+        [WorkItem(540278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540278")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestLeadingAndTrailingTrivia()
         {
@@ -1810,7 +1810,7 @@ index: 0,
 compareTokens: false);
         }
 
-        [WorkItem(540278)]
+        [WorkItem(540278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540278")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestTrailingTrivia()
         {
@@ -1837,7 +1837,7 @@ index: 0,
 compareTokens: false);
         }
 
-        [WorkItem(540278)]
+        [WorkItem(540278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540278")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestPreprocessor()
         {
@@ -1867,7 +1867,7 @@ index: 0,
 compareTokens: false);
         }
 
-        [WorkItem(540277)]
+        [WorkItem(540277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540277")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestFormatting()
         {
@@ -1892,7 +1892,7 @@ index: 0,
 compareTokens: false);
         }
 
-        [WorkItem(541694)]
+        [WorkItem(541694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541694")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestSwitchSection()
         {
@@ -1928,7 +1928,7 @@ index: 0,
 compareTokens: false);
         }
 
-        [WorkItem(542647)]
+        [WorkItem(542647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542647")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task UnparenthesizeExpressionIfNeeded1()
         {
@@ -1961,7 +1961,7 @@ class C
             compareTokens: false);
         }
 
-        [WorkItem(545619)]
+        [WorkItem(545619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545619")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task UnparenthesizeExpressionIfNeeded2()
         {
@@ -1994,7 +1994,7 @@ class Program
             compareTokens: false);
         }
 
-        [WorkItem(542656)]
+        [WorkItem(542656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542656")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParenthesizeIfNecessary1()
         {
@@ -2030,7 +2030,7 @@ class A
             compareTokens: false);
         }
 
-        [WorkItem(544626)]
+        [WorkItem(544626, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544626")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParenthesizeIfNecessary2()
         {
@@ -2064,7 +2064,7 @@ class C
             compareTokens: false);
         }
 
-        [WorkItem(544415)]
+        [WorkItem(544415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544415")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParenthesizeAddressOf1()
         {
@@ -2094,7 +2094,7 @@ unsafe class C
             compareTokens: false);
         }
 
-        [WorkItem(544922)]
+        [WorkItem(544922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544922")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParenthesizeAddressOf2()
         {
@@ -2124,7 +2124,7 @@ unsafe class C
             compareTokens: false);
         }
 
-        [WorkItem(544921)]
+        [WorkItem(544921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544921")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParenthesizePointerIndirection1()
         {
@@ -2154,7 +2154,7 @@ unsafe class C
             compareTokens: false);
         }
 
-        [WorkItem(544614)]
+        [WorkItem(544614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544614")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParenthesizePointerIndirection2()
         {
@@ -2184,7 +2184,7 @@ unsafe class C
             compareTokens: false);
         }
 
-        [WorkItem(544563)]
+        [WorkItem(544563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544563")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task DontInlineStackAlloc()
         {
@@ -2203,7 +2203,7 @@ unsafe class C
 }");
         }
 
-        [WorkItem(543744)]
+        [WorkItem(543744, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543744")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineTempLambdaExpressionCastingError()
         {
@@ -2283,7 +2283,7 @@ class C
             compareTokens: false);
         }
 
-        [WorkItem(545161)]
+        [WorkItem(545161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545161")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastIfNeeded2()
         {
@@ -2318,7 +2318,7 @@ class C
             compareTokens: false);
         }
 
-        [WorkItem(544612)]
+        [WorkItem(544612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544612")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineIntoBracketedList()
         {
@@ -2351,7 +2351,7 @@ class C
             compareTokens: false);
         }
 
-        [WorkItem(542648)]
+        [WorkItem(542648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542648")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ParenthesizeAfterCastIfNeeded()
         {
@@ -2387,7 +2387,7 @@ class Program
             compareTokens: false);
         }
 
-        [WorkItem(544635)]
+        [WorkItem(544635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544635")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastForEnumZeroIfBoxed()
         {
@@ -2419,8 +2419,8 @@ class Program
             compareTokens: false);
         }
 
-        [WorkItem(544636)]
-        [WorkItem(554010)]
+        [WorkItem(544636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544636")]
+        [WorkItem(554010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554010")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastForMethodGroupIfNeeded1()
         {
@@ -2450,8 +2450,8 @@ class Program
             compareTokens: false);
         }
 
-        [WorkItem(544978)]
-        [WorkItem(554010)]
+        [WorkItem(544978, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544978")]
+        [WorkItem(554010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554010")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastForMethodGroupIfNeeded2()
         {
@@ -2481,7 +2481,7 @@ class Program
             compareTokens: false);
         }
 
-        [WorkItem(545103)]
+        [WorkItem(545103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545103")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task DontInsertCastForTypeThatNoLongerBindsToTheSameType()
         {
@@ -2517,7 +2517,7 @@ class A<T>
             compareTokens: false);
         }
 
-        [WorkItem(545170)]
+        [WorkItem(545170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545170")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCorrectCastForDelegateCreationExpression()
         {
@@ -2550,7 +2550,7 @@ class Program
             compareTokens: false);
         }
 
-        [WorkItem(545523)]
+        [WorkItem(545523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545523")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task DontInsertCastForObjectCreationIfUnneeded()
         {
@@ -2689,7 +2689,7 @@ class Program
             compareTokens: false);
         }
 
-        [WorkItem(545601)]
+        [WorkItem(545601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545601")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastToKeepGenericMethodInference()
         {
@@ -2724,7 +2724,7 @@ class C
             compareTokens: false);
         }
 
-        [WorkItem(545601)]
+        [WorkItem(545601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545601")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastForKeepImplicitArrayInference()
         {
@@ -2759,7 +2759,7 @@ class C
             compareTokens: false);
         }
 
-        [WorkItem(545601)]
+        [WorkItem(545601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545601")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertASingleCastToNotBreakOverloadResolution()
         {
@@ -2792,7 +2792,7 @@ class C
             compareTokens: false);
         }
 
-        [WorkItem(545601)]
+        [WorkItem(545601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545601")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertASingleCastToNotBreakOverloadResolutionInLambdas()
         {
@@ -2827,7 +2827,7 @@ class C
             compareTokens: false);
         }
 
-        [WorkItem(545601)]
+        [WorkItem(545601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545601")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertASingleCastToNotBreakResolutionOfOperatorOverloads()
         {
@@ -2894,7 +2894,7 @@ class C
             compareTokens: false);
         }
 
-        [WorkItem(545561)]
+        [WorkItem(545561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545561")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastToNotBreakOverloadResolutionInUncheckedContext()
         {
@@ -2939,7 +2939,7 @@ class X
             compareTokens: false);
         }
 
-        [WorkItem(545564)]
+        [WorkItem(545564, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545564")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastToNotBreakOverloadResolutionInUnsafeContext()
         {
@@ -2988,7 +2988,7 @@ static class C
             compareTokens: false);
         }
 
-        [WorkItem(545783)]
+        [WorkItem(545783, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545783")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InsertCastToNotBreakOverloadResolutionInNestedLambdas()
         {
@@ -3031,7 +3031,7 @@ class C
             compareTokens: false);
         }
 
-        [WorkItem(546069)]
+        [WorkItem(546069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546069")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestBrokenVariableDeclarator()
         {
@@ -3166,7 +3166,7 @@ compareTokens: false);
 }");
         }
 
-        [WorkItem(530743)]
+        [WorkItem(530743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530743")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineFromLabeledStatement()
         {
@@ -3201,7 +3201,7 @@ class Program
             compareTokens: false);
         }
 
-        [WorkItem(529698)]
+        [WorkItem(529698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529698")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineCompoundAssignmentIntoInitializer()
         {
@@ -3234,7 +3234,7 @@ class Program
             compareTokens: false);
         }
 
-        [WorkItem(609497)]
+        [WorkItem(609497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609497")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Bugfix_609497()
         {
@@ -3265,7 +3265,7 @@ class Program
             compareTokens: false);
         }
 
-        [WorkItem(636319)]
+        [WorkItem(636319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636319")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Bugfix_636319()
         {
@@ -3298,7 +3298,7 @@ class Program
             compareTokens: false);
         }
 
-        [WorkItem(609492)]
+        [WorkItem(609492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609492")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Bugfix_609492()
         {
@@ -3331,7 +3331,7 @@ class Program
             compareTokens: false);
         }
 
-        [WorkItem(529950)]
+        [WorkItem(529950, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529950")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineTempDoesNotInsertUnnecessaryExplicitTypeInLambdaParameter()
         {
@@ -3377,7 +3377,7 @@ static class C
             compareTokens: false);
         }
 
-        [WorkItem(619425)]
+        [WorkItem(619425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619425")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Bugfix_619425_RestrictedSimpleNameExpansion()
         {
@@ -3418,7 +3418,7 @@ class A<B>
             compareTokens: false);
         }
 
-        [WorkItem(529840)]
+        [WorkItem(529840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529840")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Bugfix_529840_DetectSemanticChangesAtInlineSite()
         {
@@ -3482,7 +3482,7 @@ class A
             compareTokens: false);
         }
 
-        [WorkItem(1091946)]
+        [WorkItem(1091946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091946")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestConditionalAccessWithConversion()
         {

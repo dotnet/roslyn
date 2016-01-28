@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        <WorkItem(538647)>
+        <WorkItem(538647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538647")>
         Public Async Function TestRegression4315_VariableNamesClassifiedAsType() As Task
             Dim text = StringFromLines(
                 "Module M",
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        <WorkItem(541267)>
+        <WorkItem(541267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541267")>
         Public Async Function TestRegression7925_TypeParameterCantCastToMethod() As Task
             Dim text = StringFromLines(
                 "Class C",
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        <WorkItem(541610)>
+        <WorkItem(541610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541610")>
         Public Async Function TestRegression8394_AliasesShouldBeClassified1() As Task
             Dim text = StringFromLines(
                 "Imports S = System.String",
@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        <WorkItem(541610)>
+        <WorkItem(541610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541610")>
         Public Async Function TestRegression8394_AliasesShouldBeClassified2() As Task
             Dim text = StringFromLines(
                 "Imports D = System.IDisposable",
@@ -219,13 +219,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 [Class]("E"))
         End Function
 
-        <WorkItem(542685)>
+        <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestOptimisticallyColorFromInDeclaration() As Task
             Await TestInExpressionAsync("From ", Keyword("From"))
         End Function
 
-        <WorkItem(542685)>
+        <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestOptimisticallyColorFromInAssignment() As Task
             Await TestInMethodAsync(<text><![CDATA[
@@ -234,13 +234,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                             ]]></text>.NormalizedValue, Keyword("From"))
         End Function
 
-        <WorkItem(542685)>
+        <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestDontColorThingsOtherThanFromInDeclaration() As Task
             Await TestInExpressionAsync("Fro ")
         End Function
 
-        <WorkItem(542685)>
+        <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestDontColorThingsOtherThanFromInAssignment() As Task
             Await TestInMethodAsync(<text><![CDATA[
@@ -249,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                             ]]></text>.Value)
         End Function
 
-        <WorkItem(542685)>
+        <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestDontColorFromWhenBoundInDeclaration() As Task
             Await TestInMethodAsync(<text><![CDATA[
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                             ]]></text>.Value)
         End Function
 
-        <WorkItem(542685)>
+        <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestDontColorFromWhenBoundInAssignment() As Task
             Await TestInMethodAsync(<text><![CDATA[
@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                          [Interface]("IDisposable"))
         End Function
 
-        <WorkItem(543404)>
+        <WorkItem(543404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543404")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestNewOfClassWithNoPublicConstructors() As Task
             Dim text = StringFromLines(
@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 [Class]("C1"))
         End Function
 
-        <WorkItem(578145)>
+        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword1() As Task
             Dim text =
@@ -316,7 +316,7 @@ End Class
                 Keyword("Async"))
         End Function
 
-        <WorkItem(578145)>
+        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword2() As Task
             Dim text =
@@ -332,7 +332,7 @@ End Class
                 Keyword("Async"))
         End Function
 
-        <WorkItem(578145)>
+        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword3() As Task
             Dim text =
@@ -348,7 +348,7 @@ End Class
                 Keyword("Async"))
         End Function
 
-        <WorkItem(578145)>
+        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword4() As Task
             Dim text =
@@ -362,7 +362,7 @@ End Class
                 Keyword("Async"))
         End Function
 
-        <WorkItem(578145)>
+        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword5() As Task
             Dim text =
@@ -376,7 +376,7 @@ End Class
                 Keyword("Async"))
         End Function
 
-        <WorkItem(578145)>
+        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword6() As Task
             Dim text =
@@ -389,7 +389,7 @@ End Class
             Await TestAsync(text)
         End Function
 
-        <WorkItem(578145)>
+        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword7() As Task
             Dim text =
@@ -402,7 +402,7 @@ End Class
             Await TestAsync(text)
         End Function
 
-        <WorkItem(578145)>
+        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword1() As Task
             Dim text =
@@ -418,7 +418,7 @@ End Class
                 Keyword("Iterator"))
         End Function
 
-        <WorkItem(578145)>
+        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword2() As Task
             Dim text =
@@ -434,7 +434,7 @@ End Class
                 Keyword("Iterator"))
         End Function
 
-        <WorkItem(578145)>
+        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword3() As Task
             Dim text =
@@ -450,7 +450,7 @@ End Class
                 Keyword("Iterator"))
         End Function
 
-        <WorkItem(578145)>
+        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword4() As Task
             Dim text =
@@ -464,7 +464,7 @@ End Class
                 Keyword("Iterator"))
         End Function
 
-        <WorkItem(578145)>
+        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword5() As Task
             Dim text =
@@ -478,7 +478,7 @@ End Class
                 Keyword("Iterator"))
         End Function
 
-        <WorkItem(578145)>
+        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword6() As Task
             Dim text =
@@ -491,7 +491,7 @@ End Class
             Await TestAsync(text)
         End Function
 
-        <WorkItem(578145)>
+        <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword7() As Task
             Dim text =

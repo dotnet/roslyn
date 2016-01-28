@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
         End Sub
 
         <Fact>
-        <WorkItem(586743)>
+        <WorkItem(586743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586743")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameOneDuplicateAliasToNoConflict()
             Using result = RenameEngineResult.Create(
@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             End Using
         End Sub
 
-        <WorkItem(541393)>
+        <WorkItem(541393, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541393")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameNamespaceAlias()
             Using result = RenameEngineResult.Create(
@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             End Using
         End Sub
 
-        <WorkItem(545614)>
+        <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameConstructedTypeAliasFromUse()
             Using result = RenameEngineResult.Create(
@@ -189,7 +189,7 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(545614)>
+        <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameConstructedTypeAliasFromDeclaration()
             Using result = RenameEngineResult.Create(
@@ -213,7 +213,7 @@ End Module
         End Sub
 
 
-        <WorkItem(545614)>
+        <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleTypeAliasFromUse()
             Using result = RenameEngineResult.Create(
@@ -236,7 +236,7 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(545614)>
+        <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleTypeAliasFromDeclaration()
             Using result = RenameEngineResult.Create(
@@ -258,7 +258,7 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(546084)>
+        <WorkItem(546084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546084")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictWhenRenamingAliasToSameAsGlobalTypeName()
             Using result = RenameEngineResult.Create(
@@ -285,8 +285,8 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(633860)>
-        <WorkItem(632303)>
+        <WorkItem(633860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633860")>
+        <WorkItem(632303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632303")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToAttributeAndEndingWithAttributeAttribute()
             Using result = RenameEngineResult.Create(
@@ -320,8 +320,8 @@ end class
         End Sub
 
         <Fact>
-        <WorkItem(633860)>
-        <WorkItem(632303)>
+        <WorkItem(633860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633860")>
+        <WorkItem(632303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632303")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToAttributeAndEndingWithAttributeAttributeNoConflict1()
             Using result = RenameEngineResult.Create(
@@ -356,8 +356,8 @@ end class
         End Sub
 
         <Fact>
-        <WorkItem(633860)>
-        <WorkItem(632303)>
+        <WorkItem(633860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633860")>
+        <WorkItem(632303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632303")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToAttributeAndEndingWithAttributeAttributeWithConflict1()
             Using result = RenameEngineResult.Create(

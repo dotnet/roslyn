@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
     Public Class ImplicitReferenceConflictTests
 
         <Fact>
-        <WorkItem(528966)>
+        <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextCausesConflictInForEach()
             Using result = RenameEngineResult.Create(
@@ -44,7 +44,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(528966)>
+        <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextToChangeCasingDoesntCauseConflictInForEach()
             Using result = RenameEngineResult.Create(
@@ -81,7 +81,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(528966)>
+        <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextToChangeCasingInCSDoesntCauseConflictInForEach()
             Using result = RenameEngineResult.Create(
@@ -132,7 +132,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(528966)>
+        <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextInCSCauseConflictInForEach()
             Using result = RenameEngineResult.Create(

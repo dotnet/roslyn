@@ -100,7 +100,7 @@ End Interface</text>
              Sub(expected, actual, view) AssertEx.AssertContainsToleratingWhitespaceDifferences(expected, actual))
         End Function
 
-        <WorkItem(544161)>
+        <WorkItem(544161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544161")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestInterfacesWithDuplicateMember() As Task
             Dim code = <text>
@@ -229,8 +229,8 @@ End Class</text>
                  Sub(expected, actual, view) AssertEx.AssertContainsToleratingWhitespaceDifferences(expected, actual))
         End Function
 
-        <WorkItem(530553)>
-        <WorkItem(544087)>
+        <WorkItem(530553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
+        <WorkItem(544087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544087")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestInvocationAfterWhitespaceTrivia() As Task
             Dim code = <text>
@@ -255,7 +255,7 @@ End Interface</text>
 
         End Function
 
-        <WorkItem(544089)>
+        <WorkItem(544089, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544089")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestInvocationAfterCommentTrivia() As Task
             Dim code = <text>
@@ -308,7 +308,7 @@ End Interface</text>
                  Sub(expected, actual, view) Assert.Equal(expected.Trim(), actual.Trim()))
         End Function
 
-        <WorkItem(544211)>
+        <WorkItem(544211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544211")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestWithEndBlockMissing() As Task
             Dim code = <text>
@@ -334,7 +334,7 @@ End Class</text>
                  Sub(expected, actual, view) AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual))
         End Function
 
-        <WorkItem(529302)>
+        <WorkItem(529302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529302")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestWithEndBlockMissing2() As Task
             Dim code = <text>
@@ -364,9 +364,9 @@ End Class</text>
                  Sub(expected, actual, view) AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual))
         End Function
 
-        <WorkItem(530553)>
-        <WorkItem(529337)>
-        <WorkItem(674621)>
+        <WorkItem(530553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
+        <WorkItem(529337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529337")>
+        <WorkItem(674621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674621")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestWithStatementSeparator() As Task
             Dim code = <text>
@@ -400,7 +400,7 @@ End Class
                  Sub(expected, actual, view) AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual))
         End Function
 
-        <WorkItem(529360)>
+        <WorkItem(529360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529360")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestCursorNotOnSameLine() As Task
             Dim code = <text>
@@ -435,7 +435,7 @@ End Class
                  Sub(expected, actual, view) AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual))
         End Function
 
-        <WorkItem(529722)>
+        <WorkItem(529722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529722")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestCursorPlacedOnBlankLineAfter() As Task
             Dim code = <text>
@@ -470,7 +470,7 @@ End Class
                  End Sub)
         End Function
 
-        <WorkItem(545867)>
+        <WorkItem(545867, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545867")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestMultipleImplementationWithCaseDifference() As Task
             Dim code = <text>
@@ -506,7 +506,7 @@ End Class</text>
              Sub(expected, actual, view) AssertEx.AssertContainsToleratingWhitespaceDifferences(expected, actual))
         End Function
 
-        <WorkItem(927478)>
+        <WorkItem(927478, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/927478")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestFullyQualifiedName() As Task
             Dim code = <text>

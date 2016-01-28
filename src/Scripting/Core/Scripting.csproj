@@ -78,6 +78,18 @@
     <Compile Include="Hosting\CommandLine\ConsoleIO.cs" />
     <Compile Include="Hosting\CommandLine\NotImplementedAnalyzerLoader.cs" />
     <Compile Include="Hosting\InteractiveScriptGlobals.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonObjectFormatter.BuilderOptions.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonPrimitiveFormatterOptions.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonPrimitiveFormatter.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonTypeNameFormatterOptions.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonTypeNameFormatter.cs" />
+    <Compile Include="Hosting\CommonMemberFilter.cs" />
+    <Compile Include="Hosting\MemberFilter.cs" />
+    <Compile Include="Hosting\PrintOptions.cs" />
+    <Compile Include="Hosting\ObjectFormatter\ObjectFormatter.cs" />
+    <Compile Include="Hosting\ObjectFormatter\ObjectFormatterHelpers.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonObjectFormatter.Builder.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonObjectFormatter.Visitor.FormattedMember.cs" />
     <Compile Include="Hosting\Resolvers\RuntimeMetadataReferenceResolver.cs" />
     <Compile Include="Hosting\AssemblyLoader\InteractiveAssemblyLoader.cs" />
     <Compile Include="Hosting\AssemblyLoader\MetadataShadowCopy.cs" />
@@ -94,13 +106,12 @@
       <DependentUpon>ScriptingResources.resx</DependentUpon>
     </Compile>
     <Compile Include="ScriptRunner.cs" />
-    <Compile Include="Hosting\ObjectFormatter\ObjectFormatter.cs" />
-    <Compile Include="Hosting\ObjectFormatter\ObjectFormatter.Formatter.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonObjectFormatter.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonObjectFormatter.Visitor.cs" />
     <Compile Include="Script.cs" />
     <Compile Include="ScriptBuilder.cs" />
     <Compile Include="CompilationErrorException.cs" />
     <Compile Include="Hosting\ObjectFormatter\MemberDisplayFormat.cs" />
-    <Compile Include="Hosting\ObjectFormatter\ObjectFormattingOptions.cs" />
     <Compile Include="ScriptExecutionState.cs" />
     <Compile Include="ScriptOptions.cs" />
     <Compile Include="ScriptSourceResolver.cs" />

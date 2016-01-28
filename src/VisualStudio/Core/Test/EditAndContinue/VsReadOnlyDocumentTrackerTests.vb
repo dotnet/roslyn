@@ -68,7 +68,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             Assert.Equal(Of UInteger)(1, mockVsBuffer._oldFlags) ' Read-Only
         End Function
 
-        <WorkItem(1089964, "DevDiv")>
+        <WorkItem(1089964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089964")>
         <WpfFact>
         Public Async Function ContainedDocumentTest() As Threading.Tasks.Task
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
@@ -117,7 +117,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             Assert.Equal(Of UInteger)(0, mockVsBuffer._oldFlags) ' Editable
         End Function
 
-        <WorkItem(1147868, "DevDiv")>
+        <WorkItem(1147868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147868")>
         <WpfFact>
         Public Async Function InvalidDocumentTest1() As Threading.Tasks.Task
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
@@ -144,7 +144,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             readOnlyDocumentTracker.SetReadOnly(Nothing, False) ' Check no NRE
         End Function
 
-        <WorkItem(1147868, "DevDiv")>
+        <WorkItem(1147868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147868")>
         <WpfFact>
         Public Async Function InvalidDocumentTest2() As Threading.Tasks.Task
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()

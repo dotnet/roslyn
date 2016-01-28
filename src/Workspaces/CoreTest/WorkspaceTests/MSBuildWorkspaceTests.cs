@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             !mr.Properties.Aliases.IsDefault && mr.Properties.Aliases.Contains(aliasName));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
         public void Test_SharedMetadataReferencesWithAliases()
         {
             var projPath1 = @"CSharpProject\CSharpProject_ExternAlias.csproj";
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return fnGetMetadata?.Invoke(mref, null) as Metadata;
         }
 
-        [WorkItem(552981, "DevDiv")]
+        [WorkItem(552981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552981")]
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenSolution_DuplicateProjectGuids()
         {
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(831379, "DevDiv")]
+        [WorkItem(831379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831379")]
         public void GetCompilationWithCircularProjectReferences()
         {
             CreateFiles(GetSolutionWithCircularProjectReferences());
@@ -371,7 +371,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_CSharp_WithoutPrefer32BitAndConsoleApplication()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -383,7 +383,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_CSharp_WithoutPrefer32BitAndLibrary()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -396,7 +396,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_CSharp_WithPrefer32BitAndConsoleApplication()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -408,7 +408,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_CSharp_WithPrefer32BitAndLibrary()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -421,7 +421,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_CSharp_WithPrefer32BitAndWinMDObj()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -497,7 +497,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_VisualBasic_WithoutPrefer32BitAndConsoleApplication()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -509,7 +509,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_VisualBasic_WithoutPrefer32BitAndLibrary()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -522,7 +522,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_VisualBasic_WithPrefer32BitAndConsoleApplication()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -534,7 +534,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_VisualBasic_WithPrefer32BitAndLibrary()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -547,7 +547,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043, "DevDiv")]
+        [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_VisualBasic_WithPrefer32BitAndWinMDObj()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -638,7 +638,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(531631, "DevDiv")]
+        [WorkItem(531631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531631")]
         public void TestOpenProject_AssemblyNameIsPath()
         {
             // prove that even if assembly name is specified as a path instead of just a name, workspace still succeeds at opening project.
@@ -654,7 +654,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(531631, "DevDiv")]
+        [WorkItem(531631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531631")]
         public void TestOpenProject_AssemblyNameIsPath2()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -885,7 +885,7 @@ class C1
             Assert.Equal(1, diagnostics.Count);
         }
 
-        [WorkItem(985906)]
+        [WorkItem(985906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/985906")]
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void HandleSolutionProjectTypeSolutionFolder()
         {
@@ -1363,7 +1363,7 @@ class C1
 
         [ConditionalFact(typeof(Framework35Installed))]
         [Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(528984, "DevDiv")]
+        [WorkItem(528984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528984")]
         public void TestOpenProject_AddVBDefaultReferences()
         {
             string projectFile = "VisualBasicProject_VisualBasicProject_3_5.vbproj";
@@ -2186,7 +2186,7 @@ class C1
             var vbdoc8 = AssertSemanticVersionChanged(vbdoc7, vbdoc7.GetTextAsync().Result.Replace(literal7.Span, "100"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(529276, "DevDiv"), WorkItem(12086, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(529276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529276"), WorkItem(12086, "DevDiv_Projects/Roslyn")]
         public void TestOpenProject_LoadMetadataForReferenceProjects_NoMetadata()
         {
             var projPath = @"CSharpProject\CSharpProject_ProjectReference.csproj";
@@ -2210,7 +2210,7 @@ class C1
             }
         }
 
-        [WorkItem(918072, "DevDiv")]
+        [WorkItem(918072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918072")]
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAnalyzerReferenceLoadStandalone()
         {
@@ -2262,7 +2262,7 @@ class C1
 #endif
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
         public void TestCSharpExternAlias()
         {
             var projPath = @"CSharpProject\CSharpProject_ExternAlias.csproj";
@@ -2283,7 +2283,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(530337, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(530337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530337")]
         public void TestProjectReferenceWithExternAlias()
         {
             var files = GetProjectReferenceSolutionFiles();
@@ -2519,7 +2519,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(531543, "DevDiv")]
+        [WorkItem(531543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531543")]
         public void TestOpenSolution_SolutionFileHasEmptyLineBetweenProjectBlock()
         {
             var files = new FileSet(new Dictionary<string, object>
@@ -2551,7 +2551,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(792912, "DevDiv")]
+        [WorkItem(792912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
         public void TestOpenSolution_WithDuplicatedGuidsBecomeSelfReferential()
         {
             var files = new FileSet(new Dictionary<string, object>
@@ -2576,7 +2576,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(792912, "DevDiv")]
+        [WorkItem(792912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
         public void TestOpenSolution_WithDuplicatedGuidsBecomeCircularReferential()
         {
             var files = new FileSet(new Dictionary<string, object>
@@ -2606,7 +2606,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(991528)]
+        [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public void MSBuildProjectShouldHandleCodePageProperty()
         {
             var files = new FileSet(new Dictionary<string, object>
@@ -2631,7 +2631,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(991528)]
+        [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public void MSBuildProjectShouldHandleInvalidCodePageProperty()
         {
             var files = new FileSet(new Dictionary<string, object>
@@ -2650,7 +2650,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(991528)]
+        [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public void MSBuildProjectShouldHandleInvalidCodePageProperty2()
         {
             var files = new FileSet(new Dictionary<string, object>
@@ -2669,7 +2669,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(991528)]
+        [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public void MSBuildProjectShouldHandleDefaultCodePageProperty()
         {
             var files = new FileSet(new Dictionary<string, object>
@@ -2688,7 +2688,7 @@ class C1
             Assert.Equal("//\u201C", text.ToString());
         }
 
-        [WorkItem(981208)]
+        [WorkItem(981208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981208")]
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void DisposeMSBuildWorkspaceAndServicesCollected()
         {
@@ -2726,7 +2726,7 @@ class C1
             Assert.False(weakCompilation.IsAlive);
         }
 
-        [Fact, WorkItem(1088127)]
+        [Fact, WorkItem(1088127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088127")]
         public void MSBuildWorkspacePreservesEncoding()
         {
             var encoding = Encoding.BigEndianUnicode;
@@ -2906,7 +2906,7 @@ class C { }";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(1101040)]
+        [WorkItem(1101040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101040")]
         public void TestOpenProject_BadLink()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()

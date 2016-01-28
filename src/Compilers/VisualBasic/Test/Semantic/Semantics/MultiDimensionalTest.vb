@@ -270,7 +270,7 @@ End Module
 
         End Sub
 
-        <WorkItem(542531, "DevDiv")>
+        <WorkItem(542531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542531")>
         <Fact>
         Public Sub AssignMultiDimArrayToArrayWithExplicitBounds()
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
@@ -464,7 +464,7 @@ VerifyDiagnostics(
 ]]>.Value
 
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <ClrOnlyFact(ClrOnlyReason.Ilasm)>
         Public Sub ArraysOfRank1_GetElement()
 
@@ -503,7 +503,7 @@ Test1
         End Sub
 
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <ClrOnlyFact(ClrOnlyReason.Ilasm)>
         Public Sub ArraysOfRank1_SetElement()
 
@@ -551,7 +551,7 @@ Test2
 ]]>)
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <ClrOnlyFact(ClrOnlyReason.Ilasm)>
         Public Sub ArraysOfRank1_ElementAddress()
 
@@ -603,7 +603,7 @@ Test2
 ]]>)
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <Fact>
         Public Sub ArraysOfRank1_Overriding01()
 
@@ -629,7 +629,7 @@ BC30437: 'Public Overrides Function Test1() As Double()' cannot override 'Public
             )
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <Fact>
         Public Sub ArraysOfRank1_Overriding02()
 
@@ -655,7 +655,7 @@ BC30284: function 'Test2' cannot be declared 'Overrides' because it does not ove
             )
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <Fact>
         Public Sub ArraysOfRank1_ArrayConversions()
 
@@ -729,7 +729,7 @@ BC30311: Value of type 'IList(Of Double)' cannot be converted to 'Double(*)'.
             )
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <Fact>
         Public Sub ArraysOfRank1_StringConversions()
             Dim ilSource As String =
@@ -827,7 +827,7 @@ BC30311: Value of type 'String' cannot be converted to 'Char(*)'.
             )
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <Fact>
         Public Sub ArraysOfRank1_TypeArgumentInference01()
 
@@ -898,7 +898,7 @@ BC36645: Data type(s) of the type parameter(s) in method 'Public Shared Overload
             )
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <ClrOnlyFact(ClrOnlyReason.Ilasm)>
         Public Sub ArraysOfRank1_TypeArgumentInference02()
 
@@ -934,7 +934,7 @@ System.Double
 ]]>)
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <Fact>
         Public Sub ArraysOfRank1_TypeArgumentInference03()
 
@@ -1036,7 +1036,7 @@ BC32050: Type parameter 'T' for 'Public Shared Overloads Sub M3(Of T)(ParamArray
             )
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <ClrOnlyFact(ClrOnlyReason.Ilasm)>
         Public Sub ArraysOfRank1_TypeArgumentInference04()
 
@@ -1122,7 +1122,7 @@ System.Double
 ]]>)
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <ClrOnlyFact(ClrOnlyReason.Ilasm)>
         Public Sub ArraysOfRank1_ForEach()
 
@@ -1170,7 +1170,7 @@ Test1
 ]]>)
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <ClrOnlyFact(ClrOnlyReason.Ilasm)>
         Public Sub ArraysOfRank1_Length()
 
@@ -1207,7 +1207,7 @@ Test1
 ]]>)
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <ClrOnlyFact(ClrOnlyReason.Ilasm)>
         Public Sub ArraysOfRank1_LongLength()
 
@@ -1244,7 +1244,7 @@ Test1
 ]]>)
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <Fact>
         Public Sub ArraysOfRank1_ParamArray()
 
@@ -1275,7 +1275,7 @@ BC31092: ParamArray parameters must have an array type.
             )
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <ClrOnlyFact(ClrOnlyReason.Ilasm)>
         Public Sub ArraysOfRank1_Redim01()
 
@@ -1330,7 +1330,7 @@ System.Double[]
 ]]>)
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <ClrOnlyFact(ClrOnlyReason.Ilasm)>
         Public Sub ArraysOfRank1_Redim02()
 
@@ -1400,7 +1400,7 @@ System.Double[]
 ]]>)
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <Fact>
         Public Sub ArraysOfRank1_Redim03()
 
@@ -1427,7 +1427,7 @@ BC30415: 'ReDim' cannot change the number of dimensions of an array.
             )
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <ClrOnlyFact(ClrOnlyReason.Ilasm)>
         Public Sub ArraysOfRank1_Literals01()
 
@@ -1479,7 +1479,7 @@ Test1
 ]]>)
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <ClrOnlyFact(ClrOnlyReason.Ilasm)>
         Public Sub ArraysOfRank1_Literals02()
 
@@ -1543,7 +1543,7 @@ Test1
 ]]>)
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <Fact>
         Public Sub ArraysOfRank1_Literals03()
 
@@ -1574,7 +1574,7 @@ BC30311: Value of type 'Double()' cannot be converted to 'Double(*)'.
             )
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <ClrOnlyFact(ClrOnlyReason.Ilasm)>
         Public Sub ArraysOfRank1_Literals04()
 
@@ -1596,7 +1596,7 @@ System.Int32
 ]]>)
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <ClrOnlyFact(ClrOnlyReason.Ilasm)>
         Public Sub ArraysOfRank1_Literals05()
 
@@ -1649,7 +1649,7 @@ System.Int32
 ]]>)
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <Fact>
         Public Sub ArraysOfRank1_Literals06()
 
@@ -1714,7 +1714,7 @@ BC32050: Type parameter 'T' for 'Public Shared Overloads Sub M3(Of T)(ParamArray
             )
         End Sub
 
-        <WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
+        <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
         <ClrOnlyFact(ClrOnlyReason.Ilasm)>
         Public Sub ArraysOfRank1_Literals07()
 

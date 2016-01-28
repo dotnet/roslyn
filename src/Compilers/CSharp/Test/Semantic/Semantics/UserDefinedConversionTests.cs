@@ -281,7 +281,7 @@ Diagnostic(ErrorCode.ERR_BadArgType, "default(M?)").WithArguments("1", "M?", "G"
 Diagnostic(ErrorCode.ERR_BadArgType, "default(R?)").WithArguments("1", "R?", "G"));
         }
 
-        [Fact, WorkItem(543716, "DevDiv")]
+        [Fact, WorkItem(543716, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543716")]
         public void TestUserDefinedConversionOverloadResolution_SpecViolations()
         {
             // These are all cases where the specification says the conversion should either not exist
@@ -484,7 +484,7 @@ class X<T> where T : Mammal
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(X<T>)t").WithArguments("T", "X<T>"));
         }
 
-        [Fact, WorkItem(605100, "DevDiv")]
+        [Fact, WorkItem(605100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/605100")]
         public void TestUserDefinedConversions_DynamicIdentityBetweenBaseTypes()
         {
             string source = @"
@@ -516,7 +516,7 @@ public class X
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(605326, "DevDiv")]
+        [Fact, WorkItem(605326, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/605326")]
         public void TestUserDefinedConversions_DynamicIdentityBetweenBaseTypeAndTargetType()
         {
             string source = @"
@@ -1153,7 +1153,7 @@ unsafe class P
             var verifier = CompileAndVerify(source: source1 + source3 + source5, options: TestOptions.UnsafeReleaseExe, expectedOutput: "");
         }
 
-        [Fact, WorkItem(543427, "DevDiv")]
+        [Fact, WorkItem(543427, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543427")]
         public void Bug11203()
         {
             string source = @"
@@ -1183,7 +1183,7 @@ class A
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "1").WithArguments("A.implicit operator A(ulong)", "A.implicit operator A(long)", "int", "A"));
         }
 
-        [Fact, WorkItem(543430, "DevDiv")]
+        [Fact, WorkItem(543430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543430")]
         public void Bug11205()
         {
             string source1 = @"
@@ -1248,7 +1248,7 @@ Diagnostic(ErrorCode.ERR_NoImplicitConv, "a++").WithArguments("int", "A")
                 );
         }
 
-        [Fact, WorkItem(543435, "DevDiv")]
+        [Fact, WorkItem(543435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543435")]
         public void TestBug11210()
         {
             // If we have both a user-defined implicit conversion and a built-in explicit conversion
@@ -1281,7 +1281,7 @@ class D<T> : C<T>
             var verifier = CompileAndVerify(source, expectedOutput: "23");
         }
 
-        [Fact, WorkItem(543436, "DevDiv")]
+        [Fact, WorkItem(543436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543436")]
         public void TestBug11211()
         {
             string source = @"
@@ -1307,7 +1307,7 @@ class C
             var verifier = CompileAndVerify(source, expectedOutput: "a");
         }
 
-        [Fact, WorkItem(543439, "DevDiv")]
+        [Fact, WorkItem(543439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543439")]
         public void TestBug11214()
         {
             // The specification describes analysis of user-defined conversions only in
@@ -1340,7 +1340,7 @@ struct C
             var verifier = CompileAndVerify(source, expectedOutput: "b");
         }
 
-        [Fact, WorkItem(543440, "DevDiv")]
+        [Fact, WorkItem(543440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543440")]
         public void TestBug11215()
         {
             string source = @"
@@ -1366,7 +1366,7 @@ class C
             var verifier = CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [Fact, WorkItem(543441, "DevDiv")]
+        [Fact, WorkItem(543441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543441")]
         public void TestBug11216()
         {
             // An ambiguous user-defined conversion should be considered a valid conversion
@@ -1409,7 +1409,7 @@ class C
                                    Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("Program.Foo(B)", "Program.Foo(C)"));
         }
 
-        [Fact, WorkItem(543446, "DevDiv")]
+        [Fact, WorkItem(543446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543446")]
         public void TestBug11223()
         {
             string source = @"
@@ -1436,7 +1436,7 @@ class C
             var verifier = CompileAndVerify(source, expectedOutput: "a");
         }
 
-        [Fact, WorkItem(543595, "DevDiv")]
+        [Fact, WorkItem(543595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543595")]
         public void CompoundAssignment()
         {
             string source1 = @"
@@ -1468,7 +1468,7 @@ class Program
             var verifier = CompileAndVerify(source: source1, expectedOutput: "");
         }
 
-        [Fact, WorkItem(543598, "DevDiv")]
+        [Fact, WorkItem(543598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543598")]
         public void ConvertByteLiteralToUserDefinedType()
         {
             var source = @"
@@ -1488,7 +1488,7 @@ class Test
             CompileAndVerify(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(543789, "DevDiv")]
+        [Fact, WorkItem(543789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543789")]
         public void UseImplicitConversionInBase()
         {
             string source = @"
@@ -1523,7 +1523,7 @@ class A : B
             CompileAndVerify(source, expectedOutput: "Hello");
         }
 
-        [Fact, WorkItem(682456, "DevDiv")]
+        [Fact, WorkItem(682456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682456")]
         public void GenericUDConversionVersusPredefinedConversion()
         {
             string source = @"
@@ -1543,7 +1543,7 @@ public struct start
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(1063555, "DevDiv")]
+        [Fact, WorkItem(1063555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063555")]
         public void UserDefinedImplicitConversionsOnBuiltinTypes()
         {
             string source = @"

@@ -905,7 +905,7 @@ End Namespace
 ]]>)
     End Sub
 
-    <WorkItem(539519, "DevDiv")>
+    <WorkItem(539519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539519")>
     <Fact>
     Public Sub ParseIncompleteMultiLineLambdaWithExpressionAfterAsClause()
         ' This looks like a single line lambda with an as clause but it is in fact a badly formed multi-line lambda
@@ -924,7 +924,7 @@ End Module
     End Sub
 
 
-    <WorkItem(537167, "DevDiv")>
+    <WorkItem(537167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537167")>
     <Fact>
     Public Sub ParseShadowsAfterIncompleteLambda()
         ParseAndVerify(<![CDATA[
@@ -942,7 +942,7 @@ End Structure
     End Sub
 
 
-    <WorkItem(538494, "DevDiv")>
+    <WorkItem(538494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538494")>
     <Fact>
     Public Sub ParseDefaultPropAfterIncompleteLambda()
         ParseAndVerify(<![CDATA[
@@ -959,7 +959,7 @@ end module
         )
     End Sub
 
-    <WorkItem(541286, "DevDiv")>
+    <WorkItem(541286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541286")>
     <WorkItem(2257, "DevDiv_Projects/Roslyn")>
     <Fact>
     Public Sub BC33002ERR_OperatorNotOverloadable_ParseNotOverloadableOperators()
@@ -1024,7 +1024,7 @@ End Module
             </errors>)
     End Sub
 
-    <Fact(), WorkItem(544074, "DevDiv")>
+    <Fact(), WorkItem(544074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544074")>
     Public Sub ParseSubLambdaWithReturnTypeInsideTryCatch()
         ParseAndVerify(<![CDATA[
 Module Program
@@ -1044,7 +1044,7 @@ End Module
         </errors>)
     End Sub
 
-    <Fact(), WorkItem(545543, "DevDiv")>
+    <Fact(), WorkItem(545543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545543")>
     Public Sub ParseSingleLineSubLambdaWithForNext()
         ParseAndVerify(<![CDATA[
 Module Program

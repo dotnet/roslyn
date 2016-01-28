@@ -271,7 +271,7 @@ Class2`2[T,U]");
 }");
         }
 
-        [WorkItem(542581, "DevDiv")]
+        [WorkItem(542581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")]
         [Fact]
         public void TestTypeofInheritedNestedTypeThroughUnboundGeneric()
         {
@@ -330,7 +330,7 @@ H`2[T,System.Int32]";
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(542581, "DevDiv")]
+        [WorkItem(542581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")]
         [Fact]
         public void TestTypeofInheritedNestedTypeThroughUnboundGeneric_Attribute()
         {
@@ -569,7 +569,7 @@ Outer`1+Inner`1[System.Int32,System.Byte]");
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(541600, "DevDiv")]
+        [WorkItem(541600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541600")]
         [Fact]
         public void TestTypeOfAlias4TypeMemberOfGeneric()
         {
@@ -597,7 +597,7 @@ public class mem178
             CompileAndVerify(source, expectedOutput: @"TestClass`1+TestEnum[System.String]");
         }
 
-        [WorkItem(541618, "DevDiv")]
+        [WorkItem(541618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541618")]
         [Fact]
         public void TestTypeOfAlias5TypeMemberOfGeneric()
         {

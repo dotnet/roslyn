@@ -96,7 +96,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545017)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545017")>
         Public Async Function TestEnumMember() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -111,7 +111,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545014)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545014")>
         Public Async Function TestConstructor() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -126,7 +126,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545014)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545014")>
         Public Async Function TestDestructor() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -141,7 +141,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545013)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545013")>
         Public Async Function TestExplicitlyImplementedInterface() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -157,7 +157,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(13229, "DevDiv_Projects/Roslyn"), WorkItem(545353)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(13229, "DevDiv_Projects/Roslyn"), WorkItem(545353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545353")>
         Public Async Function TestFixedFieldInStruct() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -172,7 +172,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WorkItem(545011)>
+        <WorkItem(545011, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545011")>
         <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(13229, "DevDiv_Projects/Roslyn")>
         Public Async Function TestDelegateStyle() As Task
             Using testState = Await ProgressionTestState.CreateAsync(

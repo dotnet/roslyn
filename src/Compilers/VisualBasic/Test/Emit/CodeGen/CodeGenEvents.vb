@@ -803,7 +803,7 @@ End Module]]>,
 
         End Sub
 
-        <Fact(), WorkItem(543612, "DevDiv")>
+        <Fact(), WorkItem(543612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543612")>
         Public Sub CallEventHandlerThroughWithEvent01()
             CompileAndVerify(
     <compilation>
@@ -857,7 +857,7 @@ End Class
     ]]>)
         End Sub
 
-        <Fact(), WorkItem(543612, "DevDiv")>
+        <Fact(), WorkItem(543612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543612")>
         Public Sub CallEventHandlerThroughWithEvent02()
             CompileAndVerify(
     <compilation>
@@ -889,7 +889,7 @@ End Class
     </compilation>, expectedOutput:="1")
         End Sub
 
-        <Fact(), WorkItem(543612, "DevDiv")>
+        <Fact(), WorkItem(543612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543612")>
         Public Sub ObsoleteRaiseEvent()
             CompileAndVerify(
     <compilation>
@@ -931,7 +931,7 @@ End Module
     </compilation>, expectedOutput:="")
         End Sub
 
-        <Fact(), WorkItem(545428, "DevDiv")>
+        <Fact(), WorkItem(545428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545428")>
         Public Sub AddHandlerConflictingLocal()
             CompileAndVerify(
     <compilation>
@@ -957,7 +957,7 @@ End Module
     </compilation>, expectedOutput:="System.Int32")
         End Sub
 
-        <Fact(), WorkItem(546055, "DevDiv")>
+        <Fact(), WorkItem(546055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546055")>
         Public Sub AddHandlerEventNameLookupViaImport()
             CompileAndVerify(
     <compilation>
@@ -1209,7 +1209,7 @@ PASS
             vbVerifier.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(545257, "DevDiv")>
+        <Fact, WorkItem(545257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545257")>
         Public Sub TestCrossLanguageOptionalAndParamarray_Error1()
             Dim csCompilation = CreateCSharpCompilation("CS",
             <![CDATA[public class CSClass
@@ -1660,7 +1660,7 @@ End Namespace
     ]]>)
         End Sub
 
-        <WorkItem(1069554)>
+        <WorkItem(1069554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069554")>
         <Fact>
         Public Sub LocalDefinitionInEventHandler()
             Dim c = CompileAndVerify(
@@ -1695,7 +1695,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(1069554)>
+        <WorkItem(1069554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069554")>
         <Fact>
         Public Sub ClosureInEventHandler()
             Dim c = CompileAndVerify(

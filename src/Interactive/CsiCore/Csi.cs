@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
                     ConsoleIO.Default,
                     compiler,
                     CSharpScriptCompiler.Instance,
-                    CSharpObjectFormatter.Instance);
+                    new CSharpObjectFormatter());
 
                 return runner.RunInteractive();
             }

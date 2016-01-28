@@ -165,7 +165,7 @@ End Class"
             Assert.Equal(errorMessage, "error BC30451: 'F' is not declared. It may be inaccessible due to its protection level.")
         End Sub
 
-        <WorkItem(1098750)>
+        <WorkItem(1098750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098750")>
         <Fact>
         Public Sub ReferenceInSameDeclaration()
             Const source =
@@ -242,7 +242,7 @@ End Module"
 }")
         End Sub
 
-        <WorkItem(1100849)>
+        <WorkItem(1100849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100849")>
         <Fact>
         Public Sub PassByRef()
             Const source =
@@ -367,7 +367,7 @@ End Class"
 }")
         End Sub
 
-        <WorkItem(1101237)>
+        <WorkItem(1101237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101237")>
         <Fact>
         Public Sub TypeChar()
             Const source =
@@ -586,7 +586,7 @@ End Module"
         ''' <summary>
         ''' Should not allow names with '$' prefix.
         ''' </summary>
-        <WorkItem(1106819)>
+        <WorkItem(1106819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106819")>
         <Fact>
         Public Sub NoPrefix()
             Const source =
@@ -640,7 +640,7 @@ End Module"
             Assert.Equal(errorMessage, "error BC30037: Character is not valid.")
         End Sub
 
-        <WorkItem(1101243)>
+        <WorkItem(1101243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101243")>
         <Fact>
         Public Sub [ReDim]()
             Const source =
@@ -712,7 +712,7 @@ End Module"
 }")
         End Sub
 
-        <WorkItem(1101318)>
+        <WorkItem(1101318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101318")>
         <Fact>
         Public Sub CompoundAssignment()
             Const source =
@@ -756,7 +756,7 @@ End Module"
 }")
         End Sub
 
-        <WorkItem(1115044, "DevDiv")>
+        <WorkItem(1115044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115044")>
         <Fact>
         Public Sub CaseSensitivity()
             Const source =
@@ -788,7 +788,7 @@ End Class"
 ")
         End Sub
 
-        <WorkItem(1115044, "DevDiv")>
+        <WorkItem(1115044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115044")>
         <Fact>
         Public Sub CaseSensitivity_ImplicitDeclaration()
             Const source =

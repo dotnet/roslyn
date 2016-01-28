@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }");
         }
 
-        [WorkItem(1087216)]
+        [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
         [Fact]
         public void Dynamic()
         {
@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }");
         }
 
-        [WorkItem(1094107)]
+        [WorkItem(1094107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094107")]
         [Fact]
         public void ReferenceInSameDeclaration()
         {
@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(error, "error CS0841: Cannot use local variable 'y' before it is declared");
         }
 
-        [WorkItem(1094104)]
+        [WorkItem(1094104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
         [Fact(Skip = "1094104")]
         public void Conflict_Parameter()
         {
@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(error, "...");
         }
 
-        [WorkItem(1094104)]
+        [WorkItem(1094104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
         [Fact(Skip = "1094104")]
         public void Conflict_Local()
         {
@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(error, "...");
         }
 
-        [WorkItem(1094104)]
+        [WorkItem(1094104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
         [Fact(Skip = "1094104")]
         public void Conflict_OtherDeclaration()
         {
@@ -962,7 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// Should not allow names with '$' prefix.
         /// </summary>
-        [WorkItem(1106819)]
+        [WorkItem(1106819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106819")]
         [Fact]
         public void NoPrefix()
         {
@@ -1075,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }");
         }
 
-        [WorkItem(1094148)]
+        [WorkItem(1094148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094148")]
         [Fact]
         public void OtherStatements()
         {

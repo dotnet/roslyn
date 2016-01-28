@@ -1,4 +1,3 @@
-Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicObjectFormatter
 Microsoft.CodeAnalysis.VisualBasic.Scripting.VisualBasicScript
 Shared Microsoft.CodeAnalysis.VisualBasic.Scripting.VisualBasicScript.Create(Of T)(code As String, options As Microsoft.CodeAnalysis.Scripting.ScriptOptions = Nothing, globalsType As System.Type = Nothing, assemblyLoader As Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader = Nothing) -> Microsoft.CodeAnalysis.Scripting.Script(Of T)
 Shared Microsoft.CodeAnalysis.VisualBasic.Scripting.VisualBasicScript.Create(code As String, options As Microsoft.CodeAnalysis.Scripting.ScriptOptions = Nothing, globalsType As System.Type = Nothing, assemblyLoader As Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader = Nothing) -> Microsoft.CodeAnalysis.Scripting.Script(Of Object)

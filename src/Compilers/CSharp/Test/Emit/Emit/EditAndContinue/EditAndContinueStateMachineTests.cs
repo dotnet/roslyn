@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     public class EditAndContinueStateMachineTests : EditAndContinueTestBase
     {
         [Fact]
-        [WorkItem(1068894, "DevDiv"), WorkItem(1137300, "DevDiv")]
+        [WorkItem(1068894, "DevDiv"), WorkItem(1137300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1137300")]
         public void AddIteratorMethod()
         {
             var source0 =
@@ -3221,7 +3221,7 @@ class C
                 "<>u__2: System.Runtime.CompilerServices.TaskAwaiter<int>");
         }
 
-        [Fact, WorkItem(1170899, "DevDiv")]
+        [Fact, WorkItem(1170899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")]
         public void HoistedAnonymousTypes1()
         {
             var source0 = MarkedSource(@"
@@ -3356,7 +3356,7 @@ class C
             diff2.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "3"));
         }
 
-        [Fact, WorkItem(3192)]
+        [Fact, WorkItem(3192, "https://github.com/dotnet/roslyn/issues/3192")]
         public void HoistedAnonymousTypes_Nested()
         {
             var source0 = MarkedSource(@"
@@ -3502,7 +3502,7 @@ class C
             diff2.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "3"));
         }
 
-        [Fact, WorkItem(3192)]
+        [Fact, WorkItem(3192, "https://github.com/dotnet/roslyn/issues/3192")]
         public void HoistedGenericTypes()
         {
             var source0 = MarkedSource(@"
@@ -3815,7 +3815,7 @@ class C
             diff2.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "2"));
         }
 
-        [Fact, WorkItem(3192)]
+        [Fact, WorkItem(3192, "https://github.com/dotnet/roslyn/issues/3192")]
         public void HoistedAnonymousTypes_Delete()
         {
             var source0 = MarkedSource(@"

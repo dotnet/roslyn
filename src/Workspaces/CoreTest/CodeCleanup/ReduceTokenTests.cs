@@ -1753,7 +1753,7 @@ End Module
         }
 
         [Fact]
-        [WorkItem(623319, "DevDiv")]
+        [WorkItem(623319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623319")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceFloatingAndDecimalLiteralsWithDifferentCulture()
         {
@@ -1790,7 +1790,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(652147, "DevDiv")]
+        [WorkItem(652147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652147")]
         public async Task ReduceFloatingAndDecimalLiteralsWithInvariantCultureNegatives()
         {
             var oldCulture = Thread.CurrentThread.CurrentCulture;

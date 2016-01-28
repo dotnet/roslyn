@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             }
         }
 
-        [Fact, WorkItem(926)]
+        [Fact, WorkItem(926, "https://github.com/dotnet/roslyn/issues/926")]
         public void CompareAllBytesEmitted_Debug()
         {
             foreach (var pdbFormat in new[] 

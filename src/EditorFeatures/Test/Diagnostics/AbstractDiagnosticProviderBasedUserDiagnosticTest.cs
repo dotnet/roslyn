@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Utilities;
 using Xunit;
 using System.Collections.Concurrent;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -75,7 +76,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         /// </summary>
         private void AssertNoAnalyzerExceptionDiagnostics(IEnumerable<Diagnostic> diagnostics)
         {
-            Assert.Equal(0, diagnostics.Count(diag => diag.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.AnalyzerException)));
+            var analyzerExceptionDiagnostics = diagnostics.Where(diag => diag.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.AnalyzerException));
+            AssertEx.Empty(analyzerExceptionDiagnostics, "Found analyzer exception diagnostics");
         }
     }
 }

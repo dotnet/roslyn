@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(827897)>
+        <WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")>
         Public Async Function TestInYieldReturn() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -35,7 +35,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(827897)>
+        <WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")>
         Public Async Function TestInAsyncMethodReturnStatement() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -53,7 +53,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(892209)>
+        <WorkItem(892209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892209")>
         Public Async Function TestUnwrapNullable() As Task
             Dim markup = <Text><![CDATA[
 Public Class C

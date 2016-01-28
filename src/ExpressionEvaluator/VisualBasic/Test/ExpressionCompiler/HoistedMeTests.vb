@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class HoistedMeTests
         Inherits ExpressionCompilerTestBase
 
-        <WorkItem(1067379)>
+        <WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")>
         <Fact>
         Public Sub InstanceIterator_NoCapturing()
             Const source = "
@@ -38,7 +38,7 @@ End Class
             VerifyHasMe(source, "C.VB$StateMachine_1_F.MoveNext", "C", expectedIL)
         End Sub
 
-        <WorkItem(1067379)>
+        <WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")>
         <Fact>
         Public Sub InstanceAsync_NoCapturing()
             Const source = "
@@ -67,7 +67,7 @@ End Class
             VerifyHasMe(source, "C.VB$StateMachine_1_F.MoveNext", "C", expectedIL)
         End Sub
 
-        <WorkItem(1067379)>
+        <WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")>
         <Fact>
         Public Sub InstanceLambda_NoCapturing()
             Const source = "
@@ -450,7 +450,7 @@ End Module
             VerifyNoMe(source, "M._Closure$__0-0._Lambda$__0")
         End Sub
 
-        <WorkItem(1072296)>
+        <WorkItem(1072296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072296")>
         <Fact>
         Public Sub OldStyleNonCapturingLambda()
             Const ilSource = "
@@ -495,8 +495,8 @@ End Module
             VerifyNoMe(context)
         End Sub
 
-        <WorkItem(1067379)>
-        <WorkItem(1069554)>
+        <WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")>
+        <WorkItem(1069554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069554")>
         <Fact>
         Public Sub LambdaLocations_HasThis()
             Const source = "
@@ -569,7 +569,7 @@ End Class
             Next
         End Sub
 
-        <WorkItem(1069554)>
+        <WorkItem(1069554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069554")>
         <Fact>
         Public Sub LambdaLocations_NoThis()
             Const source = "
@@ -717,7 +717,7 @@ End Module
                             })
         End Sub
 
-        <WorkItem(1024137)>
+        <WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
         <Fact>
         Public Sub InstanceMembersInIterator()
             Const source = "
@@ -752,7 +752,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1024137)>
+        <WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
         <Fact>
         Public Sub InstanceMembersInLambda()
             Const source = "
@@ -785,7 +785,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1024137)>
+        <WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
         <Fact>
         Public Sub InstanceMembersInAsync()
             Const source = "
