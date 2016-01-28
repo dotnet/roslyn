@@ -342,19 +342,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 options: TestOptions.DebugDll,
                 references: new MetadataReference[] { referenceA });
 
-            ImmutableArray<byte> exeBytes;
-            ImmutableArray<byte> pdbBytes;
-            compilationB.EmitAndGetReferences(out exeBytes, out pdbBytes);
             const int methodVersion = 1;
 
             var referencesB = new[] { MscorlibRef, referenceA };
-            var moduleB1 = ModuleInstance.Create(exeBytes, SymReaderFactory.CreateReader(pdbBytes));
-            var moduleB2 = ModuleInstance.Create(exeBytes, SymReaderFactory.CreateReader(pdbBytes));
+            var moduleB = compilationB.ToModuleInstance();
 
             CSharpMetadataContext previous = default(CSharpMetadataContext);
             int startOffset;
             int endOffset;
-            var runtime = CreateRuntimeInstance(moduleB1, referencesB);
+            var runtime = CreateRuntimeInstance(moduleB, referencesB);
             ImmutableArray<MetadataBlock> typeBlocks;
             ImmutableArray<MetadataBlock> methodBlocks;
             Guid moduleVersionId;
@@ -421,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
             // With different references.
             var fewerReferences = new[] { MscorlibRef };
-            runtime = CreateRuntimeInstance(moduleB2, fewerReferences);
+            runtime = CreateRuntimeInstance(moduleB, fewerReferences);
             GetContextState(runtime, "C.F", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
 
             // Different references. No reuse.
@@ -1082,7 +1078,7 @@ class B : A
   }
 }";
             var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(source);
-            var runtime = CreateRuntimeInstance(new[] { module, MscorlibRef.ToModuleInstance() });
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var context = CreateMethodContext(runtime, methodName: "C.M");
 
             string error;
@@ -1125,7 +1121,7 @@ class B : A
   }
 }";
             var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(source);
-            var runtime = CreateRuntimeInstance(new[] { module, MscorlibRef.ToModuleInstance() });            
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });            
             var context = CreateMethodContext(runtime, "C.M");
 
             string error;
@@ -1167,7 +1163,7 @@ class B : A
 }
 ";
             var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(source);
-            var runtime = CreateRuntimeInstance(new[] { module, MscorlibRef.ToModuleInstance() });
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var context = CreateMethodContext(runtime, "C.M");
 
             string error;
@@ -4494,7 +4490,7 @@ class C
   }
 }";
             var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(source);
-            var runtime = CreateRuntimeInstance(new[] { module, MscorlibRef.ToModuleInstance() });
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var context = CreateMethodContext(runtime, methodName: "C.M");
 
             string error;
@@ -4663,7 +4659,7 @@ struct S
   }
 }";
             var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(source);
-            var runtime = CreateRuntimeInstance(new[] { module, MscorlibRef.ToModuleInstance() });
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var context = CreateMethodContext(runtime, methodName: "C.<>c__DisplayClass2.<Test>b__1");
 
             string error;

@@ -142,13 +142,13 @@ public interface I
             var moduleA = CreateCompilationWithMscorlib(
                 sourceA,
                 options: TestOptions.DebugDll,
-                references: new[] { modulePIA.MetadataReference.WithEmbedInteropTypes(true) }).ToModuleInstance();
+                references: new[] { modulePIA.GetReference().WithEmbedInteropTypes(true) }).ToModuleInstance();
 
             // csc /r:A.dll /r:PIA.dll B.cs
             var moduleB = CreateCompilationWithMscorlib(
                 sourceB,
                 options: TestOptions.DebugExe,
-                references: new[] { moduleA.MetadataReference, modulePIA.MetadataReference }).ToModuleInstance();
+                references: new[] { moduleA.GetReference(), modulePIA.GetReference() }).ToModuleInstance();
 
             var runtime = CreateRuntimeInstance(new[] { MscorlibRef.ToModuleInstance(), moduleA, modulePIA, moduleB });
             var context = CreateMethodContext(runtime, "A.M");

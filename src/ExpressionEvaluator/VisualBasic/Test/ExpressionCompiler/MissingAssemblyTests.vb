@@ -538,8 +538,7 @@ End Class"
             Dim context = CreateMethodContext(runtime, "C.Main")
 
             Dim systemCore = SystemCoreRef.ToModuleInstance()
-            Dim fakeSystemLinq = CreateCompilationWithMscorlib({""}, options:=TestOptions.ReleaseDll, assemblyName:="System.Linq").
-                EmitToImageReference().ToModuleInstance()
+            Dim fakeSystemLinq = CreateCompilationWithMscorlib({""}, options:=TestOptions.ReleaseDll, assemblyName:="System.Linq").ToModuleInstance()
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing

@@ -14,8 +14,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
     internal sealed class ModuleInstance : IDisposable
     {
-        internal readonly MetadataReference MetadataReference;
-        internal readonly ModuleMetadata ModuleMetadata;
+        private readonly Metadata _metadata;
         internal readonly Guid ModuleVersionId;
         internal readonly ImmutableArray<byte> FullImage;
         internal readonly byte[] MetadataOnly;
@@ -25,8 +24,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         private bool _disposed;
 
         private ModuleInstance(
-            MetadataReference metadataReference,
-            ModuleMetadata moduleMetadata,
+            Metadata metadata,
             Guid moduleVersionId,
             ImmutableArray<byte> fullImage,
             byte[] metadataOnly,
@@ -35,21 +33,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         {
             Debug.Assert((fullImage == null) || (fullImage.Length > metadataOnly.Length));
 
-            this.MetadataReference = metadataReference;
-            this.ModuleMetadata = moduleMetadata;
-            this.ModuleVersionId = moduleVersionId;
-            this.FullImage = fullImage;
-            this.MetadataOnly = metadataOnly;
-            this.MetadataHandle = GCHandle.Alloc(metadataOnly, GCHandleType.Pinned);
-            this.SymReader = symReader; // should be non-null if and only if there are symbols
+            _metadata = metadata;
+            ModuleVersionId = moduleVersionId;
+            FullImage = fullImage;
+            MetadataOnly = metadataOnly;
+            MetadataHandle = GCHandle.Alloc(metadataOnly, GCHandleType.Pinned);
+            SymReader = symReader; // should be non-null if and only if there are symbols
             _includeLocalSignatures = includeLocalSignatures;
+        }
+
+        public MetadataReference GetReference()
+        {
+            return (_metadata as AssemblyMetadata)?.GetReference() ?? ((ModuleMetadata)_metadata).GetReference();
         }
 
         public static ModuleInstance Create(byte[] metadataOnly)
         {
             return new ModuleInstance(
-                metadataReference: null,
-                moduleMetadata: null,
+                metadata: null,
                 moduleVersionId: default(Guid),
                 fullImage: default(ImmutableArray<byte>),
                 metadataOnly: metadataOnly,
@@ -58,29 +59,29 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         }
 
         public static ModuleInstance Create(
-            MetadataReference reference,
+            Metadata metadata,
             ImmutableArray<byte> peImage,
             object symReader,
             bool includeLocalSignatures)
         {
-            var moduleMetadata = reference.GetModuleMetadata();
+            var assemblyMetadata = metadata as AssemblyMetadata;
+            var moduleMetadata = (assemblyMetadata == null) ? (ModuleMetadata)metadata : assemblyMetadata.GetModules()[0];
+
             var moduleId = moduleMetadata.Module.GetModuleVersionIdOrThrow();
             // The Expression Compiler expects metadata only, no headers or IL.
             var metadataBytes = moduleMetadata.Module.PEReaderOpt.GetMetadata().GetContent().ToArray();
             return new ModuleInstance(
-                reference,
-                moduleMetadata,
+                metadata,
                 moduleId,
                 peImage,
                 metadataBytes,
                 symReader,
-                includeLocalSignatures && (peImage != null));
+                includeLocalSignatures && !peImage.IsDefault);
         }
 
         public static ModuleInstance Create(ImmutableArray<byte> peImage, ISymUnmanagedReader symReader)
         {
-            var peReference = AssemblyMetadata.CreateFromImage(peImage).GetReference();
-            return Create(peReference, peImage, symReader, includeLocalSignatures: true);
+            return Create(AssemblyMetadata.CreateFromImage(peImage), peImage, symReader, includeLocalSignatures: true);
         }
 
         internal IntPtr MetadataAddress

@@ -908,7 +908,7 @@ End Class"
             Dim moduleA = compilationA.ToModuleInstance()
 
             Dim assemblyNameB = "9BBC6622-86EB-4EC5-94A1-9A1E6D0C24B9"
-            Dim compilationB = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(MakeSources(sourceB, assemblyName:=assemblyNameB), options:=TestOptions.DebugDll, additionalRefs:={moduleA.MetadataReference})
+            Dim compilationB = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(MakeSources(sourceB, assemblyName:=assemblyNameB), options:=TestOptions.DebugDll, additionalRefs:={moduleA.GetReference()})
             Dim moduleB = compilationB.ToModuleInstance()
 
             Dim runtime = CreateRuntimeInstance(

@@ -397,19 +397,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             }
         }
 
-        internal static void EmitAndGetReferences(
-            this Compilation compilation,
-            out ImmutableArray<byte> exeBytes,
-            out ImmutableArray<byte> pdbBytes)
-        {
-            var pdbStream = new MemoryStream();
-            exeBytes = compilation.EmitToArray(EmitOptions.Default, pdbStream: pdbStream);
-            pdbBytes = pdbStream.ToImmutable();
-        }
-
         internal static ImmutableArray<MetadataReference> GetEmittedReferences(this Compilation compilation, ImmutableArray<byte> peImage)
         {
-            ImmutableArray<MetadataReference> references;
             // Determine the set of references that were actually used
             // and ignore any references that were dropped in emit.
             HashSet<string> referenceNames;
@@ -419,8 +408,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 referenceNames = new HashSet<string>(reader.AssemblyReferences.Select(h => GetAssemblyReferenceName(reader, h)));
             }
 
-            references = ImmutableArray.CreateRange(compilation.References.Where(r => IsReferenced(r, referenceNames)));
-            return references;
+            return ImmutableArray.CreateRange(compilation.References.Where(r => IsReferenced(r, referenceNames)));
         }
 
         internal static ImmutableArray<Scope> GetScopes(this ISymUnmanagedReader symReader, int methodToken, int methodVersion, bool isEndInclusive)
@@ -500,7 +488,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             this MetadataReference reference,
             bool includeLocalSignatures = true)
         {
-            return ModuleInstance.Create(reference, default(ImmutableArray<byte>), null, includeLocalSignatures);
+            var metadata = ((PortableExecutableReference)reference).GetMetadata();
+            return ModuleInstance.Create(metadata, default(ImmutableArray<byte>), null, includeLocalSignatures);
         }
 
         internal static ModuleInstance ToModuleInstance(
@@ -512,8 +501,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             var peImage = compilation.EmitToArray(new EmitOptions(debugInformationFormat: debugFormat), pdbStream: pdbStream);
             var symReader = (debugFormat != 0) ? SymReaderFactory.CreateReader(pdbStream, new PEReader(peImage)) : null;
 
-            var exeReference = AssemblyMetadata.CreateFromImage(peImage).GetReference(display: compilation.AssemblyName);
-            return ModuleInstance.Create(exeReference, peImage, symReader, includeLocalSignatures);
+            return ModuleInstance.Create(AssemblyMetadata.CreateFromImage(peImage), peImage, symReader, includeLocalSignatures);
         }
 
         internal static ModuleInstance GetModuleInstanceForIL(string ilSource)
@@ -521,8 +509,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             ImmutableArray<byte> peBytes;
             ImmutableArray<byte> pdbBytes;
             CommonTestBase.EmitILToArray(ilSource, appendDefaultHeader: true, includePdb: true, assemblyBytes: out peBytes, pdbBytes: out pdbBytes);
-            var reference = AssemblyMetadata.CreateFromImage(peBytes).GetReference();
-            return ModuleInstance.Create(reference, peBytes, SymReaderFactory.CreateReader(pdbBytes), includeLocalSignatures: true);
+            return ModuleInstance.Create(AssemblyMetadata.CreateFromImage(peBytes), peBytes, SymReaderFactory.CreateReader(pdbBytes), includeLocalSignatures: true);
         }
 
         internal static AssemblyIdentity GetAssemblyIdentity(this MetadataReference reference)

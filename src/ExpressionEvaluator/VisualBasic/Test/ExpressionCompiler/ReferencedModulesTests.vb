@@ -182,7 +182,7 @@ End Class"
             Dim moduleB = CreateCompilationWithReferences(
                 MakeSources(sourceB),
                 options:=TestOptions.DebugDll,
-                references:={MscorlibRef, SystemRef, MsvbRef, SystemCoreRef, moduleA.MetadataReference}).ToModuleInstance()
+                references:={MscorlibRef, SystemRef, MsvbRef, SystemCoreRef, moduleA.GetReference()}).ToModuleInstance()
 
             Dim runtime = CreateRuntimeInstance(
             {
@@ -393,37 +393,38 @@ End Class"
             ' is compiled with contract assemblies and the EE expression
             ' is compiled with facade assemblies.
             compilation = CreateCompilationWithReferences(MakeSources(source), references:=contractReferences, options:=TestOptions.DebugDll)
-            Dim reference = compilation.EmitToImageReference()
 
-            Dim modules = runtimeReferences.Add(reference).SelectAsArray(Function(r) r.ToModuleInstance())
-            Using runtime = CreateRuntimeInstance(modules)
-                Dim context = CreateMethodContext(runtime, "C.Main")
-                Dim errorMessage As String = Nothing
-                ' { System.Console, mscorlib }
-                Dim testData = New CompilationTestData()
-                context.CompileExpression("GetType(System.Console)", errorMessage, testData)
-                Dim methodData = testData.GetMethodData("<>x.<>m0")
-                methodData.VerifyIL(
+            Dim runtime = CreateRuntimeInstance(compilation, runtimeReferences)
+            Dim context = CreateMethodContext(runtime, "C.Main")
+            Dim errorMessage As String = Nothing
+            ' { System.Console, mscorlib }
+            Dim testData = New CompilationTestData()
+            context.CompileExpression("GetType(System.Console)", errorMessage, testData)
+            Dim methodData = testData.GetMethodData("<>x.<>m0")
+            methodData.VerifyIL(
 "{
   // Code size       11 (0xb)
   .maxstack  1
+  .locals init (System.Type V_0, //t
+                System.Collections.ObjectModel.ReadOnlyDictionary(Of Object, Object) V_1) //o
   IL_0000:  ldtoken    ""System.Console""
   IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
   IL_000a:  ret
 }")
-                ' { mscorlib, System.ObjectModel }
-                testData = New CompilationTestData()
-                context.CompileExpression("DirectCast(Nothing, System.Collections.ObjectModel.ReadOnlyDictionary(Of Object, Object))", errorMessage, testData)
-                methodData = testData.GetMethodData("<>x.<>m0")
-                methodData.VerifyIL(
+            ' { mscorlib, System.ObjectModel }
+            testData = New CompilationTestData()
+            context.CompileExpression("DirectCast(Nothing, System.Collections.ObjectModel.ReadOnlyDictionary(Of Object, Object))", errorMessage, testData)
+            methodData = testData.GetMethodData("<>x.<>m0")
+            methodData.VerifyIL(
 "{
   // Code size        2 (0x2)
   .maxstack  1
+  .locals init (System.Type V_0, //t
+                System.Collections.ObjectModel.ReadOnlyDictionary(Of Object, Object) V_1) //o
   IL_0000:  ldnull
   IL_0001:  ret
 }")
-                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityObjectModel.GetDisplayName())
-            End Using
+            Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityObjectModel.GetDisplayName())
         End Sub
 
         Private Shared Function CreateTypeContextFactory(

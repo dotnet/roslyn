@@ -337,7 +337,7 @@ public class B
             var identityA = compilationA.Assembly.Identity;
             var moduleA = compilationA.ToModuleInstance();
 
-            var compilationB = CreateCompilationWithMscorlibAndSystemCore(sourceB, options: TestOptions.DebugDll, references: new[] { moduleA.MetadataReference });
+            var compilationB = CreateCompilationWithMscorlibAndSystemCore(sourceB, options: TestOptions.DebugDll, references: new[] { moduleA.GetReference() });
             var moduleB = compilationB.ToModuleInstance();
 
             var runtime = CreateRuntimeInstance(new[] { MscorlibRef.ToModuleInstance(), SystemCoreRef.ToModuleInstance(), moduleA, moduleB });
@@ -452,7 +452,7 @@ class C
 
             var moduleB = CreateCompilation(
                 sourceB,
-                references: new[] { SystemRuntimePP7Ref, moduleA.MetadataReference },
+                references: new[] { SystemRuntimePP7Ref, moduleA.GetReference() },
                 options: TestOptions.DebugDll).ToModuleInstance();
 
             // Include an empty assembly to verify that not all assemblies
@@ -565,36 +565,39 @@ IL_0005:  ret
             compilation = CreateCompilation(
                 source,
                 references: contractReferences,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var reference = compilation.EmitToImageReference();
+                options: TestOptions.DebugDll);
 
-            var modules = runtimeReferences.Add(reference).SelectAsArray(r => r.ToModuleInstance());
-            var runtime = CreateRuntimeInstance(modules);
+            var runtime = CreateRuntimeInstance(compilation, runtimeReferences);
             var context = CreateMethodContext(runtime, "C.Main");
             string errorMessage;
+
             // { System.Console, mscorlib }
             var testData = new CompilationTestData();
             context.CompileExpression("typeof(System.Console)", out errorMessage, testData);
             var methodData = testData.GetMethodData("<>x.<>m0");
-            methodData.VerifyIL(
-@"{
-// Code size       11 (0xb)
-.maxstack  1
-IL_0000:  ldtoken    ""System.Console""
-IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-IL_000a:  ret
+            methodData.VerifyIL(@"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (System.Type V_0, //t
+                System.Collections.ObjectModel.ReadOnlyDictionary<object, object> V_1) //o
+  IL_0000:  ldtoken    ""System.Console""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ret
 }");
+
             // { mscorlib, System.ObjectModel }
             testData = new CompilationTestData();
             context.CompileExpression("(System.Collections.ObjectModel.ReadOnlyDictionary<object, object>)null", out errorMessage, testData);
             methodData = testData.GetMethodData("<>x.<>m0");
-            methodData.VerifyIL(
-@"{
-// Code size        2 (0x2)
-.maxstack  1
-IL_0000:  ldnull
-IL_0001:  ret
+            methodData.VerifyIL(@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (System.Type V_0, //t
+                System.Collections.ObjectModel.ReadOnlyDictionary<object, object> V_1) //o
+  IL_0000:  ldnull
+  IL_0001:  ret
 }");
             Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityObjectModel.GetDisplayName());
         }
@@ -619,7 +622,7 @@ public class B
             var compilationA = CreateCompilationWithMscorlibAndSystemCore(sourceA, options: TestOptions.DebugDll);
             var moduleA = compilationA.ToModuleInstance();
 
-            var compilationB = CreateCompilationWithMscorlibAndSystemCore(sourceB, options: TestOptions.DebugDll, references: new[] { moduleA.MetadataReference });
+            var compilationB = CreateCompilationWithMscorlibAndSystemCore(sourceB, options: TestOptions.DebugDll, references: new[] { moduleA.GetReference() });
             var moduleB = compilationB.ToModuleInstance();
 
             var runtime = CreateRuntimeInstance(new[] 

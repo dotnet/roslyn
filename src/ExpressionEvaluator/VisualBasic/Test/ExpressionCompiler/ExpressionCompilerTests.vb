@@ -256,13 +256,9 @@ End Class"
             Dim referenceA = compA.EmitToImageReference()
 
             Dim compB = CreateCompilationWithMscorlib({sourceB}, options:=TestOptions.DebugDll, references:={referenceA})
-            Dim exeBytes As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
-            compB.EmitAndGetReferences(exeBytes, pdbBytes)
 
             Dim referencesB = {MscorlibRef, referenceA}
-            Dim moduleB1 = ModuleInstance.Create(exeBytes, SymReaderFactory.CreateReader(pdbBytes))
-            Dim moduleB2 = ModuleInstance.Create(exeBytes, SymReaderFactory.CreateReader(pdbBytes))
+            Dim moduleB = compB.ToModuleInstance()
 
             Const methodVersion = 1
 
@@ -270,7 +266,7 @@ End Class"
             Dim startOffset = 0
             Dim endOffset = 0
 
-            Dim runtime = CreateRuntimeInstance(moduleB1, referencesB)
+            Dim runtime = CreateRuntimeInstance(moduleB, referencesB)
 
             Dim typeBlocks As ImmutableArray(Of MetadataBlock) = Nothing
             Dim methodBlocks As ImmutableArray(Of MetadataBlock) = Nothing
@@ -332,7 +328,7 @@ End Class"
 
             ' With different references.
             Dim fewerReferences = {MscorlibRef}
-            runtime = CreateRuntimeInstance(moduleB2, fewerReferences)
+            runtime = CreateRuntimeInstance(moduleB, fewerReferences)
             methodBlocks = Nothing
             moduleVersionId = Nothing
             symReader = Nothing

@@ -1026,7 +1026,7 @@ class B
             var moduleA = compilationA.ToModuleInstance();
 
             var assemblyNameB = "9BAC6622-86EB-4EC5-94A1-9A1E6D0C24B9";
-            var compilationB = CreateCompilationWithMscorlib(sourceB, options: TestOptions.DebugExe, references: new[] { moduleA.MetadataReference }, assemblyName: assemblyNameB);
+            var compilationB = CreateCompilationWithMscorlib(sourceB, options: TestOptions.DebugExe, references: new[] { moduleA.GetReference() }, assemblyName: assemblyNameB);
             var moduleB = compilationB.ToModuleInstance();
 
             var runtime = CreateRuntimeInstance(new[]

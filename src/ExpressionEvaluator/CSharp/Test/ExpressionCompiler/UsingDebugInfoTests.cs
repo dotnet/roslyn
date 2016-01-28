@@ -866,9 +866,6 @@ class C
             Assert.Equal(SymbolKind.Namespace, targetSymbol.Kind);
             Assert.True(((NamespaceSymbol)targetSymbol).IsGlobalNamespace);
             Assert.Equal("System.Xml.Linq", targetSymbol.ContainingAssembly.Name);
-
-            var moduleInstance = runtime.Modules.Single(m => m.ModuleMetadata.Name.StartsWith("System.Xml.Linq", StringComparison.OrdinalIgnoreCase));
-            AssertEx.SetEqual(moduleInstance.MetadataReference.Properties.Aliases, "X");
         }
 
         [Fact]
@@ -1057,7 +1054,7 @@ public class C2 : C1
             var comp1 = CreateCompilation(source1, new[] { MscorlibRef_v20 }, TestOptions.DebugDll);
             var module1 = comp1.ToModuleInstance();
 
-            var comp2 = CreateCompilation(source2, new[] { MscorlibRef_v4_0_30316_17626, module1.MetadataReference }, TestOptions.DebugDll);
+            var comp2 = CreateCompilation(source2, new[] { MscorlibRef_v4_0_30316_17626, module1.GetReference() }, TestOptions.DebugDll);
             var module2 = comp2.ToModuleInstance();
 
             var runtime = CreateRuntimeInstance(new[] 
