@@ -1,11 +1,12 @@
-﻿using System;
+﻿#define ELFIE_ENABLED
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-#if false
+#if ELFIE_ENABLED
 using Elfie.Model;
 using Elfie.Model.Structures;
 using Elfie.Model.Tree;
@@ -27,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.Nuget
 
         private class PackageSearchService : IPackageSearchService
         {
-#if false
+#if ELFIE_ENABLED
             private static Lazy<IMemberDatabase> s_memberDatabase = new Lazy<IMemberDatabase>(
-                () => MemberDatabase.LoadWithDiagnostics(@"C:\Temp\NuGet.All.PublicTypesOnly.ardb"),
+                () => MemberDatabase.Load(@"C:\Temp\Index.StablePackages.PublicApis.95.ardb"),
                 isThreadSafe: true);
 #endif
 
@@ -42,14 +43,14 @@ namespace Microsoft.CodeAnalysis.Editor.Nuget
 
             public IEnumerable<PackageSearchResult> Search(string name, int arity, CancellationToken cancellationToken)
             {
-#if false
+#if ELFIE_ENABLED
                 var database = s_memberDatabase.Value;
                 var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
 
                 var symbols = new PartialArray<Symbol>(3);
                 if (query.TryFindMembers(database, ref symbols))
                 {
-                    var result = new List<NugetSearchResult>();
+                    var result = new List<PackageSearchResult>();
                     foreach (var symbol in symbols)
                     {
                         var nameParts = new List<string>();
@@ -57,15 +58,16 @@ namespace Microsoft.CodeAnalysis.Editor.Nuget
 
                         if (nameParts.Count > 0)
                         {
-                            yield return new NugetSearchResult(nameParts, symbol.PackageName.ToString());
+                            yield return new PackageSearchResult(nameParts, symbol.PackageName.ToString());
                         }
                     }
-                
-#endif
+                }
+#else
                 yield break;
+#endif
             }
 
-#if false
+#if ELFIE_ENABLED
             private void GetFullName(List<string> nameParts, Path8 path)
             {
                 if (!path.IsEmpty)

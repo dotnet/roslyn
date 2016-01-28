@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     versionsAndSplits.Sort((v1, v2) =>
                     {
                         var diff = CompareSplit(v1.Split, v2.Split);
-                        return diff != 0 ? diff : v1.Version.CompareTo(v2.Version);
+                        return diff != 0 ? diff : -v1.Version.CompareTo(v2.Version);
                     });
 
                     var codeActions = new List<CodeAction>();
@@ -79,15 +79,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 {
                     for (int i = 0, n = Math.Min(split1.Length, split2.Length); i < n; i++)
                     {
-                        var diff = LogicalStringComparer.Instance.Compare(split1[i], split2[i]);
+                        // Prefer things that look larger.  i.e. 7 should come before 6. 
+                        // Use a logical string comparer so that 10 is understood to be
+                        // greater than 3.
+                        var diff = -LogicalStringComparer.Instance.Compare(split1[i], split2[i]);
                         if (diff != 0)
                         {
                             return diff;
                         }
                     }
 
-                    // Choose the one with less parts.
-                    return split1.Length - split2.Length;
+                    // Choose the one with more parts.
+                    return split2.Length - split1.Length;
                 }
 
                 private CodeAction CreateCodeAction(

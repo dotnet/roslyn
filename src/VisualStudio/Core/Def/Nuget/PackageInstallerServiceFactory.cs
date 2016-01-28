@@ -167,14 +167,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Nuget
                 return;
             }
 
-            if (solutionChanged)
+            if (localSolutionChanged)
             {
                 ProcessSolutionChange();
             }
             else
             {
                 var solution = _workspace.CurrentSolution;
-                foreach (var projectId in changedProjects)
+                foreach (var projectId in localChangedProjects)
                 {
                     ProcessProjectChange(solution, projectId);
                 }
@@ -247,8 +247,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Nuget
             var result = new HashSet<string>();
             foreach (var installedPackages in projectToInstalledPackageAndVersion.Values)
             {
-                string version = installedPackages?[packageName];
-                if (version != null)
+                string version = null;
+                if (installedPackages?.TryGetValue(packageName, out version) == true && version != null)
                 {
                     result.Add(version);
                 }
