@@ -5478,37 +5478,26 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
-            var pdbStream = new MemoryStream();
-            var peImage = comp.EmitToArray(EmitOptions.Default, pdbStream: pdbStream);
-            var pdbImage = pdbStream.ToImmutable();
-            var peReference = AssemblyMetadata.CreateFromImage(peImage).GetReference();
-
             var modulesBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
             var corruptMetadata = new ModuleInstance(
                 metadataReference: null,
                 moduleMetadata: null,
                 moduleVersionId: default(Guid),
-                fullImage: null,
+                fullImage: default(ImmutableArray<byte>),
                 metadataOnly: CommonResources.NoValidTables,
                 symReader: null,
                 includeLocalSignatures: false);
 
-            modulesBuilder.Add(corruptMetadata);
-            modulesBuilder.Add(peReference.ToModuleInstance(peImage.ToArray(), SymReaderFactory.CreateReader(pdbImage)));
-            modulesBuilder.Add(MscorlibRef.ToModuleInstance(fullImage: null, symReader: null));
-            var modules = modulesBuilder.ToImmutableAndFree();
-
-            using (var runtime = new RuntimeInstance(modules))
-            {
-                var context = CreateMethodContext(runtime, "C.M");
-                ResultProperties resultProperties;
-                string error;
-                var testData = new CompilationTestData();
-                // Verify that we can still evaluate expressions for modules that are not corrupt.
-                context.CompileExpression("(new C()).F", out resultProperties, out error, testData);
-                Assert.Null(error);
-                Assert.Equal(DkmClrCompilationResultFlags.None, resultProperties.Flags);
-                testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+            var runtime = RuntimeInstance.Create(new[] { corruptMetadata , comp.ToModuleInstance(), MscorlibRef.ToModuleInstance() });
+            var context = CreateMethodContext(runtime, "C.M");
+            ResultProperties resultProperties;
+            string error;
+            var testData = new CompilationTestData();
+            // Verify that we can still evaluate expressions for modules that are not corrupt.
+            context.CompileExpression("(new C()).F", out resultProperties, out error, testData);
+            Assert.Null(error);
+            Assert.Equal(DkmClrCompilationResultFlags.None, resultProperties.Flags);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -5516,7 +5505,6 @@ class C
   IL_0005:  ldfld      ""int C.F""
   IL_000a:  ret
 }");
-            }
         }
 
         [WorkItem(1089688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")]

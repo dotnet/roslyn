@@ -905,42 +905,35 @@ Class B
 End Class"
             Dim assemblyNameA = "0B93FF0B-31A2-47C8-B24D-16A2D77AB5C5"
             Dim compilationA = CreateCompilationWithMscorlibAndVBRuntime(MakeSources(sourceA, assemblyName:=assemblyNameA), options:=TestOptions.DebugDll)
-            Dim exeA As ImmutableArray(Of Byte) = Nothing
-            Dim pdbA As ImmutableArray(Of Byte) = Nothing
-            Dim referencesA As ImmutableArray(Of MetadataReference) = Nothing
-            compilationA.EmitAndGetReferences(exeA, pdbA, referencesA)
-            Dim referenceA = AssemblyMetadata.CreateFromImage(exeA).GetReference()
+            Dim moduleA = compilationA.ToModuleInstance()
 
             Dim assemblyNameB = "9BBC6622-86EB-4EC5-94A1-9A1E6D0C24B9"
-            Dim compilationB = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(MakeSources(sourceB, assemblyName:=assemblyNameB), options:=TestOptions.DebugDll, additionalRefs:={referenceA})
-            Dim exeB As ImmutableArray(Of Byte) = Nothing
-            Dim pdbB As ImmutableArray(Of Byte) = Nothing
-            Dim referencesB As ImmutableArray(Of MetadataReference) = Nothing
-            compilationB.EmitAndGetReferences(exeB, pdbB, referencesB)
-            Dim referenceB = AssemblyMetadata.CreateFromImage(exeB).GetReference()
+            Dim compilationB = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(MakeSources(sourceB, assemblyName:=assemblyNameB), options:=TestOptions.DebugDll, additionalRefs:={moduleA.MetadataReference})
+            Dim moduleB = compilationB.ToModuleInstance()
 
-            Dim modulesBuilder = ArrayBuilder(Of ModuleInstance).GetInstance()
-            modulesBuilder.Add(MscorlibRef.ToModuleInstance(fullImage:=Nothing, symReader:=Nothing))
-            modulesBuilder.Add(referenceA.ToModuleInstance(fullImage:=exeA.ToArray(), symReader:=SymReaderFactory.CreateReader(pdbA)))
-            modulesBuilder.Add(referenceB.ToModuleInstance(fullImage:=exeB.ToArray(), symReader:=SymReaderFactory.CreateReader(pdbB)))
-            modulesBuilder.Add(ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance(fullImage:=Nothing, symReader:=Nothing))
+            Dim runtime = CreateRuntimeInstance(
+            {
+                MscorlibRef.ToModuleInstance(),
+                moduleA,
+                moduleB,
+                ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance()
+            })
 
-            Using runtime = New RuntimeInstance(modulesBuilder.ToImmutableAndFree())
-                Dim context = CreateMethodContext(
-                    runtime,
-                    "A.M")
-                Dim aliases = ImmutableArray.Create(
-                    ExceptionAlias("E, 9BBC6622-86EB-4EC5-94A1-9A1E6D0C24B9, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"))
-                Dim errorMessage As String = Nothing
-                Dim testData = New CompilationTestData()
-                context.CompileExpression(
-                    "$exception",
-                    DkmEvaluationFlags.TreatAsExpression,
-                    aliases,
-                    errorMessage,
-                    testData)
-                Assert.Null(errorMessage)
-                testData.GetMethodData("<>x(Of T).<>m0").VerifyIL(
+            Dim context = CreateMethodContext(runtime, "A.M")
+
+            Dim aliases = ImmutableArray.Create(ExceptionAlias("E, 9BBC6622-86EB-4EC5-94A1-9A1E6D0C24B9, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"))
+            Dim errorMessage As String = Nothing
+
+            Dim testData = New CompilationTestData()
+            context.CompileExpression(
+                "$exception",
+                DkmEvaluationFlags.TreatAsExpression,
+                aliases,
+                errorMessage,
+                testData)
+
+            Assert.Null(errorMessage)
+            testData.GetMethodData("<>x(Of T).<>m0").VerifyIL(
 "{
   // Code size       11 (0xb)
   .maxstack  1
@@ -950,26 +943,26 @@ End Class"
   IL_0005:  castclass  ""E""
   IL_000a:  ret
 }")
-                context = CreateMethodContext(
-                    runtime,
-                    "A.M")
-                aliases = ImmutableArray.Create(
-                    ObjectIdAlias(1, "A`1[[B, 9BBC6622-86EB-4EC5-94A1-9A1E6D0C24B9, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], 0B93FF0B-31A2-47C8-B24D-16A2D77AB5C5, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"))
-                Dim resultProperties As ResultProperties = Nothing
-                Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
-                testData = New CompilationTestData()
-                context.CompileAssignment(
-                    "o",
-                    "$1",
-                    aliases,
-                    DebuggerDiagnosticFormatter.Instance,
-                    resultProperties,
-                    errorMessage,
-                    missingAssemblyIdentities,
-                    EnsureEnglishUICulture.PreferredOrNull,
-                    testData)
-                Assert.Empty(missingAssemblyIdentities)
-                testData.GetMethodData("<>x(Of T).<>m0").VerifyIL(
+            context = CreateMethodContext(runtime, "A.M")
+
+            aliases = ImmutableArray.Create(
+                ObjectIdAlias(1, "A`1[[B, 9BBC6622-86EB-4EC5-94A1-9A1E6D0C24B9, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], 0B93FF0B-31A2-47C8-B24D-16A2D77AB5C5, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"))
+
+            Dim resultProperties As ResultProperties = Nothing
+            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
+            testData = New CompilationTestData()
+            context.CompileAssignment(
+                "o",
+                "$1",
+                aliases,
+                DebuggerDiagnosticFormatter.Instance,
+                resultProperties,
+                errorMessage,
+                missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData)
+            Assert.Empty(missingAssemblyIdentities)
+            testData.GetMethodData("<>x(Of T).<>m0").VerifyIL(
 "{
   // Code size       17 (0x11)
   .maxstack  1
@@ -981,7 +974,6 @@ End Class"
   IL_000f:  stloc.0
   IL_0010:  ret
 }")
-            End Using
         End Sub
 
         Private Overloads Function Evaluate(

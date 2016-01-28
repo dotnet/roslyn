@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using Xunit;
 using PDB::Roslyn.Test.MetadataUtilities;
+using PDB::Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
@@ -499,8 +500,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         internal static ModuleInstance ToModuleInstance(
             this MetadataReference reference,
-            byte[] fullImage,
-            object symReader,
+            ImmutableArray<byte> fullImage = default(ImmutableArray<byte>),
+            object symReader = null,
             bool includeLocalSignatures = true)
         {
             var moduleMetadata = reference.GetModuleMetadata();
@@ -515,6 +516,28 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 metadataBytes,
                 symReader,
                 includeLocalSignatures && (fullImage != null));
+        }
+
+        internal static ModuleInstance ToModuleInstance(
+            this Compilation compilation,
+            DebugInformationFormat debugFormat = DebugInformationFormat.Pdb,
+            bool includeLocalSignatures = true)
+        {
+            var pdbStream = (debugFormat != 0) ? new MemoryStream() : null;
+            var peImage = compilation.EmitToArray(new EmitOptions(debugInformationFormat: debugFormat), pdbStream: pdbStream);
+            var symReader = (debugFormat != 0) ? SymReaderFactory.CreateReader(pdbStream, new PEReader(peImage)) : null;
+
+            var exeReference = AssemblyMetadata.CreateFromImage(peImage).GetReference(display: compilation.AssemblyName);
+            return exeReference.ToModuleInstance(peImage, symReader, includeLocalSignatures);
+        }
+
+        internal static ModuleInstance GetModuleInstanceForIL(string ilSource)
+        {
+            ImmutableArray<byte> peBytes;
+            ImmutableArray<byte> pdbBytes;
+            CommonTestBase.EmitILToArray(ilSource, appendDefaultHeader: false, includePdb: true, assemblyBytes: out peBytes, pdbBytes: out pdbBytes);
+            var reference = AssemblyMetadata.CreateFromImage(peBytes).GetReference();
+            return reference.ToModuleInstance(peBytes, SymReaderFactory.CreateReader(pdbBytes));
         }
 
         internal static AssemblyIdentity GetAssemblyIdentity(this MetadataReference reference)

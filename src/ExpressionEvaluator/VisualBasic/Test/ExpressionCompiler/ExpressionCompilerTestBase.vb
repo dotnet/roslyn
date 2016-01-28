@@ -45,6 +45,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             _runtimeInstances.Free()
         End Sub
 
+        Friend Function CreateRuntimeInstance(modules As IEnumerable(Of ModuleInstance)) As RuntimeInstance
+            Dim instance = RuntimeInstance.Create(modules)
+            _runtimeInstances.Add(instance)
+            Return instance
+        End Function
+
         Friend Function CreateRuntimeInstance(
             compilation As Compilation,
             Optional references As IEnumerable(Of MetadataReference) = Nothing,
@@ -64,12 +70,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Optional includeLocalSignatures As Boolean = True) As RuntimeInstance
 
             Dim instance = RuntimeInstance.Create(references, exeBytes, symReader, assemblyName, includeLocalSignatures)
-            _runtimeInstances.Add(instance)
-            Return instance
-        End Function
-
-        Friend Function CreateRuntimeInstance(modules As ImmutableArray(Of ModuleInstance)) As RuntimeInstance
-            Dim instance = New RuntimeInstance(modules)
             _runtimeInstances.Add(instance)
             Return instance
         End Function

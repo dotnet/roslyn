@@ -136,58 +136,30 @@ public interface I
         A.M(y);
     }
 }";
-            var compilationPIA = CreateCompilationWithMscorlib(sourcePIA, options: TestOptions.DebugDll);
-            ImmutableArray<byte> exePIA;
-            ImmutableArray<byte> pdbPIA;
-            ImmutableArray<MetadataReference> referencesPIA;
-            compilationPIA.EmitAndGetReferences(out exePIA, out pdbPIA, out referencesPIA);
-            var metadataPIA = AssemblyMetadata.CreateFromImage(exePIA);
-            var referencePIA = metadataPIA.GetReference();
+            var modulePIA = CreateCompilationWithMscorlib(sourcePIA, options: TestOptions.DebugDll).ToModuleInstance();
 
             // csc /t:library /l:PIA.dll A.cs
-            var compilationA = CreateCompilationWithMscorlib(
+            var moduleA = CreateCompilationWithMscorlib(
                 sourceA,
                 options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),
-                references: new MetadataReference[] { metadataPIA.GetReference(embedInteropTypes: true) });
-            ImmutableArray<byte> exeA;
-            ImmutableArray<byte> pdbA;
-            ImmutableArray<MetadataReference> referencesA;
-            compilationA.EmitAndGetReferences(out exeA, out pdbA, out referencesA);
-            var metadataA = AssemblyMetadata.CreateFromImage(exeA);
-            var referenceA = metadataA.GetReference();
+                references: new[] { modulePIA.MetadataReference.WithEmbedInteropTypes(true) }).ToModuleInstance();
 
             // csc /r:A.dll /r:PIA.dll B.cs
-            var compilationB = CreateCompilationWithMscorlib(
+            var moduleB = CreateCompilationWithMscorlib(
                 sourceB,
                 options: TestOptions.DebugExe,
-                assemblyName: Guid.NewGuid().ToString("D"),
-                references: new MetadataReference[] { metadataA.GetReference(), metadataPIA.GetReference() });
-            ImmutableArray<byte> exeB;
-            ImmutableArray<byte> pdbB;
-            ImmutableArray<MetadataReference> referencesB;
-            compilationB.EmitAndGetReferences(out exeB, out pdbB, out referencesB);
-            var metadataB = AssemblyMetadata.CreateFromImage(exeB);
-            var referenceB = metadataB.GetReference();
+                references: new[] { moduleA.MetadataReference, modulePIA.MetadataReference }).ToModuleInstance();
 
-            // Create runtime from modules { mscorlib, PIA, A, B }.
-            var modulesBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
-            modulesBuilder.Add(MscorlibRef.ToModuleInstance(fullImage: null, symReader: null));
-            modulesBuilder.Add(referenceA.ToModuleInstance(fullImage: exeA.ToArray(), symReader: SymReaderFactory.CreateReader(pdbA)));
-            modulesBuilder.Add(referencePIA.ToModuleInstance(fullImage: null, symReader: null));
-            modulesBuilder.Add(referenceB.ToModuleInstance(fullImage: exeB.ToArray(), symReader: SymReaderFactory.CreateReader(pdbB)));
+            var runtime = CreateRuntimeInstance(new[] { MscorlibRef.ToModuleInstance(), moduleA, modulePIA, moduleB });
+            var context = CreateMethodContext(runtime, "A.M");
+            ResultProperties resultProperties;
+            string error;
 
-            using (var runtime = new RuntimeInstance(modulesBuilder.ToImmutableAndFree()))
-            {
-                var context = CreateMethodContext(runtime, "A.M");
-                ResultProperties resultProperties;
-                string error;
-
-                // Bind to local of embedded PIA type.
-                var testData = new CompilationTestData();
-                context.CompileExpression("x", out error, testData);
-                Assert.Null(error);
-                testData.GetMethodData("<>x.<>m0").VerifyIL(
+            // Bind to local of embedded PIA type.
+            var testData = new CompilationTestData();
+            context.CompileExpression("x", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        2 (0x2)
   .maxstack  1
@@ -195,38 +167,37 @@ public interface I
   IL_0001:  ret
 }");
 
-                // Binding to method on original PIA should fail
-                // since it was not included in embedded type.
-                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-                context.CompileExpression(
-                    "x.F()",
-                    DkmEvaluationFlags.TreatAsExpression,
-                    NoAliases,
-                    DebuggerDiagnosticFormatter.Instance,
-                    out resultProperties,
-                    out error,
-                    out missingAssemblyIdentities,
-                    EnsureEnglishUICulture.PreferredOrNull,
-                    testData: null);
-                AssertEx.SetEqual(missingAssemblyIdentities, EvaluationContextBase.SystemCoreIdentity);
-                Assert.Equal(error, "error CS1061: 'I' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'I' could be found (are you missing a using directive or an assembly reference?)");
+            // Binding to method on original PIA should fail
+            // since it was not included in embedded type.
+            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+            context.CompileExpression(
+                "x.F()",
+                DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
+                DebuggerDiagnosticFormatter.Instance,
+                out resultProperties,
+                out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData: null);
+            AssertEx.SetEqual(missingAssemblyIdentities, EvaluationContextBase.SystemCoreIdentity);
+            Assert.Equal(error, "error CS1061: 'I' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'I' could be found (are you missing a using directive or an assembly reference?)");
 
-                // Binding to method on original PIA should succeed
-                // in assembly referencing PIA.dll.
-                context = CreateMethodContext(runtime, "B.Main");
-                testData = new CompilationTestData();
-                context.CompileExpression("y.F()", out error, testData);
-                Assert.Null(error);
-                testData.GetMethodData("<>x.<>m0").VerifyIL(
+            // Binding to method on original PIA should succeed
+            // in assembly referencing PIA.dll.
+            context = CreateMethodContext(runtime, "B.Main");
+            testData = new CompilationTestData();
+            context.CompileExpression("y.F()", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
-  // Code size        7 (0x7)
-  .maxstack  1
-  .locals init (I V_0) //y
-  IL_0000:  ldloc.0
-  IL_0001:  callvirt   ""object I.F()""
-  IL_0006:  ret
+// Code size        7 (0x7)
+.maxstack  1
+.locals init (I V_0) //y
+IL_0000:  ldloc.0
+IL_0001:  callvirt   ""object I.F()""
+IL_0006:  ret
 }");
-            }
         }
     }
 }

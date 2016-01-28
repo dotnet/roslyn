@@ -3635,13 +3635,7 @@ Class C
     End Sub
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
-            Dim exeBytes As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim exeReference = AssemblyMetadata.CreateFromImage(exeBytes).GetReference(display:=Guid.NewGuid().ToString("D"))
 
-            Dim modulesBuilder = ArrayBuilder(Of ModuleInstance).GetInstance()
             Dim corruptMetadata = New ModuleInstance(
                 metadataReference:=Nothing,
                 moduleMetadata:=Nothing,
@@ -3651,21 +3645,16 @@ End Class"
                 symReader:=Nothing,
                 includeLocalSignatures:=False)
 
-            modulesBuilder.Add(corruptMetadata)
-            modulesBuilder.Add(exeReference.ToModuleInstance(exeBytes.ToArray(), SymReaderFactory.CreateReader(pdbBytes)))
-            modulesBuilder.AddRange(references.Select(Function(r) r.ToModuleInstance(fullImage:=Nothing, symReader:=Nothing)))
-            Dim modules = modulesBuilder.ToImmutableAndFree()
-
-            Using runtime = New RuntimeInstance(modules)
-                Dim context = CreateMethodContext(runtime, "C.M")
-                Dim resultProperties As ResultProperties
-                Dim errorMessage As String = Nothing
-                Dim testData = New CompilationTestData()
-                ' Verify that we can still evaluate expressions for modules that are not corrupt.
-                context.CompileExpression("(new C()).F", resultProperties, errorMessage, testData)
-                Assert.Null(errorMessage)
-                Assert.Equal(DkmClrCompilationResultFlags.None, resultProperties.Flags)
-                testData.GetMethodData("<>x.<>m0").VerifyIL("
+            Dim runtime = CreateRuntimeInstance({corruptMetadata, comp.ToModuleInstance(), MscorlibRef.ToModuleInstance()})
+            Dim context = CreateMethodContext(runtime, "C.M")
+            Dim resultProperties As ResultProperties
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            ' Verify that we can still evaluate expressions for modules that are not corrupt.
+            context.CompileExpression("(new C()).F", resultProperties, errorMessage, testData)
+            Assert.Null(errorMessage)
+            Assert.Equal(DkmClrCompilationResultFlags.None, resultProperties.Flags)
+            testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -3673,7 +3662,6 @@ End Class"
   IL_0005:  ldfld      ""C.F As Integer""
   IL_000a:  ret
 }")
-            End Using
         End Sub
 
         <WorkItem(1089688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")>

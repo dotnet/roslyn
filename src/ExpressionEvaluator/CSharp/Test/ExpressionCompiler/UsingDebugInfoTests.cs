@@ -1049,45 +1049,36 @@ public class C2 : C1
 {
 }
 ";
-            ImmutableArray<MetadataReference> unused;
+            var comp1 = CreateCompilation(source1, new[] { MscorlibRef_v20 }, TestOptions.DebugDll);
+            var module1 = comp1.ToModuleInstance();
 
-            var comp1 = CreateCompilation(source1, new[] { MscorlibRef_v20 }, TestOptions.DebugDll, assemblyName: "A");
-            ImmutableArray<byte> dllBytes1;
-            ImmutableArray<byte> pdbBytes1;
-            comp1.EmitAndGetReferences(out dllBytes1, out pdbBytes1, out unused);
-            var ref1 = AssemblyMetadata.CreateFromImage(dllBytes1).GetReference(display: "A");
+            var comp2 = CreateCompilation(source2, new[] { MscorlibRef_v4_0_30316_17626, module1.MetadataReference }, TestOptions.DebugDll);
+            var module2 = comp2.ToModuleInstance();
 
-            var comp2 = CreateCompilation(source2, new[] { MscorlibRef_v4_0_30316_17626, ref1 }, TestOptions.DebugDll, assemblyName: "B");
-            ImmutableArray<byte> dllBytes2;
-            ImmutableArray<byte> pdbBytes2;
-            comp2.EmitAndGetReferences(out dllBytes2, out pdbBytes2, out unused);
-            var ref2 = AssemblyMetadata.CreateFromImage(dllBytes2).GetReference(display: "B");
-
-            var modulesBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
-            modulesBuilder.Add(ref1.ToModuleInstance(dllBytes1.ToArray(), SymReaderFactory.CreateReader(pdbBytes1)));
-            modulesBuilder.Add(ref2.ToModuleInstance(dllBytes2.ToArray(), SymReaderFactory.CreateReader(pdbBytes2)));
-            modulesBuilder.Add(MscorlibRef_v4_0_30316_17626.ToModuleInstance(fullImage: null, symReader: null));
-            modulesBuilder.Add(ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance(fullImage: null, symReader: null));
-
-            using (var runtime = new RuntimeInstance(modulesBuilder.ToImmutableAndFree()))
+            var runtime = CreateRuntimeInstance(new[] 
             {
-                var context = CreateMethodContext(runtime, "C1.M");
+                module1,
+                module2,
+                MscorlibRef_v4_0_30316_17626.ToModuleInstance(),
+                ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance()
+            });
 
-                string error;
-                var testData = new CompilationTestData();
-                context.CompileExpression("typeof(SI)", out error, testData);
-                Assert.Null(error);
+            var context = CreateMethodContext(runtime, "C1.M");
 
-                testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+            string error;
+            var testData = new CompilationTestData();
+            context.CompileExpression("typeof(SI)", out error, testData);
+            Assert.Null(error);
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
-  // Code size       11 (0xb)
-  .maxstack  1
-  IL_0000:  ldtoken    ""int""
-  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_000a:  ret
+// Code size       11 (0xb)
+.maxstack  1
+IL_0000:  ldtoken    ""int""
+IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+IL_000a:  ret
 }
 ");
-            }
         }
     }
 

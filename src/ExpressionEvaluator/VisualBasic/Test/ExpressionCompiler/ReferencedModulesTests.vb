@@ -171,119 +171,109 @@ Class B
         Dim x As New A()
     End Sub
 End Class"
-            Dim assemblyNameA = ExpressionCompilerUtilities.GenerateUniqueName()
-            Dim compilationA = CreateCompilationWithMscorlibAndVBRuntime(
-                MakeSources(sourceA, assemblyName:=assemblyNameA),
+            Dim compilationA = CreateCompilationWithReferences(
+                MakeSources(sourceA),
                 options:=TestOptions.DebugDll,
-                additionalRefs:={SystemCoreRef})
-            Dim exeBytesA As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytesA As ImmutableArray(Of Byte) = Nothing
-            Dim referencesA As ImmutableArray(Of MetadataReference) = Nothing
-            compilationA.EmitAndGetReferences(exeBytesA, pdbBytesA, referencesA)
-            Dim referenceA = AssemblyMetadata.CreateFromImage(exeBytesA).GetReference(display:=assemblyNameA)
-            Dim identityA = referenceA.GetAssemblyIdentity()
-            Dim moduleA = referenceA.ToModuleInstance(exeBytesA.ToArray(), SymReaderFactory.CreateReader(pdbBytesA))
+                references:={MscorlibRef, SystemRef, MsvbRef, SystemCoreRef})
 
-            Dim assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName()
-            Dim compilationB = CreateCompilationWithMscorlibAndVBRuntime(
-                MakeSources(sourceB, assemblyName:=assemblyNameB),
+            Dim moduleA = compilationA.ToModuleInstance()
+            Dim identityA = compilationA.Assembly.Identity
+
+            Dim moduleB = CreateCompilationWithReferences(
+                MakeSources(sourceB),
                 options:=TestOptions.DebugDll,
-                additionalRefs:={SystemCoreRef, referenceA})
-            Dim exeBytesB As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytesB As ImmutableArray(Of Byte) = Nothing
-            Dim referencesB As ImmutableArray(Of MetadataReference) = Nothing
-            compilationB.EmitAndGetReferences(exeBytesB, pdbBytesB, referencesB)
-            Dim referenceB = AssemblyMetadata.CreateFromImage(exeBytesB).GetReference(display:=assemblyNameB)
-            Dim moduleB = referenceB.ToModuleInstance(exeBytesB.ToArray(), SymReaderFactory.CreateReader(pdbBytesB))
+                references:={MscorlibRef, SystemRef, MsvbRef, SystemCoreRef, moduleA.MetadataReference}).ToModuleInstance()
 
-            Dim moduleBuilder = ArrayBuilder(Of ModuleInstance).GetInstance()
-            moduleBuilder.AddRange(referencesA.Select(Function(r) r.ToModuleInstance(Nothing, Nothing)))
-            moduleBuilder.Add(moduleA)
-            moduleBuilder.Add(moduleB)
-            Dim modules = moduleBuilder.ToImmutableAndFree()
+            Dim runtime = CreateRuntimeInstance(
+            {
+                MscorlibRef.ToModuleInstance(),
+                SystemRef.ToModuleInstance(),
+                MsvbRef.ToModuleInstance(),
+                SystemCoreRef.ToModuleInstance(),
+                moduleA,
+                moduleB
+            })
 
-            Using runtime = New RuntimeInstance(modules)
-                Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
-                Dim moduleVersionId As Guid = Nothing
-                Dim symReader As ISymUnmanagedReader = Nothing
-                Dim typeToken = 0
-                Dim methodToken = 0
-                Dim localSignatureToken = 0
-                GetContextState(runtime, "B", blocks, moduleVersionId, symReader, typeToken, localSignatureToken)
-                Dim contextFactory = CreateTypeContextFactory(moduleVersionId, typeToken)
+            Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
+            Dim moduleVersionId As Guid = Nothing
+            Dim symReader As ISymUnmanagedReader = Nothing
+            Dim typeToken = 0
+            Dim methodToken = 0
+            Dim localSignatureToken = 0
+            GetContextState(runtime, "B", blocks, moduleVersionId, symReader, typeToken, localSignatureToken)
+            Dim contextFactory = CreateTypeContextFactory(moduleVersionId, typeToken)
 
-                ' Duplicate type in namespace, at type scope.
-                Dim testData As CompilationTestData = Nothing
-                Dim errorMessage As String = Nothing
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New N.C1()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-                Assert.Equal(errorMessage, "error BC30560: 'C1' is ambiguous in the namespace 'N'.")
+            ' Duplicate type in namespace, at type scope.
+            Dim testData As CompilationTestData = Nothing
+            Dim errorMessage As String = Nothing
+            ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New N.C1()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
+            Assert.Equal(errorMessage, "error BC30560: 'C1' is ambiguous in the namespace 'N'.")
 
-                GetContextState(runtime, "B.Main", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
-                contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
+            GetContextState(runtime, "B.Main", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+            contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
 
-                ' Duplicate type in namespace, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C1()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-                Assert.Equal(errorMessage, "error BC30560: 'C1' is ambiguous in the namespace 'N'.")
+            ' Duplicate type in namespace, at method scope.
+            ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C1()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
+            Assert.Equal(errorMessage, "error BC30560: 'C1' is ambiguous in the namespace 'N'.")
 
-                ' Duplicate type in global namespace, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C2()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-                Assert.Equal(errorMessage, "error BC30554: 'C2' is ambiguous.")
+            ' Duplicate type in global namespace, at method scope.
+            ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C2()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
+            Assert.Equal(errorMessage, "error BC30554: 'C2' is ambiguous.")
 
-                ' Duplicate extension method, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-                Assert.True(errorMessage.StartsWith("error BC30521: Overload resolution failed because no accessible 'F' is most specific for these arguments:"))
+            ' Duplicate extension method, at method scope.
+            ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
+            Assert.True(errorMessage.StartsWith("error BC30521: Overload resolution failed because no accessible 'F' is most specific for these arguments:"))
 
-                ' Same tests as above but in library that does not directly reference duplicates.
-                GetContextState(runtime, "A", blocks, moduleVersionId, symReader, typeToken, localSignatureToken)
-                contextFactory = CreateTypeContextFactory(moduleVersionId, typeToken)
+            ' Same tests as above but in library that does not directly reference duplicates.
+            GetContextState(runtime, "A", blocks, moduleVersionId, symReader, typeToken, localSignatureToken)
+            contextFactory = CreateTypeContextFactory(moduleVersionId, typeToken)
 
-                ' Duplicate type in namespace, at type scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New N.C1()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-                Assert.Null(errorMessage)
-                Dim methodData = testData.GetMethodData("<>x.<>m0")
-                methodData.VerifyIL(
+            ' Duplicate type in namespace, at type scope.
+            ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New N.C1()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
+            Assert.Null(errorMessage)
+            Dim methodData = testData.GetMethodData("<>x.<>m0")
+            methodData.VerifyIL(
 "{
-  // Code size        6 (0x6)
-  .maxstack  1
-  IL_0000:  newobj     ""Sub N.C1..ctor()""
-  IL_0005:  ret
+// Code size        6 (0x6)
+.maxstack  1
+IL_0000:  newobj     ""Sub N.C1..ctor()""
+IL_0005:  ret
 }")
-                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName())
+            Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName())
 
-                GetContextState(runtime, "A.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
-                contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
+            GetContextState(runtime, "A.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+            contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
 
-                ' Duplicate type in global namespace, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C2()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-                Assert.Null(errorMessage)
-                methodData = testData.GetMethodData("<>x.<>m0")
-                methodData.VerifyIL(
+            ' Duplicate type in global namespace, at method scope.
+            ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C2()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
+            Assert.Null(errorMessage)
+            methodData = testData.GetMethodData("<>x.<>m0")
+            methodData.VerifyIL(
 "{
-  // Code size        6 (0x6)
-  .maxstack  1
-  .locals init (A V_0, //x
-                Object V_1) //y
-  IL_0000:  newobj     ""Sub C2..ctor()""
-  IL_0005:  ret
+// Code size        6 (0x6)
+.maxstack  1
+.locals init (A V_0, //x
+            Object V_1) //y
+IL_0000:  newobj     ""Sub C2..ctor()""
+IL_0005:  ret
 }")
-                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName())
+            Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName())
 
-                ' Duplicate extension method, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-                Assert.Null(errorMessage)
-                methodData = testData.GetMethodData("<>x.<>m0")
-                methodData.VerifyIL(
+            ' Duplicate extension method, at method scope.
+            ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
+            Assert.Null(errorMessage)
+            methodData = testData.GetMethodData("<>x.<>m0")
+            methodData.VerifyIL(
 "{
-  // Code size        7 (0x7)
-  .maxstack  1
-  .locals init (A V_0, //x
-                Object V_1) //y
-  IL_0000:  ldloc.0
-  IL_0001:  call       ""Function N.E.F(A) As A""
-  IL_0006:  ret
+// Code size        7 (0x7)
+.maxstack  1
+.locals init (A V_0, //x
+            Object V_1) //y
+IL_0000:  ldloc.0
+IL_0001:  call       ""Function N.E.F(A) As A""
+IL_0006:  ret
 }")
-                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName())
-            End Using
+            Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName())
         End Sub
 
         <Fact>
@@ -405,7 +395,7 @@ End Class"
             compilation = CreateCompilationWithReferences(MakeSources(source), references:=contractReferences, options:=TestOptions.DebugDll)
             Dim reference = compilation.EmitToImageReference()
 
-            Dim modules = runtimeReferences.Add(reference).SelectAsArray(Function(r) r.ToModuleInstance(Nothing, Nothing))
+            Dim modules = runtimeReferences.Add(reference).SelectAsArray(Function(r) r.ToModuleInstance())
             Using runtime = CreateRuntimeInstance(modules)
                 Dim context = CreateMethodContext(runtime, "C.Main")
                 Dim errorMessage As String = Nothing

@@ -1,16 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-extern alias PDB;
 
 using System;
-using System.Linq;
-using System.Collections.Immutable;
-using Microsoft.DiaSymReader;
-using PDB::Roslyn.Test.PdbUtilities;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using System.IO;
-using System.Reflection.PortableExecutable;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.DiaSymReader;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
@@ -31,6 +26,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             }
         }
 
+        internal static RuntimeInstance Create(IEnumerable<ModuleInstance> modules)
+        {
+            return new RuntimeInstance(ImmutableArray.CreateRange(modules));
+        }
 
         internal static RuntimeInstance Create(
             Compilation compilation,
@@ -38,20 +37,33 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             DebugInformationFormat debugFormat = 0,
             bool includeLocalSignatures = true)
         {
-            var pdbStream = (debugFormat != 0) ? new MemoryStream() : null;
-            var peImage = compilation.EmitToArray(new EmitOptions(debugInformationFormat: debugFormat), pdbStream: pdbStream);
-            var symReader = (debugFormat != 0) ? SymReaderFactory.CreateReader(pdbStream, new PEReader(peImage)) : null;
+            var exeModuleInstance = compilation.ToModuleInstance(debugFormat, includeLocalSignatures);
 
             if (references == null)
             {
-                references = compilation.GetEmittedReferences(peImage);
+                references = compilation.GetEmittedReferences(exeModuleInstance.FullImage);
             }
 
             references = references.Concat(new[] { ExpressionCompilerTestHelpers.IntrinsicAssemblyReference });
 
-            return Create(references, peImage, symReader, compilation.AssemblyName, includeLocalSignatures);
+            return Create(references, exeModuleInstance, includeLocalSignatures);
         }
 
+        internal static RuntimeInstance Create(
+            IEnumerable<MetadataReference> references,
+            ModuleInstance exeModuleInstance,
+            bool includeLocalSignatures = true)
+        {
+            // Create modules for the references and the program
+            var modules = ImmutableArray.CreateRange(
+                references.Select(r => r.ToModuleInstance(includeLocalSignatures: includeLocalSignatures)).
+                Concat(new[] { exeModuleInstance }));
+
+            modules.VerifyAllModules();
+            return new RuntimeInstance(modules);
+        }
+
+        // TODO: remove
         internal static RuntimeInstance Create(
             IEnumerable<MetadataReference> references,
             ImmutableArray<byte> peImage,
@@ -60,16 +72,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             bool includeLocalSignatures = true)
         {
             var exeReference = AssemblyMetadata.CreateFromImage(peImage).GetReference(display: assemblyName);
-            var modulesBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
-            // Create modules for the references
-            modulesBuilder.AddRange(references.Select(r => r.ToModuleInstance(fullImage: null, symReader: null, includeLocalSignatures: includeLocalSignatures)));
-            // Create a module for the exe.
-            modulesBuilder.Add(exeReference.ToModuleInstance(peImage.ToArray(), symReaderOpt, includeLocalSignatures: includeLocalSignatures));
-
-            var modules = modulesBuilder.ToImmutableAndFree();
-            modules.VerifyAllModules();
-
-            return new RuntimeInstance(modules);
+            var exeModuleInstance = exeReference.ToModuleInstance(peImage, symReaderOpt, includeLocalSignatures: includeLocalSignatures);
+            return Create(references, exeModuleInstance, includeLocalSignatures);
         }
     }
 }

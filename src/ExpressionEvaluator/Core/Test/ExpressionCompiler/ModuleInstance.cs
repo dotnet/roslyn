@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             MetadataReference metadataReference,
             ModuleMetadata moduleMetadata,
             Guid moduleVersionId,
-            byte[] fullImage,
+            ImmutableArray<byte> fullImage,
             byte[] metadataOnly,
             object symReader,
             bool includeLocalSignatures)
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         internal readonly MetadataReference MetadataReference;
         internal readonly ModuleMetadata ModuleMetadata;
         internal readonly Guid ModuleVersionId;
-        internal readonly byte[] FullImage;
+        internal readonly ImmutableArray<byte> FullImage;
         internal readonly byte[] MetadataOnly;
         internal readonly GCHandle MetadataHandle;
         internal readonly object SymReader;

@@ -115,8 +115,8 @@ End Namespace
         <Fact>
         Public Sub DteeEntryPointImportsIgnored()
             Dim comp = CreateCompilationWithMscorlib({s_dteeEntryPointSource}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
-            Dim compModuleInstance = GetModuleInstance(comp)
-            Dim corlibModuleReference = MscorlibRef.ToModuleInstance(Nothing, Nothing)
+            Dim compModuleInstance = comp.ToModuleInstance()
+            Dim corlibModuleReference = MscorlibRef.ToModuleInstance()
 
             Dim runtimeInstance = CreateRuntimeInstance(ImmutableArray.Create(compModuleInstance, corlibModuleReference))
             Dim lazyAssemblyReaders = MakeLazyAssemblyReaders(runtimeInstance)
@@ -153,16 +153,16 @@ Class C2
     End Sub
 End Class
 "
-            Dim comp1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.DebugDll.WithRootNamespace("root1"), assemblyName:=GetUniqueName())
-            Dim compModuleInstance1 = GetModuleInstance(comp1)
+            Dim comp1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.DebugDll.WithRootNamespace("root1"))
+            Dim compModuleInstance1 = comp1.ToModuleInstance()
 
-            Dim comp2 = CreateCompilationWithMscorlib({source2}, options:=TestOptions.DebugDll.WithRootNamespace("root2"), assemblyName:=GetUniqueName())
-            Dim compModuleInstance2 = GetModuleInstance(comp2)
+            Dim comp2 = CreateCompilationWithMscorlib({source2}, options:=TestOptions.DebugDll.WithRootNamespace("root2"))
+            Dim compModuleInstance2 = comp2.ToModuleInstance()
 
             Dim runtimeInstance = CreateRuntimeInstance(ImmutableArray.Create(
                 compModuleInstance1,
                 compModuleInstance2,
-                MscorlibRef.ToModuleInstance(Nothing, Nothing)))
+                MscorlibRef.ToModuleInstance()))
 
             Dim methodDebugInfo = EvaluationContext.SynthesizeMethodDebugInfoForDtee(MakeAssemblyReaders(runtimeInstance))
             CheckDteeMethodDebugInfo(methodDebugInfo, "root1", "root2")
@@ -208,16 +208,16 @@ Namespace N7
 End Namespace
 "
             Dim comp1 = CreateCompilationWithMscorlib({source1}, {MsvbRef}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
-            Dim compModuleInstance1 = GetModuleInstance(comp1)
+            Dim compModuleInstance1 = comp1.ToModuleInstance()
 
             Dim comp2 = CreateCompilationWithMscorlib({source2}, {MsvbRef}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
-            Dim compModuleInstance2 = GetModuleInstance(comp2)
+            Dim compModuleInstance2 = comp2.ToModuleInstance()
 
             Dim runtimeInstance = CreateRuntimeInstance(ImmutableArray.Create(
                 compModuleInstance1,
                 compModuleInstance2,
-                MscorlibRef.ToModuleInstance(Nothing, Nothing),
-                MsvbRef.ToModuleInstance(Nothing, Nothing)))
+                MscorlibRef.ToModuleInstance(),
+                MsvbRef.ToModuleInstance()))
 
             Dim methodDebugInfo = EvaluationContext.SynthesizeMethodDebugInfoForDtee(MakeAssemblyReaders(runtimeInstance))
             CheckDteeMethodDebugInfo(methodDebugInfo, "N1", "N2.N3", "N5.N6")
@@ -226,12 +226,12 @@ End Namespace
         <Fact>
         Public Sub ImportStrings_NoMethods()
             Dim comp = CreateCompilationWithMscorlib({""}, {MsvbRef}, options:=TestOptions.DebugDll.WithRootNamespace("root"), assemblyName:=GetUniqueName())
-            Dim compModuleInstance = GetModuleInstance(comp)
+            Dim compModuleInstance = comp.ToModuleInstance()
 
             Dim runtimeInstance = CreateRuntimeInstance(ImmutableArray.Create(
                 compModuleInstance,
-                MscorlibRef.ToModuleInstance(Nothing, Nothing),
-                MsvbRef.ToModuleInstance(Nothing, Nothing)))
+                MscorlibRef.ToModuleInstance(),
+                MsvbRef.ToModuleInstance()))
 
             ' Since there are no methods in the assembly, there is no import custom debug info, so we
             ' have no way to find the root namespace.
@@ -255,16 +255,16 @@ Namespace N2
 End Namespace
 "
             Dim comp1 = CreateCompilationWithMscorlib({source1}, {MsvbRef}, options:=TestOptions.ReleaseDll, assemblyName:=GetUniqueName())
-            Dim compModuleInstance1 = GetModuleInstance(comp1)
+            Dim compModuleInstance1 = comp1.ToModuleInstance(debugFormat:=Nothing)
 
             Dim comp2 = CreateCompilationWithMscorlib({source2}, {MsvbRef}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
-            Dim compModuleInstance2 = GetModuleInstance(comp2)
+            Dim compModuleInstance2 = comp2.ToModuleInstance()
 
             Dim runtimeInstance = CreateRuntimeInstance(ImmutableArray.Create(
                 compModuleInstance1,
                 compModuleInstance2,
-                MscorlibRef.ToModuleInstance(Nothing, Nothing),
-                MsvbRef.ToModuleInstance(Nothing, Nothing)))
+                MscorlibRef.ToModuleInstance(),
+                MsvbRef.ToModuleInstance()))
 
             Dim methodDebugInfo = EvaluationContext.SynthesizeMethodDebugInfoForDtee(MakeAssemblyReaders(runtimeInstance))
             CheckDteeMethodDebugInfo(methodDebugInfo, "N2")
@@ -311,12 +311,12 @@ End Namespace
   }
 } // end of class N1.Outer
 "
-            Dim ilModuleInstance = GetModuleInstanceForIL(ilSource)
+            Dim ilModuleInstance = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource)
 
             Dim runtimeInstance = CreateRuntimeInstance(ImmutableArray.Create(
                 ilModuleInstance,
-                MscorlibRef.ToModuleInstance(Nothing, Nothing),
-                MsvbRef.ToModuleInstance(Nothing, Nothing)))
+                MscorlibRef.ToModuleInstance(),
+                MsvbRef.ToModuleInstance()))
 
             Dim methodDebugInfo = EvaluationContext.SynthesizeMethodDebugInfoForDtee(MakeAssemblyReaders(runtimeInstance))
             CheckDteeMethodDebugInfo(methodDebugInfo)
@@ -344,12 +344,12 @@ End Namespace
 
 } // end of class M
 "
-            Dim ilModuleInstance = GetModuleInstanceForIL(ilSource)
+            Dim ilModuleInstance = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource)
 
             Dim runtimeInstance = CreateRuntimeInstance(ImmutableArray.Create(
                 ilModuleInstance,
-                MscorlibRef.ToModuleInstance(Nothing, Nothing),
-                MsvbRef.ToModuleInstance(Nothing, Nothing)))
+                MscorlibRef.ToModuleInstance(),
+                MsvbRef.ToModuleInstance()))
 
             Dim methodDebugInfo = EvaluationContext.SynthesizeMethodDebugInfoForDtee(MakeAssemblyReaders(runtimeInstance))
             CheckDteeMethodDebugInfo(methodDebugInfo)
@@ -376,12 +376,12 @@ End Namespace
 
 } // end of class I
 "
-            Dim ilModuleInstance = GetModuleInstanceForIL(ilSource)
+            Dim ilModuleInstance = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource)
 
             Dim runtimeInstance = CreateRuntimeInstance(ImmutableArray.Create(
                 ilModuleInstance,
-                MscorlibRef.ToModuleInstance(Nothing, Nothing),
-                MsvbRef.ToModuleInstance(Nothing, Nothing)))
+                MscorlibRef.ToModuleInstance(),
+                MsvbRef.ToModuleInstance()))
 
             Dim methodDebugInfo = EvaluationContext.SynthesizeMethodDebugInfoForDtee(MakeAssemblyReaders(runtimeInstance))
             CheckDteeMethodDebugInfo(methodDebugInfo)
@@ -418,20 +418,20 @@ End Namespace
 "
 
             Dim dteeComp = CreateCompilationWithMscorlib({s_dteeEntryPointSource}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
-            Dim dteeModuleInstance = GetModuleInstance(dteeComp)
+            Dim dteeModuleInstance = dteeComp.ToModuleInstance()
 
             Dim comp1 = CreateCompilationWithMscorlib({source1}, {MsvbRef}, options:=TestOptions.DebugDll.WithRootNamespace("root"), assemblyName:=GetUniqueName())
-            Dim compModuleInstance1 = GetModuleInstance(comp1)
+            Dim compModuleInstance1 = comp1.ToModuleInstance()
 
             Dim comp2 = CreateCompilationWithMscorlib({source2}, {MsvbRef}, options:=TestOptions.DebugDll.WithRootNamespace("root"), assemblyName:=GetUniqueName())
-            Dim compModuleInstance2 = GetModuleInstance(comp2)
+            Dim compModuleInstance2 = comp2.ToModuleInstance()
 
             Dim runtimeInstance = CreateRuntimeInstance(ImmutableArray.Create(
                 dteeModuleInstance,
                 compModuleInstance1,
                 compModuleInstance2,
-                MscorlibRef.ToModuleInstance(Nothing, Nothing),
-                MsvbRef.ToModuleInstance(Nothing, Nothing)))
+                MscorlibRef.ToModuleInstance(),
+                MsvbRef.ToModuleInstance()))
             Dim lazyAssemblyReaders = MakeLazyAssemblyReaders(runtimeInstance)
 
             Dim evalContext = CreateMethodContext(runtimeInstance, s_dteeEntryPointName, lazyAssemblyReaders:=lazyAssemblyReaders)
@@ -465,34 +465,6 @@ End Namespace
             Return ImmutableArray.CreateRange(runtimeInstance.Modules.
                 Where(Function(instance) instance.SymReader IsNot Nothing).
                 Select(Function(instance) New AssemblyReaders(instance.MetadataReader, instance.SymReader)))
-        End Function
-
-        Private Shared Function GetModuleInstance(comp As VisualBasicCompilation) As ModuleInstance
-            Dim makePdb = comp.Options.OptimizationLevel = OptimizationLevel.Debug
-
-            Dim peBytes As Byte()
-            Dim pdbBytes As Byte()
-            Using pdbStream = If(makePdb, New MemoryStream(), Nothing)
-                Using peStream As New MemoryStream()
-                    Dim emitResult = comp.Emit(peStream, pdbStream)
-                    AssertNoErrors(emitResult.Diagnostics)
-                    Assert.True(emitResult.Success)
-
-                    peBytes = peStream.ToArray()
-                    pdbBytes = pdbStream?.ToArray()
-                End Using
-            End Using
-            Assert.Equal(makePdb, pdbBytes IsNot Nothing)
-            Dim compRef = AssemblyMetadata.CreateFromImage(peBytes).GetReference()
-            Return compRef.ToModuleInstance(peBytes, If(makePdb, SymReaderFactory.CreateReader(pdbBytes), Nothing))
-        End Function
-
-        Private Shared Function GetModuleInstanceForIL(ilSource As String) As ModuleInstance
-            Dim peBytes As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
-            EmitILToArray(ilSource, appendDefaultHeader:=False, includePdb:=True, assemblyBytes:=peBytes, pdbBytes:=pdbBytes)
-            Dim compRef = AssemblyMetadata.CreateFromImage(peBytes).GetReference()
-            Return compRef.ToModuleInstance(peBytes.ToArray(), SymReaderFactory.CreateReader(pdbBytes))
         End Function
 
         Private Shared Sub CheckDteeMethodDebugInfo(methodDebugInfo As MethodDebugInfo, ParamArray namespaceNames As String())

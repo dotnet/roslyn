@@ -537,9 +537,9 @@ End Class"
             Dim runtime = CreateRuntimeInstance(compilation, {MscorlibRef})
             Dim context = CreateMethodContext(runtime, "C.Main")
 
-            Dim systemCore = SystemCoreRef.ToModuleInstance(fullImage:=Nothing, symReader:=Nothing)
+            Dim systemCore = SystemCoreRef.ToModuleInstance()
             Dim fakeSystemLinq = CreateCompilationWithMscorlib({""}, options:=TestOptions.ReleaseDll, assemblyName:="System.Linq").
-                EmitToImageReference().ToModuleInstance(fullImage:=Nothing, symReader:=Nothing)
+                EmitToImageReference().ToModuleInstance()
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing

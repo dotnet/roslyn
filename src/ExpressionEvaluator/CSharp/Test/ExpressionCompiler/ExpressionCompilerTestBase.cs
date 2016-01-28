@@ -47,6 +47,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             _runtimeInstances.Free();
         }
 
+        internal RuntimeInstance CreateRuntimeInstance(IEnumerable<ModuleInstance> modules)
+        {
+            var instance = RuntimeInstance.Create(modules);
+            _runtimeInstances.Add(instance);
+            return instance;
+        }
+
         internal RuntimeInstance CreateRuntimeInstance(
             Compilation compilation,
             IEnumerable<MetadataReference> references = null,

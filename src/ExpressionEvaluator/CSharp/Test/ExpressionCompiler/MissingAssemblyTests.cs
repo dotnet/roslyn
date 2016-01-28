@@ -694,9 +694,9 @@ class UseLinq
             var runtime = CreateRuntimeInstance(compilation, new[] { MscorlibRef });
             var context = CreateMethodContext(runtime, "C.M");
 
-            var systemCore = SystemCoreRef.ToModuleInstance(fullImage: null, symReader: null);
+            var systemCore = SystemCoreRef.ToModuleInstance();
             var fakeSystemLinq = CreateCompilationWithMscorlib45("", assemblyName: "System.Linq").
-                EmitToImageReference().ToModuleInstance(fullImage: null, symReader: null);
+                EmitToImageReference().ToModuleInstance();
 
             string errorMessage;
             CompilationTestData testData;

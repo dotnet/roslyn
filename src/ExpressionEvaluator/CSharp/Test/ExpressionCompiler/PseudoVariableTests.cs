@@ -1023,81 +1023,70 @@ class B
 }";
             var assemblyNameA = "0A93FF0B-31A2-47C8-B24D-16A2D77AB5C5";
             var compilationA = CreateCompilationWithMscorlib(sourceA, options: TestOptions.DebugDll, assemblyName: assemblyNameA);
-            ImmutableArray<byte> exeA;
-            ImmutableArray<byte> pdbA;
-            ImmutableArray<MetadataReference> referencesA;
-            compilationA.EmitAndGetReferences(out exeA, out pdbA, out referencesA);
-            var metadataA = AssemblyMetadata.CreateFromImage(exeA);
-            var referenceA = metadataA.GetReference();
+            var moduleA = compilationA.ToModuleInstance();
 
             var assemblyNameB = "9BAC6622-86EB-4EC5-94A1-9A1E6D0C24B9";
-            var compilationB = CreateCompilationWithMscorlib(sourceB, options: TestOptions.DebugExe, references: new[] { referenceA }, assemblyName: assemblyNameB);
-            ImmutableArray<byte> exeB;
-            ImmutableArray<byte> pdbB;
-            ImmutableArray<MetadataReference> referencesB;
-            compilationB.EmitAndGetReferences(out exeB, out pdbB, out referencesB);
-            var metadataB = AssemblyMetadata.CreateFromImage(exeB);
-            var referenceB = metadataB.GetReference();
+            var compilationB = CreateCompilationWithMscorlib(sourceB, options: TestOptions.DebugExe, references: new[] { moduleA.MetadataReference }, assemblyName: assemblyNameB);
+            var moduleB = compilationB.ToModuleInstance();
 
-            var modulesBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
-            modulesBuilder.Add(MscorlibRef.ToModuleInstance(fullImage: null, symReader: null));
-            modulesBuilder.Add(referenceA.ToModuleInstance(fullImage: exeA.ToArray(), symReader: SymReaderFactory.CreateReader(pdbA)));
-            modulesBuilder.Add(referenceB.ToModuleInstance(fullImage: exeB.ToArray(), symReader: SymReaderFactory.CreateReader(pdbB)));
-            modulesBuilder.Add(ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance(fullImage: null, symReader: null));
-
-            using (var runtime = new RuntimeInstance(modulesBuilder.ToImmutableAndFree()))
+            var runtime = CreateRuntimeInstance(new[]
             {
-                var context = CreateMethodContext(
-                    runtime,
-                    "A.M");
-                var aliases = ImmutableArray.Create(
-                        ExceptionAlias("E, 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24B9, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                    ObjectIdAlias(1, "A`1[[B, 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24B9, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], 0A93FF0B-31A2-47C8-B24D-16A2D77AB5C5, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
-                string error;
-                var testData = new CompilationTestData();
-                context.CompileExpression(
-                    "$exception",
-                    DkmEvaluationFlags.TreatAsExpression,
-                    aliases,
-                    out error,
-                    testData);
-                Assert.Null(error);
-                testData.GetMethodData("<>x<T>.<>m0").VerifyIL(
+                MscorlibRef.ToModuleInstance() ,
+                moduleA,
+                moduleB,
+                ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance()
+            });
+
+            var context = CreateMethodContext(runtime, "A.M");
+
+            var aliases = ImmutableArray.Create(
+                ExceptionAlias("E, 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24B9, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                ObjectIdAlias(1, "A`1[[B, 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24B9, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], 0A93FF0B-31A2-47C8-B24D-16A2D77AB5C5, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
+
+            string error;
+            var testData = new CompilationTestData();
+            context.CompileExpression(
+                "$exception",
+                DkmEvaluationFlags.TreatAsExpression,
+                aliases,
+                out error,
+                testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x<T>.<>m0").VerifyIL(
 @"{
-  // Code size       11 (0xb)
-  .maxstack  1
-  .locals init (object V_0) //o
-  IL_0000:  call       ""System.Exception Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException()""
-  IL_0005:  castclass  ""E""
-  IL_000a:  ret
+// Code size       11 (0xb)
+.maxstack  1
+.locals init (object V_0) //o
+IL_0000:  call       ""System.Exception Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException()""
+IL_0005:  castclass  ""E""
+IL_000a:  ret
 }");
-                ResultProperties resultProperties;
-                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-                testData = new CompilationTestData();
-                context.CompileAssignment(
-                    "o",
-                    "$1",
-                    aliases,
-                    DebuggerDiagnosticFormatter.Instance,
-                    out resultProperties,
-                    out error,
-                    out missingAssemblyIdentities,
-                    EnsureEnglishUICulture.PreferredOrNull,
-                    testData);
-                Assert.Empty(missingAssemblyIdentities);
-                Assert.Null(error);
-                testData.GetMethodData("<>x<T>.<>m0").VerifyIL(
+            ResultProperties resultProperties;
+            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+            testData = new CompilationTestData();
+            context.CompileAssignment(
+                "o",
+                "$1",
+                aliases,
+                DebuggerDiagnosticFormatter.Instance,
+                out resultProperties,
+                out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData);
+            Assert.Empty(missingAssemblyIdentities);
+            Assert.Null(error);
+            testData.GetMethodData("<>x<T>.<>m0").VerifyIL(
 @"{
-  // Code size       17 (0x11)
-  .maxstack  1
-  .locals init (object V_0) //o
-  IL_0000:  ldstr      ""$1""
-  IL_0005:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
-  IL_000a:  castclass  ""A<B>""
-  IL_000f:  stloc.0
-  IL_0010:  ret
+// Code size       17 (0x11)
+.maxstack  1
+.locals init (object V_0) //o
+IL_0000:  ldstr      ""$1""
+IL_0005:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
+IL_000a:  castclass  ""A<B>""
+IL_000f:  stloc.0
+IL_0010:  ret
 }");
-            }
         }
 
         [WorkItem(1140387, "DevDiv")]

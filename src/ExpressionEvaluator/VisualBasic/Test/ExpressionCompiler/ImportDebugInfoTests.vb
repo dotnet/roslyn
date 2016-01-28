@@ -477,41 +477,28 @@ End Class
 "
 
             Dim comp1 = CreateCompilationWithReferences(VisualBasicSyntaxTree.ParseText(source1), {MscorlibRef_v20}, TestOptions.DebugDll, assemblyName:="A")
-            Dim dllBytes1 As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytes1 As ImmutableArray(Of Byte) = Nothing
-            comp1.EmitAndGetReferences(dllBytes1, pdbBytes1, Nothing)
-            Dim ref1 = AssemblyMetadata.CreateFromImage(dllBytes1).GetReference(display:="A")
+            Dim module1 = comp1.ToModuleInstance()
 
-            Dim comp2 = CreateCompilationWithReferences(VisualBasicSyntaxTree.ParseText(source2), {MscorlibRef_v4_0_30316_17626, ref1}, TestOptions.DebugDll, assemblyName:="B")
-            Dim dllBytes2 As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytes2 As ImmutableArray(Of Byte) = Nothing
-            comp2.EmitAndGetReferences(dllBytes2, pdbBytes2, Nothing)
-            Dim ref2 = AssemblyMetadata.CreateFromImage(dllBytes2).GetReference(display:="B")
+            Dim comp2 = CreateCompilationWithReferences(VisualBasicSyntaxTree.ParseText(source2), {MscorlibRef_v4_0_30316_17626, module1.MetadataReference}, TestOptions.DebugDll, assemblyName:="B")
+            Dim module2 = comp2.ToModuleInstance()
 
-            Dim modulesBuilder = ArrayBuilder(Of ModuleInstance).GetInstance()
-            modulesBuilder.Add(ref1.ToModuleInstance(dllBytes1.ToArray(), SymReaderFactory.CreateReader(pdbBytes1)))
-            modulesBuilder.Add(ref2.ToModuleInstance(dllBytes2.ToArray(), SymReaderFactory.CreateReader(pdbBytes2)))
-            modulesBuilder.Add(MscorlibRef_v4_0_30316_17626.ToModuleInstance(fullImage:=Nothing, symReader:=Nothing))
-            modulesBuilder.Add(ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance(fullImage:=Nothing, symReader:=Nothing))
+            Dim runtime = CreateRuntimeInstance({module1, module2, MscorlibRef_v4_0_30316_17626.ToModuleInstance(), ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance()})
+            Dim context = CreateMethodContext(runtime, "C1.M")
 
-            Using runtime As New RuntimeInstance(modulesBuilder.ToImmutableAndFree())
-                Dim context = CreateMethodContext(runtime, "C1.M")
+            Dim errorMessage As String = Nothing
+            Dim testData As New CompilationTestData()
+            context.CompileExpression("GetType(SI)", errorMessage, testData)
+            Assert.Null(errorMessage)
 
-                Dim errorMessage As String = Nothing
-                Dim testData As New CompilationTestData()
-                context.CompileExpression("GetType(SI)", errorMessage, testData)
-                Assert.Null(errorMessage)
-
-                testData.GetMethodData("<>x.<>m0").VerifyIL("
+            testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
-  // Code size       11 (0xb)
-  .maxstack  1
-  IL_0000:  ldtoken    ""Integer""
-  IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
-  IL_000a:  ret
+// Code size       11 (0xb)
+.maxstack  1
+IL_0000:  ldtoken    ""Integer""
+IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
+IL_000a:  ret
 }
 ")
-            End Using
         End Sub
 
         Private Shared Function GetExpressionStatement(compilation As Compilation) As ExpressionStatementSyntax
