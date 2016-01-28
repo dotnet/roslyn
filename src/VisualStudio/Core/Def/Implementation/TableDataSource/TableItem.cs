@@ -94,7 +94,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 var projectId = Extensions.GetProjectId(Primary);
                 if (projectId == null)
                 {
-                    return ServicesVSResources.Unknown;
+                    // this item doesn't have project at the first place
+                    return null;
                 }
 
                 if (_cache == null)
