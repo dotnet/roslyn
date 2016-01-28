@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
@@ -786,11 +787,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 
         private static class Fixture
         {
+            [MethodImpl(MethodImplOptions.NoInlining)]
             public static void Method()
             {
                 throw new Exception();
             }
 
+            [MethodImpl(MethodImplOptions.NoInlining)]
             public static void Method<U>()
             {
                 throw new Exception();
@@ -799,11 +802,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 
         private static class Fixture<T>
         {
+            [MethodImpl(MethodImplOptions.NoInlining)]
             public static void Method()
             {
                 throw new Exception();
             }
 
+            [MethodImpl(MethodImplOptions.NoInlining)]
             public static void Method<U>()
             {
                 throw new Exception();
@@ -823,8 +828,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 
                 var expected =
 $@"Exception of type 'System.Exception' was thrown.
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method(){string.Format(ScriptingResources.AtFileLine, filePath, 10005)}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_NonGeneric(){string.Format(ScriptingResources.AtFileLine, filePath, 10032)}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method(){string.Format(ScriptingResources.AtFileLine, filePath, 10006)}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_NonGeneric(){string.Format(ScriptingResources.AtFileLine, filePath, 10036)}
 ";
                 var actual = Formatter.FormatUnhandledException(e);
                 Assert.Equal(expected, actual);
@@ -845,8 +850,8 @@ $@"Exception of type 'System.Exception' was thrown.
                 // TODO (DevDiv #173210): Should show Fixture.Method<char>
                 var expected =
 $@"Exception of type 'System.Exception' was thrown.
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method<U>(){string.Format(ScriptingResources.AtFileLine, filePath, 10010)}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethod(){string.Format(ScriptingResources.AtFileLine, filePath, 10053)}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method<U>(){string.Format(ScriptingResources.AtFileLine, filePath, 10012)}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethod(){string.Format(ScriptingResources.AtFileLine, filePath, 10057)}
 ";
                 var actual = Formatter.FormatUnhandledException(e);
                 Assert.Equal(expected, actual);
@@ -867,8 +872,8 @@ $@"Exception of type 'System.Exception' was thrown.
                 // TODO (DevDiv #173210): Should show Fixture<int>.Method
                 var expected =
 $@"Exception of type 'System.Exception' was thrown.
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method(){string.Format(ScriptingResources.AtFileLine, filePath, 10018)}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericType(){string.Format(ScriptingResources.AtFileLine, filePath, 10075)}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method(){string.Format(ScriptingResources.AtFileLine, filePath, 10021)}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericType(){string.Format(ScriptingResources.AtFileLine, filePath, 10079)}
 ";
                 var actual = Formatter.FormatUnhandledException(e);
                 Assert.Equal(expected, actual);
@@ -889,8 +894,8 @@ $@"Exception of type 'System.Exception' was thrown.
                 // TODO (DevDiv #173210): Should show Fixture<int>.Method<char>
                 var expected = 
 $@"Exception of type 'System.Exception' was thrown.
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method<U>(){string.Format(ScriptingResources.AtFileLine, filePath, 10023)}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethodInGenericType(){string.Format(ScriptingResources.AtFileLine, filePath, 10097)}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method<U>(){string.Format(ScriptingResources.AtFileLine, filePath, 10027)}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethodInGenericType(){string.Format(ScriptingResources.AtFileLine, filePath, 10101)}
 ";
                 var actual = Formatter.FormatUnhandledException(e);
                 Assert.Equal(expected, actual);
