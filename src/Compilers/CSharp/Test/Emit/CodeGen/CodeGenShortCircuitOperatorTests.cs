@@ -1752,7 +1752,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(976765, "DevDiv")]
+        [WorkItem(976765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/976765")]
         public void ConditionalMemberAccessConstrained()
         {
             var source = @"
@@ -1803,7 +1803,7 @@ System.Exception");
         }
 
         [Fact]
-        [WorkItem(991400, "DevDiv")]
+        [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement()
         {
             var source = @"
@@ -1870,7 +1870,7 @@ print2");
         }
 
         [Fact]
-        [WorkItem(991400, "DevDiv")]
+        [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement01()
         {
             var source = @"
@@ -1961,7 +1961,7 @@ print2");
         }
 
         [Fact]
-        [WorkItem(991400, "DevDiv")]
+        [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement02()
         {
             var source = @"
@@ -2018,7 +2018,7 @@ print2");
         }
 
         [Fact]
-        [WorkItem(991400, "DevDiv")]
+        [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement03()
         {
             var source = @"
@@ -4844,7 +4844,7 @@ class Program
 ");
         }
 
-        [WorkItem(1042288)]
+        [WorkItem(1042288, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042288")]
         [Fact]
         public void Bug1042288()
         {
@@ -5079,7 +5079,7 @@ public struct MyStruct
 }");
         }
 
-        [WorkItem(1103294, "DevDiv")]
+        [WorkItem(1103294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1103294")]
         [Fact]
         public void Bug1103294_01()
         {
@@ -5127,7 +5127,7 @@ M
 }");
         }
 
-        [WorkItem(1103294, "DevDiv")]
+        [WorkItem(1103294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1103294")]
         [Fact]
         public void Bug1103294_02()
         {
@@ -5175,7 +5175,7 @@ M
 }");
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_01()
         {
@@ -5251,7 +5251,7 @@ M
 }");
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_02()
         {
@@ -5298,7 +5298,7 @@ class C
                 );
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_03()
         {
@@ -5378,7 +5378,7 @@ M
 }");
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_04()
         {
@@ -5425,7 +5425,7 @@ class C<T>
                 );
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_05()
         {
@@ -5505,7 +5505,7 @@ M
 }");
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_06()
         {
@@ -5554,7 +5554,7 @@ unsafe class C
                 );
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_07()
         {
@@ -5600,7 +5600,7 @@ M
 ---");
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_08()
         {
@@ -5647,7 +5647,7 @@ M
 ---");
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_09()
         {
@@ -5685,7 +5685,7 @@ class C<T>
                 );
         }
 
-        [WorkItem(1109164, "DevDiv")]
+        [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]
         [Fact]
         public void Bug1109164_10()
         {
@@ -6634,7 +6634,7 @@ True");
 }");
         }
 
-        [WorkItem(1)]
+        [WorkItem(1, "unknown")]
         [Fact]
         public void Bug1()
         {

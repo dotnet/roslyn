@@ -25,7 +25,7 @@ Private _member = Sub() |
                                          </ClassDeclaration>, "Select")
         End Function
 
-        <WorkItem(543396)>
+        <WorkItem(543396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543396")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function SelectInSingleLineIfTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>If True Then S|</MethodBody>, "Select")

@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method() { if (Foo()) { } } private bool Foo() { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(784793)]
+        [WorkItem(784793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestOutRefArguments()
         {
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method() { Foo(this.Bar); } private void Foo(object bar) { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(784793)]
+        [WorkItem(784793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestParenthesizedArgumentName()
         {
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method() { Foo((Bar)); } private void Foo(object bar) { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(784793)]
+        [WorkItem(784793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestCastedArgumentName()
         {
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class C { void Method() { int* p = Foo(); } private unsafe int* Foo() { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(784793)]
+        [WorkItem(784793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDuplicateNames()
         {
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method() { Foo((Bar)this.Baz, this.Baz); } private void Foo(Bar baz1, object baz2) { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(784793)]
+        [WorkItem(784793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDuplicateNamesWithNamedArgument()
         {
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 index: 1);
         }
 
-        [WorkItem(537906)]
+        [WorkItem(537906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537906")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestMethodReturningDynamic()
         {
@@ -411,7 +411,7 @@ index: 1);
 @"using System; class Class { void Method() { dynamic d = Foo(); } private dynamic Foo() { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(537906)]
+        [WorkItem(537906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537906")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestMethodTakingDynamicArg()
         {
@@ -428,7 +428,7 @@ index: 1);
 @"namespace SyntaxError { class C1 { public void Method(int num, string str) { } } class C2 { static void Method2() { (new C1()).[|Method|](num: 5, ""hi""); } } }");
         }
 
-        [WorkItem(537972)]
+        [WorkItem(537972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537972")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestWithNamedOptionalArg2()
         {
@@ -470,7 +470,7 @@ namespace SyntaxError { class C1 { void Method(int num, string str) { } internal
 count: 1);
         }
 
-        [WorkItem(527278)]
+        [WorkItem(527278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527278")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInvocationOffOfBase()
         {
@@ -576,7 +576,7 @@ index: 1);
 @"using System; class Foo { void Test() { (new S()).M(); } } struct S { internal void M() { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(527291)]
+        [WorkItem(527291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527291")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInvocationOffOfIndexer()
         {
@@ -586,7 +586,7 @@ index: 1);
 class Foo { internal void M() { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(527292)]
+        [WorkItem(527292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527292")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInvocationWithinForEach()
         {
@@ -647,7 +647,7 @@ namespace NS13A { namespace NS13B { struct S13A { } } }",
 namespace NS13A { namespace NS13B { struct S13A { internal static void M() { throw new NotImplementedException(); } } } }");
         }
 
-        [WorkItem(538353)]
+        [WorkItem(538353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538353")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateIntoAppropriatePart()
         {
@@ -656,7 +656,7 @@ namespace NS13A { namespace NS13B { struct S13A { internal static void M() { thr
 @"using System; public partial class C { } public partial class C { void Method() { Test(); } private void Test() { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(538541)]
+        [WorkItem(538541, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538541")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateWithVoidArgument()
         {
@@ -665,7 +665,7 @@ namespace NS13A { namespace NS13B { struct S13A { internal static void M() { thr
 @"using System; class C { void VoidMethod() { } void Method() { Test(VoidMethod()); } private void Test(object v) { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(538993)]
+        [WorkItem(538993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538993")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateInLambda()
         {
@@ -682,7 +682,7 @@ namespace NS13A { namespace NS13B { struct S13A { internal static void M() { thr
 @"using System; class C { void M() { System.Action<int> v = delegate(int x) { x = Foo(x); }; } private int Foo(int x) { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(539024)]
+        [WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface1()
         {
@@ -691,7 +691,7 @@ namespace NS13A { namespace NS13B { struct S13A { internal static void M() { thr
 @"interface I { void Foo(); } class A : I { void I.Foo() { } }");
         }
 
-        [WorkItem(539024)]
+        [WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface2()
         {
@@ -700,7 +700,7 @@ namespace NS13A { namespace NS13B { struct S13A { internal static void M() { thr
 @"interface I { int Foo(); } class A : I { int I.Foo() { } }");
         }
 
-        [WorkItem(539024)]
+        [WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface3()
         {
@@ -709,7 +709,7 @@ namespace NS13A { namespace NS13B { struct S13A { internal static void M() { thr
 @"interface I { void Foo(int i); } class A : I { void I.Foo(int i) { } }");
         }
 
-        [WorkItem(539024)]
+        [WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface4()
         {
@@ -719,7 +719,7 @@ namespace NS13A { namespace NS13B { struct S13A { internal static void M() { thr
 index: 0);
         }
 
-        [WorkItem(539024)]
+        [WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface5()
         {
@@ -729,7 +729,7 @@ index: 0);
 index: 0);
         }
 
-        [WorkItem(539024)]
+        [WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface6()
         {
@@ -737,7 +737,7 @@ index: 0);
 @"interface I { void Foo(); } class A : I { void I.[|Foo|]() { } }");
         }
 
-        [WorkItem(539024)]
+        [WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface7()
         {
@@ -745,7 +745,7 @@ index: 0);
 @"interface I { } class A { void I.[|Foo|]() { } }");
         }
 
-        [WorkItem(539024)]
+        [WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface8()
         {
@@ -754,7 +754,7 @@ index: 0);
 @"interface I<T> { void Foo(); } class A : I<int> { void I<int>.Foo() { } }");
         }
 
-        [WorkItem(539024)]
+        [WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface9()
         {
@@ -790,7 +790,7 @@ index: 0);
 @"using System; class C { void M() { var v = 10; v = Foo(v);} private int Foo(int v) { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(539489)]
+        [WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestEscapedName()
         {
@@ -799,7 +799,7 @@ index: 0);
 @"using System; class Class { void Method() { @Foo(); } private void Foo() { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(539489)]
+        [WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestEscapedKeyword()
         {
@@ -808,7 +808,7 @@ index: 0);
 @"using System; class Class { void Method() { @int(); } private void @int() { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(539527)]
+        [WorkItem(539527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539527")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestUnmentionableTypeParameter1()
         {
@@ -817,7 +817,7 @@ index: 0);
 @"using System; class Class<A> { void Method(A a) { B.C(a); } } class B { internal static void C<A>(A a) { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(539527)]
+        [WorkItem(539527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539527")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestUnmentionableTypeParameter2()
         {
@@ -826,7 +826,7 @@ index: 0);
 @"using System; class Class<A> { void Method(A a) { C(a); } private void C(A a) { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(539527)]
+        [WorkItem(539527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539527")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestUnmentionableTypeParameter3()
         {
@@ -835,7 +835,7 @@ index: 0);
 @"using System; class Class<A> { class Internal { void Method(A a) { C(a); } private void C(A a) { throw new NotImplementedException(); } } }");
         }
 
-        [WorkItem(539527)]
+        [WorkItem(539527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539527")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestUnmentionableTypeParameter4()
         {
@@ -844,7 +844,7 @@ index: 0);
 @"using System; class Class<A> { class Internal { void Method(Class<A> c, A a) { c.M(a); } } private void M(A a) { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(539527)]
+        [WorkItem(539527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539527")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestUnmentionableTypeParameter5()
         {
@@ -853,7 +853,7 @@ index: 0);
 @"using System; class Class<A> { class Internal { void Method(Class<int> c, A a) { c.M(a); } } private void M(A a) { throw new NotImplementedException(); } }");
         }
 
-        [WorkItem(539596)]
+        [WorkItem(539596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539596")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestUnmentionableTypeParameter6()
         {
@@ -862,7 +862,7 @@ index: 0);
 @"using System; class Test { void F < U , V > ( U u1 , V v1 ) { Foo < int , string > ( u1 , v1 ) ; } private void Foo < T1 , T2 > ( object u1 , object v1 ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(539593)]
+        [WorkItem(539593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539593")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestUnmentionableTypeParameter7()
         {
@@ -871,7 +871,7 @@ index: 0);
 @"using System; class H < T > { void A ( T t1 ) { t1 = Foo < T > ( t1 ) ; } private T Foo < T1 > ( T t1 ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(539593)]
+        [WorkItem(539593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539593")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestUnmentionableTypeParameter8()
         {
@@ -880,7 +880,7 @@ index: 0);
 @"using System; class H < T1 , T2 > { void A ( T1 t1 ) { t1 = Foo < int , string > ( t1 ) ; } private T1 Foo < T3 , T4 > ( T1 t1 ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(539597)]
+        [WorkItem(539597, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539597")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestOddErrorType()
         {
@@ -889,7 +889,7 @@ index: 0);
 @"using System; public class C { void M ( ) { @public c = F ( ) ; } private @public F ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(539594)]
+        [WorkItem(539594, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539594")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenericOverloads()
         {
@@ -898,7 +898,7 @@ index: 0);
 @"using System; class C { public C ( ) { CA . M < char , bool > ( ) ; } } class CA { public static void M < V > ( ) { } public static void M < V , W , X > ( ) { } internal static void M < T1 , T2 > ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(537929)]
+        [WorkItem(537929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInScript1()
         {
@@ -933,7 +933,7 @@ parseOptions: GetScriptOptions());
 @"namespace N { using System ; int f = Foo ( ) ; int Foo ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(539571)]
+        [WorkItem(539571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539571")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimplification1()
         {
@@ -942,7 +942,7 @@ parseOptions: GetScriptOptions());
 @"using System ; class Program { static void Main ( string [ ] args ) { Bar ( ) ; } private static void Bar ( ) { throw new NotImplementedException ( ) ; } private static void Foo ( ) { throw new System . NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(539571)]
+        [WorkItem(539571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539571")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimplification2()
         {
@@ -951,7 +951,7 @@ parseOptions: GetScriptOptions());
 @"using System ; class Program { static void Main ( string [ ] args ) { System . Action a = Bar ( DateTime . Now ) ; } private static Action Bar ( DateTime now ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(539618)]
+        [WorkItem(539618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539618")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestClashesWithMethod1()
         {
@@ -959,7 +959,7 @@ parseOptions: GetScriptOptions());
 @"using System ; class Program { void Main () { [|Foo|](x: 1, true) ; } private void Foo(int x, bool b); } ");
         }
 
-        [WorkItem(539618)]
+        [WorkItem(539618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539618")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestClashesWithMethod2()
         {
@@ -967,7 +967,7 @@ parseOptions: GetScriptOptions());
 @"class Program : IFoo { [|bool IFoo.Foo() { }|] } } interface IFoo { void Foo(); }");
         }
 
-        [WorkItem(539637)]
+        [WorkItem(539637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539637")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestReservedParametername1()
         {
@@ -976,7 +976,7 @@ parseOptions: GetScriptOptions());
 @"using System; class C { public void Method ( ) { long Long = 10 ; M ( Long ) ; } private void M ( long @long ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(539751)]
+        [WorkItem(539751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539751")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestShadows1()
         {
@@ -984,7 +984,7 @@ parseOptions: GetScriptOptions());
 @"using System ; class Program { static void Main ( string [ ] args ) { int Name ; Name = [|Name|] ( ) ; } } ");
         }
 
-        [WorkItem(539769)]
+        [WorkItem(539769, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539769")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestShadows2()
         {
@@ -992,7 +992,7 @@ parseOptions: GetScriptOptions());
 @"using System ; class Program { delegate void Func ( int i , int j ) ; static void Main ( string [ ] args ) { Func myExp = ( x , y ) => Console . WriteLine ( x == y ) ; myExp ( 10 , 20 ) ; [|myExp|] ( 10 , 20 , 10 ) ; } } ");
         }
 
-        [WorkItem(539781)]
+        [WorkItem(539781, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539781")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInTopLevelMethod()
         {
@@ -1001,7 +1001,7 @@ parseOptions: GetScriptOptions());
 @"using System; void M ( ) { Foo ( ) ; } void Foo ( ) { throw new NotImplementedException ( ) ; } ");
         }
 
-        [WorkItem(539823)]
+        [WorkItem(539823, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539823")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestLambdaReturnType()
         {
@@ -1026,7 +1026,7 @@ parseOptions: GetScriptOptions());
 @"using System ; delegate void D ( int x ) ; class C { void M ( ) { D d = new D ( Test ) ; } private void Test ( int x ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(539871)]
+        [WorkItem(539871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539871")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDelegateScenario()
         {
@@ -1034,7 +1034,7 @@ parseOptions: GetScriptOptions());
 @"class C < T > { public delegate void Foo < R > ( R r ) ; static void M ( ) { Foo < T > r = [|Goo < T >|] ; } } ");
         }
 
-        [WorkItem(539928)]
+        [WorkItem(539928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539928")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInheritedTypeParameters1()
         {
@@ -1043,7 +1043,7 @@ parseOptions: GetScriptOptions());
 @"class C < T , R > { void M ( ) { I < T , R > i1 ; I < T , R > i2 = i1 . Foo ( ) ; } } interface I < T , R > { I < T , R > Foo ( ) ; } ");
         }
 
-        [WorkItem(539928)]
+        [WorkItem(539928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539928")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInheritedTypeParameters2()
         {
@@ -1052,7 +1052,7 @@ parseOptions: GetScriptOptions());
 @"class C < T > { void M ( ) { I < T > i1 ; I < T > i2 = i1 . Foo ( ) ; } } interface I < T > { I < T > Foo ( ) ; } ");
         }
 
-        [WorkItem(539928)]
+        [WorkItem(539928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539928")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInheritedTypeParameters3()
         {
@@ -1061,7 +1061,7 @@ parseOptions: GetScriptOptions());
 @"class C < T > { void M ( ) { I < T > i1 ; I < T > i2 = i1 . Foo ( ) ; } } interface I < X > { I < object > Foo ( ) ; } ");
         }
 
-        [WorkItem(538995)]
+        [WorkItem(538995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538995")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestBug4777()
         {
@@ -1070,7 +1070,7 @@ parseOptions: GetScriptOptions());
 @"using System; class C { void M ( ) { F(123.4); } private void F(double v) {throw new NotImplementedException ( ) ; } void F(int x) {}  }");
         }
 
-        [WorkItem(539856)]
+        [WorkItem(539856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539856")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOnInvalidInvocation()
         {
@@ -1078,7 +1078,7 @@ parseOptions: GetScriptOptions());
 @"class C { public delegate int Func ( ref int i ) ; public int Goo { get ; set ; } public Func Foo ( ) { return [|Foo|] ( ref Goo ) ; } } ");
         }
 
-        [WorkItem(539752)]
+        [WorkItem(539752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539752")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestMissingOnMultipleLambdaInferences()
         {
@@ -1086,7 +1086,7 @@ parseOptions: GetScriptOptions());
 @"using System ; using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { C < int > c = new C < int > ( ) ; c . [|Sum|] ( ( arg ) => { return 2 ; } ) ; } } class C < T > : List < T > { public int Sum ( Func < T , int > selector ) { return 2 ; } public int Sum ( Func < T , double > selector ) { return 3 ; } } ");
         }
 
-        [WorkItem(540505)]
+        [WorkItem(540505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540505")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestParameterTypeAmbiguity()
         {
@@ -1095,7 +1095,7 @@ parseOptions: GetScriptOptions());
 @"using System; namespace N { class N { static void Main ( string [ ] args ) { C c ; Foo ( c ) ; } private static void Foo ( C c ) { throw new NotImplementedException ( ) ; } } class C { } } ");
         }
 
-        [WorkItem(541176)]
+        [WorkItem(541176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestTernaryWithBodySidesBroken1()
         {
@@ -1104,7 +1104,7 @@ parseOptions: GetScriptOptions());
 @"using System; public class C { void Method ( ) { int a = 5 , b = 10 ; int x = a > b ? M ( a ) : M ( b ) ; } private int M ( int a ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(541176)]
+        [WorkItem(541176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestTernaryWithBodySidesBroken2()
         {
@@ -1120,7 +1120,7 @@ parseOptions: GetScriptOptions());
 @"using System ; class C { public static void Main ( ) { string s = ""Hello"" ; [|f|] = s . ExtensionMethod ; } } public static class MyExtension { public static int ExtensionMethod ( this String s ) { return s . Length ; } } ");
         }
 
-        [WorkItem(541405)]
+        [WorkItem(541405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541405")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestMissingOnImplementedInterfaceMethod()
         {
@@ -1128,7 +1128,7 @@ parseOptions: GetScriptOptions());
 @"class Program < T > : ITest { [|void ITest . Method ( T t ) { }|] } interface ITest { void Method ( object t ) ; } ");
         }
 
-        [WorkItem(541660)]
+        [WorkItem(541660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541660")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDelegateNamedVar()
         {
@@ -1137,7 +1137,7 @@ parseOptions: GetScriptOptions());
 @"using System ; class Program { public static void Main ( ) { var v = M ; } private static void M ( int x ) { throw new NotImplementedException ( ) ; } delegate void var ( int x ) ; } ");
         }
 
-        [WorkItem(540991)]
+        [WorkItem(540991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540991")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestErrorVersusNamedTypeInSignature()
         {
@@ -1146,7 +1146,7 @@ parseOptions: GetScriptOptions());
 Options.Regular);
         }
 
-        [WorkItem(542529)]
+        [WorkItem(542529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542529")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestTypeParameterConstraints1()
         {
@@ -1155,7 +1155,7 @@ Options.Regular);
 @"using System ; class A < T > where T : class { } class Program { static void Foo < T > ( A < T > x ) where T : class { Bar ( x ) ; } private static void Bar < T > ( A < T > x ) where T : class { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542622)]
+        [WorkItem(542622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542622")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestLambdaTypeParameters()
         {
@@ -1164,7 +1164,7 @@ Options.Regular);
 @"using System ; using System . Collections . Generic ; class Program { static void Foo < T > ( List < T > x ) { Bar ( ( ) => x ) ; } private static void Bar < T > ( Func < List < T > > p ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542626)]
+        [WorkItem(542626, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542626")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestMethodConstraints1()
         {
@@ -1173,7 +1173,7 @@ Options.Regular);
 @"using System ; class A < T > where T : class { } class Program { static void Foo < T > ( A < T > x ) where T : class { Bar < T > ( x ) ; } private static void Bar < T > ( A < T > x ) where T : class { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542627)]
+        [WorkItem(542627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542627")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestCaptureMethodTypeParametersReferencedInOuterType1()
         {
@@ -1182,7 +1182,7 @@ Options.Regular);
 @"using System ; using System . Collections . Generic ; class Program { static void Foo < T > ( List < T > . Enumerator x ) { Bar ( x ) ; } private static void Bar < T > ( List < T > . Enumerator x ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542658)]
+        [WorkItem(542658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542658")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestCaptureTypeParametersInConstraints()
         {
@@ -1191,7 +1191,7 @@ Options.Regular);
 @"using System ; using System . Collections . Generic ; class Program { static void Foo < T , S > ( List < T > x ) where T : S { Bar ( x ) ; } private static void Bar < T , S > ( List < T > x ) where T : S { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542659)]
+        [WorkItem(542659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542659")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestConstraintOrder1()
         {
@@ -1200,7 +1200,7 @@ Options.Regular);
 @"using System ; class A < T , S > where T : ICloneable , S { } class B < S > { public virtual void Foo < T > ( A < T , S > x ) where T : ICloneable , S { } } class C : B < Exception > { public override void Foo < T > ( A < T , Exception > x ) { Bar ( x ) ; } private void Bar < T > ( A < T , Exception > x ) where T : Exception , ICloneable { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542678)]
+        [WorkItem(542678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542678")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestConstraintOrder2()
         {
@@ -1209,7 +1209,7 @@ Options.Regular);
 @"using System ; class A < T , S , U > where T : U , S { } class B < S , U > { public virtual void Foo < T > ( A < T , S , U > x ) where T : U , S { } } class C < U > : B < Exception , U > { public override void Foo < T > ( A < T , Exception , U > x ) { Bar ( x ) ; } private void Bar < T > ( A < T , Exception , U > x ) where T : Exception , U { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542674)]
+        [WorkItem(542674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542674")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateStaticMethodInField()
         {
@@ -1218,7 +1218,7 @@ Options.Regular);
 @"using System ; class C { int x = Foo ( ) ; private static int Foo ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542680)]
+        [WorkItem(542680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542680")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateIntoConstrainedTypeParameter()
         {
@@ -1227,7 +1227,7 @@ Options.Regular);
 @"interface I { void Bar ( ) ; } class Program { static void Foo < T > ( T x ) where T : I { x . Bar ( ) ; } } ");
         }
 
-        [WorkItem(542750)]
+        [WorkItem(542750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542750")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestCaptureOuterTypeParameter()
         {
@@ -1236,7 +1236,7 @@ Options.Regular);
 @"using System ; using System . Collections . Generic ; class C < T > { void Bar ( ) { D d = new D ( ) ; List < T > y ; d . Foo ( y ) ; } } class D { internal void Foo < T > ( List < T > y ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(542744)]
+        [WorkItem(542744, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542744")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestMostDerivedTypeParameter()
         {
@@ -1245,7 +1245,7 @@ Options.Regular);
 @"using System ; class A < T , U > where T : U { } class B < U > { public virtual void Foo < T > ( A < T , U > x ) where T : Exception , U { } } class C < U > : B < ArgumentException > { public override void Foo < T > ( A < T , ArgumentException > x ) { Bar ( x ) ; } private void Bar < T > ( A < T , ArgumentException > x ) where T : ArgumentException { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(543152)]
+        [WorkItem(543152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543152")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestAnonymousTypeArgument()
         {
@@ -1262,7 +1262,7 @@ Options.Regular);
 @"using System ; using System . Collections . Generic ; class C { void M ( ) { var v = new { } ; var u = Foo ( v ) ; M ( u ) ; } private void M ( List < object > u ) { throw new NotImplementedException ( ) ; } private List < T > Foo < T > ( T v ) { return new List < T > ( ) ; } } ");
         }
 
-        [WorkItem(543336)]
+        [WorkItem(543336, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543336")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateImplicitlyTypedArrays()
         {
@@ -1271,7 +1271,7 @@ Options.Regular);
 @"using System ; class C { void M() { var a = new[] { foo(2), 2, 3 }; } private int foo(int v) { throw new NotImplementedException(); } } ");
         }
 
-        [WorkItem(543510)]
+        [WorkItem(543510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543510")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenericArgWithMissingTypeParameter()
         {
@@ -1279,7 +1279,7 @@ Options.Regular);
 @"class Program { public static int foo(ref int i) { return checked([|goo|]<>(ref i) * i); } public static int goo<T>(ref int i) { return i; } } ");
         }
 
-        [WorkItem(544334)]
+        [WorkItem(544334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544334")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDuplicateWithErrorType()
         {
@@ -1460,8 +1460,8 @@ class C
 }", compareTokens: false);
         }
 
-        [WorkItem(545397)]
-        [WorkItem(784793)]
+        [WorkItem(545397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545397")]
+        [WorkItem(784793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestVarParameterTypeName()
         {
@@ -1470,7 +1470,7 @@ class C
 @"using System ; class Program { void Main ( ) { var x ; foo ( out x ) ; } private void foo ( out object x ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545269)]
+        [WorkItem(545269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateInVenus1()
         {
@@ -1489,7 +1489,7 @@ class C
 ");
         }
 
-        [WorkItem(538521)]
+        [WorkItem(538521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538521")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInIterator1()
         {
@@ -1498,7 +1498,7 @@ class C
 @"using System ; using System . Collections . Generic ; class Program { IEnumerable < int > Foo ( ) { yield return Bar ( ) ; } private int Bar ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(784793)]
+        [WorkItem(784793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodMissingForAnyArgumentInInvocationHavingErrorTypeAndNotBelongingToEnclosingNamedType()
         {
@@ -1530,7 +1530,7 @@ class Program
 ");
         }
 
-        [WorkItem(907612)]
+        [WorkItem(907612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907612")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodWithLambda()
         {
@@ -1562,7 +1562,7 @@ class Program
 }", compareTokens: false);
         }
 
-        [WorkItem(889349)]
+        [WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodForDifferentParameterName()
         {
@@ -1596,7 +1596,7 @@ class C
 }", compareTokens: false);
         }
 
-        [WorkItem(889349)]
+        [WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodForDifferentParameterNameCaseSensitive()
         {
@@ -1630,7 +1630,7 @@ class C
 }", compareTokens: false);
         }
 
-        [WorkItem(769760)]
+        [WorkItem(769760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769760")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodForSameNamedButGenericUsage()
         {
@@ -1672,7 +1672,7 @@ class Program
 }", compareTokens: false);
         }
 
-        [WorkItem(910589)]
+        [WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodForNewErrorCodeCS7036()
         {
@@ -1700,7 +1700,7 @@ class C
 }", compareTokens: false);
         }
 
-        [WorkItem(934729)]
+        [WorkItem(934729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/934729")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodUnknownReturnTypeInLambda()
         {
@@ -1729,7 +1729,7 @@ class C
 }", compareTokens: false);
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInUnsafeMethod()
         {
@@ -1753,7 +1753,7 @@ class C {
 }", compareTokens: false);
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInUnsafeMethodWithPointerArray()
         {
@@ -1781,7 +1781,7 @@ class C
 }", compareTokens: false);
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInUnsafeBlock()
         {
@@ -1821,7 +1821,7 @@ class Program
 }", compareTokens: false);
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInUnsafeMethodNoPointersInParameterList()
         {
@@ -1845,7 +1845,7 @@ class C {
 }", compareTokens: false);
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInUnsafeBlockNoPointers()
         {
@@ -1885,7 +1885,7 @@ class Program
 }", compareTokens: false);
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodUnsafeReturnType()
         {
@@ -1913,7 +1913,7 @@ class Program
 }", compareTokens: false);
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodUnsafeClass()
         {
@@ -1941,7 +1941,7 @@ unsafe class Program
 }", compareTokens: false);
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodUnsafeNestedClass()
         {
@@ -1975,7 +1975,7 @@ unsafe class Program
 }", compareTokens: false);
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodUnsafeNestedClass2()
         {
@@ -2016,7 +2016,7 @@ class Program
 @"class Class { void Method() { [|Foo|]; } }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf()
         {
@@ -2044,7 +2044,7 @@ class C
 }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf2()
         {
@@ -2072,7 +2072,7 @@ class C
 }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf3()
         {
@@ -2100,7 +2100,7 @@ class C
 }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf4()
         {
@@ -2146,7 +2146,7 @@ namespace Z
 }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf5()
         {
@@ -2160,7 +2160,7 @@ namespace Z
 }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf6()
         {
@@ -2175,7 +2175,7 @@ namespace Z
 }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf7()
         {
@@ -2207,7 +2207,7 @@ class C
 }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf8()
         {
@@ -2237,7 +2237,7 @@ class C
 }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf9()
         {
@@ -2265,7 +2265,7 @@ class C
 }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf10()
         {
@@ -2293,7 +2293,7 @@ class C
 }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf11()
         {
@@ -2321,7 +2321,7 @@ class C
 }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf12()
         {
@@ -2342,7 +2342,7 @@ class C
 }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf13()
         {
@@ -2382,7 +2382,7 @@ class C
 }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf14()
         {
@@ -2422,7 +2422,7 @@ class C
 }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf15()
         {
@@ -2462,7 +2462,7 @@ class C
 }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf16()
         {
@@ -2502,7 +2502,7 @@ class C
 }");
         }
 
-        [WorkItem(1075289)]
+        [WorkItem(1075289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075289")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodForInaccessibleMethod()
         {
@@ -2550,7 +2550,7 @@ namespace ConsoleApplication1
 }");
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInConditionalAccessMissing()
         {
@@ -2558,7 +2558,7 @@ namespace ConsoleApplication1
 @"class C { void Main ( C a ) { C x = new C ? [|. B|] ( ) ; } } ");
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInConditionalAccess()
         {
@@ -2567,7 +2567,7 @@ namespace ConsoleApplication1
 @"using System ; public class C { void Main ( C a ) { C x = a ? . B ( ) ; } private C B ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInConditionalAccess2()
         {
@@ -2576,7 +2576,7 @@ namespace ConsoleApplication1
 @"using System ; public class C { void Main ( C a ) { int x = a ? . B ( ) ; } private int B ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInConditionalAccess3()
         {
@@ -2585,7 +2585,7 @@ namespace ConsoleApplication1
 @"using System ; public class C { void Main ( C a ) { int ? x = a ? . B ( ) ; } private int B ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInConditionalAccess4()
         {
@@ -2594,7 +2594,7 @@ namespace ConsoleApplication1
 @"using System ; public class C { void Main ( C a ) { MyStruct ? x = a ? . B ( ) ; } private MyStruct B ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestTestGenerateMethodInConditionalAccess5()
         {
@@ -2603,7 +2603,7 @@ namespace ConsoleApplication1
 @"using System ; class C { public E B { get ; private set ; } void Main ( C a ) { C x = a ? . B . C ( ) ; } public class E { internal C C ( ) { throw new NotImplementedException ( ) ; } } } ");
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInConditionalAccess6()
         {
@@ -2612,7 +2612,7 @@ namespace ConsoleApplication1
 @"using System ; class C { public E B { get ; private set ; } void Main ( C a ) { int x = a ? . B . C ( ) ; } public class E { internal int C ( ) { throw new NotImplementedException ( ) ; } } } ");
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInConditionalAccess7()
         {
@@ -2621,7 +2621,7 @@ namespace ConsoleApplication1
 @"using System ; class C { public E B { get ; private set ; } void Main ( C a ) { int ? x = a ? . B . C ( ) ; } public class E { internal int C ( ) { throw new NotImplementedException ( ) ; } } } ");
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInConditionalAccess8()
         {
@@ -2713,7 +2713,7 @@ namespace ConsoleApplication1
 @"using System ; using System . Threading . Tasks ; class C { static async void T ( ) { bool x = await M ( ) . ContinueWith ( a => { return true ; } ) . ContinueWith ( a => { return false ; } ) ; } private static Task < bool > M ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(529480)]
+        [WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInCollectionInitializers1()
         {
@@ -2722,7 +2722,7 @@ namespace ConsoleApplication1
 @"using System ; class C { void M() { var x = new System.Collections.Generic.List<int> { T() } ; } private int T() { throw new NotImplementedException(); } } ");
         }
 
-        [WorkItem(529480)]
+        [WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInCollectionInitializers2()
         {
@@ -2731,7 +2731,7 @@ namespace ConsoleApplication1
 @"using System ; class C { void M() { var x = new System.Collections.Generic.Dictionary<int, bool> { { 1, T() } }; } private bool T() { throw new NotImplementedException(); } } ");
         }
 
-        [WorkItem(774321)]
+        [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodEquivalenceKey()
         {
@@ -2782,6 +2782,59 @@ class Class1
 }");
         }
 
+        [WorkItem(8010, "https://github.com/dotnet/roslyn/issues/8010")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodFromStaticProperty()
+        {
+            await TestAsync(
+@"using System ; public class Test { public static int Property { get { return [|Method|] ( ) ; } } } ",
+@"using System ; public class Test { public static int Property { get { return Method ( ) ; } } private static int Method ( ) { throw new NotImplementedException ( ) ; } } ");
+        }
+
+        [WorkItem(8010, "https://github.com/dotnet/roslyn/issues/8010")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodFromStaticProperty_FieldInitializer()
+        {
+            await TestAsync(
+@"using System;
+public class OtherClass {}
+public class Test
+{
+    public static OtherClass Property
+    {
+        get
+        {
+            if ( s_field == null)
+                s_field = [|InitializeProperty|]();
+            return s_field;
+        }
+    }
+
+    private static OtherClass s_field;
+}",
+@"using System;
+public class OtherClass {}
+public class Test
+{
+    public static OtherClass Property
+    {
+        get
+        {
+            if ( s_field == null)
+                s_field = InitializeProperty();
+            return s_field;
+        }
+    }
+
+    private static OtherClass InitializeProperty()
+    {
+        throw new NotImplementedException();
+    }
+
+    private static OtherClass s_field;
+}");
+        }
+
         public class GenerateConversionTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
@@ -2789,7 +2842,7 @@ class Class1
                 return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new GenerateConversionCodeFixProvider());
             }
 
-            [WorkItem(774321)]
+            [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public async Task TestGenerateImplicitConversionGenericClass()
             {
@@ -2798,7 +2851,7 @@ class Class1
     @"using System ; class Program { void Test ( int [ ] a ) { C < int > x1 = 1 ; } } class C < T > { public static implicit operator C < T > ( int v ) { throw new NotImplementedException ( ) ; } } ");
             }
 
-            [WorkItem(774321)]
+            [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public async Task TestGenerateImplicitConversionClass()
             {
@@ -2807,7 +2860,7 @@ class Class1
     @"using System ; class Program { void Test ( int [ ] a ) { C x1 = 1 ; } } class C { public static implicit operator C ( int v ) { throw new NotImplementedException ( ) ; } } ");
             }
 
-            [WorkItem(774321)]
+            [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public async Task TestGenerateImplicitConversionAwaitExpression()
             {
@@ -2816,7 +2869,7 @@ class Class1
     @"using System ; using System . Threading . Tasks ; class Program { async void Test ( ) { var a = Task . FromResult ( 1 ) ; Program x1 = await a ; } public static implicit operator Program ( int v ) { throw new NotImplementedException ( ) ; } } ");
             }
 
-            [WorkItem(774321)]
+            [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public async Task TestGenerateImplicitConversionTargetTypeNotInSource()
             {
@@ -2825,7 +2878,7 @@ class Class1
     @"using System ; class Digit { public Digit ( double d ) { val = d ; } public double val ; public static implicit operator double ( Digit v ) { throw new NotImplementedException ( ) ; } } class Program { static void Main ( string [ ] args ) { Digit dig = new Digit ( 7 ) ; double num = dig ; } } ");
             }
 
-            [WorkItem(774321)]
+            [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public async Task TestGenerateExplicitConversionGenericClass()
             {
@@ -2834,7 +2887,7 @@ class Class1
     @"using System ; class Program { void Test ( int [ ] a ) { C < int > x1 = ( C < int > ) 1 ; } } class C < T > { public static explicit operator C < T > ( int v ) { throw new NotImplementedException ( ) ; } } ");
             }
 
-            [WorkItem(774321)]
+            [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public async Task TestGenerateExplicitConversionClass()
             {
@@ -2843,7 +2896,7 @@ class Class1
     @"using System ; class Program { void Test ( int [ ] a ) { C x1 = ( C ) 1 ; } } class C { public static explicit operator C ( int v ) { throw new NotImplementedException ( ) ; } } ");
             }
 
-            [WorkItem(774321)]
+            [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public async Task TestGenerateExplicitConversionAwaitExpression()
             {
@@ -2852,7 +2905,7 @@ class Class1
     @"using System ; using System . Threading . Tasks ; class Program { async void Test ( ) { var a = Task . FromResult ( 1 ) ; Program x1 = ( Program ) await a ; } public static explicit operator Program ( int v ) { throw new NotImplementedException ( ) ; } } ");
             }
 
-            [WorkItem(774321)]
+            [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public async Task TestGenerateExplicitConversionTargetTypeNotInSource()
             {
@@ -2861,7 +2914,7 @@ class Class1
     @"using System ; class Digit { public Digit ( double d ) { val = d ; } public double val ; public static explicit operator double ( Digit v ) { throw new NotImplementedException ( ) ; } } class Program { static void Main ( string [ ] args ) { Digit dig = new Digit ( 7 ) ; double num = ( double ) dig ; } } ");
             }
 
-            [WorkItem(774321)]
+            [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
             [WpfFact(Skip = "xunit2"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public async Task TestEquivalenceKey()
             {

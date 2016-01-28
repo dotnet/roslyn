@@ -428,7 +428,7 @@ End Namespace
 
 #End Region
 
-        <WorkItem(858153)>
+        <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestChildren1() As Task
             Dim code =
@@ -451,7 +451,7 @@ End Namespace
                          IsElement("C3", EnvDTE.vsCMElement.vsCMElementClass))
         End Function
 
-        <WorkItem(150349)>
+        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function NoChildrenForInvalidMembers() As Task
             Dim code =

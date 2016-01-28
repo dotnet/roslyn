@@ -74,7 +74,7 @@ namespace N1.N2
             ResolveAndVerifySymbolList(newSymbols, comp2, originalSymbols, comp1);
         }
 
-        [Fact, WorkItem(530171)]
+        [Fact, WorkItem(530171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530171")]
         public void C2CErrorSymbolUnchanged01()
         {
             var src1 = @"public void Method() { }";
@@ -105,7 +105,7 @@ public void Method()
         }
 
         [Fact]
-        [WorkItem(820263)]
+        [WorkItem(820263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820263")]
         public void PartialDefinitionAndImplementationResolveCorrectly()
         {
             var src = @"using System;
@@ -132,7 +132,7 @@ namespace NS
         }
 
         [Fact]
-        [WorkItem(916341)]
+        [WorkItem(916341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916341")]
         public void ExplicitIndexerImplementationResolvesCorrectly()
         {
             var src = @"
@@ -323,7 +323,7 @@ public class Test
             ResolveAndVerifySymbolList(newSymbols, comp2, originalSymbols, comp1);
         }
 
-        [WorkItem(542700)]
+        [WorkItem(542700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
         [Fact]
         public void C2CIndexerSymbolChanged01()
         {
@@ -385,7 +385,7 @@ namespace NS
             Assert.Null(ResolveSymbol(typeSym02, comp2, comp1, SymbolKeyComparison.CaseSensitive));
         }
 
-        [WpfFact(Skip = "530169"), WorkItem(530169)]
+        [WpfFact(Skip = "530169"), WorkItem(530169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530169")]
         public void C2CAssemblyChanged02()
         {
             var src = @"[assembly: System.Reflection.AssemblyVersion(""1.2.3.4"")] public class C {}";
@@ -413,7 +413,7 @@ namespace NS
             Assert.NotNull(ResolveSymbol(sym2, comp2, comp1, SymbolKeyComparison.IgnoreAssemblyIds));
         }
 
-        [Fact, WorkItem(530170)]
+        [Fact, WorkItem(530170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530170")]
         public void C2CAssemblyChanged03()
         {
             var src = @"[assembly: System.Reflection.AssemblyVersion(""1.2.3.4"")] public class C {}";
@@ -448,7 +448,7 @@ namespace NS
             Assert.Null(ResolveSymbol(module2, compilation2, compilation1, SymbolKeyComparison.IgnoreAssemblyIds));
         }
 
-        [Fact, WorkItem(546254)]
+        [Fact, WorkItem(546254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546254")]
         public void C2CAssemblyChanged04()
         {
             var src = @"

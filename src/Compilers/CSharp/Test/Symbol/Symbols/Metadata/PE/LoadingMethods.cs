@@ -1309,7 +1309,7 @@ class P
                 Diagnostic(ErrorCode.ERR_BindToBogus, "X").WithArguments("User.X(?)"));
         }
 
-        [WorkItem(666162, "DevDiv")]
+        [WorkItem(666162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666162")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void Repro666162()
         {

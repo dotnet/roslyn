@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
                 .ToArray()
         End Function
 
-        <WorkItem(1174405)>
+        <WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function PrependDollarSign() As Task
             Const code = "
@@ -44,7 +44,7 @@ End Class
             Await VerifyNoRegionsAsync(code)
         End Function
 
-        <WorkItem(1174405)>
+        <WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function SymbolsAndPunctuation() As Task
             Const code = "
@@ -55,7 +55,7 @@ End Class
             Await VerifyNoRegionsAsync(code)
         End Function
 
-        <WorkItem(1174405)>
+        <WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function IdentifierThatLooksLikeCode() As Task
             Const code = "

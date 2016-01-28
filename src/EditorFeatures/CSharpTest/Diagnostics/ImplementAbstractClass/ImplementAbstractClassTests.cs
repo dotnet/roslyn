@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
 @"using System ; abstract class Foo { protected abstract string FooMethod ( ) ; public abstract void Blah ( ) ; } abstract class Bar : Foo { public abstract bool BarMethod ( ) ; public override void Blah ( ) { } } class Program : Foo { static void Main ( string [ ] args ) { } public override void Blah ( ) { throw new NotImplementedException ( ) ; } protected override string FooMethod ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(543234)]
+        [WorkItem(543234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543234")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestNotAvailableForStruct()
         {
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
                 @"using System ; struct b { } abstract class d { public abstract void foo ( b x = new b ( ) ) ; } class c : d { public override void foo ( b x = default ( b ) ) { throw new NotImplementedException ( ) ; } }");
         }
 
-        [WorkItem(916114)]
+        [WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalNullableStructParameter()
         {
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
 @"using System ; struct b { } abstract class d { public abstract void m ( b? x = null, b? y = default(b?) ) ; } class c : d { public override void m ( b? x = default(b?), b? y = default(b?) ) { throw new NotImplementedException ( ) ; } }");
         }
 
-        [WorkItem(916114)]
+        [WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalNullableIntParameter()
         {
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
                 @"using System ; class b { } abstract class d { public abstract void foo ( b x = null ) ; } class c : d { public override void foo ( b x = null ) { throw new NotImplementedException ( ) ; } }");
         }
 
-        [WorkItem(543883)]
+        [WorkItem(543883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543883")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestDifferentAccessorAccessibility()
         {
@@ -272,7 +272,7 @@ partial class Program : Foo
 compareTokens: false);
         }
 
-        [WorkItem(545585)]
+        [WorkItem(545585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545585")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOnlyGenerateUnimplementedAccessors()
         {
@@ -281,7 +281,7 @@ compareTokens: false);
 @"using System ; abstract class A { public abstract int X { get ; set ; } } abstract class B : A { public override int X { get { throw new NotImplementedException ( ) ; } } } class C : B { public override int X { set { throw new NotImplementedException ( ) ; } } } ");
         }
 
-        [WorkItem(545615)]
+        [WorkItem(545615, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545615")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestParamsArray()
         {
@@ -290,7 +290,7 @@ compareTokens: false);
 @"using System ; class A { public virtual void Foo ( int x , params int [ ] y ) { } } abstract class B : A { public abstract override void Foo ( int x , int [ ] y = null ) ; } class C : B { public override void Foo ( int x , params int [ ] y ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545636)]
+        [WorkItem(545636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545636")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestNullPointerType()
         {
@@ -299,7 +299,7 @@ compareTokens: false);
 @"using System ; abstract class C { unsafe public abstract void Foo ( int * x = null ) ; } class D : C { public override unsafe void Foo ( int * x = null ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(545637)]
+        [WorkItem(545637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545637")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestErrorTypeCalledVar()
         {
@@ -308,7 +308,7 @@ compareTokens: false);
 @"extern alias var ; using System ; abstract class C { public abstract void Foo ( var :: X x ) ; } class D : C { public override void Foo ( X x ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WorkItem(581500)]
+        [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task Bugfix_581500()
         {
@@ -341,7 +341,7 @@ abstract class A<T>
 ");
         }
 
-        [WorkItem(625442)]
+        [WorkItem(625442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/625442")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task Bugfix_625442()
         {

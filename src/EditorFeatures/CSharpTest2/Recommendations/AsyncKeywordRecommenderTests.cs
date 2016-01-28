@@ -98,7 +98,7 @@ class Program
 }");
         }
 
-        [WorkItem(578061)]
+        [WorkItem(578061, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578061")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInNamespace()
         {
@@ -109,7 +109,7 @@ namespace Foo
 }");
         }
 
-        [WorkItem(578069)]
+        [WorkItem(578069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578069")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPartialInNamespace()
         {
@@ -120,7 +120,7 @@ namespace Foo
 }");
         }
 
-        [WorkItem(578750)]
+        [WorkItem(578750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578750")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPartialInClass()
         {

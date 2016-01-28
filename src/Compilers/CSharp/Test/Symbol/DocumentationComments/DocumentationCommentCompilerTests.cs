@@ -644,7 +644,7 @@ class A
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(547164, "DevDiv")]
+        [WorkItem(547164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547164")]
         [Fact]
         public void MultiLine_PatternShorterOnSubsequentLine()
         {
@@ -1912,7 +1912,7 @@ partial class C
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(547139, "DevDiv")]
+        [WorkItem(547139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547139")]
         [Fact]
         public void UnprocessedXMLComment_Accessor()
         {
@@ -2069,7 +2069,7 @@ partial class C
         }
 
         [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
-        [WorkItem(637435, "DevDiv")]
+        [WorkItem(637435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637435")]
         public void NonXmlWhitespace()
         {
             var ch = '\u1680';
@@ -2108,7 +2108,7 @@ class C {{ }}
         }
 
         [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
-        [WorkItem(637435, "DevDiv")]
+        [WorkItem(637435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637435")]
         public void Repro637435()
         {
             var sourceTemplate = @"
@@ -2957,7 +2957,7 @@ class C {{ }}
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath1), actual);
         }
 
-        [WorkItem(554196, "DevDiv")]
+        [WorkItem(554196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554196")]
         [Fact]
         public void XPathDocumentRoot()
         {
@@ -3228,7 +3228,7 @@ class C {{ }}
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(552495, "DevDiv")]
+        [WorkItem(552495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552495")]
         [Fact]
         public void IncludeMismatchedQuotationMarks()
         {
@@ -3245,7 +3245,7 @@ class C { }
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(598371, "DevDiv")]
+        [WorkItem(598371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598371")]
         [Fact]
         public void CrefParameterOrReturnTypeLookup1()
         {
@@ -3290,7 +3290,7 @@ class X
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(586815, "DevDiv")]
+        [WorkItem(586815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586815")]
         [Fact]
         public void CrefParameterOrReturnTypeLookup2()
         {
@@ -3950,7 +3950,7 @@ public class C
             Assert.Equal(expected, actual);
         }
 
-        [Fact, WorkItem(921838, "DevDiv")]
+        [Fact, WorkItem(921838, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/921838")]
         public void InaccessibleMembers()
         {
             var source =
@@ -3984,7 +3984,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(531144, "DevDiv")]
+        [WorkItem(531144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531144")]
         [Fact]
         public void NamespaceCref()
         {
@@ -4013,7 +4013,7 @@ public class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(531144, "DevDiv")]
+        [WorkItem(531144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531144")]
         [Fact]
         public void SymbolKinds()
         {
@@ -4132,7 +4132,7 @@ class Generic<T>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(530695, "DevDiv")]
+        [WorkItem(530695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530695")]
         [Fact]
         public void FieldDocComment()
         {
@@ -4183,7 +4183,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(530695, "DevDiv")]
+        [WorkItem(530695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530695")]
         [Fact]
         public void FieldDocCommentDiagnostics()
         {
@@ -4253,7 +4253,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(531187, "DevDiv")]
+        [WorkItem(531187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531187")]
         [Fact]
         public void DelegateDocComments()
         {
@@ -4339,7 +4339,7 @@ public class C { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(531233, "DevDiv")]
+        [WorkItem(531233, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531233")]
         [Fact]
         public void CrefAttributeInOtherElement()
         {
@@ -4372,7 +4372,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(531233, "DevDiv")]
+        [WorkItem(531233, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531233")]
         [Fact]
         public void NameAttributeInOtherElement()
         {
@@ -4424,7 +4424,7 @@ class Program
             Assert.NotEmpty(comp.GetDiagnostics());
         }
 
-        [WorkItem(531349, "DevDiv")]
+        [WorkItem(531349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531349")]
         [Fact]
         public void GetDeclarationDiagnostics()
         {
@@ -4446,7 +4446,7 @@ class Program
             Assert.Equal(2, comp.GetDiagnostics().Count());
         }
 
-        [WorkItem(531409, "DevDiv")]
+        [WorkItem(531409, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531409")]
         [Fact]
         public void ExplicitInterfaceImplementation()
         {
@@ -4596,7 +4596,7 @@ class C<T>
             Assert.Equal(expectedText, actualText);
         }
 
-        [WorkItem(546989, "DevDiv")]
+        [WorkItem(546989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546989")]
         [Fact]
         public void GenericMethodWithoutTypeParameters1()
         {
@@ -4659,7 +4659,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(546989, "DevDiv")]
+        [WorkItem(546989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546989")]
         [Fact]
         public void GenericMethodWithoutTypeParameters2()
         {
@@ -4728,7 +4728,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(546989, "DevDiv")]
+        [WorkItem(546989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546989")]
         [Fact]
         public void GenericMethodWithoutTypeParameters3()
         {
@@ -4776,7 +4776,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(547163, "DevDiv")]
+        [WorkItem(547163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547163")]
         [Fact]
         public void NestedGenericTypes()
         {
@@ -4903,7 +4903,7 @@ class A<T>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(527260, "DevDiv")]
+        [WorkItem(527260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527260")]
         [Fact]
         public void IllegalXmlCharacter()
         {
@@ -4929,7 +4929,7 @@ class A { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(547311, "DevDiv")]
+        [WorkItem(547311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547311")]
         [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
         public void UndeclaredXmlNamespace()
         {
@@ -4980,7 +4980,7 @@ class A { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(551323, "DevDiv")]
+        [WorkItem(551323, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551323")]
         [Fact]
         public void MultiLine_OneLinePlusEnding()
         {
@@ -5009,7 +5009,7 @@ class C { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(577385, "DevDiv")]
+        [WorkItem(577385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577385")]
         [Fact]
         public void FormatBeforeFinalParse()
         {
@@ -5076,7 +5076,7 @@ class C { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(587126, "DevDiv")]
+        [WorkItem(587126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587126")]
         [Fact]
         public void DeclaringGenericTypeInReturnType()
         {
@@ -5104,7 +5104,7 @@ class C { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(587126, "DevDiv")]
+        [WorkItem(587126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587126")]
         [Fact]
         public void DeclaringGenericTypeInParameterType1()
         {
@@ -5137,7 +5137,7 @@ class C<T>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(587126, "DevDiv")]
+        [WorkItem(587126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587126")]
         [Fact]
         public void DeclaringGenericTypeInParameterType2()
         {
@@ -5180,7 +5180,7 @@ class B<U>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(552379, "DevDiv")]
+        [WorkItem(552379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552379")]
         [Fact]
         public void MultipleDocComments()
         {
@@ -5236,7 +5236,7 @@ public partial class C { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(552379, "DevDiv")]
+        [WorkItem(552379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552379")]
         [Fact]
         public void MultipleDocComments_Separated()
         {
@@ -5313,7 +5313,7 @@ public class E { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(552379, "DevDiv")]
+        [WorkItem(552379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552379")]
         [Fact]
         public void MultipleDocComments_SplitXml()
         {
@@ -5342,7 +5342,7 @@ public class A { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(689497, "DevDiv")]
+        [WorkItem(689497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689497")]
         [Fact]
         public void TriviaBetweenDocCommentAndDeclaration()
         {
@@ -5378,7 +5378,7 @@ public class A { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(703368, "DevDiv")]
+        [WorkItem(703368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703368")]
         [Fact]
         public void NonGenericBeatsGeneric()
         {
@@ -5410,7 +5410,7 @@ public class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(703587, "DevDiv")]
+        [WorkItem(703587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703587")]
         [Fact]
         public void ObjectMemberViaInterface()
         {
@@ -5453,7 +5453,7 @@ public class C : IEquatable<C>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(531505, "DevDiv")]
+        [WorkItem(531505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531505")]
         [ClrOnlyFact]
         public void Pia()
         {
@@ -5509,7 +5509,7 @@ public class C { }
             }
         }
 
-        [WorkItem(757110, "DevDiv")]
+        [WorkItem(757110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/757110")]
         [Fact]
         public void NoAssemblyElementForNetModule()
         {
@@ -5532,7 +5532,7 @@ public class C { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(743425, "DevDiv")]
+        [WorkItem(743425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743425")]
         [Fact]
         public void WRN_UnqualifiedNestedTypeInCref()
         {
@@ -5579,7 +5579,7 @@ class C<T>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(743425, "DevDiv")]
+        [WorkItem(743425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743425")]
         [Fact]
         public void WRN_UnqualifiedNestedTypeInCref_Buried()
         {
@@ -5620,7 +5620,7 @@ class C<T>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(743425, "DevDiv")]
+        [WorkItem(743425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743425")]
         [Fact]
         public void WRN_UnqualifiedNestedTypeInCref_Generic()
         {
@@ -6120,7 +6120,7 @@ class Module1
         #endregion Dev10 bugs
 
         [ClrOnlyFact]
-        [WorkItem(1115058, "DevDiv")]
+        [WorkItem(1115058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115058")]
         public void UnterminatedElement()
         {
             var source = @"

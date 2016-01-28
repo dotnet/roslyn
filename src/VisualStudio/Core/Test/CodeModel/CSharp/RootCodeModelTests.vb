@@ -139,7 +139,7 @@ class Foo { }
 
 #Region "CodeTypeFromFullName"
 
-        <WorkItem(1107453)>
+        <WorkItem(1107453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107453")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCodeTypeFromFullName_NonGenerated() As Task
 
@@ -177,7 +177,7 @@ namespace N
         End Function
 
 
-        <WorkItem(1107453)>
+        <WorkItem(1107453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107453")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCodeTypeFromFullName_Generated() As Task
 
@@ -214,7 +214,7 @@ namespace N
 
         End Function
 
-        <WorkItem(1107453)>
+        <WorkItem(1107453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107453")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCodeTypeFromFullName_NonGenerated_Generated() As Task
 
@@ -259,7 +259,7 @@ namespace N
 
         End Function
 
-        <WorkItem(1107453)>
+        <WorkItem(1107453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107453")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCodeTypeFromFullName_Generated_NonGenerated() As Task
 

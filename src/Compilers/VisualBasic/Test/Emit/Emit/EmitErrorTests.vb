@@ -165,7 +165,7 @@ Interface I
 ]]></errors>)
         End Sub
 
-        <WorkItem(540610, "DevDiv")>
+        <WorkItem(540610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540610")>
         <Fact>
         Public Sub OverrideProperty()
             CompileAndVerify(
@@ -200,7 +200,7 @@ End Module
     </compilation>)
         End Sub
 
-        <WorkItem(540577, "DevDiv")>
+        <WorkItem(540577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540577")>
         <Fact>
         Public Sub AddErrorCompRef()
             Dim comp1 = CreateCompilationWithMscorlib(
@@ -224,7 +224,7 @@ End Module
             comp2.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(540643, "DevDiv")>
+        <WorkItem(540643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540643")>
         <Fact>
         Public Sub PEVerifyOverrides()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -281,7 +281,7 @@ End Module
 
         End Sub
 
-        <WorkItem(540536, "DevDiv")>
+        <WorkItem(540536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540536")>
         <Fact>
         Public Sub SkipCodeGenIfErrorExist()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -329,7 +329,7 @@ True
 ]]>)
         End Sub
 
-        <WorkItem(540659, "DevDiv")>
+        <WorkItem(540659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540659")>
         <Fact>
         Public Sub LambdaForSub()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -353,7 +353,7 @@ Hello Bug 7002
 ]]>)
         End Sub
 
-        <WorkItem(540658, "DevDiv")>
+        <WorkItem(540658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540658")>
         <Fact>
         Public Sub LambdaTest1()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -396,7 +396,7 @@ BC31143: Method 'Public Sub Foo(Of T)(x As T, y As T)' does not have a signature
 </expected>)
         End Sub
 
-        <WorkItem(528232, "DevDiv")>
+        <WorkItem(528232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528232")>
         <Fact()>
         Public Sub LambdaTest3()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -416,7 +416,7 @@ End Module
             CompileAndVerify(comp1)
         End Sub
 
-        <WorkItem(540660, "DevDiv")>
+        <WorkItem(540660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540660")>
         <Fact>
         Public Sub LambdaTest4()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -442,7 +442,7 @@ BC36673: Multiline lambda expression is missing 'End Sub'.
 </expected>)
         End Sub
 
-        <WorkItem(528233, "DevDiv")>
+        <WorkItem(528233, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528233")>
         <Fact()>
         Public Sub LambdaTest5()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -464,7 +464,7 @@ End Module
         End Sub
 
 
-        <WorkItem(541360, "DevDiv")>
+        <WorkItem(541360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541360")>
         <Fact>
         Public Sub ERR_30500_CircularEvaluation1()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -491,7 +491,7 @@ End Module
                 )
         End Sub
 
-        <Fact(), WorkItem(543653, "DevDiv")>
+        <Fact(), WorkItem(543653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543653")>
         Public Sub CompareToOnDecimalTypeChar()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -513,7 +513,7 @@ End Module
 
 #Region "Mixed Error Tests"
 
-        <Fact, WorkItem(530211, "DevDiv")>
+        <Fact, WorkItem(530211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530211")>
         Public Sub ModuleNameMismatch()
             Dim netModule = CreateCompilationWithMscorlib(
     <compilation name="ModuleNameMismatch">

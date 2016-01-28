@@ -36,7 +36,7 @@ Class Foo
 End Class</File>, {"Global"})
         End Function
 
-        <WorkItem(542207)>
+        <WorkItem(542207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542207")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AttributeScopesInFileAtStartOfMalformedAttributeTest() As Task
@@ -54,7 +54,7 @@ End Class
 </File>, "Assembly", "Module")
         End Function
 
-        <WorkItem(530953)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AttributeScopesAfterEolTest() As Task
             Await VerifyRecommendationsContainAsync(<File>

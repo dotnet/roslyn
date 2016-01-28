@@ -250,7 +250,7 @@ End Class
             Assert.Equal(expectedErrorMessage, errorMessage)
         End Sub
 
-        <WorkItem(1101888)>
+        <WorkItem(1101888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101888")>
         <Fact>
         Public Sub Repro1101888()
             Const source = "
@@ -316,7 +316,7 @@ End Class
             testData.GetMethodData("<>x.<>m0").VerifyIL(String.Format(expectedIlTemplate, "$VB$ResumableLocal_w$3"))
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub AsyncLambda_Instance_CaptureNothing()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "1")
@@ -355,7 +355,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "ch")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub AsyncLambda_Instance_CaptureLocal()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "x")
@@ -409,7 +409,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "ch", "x")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub AsyncLambda_Instance_CaptureParameter()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "u1.GetHashCode()")
@@ -463,7 +463,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "ch", "u1")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub AsyncLambda_Instance_CaptureLambdaParameter()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "ch.GetHashCode()")
@@ -502,7 +502,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "ch")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub AsyncLambda_Instance_CaptureThis()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "t1.GetHashCode()")
@@ -556,7 +556,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "Me", "ch")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub AsyncLambda_Instance_CaptureThisAndLocal()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "", "x + t1.GetHashCode()")
@@ -626,7 +626,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "Me", "ch", "x")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub AsyncLambda_Static_CaptureNothing()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "Shared", "1")
@@ -665,7 +665,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "ch")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub AsyncLambda_Static_CaptureLocal()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "Shared", "x")
@@ -719,7 +719,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "ch", "x")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub AsyncLambda_Static_CaptureParameter()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "Shared", "u1.GetHashCode()")
@@ -772,7 +772,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "ch", "u1")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub AsyncLambda_Static_CaptureLambdaParameter()
             Dim source = String.Format(s_asyncLambdaSourceTemplate, "Shared", "ch.GetHashCode()")
@@ -811,7 +811,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "ch")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub GenericAsyncLambda_Instance_CaptureNothing()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "1")
@@ -856,7 +856,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "ch", "<>TypeVariables")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub GenericAsyncLambda_Instance_CaptureLocal()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "x")
@@ -916,7 +916,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "ch", "x", "<>TypeVariables")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub GenericAsyncLambda_Instance_CaptureParameter()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "u1.GetHashCode()")
@@ -976,7 +976,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "ch", "u1", "<>TypeVariables")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub GenericAsyncLambda_Instance_CaptureLambdaParameter()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "ch.GetHashCode()")
@@ -1021,7 +1021,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "ch", "<>TypeVariables")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub GenericAsyncLambda_Instance_CaptureThis()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "t1.GetHashCode()")
@@ -1081,7 +1081,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "Me", "ch", "<>TypeVariables")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub GenericAsyncLambda_Instance_CaptureThisAndLocal()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "", "x + t1.GetHashCode()")
@@ -1157,7 +1157,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "Me", "ch", "x", "<>TypeVariables")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub GenericAsyncLambda_Static_CaptureNothing()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "Shared", "1")
@@ -1202,7 +1202,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "ch", "<>TypeVariables")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub GenericAsyncLambda_Static_CaptureLocal()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "Shared", "x")
@@ -1262,7 +1262,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "ch", "x", "<>TypeVariables")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub GenericAsyncLambda_Static_CaptureParameter()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "Shared", "u1.GetHashCode()")
@@ -1322,7 +1322,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "ch", "u1", "<>TypeVariables")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub GenericAsyncLambda_Static_CaptureLambdaParameter()
             Dim source = String.Format(s_genericAsyncLambdaSourceTemplate, "Shared", "ch.GetHashCode()")
@@ -1367,7 +1367,7 @@ End Class
             AssertEx.SetEqual(GetLocalNames(context), "ch", "<>TypeVariables")
         End Sub
 
-        <WorkItem(1134746, "DevDiv")>
+        <WorkItem(1134746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1134746")>
         <Fact>
         Public Sub CacheInvalidation()
             Const source = "

@@ -365,7 +365,7 @@ End Class
             Await TestAsync(text, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(694262)>
+        <WorkItem(694262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694262")>
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Async Function TestPreserveTrivia() As Task
             Dim text = <File>
@@ -392,7 +392,7 @@ End Class
             Await TestAsync(text, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(694241)>
+        <WorkItem(694241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694241")>
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Async Function TestNewPropertyNameIsUnique() As Task
             Dim text = <File>
@@ -435,7 +435,7 @@ End Class
             Await TestAsync(text, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(695046)>
+        <WorkItem(695046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695046")>
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Async Function TestAvailableNotJustOnVariableName() As Task
             Dim text = <File>
@@ -446,7 +446,7 @@ End Class</File>.ConvertTestSourceTag()
             Await TestActionCountAsync(text, 2)
         End Function
 
-        <WorkItem(705898)>
+        <WorkItem(705898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705898")>
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Async Function TestCopyAccessibility() As Task
             Dim text = <File>
@@ -471,7 +471,7 @@ End Class</File>.ConvertTestSourceTag()
             Await TestAsync(text, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(707080)>
+        <WorkItem(707080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707080")>
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Async Function TestBackingFieldStartsWithUnderscore() As Task
             Dim text = <File>

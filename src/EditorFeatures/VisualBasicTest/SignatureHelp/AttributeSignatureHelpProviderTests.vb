@@ -192,7 +192,7 @@ End Class
             Await VerifyCurrentParameterNameAsync(markupWithPosition:=markup, expectedParameterName:="y")
         End Function
 
-        <WorkItem(1094379)>
+        <WorkItem(1094379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094379")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestAttributeSigHelpWithNoArgumentList() As Task
             Dim markup = "

@@ -174,7 +174,7 @@ NewLines("Module Program \n Sub Main() \n I[||]f a Xor b Then a() Else b() \n En
 NewLines("Module Program \n Sub Main() \n If Not (a Xor b) Then b() Else a() \n End Sub \n End Module"))
         End Function
 
-        <WorkItem(545411)>
+        <WorkItem(545411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545411")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestXor2() As Task
             Await TestAsync(
@@ -229,14 +229,14 @@ NewLines("Module Program \n Sub Main() \n #ExternalSource File.vb 1 \n [||]If a 
 NewLines("Module Program \n Sub Main() \n #ExternalSource File.vb 1 \n If Not a Then \n b() \n Else \n a() \n End If \n #End ExternalSource \n End Sub \n End Module"))
         End Function
 
-        <WorkItem(529624)>
+        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestMissingOnOverlapsHiddenPosition1() As Task
             Await TestMissingAsync(
 NewLines("Module Program \n Sub Main() \n [||]If a Then \n #ExternalSource File.vb 1 \n a() \n #End ExternalSource \n Else \n b() \n End If \n End Sub \n End Module"))
         End Function
 
-        <WorkItem(529624)>
+        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestMissingOnOverlapsHiddenPosition2() As Task
             Await TestMissingAsync(
@@ -249,21 +249,21 @@ NewLines("Module Program \n Sub Main() \n If a Then \n a() \n [||]Else If b Then
 NewLines("Module Program \n Sub Main() \n [||]If a Then \n a() \n #ExternalSource File.vb 1 \n Else If b Then \n b() \n #End ExternalSource \n Else \n c() \n End If \n End Sub \n End Module"))
         End Function
 
-        <WorkItem(529624)>
+        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestMissingOnOverlapsHiddenPosition4() As Task
             Await TestMissingAsync(
 NewLines("Module Program \n Sub Main() \n [||]If a Then \n a() \n Else \n #ExternalSource File.vb 1 \n b() \n #End ExternalSource \n End If \n End Sub \n End Module"))
         End Function
 
-        <WorkItem(529624)>
+        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestMissingOnOverlapsHiddenPosition5() As Task
             Await TestMissingAsync(
 NewLines("Module Program \n Sub Main() \n [||]If a Then \n #ExternalSource File.vb 1 \n a() \n Else \n b() \n #End ExternalSource \n End If \n End Sub \n End Module"))
         End Function
 
-        <WorkItem(529624)>
+        <WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestMissingOnOverlapsHiddenPosition6() As Task
             Await TestMissingAsync(
@@ -374,8 +374,8 @@ NewLines("Module Program \n Sub Main(args As String()) \n Dim x As String \n [||
 NewLines("Module Program \n Sub Main(args As String()) \n Dim x As String \n If x.Length <= 0.0 Then \n b() \n Else \n a() \n End If \n End Sub \n End Module"))
         End Function
 
-        <WorkItem(529748)>
-        <WorkItem(530593)>
+        <WorkItem(529748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529748")>
+        <WorkItem(530593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530593")>
         <WpfFact(Skip:="Bug 530593"), Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestColonAfterSingleLineIfWithEmptyElse() As Task
             Await TestAsync(
@@ -383,8 +383,8 @@ NewLines("Module Program \n Sub Main() \n ' Invert If \n I[||]f False Then Retur
 NewLines("Module Program \n Sub Main() \n ' Invert If \n If True Then  Else Return \n Console.WriteLine(1) \n End Sub \n End Module"))
         End Function
 
-        <WorkItem(529749)>
-        <WorkItem(530593)>
+        <WorkItem(529749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529749")>
+        <WorkItem(530593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530593")>
         <WpfFact(Skip:="Bug 530593"), Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestNestedSingleLineIfs() As Task
             Await TestAsync(
@@ -392,7 +392,7 @@ NewLines("Module Program \n Sub Main() \n ' Invert the 1st If \n I[||]f True The
 NewLines("Module Program \n Sub Main() \n ' Invert the 1st If \n If False Then If True Then Return Else : Else Console.WriteLine(1) \n End Sub \n End Module"))
         End Function
 
-        <WorkItem(529747)>
+        <WorkItem(529747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529747")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestTryToParenthesizeAwkwardSyntaxInsideSingleLineLambda() As Task
             Await TestAsync(
@@ -400,28 +400,28 @@ NewLines("Module Program \n Sub Main() \n ' Invert If \n Dim x = Sub() I[||]f Tr
 NewLines("Module Program \n Sub Main() \n ' Invert If \n Dim x = (Sub() If False Then Console.WriteLine() Else Dim y), z = 1 \n End Sub \n End Module"))
         End Function
 
-        <WorkItem(529756)>
+        <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestOnlyOnIfOfSingleLineIf() As Task
             Await TestMissingAsync(
 NewLines("Module Program \n Sub Main(args As String()) \n If True [||] Then Return Else Console.WriteLine(""a"")\n End Sub \n End Module"))
         End Function
 
-        <WorkItem(529756)>
+        <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestOnlyOnElseIf() As Task
             Await TestMissingAsync(
 NewLines("Module Program \n Sub Main(args As String()) \n If False Then \n Return \n ElseIf True [||] Then \n Console.WriteLine(""b"") \n Else \n Console.WriteLine(""a"") \n End If \n End Sub \n End Module"))
         End Function
 
-        <WorkItem(529756)>
+        <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestOnlyOnIfOfMultiLine() As Task
             Await TestMissingAsync(
 NewLines("Module Program \n Sub Main(args As String()) \n If [||]False Then \n Return \n Else \n Console.WriteLine(""a"") \n End If \n End Sub \n End Module"))
         End Function
 
-        <WorkItem(531101)>
+        <WorkItem(531101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531101")>
         <WpfFact(Skip:="531101"), Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestImplicitLineContinuationBeforeClosingParenIsRemoved() As Task
             Dim markup =
@@ -442,7 +442,7 @@ End If
             Await TestAsync(markup, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(529746)>
+        <WorkItem(529746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529746")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestEscapeKeywordsIfNeeded1() As Task
             Dim markup =
@@ -474,7 +474,7 @@ End Module
             Await TestAsync(markup, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(531471)>
+        <WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestEscapeKeywordsIfNeeded2() As Task
             Dim markup =
@@ -506,7 +506,7 @@ End Module
             Await TestAsync(markup, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(531471)>
+        <WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestEscapeKeywordsIfNeeded3() As Task
             Dim markup =
@@ -538,7 +538,7 @@ End Module
             Await TestAsync(markup, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(531472)>
+        <WorkItem(531472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531472")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestEscapeKeywordsIfNeeded4() As Task
             Dim markup =
@@ -566,7 +566,7 @@ End Module
             Await TestAsync(markup, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(531475)>
+        <WorkItem(531475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531475")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestEscapeKeywordsIfNeeded5() As Task
             Dim markup =
@@ -598,7 +598,7 @@ End Module
             Await TestAsync(markup, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(545700)>
+        <WorkItem(545700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545700")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestAddEmptyArgumentListIfNeeded() As Task
             Dim markup =
@@ -630,7 +630,7 @@ End Module
             Await TestAsync(markup, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(531474)>
+        <WorkItem(531474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531474")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestDoNotRemoveTypeCharactersDuringComplexification() As Task
             Dim markup =
@@ -670,7 +670,7 @@ End Module
             Await TestAsync(markup, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(530758)>
+        <WorkItem(530758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530758")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestParenthesizeToKeepParseTheSame1() As Task
             Dim markup =
@@ -694,7 +694,7 @@ End Module
             Await TestAsync(markup, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(607862)>
+        <WorkItem(607862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607862")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestParenthesizeToKeepParseTheSame2() As Task
             Dim markup =

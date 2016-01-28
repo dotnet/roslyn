@@ -36,7 +36,7 @@ class Program
 }           ", "Vain(string.Empty)", true);
         }
 
-        [Fact, WorkItem(672396)]
+        [Fact, WorkItem(672396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672396")]
         public void SpeculationAnalyzerExtensionMethodExplicitInvocation()
         {
             Test(@"
@@ -301,7 +301,7 @@ class Collection : IEnumerable
 }           ", "5", true);
         }
 
-        [Fact, WorkItem(1088815)]
+        [Fact, WorkItem(1088815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088815")]
         public void SpeculationAnalyzerBrokenCode()
         {
             Test(@"

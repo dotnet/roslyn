@@ -2579,7 +2579,7 @@ End Class
             Next
         End Sub
 
-        <WorkItem(697178, "DevDiv")>
+        <WorkItem(697178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697178")>
         <Fact>
         Public Sub ConstructedSpecialTypes()
             Dim source =
@@ -2631,7 +2631,7 @@ BC30002: Type 'Missing' is not defined.
 ]]></errors>)
         End Sub
 
-        <WorkItem(709317, "DevDiv")>
+        <WorkItem(709317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709317")>
         <Fact>
         Public Sub Repro709317()
             Dim libSource =
@@ -2671,7 +2671,7 @@ End Class
             comp.GetDiagnosticsForSyntaxTree(CompilationStage.Declare, tree)
         End Sub
 
-        <WorkItem(709317, "DevDiv")>
+        <WorkItem(709317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709317")>
         <Fact>
         Public Sub FilterTree()
             Dim sourceTemplate = <![CDATA[
@@ -2762,7 +2762,7 @@ BC40027: Return type of function 'P' is not CLS-compliant.
 ]]></errors>)
         End Sub
 
-        <WorkItem(718503, "DevDiv")>
+        <WorkItem(718503, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718503")>
         <Fact>
         Public Sub ErrorTypeAccessibility()
             Dim source =
@@ -3579,7 +3579,7 @@ BC40027: Return type of function 'F' is not CLS-compliant.
             ]]></errors>)
         End Sub
 
-        <WorkItem(749432, "DevDiv")>
+        <WorkItem(749432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749432")>
         <Fact>
         Public Sub InvalidAttributeArgument()
             Dim source =
@@ -3611,7 +3611,7 @@ BC30059: Constant expression is required.
             ]]></errors>)
         End Sub
 
-        <WorkItem(749352, "DevDiv")>
+        <WorkItem(749352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749352")>
         <Fact>
         Public Sub Repro749352()
             Dim source =
@@ -3642,7 +3642,7 @@ BC40030: event 'Public Event Scen6(x As Integer)' cannot be marked CLS-compliant
             ]]></errors>)
         End Sub
 
-        <Fact, WorkItem(1026453, "DevDiv")>
+        <Fact, WorkItem(1026453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1026453")>
         Public Sub Bug1026453()
             Dim source1 =
                 <compilation>

@@ -1031,7 +1031,7 @@ foo
 ]]>)
         End Sub
 
-        <WorkItem(542068, "DevDiv")>
+        <WorkItem(542068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542068")>
         <Fact>
         Public Sub DelegateBindingForGenericMethods01b()
             For Each OptionStrict In {"On", "Off"}
@@ -1097,7 +1097,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem(543083, "DevDiv")>
+        <WorkItem(543083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543083")>
         <Fact()>
         Public Sub AddressOfOfCurrentMethod()
             Dim source =
@@ -1211,7 +1211,7 @@ BC36625: Lambda expression cannot be converted to 'Expression(Of Byte)' because 
             Next
         End Sub
 
-        <WorkItem(546014, "DevDiv")>
+        <WorkItem(546014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546014")>
         <Fact>
         Public Sub Bug14947()
             Dim source =

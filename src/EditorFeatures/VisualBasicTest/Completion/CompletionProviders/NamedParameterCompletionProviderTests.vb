@@ -67,7 +67,7 @@ End Class
 </Text>.Value, "a:=")
         End Function
 
-        <WorkItem(546190)>
+        <WorkItem(546190, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546190")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAttributeNamedParameter1() As Task
             Await VerifyItemExistsAsync(
@@ -278,7 +278,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "str:=")
         End Function
 
-        <WorkItem(529370)>
+        <WorkItem(529370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529370")>
         <WpfFact(Skip:="529370"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestKeywordAsEscapedIdentifier() As Task
             Await VerifyItemExistsAsync(
@@ -291,7 +291,7 @@ End Class
 </Text>.Value, "[Boolean]:=")
         End Function
 
-        <WorkItem(546589)>
+        <WorkItem(546589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546589")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitOnEquals() As Task
             Dim text = <Text>
@@ -373,7 +373,7 @@ End Class
 </Text>.Value)
         End Function
 
-        <WorkItem(1041260)>
+        <WorkItem(1041260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041260")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestConditionalInvocation() As Task
             Await VerifyItemExistsAsync(
@@ -388,7 +388,7 @@ End Class
 </Text>.Value, "obj:=")
         End Function
 
-        <WorkItem(1040247)>
+        <WorkItem(1040247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040247")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExclusivityCheckAfterComma() As Task
             Await VerifyAnyItemExistsAsync(

@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [WorkItem(611805, "DevDiv")]
+        [WorkItem(611805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611805")]
         [Fact]
         public void TestMultithreadedDecoding()
         {

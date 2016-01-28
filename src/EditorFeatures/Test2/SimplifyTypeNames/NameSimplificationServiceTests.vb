@@ -222,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.Services.Editor.UnitTests.CodeActions.SimplifyT
             End Using
         End Sub
 
-        <WorkItem(547117)>
+        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub VisualBasic_TestGetChanges_SimplifyTypeName_Array_1()
             Dim input =
@@ -254,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.Services.Editor.UnitTests.CodeActions.SimplifyT
             Test(input, expected)
         End Sub
 
-        <WorkItem(547117)>
+        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub VisualBasic_TestGetChanges_SimplifyTypeName_Array_2()
             Dim input =

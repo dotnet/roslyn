@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidQM, "1 ? null : null").WithArguments("<null>", "<null>"));
         }
 
-        [WorkItem(545408, "DevDiv")]
+        [WorkItem(545408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545408")]
         [Fact]
         public void TestDelegateCovarianceConversions()
         {
@@ -309,7 +309,7 @@ D");
 }");
         }
 
-        [WorkItem(545408, "DevDiv")]
+        [WorkItem(545408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545408")]
         [Fact]
         public void TestDelegateContravarianceConversions()
         {
@@ -410,7 +410,7 @@ class Program
 }");
         }
 
-        [WorkItem(545408, "DevDiv")]
+        [WorkItem(545408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545408")]
         [Fact]
         public void TestInterfaceCovarianceConversions()
         {
@@ -509,7 +509,7 @@ class Program
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
-        [WorkItem(545408, "DevDiv")]
+        [WorkItem(545408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545408")]
         [Fact]
         public void TestInterfaceContravarianceConversions()
         {
@@ -950,7 +950,7 @@ class Program
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
-        [WorkItem(545408, "DevDiv")]
+        [WorkItem(545408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545408")]
         [Fact]
         public void TestVarianceConversions()
         {
@@ -1164,7 +1164,7 @@ System.Collections.Generic.List`1[System.Int32]
 ");
         }
 
-        [WorkItem(528424, "DevDiv")]
+        [WorkItem(528424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528424")]
         [Fact()]
         public void TestErrorOperand()
         {

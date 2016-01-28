@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             presenterSession.Verify(Sub(p) p.Dismiss(), Times.Once)
         End Sub
 
-        <WpfFact(), WorkItem(1106729)>
+        <WpfFact(), WorkItem(1106729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106729")>
         Public Sub PresenterUpdatesExistingSessionIfNotDismissed()
             Dim broker = New Mock(Of IQuickInfoBroker)()
             Dim presenter As IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession) = New QuickInfoPresenter(broker.Object)

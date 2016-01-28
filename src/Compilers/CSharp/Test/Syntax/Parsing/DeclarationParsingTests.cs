@@ -4988,7 +4988,7 @@ class Class1<T>{
             Assert.Equal((int)ErrorCode.ERR_UnexpectedGenericName, ns.Name.Errors()[0].Code);
         }
 
-        [WorkItem(537690, "DevDiv")]
+        [WorkItem(537690, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537690")]
         [Fact]
         public void TestMissingSemicolonAfterListInitializer()
         {
@@ -5006,7 +5006,7 @@ class Program {
             Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[0].Code);
         }
 
-        [WorkItem(539120, "DevDiv")]
+        [WorkItem(539120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539120")]
         [Fact]
         public void TestEscapedConstructor()
         {
@@ -5022,7 +5022,7 @@ class @class
             Assert.Equal(0, file.Errors().Length);
         }
 
-        [WorkItem(536956, "DevDiv")]
+        [WorkItem(536956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536956")]
         [Fact]
         public void TestAnonymousMethodWithDefaultParameter()
         {
@@ -5042,7 +5042,7 @@ class C {
             Assert.Equal((int)ErrorCode.ERR_DefaultValueNotAllowed, file.Errors()[0].Code);
         }
 
-        [WorkItem(537865, "DevDiv")]
+        [WorkItem(537865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537865")]
         [Fact]
         public void RegressIfDevTrueUnicode()
         {
@@ -5063,7 +5063,7 @@ System.Console.WriteLine(""Bad, breaking change"");
             TestConditionalCompilation(text, desiredText: "Good", undesiredText: "Bad");
         }
 
-        [WorkItem(537815, "DevDiv")]
+        [WorkItem(537815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537815")]
         [Fact]
         public void RegressLongDirectiveIdentifierDefn()
         {
@@ -5087,7 +5087,7 @@ System.Console.WriteLine(""Bad, breaking change"");
             TestConditionalCompilation(text, desiredText: "Good", undesiredText: "Bad");
         }
 
-        [WorkItem(537815, "DevDiv")]
+        [WorkItem(537815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537815")]
         [Fact]
         public void RegressLongDirectiveIdentifierUse()
         {

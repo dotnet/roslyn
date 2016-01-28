@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             Assert.Equal(SourceHashAlgorithm.Sha256, SourceText.From(stream, checksumAlgorithm: SourceHashAlgorithm.Sha256).ChecksumAlgorithm);
         }
 
-        [WorkItem(7225)]
+        [WorkItem(7225, "https://github.com/dotnet/roslyn/issues/7225")]
         [Fact]
         public void ChecksumAndBOM()
         {

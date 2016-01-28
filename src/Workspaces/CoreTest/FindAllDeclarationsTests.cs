@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             });
         }
 
-        [Fact, WorkItem(1094411, "DevDiv")]
+        [Fact, WorkItem(1094411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094411")]
         public static async Task FindDeclarationsAsync_Metadata()
         {
             var solution = CreateSolution();

@@ -169,6 +169,12 @@
     <value>MSB3104: The referenced assembly "{0}" was not found. If this assembly is produced by another one of your projects, please make sure to build that project before building this one.</value>
     <comment>{StrBegin="MSB3104: "}</comment>
   </data>
+  <data name="SharedCompilationFallback" xml:space="preserve">
+    <value>Shared compilation failed; falling back to tool: {0}</value>
+  </data>
+  <data name="UsingSharedCompilation" xml:space="preserve">
+    <value>Using shared compilation with compiler from directory: {0}</value>
+  </data>
   <data name="Vbc_EnumParameterHasInvalidValue" xml:space="preserve">
     <value>MSB3401: "{1}" is an invalid value for the "{0}" parameter.  The valid values are: {2}</value>
     <comment>{StrBegin="MSB3401: "}</comment>
