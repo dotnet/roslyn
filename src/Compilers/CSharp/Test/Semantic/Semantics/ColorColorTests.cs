@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -1745,22 +1748,32 @@ public class Example
     public Lifetime Lifetime => Lifetime.Persistent;
     //                          ^^^^^^^^
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics();
+           CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll)
+                .VerifyAnalyzerOccurrenceCount(new[] { new ColorColorSymbolInfoInArrowExpressionClauseSyntaxAnalyzer() }, 0);
+        }
 
-            var syntaxTree = comp.SyntaxTrees[0];
-            var syntaxRoot = syntaxTree.GetRoot();
+        class ColorColorSymbolInfoInArrowExpressionClauseSyntaxAnalyzer : DiagnosticAnalyzer
+        {
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
 
-            var semanticModel = comp.GetSemanticModel(syntaxTree, false);
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
 
-            var nameSyntax = syntaxRoot.FindNode(TextSpan.FromBounds(130, 138));
-            Assert.Equal("Lifetime", nameSyntax.ToString());
-            Assert.Equal("Lifetime.Persistent", nameSyntax.Parent.ToString());
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(HandleMemberAccessExpression, SyntaxKind.SimpleMemberAccessExpression);
+            }
 
-            var actualSymbol = semanticModel.GetSymbolInfo(nameSyntax);
+            private void HandleMemberAccessExpression(SyntaxNodeAnalysisContext context)
+            {
+                var memberAccessExpression = context.Node as MemberAccessExpressionSyntax;
 
-            Assert.Equal("Lifetime", actualSymbol.Symbol.ToTestDisplayString());
-            Assert.Equal(SymbolKind.NamedType, actualSymbol.Symbol.Kind);
+                var actualSymbol = context.SemanticModel.GetSymbolInfo(memberAccessExpression.Expression);
+
+                Assert.Equal("Lifetime", actualSymbol.Symbol.ToTestDisplayString());
+                Assert.Equal(SymbolKind.NamedType, actualSymbol.Symbol.Kind);
+            }
         }
 
         #endregion Regression cases
