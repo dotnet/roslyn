@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -83,23 +84,10 @@ public interface I
 }";
             var compilationPIA = CreateCompilationWithMscorlib(sourcePIA, options: TestOptions.DebugDll);
             var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: Guid.NewGuid().ToString("D"),
-                references: new MetadataReference[] { referencePIA });
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            compilation0.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-            // References should not include PIA.
-            Assert.Equal(references.Length, 1);
-            Assert.True(references[0].Display.StartsWith("mscorlib", StringComparison.Ordinal));
-            var runtime = CreateRuntimeInstance(
-                Guid.NewGuid().ToString("D"),
-                references,
-                exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes));
+
+            var compilation0 = CreateCompilationWithMscorlib(source, new[] { referencePIA }, TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(compilation0);
+
             var context = CreateMethodContext(runtime, "C.M");
             string error;
             var testData = new CompilationTestData();
@@ -149,8 +137,8 @@ public interface I
     }
 }";
             var compilationPIA = CreateCompilationWithMscorlib(sourcePIA, options: TestOptions.DebugDll);
-            byte[] exePIA;
-            byte[] pdbPIA;
+            ImmutableArray<byte> exePIA;
+            ImmutableArray<byte> pdbPIA;
             ImmutableArray<MetadataReference> referencesPIA;
             compilationPIA.EmitAndGetReferences(out exePIA, out pdbPIA, out referencesPIA);
             var metadataPIA = AssemblyMetadata.CreateFromImage(exePIA);
@@ -162,8 +150,8 @@ public interface I
                 options: TestOptions.DebugDll,
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),
                 references: new MetadataReference[] { metadataPIA.GetReference(embedInteropTypes: true) });
-            byte[] exeA;
-            byte[] pdbA;
+            ImmutableArray<byte> exeA;
+            ImmutableArray<byte> pdbA;
             ImmutableArray<MetadataReference> referencesA;
             compilationA.EmitAndGetReferences(out exeA, out pdbA, out referencesA);
             var metadataA = AssemblyMetadata.CreateFromImage(exeA);
@@ -175,8 +163,8 @@ public interface I
                 options: TestOptions.DebugExe,
                 assemblyName: Guid.NewGuid().ToString("D"),
                 references: new MetadataReference[] { metadataA.GetReference(), metadataPIA.GetReference() });
-            byte[] exeB;
-            byte[] pdbB;
+            ImmutableArray<byte> exeB;
+            ImmutableArray<byte> pdbB;
             ImmutableArray<MetadataReference> referencesB;
             compilationB.EmitAndGetReferences(out exeB, out pdbB, out referencesB);
             var metadataB = AssemblyMetadata.CreateFromImage(exeB);
@@ -185,9 +173,9 @@ public interface I
             // Create runtime from modules { mscorlib, PIA, A, B }.
             var modulesBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
             modulesBuilder.Add(MscorlibRef.ToModuleInstance(fullImage: null, symReader: null));
-            modulesBuilder.Add(referenceA.ToModuleInstance(fullImage: exeA, symReader: SymReaderFactory.CreateReader(pdbA)));
+            modulesBuilder.Add(referenceA.ToModuleInstance(fullImage: exeA.ToArray(), symReader: SymReaderFactory.CreateReader(pdbA)));
             modulesBuilder.Add(referencePIA.ToModuleInstance(fullImage: null, symReader: null));
-            modulesBuilder.Add(referenceB.ToModuleInstance(fullImage: exeB, symReader: SymReaderFactory.CreateReader(pdbB)));
+            modulesBuilder.Add(referenceB.ToModuleInstance(fullImage: exeB.ToArray(), symReader: SymReaderFactory.CreateReader(pdbB)));
 
             using (var runtime = new RuntimeInstance(modulesBuilder.ToImmutableAndFree()))
             {

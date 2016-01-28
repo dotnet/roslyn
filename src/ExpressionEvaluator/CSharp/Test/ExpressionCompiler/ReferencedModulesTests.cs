@@ -135,157 +135,141 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 ImmutableArray.Create(mscorlibIdentity, identityAS2, identityBS2));
 
             // Assembly C, multiple versions, not strong name.
-            var assemblyNameC = ExpressionCompilerUtilities.GenerateUniqueName();
             var compilationCN1 = CreateCompilation(
-                new AssemblyIdentity(assemblyNameC, new Version(1, 1, 1, 1)),
+                new AssemblyIdentity("C", new Version(1, 1, 1, 1)),
                 new[] { sourceC },
                 references: new[] { MscorlibRef, referenceBS1 },
                 options: TestOptions.DebugDll);
-            byte[] exeBytesC1;
-            byte[] pdbBytesC1;
-            ImmutableArray<MetadataReference> references;
-            compilationCN1.EmitAndGetReferences(out exeBytesC1, out pdbBytesC1, out references);
-            var compilationCN2 = CreateCompilation(
-                new AssemblyIdentity(assemblyNameC, new Version(2, 1, 1, 1)),
-                new[] { sourceC },
-                references: new[] { MscorlibRef, referenceBS2 },
-                options: TestOptions.DebugDll);
-            byte[] exeBytesC2;
-            byte[] pdbBytesC2;
-            compilationCN1.EmitAndGetReferences(out exeBytesC2, out pdbBytesC2, out references);
 
             // Duplicate assemblies, target module referencing BS1.
-            using (var runtime = CreateRuntimeInstance(
-                assemblyNameC,
-                ImmutableArray.Create(MscorlibRef, referenceAS1, referenceAS2, referenceBS2, referenceBS1, referenceBS2),
-                exeBytesC1,
-                SymReaderFactory.CreateReader(pdbBytesC1)))
-            {
-                ImmutableArray<MetadataBlock> typeBlocks;
-                ImmutableArray<MetadataBlock> methodBlocks;
-                Guid moduleVersionId;
-                ISymUnmanagedReader symReader;
-                int typeToken;
-                int methodToken;
-                int localSignatureToken;
-                GetContextState(runtime, "C", out typeBlocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);
-                GetContextState(runtime, "C.M", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
-                uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
+            var runtime = CreateRuntimeInstance(
+                compilationCN1, 
+                new[] { MscorlibRef, referenceAS1, referenceAS2, referenceBS2, referenceBS1, referenceBS2 });
 
-                // Compile expression with type context with all modules.
-                var context = EvaluationContext.CreateTypeContext(
-                    default(CSharpMetadataContext),
-                    typeBlocks,
-                    moduleVersionId,
-                    typeToken);
-                string error;
-                // A is ambiguous.
-                var testData = new CompilationTestData();
-                context.CompileExpression("new A()", out error, testData);
-                Assert.True(error.StartsWith("error CS0433: The type 'A' exists in both "));
-                testData = new CompilationTestData();
-                // B is ambiguous.
-                context.CompileExpression("new B()", out error, testData);
-                Assert.True(error.StartsWith("error CS0433: The type 'B' exists in both "));
-                var previous = new CSharpMetadataContext(typeBlocks, context);
+            ImmutableArray<MetadataBlock> typeBlocks;
+            ImmutableArray<MetadataBlock> methodBlocks;
+            Guid moduleVersionId;
+            ISymUnmanagedReader symReader;
+            int typeToken;
+            int methodToken;
+            int localSignatureToken;
+            GetContextState(runtime, "C", out typeBlocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);
+            GetContextState(runtime, "C.M", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
+            uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
 
-                // Compile expression with type context with referenced modules only.
-                context = EvaluationContext.CreateTypeContext(
-                    typeBlocks.ToCompilationReferencedModulesOnly(moduleVersionId),
-                    moduleVersionId,
-                    typeToken);
-                // A is unrecognized since there were no direct references to AS1 or AS2.
-                testData = new CompilationTestData();
-                context.CompileExpression("new A()", out error, testData);
-                Assert.Equal(error, "error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)");
-                testData = new CompilationTestData();
-                // B should be resolved to BS2.
-                context.CompileExpression("new B()", out error, testData);
-                var methodData = testData.GetMethodData("<>x.<>m0");
-                methodData.VerifyIL(
+            // Compile expression with type context with all modules.
+            var context = EvaluationContext.CreateTypeContext(
+                default(CSharpMetadataContext),
+                typeBlocks,
+                moduleVersionId,
+                typeToken);
+            string error;
+            // A is ambiguous.
+            var testData = new CompilationTestData();
+            context.CompileExpression("new A()", out error, testData);
+            Assert.True(error.StartsWith("error CS0433: The type 'A' exists in both "));
+            testData = new CompilationTestData();
+            // B is ambiguous.
+            context.CompileExpression("new B()", out error, testData);
+            Assert.True(error.StartsWith("error CS0433: The type 'B' exists in both "));
+            var previous = new CSharpMetadataContext(typeBlocks, context);
+
+            // Compile expression with type context with referenced modules only.
+            context = EvaluationContext.CreateTypeContext(
+                typeBlocks.ToCompilationReferencedModulesOnly(moduleVersionId),
+                moduleVersionId,
+                typeToken);
+            // A is unrecognized since there were no direct references to AS1 or AS2.
+            testData = new CompilationTestData();
+            context.CompileExpression("new A()", out error, testData);
+            Assert.Equal(error, "error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)");
+            testData = new CompilationTestData();
+            // B should be resolved to BS2.
+            context.CompileExpression("new B()", out error, testData);
+            var methodData = testData.GetMethodData("<>x.<>m0");
+            methodData.VerifyIL(
 @"{
-  // Code size        6 (0x6)
-  .maxstack  1
-  IL_0000:  newobj     ""B..ctor()""
-  IL_0005:  ret
+// Code size        6 (0x6)
+.maxstack  1
+IL_0000:  newobj     ""B..ctor()""
+IL_0005:  ret
 }");
-                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityBS2.GetDisplayName());
-                // B.F should result in missing assembly AS2 since there were no direct references to AS2.
-                ResultProperties resultProperties;
-                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-                testData = new CompilationTestData();
-                context.CompileExpression(
-                    "(new B()).F",
-                    DkmEvaluationFlags.None,
-                    NoAliases,
-                    DebuggerDiagnosticFormatter.Instance,
-                    out resultProperties,
-                    out error,
-                    out missingAssemblyIdentities,
-                    EnsureEnglishUICulture.PreferredOrNull,
-                    testData);
-                AssertEx.Equal(missingAssemblyIdentities, ImmutableArray.Create(identityAS2));
+            Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityBS2.GetDisplayName());
+            // B.F should result in missing assembly AS2 since there were no direct references to AS2.
+            ResultProperties resultProperties;
+            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+            testData = new CompilationTestData();
+            context.CompileExpression(
+                "(new B()).F",
+                DkmEvaluationFlags.None,
+                NoAliases,
+                DebuggerDiagnosticFormatter.Instance,
+                out resultProperties,
+                out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData);
+            AssertEx.Equal(missingAssemblyIdentities, ImmutableArray.Create(identityAS2));
 
-                // Compile expression with method context with all modules.
-                context = EvaluationContext.CreateMethodContext(
-                    previous,
-                    methodBlocks,
-                    symReader,
-                    moduleVersionId,
-                    methodToken: methodToken,
-                    methodVersion: 1,
-                    ilOffset: ilOffset,
-                    localSignatureToken: localSignatureToken);
-                Assert.Equal(previous.Compilation, context.Compilation); // re-use type context compilation
-                testData = new CompilationTestData();
-                // A is ambiguous.
-                testData = new CompilationTestData();
-                context.CompileExpression("new A()", out error, testData);
-                Assert.True(error.StartsWith("error CS0433: The type 'A' exists in both "));
-                testData = new CompilationTestData();
-                // B is ambiguous.
-                context.CompileExpression("new B()", out error, testData);
-                Assert.True(error.StartsWith("error CS0433: The type 'B' exists in both "));
+            // Compile expression with method context with all modules.
+            context = EvaluationContext.CreateMethodContext(
+                previous,
+                methodBlocks,
+                symReader,
+                moduleVersionId,
+                methodToken: methodToken,
+                methodVersion: 1,
+                ilOffset: ilOffset,
+                localSignatureToken: localSignatureToken);
+            Assert.Equal(previous.Compilation, context.Compilation); // re-use type context compilation
+            testData = new CompilationTestData();
+            // A is ambiguous.
+            testData = new CompilationTestData();
+            context.CompileExpression("new A()", out error, testData);
+            Assert.True(error.StartsWith("error CS0433: The type 'A' exists in both "));
+            testData = new CompilationTestData();
+            // B is ambiguous.
+            context.CompileExpression("new B()", out error, testData);
+            Assert.True(error.StartsWith("error CS0433: The type 'B' exists in both "));
 
-                // Compile expression with method context with referenced modules only.
-                context = EvaluationContext.CreateMethodContext(
-                    methodBlocks.ToCompilationReferencedModulesOnly(moduleVersionId),
-                    symReader,
-                    moduleVersionId,
-                    methodToken: methodToken,
-                    methodVersion: 1,
-                    ilOffset: ilOffset,
-                    localSignatureToken: localSignatureToken);
-                // A is unrecognized since there were no direct references to AS1 or AS2.
-                testData = new CompilationTestData();
-                context.CompileExpression("new A()", out error, testData);
-                Assert.Equal(error, "error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)");
-                testData = new CompilationTestData();
-                // B should be resolved to BS2.
-                context.CompileExpression("new B()", out error, testData);
-                methodData = testData.GetMethodData("<>x.<>m0");
-                methodData.VerifyIL(
+            // Compile expression with method context with referenced modules only.
+            context = EvaluationContext.CreateMethodContext(
+                methodBlocks.ToCompilationReferencedModulesOnly(moduleVersionId),
+                symReader,
+                moduleVersionId,
+                methodToken: methodToken,
+                methodVersion: 1,
+                ilOffset: ilOffset,
+                localSignatureToken: localSignatureToken);
+            // A is unrecognized since there were no direct references to AS1 or AS2.
+            testData = new CompilationTestData();
+            context.CompileExpression("new A()", out error, testData);
+            Assert.Equal(error, "error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)");
+            testData = new CompilationTestData();
+            // B should be resolved to BS2.
+            context.CompileExpression("new B()", out error, testData);
+            methodData = testData.GetMethodData("<>x.<>m0");
+            methodData.VerifyIL(
 @"{
-  // Code size        6 (0x6)
-  .maxstack  1
-  IL_0000:  newobj     ""B..ctor()""
-  IL_0005:  ret
+// Code size        6 (0x6)
+.maxstack  1
+IL_0000:  newobj     ""B..ctor()""
+IL_0005:  ret
 }");
-                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityBS2.GetDisplayName());
-                // B.F should result in missing assembly AS2 since there were no direct references to AS2.
-                testData = new CompilationTestData();
-                context.CompileExpression(
-                    "(new B()).F",
-                    DkmEvaluationFlags.None,
-                    NoAliases,
-                    DebuggerDiagnosticFormatter.Instance,
-                    out resultProperties,
-                    out error,
-                    out missingAssemblyIdentities,
-                    EnsureEnglishUICulture.PreferredOrNull,
-                    testData);
-                AssertEx.Equal(missingAssemblyIdentities, ImmutableArray.Create(identityAS2));
-            }
+            Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityBS2.GetDisplayName());
+            // B.F should result in missing assembly AS2 since there were no direct references to AS2.
+            testData = new CompilationTestData();
+            context.CompileExpression(
+                "(new B()).F",
+                DkmEvaluationFlags.None,
+                NoAliases,
+                DebuggerDiagnosticFormatter.Instance,
+                out resultProperties,
+                out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData);
+            AssertEx.Equal(missingAssemblyIdentities, ImmutableArray.Create(identityAS2));
         }
 
         private static void VerifyAssemblyReferences(
@@ -351,22 +335,22 @@ public class B
 }";
             var assemblyNameA = ExpressionCompilerUtilities.GenerateUniqueName();
             var compilationA = CreateCompilationWithMscorlibAndSystemCore(sourceA, options: TestOptions.DebugDll, assemblyName: assemblyNameA);
-            byte[] exeBytesA;
-            byte[] pdbBytesA;
+            ImmutableArray<byte> exeBytesA;
+            ImmutableArray<byte> pdbBytesA;
             ImmutableArray<MetadataReference> referencesA;
             compilationA.EmitAndGetReferences(out exeBytesA, out pdbBytesA, out referencesA);
             var referenceA = AssemblyMetadata.CreateFromImage(exeBytesA).GetReference(display: assemblyNameA);
             var identityA = referenceA.GetAssemblyIdentity();
-            var moduleA = referenceA.ToModuleInstance(exeBytesA, SymReaderFactory.CreateReader(pdbBytesA));
+            var moduleA = referenceA.ToModuleInstance(exeBytesA.ToArray(), SymReaderFactory.CreateReader(pdbBytesA));
 
             var assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName();
             var compilationB = CreateCompilationWithMscorlibAndSystemCore(sourceB, options: TestOptions.DebugDll, assemblyName: assemblyNameB, references: new[] { referenceA });
-            byte[] exeBytesB;
-            byte[] pdbBytesB;
+            ImmutableArray<byte> exeBytesB;
+            ImmutableArray<byte> pdbBytesB;
             ImmutableArray<MetadataReference> referencesB;
             compilationB.EmitAndGetReferences(out exeBytesB, out pdbBytesB, out referencesB);
             var referenceB = AssemblyMetadata.CreateFromImage(exeBytesB).GetReference(display: assemblyNameB);
-            var moduleB = referenceB.ToModuleInstance(exeBytesB, SymReaderFactory.CreateReader(pdbBytesB));
+            var moduleB = referenceB.ToModuleInstance(exeBytesB.ToArray(), SymReaderFactory.CreateReader(pdbBytesB));
 
             var moduleBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
             moduleBuilder.AddRange(referencesA.Select(r => r.ToModuleInstance(null, null)));
@@ -487,13 +471,13 @@ class C
                 references: new MetadataReference[] { SystemRuntimePP7Ref },
                 options: TestOptions.DebugDll,
                 assemblyName: assemblyNameA);
-            byte[] exeBytesA;
-            byte[] pdbBytesA;
+            ImmutableArray<byte> exeBytesA;
+            ImmutableArray<byte> pdbBytesA;
             ImmutableArray<MetadataReference> referencesA;
             compilationA.EmitAndGetReferences(out exeBytesA, out pdbBytesA, out referencesA);
             var referenceA = AssemblyMetadata.CreateFromImage(exeBytesA).GetReference(display: assemblyNameA);
             var identityA = referenceA.GetAssemblyIdentity();
-            var moduleA = referenceA.ToModuleInstance(exeBytesA, SymReaderFactory.CreateReader(pdbBytesA));
+            var moduleA = referenceA.ToModuleInstance(exeBytesA.ToArray(), SymReaderFactory.CreateReader(pdbBytesA));
 
             var assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName();
             var compilationB = CreateCompilation(
@@ -501,12 +485,12 @@ class C
                 references: new MetadataReference[] { SystemRuntimePP7Ref, referenceA },
                 options: TestOptions.DebugDll,
                 assemblyName: assemblyNameB);
-            byte[] exeBytesB;
-            byte[] pdbBytesB;
+            ImmutableArray<byte> exeBytesB;
+            ImmutableArray<byte> pdbBytesB;
             ImmutableArray<MetadataReference> referencesB;
             compilationB.EmitAndGetReferences(out exeBytesB, out pdbBytesB, out referencesB);
             var referenceB = AssemblyMetadata.CreateFromImage(exeBytesB).GetReference(display: assemblyNameB);
-            var moduleB = referenceB.ToModuleInstance(exeBytesB, SymReaderFactory.CreateReader(pdbBytesB));
+            var moduleB = referenceB.ToModuleInstance(exeBytesB.ToArray(), SymReaderFactory.CreateReader(pdbBytesB));
 
             // Include an empty assembly to verify that not all assemblies
             // with no references are treated as mscorlib.
@@ -675,22 +659,22 @@ public class B
 }";
             var assemblyNameA = ExpressionCompilerUtilities.GenerateUniqueName();
             var compilationA = CreateCompilationWithMscorlibAndSystemCore(sourceA, options: TestOptions.DebugDll, assemblyName: assemblyNameA);
-            byte[] exeBytesA;
-            byte[] pdbBytesA;
+            ImmutableArray<byte> exeBytesA;
+            ImmutableArray<byte> pdbBytesA;
             ImmutableArray<MetadataReference> referencesA;
             compilationA.EmitAndGetReferences(out exeBytesA, out pdbBytesA, out referencesA);
             var referenceA = AssemblyMetadata.CreateFromImage(exeBytesA).GetReference(display: assemblyNameA);
             var identityA = referenceA.GetAssemblyIdentity();
-            var moduleA = referenceA.ToModuleInstance(exeBytesA, SymReaderFactory.CreateReader(pdbBytesA));
+            var moduleA = referenceA.ToModuleInstance(exeBytesA.ToArray(), SymReaderFactory.CreateReader(pdbBytesA));
 
             var assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName();
             var compilationB = CreateCompilationWithMscorlibAndSystemCore(sourceB, options: TestOptions.DebugDll, assemblyName: assemblyNameB, references: new[] { referenceA });
-            byte[] exeBytesB;
-            byte[] pdbBytesB;
+            ImmutableArray<byte> exeBytesB;
+            ImmutableArray<byte> pdbBytesB;
             ImmutableArray<MetadataReference> referencesB;
             compilationB.EmitAndGetReferences(out exeBytesB, out pdbBytesB, out referencesB);
             var referenceB = AssemblyMetadata.CreateFromImage(exeBytesB).GetReference(display: assemblyNameB);
-            var moduleB = referenceB.ToModuleInstance(exeBytesB, SymReaderFactory.CreateReader(pdbBytesB));
+            var moduleB = referenceB.ToModuleInstance(exeBytesB.ToArray(), SymReaderFactory.CreateReader(pdbBytesB));
 
             var moduleBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
             moduleBuilder.AddRange(referencesA.Select(r => r.ToModuleInstance(null, null)));

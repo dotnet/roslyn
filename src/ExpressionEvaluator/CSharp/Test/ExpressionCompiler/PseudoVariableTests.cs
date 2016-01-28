@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -918,39 +919,33 @@ class C
         var o = new A<object>();
     }
 }";
-            var assemblyNameA = "397300B0-A";
+            const string assemblyNameA = "397300B0-A";
+            const string assemblyNameB = "397300B0-B";
+
             var publicKeyA = ImmutableArray.CreateRange(new byte[] { 0x00, 0x24, 0x00, 0x00, 0x04, 0x80, 0x00, 0x00, 0x94, 0x00, 0x00, 0x00, 0x06, 0x02, 0x00, 0x00, 0x00, 0x24, 0x00, 0x00, 0x52, 0x53, 0x41, 0x31, 0x00, 0x04, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0xED, 0xD3, 0x22, 0xCB, 0x6B, 0xF8, 0xD4, 0xA2, 0xFC, 0xCC, 0x87, 0x37, 0x04, 0x06, 0x04, 0xCE, 0xE7, 0xB2, 0xA6, 0xF8, 0x4A, 0xEE, 0xF3, 0x19, 0xDF, 0x5B, 0x95, 0xE3, 0x7A, 0x6A, 0x28, 0x24, 0xA4, 0x0A, 0x83, 0x83, 0xBD, 0xBA, 0xF2, 0xF2, 0x52, 0x20, 0xE9, 0xAA, 0x3B, 0xD1, 0xDD, 0xE4, 0x9A, 0x9A, 0x9C, 0xC0, 0x30, 0x8F, 0x01, 0x40, 0x06, 0xE0, 0x2B, 0x95, 0x62, 0x89, 0x2A, 0x34, 0x75, 0x22, 0x68, 0x64, 0x6E, 0x7C, 0x2E, 0x83, 0x50, 0x5A, 0xCE, 0x7B, 0x0B, 0xE8, 0xF8, 0x71, 0xE6, 0xF7, 0x73, 0x8E, 0xEB, 0x84, 0xD2, 0x73, 0x5D, 0x9D, 0xBE, 0x5E, 0xF5, 0x90, 0xF9, 0xAB, 0x0A, 0x10, 0x7E, 0x23, 0x48, 0xF4, 0xAD, 0x70, 0x2E, 0xF7, 0xD4, 0x51, 0xD5, 0x8B, 0x3A, 0xF7, 0xCA, 0x90, 0x4C, 0xDC, 0x80, 0x19, 0x26, 0x65, 0xC9, 0x37, 0xBD, 0x52, 0x81, 0xF1, 0x8B, 0xCD });
+
             var compilationA1 = CreateCompilation(
                 new AssemblyIdentity(assemblyNameA, new Version(1, 1, 1, 1), cultureName: "", publicKeyOrToken: publicKeyA, hasPublicKey: true),
                 new[] { sourceA },
                 references: new[] { MscorlibRef_v20 },
                 options: TestOptions.DebugDll.WithDelaySign(true));
-            var referenceA1 = compilationA1.EmitToImageReference();
-            var assemblyNameB = "397300B0-B";
+
             var compilationB1 = CreateCompilation(
                 new AssemblyIdentity(assemblyNameB, new Version(1, 2, 2, 2)),
                 new[] { sourceB },
-                references: new[] { MscorlibRef_v20, referenceA1 },
+                references: new[] { MscorlibRef_v20, compilationA1.EmitToImageReference() },
                 options: TestOptions.DebugDll);
 
             // Use mscorlib v4.0.0.0 and A v2.1.2.1 at runtime.
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            compilationB1.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
             var compilationA2 = CreateCompilation(
                 new AssemblyIdentity(assemblyNameA, new Version(2, 1, 2, 1), cultureName: "", publicKeyOrToken: publicKeyA, hasPublicKey: true),
                 new[] { sourceA },
                 references: new[] { MscorlibRef_v20 },
                 options: TestOptions.DebugDll.WithDelaySign(true));
-            var referenceA2 = compilationA2.EmitToImageReference();
-            var runtime = CreateRuntimeInstance(
-                assemblyNameB,
-                ImmutableArray.Create(MscorlibRef, referenceA2).AddIntrinsicAssembly(),
-                exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes));
 
-            //// typeof(Exception), typeof(A<B<object>>), typeof(B<A<object>[]>)
+            var runtime = CreateRuntimeInstance(compilationB1, new[] { MscorlibRef, compilationA2.EmitToImageReference() });
+
+            // typeof(Exception), typeof(A<B<object>>), typeof(B<A<object>[]>)
             var context = CreateMethodContext(
                 runtime,
                 "C.M");
@@ -1028,8 +1023,8 @@ class B
 }";
             var assemblyNameA = "0A93FF0B-31A2-47C8-B24D-16A2D77AB5C5";
             var compilationA = CreateCompilationWithMscorlib(sourceA, options: TestOptions.DebugDll, assemblyName: assemblyNameA);
-            byte[] exeA;
-            byte[] pdbA;
+            ImmutableArray<byte> exeA;
+            ImmutableArray<byte> pdbA;
             ImmutableArray<MetadataReference> referencesA;
             compilationA.EmitAndGetReferences(out exeA, out pdbA, out referencesA);
             var metadataA = AssemblyMetadata.CreateFromImage(exeA);
@@ -1037,8 +1032,8 @@ class B
 
             var assemblyNameB = "9BAC6622-86EB-4EC5-94A1-9A1E6D0C24B9";
             var compilationB = CreateCompilationWithMscorlib(sourceB, options: TestOptions.DebugExe, references: new[] { referenceA }, assemblyName: assemblyNameB);
-            byte[] exeB;
-            byte[] pdbB;
+            ImmutableArray<byte> exeB;
+            ImmutableArray<byte> pdbB;
             ImmutableArray<MetadataReference> referencesB;
             compilationB.EmitAndGetReferences(out exeB, out pdbB, out referencesB);
             var metadataB = AssemblyMetadata.CreateFromImage(exeB);
@@ -1046,8 +1041,8 @@ class B
 
             var modulesBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
             modulesBuilder.Add(MscorlibRef.ToModuleInstance(fullImage: null, symReader: null));
-            modulesBuilder.Add(referenceA.ToModuleInstance(fullImage: exeA, symReader: SymReaderFactory.CreateReader(pdbA)));
-            modulesBuilder.Add(referenceB.ToModuleInstance(fullImage: exeB, symReader: SymReaderFactory.CreateReader(pdbB)));
+            modulesBuilder.Add(referenceA.ToModuleInstance(fullImage: exeA.ToArray(), symReader: SymReaderFactory.CreateReader(pdbA)));
+            modulesBuilder.Add(referenceB.ToModuleInstance(fullImage: exeB.ToArray(), symReader: SymReaderFactory.CreateReader(pdbB)));
             modulesBuilder.Add(ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance(fullImage: null, symReader: null));
 
             using (var runtime = new RuntimeInstance(modulesBuilder.ToImmutableAndFree()))

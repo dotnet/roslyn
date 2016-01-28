@@ -398,16 +398,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         internal static void EmitAndGetReferences(
             this Compilation compilation,
-            out byte[] exeBytes,
-            out byte[] pdbBytes,
+            out ImmutableArray<byte> exeBytes,
+            out ImmutableArray<byte> pdbBytes,
             out ImmutableArray<MetadataReference> references)
         {
             var pdbStream = new MemoryStream();
-            var peImage = compilation.EmitToArray(EmitOptions.Default, pdbStream: pdbStream);
-
-            exeBytes = peImage.ToArray();
-            pdbBytes = pdbStream.ToArray();
-            references = GetEmittedReferences(compilation, peImage);
+            exeBytes = compilation.EmitToArray(EmitOptions.Default, pdbStream: pdbStream);
+            pdbBytes = pdbStream.ToImmutable();
+            references = GetEmittedReferences(compilation, exeBytes);
         }
 
         internal static ImmutableArray<MetadataReference> GetEmittedReferences(this Compilation compilation, ImmutableArray<byte> peImage)
@@ -568,9 +566,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             Assert.Equal(((Cci.IMethodDefinition)methodData.Method).CallingConvention, expectedGeneric ? Cci.CallingConvention.Generic : Cci.CallingConvention.Default);
         }
 
-        internal static ISymUnmanagedReader ConstructSymReaderWithImports(byte[] exeBytes, string methodName, params string[] importStrings)
+        internal static ISymUnmanagedReader ConstructSymReaderWithImports(ImmutableArray<byte> peImage, string methodName, params string[] importStrings)
         {
-            using (var peReader = new PEReader(ImmutableArray.Create(exeBytes)))
+            using (var peReader = new PEReader(peImage))
             {
                 var metadataReader = peReader.GetMetadataReader();
                 var methodHandle = metadataReader.MethodDefinitions.Single(h => metadataReader.StringComparer.Equals(metadataReader.GetMethodDefinition(h).Name, methodName));

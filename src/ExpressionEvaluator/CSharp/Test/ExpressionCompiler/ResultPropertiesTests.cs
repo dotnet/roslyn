@@ -115,10 +115,10 @@ class C
             EmitILToArray(ilSource, appendDefaultHeader: true, includePdb: true, assemblyBytes: out exeBytes, pdbBytes: out pdbBytes);
 
             var runtime = CreateRuntimeInstance(
-                assemblyName: GetUniqueName(),
-                references: ImmutableArray.Create(MscorlibRef),
-                exeBytes: exeBytes.ToArray(),
+                references: new[] { MscorlibRef },
+                peImage: exeBytes,
                 symReader: SymReaderFactory.CreateReader(pdbBytes));
+
             var context = CreateMethodContext(runtime, methodName: "C.Test");
 
             Assert.Equal(DkmEvaluationResultAccessType.Private, GetResultProperties(context, "Private").AccessType);

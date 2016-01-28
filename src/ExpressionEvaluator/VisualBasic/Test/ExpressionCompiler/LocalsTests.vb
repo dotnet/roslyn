@@ -244,15 +244,13 @@ End Class"
     End Sub
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes), includeLocalSignatures:=False)
+            Dim runtime = CreateRuntimeInstance(comp, includeLocalSignatures:=False)
+
             Dim context = CreateMethodContext(
                 runtime,
                 methodName:="C.M",
                 atLineNumber:=999)
+
             Dim testData = New CompilationTestData()
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
@@ -558,14 +556,9 @@ Class C
     End Sub
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugExe)
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes))
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C.M")
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(runtime, "C.M")
+
             Dim testData = New CompilationTestData()
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
@@ -614,14 +607,10 @@ Class P
     End Sub
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugExe)
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes))
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C.M")
+
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(runtime, "C.M")
+
             Dim testData = New CompilationTestData()
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
@@ -1695,19 +1684,10 @@ End Structure"
 End Class"
             Dim comp0 = CreateCompilationWithMscorlib({source0}, options:=TestOptions.DebugDll)
             Dim comp1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.DebugDll, references:={comp0.EmitToImageReference()})
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp1.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim runtime = CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                ImmutableArray.Create(MscorlibRef), ' no reference to compilation0
-                exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes))
 
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C.M")
+            ' no reference to compilation0
+            Dim runtime = CreateRuntimeInstance(comp1, {MscorlibRef})
+            Dim context = CreateMethodContext(runtime, "C.M")
 
             Dim testData = New CompilationTestData()
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
@@ -1772,15 +1752,9 @@ Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
 
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes))
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C.M")
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(runtime, "C.M")
 
             Dim errorMessage As String = Nothing
             context.CompileAssignment("d", "Nothing", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
@@ -1821,15 +1795,8 @@ Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes))
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C.M")
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(runtime, "C.M")
 
             Dim errorMessage As String = Nothing
             context.CompileAssignment("d", "Nothing", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
@@ -2645,15 +2612,9 @@ End Class
             Dim libRef = CreateCompilationWithMscorlib({libSource}, options:=TestOptions.DebugDll).EmitToImageReference()
             Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef, SystemRef}, TestOptions.DebugDll)
 
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim unusedReferences As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, unusedReferences)
-
             ' Referencing SystemCoreRef and SystemXmlLinqRef will cause Microsoft.VisualBasic.Embedded to be compiled
             ' and it depends on EditorBrowsableAttribute.
-            Dim runtimeReferences = ImmutableArray.Create(MscorlibRef, SystemRef, SystemCoreRef, SystemXmlLinqRef, libRef)
-            Dim runtime = CreateRuntimeInstance(GetUniqueName(), runtimeReferences, exeBytes, SymReaderFactory.CreateReader(pdbBytes))
+            Dim runtime = CreateRuntimeInstance(comp, {MscorlibRef, SystemRef, SystemCoreRef, SystemXmlLinqRef, libRef})
 
             Dim typeName As String = Nothing
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()

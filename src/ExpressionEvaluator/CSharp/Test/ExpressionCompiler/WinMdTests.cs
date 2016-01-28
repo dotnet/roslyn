@@ -42,17 +42,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 options: TestOptions.DebugDll,
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),
                 references: WinRtRefs);
+
             var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage", "Windows.Foundation.Collections");
             Assert.True(runtimeAssemblies.Length >= 2);
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            compilation0.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-            var runtime = CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies), // no reference to Windows.winmd
-                exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes));
+           
+            // no reference to Windows.winmd
+            var runtime = CreateRuntimeInstance(compilation0, new[] { MscorlibRef }.Concat(runtimeAssemblies));
+
             var context = CreateMethodContext(runtime, "C.M");
             string error;
             var testData = new CompilationTestData();
@@ -87,17 +83,13 @@ class C
                 options: TestOptions.DebugDll,
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),
                 references: WinRtRefs.Select(r => r.Display == "Windows" ? r.WithAliases(new[] { "X" }) : r));
+
             var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage");
             Assert.True(runtimeAssemblies.Length >= 1);
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            compilation0.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-            var runtime = CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies), // no reference to Windows.winmd
-                exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes));
+
+            // no reference to Windows.winmd
+            var runtime = CreateRuntimeInstance(compilation0, new[] { MscorlibRef }.Concat(runtimeAssemblies));
+
             var context = CreateMethodContext(runtime, "C.M");
             string error;
             var testData = new CompilationTestData();
@@ -179,7 +171,8 @@ class C
     {
     }
 }";
-            var runtime = CreateRuntime(source, compileReferences, runtimeReferences);
+            var compilation0 = CreateCompilationWithMscorlib(source, compileReferences, TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(compilation0, runtimeReferences);
             var context = CreateMethodContext(runtime, "C.M");
             string error;
             var testData = new CompilationTestData();
@@ -255,16 +248,17 @@ class C
     {
     }
 }";
-            var runtime = CreateRuntime(
-                source,
-                ImmutableArray.CreateRange(WinRtRefs),
+            var compilation = CreateCompilationWithMscorlib(source, ImmutableArray.CreateRange(WinRtRefs), TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(
+                compilation,
                 ImmutableArray.Create(MscorlibRef).Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage", "Windows.Foundation.Collections")));
-            var context = CreateMethodContext(
-                runtime,
-                "C.M");
+
+            var context = CreateMethodContext(runtime, "C.M");
+
             var aliases = ImmutableArray.Create(
                 VariableAlias("s", "Windows.Storage.StorageFolder, Windows.Storage, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"),
                 VariableAlias("d", "Windows.Foundation.DateTime, Windows.Foundation, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"));
+
             string error;
             var testData = new CompilationTestData();
             context.CompileExpression(
@@ -305,10 +299,11 @@ class C
     {
     }
 }";
-            var runtime = CreateRuntime(
-                source,
-                ImmutableArray.CreateRange(WinRtRefs),
+            var compilation = CreateCompilationWithMscorlib(source, ImmutableArray.CreateRange(WinRtRefs), TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(
+                compilation,
                 ImmutableArray.Create(MscorlibRef).Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Foundation", "Windows.UI", "Windows.UI.Xaml")));
+
             var context = CreateMethodContext(runtime, "C.M");
             string error;
             ResultProperties resultProperties;
@@ -339,9 +334,11 @@ class C
     {
     }
 }";
-            var runtime = CreateRuntime(source,
-                ImmutableArray.Create(WinRtRefs),
+            var compilation = CreateCompilationWithMscorlib(source, ImmutableArray.CreateRange(WinRtRefs), TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(
+                compilation,
                 ImmutableArray.Create(MscorlibRef).Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI", "Windows.UI.Xaml")));
+
             string errorMessage;
             var testData = new CompilationTestData();
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
@@ -369,27 +366,6 @@ class C
   IL_0001:  callvirt   ""Windows.UI.Core.CoreDispatcher Windows.UI.Xaml.DependencyObject.Dispatcher.get""
   IL_0006:  ret
 }");
-        }
-
-        private RuntimeInstance CreateRuntime(
-            string source,
-            ImmutableArray<MetadataReference> compileReferences,
-            ImmutableArray<MetadataReference> runtimeReferences)
-        {
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),
-                references: compileReferences);
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            compilation0.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-            return CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                runtimeReferences.AddIntrinsicAssembly(),
-                exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes));
         }
 
         private static byte[] ToVersion1_3(byte[] bytes)

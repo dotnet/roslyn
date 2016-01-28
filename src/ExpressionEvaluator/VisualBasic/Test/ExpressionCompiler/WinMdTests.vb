@@ -34,15 +34,10 @@ End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, references:=WinRtRefs)
             Dim runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage", "Windows.Foundation.Collections")
             Assert.True(runtimeAssemblies.Length >= 2)
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim runtime = CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies), ' no reference to Windows.winmd
-                exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes))
+
+            ' no reference to Windows.winmd
+            Dim runtime = CreateRuntimeInstance(comp, {MscorlibRef}.Concat(runtimeAssemblies))
+
             Dim context = CreateMethodContext(runtime, "C.M")
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
@@ -120,8 +115,10 @@ End Class"
     Shared Sub M(a As LibraryA.A, b As LibraryB.B, t As Windows.Data.Text.TextSegment, f As Windows.Storage.StorageFolder)
     End Sub
 End Class"
-            Dim runtime = CreateRuntime(source, compileReferences, runtimeReferences)
+            Dim c0 = CreateCompilationWithMscorlib({source}, compileReferences, TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(c0, runtimeReferences)
             Dim context = CreateMethodContext(runtime, "C.M")
+
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression("If(a, If(b, If(t, f)))", errorMessage, testData)
@@ -161,8 +158,8 @@ End Class"
             Dim comp = VisualBasicCompilation.Create(
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
                 references:=runtimeReferences.Concat(ImmutableArray.Create(Of MetadataReference)(assemblyReference)))
-            Dim assembly = ImmutableArray.CreateRange(result.Assembly)
-            Using metadata = ModuleMetadata.CreateFromImage(ImmutableArray.CreateRange(assembly))
+
+            Using metadata = ModuleMetadata.CreateFromImage(result.Assembly)
                 Dim reader = metadata.MetadataReader
                 Dim typeDef = reader.GetTypeDef("<>x")
                 Dim methodHandle = reader.GetMethodDefHandle(typeDef, "<>m0")
@@ -192,13 +189,12 @@ End Class"
     Shared Sub M(f As Windows.Storage.StorageFolder, p As Windows.Foundation.Collections.PropertySet)
     End Sub
 End Class"
-            Dim runtime = CreateRuntime(
-                source,
-                ImmutableArray.CreateRange(WinRtRefs),
-                ImmutableArray.Create(MscorlibRef).Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage", "Windows.Foundation.Collections")))
-            Dim context = CreateMethodContext(
-                runtime,
-                "C.M")
+
+            Dim comp = CreateCompilationWithMscorlib({source}, WinRtRefs, TestOptions.DebugDll)
+            Dim runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage", "Windows.Foundation.Collections")
+            Dim runtime = CreateRuntimeInstance(comp, {MscorlibRef}.Concat(runtimeAssemblies))
+            Dim context = CreateMethodContext(runtime, "C.M")
+
             Dim aliases = ImmutableArray.Create(
                 VariableAlias("s", "Windows.Storage.StorageFolder, Windows.Storage, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"),
                 VariableAlias("d", "Windows.Foundation.DateTime, Windows.Foundation, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"))
@@ -231,27 +227,6 @@ End Class"
 }")
         End Sub
 
-        Private Function CreateRuntime(
-            source As String,
-            compileReferences As ImmutableArray(Of MetadataReference),
-            runtimeReferences As ImmutableArray(Of MetadataReference)) As RuntimeInstance
-
-            Dim comp = CreateCompilationWithMscorlib(
-                {source},
-                options:=TestOptions.DebugDll,
-                assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
-                references:=compileReferences)
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Return CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                runtimeReferences.AddIntrinsicAssembly(),
-                exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes))
-        End Function
-
         Private Shared Function ToVersion1_3(bytes As Byte()) As Byte()
             Return ExpressionCompilerTestHelpers.ToVersion1_3(bytes)
         End Function
@@ -259,8 +234,6 @@ End Class"
         Private Shared Function ToVersion1_4(bytes As Byte()) As Byte()
             Return ExpressionCompilerTestHelpers.ToVersion1_4(bytes)
         End Function
-
     End Class
-
 End Namespace
 

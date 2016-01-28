@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -46,21 +47,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             _runtimeInstances.Free();
         }
 
-        internal RuntimeInstance CreateRuntimeInstance(Compilation compilation, DebugInformationFormat debugFormat = DebugInformationFormat.Pdb)
+        internal RuntimeInstance CreateRuntimeInstance(
+            Compilation compilation,
+            IEnumerable<MetadataReference> references = null,
+            DebugInformationFormat debugFormat = DebugInformationFormat.Pdb,
+            bool includeLocalSignatures = true)
         {
-            var instance = RuntimeInstance.Create(compilation, debugFormat);
+            var instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures);
             _runtimeInstances.Add(instance);
             return instance;
         }
 
         internal RuntimeInstance CreateRuntimeInstance(
-            string assemblyName,
-            ImmutableArray<MetadataReference> references,
-            byte[] exeBytes,
+            IEnumerable<MetadataReference> references,
+            ImmutableArray<byte> peImage,
             ISymUnmanagedReader symReader,
+            string assemblyName = null,
             bool includeLocalSignatures = true)
         {
-            var instance = RuntimeInstance.Create(assemblyName, references, exeBytes.ToImmutableArray(), symReader, includeLocalSignatures);
+            var instance = RuntimeInstance.Create(references, peImage, symReader, assemblyName, includeLocalSignatures);
             _runtimeInstances.Add(instance);
             return instance;
         }
@@ -175,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 source,
                 options: (outputKind == OutputKind.DynamicallyLinkedLibrary) ? TestOptions.DebugDll : TestOptions.DebugExe);
 
-            var runtime = CreateRuntimeInstance(compilation0, includeSymbols ? DebugInformationFormat.Pdb : 0);
+            var runtime = CreateRuntimeInstance(compilation0, debugFormat: includeSymbols ? DebugInformationFormat.Pdb : 0);
             var context = CreateMethodContext(runtime, methodName, atLineNumber);
             var testData = new CompilationTestData();
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;

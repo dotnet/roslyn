@@ -487,10 +487,9 @@ End Module
             EmitILToArray(ilSource, appendDefaultHeader:=True, includePdb:=True, assemblyBytes:=ilBytes, pdbBytes:=ilPdbBytes)
 
             Dim runtime = CreateRuntimeInstance(
-                assemblyName:=GetUniqueName(),
-                references:=ImmutableArray.Create(MscorlibRef),
-                exeBytes:=ilBytes.ToArray(),
-                symReader:=SymReaderFactory.CreateReader(ilPdbBytes.ToArray()))
+                references:={MscorlibRef},
+                exeBytes:=ilBytes,
+                symReader:=SymReaderFactory.CreateReader(ilPdbBytes))
 
             Dim context = CreateMethodContext(runtime, "C._Lambda$__1")
             VerifyNoMe(context)

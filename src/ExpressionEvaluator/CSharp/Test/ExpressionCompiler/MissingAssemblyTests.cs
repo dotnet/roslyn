@@ -82,7 +82,9 @@ public class C
 ";
             var libRef = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib").EmitToImageReference();
             var comp = CreateCompilationWithMscorlib(source, new[] { libRef }, TestOptions.DebugDll);
-            var context = CreateMethodContextWithReferences(comp, "C.M", MscorlibRef);
+
+            var runtime = CreateRuntimeInstance(comp, new[] { MscorlibRef });
+            var context = CreateMethodContext(runtime, "C.M");
 
             var expectedError = "error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.";
             var expectedMissingAssemblyIdentity = new AssemblyIdentity("Lib");
@@ -117,7 +119,9 @@ public class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
-            var context = CreateMethodContextWithReferences(comp, "C.M", MscorlibRef);
+
+            var runtime = CreateRuntimeInstance(comp, new[] { MscorlibRef });
+            var context = CreateMethodContext(runtime, "C.M");
 
             var expectedError = "error CS1935: Could not find an implementation of the query pattern for source type 'int[]'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?";
             var expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity;
@@ -155,7 +159,8 @@ public class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
-            var context = CreateMethodContextWithReferences(comp, "C.M", MscorlibRef);
+            var runtime = CreateRuntimeInstance(comp, new[] { MscorlibRef });
+            var context = CreateMethodContext(runtime, "C.M");
 
             var expectedErrorTemplate = "error CS1061: 'int[]' does not contain a definition for '{0}' and no extension method '{0}' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)";
             var expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity;
@@ -218,7 +223,8 @@ namespace System.Linq
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var context = CreateMethodContextWithReferences(comp, "C.M", MscorlibRef);
+            var runtime = CreateRuntimeInstance(comp, new[] { MscorlibRef });
+            var context = CreateMethodContext(runtime, "C.M");
 
             var expectedErrorTemplate = "error CS1061: 'int[]' does not contain a definition for '{0}' and no extension method '{0}' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)";
             var expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity;
@@ -476,7 +482,8 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var context = CreateMethodContextWithReferences(comp, "C.M", CSharpRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference);
+            var runtime = CreateRuntimeInstance(comp, new[] { CSharpRef });
+            var context = CreateMethodContext(runtime, "C.M");
 
             const string expectedError = "error CS0012: The type 'Exception' is defined in an assembly that is not referenced. You must add a reference to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.";
             var expectedMissingAssemblyIdentity = comp.Assembly.CorLibrary.Identity;
@@ -512,7 +519,9 @@ class C
             var comp = CreateCompilationWithMscorlib(source, WinRtRefs, TestOptions.DebugDll);
             var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage");
             Assert.True(runtimeAssemblies.Any());
-            var context = CreateMethodContextWithReferences(comp, "C.M", ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies));
+
+            var runtime = CreateRuntimeInstance(comp, new[] { MscorlibRef }.Concat(runtimeAssemblies));
+            var context = CreateMethodContext(runtime, "C.M");
 
             const string expectedError = "error CS0234: The type or namespace name 'UI' does not exist in the namespace 'Windows' (are you missing an assembly reference?)";
             var expectedMissingAssemblyIdentity = new AssemblyIdentity("Windows.UI", contentType: System.Reflection.AssemblyContentType.WindowsRuntime);
@@ -551,7 +560,9 @@ class C
             var comp = CreateCompilationWithMscorlib(source, WinRtRefs, TestOptions.DebugDll);
             var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI");
             Assert.True(runtimeAssemblies.Any());
-            var context = CreateMethodContextWithReferences(comp, "C.M", ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies));
+
+            var runtime = CreateRuntimeInstance(comp, new[] { MscorlibRef }.Concat(runtimeAssemblies));
+            var context = CreateMethodContext(runtime, "C.M");
 
             const string expectedError = "error CS0234: The type or namespace name 'Xaml' does not exist in the namespace 'Windows.UI' (are you missing an assembly reference?)";
             var expectedMissingAssemblyIdentity = new AssemblyIdentity("Windows.UI.Xaml", contentType: System.Reflection.AssemblyContentType.WindowsRuntime);
@@ -678,15 +689,14 @@ class UseLinq
     bool b = Enumerable.Any<int>(null);
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
-            byte[] exeBytes, pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            compilation.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-            var systemCore = SystemCoreRef.ToModuleInstance(fullImage: null, symReader: null);
-            var referencesWithoutSystemCore = references.Where(r => r != SystemCoreRef).ToImmutableArray();
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), referencesWithoutSystemCore.AddIntrinsicAssembly(), exeBytes, symReader: null);
+            var compilation = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef });
+
+            var runtime = CreateRuntimeInstance(compilation, new[] { MscorlibRef });
             var context = CreateMethodContext(runtime, "C.M");
-            var fakeSystemLinq = CreateCompilationWithMscorlib45("", assemblyName: "System.Linq").EmitToImageReference().ToModuleInstance(fullImage: null, symReader: null);
+
+            var systemCore = SystemCoreRef.ToModuleInstance(fullImage: null, symReader: null);
+            var fakeSystemLinq = CreateCompilationWithMscorlib45("", assemblyName: "System.Linq").
+                EmitToImageReference().ToModuleInstance(fullImage: null, symReader: null);
 
             string errorMessage;
             CompilationTestData testData;
@@ -735,22 +745,6 @@ class UseLinq
             {
                 throw new NotImplementedException();
             }
-        }
-
-        private EvaluationContext CreateMethodContextWithReferences(Compilation comp, string methodName, params MetadataReference[] references)
-        {
-            return CreateMethodContextWithReferences(comp, methodName, ImmutableArray.CreateRange(references));
-        }
-
-        private EvaluationContext CreateMethodContextWithReferences(Compilation comp, string methodName, ImmutableArray<MetadataReference> references)
-        {
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> unusedReferences;
-            comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out unusedReferences);
-
-            var runtime = CreateRuntimeInstance(GetUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes));
-            return CreateMethodContext(runtime, methodName);
         }
 
         private static AssemblyIdentity GetMissingAssemblyIdentity(ErrorCode code, params object[] arguments)

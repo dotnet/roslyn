@@ -47,21 +47,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 
         Friend Function CreateRuntimeInstance(
             compilation As Compilation,
-            Optional debugFormat As DebugInformationFormat = DebugInformationFormat.Pdb) As RuntimeInstance
+            Optional references As IEnumerable(Of MetadataReference) = Nothing,
+            Optional debugFormat As DebugInformationFormat = DebugInformationFormat.Pdb,
+            Optional includeLocalSignatures As Boolean = True) As RuntimeInstance
 
-            Dim instance = RuntimeInstance.Create(compilation, debugFormat)
+            Dim instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures)
             _runtimeInstances.Add(instance)
             Return instance
         End Function
 
         Friend Function CreateRuntimeInstance(
-            assemblyName As String,
-            references As ImmutableArray(Of MetadataReference),
-            exeBytes As Byte(),
+            references As IEnumerable(Of MetadataReference),
+            exeBytes As ImmutableArray(Of Byte),
             symReader As ISymUnmanagedReader,
+            Optional assemblyName As String = Nothing,
             Optional includeLocalSignatures As Boolean = True) As RuntimeInstance
 
-            Dim instance = RuntimeInstance.Create(assemblyName, references, exeBytes.ToImmutableArray(), symReader, includeLocalSignatures)
+            Dim instance = RuntimeInstance.Create(references, exeBytes, symReader, assemblyName, includeLocalSignatures)
             _runtimeInstances.Add(instance)
             Return instance
         End Function
@@ -190,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
                 {MscorlibRef_v4_0_30316_17626, SystemRef, MsvbRef},
                 options:=If(outputKind = OutputKind.DynamicallyLinkedLibrary, TestOptions.DebugDll, TestOptions.DebugExe))
 
-            Dim runtime = CreateRuntimeInstance(compilation0, If(includeSymbols, DebugInformationFormat.Pdb, Nothing))
+            Dim runtime = CreateRuntimeInstance(compilation0, debugFormat:=If(includeSymbols, DebugInformationFormat.Pdb, Nothing))
             Dim context = CreateMethodContext(runtime, methodName, atLineNumber)
             Dim testData = New CompilationTestData()
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing

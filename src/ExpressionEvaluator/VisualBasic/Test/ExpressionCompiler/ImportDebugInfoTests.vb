@@ -8,6 +8,7 @@ Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -192,11 +193,7 @@ End Class
 "
 
             Dim comp = CreateCompilationWithMscorlib({source})
-
-            Dim exeBytes As Byte() = Nothing
-            Dim unusedPdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, unusedPdbBytes, references)
+            Dim exeBytes = comp.EmitToArray()
 
             Dim symReader = ExpressionCompilerTestHelpers.ConstructSymReaderWithImports(
                 exeBytes,
@@ -205,7 +202,7 @@ End Class
                 "@FA:O=1", ' Invalid
                 "@FA:SC=System.Collections") ' Valid
 
-            Dim runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader)
+            Dim runtime = CreateRuntimeInstance({MscorlibRef}, exeBytes, symReader)
             Dim evalContext = CreateMethodContext(runtime, "C.Main")
             Dim compContext = evalContext.CreateCompilationContext(SyntaxHelpers.ParseDebuggerExpression("Nothing", consumeFullText:=True)) ' Used to throw.
 
@@ -231,11 +228,7 @@ End Class
 "
 
             Dim comp = CreateCompilationWithMscorlib({source})
-
-            Dim exeBytes As Byte() = Nothing
-            Dim unusedPdbBypes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, unusedPdbBypes, references)
+            Dim exeBytes = comp.EmitToArray()
 
             Dim symReader = ExpressionCompilerTestHelpers.ConstructSymReaderWithImports(
                 exeBytes,
@@ -244,7 +237,7 @@ End Class
                 "@FA:S.I=System.IO", ' Invalid
                 "@FA:SC=System.Collections") ' Valid
 
-            Dim runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader)
+            Dim runtime = CreateRuntimeInstance({MscorlibRef}, exeBytes, symReader)
             Dim evalContext = CreateMethodContext(runtime, "C.Main")
             Dim compContext = evalContext.CreateCompilationContext(SyntaxHelpers.ParseDebuggerExpression("Nothing", consumeFullText:=True)) ' Used to throw.
 
@@ -484,20 +477,20 @@ End Class
 "
 
             Dim comp1 = CreateCompilationWithReferences(VisualBasicSyntaxTree.ParseText(source1), {MscorlibRef_v20}, TestOptions.DebugDll, assemblyName:="A")
-            Dim dllBytes1 As Byte() = Nothing
-            Dim pdbBytes1 As Byte() = Nothing
+            Dim dllBytes1 As ImmutableArray(Of Byte) = Nothing
+            Dim pdbBytes1 As ImmutableArray(Of Byte) = Nothing
             comp1.EmitAndGetReferences(dllBytes1, pdbBytes1, Nothing)
             Dim ref1 = AssemblyMetadata.CreateFromImage(dllBytes1).GetReference(display:="A")
 
             Dim comp2 = CreateCompilationWithReferences(VisualBasicSyntaxTree.ParseText(source2), {MscorlibRef_v4_0_30316_17626, ref1}, TestOptions.DebugDll, assemblyName:="B")
-            Dim dllBytes2 As Byte() = Nothing
-            Dim pdbBytes2 As Byte() = Nothing
+            Dim dllBytes2 As ImmutableArray(Of Byte) = Nothing
+            Dim pdbBytes2 As ImmutableArray(Of Byte) = Nothing
             comp2.EmitAndGetReferences(dllBytes2, pdbBytes2, Nothing)
             Dim ref2 = AssemblyMetadata.CreateFromImage(dllBytes2).GetReference(display:="B")
 
             Dim modulesBuilder = ArrayBuilder(Of ModuleInstance).GetInstance()
-            modulesBuilder.Add(ref1.ToModuleInstance(dllBytes1, SymReaderFactory.CreateReader(pdbBytes1)))
-            modulesBuilder.Add(ref2.ToModuleInstance(dllBytes2, SymReaderFactory.CreateReader(pdbBytes2)))
+            modulesBuilder.Add(ref1.ToModuleInstance(dllBytes1.ToArray(), SymReaderFactory.CreateReader(pdbBytes1)))
+            modulesBuilder.Add(ref2.ToModuleInstance(dllBytes2.ToArray(), SymReaderFactory.CreateReader(pdbBytes2)))
             modulesBuilder.Add(MscorlibRef_v4_0_30316_17626.ToModuleInstance(fullImage:=Nothing, symReader:=Nothing))
             modulesBuilder.Add(ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance(fullImage:=Nothing, symReader:=Nothing))
 

@@ -38,7 +38,7 @@ End Class"
 End Class"
             ' Assembly A, multiple versions, strong name.
             Dim assemblyNameA = ExpressionCompilerUtilities.GenerateUniqueName()
-            Dim publicKeyA = ImmutableArray.CreateRange(Of Byte)({&H00, &H24, &H00, &H00, &H04, &H80, &H00, &H00, &H94, &H00, &H00, &H00, &H06, &H02, &H00, &H00, &H00, &H24, &H00, &H00, &H52, &H53, &H41, &H31, &H00, &H04, &H00, &H00, &H01, &H00, &H01, &H00, &HED, &HD3, &H22, &HCB, &H6B, &HF8, &HD4, &HA2, &HFC, &HCC, &H87, &H37, &H04, &H06, &H04, &HCE, &HE7, &HB2, &HA6, &HF8, &H4A, &HEE, &HF3, &H19, &HDF, &H5B, &H95, &HE3, &H7A, &H6A, &H28, &H24, &HA4, &H0A, &H83, &H83, &HBD, &HBA, &HF2, &HF2, &H52, &H20, &HE9, &HAA, &H3B, &HD1, &HDD, &HE4, &H9A, &H9A, &H9C, &HC0, &H30, &H8F, &H01, &H40, &H06, &HE0, &H2B, &H95, &H62, &H89, &H2A, &H34, &H75, &H22, &H68, &H64, &H6E, &H7C, &H2E, &H83, &H50, &H5A, &HCE, &H7B, &H0B, &HE8, &HF8, &H71, &HE6, &HF7, &H73, &H8E, &HEB, &H84, &HD2, &H73, &H5D, &H9D, &HBE, &H5E, &HF5, &H90, &HF9, &HAB, &H0A, &H10, &H7E, &H23, &H48, &HF4, &HAD, &H70, &H2E, &HF7, &HD4, &H51, &HD5, &H8B, &H3A, &HF7, &HCA, &H90, &H4C, &HDC, &H80, &H19, &H26, &H65, &HC9, &H37, &HBD, &H52, &H81, &HF1, &H8B, &HCD})
+            Dim publicKeyA = ImmutableArray.CreateRange(Of Byte)({&H0, &H24, &H0, &H0, &H4, &H80, &H0, &H0, &H94, &H0, &H0, &H0, &H6, &H2, &H0, &H0, &H0, &H24, &H0, &H0, &H52, &H53, &H41, &H31, &H0, &H4, &H0, &H0, &H1, &H0, &H1, &H0, &HED, &HD3, &H22, &HCB, &H6B, &HF8, &HD4, &HA2, &HFC, &HCC, &H87, &H37, &H4, &H6, &H4, &HCE, &HE7, &HB2, &HA6, &HF8, &H4A, &HEE, &HF3, &H19, &HDF, &H5B, &H95, &HE3, &H7A, &H6A, &H28, &H24, &HA4, &HA, &H83, &H83, &HBD, &HBA, &HF2, &HF2, &H52, &H20, &HE9, &HAA, &H3B, &HD1, &HDD, &HE4, &H9A, &H9A, &H9C, &HC0, &H30, &H8F, &H1, &H40, &H6, &HE0, &H2B, &H95, &H62, &H89, &H2A, &H34, &H75, &H22, &H68, &H64, &H6E, &H7C, &H2E, &H83, &H50, &H5A, &HCE, &H7B, &HB, &HE8, &HF8, &H71, &HE6, &HF7, &H73, &H8E, &HEB, &H84, &HD2, &H73, &H5D, &H9D, &HBE, &H5E, &HF5, &H90, &HF9, &HAB, &HA, &H10, &H7E, &H23, &H48, &HF4, &HAD, &H70, &H2E, &HF7, &HD4, &H51, &HD5, &H8B, &H3A, &HF7, &HCA, &H90, &H4C, &HDC, &H80, &H19, &H26, &H65, &HC9, &H37, &HBD, &H52, &H81, &HF1, &H8B, &HCD})
             Dim compilationAS1 = CreateCompilation(
                 New AssemblyIdentity(assemblyNameA, New Version(1, 1, 1, 1), cultureName:="", publicKeyOrToken:=publicKeyA, hasPublicKey:=True),
                 {sourceA},
@@ -56,7 +56,7 @@ End Class"
 
             ' Assembly B, multiple versions, strong name.
             Dim assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName()
-            Dim publicKeyB = ImmutableArray.CreateRange(Of Byte)({&H00, &H24, &H00, &H00, &H04, &H80, &H00, &H00, &H94, &H00, &H00, &H00, &H06, &H02, &H00, &H00, &H00, &H24, &H00, &H00, &H53, &H52, &H41, &H31, &H00, &H04, &H00, &H00, &H01, &H00, &H01, &H00, &HED, &HD3, &H22, &HCB, &H6B, &HF8, &HD4, &HA2, &HFC, &HCC, &H87, &H37, &H04, &H06, &H04, &HCE, &HE7, &HB2, &HA6, &HF8, &H4A, &HEE, &HF3, &H19, &HDF, &H5B, &H95, &HE3, &H7A, &H6A, &H28, &H24, &HA4, &H0A, &H83, &H83, &HBD, &HBA, &HF2, &HF2, &H52, &H20, &HE9, &HAA, &H3B, &HD1, &HDD, &HE4, &H9A, &H9A, &H9C, &HC0, &H30, &H8F, &H01, &H40, &H06, &HE0, &H2B, &H95, &H62, &H89, &H2A, &H34, &H75, &H22, &H68, &H64, &H6E, &H7C, &H2E, &H83, &H50, &H5A, &HCE, &H7B, &H0B, &HE8, &HF8, &H71, &HE6, &HF7, &H73, &H8E, &HEB, &H84, &HD2, &H73, &H5D, &H9D, &HBE, &H5E, &HF5, &H90, &HF9, &HAB, &H0A, &H10, &H7E, &H23, &H48, &HF4, &HAD, &H70, &H2E, &HF7, &HD4, &H51, &HD5, &H8B, &H3A, &HF7, &HCA, &H90, &H4C, &HDC, &H80, &H19, &H26, &H65, &HC9, &H37, &HBD, &H52, &H81, &HF1, &H8B, &HCD})
+            Dim publicKeyB = ImmutableArray.CreateRange(Of Byte)({&H0, &H24, &H0, &H0, &H4, &H80, &H0, &H0, &H94, &H0, &H0, &H0, &H6, &H2, &H0, &H0, &H0, &H24, &H0, &H0, &H53, &H52, &H41, &H31, &H0, &H4, &H0, &H0, &H1, &H0, &H1, &H0, &HED, &HD3, &H22, &HCB, &H6B, &HF8, &HD4, &HA2, &HFC, &HCC, &H87, &H37, &H4, &H6, &H4, &HCE, &HE7, &HB2, &HA6, &HF8, &H4A, &HEE, &HF3, &H19, &HDF, &H5B, &H95, &HE3, &H7A, &H6A, &H28, &H24, &HA4, &HA, &H83, &H83, &HBD, &HBA, &HF2, &HF2, &H52, &H20, &HE9, &HAA, &H3B, &HD1, &HDD, &HE4, &H9A, &H9A, &H9C, &HC0, &H30, &H8F, &H1, &H40, &H6, &HE0, &H2B, &H95, &H62, &H89, &H2A, &H34, &H75, &H22, &H68, &H64, &H6E, &H7C, &H2E, &H83, &H50, &H5A, &HCE, &H7B, &HB, &HE8, &HF8, &H71, &HE6, &HF7, &H73, &H8E, &HEB, &H84, &HD2, &H73, &H5D, &H9D, &HBE, &H5E, &HF5, &H90, &HF9, &HAB, &HA, &H10, &H7E, &H23, &H48, &HF4, &HAD, &H70, &H2E, &HF7, &HD4, &H51, &HD5, &H8B, &H3A, &HF7, &HCA, &H90, &H4C, &HDC, &H80, &H19, &H26, &H65, &HC9, &H37, &HBD, &H52, &H81, &HF1, &H8B, &HCD})
             Dim compilationBS1 = CreateCompilation(
                 New AssemblyIdentity(assemblyNameB, New Version(1, 1, 1, 1), cultureName:="", publicKeyOrToken:=publicKeyB, hasPublicKey:=True),
                 {sourceB},
@@ -73,73 +73,57 @@ End Class"
             Dim identityBS2 = referenceBS2.GetAssemblyIdentity()
 
             ' Assembly C, multiple versions, not strong name.
-            Dim assemblyNameC = ExpressionCompilerUtilities.GenerateUniqueName()
             Dim compilationCN1 = CreateCompilation(
-                New AssemblyIdentity(assemblyNameC, New Version(1, 1, 1, 1)),
+                New AssemblyIdentity("C", New Version(1, 1, 1, 1)),
                 {sourceC},
                 references:={MscorlibRef, referenceBS1},
                 options:=TestOptions.DebugDll)
-            Dim exeBytesC1 As Byte() = Nothing
-            Dim pdbBytesC1 As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            compilationCN1.EmitAndGetReferences(exeBytesC1, pdbBytesC1, references)
-            Dim compilationCN2 = CreateCompilation(
-                New AssemblyIdentity(assemblyNameC, New Version(2, 1, 1, 1)),
-                {sourceC},
-                references:={MscorlibRef, referenceBS2},
-                options:=TestOptions.DebugDll)
-            Dim exeBytesC2 As Byte() = Nothing
-            Dim pdbBytesC2 As Byte() = Nothing
-            compilationCN1.EmitAndGetReferences(exeBytesC2, pdbBytesC2, references)
 
             ' Duplicate assemblies, target module referencing BS1.
-            Using runtime = CreateRuntimeInstance(
-                assemblyNameC,
-                ImmutableArray.Create(MscorlibRef, referenceAS1, referenceAS2, referenceBS2, referenceBS1, referenceBS2),
-                exeBytesC1,
-                SymReaderFactory.CreateReader(pdbBytesC1))
+            Dim runtime = CreateRuntimeInstance(
+                compilationCN1,
+                {MscorlibRef, referenceAS1, referenceAS2, referenceBS2, referenceBS1, referenceBS2})
 
-                Dim typeBlocks As ImmutableArray(Of MetadataBlock) = Nothing
-                Dim methodBlocks As ImmutableArray(Of MetadataBlock) = Nothing
-                Dim moduleVersionId As Guid = Nothing
-                Dim symReader As ISymUnmanagedReader = Nothing
-                Dim typeToken = 0
-                Dim methodToken = 0
-                Dim localSignatureToken = 0
-                GetContextState(runtime, "C", typeBlocks, moduleVersionId, symReader, typeToken, localSignatureToken)
-                GetContextState(runtime, "C.M", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+            Dim typeBlocks As ImmutableArray(Of MetadataBlock) = Nothing
+            Dim methodBlocks As ImmutableArray(Of MetadataBlock) = Nothing
+            Dim moduleVersionId As Guid = Nothing
+            Dim symReader As ISymUnmanagedReader = Nothing
+            Dim typeToken = 0
+            Dim methodToken = 0
+            Dim localSignatureToken = 0
+            GetContextState(runtime, "C", typeBlocks, moduleVersionId, symReader, typeToken, localSignatureToken)
+            GetContextState(runtime, "C.M", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
 
-                ' Compile expression with type context.
-                Dim context = EvaluationContext.CreateTypeContext(
-                    Nothing,
-                    typeBlocks,
-                    moduleVersionId,
-                    typeToken)
-                Dim errorMessage As String = Nothing
-                ' A is ambiguous since there were no explicit references to AS1 or AS2.
-                context.CompileExpression("New A()", errorMessage)
-                Assert.Equal(errorMessage, "error BC30554: 'A' is ambiguous.")
-                ' Ideally, B should be resolved to BS1.
-                context.CompileExpression("New B()", errorMessage)
-                Assert.Equal(errorMessage, "error BC30554: 'B' is ambiguous.")
+            ' Compile expression with type context.
+            Dim context = EvaluationContext.CreateTypeContext(
+                Nothing,
+                typeBlocks,
+                moduleVersionId,
+                typeToken)
+            Dim errorMessage As String = Nothing
+            ' A is ambiguous since there were no explicit references to AS1 or AS2.
+            context.CompileExpression("New A()", errorMessage)
+            Assert.Equal(errorMessage, "error BC30554: 'A' is ambiguous.")
+            ' Ideally, B should be resolved to BS1.
+            context.CompileExpression("New B()", errorMessage)
+            Assert.Equal(errorMessage, "error BC30554: 'B' is ambiguous.")
 
-                ' Compile expression with method context.
-                Dim previous = New VisualBasicMetadataContext(typeBlocks, context)
-                context = EvaluationContext.CreateMethodContext(
-                    previous,
-                    methodBlocks,
-                    MakeDummyLazyAssemblyReaders(),
-                    symReader,
-                    moduleVersionId,
-                    methodToken,
-                    methodVersion:=1,
-                    ilOffset:=0,
-                    localSignatureToken:=localSignatureToken)
-                Assert.Equal(previous.Compilation, context.Compilation) ' re-use type context compilation
-                ' Ideally, B should be resolved to BS1.
-                context.CompileExpression("New B()", errorMessage)
-                Assert.Equal(errorMessage, "error BC30554: 'B' is ambiguous.")
-            End Using
+            ' Compile expression with method context.
+            Dim previous = New VisualBasicMetadataContext(typeBlocks, context)
+            context = EvaluationContext.CreateMethodContext(
+                previous,
+                methodBlocks,
+                MakeDummyLazyAssemblyReaders(),
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion:=1,
+                ilOffset:=0,
+                localSignatureToken:=localSignatureToken)
+            Assert.Equal(previous.Compilation, context.Compilation) ' re-use type context compilation
+            ' Ideally, B should be resolved to BS1.
+            context.CompileExpression("New B()", errorMessage)
+            Assert.Equal(errorMessage, "error BC30554: 'B' is ambiguous.")
         End Sub
 
         <Fact>
@@ -192,25 +176,25 @@ End Class"
                 MakeSources(sourceA, assemblyName:=assemblyNameA),
                 options:=TestOptions.DebugDll,
                 additionalRefs:={SystemCoreRef})
-            Dim exeBytesA As Byte() = Nothing
-            Dim pdbBytesA As Byte() = Nothing
+            Dim exeBytesA As ImmutableArray(Of Byte) = Nothing
+            Dim pdbBytesA As ImmutableArray(Of Byte) = Nothing
             Dim referencesA As ImmutableArray(Of MetadataReference) = Nothing
             compilationA.EmitAndGetReferences(exeBytesA, pdbBytesA, referencesA)
             Dim referenceA = AssemblyMetadata.CreateFromImage(exeBytesA).GetReference(display:=assemblyNameA)
             Dim identityA = referenceA.GetAssemblyIdentity()
-            Dim moduleA = referenceA.ToModuleInstance(exeBytesA, SymReaderFactory.CreateReader(pdbBytesA))
+            Dim moduleA = referenceA.ToModuleInstance(exeBytesA.ToArray(), SymReaderFactory.CreateReader(pdbBytesA))
 
             Dim assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName()
             Dim compilationB = CreateCompilationWithMscorlibAndVBRuntime(
                 MakeSources(sourceB, assemblyName:=assemblyNameB),
                 options:=TestOptions.DebugDll,
                 additionalRefs:={SystemCoreRef, referenceA})
-            Dim exeBytesB As Byte() = Nothing
-            Dim pdbBytesB As Byte() = Nothing
+            Dim exeBytesB As ImmutableArray(Of Byte) = Nothing
+            Dim pdbBytesB As ImmutableArray(Of Byte) = Nothing
             Dim referencesB As ImmutableArray(Of MetadataReference) = Nothing
             compilationB.EmitAndGetReferences(exeBytesB, pdbBytesB, referencesB)
             Dim referenceB = AssemblyMetadata.CreateFromImage(exeBytesB).GetReference(display:=assemblyNameB)
-            Dim moduleB = referenceB.ToModuleInstance(exeBytesB, SymReaderFactory.CreateReader(pdbBytesB))
+            Dim moduleB = referenceB.ToModuleInstance(exeBytesB.ToArray(), SymReaderFactory.CreateReader(pdbBytesB))
 
             Dim moduleBuilder = ArrayBuilder(Of ModuleInstance).GetInstance()
             moduleBuilder.AddRange(referencesA.Select(Function(r) r.ToModuleInstance(Nothing, Nothing)))
@@ -319,72 +303,59 @@ Class C
         F()
     End Sub
 End Class"
-            Dim assemblyNameA = ExpressionCompilerUtilities.GenerateUniqueName()
-            Dim compilationA1 = CreateCompilation(
-                New AssemblyIdentity(assemblyNameA, New Version(1, 1, 1, 1)),
+            Dim referenceA1 = CreateCompilation(
+                New AssemblyIdentity("A", New Version(1, 1, 1, 1)),
                 {sourceA},
                 options:=TestOptions.DebugDll,
-                references:={MscorlibRef, SystemRef, MsvbRef})
-            Dim referenceA1 = compilationA1.EmitToImageReference()
+                references:={MscorlibRef, SystemRef, MsvbRef}).EmitToImageReference()
 
-            Dim compilationA2 = CreateCompilation(
-                New AssemblyIdentity(assemblyNameA, New Version(2, 1, 1, 2)),
+            Dim referenceA2 = CreateCompilation(
+                New AssemblyIdentity("A", New Version(2, 1, 1, 2)),
                 {sourceA},
                 options:=TestOptions.DebugDll,
-                references:={MscorlibRef, SystemRef, MsvbRef})
-            Dim referenceA2 = compilationA2.EmitToImageReference()
+                references:={MscorlibRef, SystemRef, MsvbRef}).EmitToImageReference()
 
-            Dim assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName()
             Dim compilationB = CreateCompilation(
-                New AssemblyIdentity(assemblyNameB, New Version(1, 1, 1, 1)),
+                New AssemblyIdentity("B", New Version(1, 1, 1, 1)),
                 {sourceB},
                 options:=TestOptions.DebugDll,
                 references:={MscorlibRef, referenceA1})
-            Dim exeBytesB As Byte() = Nothing
-            Dim pdbBytesB As Byte() = Nothing
-            Dim referencesB As ImmutableArray(Of MetadataReference) = Nothing
-            compilationB.EmitAndGetReferences(exeBytesB, pdbBytesB, referencesB)
 
-            Using runtime = CreateRuntimeInstance(
-                assemblyNameB,
-                ImmutableArray.Create(MscorlibRef, SystemRef, MsvbRef, referenceA1, referenceA2),
-                exeBytesB,
-                SymReaderFactory.CreateReader(pdbBytesB))
+            Dim runtime = CreateRuntimeInstance(compilationB, {MscorlibRef, SystemRef, MsvbRef, referenceA1, referenceA2})
 
-                Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
-                Dim moduleVersionId As Guid = Nothing
-                Dim symReader As ISymUnmanagedReader = Nothing
-                Dim typeToken = 0
-                Dim methodToken = 0
-                Dim localSignatureToken = 0
-                GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+            Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
+            Dim moduleVersionId As Guid = Nothing
+            Dim symReader As ISymUnmanagedReader = Nothing
+            Dim typeToken = 0
+            Dim methodToken = 0
+            Dim localSignatureToken = 0
+            GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
 
-                Dim context = EvaluationContext.CreateMethodContext(
-                    Nothing,
-                    blocks,
-                    MakeDummyLazyAssemblyReaders(),
-                    symReader,
-                    moduleVersionId,
-                    methodToken,
-                    methodVersion:=1,
-                    ilOffset:=0,
-                    localSignatureToken:=localSignatureToken)
-                Dim errorMessage As String = Nothing
-                context.CompileExpression("F()", errorMessage)
-                Assert.Equal(errorMessage, "error BC30562: 'F' is ambiguous between declarations in Modules 'N.M, N.M'.")
+            Dim context = EvaluationContext.CreateMethodContext(
+                Nothing,
+                blocks,
+                MakeDummyLazyAssemblyReaders(),
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion:=1,
+                ilOffset:=0,
+                localSignatureToken:=localSignatureToken)
+            Dim errorMessage As String = Nothing
+            context.CompileExpression("F()", errorMessage)
+            Assert.Equal(errorMessage, "error BC30562: 'F' is ambiguous between declarations in Modules 'N.M, N.M'.")
 
-                Dim testData As New CompilationTestData()
-                Dim contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "F()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-                Assert.Null(errorMessage)
-                testData.GetMethodData("<>x.<>m0").VerifyIL(
+            Dim testData As New CompilationTestData()
+            Dim contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
+            ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "F()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
+            Assert.Null(errorMessage)
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
-  // Code size        6 (0x6)
-  .maxstack  1
-  IL_0000:  call       ""Function N.M.F() As Object""
-  IL_0005:  ret
+// Code size        6 (0x6)
+.maxstack  1
+IL_0000:  call       ""Function N.M.F() As Object""
+IL_0005:  ret
 }")
-            End Using
         End Sub
 
         <WorkItem(1170032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170032")>

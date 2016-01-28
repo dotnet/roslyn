@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using System.IO;
 using System.Reflection.PortableExecutable;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
@@ -30,21 +31,32 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             }
         }
 
-        internal static RuntimeInstance Create(Compilation compilation, DebugInformationFormat debugFormat = 0)
+
+        internal static RuntimeInstance Create(
+            Compilation compilation,
+            IEnumerable<MetadataReference> references = null, 
+            DebugInformationFormat debugFormat = 0,
+            bool includeLocalSignatures = true)
         {
             var pdbStream = (debugFormat != 0) ? new MemoryStream() : null;
             var peImage = compilation.EmitToArray(new EmitOptions(debugInformationFormat: debugFormat), pdbStream: pdbStream);
             var symReader = (debugFormat != 0) ? SymReaderFactory.CreateReader(pdbStream, new PEReader(peImage)) : null;
-            var references = compilation.GetEmittedReferences(peImage).AddIntrinsicAssembly();
 
-            return Create(compilation.AssemblyName, references, peImage, symReader);
+            if (references == null)
+            {
+                references = compilation.GetEmittedReferences(peImage);
+            }
+
+            references = references.Concat(new[] { ExpressionCompilerTestHelpers.IntrinsicAssemblyReference });
+
+            return Create(references, peImage, symReader, compilation.AssemblyName, includeLocalSignatures);
         }
 
         internal static RuntimeInstance Create(
-            string assemblyName,
-            ImmutableArray<MetadataReference> references,
+            IEnumerable<MetadataReference> references,
             ImmutableArray<byte> peImage,
             ISymUnmanagedReader symReaderOpt,
+            string assemblyName = null,
             bool includeLocalSignatures = true)
         {
             var exeReference = AssemblyMetadata.CreateFromImage(peImage).GetReference(display: assemblyName);

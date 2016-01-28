@@ -634,9 +634,8 @@ class C : I<int>
             EmitILToArray(ilSource, appendDefaultHeader: true, includePdb: true, assemblyBytes: out ilBytes, pdbBytes: out ilPdbBytes);
 
             var runtime = CreateRuntimeInstance(
-                assemblyName: GetUniqueName(),
-                references: ImmutableArray.Create(MscorlibRef),
-                exeBytes: ilBytes.ToArray(),
+                references: new[] { MscorlibRef },
+                peImage: ilBytes,
                 symReader: SymReaderFactory.CreateReader(ilPdbBytes));
 
             var context = CreateMethodContext(runtime, "C.<I<System.Int32>.F>d__0.MoveNext");
@@ -789,10 +788,9 @@ static class C
             EmitILToArray(ilSource, appendDefaultHeader: true, includePdb: true, assemblyBytes: out ilBytes, pdbBytes: out ilPdbBytes);
 
             var runtime = CreateRuntimeInstance(
-                assemblyName: GetUniqueName(),
-                references: ImmutableArray.Create(MscorlibRef),
-                exeBytes: ilBytes.ToArray(),
-                symReader: SymReaderFactory.CreateReader(ilPdbBytes.ToArray()));
+                references: new[] { MscorlibRef },
+                peImage: ilBytes,
+                symReader: SymReaderFactory.CreateReader(ilPdbBytes));
 
             var context = CreateMethodContext(runtime, "C.<M>b__0");
             VerifyNoThis(context);

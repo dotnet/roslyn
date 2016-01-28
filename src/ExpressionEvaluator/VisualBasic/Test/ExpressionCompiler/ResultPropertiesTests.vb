@@ -110,11 +110,11 @@ End Class
             EmitILToArray(ilSource, appendDefaultHeader:=True, includePdb:=True, assemblyBytes:=exeBytes, pdbBytes:=pdbBytes)
 
             Dim runtime = CreateRuntimeInstance(
-                assemblyName:=GetUniqueName(),
-                references:=ImmutableArray.Create(MscorlibRef),
-                exeBytes:=exeBytes.ToArray(),
+                references:={MscorlibRef},
+                exeBytes:=exeBytes,
                 symReader:=SymReaderFactory.CreateReader(pdbBytes))
-            Dim context = CreateMethodContext(runtime, methodName:="C.Test")
+
+            Dim context = CreateMethodContext(runtime, "C.Test")
 
             Assert.Equal(DkmEvaluationResultAccessType.Private, GetResultProperties(context, "[Private]").AccessType)
             Assert.Equal(DkmEvaluationResultAccessType.Protected, GetResultProperties(context, "[Protected]").AccessType)
@@ -265,10 +265,10 @@ End Class
             EmitILToArray(ilSource, appendDefaultHeader:=True, includePdb:=True, assemblyBytes:=exeBytes, pdbBytes:=pdbBytes)
 
             Dim runtime = CreateRuntimeInstance(
-                assemblyName:=GetUniqueName(),
-                references:=ImmutableArray.Create(MscorlibRef),
-                exeBytes:=exeBytes.ToArray(),
+                references:={MscorlibRef},
+                exeBytes:=exeBytes,
                 symReader:=SymReaderFactory.CreateReader(pdbBytes))
+
             Dim context = CreateMethodContext(runtime, methodName:="C.Test")
 
             Assert.Equal(DkmEvaluationResultTypeModifierFlags.None, GetResultProperties(context, "F").ModifierFlags)

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
@@ -330,20 +331,16 @@ public class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source);
-
-            byte[] exeBytes;
-            byte[] unusedPdbBytes;
-            ImmutableArray<MetadataReference> references;
-            comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
+            var peImage = comp.EmitToArray();
 
             var symReader = ExpressionCompilerTestHelpers.ConstructSymReaderWithImports(
-                exeBytes,
+                peImage,
                 "Main",
                 "USystem", // Valid.
                 "UACultureInfo TSystem.Globalization.CultureInfo, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", // Invalid - skipped.
                 "ASI USystem.IO"); // Valid.
 
-            var runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader);
+            var runtime = CreateRuntimeInstance(new[] { MscorlibRef }, peImage, symReader);
             var evalContext = CreateMethodContext(runtime, "C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)); // Used to throw.
             var imports = compContext.NamespaceBinder.ImportChain.Single();
@@ -365,20 +362,16 @@ public class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source);
-
-            byte[] exeBytes;
-            byte[] unusedPdbBytes;
-            ImmutableArray<MetadataReference> references;
-            comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
+            var peImage = comp.EmitToArray();
 
             var symReader = ExpressionCompilerTestHelpers.ConstructSymReaderWithImports(
-                exeBytes,
+                peImage,
                 "Main",
                 "USystem", // Valid.
                 "AMy.Alias TSystem.Globalization.CultureInfo, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", // Invalid - skipped.
                 "ASI USystem.IO"); // Valid.
 
-            var runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader);
+            var runtime = CreateRuntimeInstance(new[] { MscorlibRef }, peImage, symReader);
             var evalContext = CreateMethodContext(runtime, "C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)); // Used to throw.
             var imports = compContext.NamespaceBinder.ImportChain.Single();
@@ -400,14 +393,10 @@ public class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source);
-
-            byte[] exeBytes;
-            byte[] unusedPdbBytes;
-            ImmutableArray<MetadataReference> references;
-            comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
+            var peImage = comp.EmitToArray();
 
             ISymUnmanagedReader symReader;
-            using (var peReader = new PEReader(ImmutableArray.Create(exeBytes)))
+            using (var peReader = new PEReader(peImage))
             {
                 var metadataReader = peReader.GetMetadataReader();
                 var methodHandle = metadataReader.MethodDefinitions.Single(h => metadataReader.StringComparer.Equals(metadataReader.GetMethodDefinition(h).Name, "Main"));
@@ -419,7 +408,7 @@ public class C
                 }.ToImmutableDictionary());
             }
 
-            var runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader);
+            var runtime = CreateRuntimeInstance(new[] { MscorlibRef }, peImage, symReader);
             var evalContext = CreateMethodContext(runtime, "C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
             var imports = compContext.NamespaceBinder.ImportChain.Single();
@@ -444,14 +433,10 @@ namespace N
 }
 ";
             var comp = CreateCompilationWithMscorlib(source);
-
-            byte[] exeBytes;
-            byte[] unusedPdbBytes;
-            ImmutableArray<MetadataReference> references;
-            comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
+            var peImage = comp.EmitToArray();
 
             ISymUnmanagedReader symReader;
-            using (var peReader = new PEReader(ImmutableArray.Create(exeBytes)))
+            using (var peReader = new PEReader(peImage))
             {
                 var metadataReader = peReader.GetMetadataReader();
                 var methodHandle = metadataReader.MethodDefinitions.Single(h => metadataReader.StringComparer.Equals(metadataReader.GetMethodDefinition(h).Name, "Main"));
@@ -463,7 +448,7 @@ namespace N
                 }.ToImmutableDictionary());
             }
 
-            var runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader);
+            var runtime = CreateRuntimeInstance(new[] { MscorlibRef }, peImage, symReader);
             var evalContext = CreateMethodContext(runtime, "N.C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
             var imports = compContext.NamespaceBinder.ImportChain.Single();
@@ -488,14 +473,10 @@ namespace N
 }
 ";
             var comp = CreateCompilationWithMscorlib(source);
-
-            byte[] exeBytes;
-            byte[] unusedPdbBytes;
-            ImmutableArray<MetadataReference> references;
-            comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
+            var peImage = comp.EmitToArray();
 
             ISymUnmanagedReader symReader;
-            using (var peReader = new PEReader(ImmutableArray.Create(exeBytes)))
+            using (var peReader = new PEReader(peImage))
             {
                 var metadataReader = peReader.GetMetadataReader();
                 var methodHandle = metadataReader.MethodDefinitions.Single(h => metadataReader.StringComparer.Equals(metadataReader.GetMethodDefinition(h).Name, "Main"));
@@ -507,7 +488,7 @@ namespace N
                 }.ToImmutableDictionary());
             }
 
-            var runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader);
+            var runtime = CreateRuntimeInstance(new[] { MscorlibRef }, peImage, symReader);
             var evalContext = CreateMethodContext(runtime, "N.C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
             var imports = compContext.NamespaceBinder.ImportChain.Single();
@@ -1071,20 +1052,20 @@ public class C2 : C1
             ImmutableArray<MetadataReference> unused;
 
             var comp1 = CreateCompilation(source1, new[] { MscorlibRef_v20 }, TestOptions.DebugDll, assemblyName: "A");
-            byte[] dllBytes1;
-            byte[] pdbBytes1;
+            ImmutableArray<byte> dllBytes1;
+            ImmutableArray<byte> pdbBytes1;
             comp1.EmitAndGetReferences(out dllBytes1, out pdbBytes1, out unused);
             var ref1 = AssemblyMetadata.CreateFromImage(dllBytes1).GetReference(display: "A");
 
             var comp2 = CreateCompilation(source2, new[] { MscorlibRef_v4_0_30316_17626, ref1 }, TestOptions.DebugDll, assemblyName: "B");
-            byte[] dllBytes2;
-            byte[] pdbBytes2;
+            ImmutableArray<byte> dllBytes2;
+            ImmutableArray<byte> pdbBytes2;
             comp2.EmitAndGetReferences(out dllBytes2, out pdbBytes2, out unused);
             var ref2 = AssemblyMetadata.CreateFromImage(dllBytes2).GetReference(display: "B");
 
             var modulesBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
-            modulesBuilder.Add(ref1.ToModuleInstance(dllBytes1, SymReaderFactory.CreateReader(pdbBytes1)));
-            modulesBuilder.Add(ref2.ToModuleInstance(dllBytes2, SymReaderFactory.CreateReader(pdbBytes2)));
+            modulesBuilder.Add(ref1.ToModuleInstance(dllBytes1.ToArray(), SymReaderFactory.CreateReader(pdbBytes1)));
+            modulesBuilder.Add(ref2.ToModuleInstance(dllBytes2.ToArray(), SymReaderFactory.CreateReader(pdbBytes2)));
             modulesBuilder.Add(MscorlibRef_v4_0_30316_17626.ToModuleInstance(fullImage: null, symReader: null));
             modulesBuilder.Add(ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance(fullImage: null, symReader: null));
 
