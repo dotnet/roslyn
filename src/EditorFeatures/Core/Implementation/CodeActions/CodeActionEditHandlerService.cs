@@ -45,6 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 return null;
             }
 
+            SolutionPreviewResult currentResult = null;
+
             foreach (var op in operations)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -59,26 +61,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
                     if (preview != null && !preview.IsEmpty)
                     {
-                        return preview;
+                        currentResult = SolutionPreviewResult.Merge(currentResult, preview);
+                        continue;
                     }
                 }
 
                 var previewOp = op as PreviewOperation;
                 if (previewOp != null)
                 {
-                    return new SolutionPreviewResult(new List<SolutionPreviewItem>() { new SolutionPreviewItem(projectId: null, documentId: null,
-                        lazyPreview: c => previewOp.GetPreviewAsync(c)) });
+                    currentResult = SolutionPreviewResult.Merge(currentResult, new SolutionPreviewResult(new List<SolutionPreviewItem>() { new SolutionPreviewItem(projectId: null, documentId: null,
+                        lazyPreview: c => previewOp.GetPreviewAsync(c)) }));
+                    continue;
                 }
 
                 var title = op.Title;
+
                 if (title != null)
                 {
-                    return new SolutionPreviewResult(new List<SolutionPreviewItem>() { new SolutionPreviewItem(projectId: null, documentId: null, 
-                        lazyPreview: c => Task.FromResult<object>(title)) });
+                    currentResult = SolutionPreviewResult.Merge(currentResult,
+                        new SolutionPreviewResult(new List<SolutionPreviewItem> { new SolutionPreviewItem(projectId: null, documentId: null, text: title) }));
+                    continue;
                 }
             }
 
-            return null;
+            return currentResult;
         }
 
         public void Apply(Workspace workspace, Document fromDocument, IEnumerable<CodeActionOperation> operations, string title, CancellationToken cancellationToken)

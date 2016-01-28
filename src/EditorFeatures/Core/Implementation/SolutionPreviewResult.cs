@@ -71,5 +71,22 @@ namespace Microsoft.CodeAnalysis.Editor
 
             return result.Count == 0 ? null : result;
         }
+
+        internal static SolutionPreviewResult Merge(SolutionPreviewResult result1, SolutionPreviewResult result2)
+        {
+            if (result1 == null)
+            {
+                return result2;
+            }
+
+            if (result2 == null)
+            {
+                return result1;
+            }
+
+            return new SolutionPreviewResult(
+                result1._previews.Concat(result2._previews).ToList(), 
+                result1.ChangeSummary ?? result2.ChangeSummary);
+        }
     }
 }

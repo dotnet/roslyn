@@ -100,8 +100,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     string versionOpt)
                 {
                     var title = versionOpt == null
-                        ? FeaturesResources.Install_latest_version
-                        : string.Format(FeaturesResources.Install_version_0, versionOpt);
+                        ? FeaturesResources.Find_and_install_latest_version
+                        : string.Format(FeaturesResources.Use_local_version_0, versionOpt);
                     return new OperationBasedCodeAction(
                         title, c => GetOperationsAsync(versionOpt, document, node, placeSystemNamespaceFirst, c));
                 }
@@ -137,7 +137,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     _versionOpt = versionOpt;
                 }
 
-                public override string Title => string.Format(FeaturesResources.Install_NuGet_package, _packageName);
+                public override string Title => _versionOpt == null
+                    ? string.Format(FeaturesResources.Find_and_install_latest_version_of_0, _packageName)
+                    : string.Format(FeaturesResources.Use_locally_installed_0_version_1, _packageName, _versionOpt);
 
                 public override void Apply(Workspace workspace, CancellationToken cancellationToken)
                 {
