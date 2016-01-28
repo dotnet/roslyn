@@ -25,5 +25,15 @@ namespace Microsoft.CodeAnalysis.Semantics
         public OperationKind Kind => OperationKind.VariableDeclaration;
 
         public SyntaxNode Syntax { get; }
+
+        public void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitVariable(this);
+        }
+
+        public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitVariable(this, argument);
+        }
     }
 }

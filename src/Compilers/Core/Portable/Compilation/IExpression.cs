@@ -829,6 +829,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents an initialization of a parameter at the point of declaration.
+    /// </summary>
+    public interface IParameterInitializer : ISymbolInitializer
+    {
+        /// <summary>
+        /// Initialized parameter.
+        /// </summary>
+        IParameterSymbol Parameter { get; }
+    }
+
+    /// <summary>
     /// Represents the creation of an array instance.
     /// </summary>
     public interface IArrayCreationExpression : IExpression
@@ -919,17 +930,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Name of the member.
         /// </summary>
         string MemberName { get; }
-    }
-    
-    /// <summary>
-    /// Represents an initialization of a parameter at the point of declaration.
-    /// </summary>
-    public interface IParameterInitializer : ISymbolInitializer
-    {
-        /// <summary>
-        /// Initialized parameter.
-        /// </summary>
-        IParameterSymbol Parameter { get; }
     }
 
     /// <summary>

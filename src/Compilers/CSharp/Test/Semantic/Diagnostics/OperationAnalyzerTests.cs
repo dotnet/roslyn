@@ -1178,5 +1178,25 @@ class C
                 Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 33").WithLocation(9, 40)
                 );
         }
+
+        [Fact]
+        public void NoneOperationCSharp()
+        {
+            // BoundStatementList is OperationKind.None
+            const string source = @"
+class C
+{
+    public void M0()
+    {
+        int x = 0;
+        int y = x++;
+        int z = y++;
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NoneOperationTestAnalyzer() }, null, null, false);
+        }
     }
 }
