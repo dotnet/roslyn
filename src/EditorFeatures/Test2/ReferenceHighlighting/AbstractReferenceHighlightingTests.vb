@@ -21,8 +21,10 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
 
     Public MustInherit Class AbstractReferenceHighlightingTests
-        Protected Sub VerifyHighlights(test As XElement, Optional optionIsEnabled As Boolean = True)
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+        Protected Async Function VerifyHighlightsAsync(test As XElement, Optional optionIsEnabled As Boolean = True) As Tasks.Task
+            Using workspace = Await TestWorkspace.CreateAsync(test)
+                WpfTestCase.RequireWpfFact($"{NameOf(AbstractReferenceHighlightingTests)}.VerifyHighlightsAsync creates asynchronous taggers")
+
                 Dim tagProducer = New ReferenceHighlightingViewTaggerProvider(
                     workspace.GetService(Of IForegroundNotificationService),
                     workspace.GetService(Of ISemanticChangeNotificationService),
@@ -37,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim context = New TaggerContext(Of NavigableHighlightTag)(
                     document, snapshot, New SnapshotPoint(snapshot, caretPosition))
-                tagProducer.ProduceTagsAsync_ForTestingPurposesOnly(context).Wait()
+                Await tagProducer.ProduceTagsAsync_ForTestingPurposesOnly(context)
 
                 Dim producedTags = From tag In context.tagSpans
                                    Order By tag.Span.Start
@@ -57,6 +59,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
 
                 AssertEx.Equal(expectedTags, producedTags)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

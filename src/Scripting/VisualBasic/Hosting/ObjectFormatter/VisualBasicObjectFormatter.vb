@@ -2,9 +2,9 @@
 
 Imports System.Reflection
 Imports System.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.Scripting.Hosting
 
-Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic
+Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
     Public NotInheritable Class VisualBasicObjectFormatter
         Inherits ObjectFormatter
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic
         Friend Overrides Function FormatLiteral(value As String, quote As Boolean, Optional useHexadecimalNumbers As Boolean = False) As String
             Dim options = ObjectDisplayOptions.None
             If quote Then
-                options = options Or ObjectDisplayOptions.UseQuotes
+                options = options Or ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters
             End If
             If useHexadecimalNumbers Then
                 options = options Or ObjectDisplayOptions.UseHexadecimalNumbers
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic
         Friend Overrides Function FormatLiteral(c As Char, quote As Boolean, Optional includeCodePoints As Boolean = False, Optional useHexadecimalNumbers As Boolean = False) As String
             Dim options = ObjectDisplayOptions.None
             If quote Then
-                options = options Or ObjectDisplayOptions.UseQuotes
+                options = options Or ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters
             End If
             If includeCodePoints Then
                 options = options Or ObjectDisplayOptions.IncludeCodePoints
@@ -61,47 +61,47 @@ Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic
         End Function
 
         Friend Overrides Function FormatLiteral(value As SByte, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers), UIFormatCulture)
         End Function
 
         Friend Overrides Function FormatLiteral(value As Byte, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers), UIFormatCulture)
         End Function
 
         Friend Overrides Function FormatLiteral(value As Short, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers), UIFormatCulture)
         End Function
 
         Friend Overrides Function FormatLiteral(value As UShort, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers), UIFormatCulture)
         End Function
 
         Friend Overrides Function FormatLiteral(value As Integer, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers), UIFormatCulture)
         End Function
 
         Friend Overrides Function FormatLiteral(value As UInteger, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers), UIFormatCulture)
         End Function
 
         Friend Overrides Function FormatLiteral(value As Long, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers), UIFormatCulture)
         End Function
 
         Friend Overrides Function FormatLiteral(value As ULong, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers), UIFormatCulture)
         End Function
 
         Friend Overrides Function FormatLiteral(value As Double) As String
-            Return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None)
+            Return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None, UIFormatCulture)
         End Function
 
         Friend Overrides Function FormatLiteral(value As Single) As String
-            Return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None)
+            Return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None, UIFormatCulture)
         End Function
 
         Friend Overrides Function FormatLiteral(value As Decimal) As String
-            Return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None)
+            Return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None, UIFormatCulture)
         End Function
 
         Friend Overrides Function GetPrimitiveTypeName(type As SpecialType) As String
@@ -244,5 +244,5 @@ Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic
             Return False
         End Function
     End Class
-End Namespace
 
+End Namespace

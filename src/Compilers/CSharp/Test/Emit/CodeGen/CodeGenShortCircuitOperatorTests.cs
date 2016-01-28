@@ -5865,7 +5865,8 @@ class C
         }
 
         [WorkItem(825, "https://github.com/dotnet/roslyn/issues/825")]
-        [Fact]
+        [WorkItem(5662, "https://github.com/dotnet/roslyn/issues/5662")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void ConditionalBoolExpr01b()
         {
             var source = @"
@@ -6842,5 +6843,56 @@ class C
 }
 ");
         }
+
+        [WorkItem(7388, "https://github.com/dotnet/roslyn/issues/7388")]
+        [Fact]
+        public void ConditionalClassConstrained001()
+        {
+            var source = @"
+using System;
+
+namespace ConsoleApplication9
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var v = new A<object>();
+            System.Console.WriteLine(A<object>.Test(v));
+        }
+
+        public class A<T> : object where T : class
+        {
+            public T Value { get { return (T)(object)42; }}
+
+            public static T Test(A<T> val)
+            {
+                return val?.Value;
+            }
+        }
+    }
+}
+
+
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"42");
+
+            verifier.VerifyIL("ConsoleApplication9.Program.A<T>.Test(ConsoleApplication9.Program.A<T>)", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000d
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.0
+  IL_000c:  ret
+  IL_000d:  ldarg.0
+  IL_000e:  call       ""T ConsoleApplication9.Program.A<T>.Value.get""
+  IL_0013:  ret
+}");
+        }
+
     }
 }

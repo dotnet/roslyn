@@ -21,10 +21,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// <returns> An array of bytes that were read from the compiled DLL</returns>
         private byte[] CompileAndGetBytes(string source, string additionalFlags, out string finalFlags)
         {
-            var tempRoot = new TempRoot();
 
             // Setup
-            var tempDir = tempRoot.CreateDirectory();
+            var tempDir = Temp.CreateDirectory();
             var srcFile = tempDir.CreateFile("test.cs").WriteAllText(source).Path;
             var outFile = srcFile.Replace("test.cs", "test.dll");
 
@@ -34,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 var errorsFile = srcFile + ".errors";
 
                 // Compile
-                var result = ProcessUtilities.Run("cmd", $"/C {CompilerServerUnitTests.s_csharpCompilerExecutableSrc} { finalFlags } { srcFile } /out:{ outFile } > { errorsFile }");
+                var result = ProcessUtilities.Run("cmd", $"/C {CompilerServerUnitTests.CSharpCompilerClientExecutable} { finalFlags } { srcFile } /out:{ outFile } > { errorsFile }");
                 if (result.ExitCode != 0)
                 {
                     var errors = File.ReadAllText(errorsFile);

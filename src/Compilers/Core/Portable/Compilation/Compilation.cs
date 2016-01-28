@@ -156,7 +156,11 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.InvalidOutputKindForSubmission, nameof(options));
             }
 
-            if (options.CryptoKeyContainer != null || options.CryptoKeyFile != null || options.DelaySign != null || !options.CryptoPublicKey.IsEmpty)
+            if (options.CryptoKeyContainer != null ||
+                options.CryptoKeyFile != null ||
+                options.DelaySign != null ||
+                !options.CryptoPublicKey.IsEmpty ||
+                (options.DelaySign == true && options.PublicSign))
             {
                 throw new ArgumentException(CodeAnalysisResources.InvalidCompilationOptions, nameof(options));
             }
@@ -1300,6 +1304,7 @@ namespace Microsoft.CodeAnalysis
                 // alink would sign the assembly. So rather than give an error we just don't sign when outputting a module.
 
                 return !IsDelaySigned
+                    && !Options.PublicSign
                     && Options.OutputKind != OutputKind.NetModule
                     && StrongNameKeys.CanSign;
             }

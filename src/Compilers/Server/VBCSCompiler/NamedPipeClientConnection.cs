@@ -64,13 +64,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     pipeStream.WaitForConnection();
                     CompilerServerLogger.Log("Pipe connection detected.");
 
-                    if (!ClientAndOurIdentitiesMatch(pipeStream))
-                    {
-                        var exception = new Exception("Client identity does not match server identity.");
-                        listenSource.SetException(exception);
-                        return;
-                    }
-
                     if (Environment.Is64BitProcess || MemoryHelper.IsMemoryAvailable())
                     {
                         CompilerServerLogger.Log("Memory available - accepting connection");
@@ -78,20 +71,28 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         return;
                     }
 
-                    try
-                    {
-                        pipeStream.Close();
-                    }
-                    catch
-                    {
-                        // Okay for Close failure here.  
-                    }
-
                     listenSource.SetException(new Exception("Insufficient resources to process new connection."));
                 }
                 catch (Exception ex)
                 {
                     listenSource.SetException(ex);
+                }
+
+                // If the task didn't complete for whatever reason ensure that we did close out the 
+                // named pipe so the client can continue processing locally.
+                if (listenSource.Task.Status != TaskStatus.RanToCompletion)
+                { 
+                    if (pipeStream.IsConnected)
+                    {
+                        try
+                        {
+                            pipeStream.Close();
+                        }
+                        catch
+                        {
+                            // Okay for Close failure here
+                        }
+                    }
                 }
             });
             listenThread.Start();
@@ -156,34 +157,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return pipeStream;
         }
 
-        /// <summary>
-        /// Does the client of "pipeStream" have the same identity and elevation as we do?
-        /// </summary>
-        private static bool ClientAndOurIdentitiesMatch(NamedPipeServerStream pipeStream)
-        {
-            var serverIdentity = GetIdentity(impersonating: false);
-
-            Tuple<string, bool> clientIdentity = null;
-            pipeStream.RunAsClient(() => { clientIdentity = GetIdentity(impersonating: true); });
-
-            CompilerServerLogger.Log($"Server identity = '{serverIdentity.Item1}', server elevation='{serverIdentity.Item2}'.");
-            CompilerServerLogger.Log($"Client identity = '{clientIdentity.Item1}', client elevation='{serverIdentity.Item2}'.");
-
-            return
-                StringComparer.OrdinalIgnoreCase.Equals(serverIdentity.Item1, clientIdentity.Item1) &&
-                serverIdentity.Item2 == clientIdentity.Item2;
-        }
-
-        /// <summary>
-        /// Return the current user name and whether the current user is in the administrator role.
-        /// </summary>
-        private static Tuple<string, bool> GetIdentity(bool impersonating)
-        {
-            WindowsIdentity currentIdentity = WindowsIdentity.GetCurrent(impersonating);
-            WindowsPrincipal currentPrincipal = new WindowsPrincipal(currentIdentity);
-            var elevatedToAdmin = currentPrincipal.IsInRole(WindowsBuiltInRole.Administrator);
-            return Tuple.Create(currentIdentity.Name, elevatedToAdmin);
-        }
     }
 
     internal sealed class NamedPipeClientConnection : ClientConnection
@@ -227,6 +200,44 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     CompilerServerLogger.LogException(e, msg);
                 }
             }
+        }
+
+        protected override void ValidateBuildRequest(BuildRequest request)
+        {
+            // Now that we've read data from the stream we can validate the identity.
+            if (!ClientAndOurIdentitiesMatch(_pipeStream))
+            {
+                throw new Exception("Client identity does not match server identity.");
+            }
+        }
+
+        /// <summary>
+        /// Does the client of "pipeStream" have the same identity and elevation as we do?
+        /// </summary>
+        private static bool ClientAndOurIdentitiesMatch(NamedPipeServerStream pipeStream)
+        {
+            var serverIdentity = GetIdentity(impersonating: false);
+
+            Tuple<string, bool> clientIdentity = null;
+            pipeStream.RunAsClient(() => { clientIdentity = GetIdentity(impersonating: true); });
+
+            CompilerServerLogger.Log($"Server identity = '{serverIdentity.Item1}', server elevation='{serverIdentity.Item2}'.");
+            CompilerServerLogger.Log($"Client identity = '{clientIdentity.Item1}', client elevation='{serverIdentity.Item2}'.");
+
+            return
+                StringComparer.OrdinalIgnoreCase.Equals(serverIdentity.Item1, clientIdentity.Item1) &&
+                serverIdentity.Item2 == clientIdentity.Item2;
+        }
+
+        /// <summary>
+        /// Return the current user name and whether the current user is in the administrator role.
+        /// </summary>
+        private static Tuple<string, bool> GetIdentity(bool impersonating)
+        {
+            WindowsIdentity currentIdentity = WindowsIdentity.GetCurrent(impersonating);
+            WindowsPrincipal currentPrincipal = new WindowsPrincipal(currentIdentity);
+            var elevatedToAdmin = currentPrincipal.IsInRole(WindowsBuiltInRole.Administrator);
+            return Tuple.Create(currentIdentity.Name, elevatedToAdmin);
         }
 
         public override void Close()

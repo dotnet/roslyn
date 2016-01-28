@@ -1496,6 +1496,7 @@ End Class
             Dim a = VisualBasicCompilation.Create("c", syntaxTrees:={ta})
 
             ' add:
+
             Dim ab = a.AddSyntaxTrees(tb)
             Assert.True(a.ReferenceManagerEquals(ab))
 
@@ -1503,39 +1504,41 @@ End Class
             Assert.True(a.ReferenceManagerEquals(ac))
 
             Dim ar = a.AddSyntaxTrees(tr)
-            Assert.True(a.ReferenceManagerEquals(ar))
+            Assert.False(a.ReferenceManagerEquals(ar))
 
             Dim arc = ar.AddSyntaxTrees(tc)
             Assert.True(ar.ReferenceManagerEquals(arc))
 
             ' remove:
+
             Dim ar2 = arc.RemoveSyntaxTrees(tc)
             Assert.True(arc.ReferenceManagerEquals(ar2))
 
             Dim c = arc.RemoveSyntaxTrees(ta, tr)
-            Assert.True(arc.ReferenceManagerEquals(c))
+            Assert.False(arc.ReferenceManagerEquals(c))
 
             Dim none1 = c.RemoveSyntaxTrees(tc)
             Assert.True(c.ReferenceManagerEquals(none1))
 
             Dim none2 = arc.RemoveAllSyntaxTrees()
-            Assert.True(arc.ReferenceManagerEquals(none2))
+            Assert.False(arc.ReferenceManagerEquals(none2))
 
             Dim none3 = ac.RemoveAllSyntaxTrees()
             Assert.True(ac.ReferenceManagerEquals(none3))
 
             ' replace:
+
             Dim asc = arc.ReplaceSyntaxTree(tr, ts)
-            Assert.True(arc.ReferenceManagerEquals(asc))
+            Assert.False(arc.ReferenceManagerEquals(asc))
 
             Dim brc = arc.ReplaceSyntaxTree(ta, tb)
             Assert.True(arc.ReferenceManagerEquals(brc))
 
             Dim abc = arc.ReplaceSyntaxTree(tr, tb)
-            Assert.True(arc.ReferenceManagerEquals(abc))
+            Assert.False(arc.ReferenceManagerEquals(abc))
 
             Dim ars = arc.ReplaceSyntaxTree(tc, ts)
-            Assert.True(arc.ReferenceManagerEquals(ars))
+            Assert.False(arc.ReferenceManagerEquals(ars))
         End Sub
 
         Private Class EvolvingTestReference

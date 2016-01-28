@@ -29,19 +29,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return _analyzerAndFixerMap.GetOrAdd(workspace, CreateDiagnosticProviderAndFixer);
         }
 
-        internal override IEnumerable<Diagnostic> GetDiagnostics(TestWorkspace workspace)
+        internal async override Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(TestWorkspace workspace)
         {
             var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace);
 
             var provider = providerAndFixer.Item1;
             TextSpan span;
             var document = GetDocumentAndSelectSpan(workspace, out span);
-            var allDiagnostics = DiagnosticProviderTestUtilities.GetAllDiagnostics(provider, document, span);
+            var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(provider, document, span);
             AssertNoAnalyzerExceptionDiagnostics(allDiagnostics);
             return allDiagnostics;
         }
 
-        internal override IEnumerable<Tuple<Diagnostic, CodeFixCollection>> GetDiagnosticAndFixes(TestWorkspace workspace, string fixAllActionId)
+        internal override async Task<IEnumerable<Tuple<Diagnostic, CodeFixCollection>>> GetDiagnosticAndFixesAsync(TestWorkspace workspace, string fixAllActionId)
         {
             var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace);
 
@@ -56,13 +56,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             using (var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider))
             {
-                var diagnostics = testDriver.GetAllDiagnostics(provider, document, span);
+                var diagnostics = await testDriver.GetAllDiagnosticsAsync(provider, document, span);
                 AssertNoAnalyzerExceptionDiagnostics(diagnostics);
 
                 var fixer = providerAndFixer.Item2;
                 var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
                 var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
-                return GetDiagnosticAndFixes(dxs, provider, fixer, testDriver, document, span, annotation, fixAllActionId);
+                return await GetDiagnosticAndFixesAsync(dxs, provider, fixer, testDriver, document, span, annotation, fixAllActionId);
             }
         }
 

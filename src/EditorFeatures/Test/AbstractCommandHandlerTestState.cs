@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             ExportProvider exportProvider,
             string workspaceKind)
         {
-            this.Workspace = TestWorkspaceFactory.CreateWorkspace(
+            this.Workspace = TestWorkspace.CreateWorkspace(
                 workspaceElement,
                 exportProvider: exportProvider,
                 workspaceKind: workspaceKind);
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public async Task WaitForAsynchronousOperationsAsync()
         {
             var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
-            await waiters.WaitAllAsync().ConfigureAwait(true);
+            await waiters.WaitAllAsync();
         }
 
         public void AssertMatchesTextStartingAtLine(int line, string text)

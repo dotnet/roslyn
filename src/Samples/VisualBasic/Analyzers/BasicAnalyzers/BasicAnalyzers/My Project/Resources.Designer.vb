@@ -27,7 +27,7 @@ Namespace My.Resources
      Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(),  _
      Global.Microsoft.VisualBasic.HideModuleNameAttribute()>  _
-    Friend Module Resources
+    Public Module Resources
         
         Private resourceMan As Global.System.Resources.ResourceManager
         
@@ -37,7 +37,7 @@ Namespace My.Resources
         '''  Returns the cached ResourceManager instance used by this class.
         '''</summary>
         <Global.System.ComponentModel.EditorBrowsableAttribute(Global.System.ComponentModel.EditorBrowsableState.Advanced)>  _
-        Friend ReadOnly Property ResourceManager() As Global.System.Resources.ResourceManager
+        Public ReadOnly Property ResourceManager() As Global.System.Resources.ResourceManager
             Get
                 If Object.ReferenceEquals(resourceMan, Nothing) Then
                     Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("Resources", GetType(Resources).GetTypeInfo.Assembly)
@@ -52,7 +52,7 @@ Namespace My.Resources
         '''  resource lookups using this strongly typed resource class.
         '''</summary>
         <Global.System.ComponentModel.EditorBrowsableAttribute(Global.System.ComponentModel.EditorBrowsableState.Advanced)>  _
-        Friend Property Culture() As Global.System.Globalization.CultureInfo
+        Public Property Culture() As Global.System.Globalization.CultureInfo
             Get
                 Return resourceCulture
             End Get
@@ -64,7 +64,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Remove unnecessary methods..
         '''</summary>
-        Friend ReadOnly Property CodeBlockAnalyzerDescription() As String
+        Public ReadOnly Property CodeBlockAnalyzerDescription() As String
             Get
                 Return ResourceManager.GetString("CodeBlockAnalyzerDescription", resourceCulture)
             End Get
@@ -73,7 +73,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Method &apos;{0}&apos; is a non-virtual method with an empty body. Consider removing this method from your assembly..
         '''</summary>
-        Friend ReadOnly Property CodeBlockAnalyzerMessageFormat() As String
+        Public ReadOnly Property CodeBlockAnalyzerMessageFormat() As String
             Get
                 Return ResourceManager.GetString("CodeBlockAnalyzerMessageFormat", resourceCulture)
             End Get
@@ -82,7 +82,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Remove unnecessary methods.
         '''</summary>
-        Friend ReadOnly Property CodeBlockAnalyzerTitle() As String
+        Public ReadOnly Property CodeBlockAnalyzerTitle() As String
             Get
                 Return ResourceManager.GetString("CodeBlockAnalyzerTitle", resourceCulture)
             End Get
@@ -91,7 +91,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Remove unused parameters..
         '''</summary>
-        Friend ReadOnly Property CodeBlockStartedAnalyzerDescription() As String
+        Public ReadOnly Property CodeBlockStartedAnalyzerDescription() As String
             Get
                 Return ResourceManager.GetString("CodeBlockStartedAnalyzerDescription", resourceCulture)
             End Get
@@ -100,7 +100,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Parameter &apos;{0}&apos; is unused in the method &apos;{1}&apos;..
         '''</summary>
-        Friend ReadOnly Property CodeBlockStartedAnalyzerMessageFormat() As String
+        Public ReadOnly Property CodeBlockStartedAnalyzerMessageFormat() As String
             Get
                 Return ResourceManager.GetString("CodeBlockStartedAnalyzerMessageFormat", resourceCulture)
             End Get
@@ -109,7 +109,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Remove unused parameters.
         '''</summary>
-        Friend ReadOnly Property CodeBlockStartedAnalyzerTitle() As String
+        Public ReadOnly Property CodeBlockStartedAnalyzerTitle() As String
             Get
                 Return ResourceManager.GetString("CodeBlockStartedAnalyzerTitle", resourceCulture)
             End Get
@@ -118,7 +118,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Dont suppress analyzer diagnostics..
         '''</summary>
-        Friend ReadOnly Property CompilationAnalyzerDescription() As String
+        Public ReadOnly Property CompilationAnalyzerDescription() As String
             Get
                 Return ResourceManager.GetString("CompilationAnalyzerDescription", resourceCulture)
             End Get
@@ -127,7 +127,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Analyzer diagnostic &apos;{0}&apos; is suppressed, consider removing this compilation wide suppression..
         '''</summary>
-        Friend ReadOnly Property CompilationAnalyzerMessageFormat() As String
+        Public ReadOnly Property CompilationAnalyzerMessageFormat() As String
             Get
                 Return ResourceManager.GetString("CompilationAnalyzerMessageFormat", resourceCulture)
             End Get
@@ -136,7 +136,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Dont suppress analyzer diagnostics.
         '''</summary>
-        Friend ReadOnly Property CompilationAnalyzerTitle() As String
+        Public ReadOnly Property CompilationAnalyzerTitle() As String
             Get
                 Return ResourceManager.GetString("CompilationAnalyzerTitle", resourceCulture)
             End Get
@@ -145,7 +145,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Do not implement unsupported interface..
         '''</summary>
-        Friend ReadOnly Property CompilationStartedAnalyzerDescription() As String
+        Public ReadOnly Property CompilationStartedAnalyzerDescription() As String
             Get
                 Return ResourceManager.GetString("CompilationStartedAnalyzerDescription", resourceCulture)
             End Get
@@ -154,7 +154,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Type &apos;{0}&apos; implements interface &apos;{1}&apos;, which is only meant for internal implementation and might change in future. You should avoid implementing this interface..
         '''</summary>
-        Friend ReadOnly Property CompilationStartedAnalyzerMessageFormat() As String
+        Public ReadOnly Property CompilationStartedAnalyzerMessageFormat() As String
             Get
                 Return ResourceManager.GetString("CompilationStartedAnalyzerMessageFormat", resourceCulture)
             End Get
@@ -163,7 +163,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Do not implement unsupported interface.
         '''</summary>
-        Friend ReadOnly Property CompilationStartedAnalyzerTitle() As String
+        Public ReadOnly Property CompilationStartedAnalyzerTitle() As String
             Get
                 Return ResourceManager.GetString("CompilationStartedAnalyzerTitle", resourceCulture)
             End Get
@@ -172,7 +172,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Secure types must not implement interfaces with unsecure methods..
         '''</summary>
-        Friend ReadOnly Property CompilationStartedAnalyzerWithCompilationWideAnalysisDescription() As String
+        Public ReadOnly Property CompilationStartedAnalyzerWithCompilationWideAnalysisDescription() As String
             Get
                 Return ResourceManager.GetString("CompilationStartedAnalyzerWithCompilationWideAnalysisDescription", resourceCulture)
             End Get
@@ -181,7 +181,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Type &apos;{0}&apos; is a secure type as it implements interface &apos;{1}&apos;, but it also implements interface &apos;{2}&apos; which has unsecure method(s)..
         '''</summary>
-        Friend ReadOnly Property CompilationStartedAnalyzerWithCompilationWideAnalysisMessageFormat() As String
+        Public ReadOnly Property CompilationStartedAnalyzerWithCompilationWideAnalysisMessageFormat() As String
             Get
                 Return ResourceManager.GetString("CompilationStartedAnalyzerWithCompilationWideAnalysisMessageFormat", resourceCulture)
             End Get
@@ -190,7 +190,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Secure types must not implement interfaces with unsecure methods.
         '''</summary>
-        Friend ReadOnly Property CompilationStartedAnalyzerWithCompilationWideAnalysisTitle() As String
+        Public ReadOnly Property CompilationStartedAnalyzerWithCompilationWideAnalysisTitle() As String
             Get
                 Return ResourceManager.GetString("CompilationStartedAnalyzerWithCompilationWideAnalysisTitle", resourceCulture)
             End Get
@@ -199,7 +199,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Source file declaration diagnostic count..
         '''</summary>
-        Friend ReadOnly Property SemanticModelAnalyzerDescription() As String
+        Public ReadOnly Property SemanticModelAnalyzerDescription() As String
             Get
                 Return ResourceManager.GetString("SemanticModelAnalyzerDescription", resourceCulture)
             End Get
@@ -208,7 +208,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Source file &apos;{0}&apos; has &apos;{1}&apos; declaration diagnostic(s).
         '''</summary>
-        Friend ReadOnly Property SemanticModelAnalyzerMessageFormat() As String
+        Public ReadOnly Property SemanticModelAnalyzerMessageFormat() As String
             Get
                 Return ResourceManager.GetString("SemanticModelAnalyzerMessageFormat", resourceCulture)
             End Get
@@ -217,7 +217,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Source file declaration diagnostics count.
         '''</summary>
-        Friend ReadOnly Property SemanticModelAnalyzerTitle() As String
+        Public ReadOnly Property SemanticModelAnalyzerTitle() As String
             Get
                 Return ResourceManager.GetString("SemanticModelAnalyzerTitle", resourceCulture)
             End Get
@@ -226,7 +226,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Do not declare members with same name as containing type..
         '''</summary>
-        Friend ReadOnly Property SymbolAnalyzerDescription() As String
+        Public ReadOnly Property SymbolAnalyzerDescription() As String
             Get
                 Return ResourceManager.GetString("SymbolAnalyzerDescription", resourceCulture)
             End Get
@@ -235,7 +235,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Type &apos;{0}&apos; has one or more members with the same name, considering renaming the type or the members..
         '''</summary>
-        Friend ReadOnly Property SymbolAnalyzerMessageFormat() As String
+        Public ReadOnly Property SymbolAnalyzerMessageFormat() As String
             Get
                 Return ResourceManager.GetString("SymbolAnalyzerMessageFormat", resourceCulture)
             End Get
@@ -244,7 +244,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Do not declare members with same name as containing type.
         '''</summary>
-        Friend ReadOnly Property SymbolAnalyzerTitle() As String
+        Public ReadOnly Property SymbolAnalyzerTitle() As String
             Get
                 Return ResourceManager.GetString("SymbolAnalyzerTitle", resourceCulture)
             End Get
@@ -253,7 +253,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Declare explicit type for local declarations..
         '''</summary>
-        Friend ReadOnly Property SyntaxNodeAnalyzerDescription() As String
+        Public ReadOnly Property SyntaxNodeAnalyzerDescription() As String
             Get
                 Return ResourceManager.GetString("SyntaxNodeAnalyzerDescription", resourceCulture)
             End Get
@@ -262,7 +262,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Local &apos;{0}&apos; is implicitly typed. Consider specifying its type explicitly in the declaration..
         '''</summary>
-        Friend ReadOnly Property SyntaxNodeAnalyzerMessageFormat() As String
+        Public ReadOnly Property SyntaxNodeAnalyzerMessageFormat() As String
             Get
                 Return ResourceManager.GetString("SyntaxNodeAnalyzerMessageFormat", resourceCulture)
             End Get
@@ -271,7 +271,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Declare explicit type for local declarations.
         '''</summary>
-        Friend ReadOnly Property SyntaxNodeAnalyzerTitle() As String
+        Public ReadOnly Property SyntaxNodeAnalyzerTitle() As String
             Get
                 Return ResourceManager.GetString("SyntaxNodeAnalyzerTitle", resourceCulture)
             End Get
@@ -280,7 +280,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Do not suppress documentation comment diagnostics..
         '''</summary>
-        Friend ReadOnly Property SyntaxTreeAnalyzerDescription() As String
+        Public ReadOnly Property SyntaxTreeAnalyzerDescription() As String
             Get
                 Return ResourceManager.GetString("SyntaxTreeAnalyzerDescription", resourceCulture)
             End Get
@@ -289,7 +289,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Enable documentation comment diagnostics on source file &apos;{0}&apos;..
         '''</summary>
-        Friend ReadOnly Property SyntaxTreeAnalyzerMessageFormat() As String
+        Public ReadOnly Property SyntaxTreeAnalyzerMessageFormat() As String
             Get
                 Return ResourceManager.GetString("SyntaxTreeAnalyzerMessageFormat", resourceCulture)
             End Get
@@ -298,7 +298,7 @@ Namespace My.Resources
         '''<summary>
         '''  Looks up a localized string similar to Do not suppress documentation comment diagnostics.
         '''</summary>
-        Friend ReadOnly Property SyntaxTreeAnalyzerTitle() As String
+        Public ReadOnly Property SyntaxTreeAnalyzerTitle() As String
             Get
                 Return ResourceManager.GetString("SyntaxTreeAnalyzerTitle", resourceCulture)
             End Get

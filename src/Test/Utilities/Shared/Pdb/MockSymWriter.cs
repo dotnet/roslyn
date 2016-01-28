@@ -6,7 +6,7 @@ using Microsoft.Cci;
 
 namespace Roslyn.Test.Utilities
 {
-    internal class MockSymUnmanagedWriter : ISymUnmanagedWriter2
+    internal class MockSymUnmanagedWriter : ISymUnmanagedWriter5
     {
         public virtual void Abort()
         {
@@ -14,6 +14,11 @@ namespace Roslyn.Test.Utilities
         }
 
         public virtual void Close()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CloseMapTokensToSourceSpans()
         {
             throw new NotImplementedException();
         }
@@ -29,6 +34,11 @@ namespace Roslyn.Test.Utilities
         }
 
         public virtual void CloseScope(uint endOffset)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Commit()
         {
             throw new NotImplementedException();
         }
@@ -88,6 +98,11 @@ namespace Roslyn.Test.Utilities
             throw new NotImplementedException();
         }
 
+        public void GetDebugInfoWithPadding(ref ImageDebugDirectory debugDirectory, uint dataCount, out uint dataCountPtr, IntPtr data)
+        {
+            throw new NotImplementedException();
+        }
+
         public virtual void Initialize([MarshalAs(UnmanagedType.IUnknown)]object emitter, string filename, [MarshalAs(UnmanagedType.IUnknown)]object ptrIStream, bool fullBuild)
         {
             throw new NotImplementedException();
@@ -98,7 +113,22 @@ namespace Roslyn.Test.Utilities
             throw new NotImplementedException();
         }
 
+        public void MapTokenToSourceSpan(uint token, ISymUnmanagedDocumentWriter document, uint startLine, uint startColumn, uint endLine, uint endColumn)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OpenMapTokensToSourceSpans()
+        {
+            throw new NotImplementedException();
+        }
+
         public virtual void OpenMethod(uint method)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OpenMethod2(uint methodToken, int sectionIndex, int offsetRelativeOffset)
         {
             throw new NotImplementedException();
         }

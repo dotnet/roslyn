@@ -2,17 +2,18 @@
 
 Imports System.Reflection
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Scripting.Hosting
+Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 
-Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
+Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting
+
     Friend NotInheritable Class VisualBasicScriptCompiler
         Inherits ScriptCompiler
 
         Public Shared ReadOnly Instance As ScriptCompiler = New VisualBasicScriptCompiler()
 
-        Private Shared ReadOnly s_defaultOptions As VisualBasicParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Script)
+        Private Shared ReadOnly s_defaultOptions As VisualBasicParseOptions = New VisualBasicParseOptions(kind:=SourceCodeKind.Script)
         Private Shared ReadOnly s_vbRuntimeReference As MetadataReference = MetadataReference.CreateFromAssemblyInternal(GetType(CompilerServices.NewLateBinding).GetTypeInfo().Assembly)
 
         Private Sub New()
@@ -31,8 +32,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
         End Property
 
         Public Overrides Function IsCompleteSubmission(tree As SyntaxTree) As Boolean
-            ' TODO: https://github.com/dotnet/roslyn/issues/5235
-            Return True
+            Return SyntaxFactory.IsCompleteSubmission(tree)
         End Function
 
         Public Overrides Function ParseSubmission(text As SourceText, cancellationToken As CancellationToken) As SyntaxTree
@@ -94,4 +94,5 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
             Return submission
         End Function
     End Class
+
 End Namespace

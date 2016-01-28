@@ -1,14 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.DocumentationCommentFormatting;
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -67,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
 
         protected IList<SymbolDisplayPart> GetAwaitableUsage(IMethodSymbol method, SemanticModel semanticModel, int position)
         {
-            if (method.IsAwaitable(semanticModel, position))
+            if (method.IsAwaitableNonDynamic(semanticModel, position))
             {
                 return method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "x", semanticModel, position);
             }

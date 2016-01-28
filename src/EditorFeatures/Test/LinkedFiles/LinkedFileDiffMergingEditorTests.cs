@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
         [WpfFact]
         public async Task TestCodeActionPreviewAndApply()
         {
-            using (var workspace = TestWorkspaceFactory.CreateWorkspace(WorkspaceXml))
+            using (var workspace = await TestWorkspace.CreateAsync(WorkspaceXml))
             {
-                var codeIssueOrRefactoring = GetCodeRefactoring(workspace);
+                var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace);
 
                 var expectedCode = "private class D { }";
 
@@ -48,22 +48,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
                     expectedText: expectedCode,
                     index: 0,
                     actions: codeIssueOrRefactoring.Actions.ToList(),
-                    expectedPreviewContents: expectedCode).ConfigureAwait(true);
+                    expectedPreviewContents: expectedCode);
             }
         }
 
-        [WpfFact]
-        public void TestWorkspaceTryApplyChangesDirectCall()
+        [Fact]
+        public async Task TestWorkspaceTryApplyChangesDirectCall()
         {
-            using (var workspace = TestWorkspaceFactory.CreateWorkspace(WorkspaceXml))
+            using (var workspace = await TestWorkspace.CreateAsync(WorkspaceXml))
             {
                 var solution = workspace.CurrentSolution;
 
                 var documentId = workspace.Documents.Single(d => !d.IsLinkFile).Id;
-                var text = workspace.CurrentSolution.GetDocument(documentId).GetTextAsync().Result;
+                var text = await workspace.CurrentSolution.GetDocument(documentId).GetTextAsync();
 
                 var linkedDocumentId = workspace.Documents.Single(d => d.IsLinkFile).Id;
-                var linkedText = workspace.CurrentSolution.GetDocument(linkedDocumentId).GetTextAsync().Result;
+                var linkedText = await workspace.CurrentSolution.GetDocument(linkedDocumentId).GetTextAsync();
 
                 var newSolution = solution
                     .WithDocumentText(documentId, text.Replace(13, 1, "D"))
@@ -72,12 +72,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
                 workspace.TryApplyChanges(newSolution);
 
                 var expectedMergedText = "private class D { }";
-                Assert.Equal(expectedMergedText, workspace.CurrentSolution.GetDocument(documentId).GetTextAsync().Result.ToString());
-                Assert.Equal(expectedMergedText, workspace.CurrentSolution.GetDocument(linkedDocumentId).GetTextAsync().Result.ToString());
+                Assert.Equal(expectedMergedText, (await workspace.CurrentSolution.GetDocument(documentId).GetTextAsync()).ToString());
+                Assert.Equal(expectedMergedText, (await workspace.CurrentSolution.GetDocument(linkedDocumentId).GetTextAsync()).ToString());
             }
         }
 
-        protected override TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
+        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
         {
             throw new NotSupportedException();
         }
@@ -89,20 +89,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
 
         private class CodeRefactoringProvider : CodeRefactorings.CodeRefactoringProvider
         {
-            public sealed override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+            public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
             {
                 var document = context.Document;
                 var linkedDocument = document.Project.Solution.Projects.Single(p => p != document.Project).Documents.Single();
 
                 var newSolution = document.Project.Solution
-                    .WithDocumentText(document.Id, document.GetTextAsync().Result.Replace(13, 1, "D"))
-                    .WithDocumentText(linkedDocument.Id, linkedDocument.GetTextAsync().Result.Replace(0, 6, "private"));
+                    .WithDocumentText(document.Id, (await document.GetTextAsync()).Replace(13, 1, "D"))
+                    .WithDocumentText(linkedDocument.Id, (await linkedDocument.GetTextAsync()).Replace(0, 6, "private"));
 
 #pragma warning disable RS0005
                 context.RegisterRefactoring(CodeAction.Create("Description", (ct) => Task.FromResult(newSolution)));
 #pragma warning restore RS0005
-
-                return SpecializedTasks.EmptyTask;
             }
         }
     }

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal override void GetRows(
             ResultProvider resultProvider,
-            ArrayBuilder<EvalResultDataItem> rows,
+            ArrayBuilder<EvalResult> rows,
             DkmInspectionContext inspectionContext,
             EvalResultDataItem parent,
             DkmClrValue value,
@@ -28,14 +28,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             if (InRange(startIndex, count, index))
             {
-                rows.Add(GetRow(resultProvider, inspectionContext, value, parent));
+                rows.Add(GetRow(inspectionContext, value, parent));
             }
 
             index++;
         }
 
-        private EvalResultDataItem GetRow(
-            ResultProvider resultProvider,
+        private EvalResult GetRow(
             DkmInspectionContext inspectionContext,
             DkmClrValue comObject,
             EvalResultDataItem parent)
@@ -47,18 +46,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             catch (DkmException)
             {
                 // Native View requires native debugging to be enabled.
-                return new EvalResultDataItem(Resources.NativeView, Resources.NativeViewNotNativeDebugging);
+                return new EvalResult(Resources.NativeView, Resources.NativeViewNotNativeDebugging, inspectionContext);
             }
 
             var name = "(IUnknown*)0x" + string.Format(IntPtr.Size == 4 ? "{0:x8}" : "{0:x16}", comObject.NativeComPointer);
             var fullName = "{C++}" + name;
 
-            return new EvalResultDataItem(
+            return new EvalResult(
                 ExpansionKind.NativeView,
                 name: name,
                 typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
                 declaredTypeAndInfo: new TypeAndCustomInfo(comObject.Type), // DkmClrValue types don't have attributes.
-                parent: null,
+                useDebuggerDisplay: false,
                 value: comObject,
                 displayValue: null,
                 expansion: this,

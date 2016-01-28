@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue
             }
         }
 
-        [WpfFact]
+        [Fact]
         public void FindPartner1()
         {
             string source1 = @"

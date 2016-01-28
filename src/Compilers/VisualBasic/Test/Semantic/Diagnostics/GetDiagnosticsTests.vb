@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
@@ -119,5 +120,133 @@ End Class
             Assert.Equal(DiagnosticSeverity.Warning, info.DefaultSeverity)
             Assert.Equal(4, info.WarningLevel)
         End Sub
+
+        <Fact, WorkItem(7446, "https://github.com/dotnet/roslyn/issues/7446")>
+        Public Sub TestCompilationEventQueueWithSemanticModelGetDiagnostics()
+            Dim source1 = <file>
+Namespace N1
+	Partial Class C
+		Private Sub NonPartialMethod1()
+		End Sub
+	End Class
+End Namespace
+</file>.Value
+
+            Dim source2 =
+               <file>
+Namespace N1
+	Partial Class C
+		Private Sub NonPartialMethod2()
+		End Sub
+	End Class
+End Namespace
+</file>.Value
+
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(source1, path:="file1")
+            Dim tree2 = VisualBasicSyntaxTree.ParseText(source2, path:="file2")
+            Dim eventQueue = New AsyncQueue(Of CompilationEvent)()
+            Dim compilation = CreateCompilationWithMscorlib45({tree1, tree2}).WithEventQueue(eventQueue)
+
+            ' Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
+            Dim tree = compilation.SyntaxTrees.[Single](Function(t) t Is tree1)
+            Dim root = tree.GetRoot()
+            Dim model = compilation.GetSemanticModel(tree)
+            model.GetDiagnostics(root.FullSpan)
+
+            Assert.True(eventQueue.Count > 0)
+            Dim compilationStartedFired As Boolean
+            Dim declaredSymbolNames As HashSet(Of String) = Nothing, completedCompilationUnits As HashSet(Of String) = Nothing
+            Assert.True(DequeueCompilationEvents(eventQueue, compilationStartedFired, declaredSymbolNames, completedCompilationUnits))
+
+            ' Verify symbol declared events fired for all symbols declared in the first source file.
+            Assert.True(compilationStartedFired)
+            Assert.True(declaredSymbolNames.Contains(compilation.GlobalNamespace.Name))
+            Assert.True(declaredSymbolNames.Contains("N1"))
+            Assert.True(declaredSymbolNames.Contains("C"))
+            Assert.True(declaredSymbolNames.Contains("NonPartialMethod1"))
+            Assert.True(completedCompilationUnits.Contains(tree.FilePath))
+        End Sub
+
+        <Fact(Skip:="7477"), WorkItem(7477, "https://github.com/dotnet/roslyn/issues/7477")>
+        Public Sub TestCompilationEventsForPartialMethod()
+            Dim source1 = <file>
+Namespace N1
+	Partial Class C
+		Private Sub NonPartialMethod1()
+		End Sub
+
+		Private Partial Sub PartialMethod() ' Declaration
+		End Sub
+	End Class
+End Namespace
+</file>.Value
+
+            Dim source2 =
+               <file>
+Namespace N1
+    Partial Class C
+        Private Sub NonPartialMethod2()
+        End Sub
+
+        Private Sub PartialMethod() ' Implementation
+        End Sub
+    End Class
+End Namespace
+</file>.Value
+
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(source1, path:="file1")
+            Dim tree2 = VisualBasicSyntaxTree.ParseText(source2, path:="file2")
+            Dim eventQueue = New AsyncQueue(Of CompilationEvent)()
+            Dim compilation = CreateCompilationWithMscorlib45({tree1, tree2}).WithEventQueue(eventQueue)
+
+            ' Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
+            Dim tree = compilation.SyntaxTrees.[Single](Function(t) t Is tree1)
+            Dim root = tree.GetRoot()
+            Dim model = compilation.GetSemanticModel(tree)
+            model.GetDiagnostics(root.FullSpan)
+
+            Assert.True(eventQueue.Count > 0)
+            Dim compilationStartedFired As Boolean
+            Dim declaredSymbolNames As HashSet(Of String) = Nothing, completedCompilationUnits As HashSet(Of String) = Nothing
+            Assert.True(DequeueCompilationEvents(eventQueue, compilationStartedFired, declaredSymbolNames, completedCompilationUnits))
+
+            ' Verify symbol declared events fired for all symbols declared in the first source file.
+            Assert.True(compilationStartedFired)
+            Assert.True(declaredSymbolNames.Contains(compilation.GlobalNamespace.Name))
+            Assert.True(declaredSymbolNames.Contains("N1"))
+            Assert.True(declaredSymbolNames.Contains("C"))
+            Assert.True(declaredSymbolNames.Contains("NonPartialMethod1"))
+            Assert.True(declaredSymbolNames.Contains("PartialMethod"))
+            Assert.True(completedCompilationUnits.Contains(tree.FilePath))
+        End Sub
+
+        Private Shared Function DequeueCompilationEvents(eventQueue As AsyncQueue(Of CompilationEvent), ByRef compilationStartedFired As Boolean, ByRef declaredSymbolNames As HashSet(Of String), ByRef completedCompilationUnits As HashSet(Of String)) As Boolean
+            compilationStartedFired = False
+            declaredSymbolNames = New HashSet(Of String)()
+            completedCompilationUnits = New HashSet(Of String)()
+            If eventQueue.Count = 0 Then
+                Return False
+            End If
+
+            Dim compEvent As CompilationEvent = Nothing
+            While eventQueue.TryDequeue(compEvent)
+                If TypeOf compEvent Is CompilationStartedEvent Then
+                    Assert.[False](compilationStartedFired, "Unexpected multiple compilation stated events")
+                    compilationStartedFired = True
+                Else
+                    Dim symbolDeclaredEvent = TryCast(compEvent, SymbolDeclaredCompilationEvent)
+                    If symbolDeclaredEvent IsNot Nothing Then
+                        Assert.True(declaredSymbolNames.Add(symbolDeclaredEvent.Symbol.Name), "Unexpected multiple symbol declared events for same symbol")
+                    Else
+                        Dim compilationCompeletedEvent = TryCast(compEvent, CompilationUnitCompletedEvent)
+                        If compilationCompeletedEvent IsNot Nothing Then
+                            Assert.True(completedCompilationUnits.Add(compilationCompeletedEvent.CompilationUnit.FilePath))
+                        End If
+                    End If
+                End If
+            End While
+
+            Return True
+        End Function
     End Class
 End Namespace

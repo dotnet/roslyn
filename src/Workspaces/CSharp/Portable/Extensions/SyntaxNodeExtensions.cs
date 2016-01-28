@@ -756,78 +756,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         /// <summary>
-        /// Look inside a trivia list for a skipped token that contains the given position.
-        /// </summary>
-        private static readonly Func<SyntaxTriviaList, int, SyntaxToken> s_findSkippedTokenForward =
-            (l, p) => FindTokenHelper.FindSkippedTokenForward(GetSkippedTokens(l), p);
-
-        /// <summary>
-        /// Look inside a trivia list for a skipped token that contains the given position.
-        /// </summary>
-        private static readonly Func<SyntaxTriviaList, int, SyntaxToken> s_findSkippedTokenBackward =
-            (l, p) => FindTokenHelper.FindSkippedTokenBackward(GetSkippedTokens(l), p);
-
-        /// <summary>
-        /// return only skipped tokens
-        /// </summary>
-        private static IEnumerable<SyntaxToken> GetSkippedTokens(SyntaxTriviaList list)
-        {
-            // PERF: Avoid allocations in the most common case of no skipped tokens.
-            if (!HasSkippedTokens(list))
-            {
-                return SpecializedCollections.EmptyEnumerable<SyntaxToken>();
-            }
-
-            return list.Where(trivia => trivia.RawKind == (int)SyntaxKind.SkippedTokensTrivia)
-                       .SelectMany(t => ((SkippedTokensTriviaSyntax)t.GetStructure()).Tokens);
-        }
-
-        private static bool HasSkippedTokens(SyntaxTriviaList list)
-        {
-            foreach (var trivia in list)
-            {
-                if (trivia.RawKind == (int)SyntaxKind.SkippedTokensTrivia)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// If the position is inside of token, return that token; otherwise, return the token to the right.
-        /// </summary>
-        public static SyntaxToken FindTokenOnRightOfPosition(
-            this SyntaxNode root,
-            int position,
-            bool includeSkipped = true,
-            bool includeDirectives = false,
-            bool includeDocumentationComments = false)
-        {
-            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenForward : null;
-
-            return FindTokenHelper.FindTokenOnRightOfPosition<CompilationUnitSyntax>(
-                root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments);
-        }
-
-        /// <summary>
-        /// If the position is inside of token, return that token; otherwise, return the token to the left.
-        /// </summary>
-        public static SyntaxToken FindTokenOnLeftOfPosition(
-            this SyntaxNode root,
-            int position,
-            bool includeSkipped = true,
-            bool includeDirectives = false,
-            bool includeDocumentationComments = false)
-        {
-            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenBackward : null;
-
-            return FindTokenHelper.FindTokenOnLeftOfPosition<CompilationUnitSyntax>(
-                root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments);
-        }
-
-        /// <summary>
         /// Returns child node or token that contains given position.
         /// </summary>
         /// <remarks>
@@ -976,7 +904,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static StatementSyntax GetEmbeddedStatement(this SyntaxNode node)
         {
-
             return node.TypeSwitch(
                 (DoStatementSyntax n) => n.Statement,
                 (ElseClauseSyntax n) => n.Statement,

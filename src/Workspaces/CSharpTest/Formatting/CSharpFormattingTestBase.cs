@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Formatting;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
             return SyntaxFactory.ParseCompilationUnit(text, options: (CSharpParseOptions)parseOptions);
         }
 
-        protected void AssertFormat(
+        protected Task AssertFormatAsync(
             string expected,
             string code,
             bool debugMode = false,
@@ -25,10 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
             bool testWithTransformation = true,
             ParseOptions parseOptions = null)
         {
-            AssertFormat(expected, code, SpecializedCollections.SingletonEnumerable(new TextSpan(0, code.Length)), debugMode, changedOptionSet, testWithTransformation, parseOptions);
+            return AssertFormatAsync(expected, code, SpecializedCollections.SingletonEnumerable(new TextSpan(0, code.Length)), debugMode, changedOptionSet, testWithTransformation, parseOptions);
         }
 
-        protected void AssertFormat(
+        protected Task AssertFormatAsync(
             string expected,
             string code,
             IEnumerable<TextSpan> spans,
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
             bool testWithTransformation = true,
             ParseOptions parseOptions = null)
         {
-            AssertFormat(expected, code, spans, LanguageNames.CSharp, debugMode, changedOptionSet, testWithTransformation, parseOptions);
+            return AssertFormatAsync(expected, code, spans, LanguageNames.CSharp, debugMode, changedOptionSet, testWithTransformation, parseOptions);
         }
     }
 }

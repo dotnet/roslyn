@@ -144,6 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             Private Sub PushEvalStack(result As BoundExpression, context As ExprContext)
+                Debug.Assert(result IsNot Nothing OrElse context = ExprContext.None)
                 _evalStack.Add(ValueTuple.Create(result, context))
             End Sub
 
@@ -586,7 +587,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 If mayPushReceiver Then
                     'push unknown value just to prevent access to stack locals.
-                    PushEvalStack(Nothing, ExprContext.Address)
+                    PushEvalStack(Nothing, ExprContext.None)
                 End If
 
                 right = VisitExpression(node.Right, rhsContext)

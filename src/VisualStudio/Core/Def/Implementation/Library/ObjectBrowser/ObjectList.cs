@@ -697,7 +697,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                         {
                             var compilation = project
                                 .GetCompilationAsync(CancellationToken.None)
-                                .WaitAndGetResult(CancellationToken.None);
+                                .WaitAndGetResult_ObjectBrowser(CancellationToken.None);
 
                             var symbol = symbolListItem.ResolveSymbol(compilation);
                             if (symbol != null)

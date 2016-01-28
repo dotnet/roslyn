@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Editor.Implementation.Organizing;
@@ -16,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 {
     public class OrganizeTypeDeclarationTests : AbstractOrganizerTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestFieldsWithoutInitializers1()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestFieldsWithoutInitializers1()
         {
             var initial =
 @"class C {
@@ -32,11 +33,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
     int B;
     int C;
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestFieldsWithoutInitializers2()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestFieldsWithoutInitializers2()
         {
             var initial =
 @"class C {
@@ -51,11 +52,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
     int B;
     int C;
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestFieldsWithInitializers1()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestFieldsWithInitializers1()
         {
             var initial =
 @"class C {
@@ -70,30 +71,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
     int B;
     int C = 0;
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestFieldsWithInitializers2()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestFieldsWithInitializers2()
         {
             var initial =
 @"class C {
-    int C = 0;
-    int B = 0;
-    int A;
-}";
-
-            var final =
-@"class C {
-    int A;
     int C = 0;
     int B = 0;
+    int A;
 }";
-            Check(initial, final);
+
+            var final =
+@"class C {
+    int A;
+    int C = 0;
+    int B = 0;
+}";
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestEventFieldDeclaration()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestEventFieldDeclaration()
         {
             var initial =
 @"class C {
@@ -106,11 +107,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
     public event EventHandler MyEvent;
     public void Foo() {}     
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestEventDeclaration()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestEventDeclaration()
         {
             var initial =
 @"class C  {
@@ -135,11 +136,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 
     public void Foo() {}     
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestOperator()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestOperator()
         {
             var initial =
 @"class C  {
@@ -158,11 +159,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
     }
     public void Foo() {}     
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestIndexer()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestIndexer()
         {
             var initial =
 @"class C  {
@@ -191,11 +192,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 
     public void Foo() {}     
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestConstructorAndDestructors()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestConstructorAndDestructors()
         {
             var initial =
 @"class C  {
@@ -210,11 +211,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
     public Foo() {}  
     enum Days {Sat, Sun};        
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestInterface()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestInterface()
         {
             var initial =
 @"class C  {}
@@ -233,11 +234,11 @@ interface I
    int Property { get; set; }
    void Foo();
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestStaticInstance()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestStaticInstance()
         {
             var initial =
 @"class C {
@@ -254,11 +255,11 @@ interface I
     int A;
     int C;
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestAccessibility()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestAccessibility()
         {
             var initial =
 @"class C {
@@ -279,11 +280,11 @@ interface I
     int A;
     private int B;
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestStaticAccessibility()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestStaticAccessibility()
         {
             var initial =
 @"class C {
@@ -312,11 +313,11 @@ interface I
     int A1;
     private int B1;
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestGenerics()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestGenerics()
         {
             var initial =
 @"class C {
@@ -337,11 +338,11 @@ interface I
     void B<Z>();
     void B<X,Y>();
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestInsidePPRegion()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestInsidePPRegion()
         {
             var initial =
 @"class C {
@@ -360,11 +361,11 @@ interface I
     int c;
 #endif
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestInsidePPRegion2()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestInsidePPRegion2()
         {
             var initial =
 @"class C {
@@ -393,11 +394,11 @@ interface I
     int c;
 #endif
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestInsidePPRegion3()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestInsidePPRegion3()
         {
             var initial =
 @"class C {
@@ -422,11 +423,11 @@ interface I
     int a;
     int b;
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestInsidePPRegion4()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestInsidePPRegion4()
         {
             var initial =
 @"class C {
@@ -451,11 +452,11 @@ interface I
     int c() {
     }
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestInsidePPRegion5()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestInsidePPRegion5()
         {
             var initial =
 @"class C {
@@ -482,11 +483,11 @@ interface I
     int c() {
     }
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestInsidePPRegion6()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestInsidePPRegion6()
         {
             var initial =
 @"class C {
@@ -523,11 +524,11 @@ interface I
     }
 #endregion
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestPinned()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestPinned()
         {
             var initial =
 @"class C {
@@ -568,11 +569,11 @@ interface I
     int b() {
     }
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestSensitivity()
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task TestSensitivity()
         {
             var initial =
 @"class C {
@@ -660,12 +661,12 @@ interface I
     int ああ;
 }";
 
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
         [WorkItem(537614)]
-        [WpfFact]
-        public void TestWhitespaceBetweenMethods1()
+        [Fact]
+        public async Task TestWhitespaceBetweenMethods1()
         {
             var initial =
 @"class Program
@@ -690,12 +691,12 @@ interface I
     {
     }
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
         [WorkItem(537614)]
-        [WpfFact]
-        public void TestWhitespaceBetweenMethods2()
+        [Fact]
+        public async Task TestWhitespaceBetweenMethods2()
         {
             var initial =
 @"class Program
@@ -722,12 +723,12 @@ interface I
     {
     }
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
         [WorkItem(537614)]
-        [WpfFact]
-        public void TestWhitespaceBetweenMethods3()
+        [Fact]
+        public async Task TestWhitespaceBetweenMethods3()
         {
             var initial =
 @"class Program
@@ -754,12 +755,12 @@ interface I
     {
     }
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
         [WorkItem(537614)]
-        [WpfFact]
-        public void TestWhitespaceBetweenMethods4()
+        [Fact]
+        public async Task TestWhitespaceBetweenMethods4()
         {
             var initial =
 @"class Program
@@ -788,12 +789,12 @@ interface I
     {
     }
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
         [WorkItem(537614)]
-        [WpfFact]
-        public void TestWhitespaceBetweenMethods5()
+        [Fact]
+        public async Task TestWhitespaceBetweenMethods5()
         {
             var initial =
 @"class Program
@@ -824,12 +825,12 @@ interface I
     {
     }
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
         [WorkItem(537614)]
-        [WpfFact]
-        public void TestWhitespaceBetweenMethods6()
+        [Fact]
+        public async Task TestWhitespaceBetweenMethods6()
         {
             var initial =
 @"class Program
@@ -862,12 +863,12 @@ interface I
     {
     }
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
         [WorkItem(537614)]
-        [WpfFact]
-        public void TestMoveComments1()
+        [Fact]
+        public async Task TestMoveComments1()
         {
             var initial =
 @"class Program
@@ -894,12 +895,12 @@ interface I
     {
     }
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
         [WorkItem(537614)]
-        [WpfFact]
-        public void TestMoveComments2()
+        [Fact]
+        public async Task TestMoveComments2()
         {
             var initial =
 @"class Program
@@ -928,12 +929,12 @@ interface I
     {
     }
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
         [WorkItem(537614)]
-        [WpfFact]
-        public void TestMoveDocComments1()
+        [Fact]
+        public async Task TestMoveDocComments1()
         {
             var initial =
 @"class Program
@@ -960,12 +961,12 @@ interface I
     {
     }
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
         [WorkItem(537614)]
-        [WpfFact]
-        public void TestMoveDocComments2()
+        [Fact]
+        public async Task TestMoveDocComments2()
         {
             var initial =
 @"class Program
@@ -994,12 +995,12 @@ interface I
     {
     }
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
         [WorkItem(537614)]
-        [WpfFact]
-        public void TestDontMoveBanner()
+        [Fact]
+        public async Task TestDontMoveBanner()
         {
             var initial =
 @"class Program
@@ -1028,12 +1029,12 @@ interface I
     {
     }
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
         [WorkItem(537614)]
-        [WpfFact]
-        public void TestDontMoveBanner2()
+        [Fact]
+        public async Task TestDontMoveBanner2()
         {
             var initial =
 @"class Program
@@ -1068,18 +1069,18 @@ interface I
     {
     }
 }";
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Organizing)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public void OrganizingCommandsDisabledInSubmission()
+        public async Task OrganizingCommandsDisabledInSubmission()
         {
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
 
-            using (var workspace = TestWorkspaceFactory.CreateWorkspace(XElement.Parse(@"
+            using (var workspace = await TestWorkspace.CreateAsync(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         class C

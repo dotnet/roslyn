@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 {
                     return edit;
                 }
-                
+
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
                 return await GenerateFieldDelegatingConstructorAsync().ConfigureAwait(false);

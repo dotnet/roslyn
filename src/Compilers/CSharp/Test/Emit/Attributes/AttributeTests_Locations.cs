@@ -114,8 +114,8 @@ class C
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "type"),
                 // (17,2): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "type"),
-                // (18,2): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"));
+                // (18,2): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "type"));
         }
 
         [Fact]
@@ -162,8 +162,8 @@ struct S
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "type"),
                 // (17,2): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "type"),
-                // (18,2): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"));
+                // (18,2): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "type"));
         }
 
         [Fact]
@@ -210,8 +210,8 @@ enum E
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "type"),
                 // (17,2): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "type"),
-                // (18,2): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"));
+                // (18,2): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "type"));
         }
 
         [Fact]
@@ -258,8 +258,8 @@ interface I
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "type"),
                 // (17,2): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "type"),
-                // (18,2): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"));
+                // (18,2): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "type"));
         }
 
         [Fact]
@@ -302,8 +302,8 @@ delegate void D(int a);
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "type, return"),
                 // (17,2): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type, return'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "type, return"),
-                // (18,2): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"));
+                // (18,2): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'type, return'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "type, return"));
         }
 
         [Fact]
@@ -349,8 +349,8 @@ class C
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, return"),
                 // (19,6): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "method, return"),
-                // (20,6): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"));
+                // (20,6): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "method, return"));
         }
 
         [Fact]
@@ -398,8 +398,8 @@ class C
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "field"),
                 // (19,6): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'field'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "field"),
-                // (20,6): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"),
+                // (20,6): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'field'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "field"),
                 // (21,9): warning CS0169: The field 'C.a' is never used
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("C.a"));
         }
@@ -449,8 +449,8 @@ enum E
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "field"),
                 // (19,6): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'field'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "field"),
-                // (20,6): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"));
+                // (20,6): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'field'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "field"));
         }
 
         [Fact]
@@ -498,8 +498,8 @@ class C
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "property"),
                 // (19,6): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "property"),
-                // (20,6): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"));
+                // (20,6): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "property"));
         }
 
         [Fact]
@@ -550,8 +550,8 @@ class C
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, return"),
                 // (21,10): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "method, return"),
-                // (22,10): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"));
+                // (22,10): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "method, return"));
         }
 
         [Fact]
@@ -600,8 +600,8 @@ class C
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "event").WithArguments("event", "method, param, return"),
                 // (23,10): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "method, param, return"),
-                // (24,10): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"));
+                // (24,10): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "method, param, return"));
         }
 
         [Fact]
@@ -645,8 +645,8 @@ class C
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, field, event"),
                 // (19,6): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, field, event'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "method, field, event"),
-                // (20,6): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"),
+                // (20,6): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'method, field, event'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "method, field, event"),
                 // (21,25): warning CS0067: The event 'C.e' is never used
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "e").WithArguments("C.e"));
         }
@@ -694,8 +694,8 @@ interface I
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, event"),
                 // (19,6): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "method, event"),
-                // (20,6): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"));
+                // (20,6): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "method, event"));
         }
 
         [Fact]
@@ -743,8 +743,8 @@ class C
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "event"),
                 // (19,6): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'event'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "event"),
-                // (20,6): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"));
+                // (20,6): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'event'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "event"));
         }
 
         [Fact]
@@ -793,8 +793,8 @@ class C
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "event").WithArguments("event", "method, param, return"),
                 // (21,10): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "method, param, return"),
-                // (22,10): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"));
+                // (22,10): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "method, param, return"));
         }
 
         [Fact]
@@ -843,8 +843,8 @@ class C
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "event").WithArguments("event", "method, param, return"),
                 // (23,10): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "method, param, return"),
-                // (24,10): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"));
+                // (24,10): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "method, param, return"));
         }
 
         [Fact]
@@ -894,8 +894,8 @@ class C
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "typevar"),
                 // (18,6): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'typevar'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "typevar"),
-                // (20,6): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"));
+                // (20,6): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'typevar'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "typevar"));
         }
 
         [Fact]
@@ -945,8 +945,8 @@ class C
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "param"),
                 // (20,10): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "param"),
-                // (21,10): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"));
+                // (21,10): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "param"));
         }
 
         [Fact]
@@ -993,8 +993,8 @@ delegate void D(
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "param"),
                 // (18,6): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "param"),
-                // (19,6): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"));
+                // (19,6): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "param"));
         }
 
         [Fact]
@@ -1047,8 +1047,8 @@ class C
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "param"),
                 // (20,10): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "param"),
-                // (21,10): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"));
+                // (21,10): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "param"));
         }
 
         [Fact]
@@ -1073,24 +1073,24 @@ class C
 {
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (7,2): warning CS0658: 'class' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "class").WithArguments("class"),
-                // (8,2): warning CS0658: 'struct' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "struct").WithArguments("struct"),
-                // (9,2): warning CS0658: 'interface' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "interface").WithArguments("interface"),
-                // (10,2): warning CS0658: 'delegate' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate"),
-                // (11,2): warning CS0658: 'enum' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "enum").WithArguments("enum"),
-                // (12,2): warning CS0658: 'add' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "add").WithArguments("add"),
-                // (13,2): warning CS0658: 'remove' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "remove").WithArguments("remove"),
-                // (14,2): warning CS0658: 'get' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "get").WithArguments("get"),
-                // (15,2): warning CS0658: 'set' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "set").WithArguments("set"));
+                // (7,2): warning CS0658: 'class' is not a recognized attribute location. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "class").WithArguments("class", "type"),
+                // (8,2): warning CS0658: 'struct' is not a recognized attribute location. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "struct").WithArguments("struct", "type"),
+                // (9,2): warning CS0658: 'interface' is not a recognized attribute location. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "interface").WithArguments("interface", "type"),
+                // (10,2): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "type"),
+                // (11,2): warning CS0658: 'enum' is not a recognized attribute location. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "enum").WithArguments("enum", "type"),
+                // (12,2): warning CS0658: 'add' is not a recognized attribute location. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "add").WithArguments("add", "type"),
+                // (13,2): warning CS0658: 'remove' is not a recognized attribute location. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "remove").WithArguments("remove", "type"),
+                // (14,2): warning CS0658: 'get' is not a recognized attribute location. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "get").WithArguments("get", "type"),
+                // (15,2): warning CS0658: 'set' is not a recognized attribute location. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "set").WithArguments("set", "type"));
         }
 
         [Fact, WorkItem(545555, "DevDiv")]
@@ -1120,8 +1120,8 @@ public class A : Attribute { }
 ";
 
             CompileAndVerify(source, expectedOutput: "Attribute Count=1").VerifyDiagnostics(
-                // (12,6): warning CS0658: 'foo' is not a recognized attribute location. All attributes in this block will be ignored.
-                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "foo").WithArguments("foo"));
+                // (12,6): warning CS0658: 'foo' is not a recognized attribute location. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "foo").WithArguments("foo", "method, return"));
         }
 
         [WorkItem(537613, "DevDiv"), WorkItem(537738, "DevDiv")]
@@ -1129,9 +1129,12 @@ public class A : Attribute { }
         public void CS0246ERR_SingleTypeNameNotFound_VerbatimIdentifierAttributeTarget()
         {
             CreateCompilationWithMscorlib(@"class A { [@return:X] void B() { } }").VerifyDiagnostics(
+                // (1,20): error CS0246: The type or namespace name 'XAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // class A { [@return:X] void B() { } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("XAttribute").WithLocation(1, 20),
                 // (1,20): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
                 // class A { [@return:X] void B() { } }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X"));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(1, 20));
         }
 
         [WorkItem(537613, "DevDiv"), WorkItem(537738, "DevDiv")]

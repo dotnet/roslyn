@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _loader = new TestDocumentLoader(this);
         }
 
-        public TestHostDocument(string text = "", string displayName = "", SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, DocumentId id = null)
+        public TestHostDocument(string text = "", string displayName = "", SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, DocumentId id = null, string filePath = null)
         {
             _exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
             _id = id;
@@ -147,6 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _name = displayName;
             _sourceCodeKind = sourceCodeKind;
             _loader = new TestDocumentLoader(this);
+            _filePath = filePath;
         }
 
         internal void SetProject(TestHostProject project)
@@ -204,6 +206,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             if (_textView == null)
             {
                 TestWorkspace.ResetThreadAffinity();
+
+                WpfTestCase.RequireWpfFact($"Creates an IWpfTextView through {nameof(TestHostDocument)}.{nameof(GetTextView)}");
 
                 _textView = _exportProvider.GetExportedValue<ITextEditorFactoryService>().CreateTextView(this.TextBuffer);
                 if (this.CursorPosition.HasValue)

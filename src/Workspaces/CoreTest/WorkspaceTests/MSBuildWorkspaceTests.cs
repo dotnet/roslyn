@@ -180,9 +180,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.NotNull(mdp2Sys3);
 
                 // all references to System.dll share the same metadata bytes
-                Assert.Same(mdp1Sys1, mdp1Sys2);
-                Assert.Same(mdp1Sys1, mdp2Sys1);
-                Assert.Same(mdp1Sys1, mdp2Sys3);
+                Assert.Same(mdp1Sys1.Id, mdp1Sys2.Id);
+                Assert.Same(mdp1Sys1.Id, mdp2Sys1.Id);
+                Assert.Same(mdp1Sys1.Id, mdp2Sys3.Id);
             }
         }
 
@@ -1034,7 +1034,7 @@ class C1
             });
         }
 
-        private HostServices hostServicesWithoutCSharp = MefHostServices.Create(MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp")));
+        private HostServices _hostServicesWithoutCSharp = MefHostServices.Create(MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp")));
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
@@ -1045,7 +1045,7 @@ class C1
 
             AssertThrows<InvalidOperationException>(() =>
             {
-                var ws = MSBuildWorkspace.Create(hostServicesWithoutCSharp);
+                var ws = MSBuildWorkspace.Create(_hostServicesWithoutCSharp);
                 ws.SkipUnrecognizedProjects = false;
                 var solution = ws.OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
             },
@@ -1062,7 +1062,7 @@ class C1
             // proves that if the language libraries are missing then the appropriate error occurs
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
-            var ws = MSBuildWorkspace.Create(hostServicesWithoutCSharp);
+            var ws = MSBuildWorkspace.Create(_hostServicesWithoutCSharp);
             ws.SkipUnrecognizedProjects = true;
 
             var dx = new List<WorkspaceDiagnostic>();
@@ -1086,7 +1086,7 @@ class C1
 
             AssertThrows<InvalidOperationException>(() =>
             {
-                var ws = MSBuildWorkspace.Create(hostServicesWithoutCSharp);
+                var ws = MSBuildWorkspace.Create(_hostServicesWithoutCSharp);
                 var project = ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj")).Result;
             },
             e =>
@@ -2239,7 +2239,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestAdditionalFilesStandalone()
+        public async Task TestAdditionalFilesStandalone()
         {
 #if !MSBUILD12
             var projPaths = new[] { @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj" };
@@ -2256,7 +2256,7 @@ class C1
                     Assert.Equal(1, proj.AdditionalDocuments.Count());
                     var doc = proj.AdditionalDocuments.First();
                     Assert.Equal("XamlFile.xaml", doc.Name);
-                    Assert.Contains("Window", doc.GetTextAsync().WaitAndGetResult(CancellationToken.None).ToString(), StringComparison.Ordinal);
+                    Assert.Contains("Window", (await doc.GetTextAsync()).ToString(), StringComparison.Ordinal);
                 }
             }
 #endif
@@ -2372,7 +2372,8 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(5668, "https://github.com/dotnet/roslyn/issues/5668")]
         public void TestOpenProject_MetadataReferenceHasDocComments()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2611,7 +2612,7 @@ class C1
             var files = new FileSet(new Dictionary<string, object>
             {
                 { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", "<CodePage>1254</CodePage>") },
-                { "class1.cs", "//“" }
+                { "class1.cs", "//\u201C" }
             });
 
             CreateFiles(files);
@@ -2625,8 +2626,8 @@ class C1
             // The smart quote (“) in class1.cs shows up as "â€œ" in codepage 1254. Do a sanity
             // check here to make sure this file hasn't been corrupted in a way that would
             // impact subsequent asserts.
-            Assert.Equal("//â€œ".Length, 5);
-            Assert.Equal("//â€œ".Length, text.Length);
+            Assert.Equal("//\u00E2\u20AC\u0153".Length, 5);
+            Assert.Equal("//\u00E2\u20AC\u0153".Length, text.Length);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -2636,7 +2637,7 @@ class C1
             var files = new FileSet(new Dictionary<string, object>
             {
                 { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", "<CodePage>-1</CodePage>") },
-                { "class1.cs", "//“" }
+                { "class1.cs", "//\u201C" }
             });
 
             CreateFiles(files);
@@ -2655,7 +2656,7 @@ class C1
             var files = new FileSet(new Dictionary<string, object>
             {
                 { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", "<CodePage>Broken</CodePage>") },
-                { "class1.cs", "//“" }
+                { "class1.cs", "//\u201C" }
             });
 
             CreateFiles(files);
@@ -2674,7 +2675,7 @@ class C1
             var files = new FileSet(new Dictionary<string, object>
             {
                 { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", string.Empty) },
-                { "class1.cs", "//“" }
+                { "class1.cs", "//\u201C" }
             });
 
             CreateFiles(files);
@@ -2684,7 +2685,7 @@ class C1
 
             var text = project.Documents.First(d => d.Name == "class1.cs").GetTextAsync().Result;
             Assert.Equal(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true), text.Encoding);
-            Assert.Equal("//“", text.ToString());
+            Assert.Equal("//\u201C", text.ToString());
         }
 
         [WorkItem(981208)]
@@ -2699,7 +2700,7 @@ class C1
             var document = project.Documents.First();
             var tree = document.GetSyntaxTreeAsync().Result;
             var type = tree.GetRoot().DescendantTokens().First(t => t.ToString() == "class").Parent;
-            var compilation = document.GetSemanticModelAsync().WaitAndGetResult(CancellationToken.None);
+            var compilation = document.GetSemanticModelAsync().WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
             Assert.NotNull(type);
             Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass", StringComparison.Ordinal));
             Assert.NotNull(compilation);

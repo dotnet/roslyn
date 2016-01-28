@@ -507,4 +507,13 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread" xml:space="preserve">
     <value>This workspace only supports opening documents on the UI thread.</value>
   </data>
+  <data name="SynchronizeClassView" xml:space="preserve">
+    <value>Synchronize {0}</value>
+  </data>
+  <data name="SynchronizingWithClassView" xml:space="preserve">
+    <value>Synchronizing with {0}...</value>
+  </data>
+  <data name="FullSolutionAnalysisOff" xml:space="preserve">
+    <value>Low memory detected. Full solution analysis disabled for this solution.</value>
+  </data>
 </root>

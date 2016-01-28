@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public string SearchInStrings { get { return EditorFeaturesResources.SearchInStrings; } }
         public string ApplyRename { get { return EditorFeaturesResources.ApplyRename; } }
         public string PreviewChanges { get { return EditorFeaturesResources.RenamePreviewChanges; } }
-        public string RenameInstructions {  get { return EditorFeaturesResources.InlineRenameInstructions; } }
+        public string RenameInstructions { get { return EditorFeaturesResources.InlineRenameInstructions; } }
         public string ApplyToolTip { get { return EditorFeaturesResources.RenameApplyToolTip + " (Enter)"; } }
         public string CancelToolTip { get { return EditorFeaturesResources.RenameCancelToolTip + " (Esc)"; } }
 

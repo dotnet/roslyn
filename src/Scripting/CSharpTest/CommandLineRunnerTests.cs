@@ -82,6 +82,65 @@ Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
         }
 
         [Fact]
+        [WorkItem(7133)]
+        public void TestDisplayResultsWithCurrentUICulture()
+        {
+            var runner = CreateRunner(input:
+@"using static System.Globalization.CultureInfo;
+DefaultThreadCurrentUICulture = GetCultureInfo(""en-GB"")
+Math.PI
+DefaultThreadCurrentUICulture = GetCultureInfo(""de-DE"")
+Math.PI
+");
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> using static System.Globalization.CultureInfo;
+> DefaultThreadCurrentUICulture = GetCultureInfo(""en-GB"")
+[en-GB]
+> Math.PI
+3.1415926535897931
+> DefaultThreadCurrentUICulture = GetCultureInfo(""de-DE"")
+[de-DE]
+> Math.PI
+3,1415926535897931
+>", runner.Console.Out.ToString());
+
+            // Tests that DefaultThreadCurrentUICulture is respected and not DefaultThreadCurrentCulture.
+            runner = CreateRunner(input:
+@"using static System.Globalization.CultureInfo;
+DefaultThreadCurrentUICulture = GetCultureInfo(""en-GB"")
+DefaultThreadCurrentCulture = GetCultureInfo(""en-GB"")
+Math.PI
+DefaultThreadCurrentCulture = GetCultureInfo(""de-DE"")
+Math.PI
+");
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> using static System.Globalization.CultureInfo;
+> DefaultThreadCurrentUICulture = GetCultureInfo(""en-GB"")
+[en-GB]
+> DefaultThreadCurrentCulture = GetCultureInfo(""en-GB"")
+[en-GB]
+> Math.PI
+3.1415926535897931
+> DefaultThreadCurrentCulture = GetCultureInfo(""de-DE"")
+[de-DE]
+> Math.PI
+3.1415926535897931
+>", runner.Console.Out.ToString());
+        }
+
+        [Fact]
         public void Void()
         {
             var runner = CreateRunner(input:
@@ -435,16 +494,16 @@ Print(new C4());
 ");
 
             var dir1 = Temp.CreateDirectory();
-            dir1.CreateFile("1.dll").WriteAllBytes(CreateCompilationWithMscorlib("public class C1 {}", "1").EmitToArray());
+            dir1.CreateFile("1.dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib("public class C1 {}", "1").EmitToArray());
             
             var dir2 = Temp.CreateDirectory();
-            dir2.CreateFile("2.dll").WriteAllBytes(CreateCompilationWithMscorlib("public class C2 {}", "2").EmitToArray());
+            dir2.CreateFile("2.dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib("public class C2 {}", "2").EmitToArray());
 
             var dir3 = Temp.CreateDirectory();
-            dir3.CreateFile("3.dll").WriteAllBytes(CreateCompilationWithMscorlib("public class C3 {}", "3").EmitToArray());
+            dir3.CreateFile("3.dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib("public class C3 {}", "3").EmitToArray());
 
             var dir4 = Temp.CreateDirectory();
-            dir4.CreateFile("4.dll").WriteAllBytes(CreateCompilationWithMscorlib("public class C4 {}", "4").EmitToArray());
+            dir4.CreateFile("4.dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib("public class C4 {}", "4").EmitToArray());
 
             var runner = CreateRunner(new[] { "/r:4.dll", $"/lib:{dir1.Path}", $"/libpath:{dir2.Path}", $"/libpaths:{dir3.Path};{dir4.Path}", main.Path });
 
@@ -458,7 +517,7 @@ C4 { }
 ", runner.Console.Out.ToString());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6523")]
+        [Fact]
         public void SourceSearchPaths_Change1()
         {
             var dir = Temp.CreateDirectory();
@@ -475,7 +534,7 @@ X
             runner.RunInteractive();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-Microsoft (R) Visual C# Interactive Compiler version 42.42.42.42
+Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
@@ -493,7 +552,7 @@ SearchPaths {{ }}
 ", runner.Console.Out.ToString());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6523")]
+        [Fact]
         public void ReferenceSearchPaths_Change1()
         {
             var dir = Temp.CreateDirectory();
@@ -510,7 +569,7 @@ new C()
             runner.RunInteractive();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-Microsoft (R) Visual C# Interactive Compiler version 42.42.42.42
+Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
@@ -627,6 +686,7 @@ Keyboard shortcuts:
   Escape        Clear the current submission.
   UpArrow       Replace the current submission with a previous submission.
   DownArrow     Replace the current submission with a subsequent submission (after having previously navigated backwards).
+  Ctrl-C        Exit the REPL.
 REPL commands:
   #help         Display help on available commands and key bindings.
 Script directives:
@@ -642,28 +702,28 @@ Script directives:
             string lib1Name = "Lib1_" + Guid.NewGuid();
             string lib2Name = "Lib2_" + Guid.NewGuid();
 
-            var libBase1 = TestCompilationFactory.CreateCompilation(@"
+            var libBase1 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class LibBase
 {
     public readonly int X = 1;
 }
 ", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
 
-            var libBase2 = TestCompilationFactory.CreateCompilation(@"
+            var libBase2 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class LibBase
 {
     public readonly int X = 2;
 }
 ", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
 
-            var lib1 = TestCompilationFactory.CreateCompilation(@"
+            var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
 ", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
 
-            var lib2 = TestCompilationFactory.CreateCompilation(@"
+            var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();

@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Rule
+	Name="ProjectReference"
+	DisplayName="Project Reference"
+	PageTemplate="generic"
+	Description="Project reference properties"
+	xmlns="http://schemas.microsoft.com/build/2009/properties">
+
+    <Rule.DataSource>
+        <DataSource Persistence="ProjectFile" ItemType="ProjectReference" HasConfigurationCondition="False" />
+    </Rule.DataSource>
+
+    <BoolProperty Name="ReferenceOutputAssembly"
+                  DisplayName="Reference Output Assembly"
+				  Description="A value indicating whether the compiler should include a reference to the target project's primary output assembly." />
+
+    <BoolProperty Name="Private"
+                  DisplayName="Copy Local"
+				  Description="Indicates whether the primary output of the reference target should be copied into this project's output directory, when that metadata is set on an unresolved reference." />
+
+    <BoolProperty Name="CopyLocalSatelliteAssemblies"
+                  DisplayName="Copy Local Satellite Assemblies"
+				  Description="Indicates whether the satellite assemblies of the reference target should be copied into this project's output directory." />
+
+    <BoolProperty Name="LinkLibraryDependencies" Visible="False" />
+
+    <BoolProperty Name="UseLibraryDependencyInputs" Visible="False" />
+
+    <StringProperty Name="Project" 
+                    Visible="False"
+                    Description="the Guid the solution tracks an individual project reference target with" />
+
+    <StringProperty Name="ReferencedProjectIdentifier" Visible="False" Description="The old (VS2010 beta) way to store the Guid the solution tracks an individual project reference target with" />
+
+    <BoolProperty Name="CopyLocal"
+                  DisplayName="Copy Local"
+                  Description="Indicates whether the reference will be copied to the output directory.">
+        <BoolProperty.DataSource>
+            <DataSource Persistence="ProjectFile"
+                        ItemType="ProjectReference"
+                        HasConfigurationCondition="False"
+                        PersistedName="Private" />
+        </BoolProperty.DataSource>
+    </BoolProperty>
+</Rule>

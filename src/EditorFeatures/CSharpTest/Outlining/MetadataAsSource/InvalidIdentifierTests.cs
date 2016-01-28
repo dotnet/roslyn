@@ -2,9 +2,11 @@
 
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Outlining;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSource
@@ -13,56 +15,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
     /// Identifiers coming from IL can be just about any valid string and since C# doesn't have a way to escape all possible
     /// IL identifiers, we have to account for the possibility that an item's metadata name could lead to unparseable code.
     /// </summary>
-    public class InvalidIdentifierTests : AbstractOutlinerTests
+    public class InvalidIdentifierTests : AbstractSyntaxOutlinerTests
     {
-        private void Test(string fileContents, params OutliningSpan[] expectedSpans)
-        {
-            var workspace = TestWorkspaceFactory.CreateWorkspaceFromFiles(WorkspaceKind.MetadataAsSource, LanguageNames.CSharp, null, null, fileContents);
-            var outliningService = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<IOutliningService>();
-            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-            var actualOutliningSpans = outliningService.GetOutliningSpansAsync(document, CancellationToken.None).Result.Where(s => s != null).ToArray();
+        protected override string LanguageName => LanguageNames.CSharp;
+        protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
 
-            Assert.Equal(expectedSpans.Length, actualOutliningSpans.Length);
-            for (int i = 0; i < expectedSpans.Length; i++)
-            {
-                AssertRegion(expectedSpans[i], actualOutliningSpans[i]);
-            }
+        internal override async Task<OutliningSpan[]> GetRegionsAsync(Document document, int position)
+        {
+            var outliningService = document.Project.LanguageServices.GetService<IOutliningService>();
+
+            return (await outliningService.GetOutliningSpansAsync(document, CancellationToken.None))
+                .WhereNotNull().ToArray();
         }
 
         [WorkItem(1174405)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public void PrependedDollarSign()
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task PrependedDollarSign()
         {
-            var source = @"
-class C
+            const string code = @"
+$$class C
 {
     public void $Invoke();
 }";
-            Test(source);
+
+            await VerifyNoRegionsAsync(code);
         }
 
         [WorkItem(1174405)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public void SymbolsAndPunctuation()
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task SymbolsAndPunctuation()
         {
-            var source = @"
-class C
+            const string code = @"
+$$class C
 {
     public void !#$%^&*(()_-+=|\}]{[""':;?/>.<,~`();
 }";
-            Test(source);
+
+            await VerifyNoRegionsAsync(code);
         }
 
         [WorkItem(1174405)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public void IdentifierThatLooksLikeCode()
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task IdentifierThatLooksLikeCode()
         {
-            var source = @"
-class C
+            const string code = @"
+$$class C
 {
     public void } } public class CodeInjection{ } /* now everything is commented ();
 }";
-            Test(source);
+
+            await VerifyNoRegionsAsync(code);
         }
     }
 }

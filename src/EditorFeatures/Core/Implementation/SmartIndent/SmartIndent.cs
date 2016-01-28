@@ -2,6 +2,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -28,14 +29,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 
         public int? GetDesiredIndentation(ITextSnapshotLine line)
         {
-            return GetDesiredIndentation(line, CancellationToken.None);
+            return GetDesiredIndentationAsync(line).WaitAndGetResult(CancellationToken.None);
+        }
+
+        internal Task<int?> GetDesiredIndentationAsync(ITextSnapshotLine line)
+        {
+            return GetDesiredIndentationAsync(line, CancellationToken.None);
         }
 
         public void Dispose()
         {
         }
 
-        private int? GetDesiredIndentation(ITextSnapshotLine lineToBeIndented, CancellationToken cancellationToken)
+        private async Task<int?> GetDesiredIndentationAsync(ITextSnapshotLine lineToBeIndented, CancellationToken cancellationToken)
         {
             if (lineToBeIndented == null)
             {
@@ -56,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                     return null;
                 }
 
-                var result = service.GetDesiredIndentationAsync(document, lineToBeIndented.LineNumber, cancellationToken).WaitAndGetResult(cancellationToken);
+                var result = await service.GetDesiredIndentationAsync(document, lineToBeIndented.LineNumber, cancellationToken).ConfigureAwait(false);
                 if (result == null)
                 {
                     return null;

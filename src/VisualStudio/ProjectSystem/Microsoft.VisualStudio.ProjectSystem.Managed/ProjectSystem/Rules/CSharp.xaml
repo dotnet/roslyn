@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Rule
+	Name="CSharp"
+	DisplayName="C#"
+	PageTemplate="tool"
+	Description="C# source file"
+	xmlns="http://schemas.microsoft.com/build/2009/properties">
+  <Rule.DataSource>
+    <DataSource Persistence="ProjectFile" Label="Configuration" ItemType="Compile" HasConfigurationCondition="false" />
+  </Rule.DataSource>
+  <Rule.Categories>
+    <Category Name="Advanced" DisplayName="Advanced" />
+    <Category Name="Misc" DisplayName="Misc" />
+  </Rule.Categories>
+
+  <DynamicEnumProperty Name="{}{ItemType}" DisplayName="Build Action"  Category="Advanced"
+                   Description="How the file relates to the build and deployment processes."
+                   EnumProvider="ItemTypes" />
+  <EnumProperty
+      Name="CopyToOutputDirectory"
+      DisplayName="Copy to Output Directory"
+      Category="Advanced"
+      Description="Specifies the source file will be copied to the output directory.">
+    <EnumValue Name="Never" DisplayName="Do not copy" />
+    <EnumValue Name="Always" DisplayName="Copy always" />
+    <EnumValue Name="PreserveNewest" DisplayName="Copy if newer" />
+  </EnumProperty>
+
+  <StringProperty
+      Name="Generator"
+      Category="Advanced"
+      DisplayName="Custom Tool"
+      Description="Specifies the tool that transforms a file at design time and places the output of that transformation into another file. For example, a dataset (.xsd) file comes with a default custom tool." />
+  <StringProperty
+      Name="CustomToolNamespace"
+      Category="Advanced"
+      DisplayName="Custom Tool Namespace"
+      Description="The namespace into which the output of the custom tool is placed." />
+
+  <BoolProperty Name="ExcludedFromBuild" DisplayName="Excluded From Build">
+    <BoolProperty.DataSource>
+      <DataSource Persistence="ProjectFile" Label="Configuration" ItemType="Compile" HasConfigurationCondition="true" />
+    </BoolProperty.DataSource>
+  </BoolProperty>
+  <BoolProperty Name="Visible" Visible="false" />
+  <StringProperty Name="DependentUpon" Visible="false">
+    <StringProperty.Metadata>
+      <NameValuePair Name="DoNotCopyAcrossProjects" Value="true" />
+    </StringProperty.Metadata>
+  </StringProperty>
+  <StringProperty Name="Link" Visible="false">
+    <StringProperty.Metadata>
+      <NameValuePair Name="DoNotCopyAcrossProjects" Value="true" />
+    </StringProperty.Metadata>
+  </StringProperty>
+  <StringProperty Name="SubType" Visible="false" />
+  <StringProperty Name="LastGenOutput" Visible="false" Description="The filename of the last file generated as a result of the SFG." />
+  <BoolProperty Name="DesignTime" Visible="false" Description="A value indicating whether this file has a designer." />
+  <BoolProperty Name="AutoGen" Visible="false" Description="A value indicating whether this is a generated file." />
+</Rule>

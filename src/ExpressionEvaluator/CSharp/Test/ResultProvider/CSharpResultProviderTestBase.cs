@@ -1,22 +1,30 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public abstract class CSharpResultProviderTestBase : ResultProviderTestBase
     {
-        private static readonly ResultProvider s_resultProvider = new CSharpResultProvider();
-        private static readonly DkmInspectionContext s_inspectionContext = CreateDkmInspectionContext(s_resultProvider.Formatter, DkmEvaluationFlags.None, radix: 10);
+        public CSharpResultProviderTestBase() : this(new CSharpFormatter())
+        {
+        }
 
-        public CSharpResultProviderTestBase()
-            : base(s_resultProvider, s_inspectionContext)
+        private CSharpResultProviderTestBase(CSharpFormatter formatter) :
+            this(new DkmInspectionSession(ImmutableArray.Create<IDkmClrFormatter>(formatter), ImmutableArray.Create<IDkmClrResultProvider>(new CSharpResultProvider(formatter, formatter))))
+        {
+        }
+
+        internal CSharpResultProviderTestBase(DkmInspectionSession inspectionSession, DkmInspectionContext defaultInspectionContext = null) :
+            base(inspectionSession, defaultInspectionContext ?? CreateDkmInspectionContext(inspectionSession, DkmEvaluationFlags.None, radix: 10))
         {
         }
 

@@ -33,5 +33,4 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
             return VSConstants.S_OK;
         }
     }
-
 }

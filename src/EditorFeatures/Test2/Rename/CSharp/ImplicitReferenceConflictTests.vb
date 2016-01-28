@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class ImplicitReferenceConflictTests
 
         <WorkItem(528966)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextCausesConflictInForEach()
             Using result = RenameEngineResult.Create(
                     <Workspace>
@@ -44,7 +44,7 @@ class C
         End Sub
 
         <WorkItem(528966)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextInVBCausesConflictInForEach()
             Using result = RenameEngineResult.Create(
                     <Workspace>
@@ -91,7 +91,7 @@ class D
         End Sub
 
         <WorkItem(528966)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextInVBToUpperCaseOnlyCausesConflictInCSForEach()
             Using result = RenameEngineResult.Create(
                     <Workspace>

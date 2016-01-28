@@ -1,37 +1,32 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
+Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class CustomEventKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub CustomEventInClassDeclaration()
-            VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "Custom Event")
-        End Sub
+        Public Async Function CustomEventInClassDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>|</ClassDeclaration>, "Custom Event")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub CustomEventInStructureDeclaration()
-            VerifyRecommendationsContain(<StructureDeclaration>|</StructureDeclaration>, "Custom Event")
-        End Sub
+        Public Async Function CustomEventInStructureDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<StructureDeclaration>|</StructureDeclaration>, "Custom Event")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <WorkItem(544999)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub CustomEventNotInInterfaceDeclaration()
-            VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Custom Event")
-        End Sub
+        Public Async Function CustomEventNotInInterfaceDeclarationTest() As Task
+            Await VerifyRecommendationsMissingAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Custom Event")
+        End Function
 
         <WorkItem(674791)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotAfterHash()
-            VerifyRecommendationsMissing(<File>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NotAfterHashTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 Imports System
 
 #|
@@ -41,6 +36,6 @@ Module Module1
 End Module
 
 </File>, "Custom Event")
-        End Sub
+        End Function
     End Class
 End Namespace

@@ -1124,7 +1124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 try
                 {
                     bool shouldHaveName = false;
-                    tryAgain:
+                tryAgain:
                     if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
                     {
                         if (this.IsPossibleAttributeArgument() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
@@ -2455,7 +2455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return _syntaxFactory.IncompleteMember(attributes, modifiers.ToTokenList(), type);
                 }
 
-                parse_member_name:;
+            parse_member_name:;
                 // Check here for operators
                 // Allow old-style implicit/explicit casting operator syntax, just so we can give a better error
                 if (IsOperatorKeyword())
@@ -4709,10 +4709,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Console->WriteLine();
                 //
                 // C 
-                // A + B; // etc.
+                // A + B;
                 //
                 // C 
                 // A ? B : D;
+                //
+                // C 
+                // A()
                 var resetPoint = this.GetResetPoint();
                 try
                 {
@@ -4733,6 +4736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 SyntaxFacts.IsBinaryExpressionOperatorToken(currentTokenKind);
 
                             if (currentTokenKind == SyntaxKind.DotToken ||
+                                currentTokenKind == SyntaxKind.OpenParenToken ||
                                 currentTokenKind == SyntaxKind.MinusGreaterThanToken ||
                                 isNonEqualsBinaryToken)
                             {
@@ -5618,6 +5622,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 var result = this.ParseType(parentIsParameter: false);
+
+                // Consider the case where someone supplies an invalid type argument
+                // Such as Action<0> or Action<static>.  In this case we generate a missing 
+                // identifer in ParseType, but if we continue as is we'll immediately start to 
+                // interpret 0 as the start of a new expression when we can tell it's most likely
+                // meant to be part of the type list.  
+                //
+                // To solve this we check if the current token is not comma or greater than and 
+                // the next token is a comma or greater than. If so we assume that the found 
+                // token is part of this expression and we attempt to recover. This does open 
+                // the door for cases where we have an  incomplete line to be interpretted as 
+                // a single expression.  For example:
+                //
+                // Action< // Incomplete line
+                // a>b;
+                //
+                // However, this only happens when the following expression is of the form a>... 
+                // or a,... which  means this case should happen less frequently than what we're 
+                // trying to solve here so we err on the side of better error messages
+                // for the majority of cases.
+                SyntaxKind nextTokenKind = SyntaxKind.None;
+
+                if (result.IsMissing &&
+                    (this.CurrentToken.Kind != SyntaxKind.CommaToken && this.CurrentToken.Kind != SyntaxKind.GreaterThanToken) &&
+                    ((nextTokenKind = this.PeekToken(1).Kind) == SyntaxKind.CommaToken || nextTokenKind == SyntaxKind.GreaterThanToken))
+                {
+                    // Eat the current token and add it as skipped so we recover
+                    result = AddTrailingSkippedSyntax(result, this.EatToken());
+                }
 
                 if (varianceToken != null)
                 {
@@ -6551,7 +6584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else if (this.IsQueryExpression(mayBeVariableDeclaration: true, mayBeMemberDeclaration: allowAnyExpression))
                     {
-                        return this.ParseExpressionStatement(this.ParseQueryExpression());
+                        return this.ParseExpressionStatement(this.ParseQueryExpression(0));
                     }
                     else
                     {
@@ -8174,6 +8207,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     mod = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
                 }
+                else if (list.Any(mod.Kind))
+                {
+                    // check for duplicates, can only be const
+                    mod = this.AddError(mod, ErrorCode.ERR_TypeExpected, mod.Text);
+                }
 
                 list.Add(mod);
             }
@@ -8662,7 +8700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else if (this.IsQueryExpression(mayBeVariableDeclaration: false, mayBeMemberDeclaration: false))
             {
-                leftOperand = this.ParseQueryExpression();
+                leftOperand = this.ParseQueryExpression(precedence);
             }
             else if (this.CurrentToken.ContextualKind == SyntaxKind.FromKeyword && IsInQuery)
             {
@@ -8791,10 +8829,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (tk == SyntaxKind.QuestionToken && precedence <= Precedence.Ternary)
             {
                 var questionToken = this.EatToken();
-                var whenTrue = this.ParseSubExpression(Precedence.Expression);
+                var colonLeft = this.ParseExpressionCore();
                 var colon = this.EatToken(SyntaxKind.ColonToken);
-                var whenFalse = this.ParseSubExpression(Precedence.Expression);
-                leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, whenTrue, colon, whenFalse);
+                var colonRight = this.ParseExpressionCore();
+                leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
             }
 
             return leftOperand;
@@ -10563,11 +10601,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return false;
         }
 
-        private QueryExpressionSyntax ParseQueryExpression()
+        private QueryExpressionSyntax ParseQueryExpression(Precedence precedence)
         {
             this.EnterQuery();
             var fc = this.ParseFromClause();
             fc = CheckFeatureAvailability(fc, MessageID.IDS_FeatureQueryExpression);
+            if (precedence > Precedence.Assignment && IsStrict)
+            {
+                fc = this.AddError(fc, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(SyntaxKind.FromKeyword));
+            }
+
             var body = this.ParseQueryBody();
             this.LeaveQuery();
             return _syntaxFactory.QueryExpression(fc, body);
@@ -10809,6 +10852,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var body = this.ParseQueryBody();
             return _syntaxFactory.QueryContinuation(@into, name, body);
         }
+
+        private bool IsStrict => this.Options.Features.ContainsKey("strict");
 
         [Obsolete("Use IsIncrementalAndFactoryContextMatches")]
         private new bool IsIncremental

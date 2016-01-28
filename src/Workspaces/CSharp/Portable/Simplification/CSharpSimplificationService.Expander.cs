@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             private SpeculationAnalyzer GetSpeculationAnalyzer(ExpressionSyntax expression, ExpressionSyntax newExpression)
             {
-                return new SpeculationAnalyzer(expression, newExpression, this._semanticModel, this._cancellationToken);
+                return new SpeculationAnalyzer(expression, newExpression, _semanticModel, _cancellationToken);
             }
 
             private bool TryCastTo(ITypeSymbol targetType, ExpressionSyntax expression, ExpressionSyntax newExpression, out ExpressionSyntax newExpressionWithCast)

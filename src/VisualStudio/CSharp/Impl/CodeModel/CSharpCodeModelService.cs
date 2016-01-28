@@ -58,14 +58,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         private static readonly SymbolDisplayFormat s_externalNameFormat =
             new SymbolDisplayFormat(
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeName);
 
         private static readonly SymbolDisplayFormat s_externalFullNameFormat =
             new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeExplicitInterface,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeName);
 
         private static readonly SymbolDisplayFormat s_setTypeFormat =
             new SymbolDisplayFormat(
@@ -365,35 +367,46 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
         }
 
-        private static bool IsContainerNode(SyntaxNode container)
-        {
-            return container is CompilationUnitSyntax
-                || container is NamespaceDeclarationSyntax
-                || container is TypeDeclarationSyntax
-                || container is EnumDeclarationSyntax;
-        }
+        private static bool IsContainerNode(SyntaxNode container) =>
+            container is CompilationUnitSyntax ||
+            container is NamespaceDeclarationSyntax ||
+            container is BaseTypeDeclarationSyntax;
 
-        private static IEnumerable<SyntaxNode> GetChildMemberNodes(SyntaxNode container)
+        private static bool IsNamespaceOrTypeDeclaration(SyntaxNode node) =>
+            node.Kind() == SyntaxKind.NamespaceDeclaration ||
+            node is BaseTypeDeclarationSyntax ||
+            node is DelegateDeclarationSyntax;
+
+        private static IEnumerable<MemberDeclarationSyntax> GetChildMemberNodes(SyntaxNode container)
         {
             if (container is CompilationUnitSyntax)
             {
                 foreach (var member in ((CompilationUnitSyntax)container).Members)
                 {
-                    yield return member;
+                    if (IsNamespaceOrTypeDeclaration(member))
+                    {
+                        yield return member;
+                    }
                 }
             }
             else if (container is NamespaceDeclarationSyntax)
             {
                 foreach (var member in ((NamespaceDeclarationSyntax)container).Members)
                 {
-                    yield return member;
+                    if (IsNamespaceOrTypeDeclaration(member))
+                    {
+                        yield return member;
+                    }
                 }
             }
             else if (container is TypeDeclarationSyntax)
             {
                 foreach (var member in ((TypeDeclarationSyntax)container).Members)
                 {
-                    yield return member;
+                    if (member.Kind() != SyntaxKind.NamespaceDeclaration)
+                    {
+                        yield return member;
+                    }
                 }
             }
             else if (container is EnumDeclarationSyntax)
@@ -2415,12 +2428,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             var result = EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone;
 
-            if ((flags & ModifierFlags.Abstract) != 0 || containingType.Kind() == SyntaxKind.InterfaceDeclaration)
+            if ((flags & ModifierFlags.Abstract) != 0 || containingType?.Kind() == SyntaxKind.InterfaceDeclaration)
             {
                 result |= EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract;
             }
 
-            if ((flags & ModifierFlags.Virtual) != 0 || containingType.Kind() == SyntaxKind.InterfaceDeclaration)
+            if ((flags & ModifierFlags.Virtual) != 0 || containingType?.Kind() == SyntaxKind.InterfaceDeclaration)
             {
                 result |= EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual;
             }
@@ -2746,7 +2759,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 var newFieldDeclaration = fieldDeclaration.RemoveNode(node, SyntaxRemoveOptions.KeepNoTrivia);
 
                 return document.ReplaceNodeAsync(fieldDeclaration, newFieldDeclaration, CancellationToken.None)
-                               .WaitAndGetResult(CancellationToken.None);
+                               .WaitAndGetResult_CodeModel(CancellationToken.None);
             }
         }
 
@@ -2768,7 +2781,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
 
             return document.ReplaceNodeAsync(enumDeclaration, newEnumDeclaration, CancellationToken.None)
-                           .WaitAndGetResult(CancellationToken.None);
+                           .WaitAndGetResult_CodeModel(CancellationToken.None);
         }
 
         private Document Delete(Document document, AttributeSyntax node)
@@ -2779,7 +2792,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             if (attributeList.Attributes.Count == 1)
             {
                 var text = document.GetTextAsync(CancellationToken.None)
-                                   .WaitAndGetResult(CancellationToken.None);
+                                   .WaitAndGetResult_CodeModel(CancellationToken.None);
 
                 // Note that we want to keep all leading trivia and delete all trailing trivia.
                 var deletionStart = attributeList.SpanStart;
@@ -2794,7 +2807,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 var newAttributeList = attributeList.RemoveNode(node, SyntaxRemoveOptions.KeepNoTrivia);
 
                 return document.ReplaceNodeAsync(attributeList, newAttributeList, CancellationToken.None)
-                               .WaitAndGetResult(CancellationToken.None);
+                               .WaitAndGetResult_CodeModel(CancellationToken.None);
             }
         }
 
@@ -2804,7 +2817,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var newArgumentList = argumentList.RemoveNode(node, SyntaxRemoveOptions.KeepNoTrivia);
 
             return document.ReplaceNodeAsync(argumentList, newArgumentList, CancellationToken.None)
-                           .WaitAndGetResult(CancellationToken.None);
+                           .WaitAndGetResult_CodeModel(CancellationToken.None);
         }
 
         private Document Delete(Document document, ParameterSyntax node)
@@ -2813,13 +2826,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var newParameterList = parameterList.RemoveNode(node, SyntaxRemoveOptions.KeepNoTrivia);
 
             return document.ReplaceNodeAsync(parameterList, newParameterList, CancellationToken.None)
-                           .WaitAndGetResult(CancellationToken.None);
+                           .WaitAndGetResult_CodeModel(CancellationToken.None);
         }
 
         private Document DeleteMember(Document document, SyntaxNode node)
         {
             var text = document.GetTextAsync(CancellationToken.None)
-                               .WaitAndGetResult(CancellationToken.None);
+                               .WaitAndGetResult_CodeModel(CancellationToken.None);
 
             // We want to delete all the leading trivia from the node back to,
             // but not including:
@@ -3026,6 +3039,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             if (typeSymbol == null)
             {
                 var parsedTypeName = SyntaxFactory.ParseTypeName(fullName);
+
+                // Check to see if the name we parsed has any skipped text. If it does, don't bother trying to
+                // speculatively bind it because we'll likely just get the wrong thing since we found a bunch
+                // of non-sensical tokens.
+
+                if (parsedTypeName.ContainsSkippedText)
+                {
+                    return null;
+                }
 
                 // If we couldn't get the name, we just grab the first tree in the compilation to
                 // speculatively bind at position zero. However, if there *aren't* any trees, we fork the

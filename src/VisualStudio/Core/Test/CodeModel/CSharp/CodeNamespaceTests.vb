@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Roslyn.Test.Utilities
 
@@ -11,7 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 #Region "Remove tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Remove1()
+        Public Async Function TestRemove1() As Task
             Dim code =
 <Code>
 namespace $$Foo
@@ -29,14 +30,14 @@ namespace Foo
 }
 </Code>
 
-            TestRemoveChild(code, expected, "C")
-        End Sub
+            Await TestRemoveChild(code, expected, "C")
+        End Function
 
 #End Region
 
         <WorkItem(858153)>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Children1()
+        Public Async Function TestChildren1() As Task
             Dim code =
 <Code>
 namespace N$$
@@ -47,14 +48,30 @@ namespace N$$
 }
 </Code>
 
-            TestChildren(code,
-                         IsElement("C1", EnvDTE.vsCMElement.vsCMElementClass),
-                         IsElement("C2", EnvDTE.vsCMElement.vsCMElementClass),
-                         IsElement("C3", EnvDTE.vsCMElement.vsCMElementClass))
-        End Sub
+            Await TestChildren(code,
+                IsElement("C1", EnvDTE.vsCMElement.vsCMElementClass),
+                IsElement("C2", EnvDTE.vsCMElement.vsCMElementClass),
+                IsElement("C3", EnvDTE.vsCMElement.vsCMElementClass))
+        End Function
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function NoChildrenForInvalidMembers() As Task
+            Dim code =
+<Code>
+namespace N$$
+{
+    void M() { }
+    int P { get { return 42; } }
+    event System.EventHandler E;
+}
+</Code>
+
+            Await TestChildren(code, NoElements)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TypeDescriptor_GetProperties()
+        Public Async Function TestTypeDescriptor_GetProperties() As Task
             Dim code =
 <Code>
 namespace $$N
@@ -67,8 +84,8 @@ namespace $$N
                  "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
                  "ExtenderCATID", "Parent", "Members", "DocComment", "Comment"}
 
-            TestPropertyDescriptors(code, expectedPropertyNames)
-        End Sub
+            Await TestPropertyDescriptors(code, expectedPropertyNames)
+        End Function
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

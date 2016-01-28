@@ -405,10 +405,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (directive.ResolvedPath != null)
                 {
                     SyntaxTree loadedTree;
-                    if (TryGetLoadedSyntaxTree(loadedSyntaxTreeMap, directive, out loadedTree) && !removeSet.Contains(loadedTree))
+                    if (TryGetLoadedSyntaxTree(loadedSyntaxTreeMap, directive, out loadedTree) && removeSet.Add(loadedTree))
                     {
-                        removeSet.Add(loadedTree);
-
                         ImmutableArray<LoadDirective> nestedLoadDirectives;
                         if (loadDirectiveMap.TryGetValue(loadedTree, out nestedLoadDirectives))
                         {

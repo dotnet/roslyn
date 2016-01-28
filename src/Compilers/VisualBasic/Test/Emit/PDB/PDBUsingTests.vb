@@ -392,6 +392,34 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub UnusedImports_Nonexisting()
+            Dim source = "
+Imports A.B
+Imports Z = C.D
+
+Class Program
+    Sub Main() 
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilationWithMscorlib(
+                {source},
+                {SystemCoreRef, SystemDataRef},
+                options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("E.F"), GlobalImport.Parse("Q = G.H")))
+
+            ' only warnings are reported (unlike C# which reports errors):
+            comp.VerifyDiagnostics(
+                Diagnostic(ERRID.WRN_UndefinedOrEmptyProjectNamespaceOrClass1).WithArguments("E.F"),
+                Diagnostic(ERRID.WRN_UndefinedOrEmptyProjectNamespaceOrClass1).WithArguments("Q = G.H"),
+                Diagnostic(ERRID.WRN_UndefinedOrEmptyNamespaceOrClass1, "A.B").WithArguments("A.B"),
+                Diagnostic(ERRID.WRN_UndefinedOrEmptyNamespaceOrClass1, "C.D").WithArguments("C.D"),
+                Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports A.B"),
+                Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports Z = C.D"))
+
+            CompileAndVerify(comp)
+        End Sub
+
+        <Fact>
         Public Sub BadGlobalImports()
             Dim source1 = "
 Namespace N

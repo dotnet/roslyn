@@ -3,7 +3,6 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -14,6 +13,7 @@ using Microsoft.VisualStudio.Utilities;
 using InteractiveCommandIds = Microsoft.VisualStudio.LanguageServices.InteractiveWindow.CommandIds;
 using InteractiveGuids = Microsoft.VisualStudio.LanguageServices.InteractiveWindow.Guids;
 #endif
+
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal abstract partial class AbstractOleCommandTarget
@@ -176,6 +176,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 case VSConstants.VSStd97CmdID.FindReferences:
                     ExecuteFindReferences(subjectBuffer, contentType, executeNextCommandTarget);
+                    break;
+
+                case VSConstants.VSStd97CmdID.SyncClassView:
+                    ExecuteSyncClassView(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
                 case VSConstants.VSStd97CmdID.Paste:
@@ -540,7 +544,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private void ExecuteEncapsulateField(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<EncapsulateFieldCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new EncapsulateFieldCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
@@ -600,275 +604,276 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return result;
         }
 #endif
+
         private void ExecuteMoveSelectedLinesUp(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<MoveSelectedLinesUpCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new MoveSelectedLinesUpCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         private void ExecuteMoveSelectedLinesDown(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<MoveSelectedLinesDownCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new MoveSelectedLinesDownCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         private void ExecuteAutomaticLineEnder(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<AutomaticLineEnderCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new AutomaticLineEnderCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteExtractInterface(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<ExtractInterfaceCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new ExtractInterfaceCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteExtractMethod(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<ExtractMethodCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new ExtractMethodCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteViewCallHierarchy(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<ViewCallHierarchyCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new ViewCallHierarchyCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteInsertSnippet(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<InsertSnippetCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new InsertSnippetCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteSurroundWith(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<SurroundWithCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new SurroundWithCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteRename(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<RenameCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new RenameCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteQuickInfo(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<InvokeQuickInfoCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new InvokeQuickInfoCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteParameterInfo(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<InvokeSignatureHelpCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new InvokeSignatureHelpCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteCommitUniqueCompletionItem(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<CommitUniqueCompletionListItemCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new CommitUniqueCompletionListItemCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteInvokeCompletionList(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<InvokeCompletionListCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new InvokeCompletionListCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteUncommentBlock(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<UncommentSelectionCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new UncommentSelectionCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteCommentBlock(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<CommentSelectionCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new CommentSelectionCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecutePreviousHighlightedReference(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<NavigateToHighlightedReferenceCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new NavigateToHighlightedReferenceCommandArgs(ConvertTextView(), subjectBuffer, NavigateDirection.Up),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteNextHighlightedReference(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<NavigateToHighlightedReferenceCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new NavigateToHighlightedReferenceCommandArgs(ConvertTextView(), subjectBuffer, NavigateDirection.Down),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteToggleConsumeFirstMode(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<ToggleCompletionModeCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new ToggleCompletionModeCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteInsertComment(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<InsertCommentCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new InsertCommentCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteFormatDocument(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<FormatDocumentCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new FormatDocumentCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteFormatSelection(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<FormatSelectionCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new FormatSelectionCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteBackspace(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<BackspaceKeyCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new BackspaceKeyCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteDelete(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<DeleteKeyCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new DeleteKeyCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteWordDeleteToStart(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<WordDeleteToStartCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new WordDeleteToStartCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteWordDeleteToEnd(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<WordDeleteToEndCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new WordDeleteToEndCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteCancel(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<EscapeKeyCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new EscapeKeyCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecutePageUp(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<PageUpKeyCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new PageUpKeyCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecutePageDown(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<PageDownKeyCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new PageDownKeyCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteDown(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<DownKeyCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new DownKeyCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteUp(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<UpKeyCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new UpKeyCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteDocumentStart(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<DocumentStartCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new DocumentStartCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteDocumentEnd(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<DocumentEndCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new DocumentEndCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteLineStart(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<LineStartCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new LineStartCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteLineStartExtend(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<LineStartExtendCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new LineStartExtendCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteLineEnd(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<LineEndCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new LineEndCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteLineEndExtend(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<LineEndExtendCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new LineEndExtendCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteSelectAll(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<SelectAllCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new SelectAllCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteOpenLineAbove(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<OpenLineAboveCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new OpenLineAboveCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteOpenLineBelow(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<OpenLineBelowCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new OpenLineBelowCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
@@ -889,21 +894,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         protected void ExecuteTab(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<TabKeyCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new TabKeyCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteBackTab(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<BackTabKeyCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new BackTabKeyCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteReturn(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<ReturnKeyCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new ReturnKeyCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
@@ -911,70 +916,77 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         protected void ExecuteTypeCharacter(IntPtr pvaIn, ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
             var typedChar = (char)(ushort)Marshal.GetObjectForNativeVariant(pvaIn);
-            CurrentHandlers.Execute<TypeCharCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new TypeCharCommandArgs(ConvertTextView(), subjectBuffer, typedChar),
                 lastHandler: executeNextCommandTarget);
         }
 
         private void ExecuteGoToDefinition(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<GoToDefinitionCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new GoToDefinitionCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         private void ExecuteGoToImplementation(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<GoToImplementationCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new GoToImplementationCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         private void ExecuteFindReferences(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<FindReferencesCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new FindReferencesCommandArgs(ConvertTextView(), subjectBuffer),
+                lastHandler: executeNextCommandTarget);
+        }
+
+        private void ExecuteSyncClassView(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
+        {
+            CurrentHandlers.Execute(contentType,
+                args: new SyncClassViewCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecutePaste(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<PasteCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new PasteCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         private void ExecuteSortUsings(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<SortImportsCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new SortImportsCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         private void ExecuteRemoveUnusedUsings(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<RemoveUnnecessaryImportsCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new RemoveUnnecessaryImportsCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         private void ExecuteSortAndRemoveUnusedUsings(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<SortAndRemoveUnnecessaryImportsCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new SortAndRemoveUnnecessaryImportsCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         private void ExecuteExecuteInInteractiveWindow(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<ExecuteInInteractiveCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new ExecuteInInteractiveCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         private void ExecuteCopyToToInteractiveWindow(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
-            CurrentHandlers.Execute<CopyToInteractiveCommandArgs>(contentType,
+            CurrentHandlers.Execute(contentType,
                 args: new CopyToInteractiveCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }

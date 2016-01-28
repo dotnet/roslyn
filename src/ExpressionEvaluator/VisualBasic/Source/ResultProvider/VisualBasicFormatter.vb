@@ -2,9 +2,7 @@
 
 Imports System.Collections.ObjectModel
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
-Imports Microsoft.VisualStudio.Debugger.Clr
 Imports Microsoft.VisualStudio.Debugger.ComponentInterfaces
-Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 Imports Microsoft.VisualStudio.Debugger.Metadata
 
@@ -13,7 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     ''' <summary>
     ''' Computes string representations of <see cref="DkmClrValue"/> instances.
     ''' </summary>
-    Partial Friend NotInheritable Class VisualBasicFormatter : Inherits Formatter : Implements IDkmClrFormatter
+    Partial Friend NotInheritable Class VisualBasicFormatter
+        Inherits Formatter
 
         ''' <summary>
         ''' Singleton instance of VisualBasicFormatter (created using default constructor).
@@ -21,29 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Shared ReadOnly Instance As VisualBasicFormatter = New VisualBasicFormatter()
 
         Public Sub New()
-            MyBase.New(defaultFormat:="{{{0}}}",
-                       nullString:="Nothing",
-                       staticMembersString:=Resources.SharedMembers)
+            MyBase.New(defaultFormat:="{{{0}}}", nullString:="Nothing")
         End Sub
-
-        Private Function IDkmClrFormatter_GetTypeName(inspectionContext As DkmInspectionContext, clrType As DkmClrType, clrTypeInfo As DkmClrCustomTypeInfo, formatSpecifiers As ReadOnlyCollection(Of String)) As String Implements IDkmClrFormatter.GetTypeName
-            Return GetTypeName(New TypeAndCustomInfo(clrType.GetLmrType(), clrTypeInfo), escapeKeywordIdentifiers:=False, sawInvalidIdentifier:=Nothing)
-        End Function
-
-        Private Function IDkmClrFormatter_GetUnderlyingString(clrValue As DkmClrValue, inspectionContext As DkmInspectionContext) As String Implements IDkmClrFormatter.GetUnderlyingString
-            Return GetUnderlyingString(clrValue, inspectionContext)
-        End Function
-
-        Private Function IDkmClrFormatter_GetValueString(clrValue As DkmClrValue, inspectionContext As DkmInspectionContext, formatSpecifiers As ReadOnlyCollection(Of String)) As String Implements IDkmClrFormatter.GetValueString
-            Dim options = If((inspectionContext.EvaluationFlags And DkmEvaluationFlags.NoQuotes) = 0,
-                ObjectDisplayOptions.UseQuotes,
-                ObjectDisplayOptions.None)
-            Return GetValueString(clrValue, inspectionContext, options, GetValueFlags.IncludeObjectId)
-        End Function
-
-        Private Function IDkmClrFormatter_HasUnderlyingString(clrValue As DkmClrValue, inspectionContext As DkmInspectionContext) As Boolean Implements IDkmClrFormatter.HasUnderlyingString
-            Return HasUnderlyingString(clrValue, inspectionContext)
-        End Function
 
         Friend Overrides Function IsValidIdentifier(name As String) As Boolean
             Return SyntaxFacts.IsValidIdentifier(name)

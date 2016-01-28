@@ -2264,6 +2264,48 @@ class D : C
             }
         }
 
+        [Fact]
+        public void RootCastExpression()
+        {
+            var source =
+@"class C
+{
+    object F = 3;
+}";
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(GetAssembly(source)));
+            using (runtime.Load())
+            {
+                var typeC = runtime.GetType("C");
+
+                // var o = (object)new C(); var e = (C)o;
+                var value = CreateDkmClrValue(typeC.Instantiate());
+                var evalResult = FormatResult("(C)o", value);
+                Verify(evalResult,
+                    EvalResult("(C)o", "{C}", "C", "(C)o", DkmEvaluationResultFlags.Expandable));
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("F", "3", "object {int}", "((C)o).F"));
+
+                // var c = new C(); var e = (C)((object)c);
+                value = CreateDkmClrValue(typeC.Instantiate());
+                evalResult = FormatResult("(C)((object)c)", value);
+                Verify(evalResult,
+                    EvalResult("(C)((object)c)", "{C}", "C", "(C)((object)c)", DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("F", "3", "object {int}", "((C)((object)c)).F"));
+
+                // var a = (object)new[] { new C() }; var e = ((C[])o)[0];
+                value = CreateDkmClrValue(typeC.Instantiate());
+                evalResult = FormatResult("((C[])o)[0]", value);
+                Verify(evalResult,
+                    EvalResult("((C[])o)[0]", "{C}", "C", "((C[])o)[0]", DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("F", "3", "object {int}", "((C[])o)[0].F"));
+            }
+        }
+
         /// <summary>
         /// Get many items synchronously.
         /// </summary>
@@ -2379,6 +2421,38 @@ class C
                 Assert.Equal(items.Length, n);
                 Assert.Equal(items.OfType<DkmFailedEvaluationResult>().Count(), nFailures);
             }
+        }
+
+        [Fact]
+        public void NullFormatSpecifiers()
+        {
+            var value = CreateDkmClrValue(3);
+            // With no format specifiers in full name.
+            DkmEvaluationResult evalResult = null;
+            value.GetResult(
+                new DkmWorkList(),
+                DeclaredType: value.Type,
+                CustomTypeInfo: null,
+                InspectionContext: DefaultInspectionContext,
+                FormatSpecifiers: null,
+                ResultName: "o",
+                ResultFullName: "o",
+                CompletionRoutine: asyncResult => evalResult = asyncResult.Result);
+            Verify(evalResult,
+                EvalResult("o", "3", "int", "o"));
+            // With format specifiers in full name.
+            evalResult = null;
+            value.GetResult(
+                new DkmWorkList(),
+                DeclaredType: value.Type,
+                CustomTypeInfo: null,
+                InspectionContext: DefaultInspectionContext,
+                FormatSpecifiers: null,
+                ResultName: "o",
+                ResultFullName: "o, nq",
+                CompletionRoutine: asyncResult => evalResult = asyncResult.Result);
+            Verify(evalResult,
+                EvalResult("o", "3", "int", "o, nq"));
         }
     }
 }

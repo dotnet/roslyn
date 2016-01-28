@@ -1,60 +1,59 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Test.Utilities
+Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class ConstKeywordRecommenderTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ConstInMethodBody()
-            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Const")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function ConstInMethodBodyTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "Const")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ConstInLambda()
-            VerifyRecommendationsContain(<MethodBody>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function ConstInLambdaTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Dim x = Sub()
 |
         End Sub</MethodBody>, "Const")
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ConstAfterStatement()
-            VerifyRecommendationsContain(<MethodBody>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function ConstAfterStatementTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Dim x
 |</MethodBody>, "Const")
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ConstNotInsideSingleLineLambda()
-            VerifyRecommendationsMissing(<MethodBody>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function ConstNotInsideSingleLineLambdaTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>
 Dim x = Sub() |
 </MethodBody>, "Const")
-        End Sub
+        End Function
 
         <WorkItem(544912)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ConstAfterDimInClass()
-            VerifyRecommendationsContain(<ClassDeclaration>Dim |</ClassDeclaration>, "Const")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function ConstAfterDimInClassTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Dim |</ClassDeclaration>, "Const")
+        End Function
 
         <WorkItem(644881)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ConstAfterFriendInClass()
-            VerifyRecommendationsContain(<ClassDeclaration>Friend |</ClassDeclaration>, "Const")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function ConstAfterFriendInClassTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Friend |</ClassDeclaration>, "Const")
+        End Function
 
         <WorkItem(644881)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ConstAfterFriendInModule()
-            VerifyRecommendationsContain(<ModuleDeclaration>Friend |</ModuleDeclaration>, "Const")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function ConstAfterFriendInModuleTest() As Task
+            Await VerifyRecommendationsContainAsync(<ModuleDeclaration>Friend |</ModuleDeclaration>, "Const")
+        End Function
 
         <WorkItem(674791)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotAfterHash()
-            VerifyRecommendationsMissing(<File>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NotAfterHashTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 Imports System
 
 #|
@@ -64,7 +63,6 @@ Module Module1
 End Module
 
 </File>, "Const")
-        End Sub
-
+        End Function
     End Class
 End Namespace

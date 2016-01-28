@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Resources;
-using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -231,6 +230,28 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             }
         }
 
+        [Fact]
+        public void LocalizableResourceStringEquality()
+        {
+            var resourceManager = GetTestResourceManagerInstance();
+            var unit = EqualityUnit
+                .Create(new LocalizableResourceString(@"ResourceWithArguments", resourceManager, typeof(CustomResourceManager), "arg"))
+                .WithEqualValues(
+                    new LocalizableResourceString(@"ResourceWithArguments", resourceManager, typeof(CustomResourceManager), "arg"))
+                .WithNotEqualValues(
+                    new LocalizableResourceString(@"ResourceWithArguments", resourceManager, typeof(CustomResourceManager), "otherarg"),
+                    new LocalizableResourceString(@"Resource1", resourceManager, typeof(CustomResourceManager)));
+            EqualityUtil.RunAll(unit, checkIEquatable: false);
+
+
+            var str = new LocalizableResourceString(@"ResourceWithArguments", resourceManager, typeof(CustomResourceManager), "arg");
+            var threw = false;
+            str.OnException += (sender, e) => { threw = true; };
+            Assert.False(str.Equals(42));
+            Assert.False(str.Equals(42));
+            Assert.False(threw);
+        }
+
         [Fact, WorkItem(887)]
         public void TestDescriptorIsExceptionSafe()
         {
@@ -275,11 +296,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             // Verify DiagnosticAnalyzer.SupportedDiagnostics is also exception safe.
             var analyzer = new MyAnalyzer(descriptor);
             var exceptionDiagnostics = new List<Diagnostic>();
+
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, a, diag) => exceptionDiagnostics.Add(diag);
             var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, AnalyzerManager.Instance);
             var descriptors = AnalyzerManager.Instance.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
 
-            Assert.Equal(1, descriptors.Length);
+            Assert.Equal(1, descriptors.Length); 
             Assert.Equal(descriptor.Id, descriptors[0].Id);
 
             // Access and evaluate localizable fields.

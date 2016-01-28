@@ -17,7 +17,7 @@ using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
-    internal sealed class DesktopBuildClient : BuildClient
+    internal class DesktopBuildClient : BuildClient
     {
         private const string ServerName = "VBCSCompiler.exe";
 
@@ -31,7 +31,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
         private readonly CompileFunc _compileFunc;
         private readonly IAnalyzerAssemblyLoader _analyzerAssemblyLoader;
 
-        private DesktopBuildClient(RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
+        /// <summary>
+        /// When set it overrides all timeout values in milliseconds when communicating with the server.
+        /// </summary>
+        internal int? TimeoutOverride { get; set; }
+
+        internal DesktopBuildClient(RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
         {
             _language = language;
             _compileFunc = compileFunc;
@@ -46,22 +51,23 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var workingDir = Directory.GetCurrentDirectory();
             var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir);
             var originalArguments = BuildClient.GetCommandLineArgs(arguments).Concat(extraArguments).ToArray();
-            return client.RunCompilation(originalArguments, buildPaths);
+            return client.RunCompilation(originalArguments, buildPaths).ExitCode;
         }
 
-        protected override int RunLocalCompilation(List<string> arguments, string clientDir, string sdkDir)
+        protected override int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter)
         {
-            return _compileFunc(clientDir, sdkDir, arguments.ToArray(), _analyzerAssemblyLoader);
+            return _compileFunc(arguments, buildPaths, textWriter, _analyzerAssemblyLoader);
         }
 
         protected override Task<BuildResponse> RunServerCompilation(
             List<string> arguments, 
             BuildPaths buildPaths, 
+            string sessionKey,
             string keepAlive, 
             string libDirectory, 
             CancellationToken cancellationToken)
         {
-            return RunServerCompilation(_language, arguments, buildPaths, keepAlive, libDirectory, cancellationToken);
+            return RunServerCompilationCore(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, TimeoutOverride, TryCreateServer, cancellationToken);
         }
 
         public static Task<BuildResponse> RunServerCompilation(
@@ -72,10 +78,34 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string libEnvVariable,
             CancellationToken cancellationToken)
         {
-            var clientDir = buildPaths.ClientDirectory;
-            var pipeName = GetBasePipeName(clientDir);
+            return RunServerCompilationCore(
+                language,
+                arguments,
+                buildPaths,
+                GetPipeNameFromFileInfo(buildPaths.ClientDirectory),
+                keepAlive,
+                libEnvVariable,
+                timeoutOverride: null,
+                tryCreateServerFunc: TryCreateServerCore,
+                cancellationToken: cancellationToken);
+        }
 
-            var clientMutexName = $"{pipeName}.client";
+        private static Task<BuildResponse> RunServerCompilationCore(
+            RequestLanguage language,
+            List<string> arguments,
+            BuildPaths buildPaths,
+            string pipeName,
+            string keepAlive,
+            string libEnvVariable,
+            int? timeoutOverride,
+            Func<string, string, bool> tryCreateServerFunc,
+            CancellationToken cancellationToken)
+        {
+
+            var clientDir = buildPaths.ClientDirectory;
+            var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
+            var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
+            var clientMutexName = BuildProtocolConstants.GetClientMutexName(pipeName);
             bool holdsMutex;
             using (var clientMutex = new Mutex(initiallyOwned: true,
                                                name: clientMutexName,
@@ -87,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     {
                         try
                         {
-                            holdsMutex = clientMutex.WaitOne(TimeOutMsNewProcess);
+                            holdsMutex = clientMutex.WaitOne(timeoutNewProcess);
 
                             if (!holdsMutex)
                             {
@@ -101,18 +131,17 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     }
 
                     // Check for an already running server
-                    var serverMutexName = $"{pipeName}.server";
-                    Mutex mutexIgnore;
-                    bool wasServerRunning = Mutex.TryOpenExisting(serverMutexName, out mutexIgnore);
-                    var timeout = wasServerRunning ? TimeOutMsExistingProcess : TimeOutMsNewProcess;
+                    var serverMutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
+                    bool wasServerRunning = WasServerMutexOpen(serverMutexName);
+                    var timeout = wasServerRunning ? timeoutExistingProcess : timeoutNewProcess;
 
                     NamedPipeClientStream pipe = null;
 
-                    if (wasServerRunning || TryCreateServerProcess(clientDir, pipeName))
+                    if (wasServerRunning || tryCreateServerFunc(clientDir, pipeName))
                     {
-                        pipe = TryConnectToProcess(pipeName,
-                                                   timeout,
-                                                   cancellationToken);
+                        pipe = TryConnectToServer(pipeName,
+                                                  timeout,
+                                                  cancellationToken);
                     }
 
                     if (pipe != null)
@@ -135,12 +164,25 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
             }
 
-            return null;
+            return Task.FromResult<BuildResponse>(null);
+        }
+
+        internal static bool WasServerMutexOpen(string mutexName)
+        {
+            Mutex mutex;
+            var open = Mutex.TryOpenExisting(mutexName, out mutex);
+            if (open)
+            {
+                mutex.Close();
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
-        /// Try to compile using the server. Returns null if a response from the
-        /// server cannot be retrieved.
+        /// Try to compile using the server. Returns a null-containing Task if a response
+        /// from the server cannot be retrieved.
         /// </summary>
         private static async Task<BuildResponse> TryCompile(NamedPipeClientStream pipeStream,
                                                             BuildRequest request,
@@ -246,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <returns>
         /// An open <see cref="NamedPipeClientStream"/> to the server process or null on failure.
         /// </returns>
-        private static NamedPipeClientStream TryConnectToProcess(
+        private static NamedPipeClientStream TryConnectToServer(
             string pipeName,
             int timeoutMs,
             CancellationToken cancellationToken)
@@ -288,8 +330,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Create a new instance of the server process, returning true on success
         /// and false otherwise.
         /// </summary>
-        private static bool TryCreateServerProcess(string clientDir, string pipeName)
+        protected virtual bool TryCreateServer(string clientDir, string pipeName)
         {
+            return TryCreateServerCore(clientDir, pipeName);
+        }
+
+        internal static bool TryCreateServerCore(string clientDir, string pipeName)
+        { 
             // The server should be in the same directory as the client
             string expectedPath = Path.Combine(clientDir, ServerName);
 
@@ -371,8 +418,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// retrieves the name of the pipe for client/server communication on
         /// that instance of the compiler.
         /// </summary>
-        internal static string GetBasePipeName(string compilerExeDirectory)
+        protected override string GetSessionKey(BuildPaths buildPaths)
         {
+            return GetPipeNameFromFileInfo(buildPaths.ClientDirectory);
+        }
+
+        internal static string GetPipeNameFromFileInfo(string compilerExeDirectory)
+        { 
             string basePipeName;
             using (var sha = SHA256.Create())
             {

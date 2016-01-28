@@ -2727,5 +2727,432 @@ public static class LazyToStringExtension
             var param = node.ChildNodes().Where(n => n.IsKind(SyntaxKind.Parameter)).Single();
             Assert.Equal("System.Reflection.PropertyInfo x", model.GetDeclaredSymbol(param).ToTestDisplayString());
         }
+
+        [Fact, WorkItem(5128, "https://github.com/dotnet/roslyn/issues/5128")]
+        public void GetMemberGroupInsideIncompleteLambda_01()
+        {
+            var source =
+@"
+using System;
+using System.Threading.Tasks;
+
+public delegate Task RequestDelegate(HttpContext context);
+
+public class AuthenticationResult { }
+
+public abstract class AuthenticationManager
+{
+    public abstract Task<AuthenticationResult> AuthenticateAsync(string authenticationScheme);
+}
+
+public abstract class HttpContext
+{
+    public abstract AuthenticationManager Authentication { get; }
+}
+
+interface IApplicationBuilder
+{
+    IApplicationBuilder Use(Func<RequestDelegate, RequestDelegate> middleware);
+}
+
+static class IApplicationBuilderExtensions
+{
+    public static IApplicationBuilder Use(this IApplicationBuilder app, Func<HttpContext, Func<Task>, Task> middleware)
+    {
+        return app;
+    }
+}
+
+class C
+{
+    void M(IApplicationBuilder app)
+    {
+        app.Use(async (ctx, next) =>
+        {
+            await ctx.Authentication.AuthenticateAsync();
+        });
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef });
+
+            comp.VerifyDiagnostics(
+    // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
+    //             await ctx.Authentication.AuthenticateAsync();
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AuthenticateAsync").WithArguments("authenticationScheme", "AuthenticationManager.AuthenticateAsync(string)").WithLocation(38, 38)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "Use").Single().Parent;
+            Assert.Equal("app.Use", node1.ToString());
+            var group1 = model.GetMemberGroup(node1);
+            Assert.Equal(2, group1.Length);
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", group1[0].ToTestDisplayString());
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)", 
+                         group1[1].ToTestDisplayString());
+
+            var symbolInfo1 = model.GetSymbolInfo(node1);
+            Assert.Null(symbolInfo1.Symbol);
+            Assert.Equal(1, symbolInfo1.CandidateSymbols.Length);
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", symbolInfo1.CandidateSymbols.Single().ToTestDisplayString());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo1.CandidateReason);
+
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText== "AuthenticateAsync").Single().Parent;
+
+            Assert.Equal("ctx.Authentication.AuthenticateAsync", node.ToString());
+
+            var group = model.GetMemberGroup(node);
+
+            Assert.Equal("System.Threading.Tasks.Task<AuthenticationResult> AuthenticationManager.AuthenticateAsync(System.String authenticationScheme)", group.Single().ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(5128, "https://github.com/dotnet/roslyn/issues/5128")]
+        public void GetMemberGroupInsideIncompleteLambda_02()
+        {
+            var source =
+@"
+using System;
+using System.Threading.Tasks;
+
+public delegate Task RequestDelegate(HttpContext context);
+
+public class AuthenticationResult { }
+
+public abstract class AuthenticationManager
+{
+    public abstract Task<AuthenticationResult> AuthenticateAsync(string authenticationScheme);
+}
+
+public abstract class HttpContext
+{
+    public abstract AuthenticationManager Authentication { get; }
+}
+
+interface IApplicationBuilder
+{
+    IApplicationBuilder Use(Func<HttpContext, Func<Task>, Task> middleware);
+}
+
+static class IApplicationBuilderExtensions
+{
+    public static IApplicationBuilder Use(this IApplicationBuilder app, Func<RequestDelegate, RequestDelegate> middleware)
+    {
+        return app;
+    }
+}
+
+class C
+{
+    void M(IApplicationBuilder app)
+    {
+        app.Use(async (ctx, next) =>
+        {
+            await ctx.Authentication.AuthenticateAsync();
+        });
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef });
+
+            comp.VerifyDiagnostics(
+    // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
+    //             await ctx.Authentication.AuthenticateAsync();
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AuthenticateAsync").WithArguments("authenticationScheme", "AuthenticationManager.AuthenticateAsync(string)").WithLocation(38, 38)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "Use").Single().Parent;
+            Assert.Equal("app.Use", node1.ToString());
+            var group1 = model.GetMemberGroup(node1);
+            Assert.Equal(2, group1.Length);
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)", 
+                         group1[0].ToTestDisplayString());
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", group1[1].ToTestDisplayString());
+
+            var symbolInfo1 = model.GetSymbolInfo(node1);
+            Assert.Null(symbolInfo1.Symbol);
+            Assert.Equal(1, symbolInfo1.CandidateSymbols.Length);
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)", symbolInfo1.CandidateSymbols.Single().ToTestDisplayString());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo1.CandidateReason);
+
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "AuthenticateAsync").Single().Parent;
+
+            Assert.Equal("ctx.Authentication.AuthenticateAsync", node.ToString());
+
+            var group = model.GetMemberGroup(node);
+
+            Assert.Equal("System.Threading.Tasks.Task<AuthenticationResult> AuthenticationManager.AuthenticateAsync(System.String authenticationScheme)", group.Single().ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(5128, "https://github.com/dotnet/roslyn/issues/5128")]
+        public void GetMemberGroupInsideIncompleteLambda_03()
+        {
+            var source =
+@"
+using System;
+using System.Threading.Tasks;
+
+public delegate Task RequestDelegate(HttpContext context);
+
+public class AuthenticationResult { }
+
+public abstract class AuthenticationManager
+{
+    public abstract Task<AuthenticationResult> AuthenticateAsync(string authenticationScheme);
+}
+
+public abstract class HttpContext
+{
+    public abstract AuthenticationManager Authentication { get; }
+}
+
+interface IApplicationBuilder
+{
+    IApplicationBuilder Use(Func<RequestDelegate, RequestDelegate> middleware);
+    IApplicationBuilder Use(Func<HttpContext, Func<Task>, Task> middleware);
+}
+
+class C
+{
+    void M(IApplicationBuilder app)
+    {
+        app.Use(async (ctx, next) =>
+        {
+            await ctx.Authentication.AuthenticateAsync();
+        });
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef });
+
+            comp.VerifyDiagnostics(
+    // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
+    //             await ctx.Authentication.AuthenticateAsync();
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AuthenticateAsync").WithArguments("authenticationScheme", "AuthenticationManager.AuthenticateAsync(string)").WithLocation(31, 38)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "Use").Single().Parent;
+            Assert.Equal("app.Use", node1.ToString());
+            var group1 = model.GetMemberGroup(node1);
+            Assert.Equal(2, group1.Length);
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", group1[0].ToTestDisplayString());
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)", 
+                         group1[1].ToTestDisplayString());
+
+            var symbolInfo1 = model.GetSymbolInfo(node1);
+            Assert.Null(symbolInfo1.Symbol);
+            Assert.Equal(2, symbolInfo1.CandidateSymbols.Length);
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", symbolInfo1.CandidateSymbols[0].ToTestDisplayString());
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)", symbolInfo1.CandidateSymbols[1].ToTestDisplayString());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo1.CandidateReason);
+
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "AuthenticateAsync").Single().Parent;
+
+            Assert.Equal("ctx.Authentication.AuthenticateAsync", node.ToString());
+
+            var group = model.GetMemberGroup(node);
+
+            Assert.Equal("System.Threading.Tasks.Task<AuthenticationResult> AuthenticationManager.AuthenticateAsync(System.String authenticationScheme)", group.Single().ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(5128, "https://github.com/dotnet/roslyn/issues/5128")]
+        public void GetMemberGroupInsideIncompleteLambda_04()
+        {
+            var source =
+@"
+using System;
+using System.Threading.Tasks;
+
+public delegate Task RequestDelegate(HttpContext context);
+
+public class AuthenticationResult { }
+
+public abstract class AuthenticationManager
+{
+    public abstract Task<AuthenticationResult> AuthenticateAsync(string authenticationScheme);
+}
+
+public abstract class HttpContext
+{
+    public abstract AuthenticationManager Authentication { get; }
+}
+
+interface IApplicationBuilder
+{
+}
+
+static class IApplicationBuilderExtensions
+{
+    public static IApplicationBuilder Use(this IApplicationBuilder app, Func<RequestDelegate, RequestDelegate> middleware)
+    {
+        return app;
+    }
+
+    public static IApplicationBuilder Use(this IApplicationBuilder app, Func<HttpContext, Func<Task>, Task> middleware)
+    {
+        return app;
+    }
+}
+
+class C
+{
+    void M(IApplicationBuilder app)
+    {
+        app.Use(async (ctx, next) =>
+        {
+            await ctx.Authentication.AuthenticateAsync();
+        });
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef });
+
+            comp.VerifyDiagnostics(
+    // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
+    //             await ctx.Authentication.AuthenticateAsync();
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AuthenticateAsync").WithArguments("authenticationScheme", "AuthenticationManager.AuthenticateAsync(string)").WithLocation(42, 38)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "Use").Single().Parent;
+            Assert.Equal("app.Use", node1.ToString());
+            var group1 = model.GetMemberGroup(node1);
+            Assert.Equal(2, group1.Length);
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", group1[0].ToTestDisplayString());
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)", 
+                         group1[1].ToTestDisplayString());
+
+            var symbolInfo1 = model.GetSymbolInfo(node1);
+            Assert.Null(symbolInfo1.Symbol);
+            Assert.Equal(2, symbolInfo1.CandidateSymbols.Length);
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", symbolInfo1.CandidateSymbols[0].ToTestDisplayString());
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)", symbolInfo1.CandidateSymbols[1].ToTestDisplayString());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo1.CandidateReason);
+
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "AuthenticateAsync").Single().Parent;
+
+            Assert.Equal("ctx.Authentication.AuthenticateAsync", node.ToString());
+
+            var group = model.GetMemberGroup(node);
+
+            Assert.Equal("System.Threading.Tasks.Task<AuthenticationResult> AuthenticationManager.AuthenticateAsync(System.String authenticationScheme)", group.Single().ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(7101, "https://github.com/dotnet/roslyn/issues/7101")]
+        public void UsingStatic_01()
+        {
+            var source =
+@"
+using System;
+using static ClassWithNonStaticMethod;
+using static Extension1;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var instace = new Program();
+        instace.NonStaticMethod();
+    }
+
+    private void NonStaticMethod()
+    {
+        MathMin(0, 1);
+        MathMax(0, 1);
+        MathMax2(0, 1);
+        
+        int x;
+        x = F1;
+        x = F2;
+
+        x.MathMax2(3);
+    }
+}
+
+class ClassWithNonStaticMethod
+{
+    public static int MathMax(int a, int b)
+    {
+        return Math.Max(a, b);
+    }
+
+    public int MathMin(int a, int b)
+    {
+        return Math.Min(a, b);
+    }
+
+    public int F2 = 0;
+}
+
+static class Extension1
+{
+    public static int MathMax2(this int a, int b)
+    {
+        return Math.Max(a, b);
+    }
+
+    public static int F1 = 0;
+}
+
+static class Extension2
+{
+    public static int MathMax3(this int a, int b)
+    {
+        return Math.Max(a, b);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45(source);
+
+            comp.VerifyDiagnostics(
+    // (16,9): error CS0103: The name 'MathMin' does not exist in the current context
+    //         MathMin(0, 1);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "MathMin").WithArguments("MathMin").WithLocation(16, 9),
+    // (18,9): error CS0103: The name 'MathMax2' does not exist in the current context
+    //         MathMax2(0, 1);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "MathMax2").WithArguments("MathMax2").WithLocation(18, 9),
+    // (22,13): error CS0103: The name 'F2' does not exist in the current context
+    //         x = F2;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "F2").WithArguments("F2").WithLocation(22, 13)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "MathMin").Single().Parent;
+            Assert.Equal("MathMin(0, 1)", node1.ToString());
+
+            var names = model.LookupNames(node1.SpanStart);
+            Assert.False(names.Contains("MathMin"));
+            Assert.True(names.Contains("MathMax"));
+            Assert.True(names.Contains("F1"));
+            Assert.False(names.Contains("F2"));
+            Assert.False(names.Contains("MathMax2"));
+            Assert.False(names.Contains("MathMax3"));
+
+            Assert.True(model.LookupSymbols(node1.SpanStart, name: "MathMin").IsEmpty);
+            Assert.Equal(1, model.LookupSymbols(node1.SpanStart, name: "MathMax").Length);
+            Assert.Equal(1, model.LookupSymbols(node1.SpanStart, name: "F1").Length);
+            Assert.True(model.LookupSymbols(node1.SpanStart, name: "F2").IsEmpty);
+            Assert.True(model.LookupSymbols(node1.SpanStart, name: "MathMax2").IsEmpty);
+            Assert.True(model.LookupSymbols(node1.SpanStart, name: "MathMax3").IsEmpty);
+
+            var symbols = model.LookupSymbols(node1.SpanStart);
+            Assert.False(symbols.Where(s => s.Name == "MathMin").Any());
+            Assert.True(symbols.Where(s => s.Name == "MathMax").Any());
+            Assert.True(symbols.Where(s => s.Name == "F1").Any());
+            Assert.False(symbols.Where(s => s.Name == "F2").Any());
+            Assert.False(symbols.Where(s => s.Name == "MathMax2").Any());
+            Assert.False(symbols.Where(s => s.Name == "MathMax3").Any());
+        }
     }
 }

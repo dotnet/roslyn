@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -13,33 +14,34 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     public class SuppressMessageAttributeWorkspaceTests : SuppressMessageAttributeTests
     {
-        protected override void Verify(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = true, string rootNamespace = null)
+        protected override async Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = true, string rootNamespace = null)
         {
-            using (var workspace = CreateWorkspaceFromFile(source, language, rootNamespace))
+            using (var workspace = await CreateWorkspaceFromFileAsync(source, language, rootNamespace))
             {
                 var documentId = workspace.Documents[0].Id;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
-                var span = document.GetSyntaxRootAsync().Result.FullSpan;
+                var span = (await document.GetSyntaxRootAsync()).FullSpan;
 
                 var actualDiagnostics = new List<Diagnostic>();
                 foreach (var analyzer in analyzers)
                 {
-                    actualDiagnostics.AddRange(DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, span, onAnalyzerException, logAnalyzerExceptionAsDiagnostics));
+                    actualDiagnostics.AddRange(
+                        await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, span, onAnalyzerException, logAnalyzerExceptionAsDiagnostics));
                 }
 
                 actualDiagnostics.Verify(expectedDiagnostics);
             }
         }
 
-        private static TestWorkspace CreateWorkspaceFromFile(string source, string language, string rootNamespace)
+        private static Task<TestWorkspace> CreateWorkspaceFromFileAsync(string source, string language, string rootNamespace)
         {
             if (language == LanguageNames.CSharp)
             {
-                return CSharpWorkspaceFactory.CreateWorkspaceFromFile(source);
+                return TestWorkspace.CreateCSharpAsync(source);
             }
             else
             {
-                return VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(
+                return TestWorkspace.CreateVisualBasicAsync(
                     source,
                     compilationOptions: new VisualBasic.VisualBasicCompilationOptions(
                         OutputKind.DynamicallyLinkedLibrary, rootNamespace: rootNamespace));

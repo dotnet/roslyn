@@ -2,6 +2,7 @@
 
 using Roslyn.Utilities;
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// The compilation completed and results were provided to the client.
         /// </summary>
-        Completed,
+        CompilationCompleted,
 
         /// <summary>
         /// The compilation process was initiated and the client disconnected before 
@@ -45,6 +46,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// There was an unhandled exception processing the result.
         /// </summary>
         ClientException,
+
+        /// <summary>
+        /// There was a request from the client to shutdown the server.
+        /// </summary>
+        ClientShutdownRequest,
     }
 
     /// <summary>
@@ -72,12 +78,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         protected abstract Task CreateMonitorDisconnectTask(CancellationToken cancellationToken);
 
+        protected virtual void ValidateBuildRequest(BuildRequest request)
+        {
+
+        }
+
         /// <summary>
         /// Close the connection.  Can be called multiple times.
         /// </summary>
         public abstract void Close();
 
-        public async Task<ConnectionData> HandleConnection(CancellationToken cancellationToken)
+        public async Task<ConnectionData> HandleConnection(bool allowCompilationRequests = true, CancellationToken cancellationToken = default(CancellationToken))
         {
             try
             {
@@ -86,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     Log("Begin reading request.");
                     request = await BuildRequest.ReadAsync(_stream, cancellationToken).ConfigureAwait(false);
+                    ValidateBuildRequest(request);
                     Log("End reading request.");
                 }
                 catch (Exception e)
@@ -94,47 +106,78 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return new ConnectionData(CompletionReason.CompilationNotStarted);
                 }
 
-                var keepAlive = CheckForNewKeepAlive(request);
-
-                // Kick off both the compilation and a task to monitor the pipe for closing.  
-                var buildCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                var compilationTask = ServeBuildRequest(request, buildCts.Token);
-                var monitorTask = CreateMonitorDisconnectTask(buildCts.Token);
-                await Task.WhenAny(compilationTask, monitorTask).ConfigureAwait(false);
-
-                // Do an 'await' on the completed task, preference being compilation, to force
-                // any exceptions to be realized in this method for logging.  
-                CompletionReason reason;
-                if (compilationTask.IsCompleted)
+                if (IsShutdownRequest(request))
                 {
-                    var response = await compilationTask.ConfigureAwait(false);
-
-                    try
-                    {
-                        Log("Begin writing response.");
-                        await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
-                        reason = CompletionReason.Completed;
-                        Log("End writing response.");
-                    }
-                    catch
-                    {
-                        reason = CompletionReason.ClientDisconnect;
-                    }
+                    return await HandleShutdownRequest(cancellationToken).ConfigureAwait(false);
+                }
+                else if (!allowCompilationRequests)
+                {
+                    return await HandleRejectedRequest(cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
-                    await monitorTask.ConfigureAwait(false);
-                    reason = CompletionReason.ClientDisconnect;
+                    return await HandleCompilationRequest(request, cancellationToken).ConfigureAwait(false);
                 }
-
-                // Begin the tear down of the Task which didn't complete. 
-                buildCts.Cancel();
-                return new ConnectionData(reason, keepAlive);
             }
             finally
             {
                 Close();
             }
+        }
+
+        private async Task<ConnectionData> HandleCompilationRequest(BuildRequest request, CancellationToken cancellationToken)
+        {
+            var keepAlive = CheckForNewKeepAlive(request);
+
+            // Kick off both the compilation and a task to monitor the pipe for closing.  
+            var buildCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var compilationTask = ServeBuildRequest(request, buildCts.Token);
+            var monitorTask = CreateMonitorDisconnectTask(buildCts.Token);
+            await Task.WhenAny(compilationTask, monitorTask).ConfigureAwait(false);
+
+            // Do an 'await' on the completed task, preference being compilation, to force
+            // any exceptions to be realized in this method for logging.  
+            CompletionReason reason;
+            if (compilationTask.IsCompleted)
+            {
+                var response = await compilationTask.ConfigureAwait(false);
+
+                try
+                {
+                    Log("Begin writing response.");
+                    await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
+                    reason = CompletionReason.CompilationCompleted;
+                    Log("End writing response.");
+                }
+                catch
+                {
+                    reason = CompletionReason.ClientDisconnect;
+                }
+            }
+            else
+            {
+                await monitorTask.ConfigureAwait(false);
+                reason = CompletionReason.ClientDisconnect;
+            }
+
+            // Begin the tear down of the Task which didn't complete. 
+            buildCts.Cancel();
+            return new ConnectionData(reason, keepAlive);
+        }
+
+        private async Task<ConnectionData> HandleRejectedRequest(CancellationToken cancellationToken)
+        {
+            var response = new RejectedBuildResponse();
+            await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
+            return new ConnectionData(CompletionReason.CompilationNotStarted);
+        }
+
+        private async Task<ConnectionData> HandleShutdownRequest(CancellationToken cancellationToken)
+        {
+            var id = Process.GetCurrentProcess().Id;
+            var response = new ShutdownBuildResponse(id);
+            await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
+            return new ConnectionData(CompletionReason.ClientShutdownRequest);
         }
 
         /// <summary>
@@ -163,54 +206,28 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return timeout;
         }
 
-        protected virtual Task<BuildResponse> ServeBuildRequest(BuildRequest request, CancellationToken cancellationToken)
+        private bool IsShutdownRequest(BuildRequest request)
         {
-            return Task.Run(() =>
-            {
-                try
-                {
-                    // Do the compilation
-                    Log("Begin compilation");
-                    BuildResponse response = ServeBuildRequestCore(request, cancellationToken);
-                    Log("End compilation");
-                    return response;
-                }
-                catch (Exception e) when (FatalError.Report(e))
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
-            });
+            return request.Arguments.Length == 1 && request.Arguments[0].ArgumentId == BuildProtocolConstants.ArgumentId.Shutdown;
         }
 
-        private BuildResponse ServeBuildRequestCore(BuildRequest buildRequest, CancellationToken cancellationToken)
+        protected virtual Task<BuildResponse> ServeBuildRequest(BuildRequest buildRequest, CancellationToken cancellationToken)
         {
-            var request = BuildProtocolUtil.GetRunRequest(buildRequest);
-            CommonCompiler compiler;
-            if (!_compilerServerHost.TryCreateCompiler(request, out compiler))
+            Func<BuildResponse> func = () =>
             {
-                // We can't do anything with a request we don't know about. 
-                Log($"Got request with id '{request.Language}'");
-                return new CompletedBuildResponse(-1, false, "", "");
-            }
+                // Do the compilation
+                Log("Begin compilation");
 
-            Log($"CurrentDirectory = '{request.CurrentDirectory}'");
-            Log($"LIB = '{request.LibDirectory}'");
-            for (int i = 0; i < request.Arguments.Length; ++i)
-            {
-                Log($"Argument[{i}] = '{request.Arguments[i]}'");
-            }
+                var request = BuildProtocolUtil.GetRunRequest(buildRequest);
+                var response = _compilerServerHost.RunCompilation(request, cancellationToken);
 
-            bool utf8output = compiler.Arguments.Utf8Output;
-            if (!_compilerServerHost.CheckAnalyzers(request.CurrentDirectory, compiler.Arguments.AnalyzerReferences))
-            {
-                return new AnalyzerInconsistencyBuildResponse();
-            }
+                Log("End compilation");
+                return response;
+            };
 
-            Log($"****Running {request.Language} compiler...");
-            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
-            int returnCode = compiler.Run(output, cancellationToken);
-            Log($"****{request.Language} Compilation complete.\r\n****Return code: {returnCode}\r\n****Output:\r\n{output.ToString()}\r\n");
-            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), "");
+            var task = new Task<BuildResponse>(func, cancellationToken, TaskCreationOptions.LongRunning);
+            task.Start();
+            return task;
         }
 
         private void Log(string message)

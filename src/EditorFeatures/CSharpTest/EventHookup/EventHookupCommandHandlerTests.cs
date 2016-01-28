@@ -24,7 +24,7 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertShowing("C_MyEvent;");
             }
         }
@@ -50,7 +50,7 @@ class D
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertShowing("Local_MyEvent;");
             }
         }
@@ -81,7 +81,7 @@ class E
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertShowing("Cfield_MyEvent;");
             }
         }
@@ -101,12 +101,12 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertNotShowing();
 
                 // Make sure that sending the tab works correctly. Note the 4 spaces after the +=
                 testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 var expectedCode = @"
 class C
 {
@@ -142,7 +142,7 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertShowing("C_MyEvent1;");
             }
         }
@@ -168,7 +168,7 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertShowing("C_MyEvent1;");
             }
         }
@@ -190,7 +190,7 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertShowing("C_MyEvent1;");
             }
         }
@@ -212,7 +212,7 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertShowing("C_MyEvent;");
             }
         }
@@ -232,11 +232,11 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertShowing("C_MyEvent;");
 
                 testState.SendTypeChar(' ');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertShowing("C_MyEvent;");
             }
         }
@@ -256,11 +256,11 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertShowing("C_MyEvent;");
 
                 testState.SendTypeChar('d');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertNotShowing();
             }
         }
@@ -280,11 +280,11 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertShowing("C_MyEvent;");
 
                 testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertNotShowing();
             }
         }
@@ -304,19 +304,19 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertShowing("C_MyEvent;");
 
                 testState.SendTypeChar(' ');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertShowing("C_MyEvent;");
 
                 testState.SendLeftKey();
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertShowing("C_MyEvent;");
 
                 testState.SendLeftKey();
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertNotShowing();
             }
         }
@@ -336,15 +336,15 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertShowing("C_MyEvent;");
 
                 testState.SendTypeChar(' ');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertShowing("C_MyEvent;");
 
                 testState.SendBackspace();
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertNotShowing();
             }
         }
@@ -371,7 +371,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
 
                 var expectedCode = @"
 class C
@@ -419,7 +419,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
 
                 var expectedCode = @"
 class C
@@ -465,7 +465,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
 
                 var expectedCode = @"
 class C
@@ -502,7 +502,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
 
                 var expectedCode = @"
 class C
@@ -535,7 +535,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
 
                 var expectedCode = @"
 class C
@@ -570,7 +570,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
 
                 var expectedCode = @"
 class C
@@ -617,7 +617,7 @@ class C
                 }
 
                 testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
 
                 var expectedCode = @"
 class C
@@ -663,7 +663,7 @@ class C
                 testState.SendTypeChar('z');
 
                 testState.ReleaseEventHookupCheckMutex();
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertNotShowing();
             }
         }
@@ -689,7 +689,7 @@ class C
                 // tab releases the mutex
                 testState.SendTab();
 
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertNotShowing();
 
                 var expectedCode = @"
@@ -731,7 +731,7 @@ class C
                 testState.SendLeftKey();
                 testState.ReleaseEventHookupCheckMutex();
 
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertNotShowing();
             }
         }
@@ -759,7 +759,7 @@ public partial class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertShowing("C_MyEvent1;");
             }
         }
@@ -783,7 +783,7 @@ class Program : Base
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertShowing("Console_CancelKeyPress1;");
             }
         }
@@ -804,7 +804,7 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertShowing("C_MyEvent1;");
             }
         }
@@ -827,7 +827,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
 
                 var expectedCode = @"
 class C
@@ -865,7 +865,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
                 testState.AssertNotShowing();
             }
         }
@@ -896,7 +896,7 @@ class TestClass_T1_S1_4 : Scenarios.DelegateTest_Generics_NonGenericClass
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();
-                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
+                await testState.WaitForAsynchronousOperationsAsync();
 
                 var expectedCode = @"
 namespace Scenarios

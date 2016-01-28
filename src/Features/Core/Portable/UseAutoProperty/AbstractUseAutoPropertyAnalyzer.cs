@@ -17,16 +17,16 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         public const string UseAutoProperty = nameof(UseAutoProperty);
         public const string UseAutoPropertyFadedToken = nameof(UseAutoPropertyFadedToken);
 
-        private readonly static DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+        private readonly static DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
             UseAutoProperty, FeaturesResources.UseAutoProperty, FeaturesResources.UseAutoProperty,
             "Language", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
 
-        private readonly static DiagnosticDescriptor FadedTokenDescriptor = new DiagnosticDescriptor(
+        private readonly static DiagnosticDescriptor s_fadedTokenDescriptor = new DiagnosticDescriptor(
             UseAutoPropertyFadedToken, FeaturesResources.UseAutoProperty, FeaturesResources.UseAutoProperty,
             "Language", DiagnosticSeverity.Hidden, isEnabledByDefault: true,
             customTags: new[] { WellKnownDiagnosticTags.Unnecessary });
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor, FadedTokenDescriptor);
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor, s_fadedTokenDescriptor);
 
         protected abstract void RegisterIneligibleFieldsAction(CompilationStartAnalysisContext context, ConcurrentBag<IFieldSymbol> ineligibleFields);
         protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var setMethod = property.SetMethod;
             if (setMethod != null)
             {
-                var setterField =  GetSetterField(semanticModel, containingType, setMethod, cancellationToken);
+                var setterField = GetSetterField(semanticModel, containingType, setMethod, cancellationToken);
                 if (setterField != getterField)
                 {
                     // If there is a getter and a setter, they both need to agree on which field they are 
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var properties = ImmutableDictionary<string, string>.Empty.Add(nameof(result.SymbolEquivalenceKey), result.SymbolEquivalenceKey);
 
             // Fade out the field/variable we are going to remove.
-            var diagnostic1 = Diagnostic.Create(FadedTokenDescriptor, nodeToFade.GetLocation());
+            var diagnostic1 = Diagnostic.Create(s_fadedTokenDescriptor, nodeToFade.GetLocation());
             compilationContext.ReportDiagnostic(diagnostic1);
 
             // Now add diagnostics to both the field and the property saying we can convert it to 
@@ -261,10 +261,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             // them when performing the code fix.
             IEnumerable<Location> additionalLocations = new Location[] { propertyDeclaration.GetLocation(), variableDeclarator.GetLocation() };
 
-            var diagnostic2 = Diagnostic.Create(Descriptor, propertyDeclaration.GetLocation(), additionalLocations, properties);
+            var diagnostic2 = Diagnostic.Create(s_descriptor, propertyDeclaration.GetLocation(), additionalLocations, properties);
             compilationContext.ReportDiagnostic(diagnostic2);
 
-            var diagnostic3 = Diagnostic.Create(Descriptor, nodeToFade.GetLocation(), additionalLocations, properties);
+            var diagnostic3 = Diagnostic.Create(s_descriptor, nodeToFade.GetLocation(), additionalLocations, properties);
             compilationContext.ReportDiagnostic(diagnostic3);
         }
 

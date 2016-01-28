@@ -8,8 +8,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
         Public Class TriviaProcessor
 
             <WorkItem(539281)>
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub TestCommentBeforeCode()
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            Public Async Function TestCommentBeforeCode() As Threading.Tasks.Task
                 Dim code = <text>Class C
     Sub M()
         [|'comment
@@ -28,12 +28,12 @@ End Class</text>
     End Sub
 End Class</text>
 
-                TestExtractMethod(code, expected)
-            End Sub
+                Await TestExtractMethodAsync(code, expected)
+            End Function
 
             <WorkItem(545173)>
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub LineContinuation()
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            Public Async Function LineContinuation() As Threading.Tasks.Task
                 Dim code = <text>Module Program
     Sub Main
         Dim x = [|1. _
@@ -52,12 +52,12 @@ End Module</text>
     End Function
 End Module</text>
 
-                TestExtractMethod(code, expected)
-            End Sub
+                Await TestExtractMethodAsync(code, expected)
+            End Function
 
             <WorkItem(544568)>
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub LineContinuation2()
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            Public Async Function LineContinuation2() As Threading.Tasks.Task
                 Dim code = <text>Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -96,12 +96,12 @@ Module Program
     End Function
 End Module</text>
 
-                TestExtractMethod(code, expected)
-            End Sub
+                Await TestExtractMethodAsync(code, expected)
+            End Function
 
             <WorkItem(529797)>
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub ImplicitLineContinuation()
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            Public Async Function ImplicitLineContinuation() As Threading.Tasks.Task
                 Dim code = <text>Imports System.Linq
 Module A
     Sub Main()
@@ -122,12 +122,12 @@ Module A
     End Function
 End Module</text>
 
-                TestExtractMethod(code, expected)
-            End Sub
+                Await TestExtractMethodAsync(code, expected)
+            End Function
 
             <WorkItem(529797)>
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub ImplicitLineContinuation2()
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            Public Async Function ImplicitLineContinuation2() As Threading.Tasks.Task
                 Dim code = <text>Imports System.Linq
 Module A
     Sub Main()
@@ -148,8 +148,8 @@ Module A
     End Function
 End Module</text>
 
-                TestExtractMethod(code, expected)
-            End Sub
+                Await TestExtractMethodAsync(code, expected)
+            End Function
         End Class
     End Class
 End Namespace

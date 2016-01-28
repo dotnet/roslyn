@@ -1,57 +1,58 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class HandlesKeywordRecommenderTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HandlesAfterMethodInClass()
-            VerifyRecommendationsContain(<File>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function HandlesAfterMethodInClassTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 Class Foo
 Sub Foo() |
 |</File>, "Handles")
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HandlesAfterMethodInModule()
-            VerifyRecommendationsContain(<File>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function HandlesAfterMethodInModuleTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 Module Foo
 Sub Foo() |
 |</File>, "Handles")
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HandlesAfterFunction()
-            VerifyRecommendationsContain(<File>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function HandlesAfterFunctionTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 Module Foo
 Function Foo() As Integer |
 |</File>, "Handles")
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HandlesNotAfterMethodInStructure()
-            VerifyRecommendationsMissing(<File>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function HandlesNotAfterMethodInStructureTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 Structure Foo
 Sub Foo() |
 |</File>, "Handles")
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HandlesNotAfterNewLine()
-            VerifyRecommendationsMissing(<File>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function HandlesNotAfterNewLineTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 Class Foo
 Sub Foo() 
         |
 </File>, "Handles")
-        End Sub
+        End Function
 
         <WorkItem(577941)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoHandlesAfterIterator()
-            VerifyRecommendationsMissing(<File>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NoHandlesAfterIteratorTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 Class C
     Private Iterator Function TestIterator() |
 </File>, "Handles")
-        End Sub
-
+        End Function
     End Class
 End Namespace

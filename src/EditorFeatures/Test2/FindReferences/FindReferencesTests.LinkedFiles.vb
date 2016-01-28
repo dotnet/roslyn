@@ -1,12 +1,13 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestLinkedFiles_Methods()
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestLinkedFiles_Methods() As Task
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1">
@@ -23,25 +24,25 @@ class C
         <Document IsLinkFile="true" LinkAssemblyName="CSProj1" LinkFilePath="C.cs"/>
     </Project>
 </Workspace>
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(definition)
+            Using workspace = Await TestWorkspace.CreateAsync(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
 
                 Dim document = workspace.CurrentSolution.GetDocument(invocationDocument.Id)
                 Assert.NotNull(document)
 
-                Dim symbol = SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition).Result
-                Dim references = SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing).Result
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
+                Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
 
                 Assert.Equal(2, references.Count())
                 Assert.Equal("C.M()", references.ElementAt(0).Definition.ToString())
                 Assert.Equal("C.M()", references.ElementAt(1).Definition.ToString())
                 AssertEx.SetEqual(references.Select(Function(r) r.Definition.ContainingAssembly.Name), {"CSProj1", "CSProj2"})
             End Using
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestLinkedFiles_ClassWithSameSpanAsCompilationUnit()
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestLinkedFiles_ClassWithSameSpanAsCompilationUnit() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj1">
@@ -55,15 +56,15 @@ End Class
         <Document IsLinkFile="true" LinkAssemblyName="VBProj1" LinkFilePath="C.vb"/>
     </Project>
 </Workspace>
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(definition)
+            Using workspace = Await TestWorkspace.CreateAsync(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
 
                 Dim document = workspace.CurrentSolution.GetDocument(invocationDocument.Id)
                 Assert.NotNull(document)
 
-                Dim symbol = SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition).Result
-                Dim references = SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing).Result
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
+                Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
 
                 references = references.Where(Function(r) r.Definition.IsKind(SymbolKind.NamedType))
 
@@ -72,10 +73,10 @@ End Class
                 Assert.Equal("C", references.ElementAt(1).Definition.ToString())
                 AssertEx.SetEqual(references.Select(Function(r) r.Definition.ContainingAssembly.Name), {"VBProj1", "VBProj2"})
             End Using
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestLinkedFiles_ReferencesBeforeAndAfterRemovingLinkedDocument()
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestLinkedFiles_ReferencesBeforeAndAfterRemovingLinkedDocument() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj1">
@@ -91,7 +92,8 @@ End Class
         <Document IsLinkFile="true" LinkAssemblyName="VBProj1" LinkFilePath="C.vb"/>
     </Project>
 </Workspace>
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(definition)
+
+            Using workspace = Await TestWorkspace.CreateAsync(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
                 Dim linkedDocument = workspace.Documents.Single(Function(d) d.IsLinkFile)
@@ -104,8 +106,8 @@ End Class
                 Dim document = startingSolution.GetDocument(invocationDocument.Id)
                 Assert.NotNull(document)
 
-                Dim symbol = SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition).Result
-                Dim references = SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing).Result
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
+                Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
                 references = references.Where(Function(r) r.Definition.IsKind(SymbolKind.NamedType))
 
                 Assert.Equal(2, references.Count())
@@ -118,14 +120,14 @@ End Class
                 document = updatedSolution.GetDocument(invocationDocument.Id)
                 Assert.NotNull(document)
 
-                symbol = SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition).Result
-                references = SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing).Result
+                symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
+                references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
                 references = references.Where(Function(r) r.Definition.IsKind(SymbolKind.NamedType))
 
                 Assert.Equal(1, references.Count())
                 Assert.Equal("C", references.ElementAt(0).Definition.ToString())
                 AssertEx.SetEqual(references.Select(Function(r) r.Definition.ContainingAssembly.Name), {"VBProj1"})
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

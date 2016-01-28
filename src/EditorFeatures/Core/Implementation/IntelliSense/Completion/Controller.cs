@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             sessionOpt.ComputeModel(completionService, triggerInfo, GetOptions(), completionProviders);
 
             var filterReason = triggerInfo.TriggerReason == CompletionTriggerReason.BackspaceOrDeleteCommand
-                ? CompletionFilterReason.BackspaceOrDelete 
+                ? CompletionFilterReason.BackspaceOrDelete
                 : CompletionFilterReason.TypeChar;
 
             if (filterItems)

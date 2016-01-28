@@ -19,27 +19,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
 {
     public class CodeRefactoringServiceTest
     {
-        [WpfFact]
-        public void TestExceptionInComputeRefactorings()
+        [Fact]
+        public async Task TestExceptionInComputeRefactorings()
         {
-            VerifyRefactoringDisabled(new ErrorCases.ExceptionInCodeActions());
+            await VerifyRefactoringDisabledAsync(new ErrorCases.ExceptionInCodeActions());
         }
 
-        [WpfFact]
-        public void TestExceptionInComputeRefactoringsAsync()
+        [Fact]
+        public async Task TestExceptionInComputeRefactoringsAsync()
         {
-            VerifyRefactoringDisabled(new ErrorCases.ExceptionInComputeRefactoringsAsync());
+            await VerifyRefactoringDisabledAsync(new ErrorCases.ExceptionInComputeRefactoringsAsync());
         }
 
-        public void VerifyRefactoringDisabled(CodeRefactoringProvider codeRefactoring)
+        public async Task VerifyRefactoringDisabledAsync(CodeRefactoringProvider codeRefactoring)
         {
             var refactoringService = new CodeRefactorings.CodeRefactoringService(GetMetadata(codeRefactoring));
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(@"class Program {}"))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(@"class Program {}"))
             {
                 var project = workspace.CurrentSolution.Projects.Single();
                 var document = project.Documents.Single();
                 var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>() as EditorLayerExtensionManager.ExtensionManager;
-                var result = refactoringService.GetRefactoringsAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None).Result;
+                var result = await refactoringService.GetRefactoringsAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None);
                 Assert.True(extensionManager.IsDisabled(codeRefactoring));
                 Assert.False(extensionManager.IsIgnored(codeRefactoring));
             }

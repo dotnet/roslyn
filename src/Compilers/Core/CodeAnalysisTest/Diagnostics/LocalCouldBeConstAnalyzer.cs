@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                                         var localType = local.Type;
                                         if ((!localType.IsReferenceType || localType.SpecialType == SpecialType.System_String) && localType.SpecialType != SpecialType.None)
                                         {
-                                            if (variable.InitialValue != null && variable.InitialValue.ConstantValue != null)
+                                            if (variable.InitialValue != null && variable.InitialValue.ConstantValue.HasValue)
                                             {
                                                 mightBecomeConstLocals.Add(local);
                                             }

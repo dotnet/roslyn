@@ -2,7 +2,9 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using EnvDTE;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -37,70 +39,70 @@ unsafe public struct DevDivBugs70194
         {
         }
 
-        private CodeVariable GetCodeVariable(params object[] path)
+        private async Task<CodeVariable> GetCodeVariableAsync(params object[] path)
         {
-            return (CodeVariable)GetCodeElement(path);
+            return (CodeVariable)await GetCodeElementAsync(path);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void Access_Public()
+        public async Task Access_Public()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intA");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intA");
 
             Assert.Equal(vsCMAccess.vsCMAccessPublic, testObject.Access);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void Access_Protected()
+        public async Task Access_Protected()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intB");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intB");
 
             Assert.Equal(vsCMAccess.vsCMAccessProtected, testObject.Access);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void Access_Private()
+        public async Task Access_Private()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
 
             Assert.Equal(vsCMAccess.vsCMAccessPrivate, testObject.Access);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void Attributes_Count()
+        public async Task Attributes_Count()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
 
             Assert.Equal(1, testObject.Attributes.Count);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void Children_Count()
+        public async Task Children_Count()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
 
             Assert.Equal(1, testObject.Children.Count);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void Comment()
+        public async Task Comment()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intA");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intA");
 
             Assert.Equal("This is a comment.\r\n", testObject.Comment);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void DocComment()
+        public async Task DocComment()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intB");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intB");
 
             string expected = "<doc>\r\n<summary>\r\nThis is a summary.\r\n</summary>\r\n</doc>";
 
@@ -109,81 +111,81 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void InitExpressions_NoExpression()
+        public async Task InitExpressions_NoExpression()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intB");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intB");
 
             Assert.Equal(null, testObject.InitExpression);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void InitExpression()
+        public async Task InitExpression()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
 
             Assert.Equal("4", testObject.InitExpression);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void InitExpression_FixedBuffer()
+        public async Task InitExpression_FixedBuffer()
         {
-            CodeVariable testObject = GetCodeVariable("DevDivBugs70194", "buffer");
+            CodeVariable testObject = await GetCodeVariableAsync("DevDivBugs70194", "buffer");
 
             Assert.Equal(null, testObject.InitExpression);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void IsConstant_True()
+        public async Task IsConstant_True()
         {
-            CodeVariable testObject = GetCodeVariable("A", "FORTYTWO");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "FORTYTWO");
 
             Assert.True(testObject.IsConstant);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void IsConstant_False()
+        public async Task IsConstant_False()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
 
             Assert.False(testObject.IsConstant);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void IsShared_True()
+        public async Task IsShared_True()
         {
-            CodeVariable testObject = GetCodeVariable("A", "FORTYTWO");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "FORTYTWO");
 
             Assert.True(testObject.IsShared);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void IsShared_False()
+        public async Task IsShared_False()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
 
             Assert.False(testObject.IsShared);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void Kind()
+        public async Task Kind()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
 
             Assert.Equal(vsCMElement.vsCMElementVariable, testObject.Kind);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void Parent()
+        public async Task Parent()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
 
             CodeClass testObjectParent = testObject.Parent as CodeClass;
 
@@ -192,26 +194,26 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void Type()
+        public async Task Type()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
 
             Assert.Equal("System.Int32", testObject.Type.AsFullName);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_Attributes()
+        public async Task GetStartPoint_Attributes()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_AttributesWithDelimiter()
+        public async Task GetStartPoint_AttributesWithDelimiter()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter);
 
@@ -221,49 +223,49 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_Body()
+        public async Task GetStartPoint_Body()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
-            AssertEx.Throws<COMException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBody));
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            Assert.Throws<COMException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBody));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_BodyWithDelimiter()
+        public async Task GetStartPoint_BodyWithDelimiter()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_Header()
+        public async Task GetStartPoint_Header()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeader));
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeader));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_HeaderWithAttributes()
+        public async Task GetStartPoint_HeaderWithAttributes()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_Name()
+        public async Task GetStartPoint_Name()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_Navigate()
+        public async Task GetStartPoint_Navigate()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartNavigate);
 
@@ -273,17 +275,17 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_Whole()
+        public async Task GetStartPoint_Whole()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_WholeWithAttributes()
+        public async Task GetStartPoint_WholeWithAttributes()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
@@ -293,17 +295,17 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_Attributes()
+        public async Task GetEndPoint_Attributes()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_AttributesWithDelimiter()
+        public async Task GetEndPoint_AttributesWithDelimiter()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter);
 
@@ -313,49 +315,49 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_Body()
+        public async Task GetEndPoint_Body()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
-            AssertEx.Throws<COMException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBody));
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            Assert.Throws<COMException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBody));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_BodyWithDelimiter()
+        public async Task GetEndPoint_BodyWithDelimiter()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_Header()
+        public async Task GetEndPoint_Header()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_HeaderWithAttributes()
+        public async Task GetEndPoint_HeaderWithAttributes()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_Name()
+        public async Task GetEndPoint_Name()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartName));
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartName));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_Navigate()
+        public async Task GetEndPoint_Navigate()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartNavigate);
 
@@ -365,17 +367,17 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_Whole()
+        public async Task GetEndPoint_Whole()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_WholeWithAttributes()
+        public async Task GetEndPoint_WholeWithAttributes()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
@@ -385,9 +387,9 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void StartPoint()
+        public async Task StartPoint()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
 
             TextPoint startPoint = testObject.StartPoint;
 
@@ -397,9 +399,9 @@ unsafe public struct DevDivBugs70194
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void EndPoint()
+        public async Task EndPoint()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            CodeVariable testObject = await GetCodeVariableAsync("A", "intC");
 
             TextPoint endPoint = testObject.EndPoint;
 

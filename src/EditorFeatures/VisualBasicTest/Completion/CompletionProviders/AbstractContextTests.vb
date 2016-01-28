@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -10,37 +11,37 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
 
     Public MustInherit Class AbstractContextTests
-        Protected MustOverride Sub CheckResult(validLocation As Boolean, position As Integer, syntaxTree As SyntaxTree)
+        Protected MustOverride Function CheckResultAsync(validLocation As Boolean, position As Integer, syntaxTree As SyntaxTree) As Task
 
-        Private Sub VerifyWorker(markup As String, validLocation As Boolean)
+        Private Async Function VerifyWorkerAsync(markup As String, validLocation As Boolean) As Threading.Tasks.Task
             Dim text As String = Nothing
             Dim position As Integer = Nothing
             MarkupTestFile.GetPosition(markup, text, position)
 
             'VerifyWithPlaceHolderRemoved(text, validLocation)
             'VerifyAtEndOfFile(text, validLocation)
-            VerifyAtPosition_TypePartiallyWritten(text, position, validLocation)
-            VerifyAtEndOfFile_TypePartiallyWritten(text, position, validLocation)
-        End Sub
+            Await VerifyAtPosition_TypePartiallyWrittenAsync(text, position, validLocation)
+            Await VerifyAtEndOfFile_TypePartiallyWrittenAsync(text, position, validLocation)
+        End Function
 
-        Private Sub VerifyAtPosition(text As String, position As Integer, validLocation As Boolean, insertText As String)
+        Private Function VerifyAtPositionAsync(text As String, position As Integer, validLocation As Boolean, insertText As String) As Threading.Tasks.Task
             text = text.Substring(0, position) & insertText & text.Substring(position)
 
             position += insertText.Length
 
             Dim tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(text))
-            CheckResult(validLocation, position, tree)
-        End Sub
+            Return CheckResultAsync(validLocation, position, tree)
+        End Function
 
-        Private Sub VerifyAsPosition(text As String, position As Integer, validLocation As Boolean)
-            VerifyAtPosition(text, position, validLocation, "")
-        End Sub
+        Private Function VerifyAsPositionAsync(text As String, position As Integer, validLocation As Boolean) As Task
+            Return VerifyAtPositionAsync(text, position, validLocation, "")
+        End Function
 
-        Private Sub VerifyAtPosition_TypePartiallyWritten(text As String, position As Integer, validLocation As Boolean)
-            VerifyAtPosition(text, position, validLocation, "Str")
-        End Sub
+        Private Function VerifyAtPosition_TypePartiallyWrittenAsync(text As String, position As Integer, validLocation As Boolean) As Threading.Tasks.Task
+            Return VerifyAtPositionAsync(text, position, validLocation, "Str")
+        End Function
 
-        Private Sub VerifyAtEndOfFile(text As String, position As Integer, validLocation As Boolean, insertText As String)
+        Private Async Function VerifyAtEndOfFileAsync(text As String, position As Integer, validLocation As Boolean, insertText As String) As Task
             ' only do this if the placeholder was at the end of the text.
             If text.Length <> position Then
                 Return
@@ -51,24 +52,24 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             position += insertText.Length
 
             Dim tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(text))
-            CheckResult(validLocation, position, tree)
-        End Sub
+            Await CheckResultAsync(validLocation, position, tree)
+        End Function
 
-        Private Sub VerifyAtEndOfFile(text As String, position As Integer, validLocation As Boolean)
-            VerifyAtEndOfFile(text, position, validLocation, "")
-        End Sub
+        Private Function VerifyAtEndOfFileAsync(text As String, position As Integer, validLocation As Boolean) As Task
+            Return VerifyAtEndOfFileAsync(text, position, validLocation, "")
+        End Function
 
-        Private Sub VerifyAtEndOfFile_TypePartiallyWritten(text As String, position As Integer, validLocation As Boolean)
-            VerifyAtEndOfFile(text, position, validLocation, "Str")
-        End Sub
+        Private Function VerifyAtEndOfFile_TypePartiallyWrittenAsync(text As String, position As Integer, validLocation As Boolean) As Task
+            Return VerifyAtEndOfFileAsync(text, position, validLocation, "Str")
+        End Function
 
-        Protected Sub VerifyTrue(text As String)
-            VerifyWorker(text, validLocation:=True)
-        End Sub
+        Protected Function VerifyTrueAsync(text As String) As Threading.Tasks.Task
+            Return VerifyWorkerAsync(text, validLocation:=True)
+        End Function
 
-        Protected Sub VerifyFalse(text As String)
-            VerifyWorker(text, validLocation:=False)
-        End Sub
+        Protected Function VerifyFalseAsync(text As String) As Threading.Tasks.Task
+            Return VerifyWorkerAsync(text, validLocation:=False)
+        End Function
 
         Protected Function AddInsideMethod(text As String) As String
             Return "Class C" & vbCrLf &

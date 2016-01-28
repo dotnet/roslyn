@@ -21,7 +21,7 @@
           "lib/Microsoft.Build.Utilities.Core.dll": {}
         }
       },
-      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta-20151016-11": {
+      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta1-20160105-04": {
         "compile": {
           "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
         },
@@ -30,7 +30,7 @@
         }
       },
       "Microsoft.DiaSymReader.Native/1.3.3": {},
-      "Microsoft.Net.Compilers/1.1.0-rc1-20151014-05": {},
+      "Microsoft.Net.Compilers/1.2.0-beta1-20160108-01": {},
       "Microsoft.Net.RoslynDiagnostics/1.1.1-beta1-20150818-01": {},
       "Microsoft.Tpl.Dataflow/4.5.24": {
         "compile": {
@@ -99,7 +99,7 @@
           "lib/Microsoft.Build.Utilities.Core.dll": {}
         }
       },
-      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta-20151016-11": {
+      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta1-20160105-04": {
         "compile": {
           "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
         },
@@ -114,7 +114,7 @@
           "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll": {}
         }
       },
-      "Microsoft.Net.Compilers/1.1.0-rc1-20151014-05": {},
+      "Microsoft.Net.Compilers/1.2.0-beta1-20160108-01": {},
       "Microsoft.Net.RoslynDiagnostics/1.1.1-beta1-20150818-01": {},
       "Microsoft.Tpl.Dataflow/4.5.24": {
         "compile": {
@@ -1048,15 +1048,15 @@
         "src/XMakeTasks/XslTransformation.cs"
       ]
     },
-    "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta-20151016-11": {
-      "sha512": "zsE8FvVez0iaoyWutVewackGkJsJXjavomMMdme5NZTXS2/5aG6gdLuaFvGeslq/XMsh4CqIgdvMOOFr5TmpFQ==",
+    "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta1-20160105-04": {
+      "sha512": "QIkINpihvcij/pZhZdLmSTt4wMgjSwvRjXavvcR86lIRXi7pk4+mNgjFF5FXiR8B4WEmttdb5diyVZq7ZP4unw==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
         "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll",
         "Microsoft.CodeAnalysis.Test.Resources.Proprietary.nuspec",
-        "package/services/metadata/core-properties/f64bfc9a6f91426492917a4c8a1b955e.psmdcp"
+        "package/services/metadata/core-properties/275c92add53e4a7fa1029dcdf1d6499a.psmdcp"
       ]
     },
     "Microsoft.DiaSymReader.Native/1.3.3": {
@@ -1076,15 +1076,15 @@
         "runtimes/win-x86/native/Microsoft.DiaSymReader.Native.x86.dll"
       ]
     },
-    "Microsoft.Net.Compilers/1.1.0-rc1-20151014-05": {
-      "sha512": "4gRcs9GwC0X67bSAMc+uG8glwoXLetYqe1Ybi2EfmVnLDdeNO3deAgCUhfoWoJqVSxYJ80rYtNlQJvTZJ/4tCQ==",
+    "Microsoft.Net.Compilers/1.2.0-beta1-20160108-01": {
+      "sha512": "VOuPb8T/T26c8wpLkGadpMZ6W5nuoS9BcOj+zXy6hQIXZOH1yyxipLAfdSm/Us02gjlTWmjFg4Imz/+aYayF/A==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
         "build/Microsoft.Net.Compilers.props",
         "Microsoft.Net.Compilers.nuspec",
-        "package/services/metadata/core-properties/c980ba75c8bc4276a2cc0b019677578b.psmdcp",
+        "package/services/metadata/core-properties/ccba0c978df24b97a9d9e28027c249a2.psmdcp",
         "ThirdPartyNotices.rtf",
         "tools/csc.exe",
         "tools/csc.exe.config",
@@ -1093,8 +1093,8 @@
         "tools/csi.rsp",
         "tools/Microsoft.Build.Tasks.CodeAnalysis.dll",
         "tools/Microsoft.CodeAnalysis.CSharp.dll",
+        "tools/Microsoft.CodeAnalysis.CSharp.Scripting.dll",
         "tools/Microsoft.CodeAnalysis.dll",
-        "tools/Microsoft.CodeAnalysis.Scripting.CSharp.dll",
         "tools/Microsoft.CodeAnalysis.Scripting.dll",
         "tools/Microsoft.CodeAnalysis.VisualBasic.dll",
         "tools/Microsoft.CSharp.Core.targets",
@@ -1103,7 +1103,6 @@
         "tools/Microsoft.VisualBasic.Core.targets",
         "tools/System.AppContext.dll",
         "tools/System.Collections.Immutable.dll",
-        "tools/System.Console.dll",
         "tools/System.Diagnostics.StackTrace.dll",
         "tools/System.IO.FileSystem.dll",
         "tools/System.IO.FileSystem.Primitives.dll",
@@ -1257,9 +1256,9 @@
     "": [
       "FakeSign >= 0.9.2",
       "Microsoft.Build.Mono.Debug >= 14.1.0-prerelease",
-      "Microsoft.CodeAnalysis.Test.Resources.Proprietary >= 1.2.0-beta-20151016-11",
+      "Microsoft.CodeAnalysis.Test.Resources.Proprietary >= 1.2.0-beta1-20160105-04",
       "Microsoft.DiaSymReader.Native >= 1.3.3",
-      "Microsoft.Net.Compilers >= 1.1.0-rc1-20151014-05",
+      "Microsoft.Net.Compilers >= 1.2.0-beta1-20160108-01",
       "Microsoft.Net.RoslynDiagnostics >= 1.1.1-beta1-20150818-01",
       "xunit >= 2.1.0-beta4-build3109",
       "xunit.runner.console >= 2.1.0-beta4-build3109"

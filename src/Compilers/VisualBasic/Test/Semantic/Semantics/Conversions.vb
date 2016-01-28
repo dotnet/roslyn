@@ -1353,18 +1353,19 @@ End Class
         Private Function CheckedConvert(value As Object, type As TypeSymbol) As Object
             type = type.GetEnumUnderlyingTypeOrSelf()
 
+            Dim c = CType(value, IConvertible)
             Select Case type.SpecialType
-                Case System_Byte : Return CByte(value)
-                Case System_SByte : Return CSByte(value)
-                Case System_Int16 : Return CShort(value)
-                Case System_UInt16 : Return CUShort(value)
-                Case System_Int32 : Return CInt(value)
-                Case System_UInt32 : Return CUInt(value)
-                Case System_Int64 : Return CLng(value)
-                Case System_UInt64 : Return CULng(value)
-                Case System_Single : Return CSng(value)
-                Case System_Double : Return CDbl(value)
-                Case System_Decimal : Return CDec(value)
+                Case System_Byte : Return c.ToByte(Nothing)
+                Case System_SByte : Return c.ToSByte(Nothing)
+                Case System_Int16 : Return c.ToInt16(Nothing)
+                Case System_UInt16 : Return c.ToUInt16(Nothing)
+                Case System_Int32 : Return c.ToInt32(Nothing)
+                Case System_UInt32 : Return c.ToUInt32(Nothing)
+                Case System_Int64 : Return c.ToInt64(Nothing)
+                Case System_UInt64 : Return c.ToUInt64(Nothing)
+                Case System_Single : Return c.ToSingle(Nothing)
+                Case System_Double : Return c.ToDouble(Nothing)
+                Case System_Decimal : Return c.ToDecimal(Nothing)
                 Case Else
                     Throw New NotSupportedException()
             End Select

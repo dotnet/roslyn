@@ -897,7 +897,7 @@ c17d18c19
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
-  // Code size      611 (0x263)
+  // Code size      473 (0x1d9)
   .maxstack  4
   .locals init (char V_0, //c
                 char V_1, //d
@@ -913,185 +913,162 @@ c17d18c19
   IL_0010:  ldstr      ""2b""
   IL_0015:  call       ""void System.Console.WriteLine(string)""
   IL_001a:  ldloca.s   V_0
-  IL_001c:  constrained. ""char""
-  IL_0022:  callvirt   ""string object.ToString()""
-  IL_0027:  ldstr      ""3""
-  IL_002c:  call       ""string string.Concat(string, string)""
-  IL_0031:  call       ""void System.Console.WriteLine(string)""
-  IL_0036:  ldstr      ""4""
-  IL_003b:  ldloca.s   V_1
-  IL_003d:  constrained. ""char""
-  IL_0043:  callvirt   ""string object.ToString()""
-  IL_0048:  call       ""string string.Concat(string, string)""
-  IL_004d:  call       ""void System.Console.WriteLine(string)""
-  IL_0052:  ldc.i4.1
-  IL_0053:  stloc.2
-  IL_0054:  ldloca.s   V_2
-  IL_0056:  constrained. ""bool""
-  IL_005c:  callvirt   ""string object.ToString()""
-  IL_0061:  ldstr      ""5""
-  IL_0066:  ldloca.s   V_0
-  IL_0068:  constrained. ""char""
-  IL_006e:  callvirt   ""string object.ToString()""
-  IL_0073:  call       ""string string.Concat(string, string, string)""
-  IL_0078:  call       ""void System.Console.WriteLine(string)""
-  IL_007d:  ldstr      ""6""
-  IL_0082:  ldloca.s   V_1
-  IL_0084:  constrained. ""char""
-  IL_008a:  callvirt   ""string object.ToString()""
-  IL_008f:  ldc.i4.7
-  IL_0090:  call       ""System.IntPtr System.IntPtr.op_Explicit(int)""
-  IL_0095:  stloc.3
-  IL_0096:  ldloca.s   V_3
-  IL_0098:  constrained. ""System.IntPtr""
-  IL_009e:  callvirt   ""string object.ToString()""
-  IL_00a3:  call       ""string string.Concat(string, string, string)""
-  IL_00a8:  call       ""void System.Console.WriteLine(string)""
-  IL_00ad:  ldstr      ""8""
-  IL_00b2:  ldc.i4.s   9
-  IL_00b4:  conv.i8
-  IL_00b5:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(ulong)""
-  IL_00ba:  stloc.s    V_4
-  IL_00bc:  ldloca.s   V_4
-  IL_00be:  constrained. ""System.UIntPtr""
-  IL_00c4:  callvirt   ""string object.ToString()""
-  IL_00c9:  ldc.i4.0
-  IL_00ca:  stloc.2
-  IL_00cb:  ldloca.s   V_2
-  IL_00cd:  constrained. ""bool""
-  IL_00d3:  callvirt   ""string object.ToString()""
-  IL_00d8:  call       ""string string.Concat(string, string, string)""
-  IL_00dd:  call       ""void System.Console.WriteLine(string)""
-  IL_00e2:  ldloca.s   V_0
-  IL_00e4:  constrained. ""char""
-  IL_00ea:  callvirt   ""string object.ToString()""
-  IL_00ef:  ldstr      ""10""
-  IL_00f4:  ldloca.s   V_1
-  IL_00f6:  constrained. ""char""
-  IL_00fc:  callvirt   ""string object.ToString()""
-  IL_0101:  ldstr      ""11""
-  IL_0106:  call       ""string string.Concat(string, string, string, string)""
-  IL_010b:  call       ""void System.Console.WriteLine(string)""
-  IL_0110:  ldstr      ""12""
-  IL_0115:  ldloca.s   V_0
-  IL_0117:  constrained. ""char""
-  IL_011d:  callvirt   ""string object.ToString()""
-  IL_0122:  ldstr      ""13""
-  IL_0127:  ldloca.s   V_1
-  IL_0129:  constrained. ""char""
-  IL_012f:  callvirt   ""string object.ToString()""
-  IL_0134:  call       ""string string.Concat(string, string, string, string)""
-  IL_0139:  call       ""void System.Console.WriteLine(string)""
-  IL_013e:  ldstr      ""a14b15a16""
-  IL_0143:  call       ""void System.Console.WriteLine(string)""
-  IL_0148:  ldc.i4.6
-  IL_0149:  newarr     ""string""
-  IL_014e:  dup
-  IL_014f:  ldc.i4.0
-  IL_0150:  ldloca.s   V_0
-  IL_0152:  constrained. ""char""
-  IL_0158:  callvirt   ""string object.ToString()""
+  IL_001c:  call       ""string char.ToString()""
+  IL_0021:  ldstr      ""3""
+  IL_0026:  call       ""string string.Concat(string, string)""
+  IL_002b:  call       ""void System.Console.WriteLine(string)""
+  IL_0030:  ldstr      ""4""
+  IL_0035:  ldloca.s   V_1
+  IL_0037:  call       ""string char.ToString()""
+  IL_003c:  call       ""string string.Concat(string, string)""
+  IL_0041:  call       ""void System.Console.WriteLine(string)""
+  IL_0046:  ldc.i4.1
+  IL_0047:  stloc.2
+  IL_0048:  ldloca.s   V_2
+  IL_004a:  call       ""string bool.ToString()""
+  IL_004f:  ldstr      ""5""
+  IL_0054:  ldloca.s   V_0
+  IL_0056:  call       ""string char.ToString()""
+  IL_005b:  call       ""string string.Concat(string, string, string)""
+  IL_0060:  call       ""void System.Console.WriteLine(string)""
+  IL_0065:  ldstr      ""6""
+  IL_006a:  ldloca.s   V_1
+  IL_006c:  call       ""string char.ToString()""
+  IL_0071:  ldc.i4.7
+  IL_0072:  call       ""System.IntPtr System.IntPtr.op_Explicit(int)""
+  IL_0077:  stloc.3
+  IL_0078:  ldloca.s   V_3
+  IL_007a:  call       ""string System.IntPtr.ToString()""
+  IL_007f:  call       ""string string.Concat(string, string, string)""
+  IL_0084:  call       ""void System.Console.WriteLine(string)""
+  IL_0089:  ldstr      ""8""
+  IL_008e:  ldc.i4.s   9
+  IL_0090:  conv.i8
+  IL_0091:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(ulong)""
+  IL_0096:  stloc.s    V_4
+  IL_0098:  ldloca.s   V_4
+  IL_009a:  call       ""string System.UIntPtr.ToString()""
+  IL_009f:  ldc.i4.0
+  IL_00a0:  stloc.2
+  IL_00a1:  ldloca.s   V_2
+  IL_00a3:  call       ""string bool.ToString()""
+  IL_00a8:  call       ""string string.Concat(string, string, string)""
+  IL_00ad:  call       ""void System.Console.WriteLine(string)""
+  IL_00b2:  ldloca.s   V_0
+  IL_00b4:  call       ""string char.ToString()""
+  IL_00b9:  ldstr      ""10""
+  IL_00be:  ldloca.s   V_1
+  IL_00c0:  call       ""string char.ToString()""
+  IL_00c5:  ldstr      ""11""
+  IL_00ca:  call       ""string string.Concat(string, string, string, string)""
+  IL_00cf:  call       ""void System.Console.WriteLine(string)""
+  IL_00d4:  ldstr      ""12""
+  IL_00d9:  ldloca.s   V_0
+  IL_00db:  call       ""string char.ToString()""
+  IL_00e0:  ldstr      ""13""
+  IL_00e5:  ldloca.s   V_1
+  IL_00e7:  call       ""string char.ToString()""
+  IL_00ec:  call       ""string string.Concat(string, string, string, string)""
+  IL_00f1:  call       ""void System.Console.WriteLine(string)""
+  IL_00f6:  ldstr      ""a14b15a16""
+  IL_00fb:  call       ""void System.Console.WriteLine(string)""
+  IL_0100:  ldc.i4.6
+  IL_0101:  newarr     ""string""
+  IL_0106:  dup
+  IL_0107:  ldc.i4.0
+  IL_0108:  ldloca.s   V_0
+  IL_010a:  call       ""string char.ToString()""
+  IL_010f:  stelem.ref
+  IL_0110:  dup
+  IL_0111:  ldc.i4.1
+  IL_0112:  ldstr      ""17""
+  IL_0117:  stelem.ref
+  IL_0118:  dup
+  IL_0119:  ldc.i4.2
+  IL_011a:  ldloca.s   V_1
+  IL_011c:  call       ""string char.ToString()""
+  IL_0121:  stelem.ref
+  IL_0122:  dup
+  IL_0123:  ldc.i4.3
+  IL_0124:  ldstr      ""18""
+  IL_0129:  stelem.ref
+  IL_012a:  dup
+  IL_012b:  ldc.i4.4
+  IL_012c:  ldloca.s   V_0
+  IL_012e:  call       ""string char.ToString()""
+  IL_0133:  stelem.ref
+  IL_0134:  dup
+  IL_0135:  ldc.i4.5
+  IL_0136:  ldstr      ""19""
+  IL_013b:  stelem.ref
+  IL_013c:  call       ""string string.Concat(params string[])""
+  IL_0141:  call       ""void System.Console.WriteLine(string)""
+  IL_0146:  ldc.i4.6
+  IL_0147:  newarr     ""object""
+  IL_014c:  dup
+  IL_014d:  ldc.i4.0
+  IL_014e:  ldstr      ""20""
+  IL_0153:  stelem.ref
+  IL_0154:  dup
+  IL_0155:  ldc.i4.1
+  IL_0156:  ldc.i4.s   21
+  IL_0158:  box        ""int""
   IL_015d:  stelem.ref
   IL_015e:  dup
-  IL_015f:  ldc.i4.1
-  IL_0160:  ldstr      ""17""
-  IL_0165:  stelem.ref
-  IL_0166:  dup
-  IL_0167:  ldc.i4.2
-  IL_0168:  ldloca.s   V_1
-  IL_016a:  constrained. ""char""
-  IL_0170:  callvirt   ""string object.ToString()""
-  IL_0175:  stelem.ref
-  IL_0176:  dup
-  IL_0177:  ldc.i4.3
-  IL_0178:  ldstr      ""18""
-  IL_017d:  stelem.ref
-  IL_017e:  dup
-  IL_017f:  ldc.i4.4
-  IL_0180:  ldloca.s   V_0
-  IL_0182:  constrained. ""char""
-  IL_0188:  callvirt   ""string object.ToString()""
-  IL_018d:  stelem.ref
-  IL_018e:  dup
-  IL_018f:  ldc.i4.5
-  IL_0190:  ldstr      ""19""
-  IL_0195:  stelem.ref
-  IL_0196:  call       ""string string.Concat(params string[])""
-  IL_019b:  call       ""void System.Console.WriteLine(string)""
-  IL_01a0:  ldc.i4.6
-  IL_01a1:  newarr     ""object""
-  IL_01a6:  dup
-  IL_01a7:  ldc.i4.0
-  IL_01a8:  ldstr      ""20""
-  IL_01ad:  stelem.ref
-  IL_01ae:  dup
-  IL_01af:  ldc.i4.1
-  IL_01b0:  ldc.i4.s   21
-  IL_01b2:  box        ""int""
-  IL_01b7:  stelem.ref
-  IL_01b8:  dup
-  IL_01b9:  ldc.i4.2
-  IL_01ba:  ldloca.s   V_0
-  IL_01bc:  constrained. ""char""
-  IL_01c2:  callvirt   ""string object.ToString()""
-  IL_01c7:  stelem.ref
-  IL_01c8:  dup
-  IL_01c9:  ldc.i4.3
-  IL_01ca:  ldloca.s   V_1
-  IL_01cc:  constrained. ""char""
-  IL_01d2:  callvirt   ""string object.ToString()""
-  IL_01d7:  stelem.ref
-  IL_01d8:  dup
-  IL_01d9:  ldc.i4.4
-  IL_01da:  ldloca.s   V_0
-  IL_01dc:  constrained. ""char""
-  IL_01e2:  callvirt   ""string object.ToString()""
-  IL_01e7:  stelem.ref
-  IL_01e8:  dup
-  IL_01e9:  ldc.i4.5
-  IL_01ea:  ldloca.s   V_1
-  IL_01ec:  constrained. ""char""
-  IL_01f2:  callvirt   ""string object.ToString()""
-  IL_01f7:  stelem.ref
-  IL_01f8:  call       ""string string.Concat(params object[])""
-  IL_01fd:  call       ""void System.Console.WriteLine(string)""
-  IL_0202:  ldc.i4.6
-  IL_0203:  newarr     ""string""
-  IL_0208:  dup
-  IL_0209:  ldc.i4.0
-  IL_020a:  ldstr      ""22""
-  IL_020f:  stelem.ref
-  IL_0210:  dup
-  IL_0211:  ldc.i4.1
-  IL_0212:  ldloca.s   V_0
-  IL_0214:  constrained. ""char""
-  IL_021a:  callvirt   ""string object.ToString()""
-  IL_021f:  stelem.ref
-  IL_0220:  dup
-  IL_0221:  ldc.i4.2
-  IL_0222:  ldstr      ""23""
-  IL_0227:  stelem.ref
-  IL_0228:  dup
-  IL_0229:  ldc.i4.3
-  IL_022a:  ldloca.s   V_1
-  IL_022c:  constrained. ""char""
-  IL_0232:  callvirt   ""string object.ToString()""
-  IL_0237:  stelem.ref
-  IL_0238:  dup
-  IL_0239:  ldc.i4.4
-  IL_023a:  ldloca.s   V_0
-  IL_023c:  constrained. ""char""
-  IL_0242:  callvirt   ""string object.ToString()""
-  IL_0247:  stelem.ref
-  IL_0248:  dup
-  IL_0249:  ldc.i4.5
-  IL_024a:  ldloca.s   V_1
-  IL_024c:  constrained. ""char""
-  IL_0252:  callvirt   ""string object.ToString()""
-  IL_0257:  stelem.ref
-  IL_0258:  call       ""string string.Concat(params string[])""
-  IL_025d:  call       ""void System.Console.WriteLine(string)""
-  IL_0262:  ret
+  IL_015f:  ldc.i4.2
+  IL_0160:  ldloca.s   V_0
+  IL_0162:  call       ""string char.ToString()""
+  IL_0167:  stelem.ref
+  IL_0168:  dup
+  IL_0169:  ldc.i4.3
+  IL_016a:  ldloca.s   V_1
+  IL_016c:  call       ""string char.ToString()""
+  IL_0171:  stelem.ref
+  IL_0172:  dup
+  IL_0173:  ldc.i4.4
+  IL_0174:  ldloca.s   V_0
+  IL_0176:  call       ""string char.ToString()""
+  IL_017b:  stelem.ref
+  IL_017c:  dup
+  IL_017d:  ldc.i4.5
+  IL_017e:  ldloca.s   V_1
+  IL_0180:  call       ""string char.ToString()""
+  IL_0185:  stelem.ref
+  IL_0186:  call       ""string string.Concat(params object[])""
+  IL_018b:  call       ""void System.Console.WriteLine(string)""
+  IL_0190:  ldc.i4.6
+  IL_0191:  newarr     ""string""
+  IL_0196:  dup
+  IL_0197:  ldc.i4.0
+  IL_0198:  ldstr      ""22""
+  IL_019d:  stelem.ref
+  IL_019e:  dup
+  IL_019f:  ldc.i4.1
+  IL_01a0:  ldloca.s   V_0
+  IL_01a2:  call       ""string char.ToString()""
+  IL_01a7:  stelem.ref
+  IL_01a8:  dup
+  IL_01a9:  ldc.i4.2
+  IL_01aa:  ldstr      ""23""
+  IL_01af:  stelem.ref
+  IL_01b0:  dup
+  IL_01b1:  ldc.i4.3
+  IL_01b2:  ldloca.s   V_1
+  IL_01b4:  call       ""string char.ToString()""
+  IL_01b9:  stelem.ref
+  IL_01ba:  dup
+  IL_01bb:  ldc.i4.4
+  IL_01bc:  ldloca.s   V_0
+  IL_01be:  call       ""string char.ToString()""
+  IL_01c3:  stelem.ref
+  IL_01c4:  dup
+  IL_01c5:  ldc.i4.5
+  IL_01c6:  ldloca.s   V_1
+  IL_01c8:  call       ""string char.ToString()""
+  IL_01cd:  stelem.ref
+  IL_01ce:  call       ""string string.Concat(params string[])""
+  IL_01d3:  call       ""void System.Console.WriteLine(string)""
+  IL_01d8:  ret
 }
 ");
         }

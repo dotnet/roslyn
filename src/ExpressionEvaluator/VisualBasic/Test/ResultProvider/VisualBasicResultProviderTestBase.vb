@@ -5,17 +5,23 @@ Imports System.Reflection
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports Microsoft.VisualStudio.Debugger.ComponentInterfaces
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
-    Public Class VisualBasicResultProviderTestBase : Inherits ResultProviderTestBase
-
-        Private Shared ReadOnly s_resultProvider As ResultProvider = New VisualBasicResultProvider()
-        Private Shared ReadOnly s_inspectionContext As DkmInspectionContext = CreateDkmInspectionContext(s_resultProvider.Formatter, DkmEvaluationFlags.None, radix:=10)
+    Public MustInherit Class VisualBasicResultProviderTestBase : Inherits ResultProviderTestBase
 
         Public Sub New()
-            MyBase.New(s_resultProvider, s_inspectionContext)
+            MyClass.New(New VisualBasicFormatter())
+        End Sub
+
+        Private Sub New(formatter As VisualBasicFormatter)
+            MyClass.New(New DkmInspectionSession(ImmutableArray.Create(Of IDkmClrFormatter)(formatter), ImmutableArray.Create(Of IDkmClrResultProvider)(New VisualBasicResultProvider(formatter, formatter))))
+        End Sub
+
+        Private Sub New(inspectionSession As DkmInspectionSession)
+            MyBase.New(inspectionSession, CreateDkmInspectionContext(inspectionSession, DkmEvaluationFlags.None, radix:=10))
         End Sub
 
         Protected Shared Function GetAssembly(source As String) As Assembly

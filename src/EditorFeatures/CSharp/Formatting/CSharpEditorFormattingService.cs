@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var formatter = CreateSmartTokenFormatter(document.Project.Solution.Workspace.Options, formattingRules, root);
-            var changes = formatter.FormatToken(document.Project.Solution.Workspace, token, cancellationToken);
+            var changes = await formatter.FormatTokenAsync(document.Project.Solution.Workspace, token, cancellationToken).ConfigureAwait(false);
             return changes;
         }
 

@@ -1,214 +1,209 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
+Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class EndBlockKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndSubInBrokenMethodBody()
-            VerifyRecommendationsContain(<ClassDeclaration>Sub Foo()
+        Public Async Function EndSubInBrokenMethodBodyTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Sub Foo()
 |</ClassDeclaration>, "End Sub")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotAfterCompletedMethodBody()
-            VerifyRecommendationsMissing(<ClassDeclaration>
+        Public Async Function NotAfterCompletedMethodBodyTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>
 Sub Foo()
 End Sub
 |</ClassDeclaration>, "End")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotAfterMustOverrideMethodDeclaration1()
-            VerifyRecommendationsMissing(<ClassDeclaration>
+        Public Async Function NotAfterMustOverrideMethodDeclaration1Test() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>
 MustOverride Sub Foo()
 |</ClassDeclaration>, "End")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotAfterMustOverrideMethodDeclaration2()
-            VerifyRecommendationsMissing(<ClassDeclaration>
+        Public Async Function NotAfterMustOverrideMethodDeclaration2Test() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>
 MustOverride Sub Foo()
 |</ClassDeclaration>, "End Sub")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndPropertyAfterIncompleteProperty1()
-            VerifyRecommendationsContain(<ClassDeclaration>Property foo As Integer
+        Public Async Function EndPropertyAfterIncompleteProperty1Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Property foo As Integer
 Get
 End Get
 Set(value As Integer)
 End Set
 |</ClassDeclaration>, "End Property")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndPropertyAfterIncompleteProperty2()
-            VerifyRecommendationsContain(<ClassDeclaration>Property foo As Integer
+        Public Async Function EndPropertyAfterIncompleteProperty2Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Property foo As Integer
 Get
 End Get
 Set(value As Integer)
 End Set
 End |</ClassDeclaration>, "Property")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndSubInLambda()
-            VerifyRecommendationsContain(<MethodBody>Dim foo = Sub()
+        Public Async Function EndSubInLambdaTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim foo = Sub()
 |</MethodBody>, "End Sub")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndIfInMethodBody1()
-            VerifyRecommendationsContain(<MethodBody>If True Then
+        Public Async Function EndIfInMethodBody1Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then
 |</MethodBody>, "End", "End If")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndIfInMethodBody2()
-            VerifyRecommendationsContain(<MethodBody>If True Then
+        Public Async Function EndIfInMethodBody2Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then
 End |</MethodBody>, "If")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndWithInMethodBody()
-            VerifyRecommendationsContain(<MethodBody>With foo
+        Public Async Function EndWithInMethodBodyTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>With foo
 |</MethodBody>, "End With")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndWhileInMethodBody()
-            VerifyRecommendationsContain(<MethodBody>While foo
+        Public Async Function EndWhileInMethodBodyTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>While foo
 |</MethodBody>, "End While")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndSelectInMethodBody1()
-            VerifyRecommendationsContain(<MethodBody>Select foo
+        Public Async Function EndSelectInMethodBody1Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Select foo
 |</MethodBody>, "End Select")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndSelectInMethodBody2()
-            VerifyRecommendationsContain(<MethodBody>Select foo
+        Public Async Function EndSelectInMethodBody2Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Select foo
 Case 1
 |</MethodBody>, "End Select")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndSelectInMethodBody3()
-            VerifyRecommendationsContain(<MethodBody>Select foo
+        Public Async Function EndSelectInMethodBody3Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Select foo
 Case 1
 Case Else
 |</MethodBody>, "End Select")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndSyncLockInMethodBody()
-            VerifyRecommendationsContain(<MethodBody>SyncLock foo
+        Public Async Function EndSyncLockInMethodBodyTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>SyncLock foo
 |</MethodBody>, "End SyncLock")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndModuleInFile1()
-            VerifyRecommendationsContain(<File>Module Foo
+        Public Async Function EndModuleInFile1Test() As Task
+            Await VerifyRecommendationsContainAsync(<File>Module Foo
 |</File>, {"End Module"})
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndModuleInFile2()
-            VerifyRecommendationsContain(<File>
+        Public Async Function EndModuleInFile2Test() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 Module Foo
 End |</File>, "Module")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndInterfaceInFile1()
-            VerifyRecommendationsContain(<File>Interface IFoo
+        Public Async Function EndInterfaceInFile1Test() As Task
+            Await VerifyRecommendationsContainAsync(<File>Interface IFoo
 |</File>, {"End Interface"})
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndInterfaceInFile2()
-            VerifyRecommendationsContain(<File>
+        Public Async Function EndInterfaceInFile2Test() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 Interface IFoo
 End |</File>, "Interface")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndClassInFile1()
-            VerifyRecommendationsContain(<File>Class Foo
+        Public Async Function EndClassInFile1Test() As Task
+            Await VerifyRecommendationsContainAsync(<File>Class Foo
 |</File>, {"End Class"})
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndClassInFile2()
-            VerifyRecommendationsContain(<File>
+        Public Async Function EndClassInFile2Test() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 Class Foo
 End |</File>, "Class")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndStructureInFile1()
-            VerifyRecommendationsContain(<File>Structure Foo
+        Public Async Function EndStructureInFile1Test() As Task
+            Await VerifyRecommendationsContainAsync(<File>Structure Foo
 |</File>, {"End Structure"})
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndStructureInFile2()
-            VerifyRecommendationsContain(<File>
+        Public Async Function EndStructureInFile2Test() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 Structure Foo
 End |</File>, "Structure")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndEnumInFile1()
-            VerifyRecommendationsContain(<File>Enum Foo
+        Public Async Function EndEnumInFile1Test() As Task
+            Await VerifyRecommendationsContainAsync(<File>Enum Foo
 |</File>, {"End Enum"})
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndEnumInFile2()
-            VerifyRecommendationsContain(<File>
+        Public Async Function EndEnumInFile2Test() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 Enum Foo
 End |</File>, "Enum")
-        End Sub
+        End Function
 
         <WorkItem(539311)>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndBlockMissingInPreprocessor()
-            VerifyRecommendationsMissing(
+        Public Async Function EndBlockMissingInPreprocessorTest() As Task
+            Await VerifyRecommendationsMissingAsync(
 <ClassDeclaration>
 Module M
     Sub Foo()
@@ -216,64 +211,63 @@ Module M
     End Sub
 End Module
 </ClassDeclaration>, {"End Module", "End Sub"})
-        End Sub
+        End Function
 
         <WorkItem(540069)>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndSubSuggestFunction()
-            VerifyRecommendationsContain(<ClassDeclaration>Sub Foo()
+        Public Async Function EndSubSuggestFunctionTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Sub Foo()
 End |</ClassDeclaration>, "Function", "Sub")
-        End Sub
+        End Function
 
         <WorkItem(540069)>
         <WorkItem(530599)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndFunctionDoesNotSuggestEndSub()
-            VerifyRecommendationsMissing(<ClassDeclaration>Function Foo()
+        Public Async Function EndFunctionDoesNotSuggestEndSubTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Function Foo()
 |</ClassDeclaration>, "End Sub")
-        End Sub
+        End Function
 
         <WorkItem(540069)>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndFunctionSuggestSub()
-            VerifyRecommendationsContain(<ClassDeclaration>Function Foo()
+        Public Async Function EndFunctionSuggestSubTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Function Foo()
 End |</ClassDeclaration>, "Function", "Sub")
-        End Sub
+        End Function
 
         <WorkItem(540069)>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndSubNotClassSuggested()
-            VerifyRecommendationsMissing(<ClassDeclaration>Sub Foo()
+        Public Async Function EndSubNotClassSuggestedTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Sub Foo()
 |</ClassDeclaration>, "End Class", "End Module", "End Structure", "End Interface")
-        End Sub
+        End Function
 
         <WorkItem(969097)>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndClassPairings()
-            VerifyRecommendationsMissing(<File>Class Foo()
+        Public Async Function EndClassPairingsTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Class Foo()
 End |</File>, "Module", "Interface", "Structure")
-        End Sub
+        End Function
 
         <WorkItem(969097)>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndModulePairings()
-            VerifyRecommendationsMissing(<File>Module Foo()
+        Public Async Function EndModulePairingsTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Module Foo()
 End |</File>, "Class", "Interface", "Structure")
-        End Sub
+        End Function
 
         <WorkItem(540069)>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EndModuleNotSubSuggested()
-            VerifyRecommendationsMissing(<File>Module Foo()
+        Public Async Function EndModuleNotSubSuggestedTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Module Foo()
 |</File>, "End Sub", "End Function")
-        End Sub
-
+        End Function
     End Class
 End Namespace
 

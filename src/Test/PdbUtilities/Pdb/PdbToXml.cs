@@ -148,7 +148,8 @@ namespace Roslyn.Test.PdbUtilities
 
             using (var writer = XmlWriter.Create(xmlWriter, s_xmlWriterSettings))
             {
-                var symReader = SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt);
+                // metadata reader is on stack -> no owner needed
+                var symReader = SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt, metadataMemoryOwnerOpt: null);
 
                 try
                 {

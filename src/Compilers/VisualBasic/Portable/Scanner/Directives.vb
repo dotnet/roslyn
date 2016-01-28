@@ -208,7 +208,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.ExternalChecksumDirectiveTrivia,
                     SyntaxKind.BadDirectiveTrivia,
                     SyntaxKind.EnableWarningDirectiveTrivia, 'TODO: Add support for processing #Enable and #Disable
-                    SyntaxKind.DisableWarningDirectiveTrivia
+                    SyntaxKind.DisableWarningDirectiveTrivia,
+                    SyntaxKind.ReferenceDirectiveTrivia
 
                     ' These directives require no processing
 

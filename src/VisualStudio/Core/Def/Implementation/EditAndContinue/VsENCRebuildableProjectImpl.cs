@@ -279,9 +279,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // The HResult is ignored by the debugger.
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -341,9 +341,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // The HResult is ignored by the debugger.
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -437,6 +437,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                         _encService.OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Break);
 
                         s_breakStateEntrySolution = _vsProject.VisualStudioWorkspace.CurrentSolution;
+
+                        // TODO: This is a workaround for a debugger bug in which not all projects exit the break state.
+                        // Reset the project count.
+                        s_breakStateProjectCount = 0;
                     }
 
                     ProjectReadOnlyReason state;
@@ -483,20 +487,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                         // Add the handler that notifies the debugger *after* that initial tagger notification,
                         // so that it's not triggered unless an actual change in leaf AS occurs.
                         _trackingService.TrackingSpansChanged += TrackingSpansChanged;
-
-                        // we don't need these anymore:
-                        s_pendingActiveStatements.Clear();
-                        s_breakStateEnteredProjects.Clear();
-                        s_breakStateEntrySolution = null;
                     }
                 }
 
                 // The debugger ignores the result.
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
+            }
+            finally
+            {
+                // TODO: This is a workaround for a debugger bug.
+                // Ensure that the state gets reset even if if `GroupActiveStatements` throws an exception.
+                if (s_breakStateEnteredProjects.Count == s_debugStateProjectCount)
+                {
+                    // we don't need these anymore:
+                    s_pendingActiveStatements.Clear();
+                    s_breakStateEnteredProjects.Clear();
+                    s_breakStateEntrySolution = null;
+                }
             }
         }
 
@@ -749,9 +760,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     return VSConstants.S_OK;
                 }
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -838,9 +849,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     return VSConstants.S_OK;
                 }
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -901,9 +912,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // HResult ignored by the debugger
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -1001,9 +1012,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -1109,9 +1120,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -1154,9 +1165,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 

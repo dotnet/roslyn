@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             SemanticDocument document,
             TObjectCreationExpressionSyntax objectCreation,
             INamedTypeSymbol namedType,
-            ISet<IMethodSymbol> candidates, 
+            ISet<IMethodSymbol> candidates,
             CancellationToken cancellationToken);
 
         private partial class Editor
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                     if (accessibleInstanceConstructors.Any())
                     {
-                        var delegatedConstructor = _service.GetDelegatingConstructor( 
+                        var delegatedConstructor = _service.GetDelegatingConstructor(
                             _document,
                             _state.ObjectCreationExpressionOpt,
                             _state.BaseTypeOrInterfaceOpt,

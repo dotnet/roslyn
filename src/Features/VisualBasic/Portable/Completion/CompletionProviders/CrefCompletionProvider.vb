@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class CrefCompletionProvider
         Inherits CompletionListProvider
 
-        Private Shared ReadOnly CrefFormat As SymbolDisplayFormat =
+        Private Shared ReadOnly s_crefFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameOnly,
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 builder.Append("Operator ")
             End If
 
-            builder.Append(symbol.ToDisplayString(CrefFormat))
+            builder.Append(symbol.ToDisplayString(s_crefFormat))
 
             Dim parameters = symbol.GetParameters()
 

@@ -430,6 +430,118 @@ End Class
         End Sub
 
         <Fact()>
+        Public Sub ConstructorsWithoutInitializers()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Class C
+    Sub New()
+        Dim o As Object
+    End Sub
+    Sub New(x As Object)
+        Dim y As Object = x
+    End Sub
+End Class
+]]></file>
+</compilation>
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            compilation.VerifyPdb("C..ctor",
+<symbols>
+    <methods>
+        <method containingType="C" name=".ctor">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="14"/>
+                <entry offset="0x8" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x9">
+                <currentnamespace name=""/>
+                <local name="o" il_index="0" il_start="0x0" il_end="0x9" attributes="0"/>
+            </scope>
+        </method>
+        <method containingType="C" name=".ctor" parameterNames="x">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="25"/>
+                <entry offset="0x8" startLine="6" startColumn="13" endLine="6" endColumn="28"/>
+                <entry offset="0xf" startLine="7" startColumn="5" endLine="7" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x10">
+                <importsforward declaringType="C" methodName=".ctor"/>
+                <local name="y" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
+        <Fact()>
+        Public Sub ConstructorsWithInitializers()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Class C
+    Shared G As Object = 1
+    Private F As Object = G
+    Sub New()
+        Dim o As Object
+    End Sub
+    Sub New(x As Object)
+        Dim y As Object = x
+    End Sub
+End Class
+]]></file>
+</compilation>
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            compilation.VerifyPdb("C..ctor",
+<symbols>
+    <methods>
+        <method containingType="C" name=".ctor">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="14"/>
+                <entry offset="0x8" startLine="3" startColumn="13" endLine="3" endColumn="28"/>
+                <entry offset="0x18" startLine="6" startColumn="5" endLine="6" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x19">
+                <importsforward declaringType="C" methodName=".cctor"/>
+                <local name="o" il_index="0" il_start="0x0" il_end="0x19" attributes="0"/>
+            </scope>
+        </method>
+        <method containingType="C" name=".ctor" parameterNames="x">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="7" startColumn="5" endLine="7" endColumn="25"/>
+                <entry offset="0x8" startLine="3" startColumn="13" endLine="3" endColumn="28"/>
+                <entry offset="0x18" startLine="8" startColumn="13" endLine="8" endColumn="28"/>
+                <entry offset="0x1f" startLine="9" startColumn="5" endLine="9" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x20">
+                <importsforward declaringType="C" methodName=".cctor"/>
+                <local name="y" il_index="0" il_start="0x0" il_end="0x20" attributes="0"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
+        <Fact()>
         Public Sub TryCatchFinally()
             Dim source =
 <compilation>

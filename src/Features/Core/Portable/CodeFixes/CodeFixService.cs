@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private bool IsInteractiveCodeFixProvider(CodeFixProvider provider)
         {
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
-            return provider is AddImport.AbstractAddImportCodeFixProvider ||
+            return provider?.GetType()?.Name == "AbstractAddImportCodeFixProvider`1" ||
                 provider is FullyQualify.AbstractFullyQualifyCodeFixProvider;
         }
 

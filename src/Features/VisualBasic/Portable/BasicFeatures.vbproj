@@ -44,22 +44,18 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <Optimize>false</Optimize>
-    <DebugType>full</DebugType>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.Features.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.Features.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
-    <InternalsVisibleTo Include="Roslyn.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
@@ -159,6 +155,7 @@
     <Compile Include="Completion\CompletionProviders\PartialTypeCompletionProvider.ItemRules.vb" />
     <Compile Include="Completion\CompletionProviders\PartialTypeCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.ItemRules.vb" />
+    <Compile Include="Completion\KeywordRecommenders\PreprocessorDirectives\ReferenceDirectiveKeywordRecommender.vb" />
     <Compile Include="Completion\SuggestionMode\VisualBasicSuggestionModeCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.vb" />
     <Compile Include="Completion\KeywordRecommenders\AbstractKeywordRecommender.vb" />
@@ -310,8 +307,8 @@
     <Compile Include="Diagnostics\Analyzers\VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicSimplifyTypeNamesDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\VisualBasicAnalyzerDriverService.vb" />
-    <Compile Include="DocumentationCommentFormatting\DocumentationCommentUtilities.vb" />
-    <Compile Include="DocumentationCommentFormatting\VisualBasicDocumentationCommentFormattingService.vb" />
+    <Compile Include="DocumentationComments\DocumentationCommentUtilities.vb" />
+    <Compile Include="DocumentationComments\VisualBasicDocumentationCommentFormattingService.vb" />
     <Compile Include="EditAndContinue\BreakpointSpans.vb" />
     <Compile Include="EditAndContinue\StatementSyntaxComparer.vb" />
     <Compile Include="EditAndContinue\SyntaxComparer.vb" />
@@ -360,6 +357,7 @@
     <Compile Include="LanguageServices\VisualBasicSymbolDisplayService.SymbolDescriptionBuilder.vb" />
     <Compile Include="LanguageServices\VisualBasicSymbolDisplayService.vb" />
     <Compile Include="LanguageServices\VisualBasicSymbolDisplayServiceFactory.vb" />
+    <Compile Include="MakeMethodSynchronous\VisualBasicMakeMethodSynchronousCodeFixProvider.vb" />
     <Compile Include="MetadataAsSource\VisualBasicMetadataAsSourceService.vb" />
     <Compile Include="MetadataAsSource\VisualBasicMetadataAsSourceServiceFactory.vb" />
     <Compile Include="OrganizeImports\VisualBasicOrganizeImportsService.Rewriter.vb" />

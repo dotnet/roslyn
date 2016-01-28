@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        private void TestConditionalAccessNotVersion5()
+        public void TestConditionalAccessNotVersion5()
         {
             var text = "a.b?.c.d?[1]?.e()?.f";
             var expr = this.ParseExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        private void TestConditionalAccess()
+        public void TestConditionalAccess()
         {
             var text = "a.b?.c.d?[1]?.e()?.f";
             var expr = this.ParseExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
@@ -506,6 +506,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("a", ts.Condition.ToString());
             Assert.Equal("b", ts.WhenTrue.ToString());
             Assert.Equal("c", ts.WhenFalse.ToString());
+        }
+
+        [Fact]
+        public void TestConditional02()
+        {
+            // ensure that ?: has lower precedence than assignment.
+            var text = "a ? b=c : d=e";
+            var expr = this.ParseExpression(text);
+            Assert.Equal(SyntaxKind.ConditionalExpression, expr.Kind());
+            Assert.False(expr.HasErrors);
         }
 
         [Fact]

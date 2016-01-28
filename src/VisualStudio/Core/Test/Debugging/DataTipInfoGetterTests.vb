@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -14,171 +15,173 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
 
     Public Class DataTipInfoGetterTests
 
-        Private Sub TestNoDataTip(input As XElement)
+        Private Async Function TestNoDataTipAsync(input As XElement) As Task
             Dim parsedInput As String = Nothing
             Dim expectedPosition As Integer
             MarkupTestFile.GetPosition(input.NormalizedValue, parsedInput, expectedPosition)
 
-            TestSpanGetter(input.NormalizedValue, expectedPosition, Sub(document, position)
-                                                                        Dim result = DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
-                                                                        Assert.True(result.IsDefault)
-                                                                    End Sub)
-        End Sub
+            Await TestSpanGetterAsync(input.NormalizedValue, expectedPosition,
+                                      Async Function(document, position)
+                                          Dim result = Await DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None)
+                                          Assert.True(result.IsDefault)
+                                      End Function)
+        End Function
 
-        Private Sub Test(input As XElement, Optional expectedText As String = Nothing)
+        Private Async Function TestAsync(input As XElement, Optional expectedText As String = Nothing) As Task
             Dim parsedInput As String = Nothing
             Dim expectedPosition As Integer
             Dim textSpan As TextSpan
             MarkupTestFile.GetPositionAndSpan(input.NormalizedValue, parsedInput, expectedPosition, textSpan)
 
-            TestSpanGetter(input.NormalizedValue, expectedPosition, Sub(document, position)
-                                                                        Dim result = DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
-                                                                        Assert.False(result.IsDefault)
-                                                                        Assert.Equal(textSpan, result.Span)
-                                                                        If Not String.IsNullOrEmpty(expectedText) Then
-                                                                            Assert.Equal(expectedText, result.Text)
-                                                                        End If
-                                                                    End Sub)
-        End Sub
+            Await TestSpanGetterAsync(input.NormalizedValue, expectedPosition,
+                                      Async Function(document, position)
+                                          Dim result = Await DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None)
+                                          Assert.False(result.IsDefault)
+                                          Assert.Equal(textSpan, result.Span)
+                                          If Not String.IsNullOrEmpty(expectedText) Then
+                                              Assert.Equal(expectedText, result.Text)
+                                          End If
+                                      End Function)
+        End Function
 
-        Private Sub TestSpanGetter(parsedInput As String, position As Integer, continuation As Action(Of Document, Integer))
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(parsedInput)
+        Private Async Function TestSpanGetterAsync(parsedInput As String, position As Integer, continuation As Func(Of Document, Integer, Task)) As Task
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(parsedInput)
                 Dim debugInfo = New VisualBasicLanguageDebugInfoService()
-                continuation(workspace.CurrentSolution.Projects.First.Documents.First, position)
+                Await continuation(workspace.CurrentSolution.Projects.First.Documents.First, position)
             End Using
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub TestVisualBasicLanguageDebugInfoGetDataTipSpanAndText()
-            Test(<text>Module [|$$M|] : End Module</text>)
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function TestVisualBasicLanguageDebugInfoGetDataTipSpanAndText() As Task
+            Await TestAsync(<text>Module [|$$M|] : End Module</text>)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub Test1()
-            Test(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function Test1() As Task
+            Await TestAsync(<text>
 class C
   sub Foo()
     [|Sys$$tem|].Console.WriteLine(args)
   end sub
 end class</text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub Test2()
-            Test(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function Test2() As Task
+            Await TestAsync(<text>
 class C
   sub Foo()
     [|System$$.Console|].WriteLine(args)
   end sub
 end class</text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub Test3()
-            Test(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function Test3() As Task
+            Await TestAsync(<text>
 class C
   sub Foo()
     [|System.$$Console|].WriteLine(args)
   end sub
 end class</text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub Test4()
-            Test(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function Test4() As Task
+            Await TestAsync(<text>
 class C
   sub Foo()
     [|System.Con$$sole|].WriteLine(args)
   end sub
 end class</text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub Test5()
-            Test(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function Test5() As Task
+            Await TestAsync(<text>
 class C
   sub Foo()
     [|System.Console.Wri$$teLine(args)|]
   end sub
 end class</text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub Test6()
-            TestNoDataTip(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function Test6() As Task
+            Await TestNoDataTipAsync(<text>
 class C
   sub Foo()
     System.Console.WriteLine$$(args)
   end sub
 end class</text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub Test7()
-            Test(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function Test7() As Task
+            Await TestAsync(<text>
 class C
   sub Foo()
     System.Console.WriteLine($$[|args|])
   end sub
 end class</text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub Test8()
-            TestNoDataTip(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function Test8() As Task
+            Await TestNoDataTipAsync(<text>
 class C
   sub Foo()
     System.Console.WriteLine(args$$)
   end sub
 end class</text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub Test9()
-            Test(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function Test9() As Task
+            Await TestAsync(<text>
 class C
   sub Foo()
     dim [|$$i|] = 5
   end sub
 end class</text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub TestLiterals()
-            TestNoDataTip(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function TestLiterals() As Task
+            Await TestNoDataTipAsync(<text>
 class C
   sub Foo()
     dim i = 5$$6
   end sub
 end class</text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub TestNonExpressions()
-            TestNoDataTip(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function TestNonExpressions() As Task
+            Await TestNoDataTipAsync(<text>
 class C
   sub Foo()
     dim i = 5
   end sub$$
 end class</text>)
-        End Sub
+        End Function
 
         <WorkItem(538152)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub TestOnComma()
-            TestNoDataTip(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function TestOnComma() As Task
+            Await TestNoDataTipAsync(<text>
 class C
   sub Foo()
     Dim ia3 As Integer() = {1, 2, 3, 4 $$, 5}
 
   end sub
 end class</text>)
-        End Sub
+        End Function
 
         <WorkItem(546280)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub TestOnParameter()
-            Test(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function TestOnParameter() As Task
+            Await TestAsync(<text>
 Module Module1
     Sub Main()
         Foo(1, 2, 3)
@@ -189,12 +192,12 @@ Module Module1
     End Sub
 End Module
 </text>)
-        End Sub
+        End Function
 
         <WorkItem(942699)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub TestOnCatchVariable()
-            Test(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function TestOnCatchVariable() As Task
+            Await TestAsync(<text>
 Module Module1
     Sub Main()
         Try
@@ -205,90 +208,90 @@ Module Module1
     End Sub
 End Module
 </text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub TestOnTypeDeclaration()
-            Test(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function TestOnTypeDeclaration() As Task
+            Await TestAsync(<text>
 Module [|$$M|]
 End Module
 </text>)
-            Test(<text>
+            Await TestAsync(<text>
 Class [|$$M|]
 End Class
 </text>)
-            Test(<text>
+            Await TestAsync(<text>
 Structure [|$$M|]
 End Structure
 </text>)
-            Test(<text>
+            Await TestAsync(<text>
 Interface [|$$M|]
 End Interface
 </text>)
-            Test(<text>
+            Await TestAsync(<text>
 Enum [|$$M|]
     A
 End Enum
 </text>)
-            Test(<text>
+            Await TestAsync(<text>
 Delegate Sub [|$$M|] ()
 </text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub TestOnEnumMember()
-            Test(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function TestOnEnumMember() As Task
+            Await TestAsync(<text>
 Enum E
     [|$$M|]
 End Enum
 </text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub TestOnTypeParameter()
-            Test(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function TestOnTypeParameter() As Task
+            Await TestAsync(<text>
 Class C(Of [|$$T|])
 End Class
 </text>)
-            Test(<text>
+            Await TestAsync(<text>
 Class C
     Sub M(Of [|$$T|])()
     End Sub
 End Class
 </text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub TestOnProperty()
-            Test(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function TestOnProperty() As Task
+            Await TestAsync(<text>
 Class C
     Property [|$$P|] As Integer
 End Class
 </text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub TestOnEvent()
-            Test(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function TestOnEvent() As Task
+            Await TestAsync(<text>
 Class C
     Event [|$$E|] As System.Action
 End Class
 </text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub TestOnMethod()
-            Test(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function TestOnMethod() As Task
+            Await TestAsync(<text>
 Class C
     Sub [|$$M|]()
     End Sub
 End Class
 </text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-        Public Sub TestInQuery()
-            Test(<text>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        Public Async Function TestInQuery() As Task
+            Await TestAsync(<text>
 Class C
     Shared Sub Main(args As String())
         Dim o = From [|$$a|] In args Select a
@@ -296,17 +299,17 @@ Class C
 End Class
 </text>)
 
-            Test(<text>
+            Await TestAsync(<text>
 Class C
     Shared Sub Main(args As String())
         Dim o = From a In args Let [|$$b|] = "B" Select a + b
     End Sub
 End Class
 </text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)>
-        Public Sub TestConditionalAccessExpression()
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)>
+        Public Async Function TestConditionalAccessExpression() As Task
             Const sourceTemplate = "
 Class A
     Public B As New B()
@@ -329,50 +332,50 @@ End Class
 "
 
             ' One level.
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|]") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|]") %></text>)
 
             ' Two levels.
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|].C") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B.$$C|]") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|].C") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.B.$$C|]") %></text>)
 
-            Test(<text><%= String.Format(sourceTemplate, "[|Me.$$B|]?.C") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me.B?.$$C|]") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me.$$B|]?.C") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me.B?.$$C|]") %></text>)
 
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|]?.C") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B?.$$C|]") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|]?.C") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.B?.$$C|]") %></text>)
 
             ' Three levels.
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|].C.D") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B.$$C|].D") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B.C.$$D|]") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|].C.D") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.B.$$C|].D") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.B.C.$$D|]") %></text>)
 
-            Test(<text><%= String.Format(sourceTemplate, "[|Me.$$B|]?.C.D") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me.B?.$$C|].D") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me.B?.C.$$D|]") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me.$$B|]?.C.D") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me.B?.$$C|].D") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me.B?.C.$$D|]") %></text>)
 
-            Test(<text><%= String.Format(sourceTemplate, "[|Me.$$B|].C?.D") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me.B.$$C|]?.D") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me.B.C?.$$D|]") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me.$$B|].C?.D") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me.B.$$C|]?.D") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me.B.C?.$$D|]") %></text>)
 
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|]?.C.D") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B?.$$C|].D") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B?.C.$$D|]") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|]?.C.D") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.B?.$$C|].D") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.B?.C.$$D|]") %></text>)
 
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|].C?.D") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B.$$C|]?.D") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B.C?.$$D|]") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|].C?.D") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.B.$$C|]?.D") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.B.C?.$$D|]") %></text>)
 
-            Test(<text><%= String.Format(sourceTemplate, "[|Me.$$B|]?.C?.D") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me.B?.$$C|]?.D") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me.B?.C?.$$D|]") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me.$$B|]?.C?.D") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me.B?.$$C|]?.D") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me.B?.C?.$$D|]") %></text>)
 
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|]?.C?.D") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B?.$$C|]?.D") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B?.C?.$$D|]") %></text>)
-        End Sub
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|]?.C?.D") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.B?.$$C|]?.D") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.B?.C?.$$D|]") %></text>)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)>
-        Public Sub TestConditionalAccessExpression_Dictionary()
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)>
+        Public Async Function TestConditionalAccessExpression_Dictionary() As Task
             Const sourceTemplate = "
 Class A
     Function M() As Object
@@ -388,21 +391,21 @@ End Class
 "
 
             ' One level
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?!$$B|]") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?!$$B|]") %></text>)
 
             ' Two levels
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?!$$B|]!C") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?!B!$$C|]") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?!$$B|]!C") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?!B!$$C|]") %></text>)
 
-            Test(<text><%= String.Format(sourceTemplate, "[|Me!$$B|]?!C") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me!B?!$$C|]") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me!$$B|]?!C") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me!B?!$$C|]") %></text>)
 
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?!$$B|]?!C") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?!B?!$$C|]") %></text>)
-        End Sub
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?!$$B|]?!C") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?!B?!$$C|]") %></text>)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(2602)>
-        Public Sub TestParameterizedProperty()
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(2602)>
+        Public Async Function TestParameterizedProperty() As Task
             Const sourceTemplate = "
 Class Class1
     Public row = New DataRow()
@@ -427,14 +430,12 @@ Class Class1
 End Class
 "
 
-            Test(<text><%= String.Format(sourceTemplate, "[|$$Item(42)|].Length") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|row.It$$em(""Test Row"")|].Length") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|row?.Ite$$m(""Test Row"")|].Length") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?.row.$$Item(""Test Row"")|].Length") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me.row?.It$$em(""Test Row"")|].Length") %></text>)
-            Test(<text><%= String.Format(sourceTemplate, "[|Me?.row?.It$$em(""Test Row"")|].Length") %></text>)
-        End Sub
-
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|$$Item(42)|].Length") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|row.It$$em(""Test Row"")|].Length") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|row?.Ite$$m(""Test Row"")|].Length") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.row.$$Item(""Test Row"")|].Length") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me.row?.It$$em(""Test Row"")|].Length") %></text>)
+            Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.row?.It$$em(""Test Row"")|].Length") %></text>)
+        End Function
     End Class
-
 End Namespace

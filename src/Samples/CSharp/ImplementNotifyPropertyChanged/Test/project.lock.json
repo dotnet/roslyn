@@ -77,6 +77,17 @@
           "lib/net45/_._": {}
         }
       },
+      "System.Reflection.Metadata/1.2.0-rc3-23721": {
+        "dependencies": {
+          "System.Collections.Immutable": "[1.1.37, )"
+        },
+        "compile": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+        }
+      },
       "System.Resources.ResourceManager/4.0.0": {
         "compile": {
           "ref/net45/_._": {}
@@ -236,6 +247,17 @@
           "lib/net45/_._": {}
         }
       },
+      "System.Reflection.Metadata/1.2.0-rc3-23721": {
+        "dependencies": {
+          "System.Collections.Immutable": "[1.1.37, )"
+        },
+        "compile": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+        }
+      },
       "System.Resources.ResourceManager/4.0.0": {
         "compile": {
           "ref/net45/_._": {}
@@ -393,6 +415,17 @@
         },
         "runtime": {
           "lib/net45/_._": {}
+        }
+      },
+      "System.Reflection.Metadata/1.2.0-rc3-23721": {
+        "dependencies": {
+          "System.Collections.Immutable": "[1.1.37, )"
+        },
+        "compile": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Resources.ResourceManager/4.0.0": {
@@ -710,6 +743,20 @@
         "ref/wp80/_._",
         "ref/wpa81/_._",
         "System.Linq.nuspec"
+      ]
+    },
+    "System.Reflection.Metadata/1.2.0-rc3-23721": {
+      "sha512": "MHnJWfhANEcGdavFd1ftoo669vjCUvCT6H7N6sNzcLkd1EsLaMgVJshVfA4RNUmUITDKKLAnPxxXIHQRW5mH9Q==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dotnet5.2/System.Reflection.Metadata.dll",
+        "lib/dotnet5.2/System.Reflection.Metadata.xml",
+        "lib/portable-net45+win8/System.Reflection.Metadata.dll",
+        "lib/portable-net45+win8/System.Reflection.Metadata.xml",
+        "package/services/metadata/core-properties/68cb3065f6c849c58eee471ee8bb094b.psmdcp",
+        "System.Reflection.Metadata.nuspec"
       ]
     },
     "System.Resources.ResourceManager/4.0.0": {
@@ -1040,6 +1087,7 @@
   "projectFileDependencyGroups": {
     "": [
       "System.Collections.Immutable >= 1.1.37",
+      "System.Reflection.Metadata >= 1.2.0-rc3-23721",
       "xunit >= 2.1.0",
       "xunit.runner.console >= 2.1.0"
     ],

@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Xunit;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -119,7 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem(5666, "https://github.com/dotnet/roslyn/issues/5666")]
         public void NoMembers()
         {
             var expression = "o";
@@ -135,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Verify(dynamicView,
                 EvalResult(Resources.DynamicView, Resources.DynamicViewValueWarning, "", "o, dynamic", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
             Verify(GetChildren(dynamicView),
-                EvalFailedResult(Resources.ErrorName, "No further information on this object could be discovered"));
+                EvalFailedResult(Resources.ErrorName, DynamicDebugViewEmptyMessage));
         }
 
         [Fact]

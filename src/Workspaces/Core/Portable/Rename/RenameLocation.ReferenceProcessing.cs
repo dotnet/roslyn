@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     {
                         if (location.Alias.Name == referencedSymbol.Name)
                         {
-                            results.Add(new RenameLocation(location.Location, location.Document.Id, 
+                            results.Add(new RenameLocation(location.Location, location.Document.Id,
                                 isCandidateLocation: location.IsCandidateLocation, isRenamableAliasUsage: true, isWrittenTo: location.IsWrittenTo));
 
                             // We also need to add the location of the alias itself

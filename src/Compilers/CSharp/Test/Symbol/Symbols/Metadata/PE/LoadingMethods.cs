@@ -1255,7 +1255,7 @@ public class D
     }
 }
 ";
-            var longFormRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.LongTypeFormInSignature.AsImmutableOrNull());
+            var longFormRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.LongTypeFormInSignature);
 
             var c = CreateCompilationWithMscorlib(source, new[] { longFormRef });
 
@@ -1265,6 +1265,50 @@ public class D
                 // (7,20): error CS0570: 'C.VT()' is not supported by the language
                 Diagnostic(ErrorCode.ERR_BindToBogus, "VT").WithArguments("C.VT()"));
         }
+
+        [WorkItem(7971, "https://github.com/dotnet/roslyn/issues/7971")]
+        [Fact(Skip = "7971")]
+        public void MemberSignature_CycleTrhuTypeSpecInCustomModifiers()
+        {
+            string source = @"
+class P
+{
+    static void Main()
+    {
+        User.X(new Extender());
+    }
+}
+";
+            var lib = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.Signatures.SignatureCycle2);
+
+            var c = CreateCompilationWithMscorlib(source, new[] { lib });
+
+            c.VerifyDiagnostics();
+        }
+
+        [WorkItem(7970, "https://github.com/dotnet/roslyn/issues/7970")]
+        [Fact]
+        public void MemberSignature_TypeSpecInWrongPlace()
+        {
+            string source = @"
+class P
+{
+    static void Main()
+    {
+        User.X(new System.Collections.Generic.List<int>());
+    }
+}
+";
+            var lib = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.Signatures.TypeSpecInWrongPlace);
+
+            var c = CreateCompilationWithMscorlib(source, new[] { lib });
+
+            c.VerifyDiagnostics(
+                // (6,14): error CS0570: 'User.X(?)' is not supported by the language
+                //         User.X(new System.Collections.Generic.List<int>());
+                Diagnostic(ErrorCode.ERR_BindToBogus, "X").WithArguments("User.X(?)"));
+        }
+
         [WorkItem(666162, "DevDiv")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void Repro666162()

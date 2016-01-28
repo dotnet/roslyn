@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         private const string RegistryKey = @"Software\Microsoft\ExpressionEvaluator";
         private const string RegistryValue = "EnableFailFast";
-        private static readonly bool s_isFailFastEnabled;
+        internal static bool IsFailFastEnabled;
 
         static ExpressionEvaluatorFatalError()
         {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                                     var value = getValueMethod.Invoke(eeKey, new object[] { RegistryValue });
                                     if ((value != null) && (value is int))
                                     {
-                                        s_isFailFastEnabled = ((int)value == 1);
+                                        IsFailFastEnabled = ((int)value == 1);
                                     }
                                 }
                             }
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static bool CrashIfFailFastEnabled(Exception exception)
         {
-            if (!s_isFailFastEnabled)
+            if (!IsFailFastEnabled)
             {
                 return false;
             }
@@ -83,21 +83,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             return FatalError.Report(exception);
-        }
-
-        internal delegate bool NonFatalExceptionHandler(Exception exception, string implementationName);
-
-        internal static bool ReportNonFatalException(Exception exception, NonFatalExceptionHandler handler)
-        {
-            if (CrashIfFailFastEnabled(exception))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-
-            // Ignore the return value, because we always want to continue after reporting the Exception.
-            handler(exception, nameof(ExpressionEvaluatorFatalError));
-
-            return true;
         }
     }
 }

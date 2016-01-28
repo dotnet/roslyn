@@ -4,6 +4,7 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 {
@@ -26,6 +27,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
         IWpfTextView IInteractiveWindowEditorFactoryService.CreateTextView(IInteractiveWindow window, ITextBuffer buffer, ITextViewRoleSet roles)
         {
+            WpfTestCase.RequireWpfFact($"Creates an IWpfTextView in {nameof(InteractiveWindowEditorsFactoryService)}");
+
             var textView = _textEditorFactoryService.CreateTextView(buffer, roles);
             return _textEditorFactoryService.CreateTextViewHost(textView, false).TextView;
         }

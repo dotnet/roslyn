@@ -230,9 +230,18 @@ System.Diagnostics.Process.GetCurrentProcess()
             Assert.NotNull(process);
         }
 
+        private static Lazy<bool> IsSystemV2AndV4Available = new Lazy<bool>(() =>
+        {
+            string path;
+            return GlobalAssemblyCache.Instance.ResolvePartialName("System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", out path) != null &&
+                   GlobalAssemblyCache.Instance.ResolvePartialName("System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", out path) != null;
+        });
+
         [Fact]
         public void References_Versioning_FxUnification1()
         {
+            if (!IsSystemV2AndV4Available.Value) return;
+
             var script = CSharpScript.Create($@"
 #r ""System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
 #r ""System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
@@ -260,6 +269,8 @@ System.Diagnostics.Process.GetCurrentProcess()
         [Fact]
         public void References_Versioning_FxUnification2()
         {
+            if (!IsSystemV2AndV4Available.Value) return;
+
             var script0 = CSharpScript.Create($@"
 #r ""System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
 ");
@@ -353,8 +364,8 @@ new C()
         [Fact]
         public void References_Versioning_WeakNames1()
         {
-            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
-            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
 
             var result = CSharpScript.EvaluateAsync($@"
 #r ""{c1.Path}""
@@ -369,8 +380,8 @@ new C()
         [Fact]
         public void References_Versioning_WeakNames2()
         {
-            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
-            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
 
             var result = CSharpScript.Create($@"
 #r ""{c1.Path}""
@@ -386,8 +397,8 @@ new C()
         [Fact]
         public void References_Versioning_WeakNames3()
         {
-            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
-            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
 
             var script0 = CSharpScript.Create($@"
 #r ""{c1.Path}""
@@ -536,7 +547,7 @@ x
         [Fact]
         public void HostObjectInInMemoryAssembly()
         {
-            var lib = CreateCompilationWithMscorlib("public class C { public int X = 1, Y = 2; }", "HostLib");
+            var lib = CreateCSharpCompilationWithMscorlib("public class C { public int X = 1, Y = 2; }", "HostLib");
             var libImage = lib.EmitToArray();
             var libRef = MetadataImageReference.CreateFromImage(libImage);
 

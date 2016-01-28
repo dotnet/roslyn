@@ -44,10 +44,15 @@
     <Compile Include="..\..\Shared\AbstractAnalyzerAssemblyLoader.cs">
       <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
     </Compile>
+    <Compile Include="..\..\Shared\ExitingTraceListener.cs">
+      <Link>ExitingTraceListener.cs</Link>
+    </Compile>
     <Compile Include="..\..\Shared\SimpleAnalyzerAssemblyLoader.cs">
       <Link>SimpleAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="Csc.cs" />
+    <Compile Include="..\..\Shared\Csc.cs">
+      <Link>Csc.cs</Link>
+    </Compile>
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>

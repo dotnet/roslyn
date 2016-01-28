@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
     Public Class AliasTests
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleSpecialTypeAliasVariable()
             Using result = RenameEngineResult.Create(
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleSpecialTypeDoubleAliasVariable()
             Using result = RenameEngineResult.Create(
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleTypeAliasVariable()
             Using result = RenameEngineResult.Create(
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasNoConflict()
             Using result = RenameEngineResult.Create(
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToSameNameNoConflict()
             Using result = RenameEngineResult.Create(
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(586743)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameOneDuplicateAliasToNoConflict()
@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
         End Sub
 
         <WorkItem(541393)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameNamespaceAlias()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -167,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
         End Sub
 
         <WorkItem(545614)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameConstructedTypeAliasFromUse()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -190,7 +190,7 @@ End Module
         End Sub
 
         <WorkItem(545614)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameConstructedTypeAliasFromDeclaration()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -214,7 +214,7 @@ End Module
 
 
         <WorkItem(545614)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleTypeAliasFromUse()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -237,7 +237,7 @@ End Module
         End Sub
 
         <WorkItem(545614)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleTypeAliasFromDeclaration()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -259,7 +259,7 @@ End Module
         End Sub
 
         <WorkItem(546084)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictWhenRenamingAliasToSameAsGlobalTypeName()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -284,7 +284,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(633860)>
         <WorkItem(632303)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
@@ -319,7 +319,7 @@ end class
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(633860)>
         <WorkItem(632303)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
@@ -355,7 +355,7 @@ end class
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(633860)>
         <WorkItem(632303)>
         <Trait(Traits.Feature, Traits.Features.Rename)>

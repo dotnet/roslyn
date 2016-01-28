@@ -15,79 +15,79 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 {
     public class PatternMatcherTests
     {
-        [WpfFact]
+        [Fact]
         public void BreakIntoCharacterParts_EmptyIdentifier()
         {
             VerifyBreakIntoCharacterParts(string.Empty, Array.Empty<string>());
         }
 
-        [WpfFact]
+        [Fact]
         public void BreakIntoCharacterParts_SimpleIdentifier()
         {
             VerifyBreakIntoCharacterParts("foo", "foo");
         }
 
-        [WpfFact]
+        [Fact]
         public void BreakIntoCharacterParts_PrefixUnderscoredIdentifier()
         {
             VerifyBreakIntoCharacterParts("_foo", "_", "foo");
         }
 
-        [WpfFact]
+        [Fact]
         public void BreakIntoCharacterParts_UnderscoredIdentifier()
         {
             VerifyBreakIntoCharacterParts("f_oo", "f", "_", "oo");
         }
 
-        [WpfFact]
+        [Fact]
         public void BreakIntoCharacterParts_PostfixUnderscoredIdentifier()
         {
             VerifyBreakIntoCharacterParts("foo_", "foo", "_");
         }
 
-        [WpfFact]
+        [Fact]
         public void BreakIntoCharacterParts_PrefixUnderscoredIdentifierWithCapital()
         {
             VerifyBreakIntoCharacterParts("_Foo", "_", "Foo");
         }
 
-        [WpfFact]
+        [Fact]
         public void BreakIntoCharacterParts_MUnderscorePrefixed()
         {
             VerifyBreakIntoCharacterParts("m_foo", "m", "_", "foo");
         }
 
-        [WpfFact]
+        [Fact]
         public void BreakIntoCharacterParts_CamelCaseIdentifier()
         {
             VerifyBreakIntoCharacterParts("FogBar", "Fog", "Bar");
         }
 
-        [WpfFact]
+        [Fact]
         public void BreakIntoCharacterParts_MixedCaseIdentifier()
         {
             VerifyBreakIntoCharacterParts("fogBar", "fog", "Bar");
         }
 
-        [WpfFact]
+        [Fact]
         public void BreakIntoCharacterParts_TwoCharacterCapitalIdentifier()
         {
             VerifyBreakIntoCharacterParts("UIElement", "U", "I", "Element");
         }
 
-        [WpfFact]
+        [Fact]
         public void BreakIntoCharacterParts_NumberSuffixedIdentifier()
         {
             VerifyBreakIntoCharacterParts("Foo42", "Foo", "42");
         }
 
-        [WpfFact]
+        [Fact]
         public void BreakIntoCharacterParts_NumberContainingIdentifier()
         {
             VerifyBreakIntoCharacterParts("Fog42Bar", "Fog", "42", "Bar");
         }
 
-        [WpfFact]
+        [Fact]
         public void BreakIntoCharacterParts_NumberPrefixedIdentifier()
         {
             // 42Bar is not a valid identifier in either C# or VB, but it is entirely conceivable the user might be
@@ -95,62 +95,62 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             VerifyBreakIntoCharacterParts("42Bar", "42", "Bar");
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(544296)]
         public void BreakIntoWordParts_VerbatimIdentifier()
         {
             VerifyBreakIntoWordParts("@int:", "int");
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(537875)]
         public void BreakIntoWordParts_AllCapsConstant()
         {
             VerifyBreakIntoWordParts("C_STYLE_CONSTANT", "C", "_", "STYLE", "_", "CONSTANT");
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(540087)]
         public void BreakIntoWordParts_SingleLetterPrefix1()
         {
             VerifyBreakIntoWordParts("UInteger", "U", "Integer");
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(540087)]
         public void BreakIntoWordParts_SingleLetterPrefix2()
         {
             VerifyBreakIntoWordParts("IDisposable", "I", "Disposable");
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(540087)]
         public void BreakIntoWordParts_TwoCharacterCapitalIdentifier()
         {
             VerifyBreakIntoWordParts("UIElement", "UI", "Element");
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(540087)]
         public void BreakIntoWordParts_XDocument()
         {
             VerifyBreakIntoWordParts("XDocument", "X", "Document");
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(540087)]
         public void BreakIntoWordParts_XMLDocument1()
         {
             VerifyBreakIntoWordParts("XMLDocument", "XML", "Document");
         }
 
-        [WpfFact]
+        [Fact]
         public void BreakIntoWordParts_XMLDocument2()
         {
             VerifyBreakIntoWordParts("XmlDocument", "Xml", "Document");
         }
 
-        [WpfFact]
+        [Fact]
         public void BreakIntoWordParts_TwoUppercaseCharacters()
         {
             VerifyBreakIntoWordParts("SimpleUIElement", "Simple", "UI", "Element");
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             AssertEx.Equal(parts, BreakIntoCharacterParts(original));
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveExact()
         {
             var match = TryMatchSingleWordPattern("Foo", "Foo");
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(true, match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_SingleWordPreferCaseSensitiveExactInsensitive()
         {
             var match = TryMatchSingleWordPattern("foo", "Foo");
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(false, match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitivePrefix()
         {
             var match = TryMatchSingleWordPattern("Foo", "Fo");
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(true, match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitivePrefixCaseInsensitive()
         {
             var match = TryMatchSingleWordPattern("Foo", "fo");
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(false, match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveCamelCaseMatchSimple()
         {
             var match = TryMatchSingleWordPattern("FogBar", "FB");
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.InRange((int)match.Value.CamelCaseWeight, 1, int.MaxValue);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveCamelCaseMatchPartialPattern()
         {
             var match = TryMatchSingleWordPattern("FogBar", "FoB");
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(true, match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveCamelCaseMatchToLongPattern1()
         {
             var match = TryMatchSingleWordPattern("FogBar", "FBB");
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Null(match);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveCamelCaseMatchToLongPattern2()
         {
             var match = TryMatchSingleWordPattern("FogBar", "FoooB");
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Null(match);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_CamelCaseMatchPartiallyUnmatched()
         {
             var match = TryMatchSingleWordPattern("FogBarBaz", "FZ");
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Null(match);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_CamelCaseMatchCompletelyUnmatched()
         {
             var match = TryMatchSingleWordPattern("FogBarBaz", "ZZ");
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Null(match);
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(544975)]
         public void TryMatchSingleWordPattern_TwoUppercaseCharacters()
         {
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.True(match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveLowercasePattern()
         {
             var match = TryMatchSingleWordPattern("FogBar", "b");
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.False(match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveLowercasePattern2()
         {
             var match = TryMatchSingleWordPattern("FogBar", "fB");
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(false, match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveTryUnderscoredName()
         {
             var match = TryMatchSingleWordPattern("_fogBar", "_fB");
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(true, match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveTryUnderscoredNameInsensitive()
         {
             var match = TryMatchSingleWordPattern("_FogBar", "_fB");
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(false, match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveMiddleUnderscore()
         {
             var match = TryMatchSingleWordPattern("Fog_Bar", "FB");
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(true, match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveMiddleUnderscore2()
         {
             var match = TryMatchSingleWordPattern("Fog_Bar", "F_B");
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(true, match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveMiddleUnderscore3()
         {
             var match = TryMatchSingleWordPattern("Fog_Bar", "F__B");
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Null(match);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveMiddleUnderscore4()
         {
             var match = TryMatchSingleWordPattern("Fog_Bar", "f_B");
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(false, match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveMiddleUnderscore5()
         {
             var match = TryMatchSingleWordPattern("Fog_Bar", "F_b");
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(false, match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveRelativeWeights1()
         {
             var match1 = TryMatchSingleWordPattern("FogBarBaz", "FB");
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.InRange((int)match1.Value.CamelCaseWeight, (int)match2.Value.CamelCaseWeight + 1, int.MaxValue);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveRelativeWeights2()
         {
             var match1 = TryMatchSingleWordPattern("BazBarFooFooFoo", "FFF");
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.InRange((int)match1.Value.CamelCaseWeight, (int)match2.Value.CamelCaseWeight + 1, int.MaxValue);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveRelativeWeights3()
         {
             var match1 = TryMatchSingleWordPattern("FogBarFooFoo", "FFF");
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.InRange((int)match1.Value.CamelCaseWeight, (int)match2.Value.CamelCaseWeight + 1, int.MaxValue);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseInsensitiveBasicEquals()
         {
             var match = TryMatchSingleWordPattern("Foo", "foo");
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(false, match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseInsensitiveBasicEquals2()
         {
             var match = TryMatchSingleWordPattern("Foo", "Foo");
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(true, match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseInsensitiveBasicPrefix()
         {
             var match = TryMatchSingleWordPattern("FogBar", "fog");
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(false, match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseInsensitiveBasicPrefix2()
         {
             var match = TryMatchSingleWordPattern("FogBar", "Fog");
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(true, match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseInsensitiveCamelCase1()
         {
             var match = TryMatchSingleWordPattern("FogBar", "FB");
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(true, match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseInsensitiveCamelCase2()
         {
             var match = TryMatchSingleWordPattern("FogBar", "fB");
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(false, match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseInsensitiveCamelCase3()
         {
             var match = TryMatchSingleWordPattern("fogBar", "fB");
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Equal(true, match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveWhenPrefix()
         {
             var match = TryMatchSingleWordPattern("fogBarFoo", "Fog");
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.False(match.Value.IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseInsensitiveWhenPrefix()
         {
             var match = TryMatchSingleWordPattern("fogBarFoo", "Fog");
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.True(results.Any(r => r.Kind == type));
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_ExactWithLowercase()
         {
             var match = TryMatchMultiWordPattern("AddMetadataReference", "addmetadatareference");
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             AssertContainsType(PatternMatchKind.Exact, match);
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_SingleLowercasedSearchWord1()
         {
             var match = TryMatchMultiWordPattern("AddMetadataReference", "add");
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             AssertContainsType(PatternMatchKind.Prefix, match);
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_SingleLowercasedSearchWord2()
         {
             var match = TryMatchMultiWordPattern("AddMetadataReference", "metadata");
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             AssertContainsType(PatternMatchKind.Substring, match);
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_SingleUppercaseSearchWord1()
         {
             var match = TryMatchMultiWordPattern("AddMetadataReference", "Add");
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             AssertContainsType(PatternMatchKind.Prefix, match);
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_SingleUppercaseSearchWord2()
         {
             var match = TryMatchMultiWordPattern("AddMetadataReference", "Metadata");
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             AssertContainsType(PatternMatchKind.Substring, match);
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_SingleUppercaseSearchLetter1()
         {
             var match = TryMatchMultiWordPattern("AddMetadataReference", "A");
@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             AssertContainsType(PatternMatchKind.Prefix, match);
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_SingleUppercaseSearchLetter2()
         {
             var match = TryMatchMultiWordPattern("AddMetadataReference", "M");
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             AssertContainsType(PatternMatchKind.Substring, match);
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_TwoLowercaseWords()
         {
             var match = TryMatchMultiWordPattern("AddMetadataReference", "add metadata");
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             AssertContainsType(PatternMatchKind.Substring, match);
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_TwoUppercaseLettersSeparateWords()
         {
             var match = TryMatchMultiWordPattern("AddMetadataReference", "A M");
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             AssertContainsType(PatternMatchKind.Substring, match);
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_TwoUppercaseLettersOneWord()
         {
             var match = TryMatchMultiWordPattern("AddMetadataReference", "AM");
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             AssertContainsType(PatternMatchKind.CamelCase, match);
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_Mixed1()
         {
             var match = TryMatchMultiWordPattern("AddMetadataReference", "ref Metadata");
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.True(match.Select(m => m.Kind).SequenceEqual(new[] { PatternMatchKind.Substring, PatternMatchKind.Substring }));
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_Mixed2()
         {
             var match = TryMatchMultiWordPattern("AddMetadataReference", "ref M");
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.True(match.Select(m => m.Kind).SequenceEqual(new[] { PatternMatchKind.Substring, PatternMatchKind.Substring }));
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_MixedCamelCase()
         {
             var match = TryMatchMultiWordPattern("AddMetadataReference", "AMRe");
@@ -574,19 +574,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             AssertContainsType(PatternMatchKind.CamelCase, match);
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_BlankPattern()
         {
             Assert.Null(TryMatchMultiWordPattern("AddMetadataReference", string.Empty));
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_WhitespaceOnlyPattern()
         {
             Assert.Null(TryMatchMultiWordPattern("AddMetadataReference", " "));
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_EachWordSeparately1()
         {
             var match = TryMatchMultiWordPattern("AddMetadataReference", "add Meta");
@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             AssertContainsType(PatternMatchKind.Substring, match);
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_EachWordSeparately2()
         {
             var match = TryMatchMultiWordPattern("AddMetadataReference", "Add meta");
@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             AssertContainsType(PatternMatchKind.Substring, match);
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_EachWordSeparately3()
         {
             var match = TryMatchMultiWordPattern("AddMetadataReference", "Add Meta");
@@ -613,19 +613,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             AssertContainsType(PatternMatchKind.Substring, match);
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_MixedCasing1()
         {
             Assert.Null(TryMatchMultiWordPattern("AddMetadataReference", "mEta"));
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_MixedCasing2()
         {
             Assert.Null(TryMatchMultiWordPattern("AddMetadataReference", "Data"));
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_AsteriskSplit()
         {
             var match = TryMatchMultiWordPattern("GetKeyWord", "K*W");
@@ -634,14 +634,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         }
 
         [WorkItem(544628)]
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_LowercaseSubstring1()
         {
             Assert.Null(TryMatchMultiWordPattern("Operator", "a"));
         }
 
         [WorkItem(544628)]
-        [WpfFact]
+        [Fact]
         public void MatchMultiWordPattern_LowercaseSubstring2()
         {
             var match = TryMatchMultiWordPattern("FooAttribute", "a");
@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.False(match.First().IsCaseSensitive);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryMatchSingleWordPattern_CultureAwareSingleWordPreferCaseSensitiveExactInsensitive()
         {
             var previousCulture = Thread.CurrentThread.CurrentCulture;
@@ -669,25 +669,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchAllLowerPattern1()
         {
             Assert.NotNull(TryMatchSingleWordPattern("FogBarChangedEventArgs", "changedeventargs"));
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchAllLowerPattern2()
         {
             Assert.Null(TryMatchSingleWordPattern("FogBarChangedEventArgs", "changedeventarrrgh"));
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchAllLowerPattern3()
         {
             Assert.NotNull(TryMatchSingleWordPattern("ABCDEFGH", "bcd"));
         }
 
-        [WpfFact]
+        [Fact]
         public void MatchAllLowerPattern4()
         {
             Assert.Null(TryMatchSingleWordPattern("AbcdefghijEfgHij", "efghij"));

@@ -2,9 +2,10 @@
 
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
 
-Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
+Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting
 
     ''' <summary>
     ''' A factory for creating and running Visual Basic scripts.
@@ -73,5 +74,6 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
             Return EvaluateAsync(Of Object)(code, Nothing, globals, cancellationToken)
         End Function
     End Class
+
 End Namespace
 

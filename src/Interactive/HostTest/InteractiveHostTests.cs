@@ -1123,6 +1123,36 @@ new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             AssertEx.AssertEqualToleratingWhitespaceDifferences("C { P=null }", output);
         }
 
+        [Fact, WorkItem(7280, "https://github.com/dotnet/roslyn/issues/7280")]
+        public void AsyncContinueOnDifferentThread()
+        {
+            Execute(@"
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).ContinueWith(t => t.Result).Result)");
+            
+            var output = ReadOutputToEnd();
+            var error = ReadErrorOutputToEnd();
+
+            Assert.Equal("42", output);
+            Assert.Empty(error);
+        }
+
+        [Fact]
+        public void Exception()
+        {
+            Execute(@"throw new System.Exception();");
+
+            var output = ReadOutputToEnd();
+            var error = ReadErrorOutputToEnd();
+
+            Assert.Equal("", output);
+            Assert.DoesNotContain("Unexpected", error, StringComparison.OrdinalIgnoreCase);
+            Assert.True(error.StartsWith("System.Exception: Exception of type 'System.Exception' was thrown."));
+        }
+
         #region Submission result printing - null/void/value.
 
         [Fact]

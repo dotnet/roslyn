@@ -331,9 +331,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 return Task.FromResult<Document>(null);
             }
 
-            private static string ComputeEquivalenceKey(IEnumerable<CodeAction> nestedActions)
+            private static string ComputeEquivalenceKey(ImmutableArray<CodeAction> nestedActions)
             {
-                if (nestedActions == null)
+                if (nestedActions.IsDefault)
                 {
                     return null;
                 }
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 {
                     foreach (var action in nestedActions)
                     {
-                        equivalenceKey.Append(action.EquivalenceKey ?? action.GetHashCode().ToString() + ";");
+                        equivalenceKey.Append((action.EquivalenceKey ?? action.GetHashCode().ToString()) + ";");
                     }
 
                     return equivalenceKey.Length > 0 ? equivalenceKey.ToString() : null;

@@ -15,11 +15,13 @@ static void addLogRotator(def myJob) {
 static void addConcurrentBuild(def myJob, String category) {
   myJob.with {
     concurrentBuild(true)
-    throttleConcurrentBuilds {
-      throttleDisabled(false)
-      maxTotal(0)
-      maxPerNode(1)
-      categories([category])
+    if (category != null)  {
+      throttleConcurrentBuilds {
+        throttleDisabled(false)
+        maxTotal(0)
+        maxPerNode(1)
+        categories([category])
+      }
     }
   }
 }
@@ -173,7 +175,8 @@ set TMP=%TEMP%
 .\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}""")
                   }
                 }
-                addConcurrentBuild(myJob, 'roslyn/win/unit')
+                // Generic throttling for Windows, no category
+                addConcurrentBuild(myJob, null)
                 break;
               case 'linux':
                 myJob.with {

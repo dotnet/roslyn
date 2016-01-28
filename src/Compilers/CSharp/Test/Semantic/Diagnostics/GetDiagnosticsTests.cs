@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Xunit;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -123,6 +125,139 @@ class C
             Assert.Equal(DiagnosticSeverity.Info, info.Severity);
             Assert.Equal(DiagnosticSeverity.Warning, info.DefaultSeverity);
             Assert.Equal(4, info.WarningLevel);
+        }
+
+        [Fact, WorkItem(7446, "https://github.com/dotnet/roslyn/issues/7446")]
+        public void TestCompilationEventQueueWithSemanticModelGetDiagnostics()
+        {
+            var source1 = @"
+namespace N1
+{
+    partial class Class
+    {
+        private void NonPartialMethod1() { }
+    }
+} 
+";
+            var source2 = @"
+namespace N1
+{
+    partial class Class
+    {
+        private void NonPartialMethod2() { }
+    }
+} 
+";
+
+            var tree1 = CSharpSyntaxTree.ParseText(source1, path: "file1");
+            var tree2 = CSharpSyntaxTree.ParseText(source2, path: "file2");
+            var eventQueue = new AsyncQueue<CompilationEvent>();
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 }).WithEventQueue(eventQueue);
+            
+            // Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
+            var model = compilation.GetSemanticModel(tree1);
+            model.GetDiagnostics(tree1.GetRoot().FullSpan);
+
+            Assert.True(eventQueue.Count > 0);
+            bool compilationStartedFired;
+            HashSet<string> declaredSymbolNames, completedCompilationUnits;
+            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out declaredSymbolNames, out completedCompilationUnits));
+
+            // Verify symbol declared events fired for all symbols declared in the first source file.
+            Assert.True(compilationStartedFired);
+            Assert.True(declaredSymbolNames.Contains(compilation.GlobalNamespace.Name));
+            Assert.True(declaredSymbolNames.Contains("N1"));
+            Assert.True(declaredSymbolNames.Contains("Class"));
+            Assert.True(declaredSymbolNames.Contains("NonPartialMethod1"));
+            Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7477"), WorkItem(7477, "https://github.com/dotnet/roslyn/issues/7477")]
+        public void TestCompilationEventsForPartialMethod()
+        {
+            var source1 = @"
+namespace N1
+{
+    partial class Class
+    {
+        private void NonPartialMethod1() { }
+        partial void PartialMethod();
+    }
+} 
+";
+            var source2 = @"
+namespace N1
+{
+    partial class Class
+    {
+        private void NonPartialMethod2() { }
+        partial void PartialMethod() { }
+    }
+} 
+";
+
+            var tree1 = CSharpSyntaxTree.ParseText(source1, path: "file1");
+            var tree2 = CSharpSyntaxTree.ParseText(source2, path: "file2");
+            var eventQueue = new AsyncQueue<CompilationEvent>();
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 }).WithEventQueue(eventQueue);
+
+            // Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
+            var model = compilation.GetSemanticModel(tree1);
+            model.GetDiagnostics(tree1.GetRoot().FullSpan);
+
+            Assert.True(eventQueue.Count > 0);
+            bool compilationStartedFired;
+            HashSet<string> declaredSymbolNames, completedCompilationUnits;
+            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out declaredSymbolNames, out completedCompilationUnits));
+
+            // Verify symbol declared events fired for all symbols declared in the first source file.
+            Assert.True(compilationStartedFired);
+            Assert.True(declaredSymbolNames.Contains(compilation.GlobalNamespace.Name));
+            Assert.True(declaredSymbolNames.Contains("N1"));
+            Assert.True(declaredSymbolNames.Contains("Class"));
+            Assert.True(declaredSymbolNames.Contains("NonPartialMethod1"));
+            Assert.True(declaredSymbolNames.Contains("PartialMethod"));
+            Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
+        }
+
+        private static bool DequeueCompilationEvents(AsyncQueue<CompilationEvent> eventQueue, out bool compilationStartedFired, out HashSet<string> declaredSymbolNames, out HashSet<string> completedCompilationUnits)
+        {
+            compilationStartedFired = false;
+            declaredSymbolNames = new HashSet<string>();
+            completedCompilationUnits = new HashSet<string>();
+            if (eventQueue.Count == 0)
+            {
+                return false;
+            }
+
+            CompilationEvent compEvent;
+            while (eventQueue.TryDequeue(out compEvent))
+            {
+                if (compEvent is CompilationStartedEvent)
+                {
+                    Assert.False(compilationStartedFired, "Unexpected multiple compilation stated events");
+                    compilationStartedFired = true;
+                }
+                else
+                {
+                    var symbolDeclaredEvent = compEvent as SymbolDeclaredCompilationEvent;
+                    if (symbolDeclaredEvent != null)
+                    {
+                        var added = declaredSymbolNames.Add(symbolDeclaredEvent.Symbol.Name);
+                        Assert.True(added, "Unexpected multiple symbol declared events for symbol " + symbolDeclaredEvent.Symbol);
+                    }
+                    else
+                    {
+                        var compilationCompeletedEvent = compEvent as CompilationUnitCompletedEvent;
+                        if (compilationCompeletedEvent != null)
+                        {
+                            Assert.True(completedCompilationUnits.Add(compilationCompeletedEvent.CompilationUnit.FilePath));
+                        }
+                    }
+                }
+            }
+
+            return true;
         }
     }
 }

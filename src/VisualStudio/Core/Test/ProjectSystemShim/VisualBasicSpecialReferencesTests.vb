@@ -7,7 +7,7 @@ Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Visu
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class VisualBasicSpecialReferencesTests
-        <WpfFact()>
+        <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub ProjectIncludesReferencesToMscorlibSystemAndMicrosoftVisualBasic()
             Using environment = New TestEnvironment()
@@ -25,7 +25,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
+        <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub ProjectWithoutStandardLibsDoesNotReferenceSystem()
             Using environment = New TestEnvironment()
@@ -45,7 +45,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
+        <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub ProjectWithoutVisualBasicRuntimeDoesNotReferenceMicrosoftVisualBasic()
             Using environment = New TestEnvironment()
@@ -65,7 +65,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
+        <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         <WorkItem(860964)>
         Public Sub AddingReferenceToMicrosoftVisualBasicBeforeSettingOptionsShouldNotCrash()
@@ -96,7 +96,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
+        <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         <WorkItem(3477, "https://github.com/dotnet/roslyn/issues/3477")>
         Public Sub ProjectWithEmptySdkPathHasNoReferences()
@@ -113,7 +113,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
+        <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         <WorkItem(860964)>
         Public Sub AddingReferenceToMicrosoftVisualBasicAfterSettingOptionsShouldNotCrash()
@@ -142,7 +142,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
+        <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub AddingReferenceToProjectMetadataPromotesToProjectReference()
             Using environment = New TestEnvironment()
@@ -163,7 +163,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
+        <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub AddCyclicProjectMetadataReferences()
             Using environment = New TestEnvironment()
@@ -187,7 +187,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
+        <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub AddCyclicProjectReferences()
             Using environment = New TestEnvironment()
@@ -206,7 +206,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
+        <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub AddCyclicProjectReferencesDeep()
             Using environment = New TestEnvironment()

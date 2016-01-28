@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -7,51 +8,51 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     public class AsyncKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void MethodDeclaration1()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMethodDeclaration1()
         {
-            VerifyKeyword(@"class C
+            await VerifyKeywordAsync(@"class C
 {
     $$
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void MethodDeclaration2()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMethodDeclaration2()
         {
-            VerifyKeyword(@"class C
+            await VerifyKeywordAsync(@"class C
 {
     public $$
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void MethodDeclaration3()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMethodDeclaration3()
         {
-            VerifyKeyword(@"class C
+            await VerifyKeywordAsync(@"class C
 {
     $$ public void foo() { }
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void MethodDeclarationInGlobalStatement1()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMethodDeclarationInGlobalStatement1()
         {
             const string text = @"$$";
-            VerifyKeyword(SourceCodeKind.Script, text);
+            await VerifyKeywordAsync(SourceCodeKind.Script, text);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void MethodDeclarationInGlobalStatement2()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMethodDeclarationInGlobalStatement2()
         {
             const string text = @"public $$";
-            VerifyKeyword(SourceCodeKind.Script, text);
-        }  
+            await VerifyKeywordAsync(SourceCodeKind.Script, text);
+        }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void ExpressionContext()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExpressionContext()
         {
-            VerifyKeyword(@"class C
+            await VerifyKeywordAsync(@"class C
 {
     void foo()
     {
@@ -60,10 +61,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInParameter()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInParameter()
         {
-            VerifyAbsence(@"class C
+            await VerifyAbsenceAsync(@"class C
 {
     void foo($$)
     {
@@ -71,10 +72,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void BeforeLambda()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeLambda()
         {
-            VerifyKeyword(@"
+            await VerifyKeywordAsync(@"
 class Program
 {
     static void Main(string[] args)
@@ -84,10 +85,10 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotIfAlreadyAsync2()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotIfAlreadyAsync2()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 class Program
 {
     static void Main(string[] args)
@@ -98,10 +99,10 @@ class Program
         }
 
         [WorkItem(578061)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInNamespace()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInNamespace()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 namespace Foo
 {
     $$
@@ -109,10 +110,10 @@ namespace Foo
         }
 
         [WorkItem(578069)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotAfterPartialInNamespace()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterPartialInNamespace()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 namespace Foo
 {
     partial $$
@@ -120,10 +121,10 @@ namespace Foo
         }
 
         [WorkItem(578750)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotAfterPartialInClass()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterPartialInClass()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 class Foo
 {
     partial $$

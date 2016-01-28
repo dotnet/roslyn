@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -74,19 +75,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action, operationKinds);
-            _scope.RegisterOperationAction(this._analyzer, action, operationKinds);
+            _scope.RegisterOperationAction(_analyzer, action, operationKinds);
         }
 
         public override void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            _scope.RegisterOperationBlockStartAction(this._analyzer, action);
+            _scope.RegisterOperationBlockStartAction(_analyzer, action);
         }
 
         public override void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            _scope.RegisterOperationBlockAction(this._analyzer, action);
+            _scope.RegisterOperationBlockAction(_analyzer, action);
+        }
+
+        public override void EnableConcurrentExecution()
+        {
+            _scope.EnableConcurrentExecution(_analyzer);
+        }
+
+        public override void ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags mode)
+        {
+            _scope.ConfigureGeneratedCodeAnalysis(_analyzer, mode);
         }
     }
 
@@ -226,10 +237,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal sealed class HostSessionStartAnalysisScope : HostAnalysisScope
     {
         private ImmutableArray<CompilationStartAnalyzerAction> _compilationStartActions = ImmutableArray<CompilationStartAnalyzerAction>.Empty;
+        private ImmutableHashSet<DiagnosticAnalyzer> _concurrentAnalyzers = ImmutableHashSet<DiagnosticAnalyzer>.Empty;
+        private ConcurrentDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> _generatedCodeConfigurationMap = new ConcurrentDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags>();
 
         public ImmutableArray<CompilationStartAnalyzerAction> CompilationStartActions
         {
             get { return _compilationStartActions; }
+        }
+
+        public bool IsConcurrentAnalyzer(DiagnosticAnalyzer analyzer)
+        {
+            return _concurrentAnalyzers.Contains(analyzer);
+        }
+
+        public GeneratedCodeAnalysisFlags GetGeneratedCodeAnalysisFlags(DiagnosticAnalyzer analyzer)
+        {
+            GeneratedCodeAnalysisFlags mode;
+            return _generatedCodeConfigurationMap.TryGetValue(analyzer, out mode) ? mode : GeneratedCodeAnalysisFlags.Default;
         }
 
         public void RegisterCompilationStartAction(DiagnosticAnalyzer analyzer, Action<CompilationStartAnalysisContext> action)
@@ -237,6 +261,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CompilationStartAnalyzerAction analyzerAction = new CompilationStartAnalyzerAction(action, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).AddCompilationStartAction(analyzerAction);
             _compilationStartActions = _compilationStartActions.Add(analyzerAction);
+        }
+
+        public void EnableConcurrentExecution(DiagnosticAnalyzer analyzer)
+        {
+            _concurrentAnalyzers = _concurrentAnalyzers.Add(analyzer);
+        }
+
+        public void ConfigureGeneratedCodeAnalysis(DiagnosticAnalyzer analyzer, GeneratedCodeAnalysisFlags mode)
+        {
+            _generatedCodeConfigurationMap.AddOrUpdate(analyzer, addValue: mode, updateValueFactory: (a, c) => mode);
         }
     }
 
@@ -567,6 +601,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.GetOrCreateAnalyzerActions(analyzer).AddOperationBlockAction(analyzerAction);
             _operationBlockActions = _operationBlockActions.Add(analyzerAction);
         }
+
         public void RegisterOperationAction(DiagnosticAnalyzer analyzer, Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             OperationAnalyzerAction analyzerAction = new OperationAnalyzerAction(action, operationKinds, analyzer);
@@ -625,6 +660,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public int SymbolActionsCount { get { return _symbolActions.Length; } }
         public int SyntaxNodeActionsCount { get { return _syntaxNodeActions.Length; } }
         public int OperationActionsCount { get { return this._operationActions.Length; } }
+        public int OperationBlockStartActionsCount { get { return _operationBlockStartActions.Length; } }
+        public int OperationBlockEndActionsCount { get { return _operationBlockEndActions.Length; } }
+        public int OperationBlockActionsCount { get { return _operationBlockActions.Length; } }
         public int CodeBlockStartActionsCount { get { return _codeBlockStartActions.Length; } }
         public int CodeBlockEndActionsCount { get { return _codeBlockEndActions.Length; } }
         public int CodeBlockActionsCount { get { return _codeBlockActions.Length; } }
@@ -766,7 +804,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void AddOperationAction(OperationAnalyzerAction action)
         {
-            this._operationActions = this._operationActions.Add(action);
+            _operationActions = _operationActions.Add(action);
         }
 
         /// <summary>

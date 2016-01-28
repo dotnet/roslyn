@@ -3509,22 +3509,24 @@ class A
             // It does not go on to produce the other errors.
 
             compilation.VerifyDiagnostics(
-    // (33,2): error CS0246: The type or namespace name 'XDoesNotExist' could not be found (are you missing a using directive or an assembly reference?)
-    // [XDoesNotExist()]
-    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "XDoesNotExist").WithArguments("XDoesNotExist").WithLocation(33, 2),
-    // (34,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
-    // [X(1m)]
-    Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(34, 2),
-    // (35,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
-    // [X(1)]
-    Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(35, 2),
-    // (37,2): error CS0121: The call is ambiguous between the following methods or properties: 'XAttribute.XAttribute(ref int)' and 'XAttribute.XAttribute(e1)'
-    // [X(A.dyn)]
-    Diagnostic(ErrorCode.ERR_AmbigCall, "X(A.dyn)").WithArguments("XAttribute.XAttribute(ref int)", "XAttribute.XAttribute(e1)").WithLocation(37, 2),
-    // (38,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
-    // [X(m.NotAConstant() + 2)]
-    Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(38, 2)
-                );
+                // (33,2): error CS0246: The type or namespace name 'XDoesNotExistAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [XDoesNotExist()]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "XDoesNotExist").WithArguments("XDoesNotExistAttribute").WithLocation(33, 2),
+                // (33,2): error CS0246: The type or namespace name 'XDoesNotExist' could not be found (are you missing a using directive or an assembly reference?)
+                // [XDoesNotExist()]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "XDoesNotExist").WithArguments("XDoesNotExist").WithLocation(33, 2),
+                // (34,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
+                // [X(1m)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(34, 2),
+                // (35,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
+                // [X(1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(35, 2),
+                // (37,2): error CS0121: The call is ambiguous between the following methods or properties: 'XAttribute.XAttribute(ref int)' and 'XAttribute.XAttribute(e1)'
+                // [X(A.dyn)]
+                Diagnostic(ErrorCode.ERR_AmbigCall, "X(A.dyn)").WithArguments("XAttribute.XAttribute(ref int)", "XAttribute.XAttribute(e1)").WithLocation(37, 2),
+                // (38,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
+                // [X(m.NotAConstant() + 2)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(38, 2));
         }
 
         [Fact]
@@ -3594,7 +3596,7 @@ class A
             string source = @"
 using CustomAttribute;
 [Base(1)]
-[BaseAttribute(""SOS"")]
+[@BaseAttribute(""SOS"")]
 static class AttributeMod
 {
     [Derived('Q')]
@@ -3615,13 +3617,17 @@ static class AttributeMod
 
             compilation.VerifyDiagnostics(
                 // (4,2): error CS0579: Duplicate 'BaseAttribute' attribute
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, @"BaseAttribute").WithArguments("BaseAttribute"),
+                // [@BaseAttribute("SOS")]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "@BaseAttribute").WithArguments("BaseAttribute").WithLocation(4, 2),
                 // (7,6): error CS0592: Attribute 'Derived' is not valid on this declaration type. It is only valid on 'struct, method, parameter' declarations.
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Derived").WithArguments("Derived", "struct, method, parameter"),
+                //     [Derived('Q')]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Derived").WithArguments("Derived", "struct, method, parameter").WithLocation(7, 6),
                 // (8,6): error CS0579: Duplicate 'Derived' attribute
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Derived").WithArguments("Derived"),
+                //     [Derived('C')]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Derived").WithArguments("Derived").WithLocation(8, 6),
                 // (13,6): error CS0579: Duplicate 'Base' attribute
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, @"Base").WithArguments("Base"));
+                //     [Base("")]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Base").WithArguments("Base").WithLocation(13, 6));
         }
 
         [Fact]
@@ -3679,8 +3685,9 @@ class Class3 { }
             var compilation = CreateCompilationWithMscorlib(source);
 
             compilation.VerifyDiagnostics(
-                // (13,2): error CS0246: The type or namespace name '@X' could not be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@X").WithArguments("@X"));
+                // (13,2): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                // [@X]                // Error: No attribute named X
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@X").WithArguments("X").WithLocation(13, 2));
         }
 
         [Fact]
@@ -4312,6 +4319,9 @@ class Program
 ";
             var compilation = CreateCompilationWithMscorlib(source);
             compilation.VerifyDiagnostics(
+                // (2,2): error CS0246: The type or namespace name 'varAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [var()]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "var").WithArguments("varAttribute").WithLocation(2, 2),
                 // (2,2): error CS0246: The type or namespace name 'var' could not be found (are you missing a using directive or an assembly reference?)
                 // [var()]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "var").WithArguments("var").WithLocation(2, 2));
@@ -5439,15 +5449,18 @@ class Gen<T>
             Assert.NotEmpty(compilation.GetDiagnostics());
 
             compilation.VerifyDiagnostics(
+                // (4,6): error CS0246: The type or namespace name 'TypeAttributeAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     [TypeAttribute(typeof(L1.L2.L3<>.L4<>))] public T Fld6;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TypeAttribute").WithArguments("TypeAttributeAttribute").WithLocation(4, 6),
                 // (4,6): error CS0246: The type or namespace name 'TypeAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 //     [TypeAttribute(typeof(L1.L2.L3<>.L4<>))] public T Fld6;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TypeAttribute").WithArguments("TypeAttribute"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TypeAttribute").WithArguments("TypeAttribute").WithLocation(4, 6),
                 // (4,27): error CS0246: The type or namespace name 'L1' could not be found (are you missing a using directive or an assembly reference?)
                 //     [TypeAttribute(typeof(L1.L2.L3<>.L4<>))] public T Fld6;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "L1").WithArguments("L1"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "L1").WithArguments("L1").WithLocation(4, 27),
                 // (4,55): warning CS0649: Field 'Gen<T>.Fld6' is never assigned to, and will always have its default value 
                 //     [TypeAttribute(typeof(L1.L2.L3<>.L4<>))] public T Fld6;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Fld6").WithArguments("Gen<T>.Fld6", ""));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Fld6").WithArguments("Gen<T>.Fld6", "").WithLocation(4, 55));
         }
 
         [WorkItem(543914, "DevDiv")]

@@ -29,6 +29,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Friend Shared ReadOnly NoAliases As ImmutableArray(Of [Alias]) = ImmutableArray(Of [Alias]).Empty
 
+        Protected Sub New()
+            ' We never want to swallow Exceptions (generate a non-fatal Watson) when running tests.
+            ExpressionEvaluatorFatalError.IsFailFastEnabled = True
+        End Sub
+
         Public Overrides Sub Dispose()
             MyBase.Dispose()
 

@@ -1172,8 +1172,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _objOutputPathOpt = objOutputPath;
 
                 _compilationOptions = _compilationOptions.WithMetadataReferenceResolver(CreateMetadataReferenceResolver(
-                    metadataService: this.Workspace.Services.GetService<IMetadataService>(), 
-                    projectDirectory: this.ContainingDirectoryPathOpt, 
+                    metadataService: this.Workspace.Services.GetService<IMetadataService>(),
+                    projectDirectory: this.ContainingDirectoryPathOpt,
                     outputDirectory: Path.GetDirectoryName(_objOutputPathOpt)));
 
                 if (_pushingChangesToWorkspaceHosts)

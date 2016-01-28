@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -15,29 +16,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 {
     public class DataTipInfoGetterTests
     {
-        private void Test(string markup, string expectedText = null)
+        private async Task TestAsync(string markup, string expectedText = null)
         {
-            TestSpanGetter(markup, (document, position, expectedSpan) =>
+            await TestSpanGetterAsync(markup, async (document, position, expectedSpan) =>
             {
-                var result = DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                var result = await DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None);
 
                 Assert.Equal(expectedSpan, result.Span);
                 Assert.Equal(expectedText, result.Text);
             });
         }
 
-        private void TestNoDataTip(string markup)
+        private async Task TestNoDataTipAsync(string markup)
         {
-            TestSpanGetter(markup, (document, position, expectedSpan) =>
+            await TestSpanGetterAsync(markup, async (document, position, expectedSpan) =>
             {
-                var result = DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                var result = await DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None);
                 Assert.True(result.IsDefault);
             });
         }
 
-        private void TestSpanGetter(string markup, Action<Document, int, TextSpan?> continuation)
+        private async Task TestSpanGetterAsync(string markup, Func<Document, int, TextSpan?, Task> continuation)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(markup))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(markup))
             {
                 var testHostDocument = workspace.Documents.Single();
                 var position = testHostDocument.CursorPosition.Value;
@@ -45,27 +46,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
                     ? testHostDocument.SelectedSpans.Single()
                     : (TextSpan?)null;
 
-                continuation(
+                await continuation(
                     workspace.CurrentSolution.Projects.First().Documents.First(),
                     position,
                     expectedSpan);
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void TestCSharpLanguageDebugInfoGetDataTipSpanAndText()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task TestCSharpLanguageDebugInfoGetDataTipSpanAndText()
         {
-            Test("class [|C$$|] { }");
-            Test("struct [|C$$|] { }");
-            Test("interface [|C$$|] { }");
-            Test("enum [|C$$|] { }");
-            Test("delegate void [|C$$|] ();"); // Without the space, that position is actually on the open paren.
+            await TestAsync("class [|C$$|] { }");
+            await TestAsync("struct [|C$$|] { }");
+            await TestAsync("interface [|C$$|] { }");
+            await TestAsync("enum [|C$$|] { }");
+            await TestAsync("delegate void [|C$$|] ();"); // Without the space, that position is actually on the open paren.
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void Test1()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task Test1()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
   void Foo()
@@ -75,10 +76,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void Test2()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task Test2()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
   void Foo()
@@ -88,10 +89,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void Test3()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task Test3()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
   void Foo()
@@ -101,10 +102,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void Test4()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task Test4()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
   void Foo()
@@ -114,10 +115,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void Test5()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task Test5()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
   void Foo()
@@ -127,10 +128,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void Test6()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task Test6()
         {
-            TestNoDataTip(
+            await TestNoDataTipAsync(
 @"class C
 {
   void Foo()
@@ -140,10 +141,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void Test7()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task Test7()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
   void Foo()
@@ -153,10 +154,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void Test8()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task Test8()
         {
-            TestNoDataTip(
+            await TestNoDataTipAsync(
 @"class C
 {
   void Foo()
@@ -166,10 +167,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact]
-        public void TestVar()
+        [Fact]
+        public async Task TestVar()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
   void Foo()
@@ -179,10 +180,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }", "int");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void TestVariableType()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task TestVariableType()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
   void Foo()
@@ -192,10 +193,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void TestVariableIdentifier()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task TestVariableIdentifier()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
   void Foo()
@@ -206,10 +207,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [WorkItem(539910)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void TestLiterals()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task TestLiterals()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
   void Foo()
@@ -219,10 +220,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }", "int");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void TestNonExpressions()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task TestNonExpressions()
         {
-            TestNoDataTip(
+            await TestNoDataTipAsync(
 @"class C
 {
   void Foo()
@@ -232,10 +233,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void TestParameterIdentifier()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task TestParameterIdentifier()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
   void Foo(int [|$$i|])
@@ -245,10 +246,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [WorkItem(942699)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void TestCatchIdentifier()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task TestCatchIdentifier()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
     void Foo()
@@ -263,16 +264,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void TestEvent()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task TestEvent()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
     event System.Action [|$$E|];
 }");
 
-            Test(
+            await TestAsync(
 @"class C
 {
     event System.Action [|$$E|]
@@ -283,31 +284,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void TestMethod()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task TestMethod()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
     int [|$$M|]() { }
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void TestTypeParameter()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task TestTypeParameter()
         {
-            Test("class C<T, [|$$U|], V> { }");
-            Test(
+            await TestAsync("class C<T, [|$$U|], V> { }");
+            await TestAsync(
 @"class C
 {
     void M<T, [|$$U|]>() { }
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void UsingAlias()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task UsingAlias()
         {
-            Test(
+            await TestAsync(
 @"using [|$$S|] = Static;
 
 static class Static
@@ -316,10 +317,10 @@ static class Static
         }
 
         [WorkItem(540921)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void TestForEachIdentifier()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task TestForEachIdentifier()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
   void Foo(string[] args)
@@ -332,10 +333,10 @@ static class Static
         }
 
         [WorkItem(546328)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void TestProperty()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task TestProperty()
         {
-            Test(
+            await TestAsync(
 @"namespace ConsoleApplication16
 {
     class C
@@ -361,10 +362,10 @@ static class Static
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-        public void TestQueryIdentifier()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        public async Task TestQueryIdentifier()
         {
-            Test( // From
+            await TestAsync( // From
 @"class C
 {
     object Foo(string[] args)
@@ -372,7 +373,7 @@ static class Static
         return from [|$$a|] in args select a;
     }
 }");
-            Test( // Let
+            await TestAsync( // Let
 @"class C
 {
     object Foo(string[] args)
@@ -380,7 +381,7 @@ static class Static
         return from a in args let [|$$b|] = ""END"" select a + b;
     }
 }");
-            Test( // Join
+            await TestAsync( // Join
 @"class C
 {
     object Foo(string[] args)
@@ -388,7 +389,7 @@ static class Static
         return from a in args join [|$$b|] in args on a equals b;
     }
 }");
-            Test( // Join Into
+            await TestAsync( // Join Into
 @"class C
 {
     object Foo(string[] args)
@@ -396,7 +397,7 @@ static class Static
         return from a in args join b in args on a equals b into [|$$c|];
     }
 }");
-            Test( // Continuation
+            await TestAsync( // Continuation
 @"class C
 {
     object Foo(string[] args)
@@ -406,8 +407,8 @@ static class Static
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)]
-        public void TestConditionalAccessExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)]
+        public async Task TestConditionalAccessExpression()
         {
             var sourceTemplate = @"
 class A
@@ -436,50 +437,50 @@ class D
 ";
 
             // One level.
-            Test(string.Format(sourceTemplate, "[|Me?.$$B|]"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|]"));
 
             // Two levels.
-            Test(string.Format(sourceTemplate, "[|Me?.$$B|].C"));
-            Test(string.Format(sourceTemplate, "[|Me?.B.$$C|]"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|].C"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me?.B.$$C|]"));
 
-            Test(string.Format(sourceTemplate, "[|Me.$$B|]?.C"));
-            Test(string.Format(sourceTemplate, "[|Me.B?.$$C|]"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me.$$B|]?.C"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me.B?.$$C|]"));
 
-            Test(string.Format(sourceTemplate, "[|Me?.$$B|]?.C"));
-            Test(string.Format(sourceTemplate, "[|Me?.B?.$$C|]"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|]?.C"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me?.B?.$$C|]"));
 
             // Three levels.
-            Test(string.Format(sourceTemplate, "[|Me?.$$B|].C.D"));
-            Test(string.Format(sourceTemplate, "[|Me?.B.$$C|].D"));
-            Test(string.Format(sourceTemplate, "[|Me?.B.C.$$D|]"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|].C.D"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me?.B.$$C|].D"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me?.B.C.$$D|]"));
 
-            Test(string.Format(sourceTemplate, "[|Me.$$B|]?.C.D"));
-            Test(string.Format(sourceTemplate, "[|Me.B?.$$C|].D"));
-            Test(string.Format(sourceTemplate, "[|Me.B?.C.$$D|]"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me.$$B|]?.C.D"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me.B?.$$C|].D"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me.B?.C.$$D|]"));
 
-            Test(string.Format(sourceTemplate, "[|Me.$$B|].C?.D"));
-            Test(string.Format(sourceTemplate, "[|Me.B.$$C|]?.D"));
-            Test(string.Format(sourceTemplate, "[|Me.B.C?.$$D|]"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me.$$B|].C?.D"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me.B.$$C|]?.D"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me.B.C?.$$D|]"));
 
-            Test(string.Format(sourceTemplate, "[|Me?.$$B|]?.C.D"));
-            Test(string.Format(sourceTemplate, "[|Me?.B?.$$C|].D"));
-            Test(string.Format(sourceTemplate, "[|Me?.B?.C.$$D|]"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|]?.C.D"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me?.B?.$$C|].D"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me?.B?.C.$$D|]"));
 
-            Test(string.Format(sourceTemplate, "[|Me?.$$B|].C?.D"));
-            Test(string.Format(sourceTemplate, "[|Me?.B.$$C|]?.D"));
-            Test(string.Format(sourceTemplate, "[|Me?.B.C?.$$D|]"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|].C?.D"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me?.B.$$C|]?.D"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me?.B.C?.$$D|]"));
 
-            Test(string.Format(sourceTemplate, "[|Me.$$B|]?.C?.D"));
-            Test(string.Format(sourceTemplate, "[|Me.B?.$$C|]?.D"));
-            Test(string.Format(sourceTemplate, "[|Me.B?.C?.$$D|]"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me.$$B|]?.C?.D"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me.B?.$$C|]?.D"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me.B?.C?.$$D|]"));
 
-            Test(string.Format(sourceTemplate, "[|Me?.$$B|]?.C?.D"));
-            Test(string.Format(sourceTemplate, "[|Me?.B?.$$C|]?.D"));
-            Test(string.Format(sourceTemplate, "[|Me?.B?.C?.$$D|]"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|]?.C?.D"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me?.B?.$$C|]?.D"));
+            await TestAsync(string.Format(sourceTemplate, "[|Me?.B?.C?.$$D|]"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)]
-        public void TestConditionalAccessExpression_Trivia()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)]
+        public async Task TestConditionalAccessExpression_Trivia()
         {
             var sourceTemplate = @"
 class A
@@ -502,9 +503,9 @@ class C
 }}
 ";
 
-            Test(string.Format(sourceTemplate, "/*1*/[|$$Me|]/*2*/?./*3*/B/*4*/?./*5*/C/*6*/"));
-            Test(string.Format(sourceTemplate, "/*1*/[|Me/*2*/?./*3*/$$B|]/*4*/?./*5*/C/*6*/"));
-            Test(string.Format(sourceTemplate, "/*1*/[|Me/*2*/?./*3*/B/*4*/?./*5*/$$C|]/*6*/"));
+            await TestAsync(string.Format(sourceTemplate, "/*1*/[|$$Me|]/*2*/?./*3*/B/*4*/?./*5*/C/*6*/"));
+            await TestAsync(string.Format(sourceTemplate, "/*1*/[|Me/*2*/?./*3*/$$B|]/*4*/?./*5*/C/*6*/"));
+            await TestAsync(string.Format(sourceTemplate, "/*1*/[|Me/*2*/?./*3*/B/*4*/?./*5*/$$C|]/*6*/"));
         }
     }
 }

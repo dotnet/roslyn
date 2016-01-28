@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ParameterSymbol> _parameters;
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
         private TypeSymbol _returnType;
-        private bool _isVar;
         private bool _isVararg;
         private TypeSymbol _iteratorElementType;
+
         // TODO: Find a better way to report diagnostics.
         // We can't put binding in the constructor, as it creates infinite recursion.
         // We can't report to Compilation.DeclarationDiagnostics as it's already too late and they will be dropped.
@@ -61,8 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadExtensionAgg, Locations[0]);
             }
 
-            _isVar = false;
-
             _binder = binder;
             _diagnostics = diagnostics.ToReadOnlyAndFree();
         }
@@ -71,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // force lazy init
             ComputeParameters();
-            ComputeReturnType(body: null, returnNullIfUnknown: false, isIterator: false);
+            ComputeReturnType();
 
             var diags = ImmutableInterlocked.InterlockedExchange(ref _diagnostics, default(ImmutableArray<Diagnostic>));
             if (!diags.IsDefault)
@@ -135,80 +133,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ComputeReturnType(body: null, returnNullIfUnknown: false, isIterator: false);
+                return ComputeReturnType();
             }
         }
 
-        // Reason for ReturnTypeNoForce and ReturnTypeIterator:
-        // When computing the return type, sometimes we want to return null (ReturnTypeNoForce) instead of reporting a diagnostic
-        // or sometimes we want to disallow var and report an error about iterators (ReturnTypeIterator)
-        public TypeSymbol ReturnTypeNoForce
-        {
-            get
-            {
-                return ComputeReturnType(body: null, returnNullIfUnknown: true, isIterator: false);
-            }
-        }
-
-        public TypeSymbol ReturnTypeIterator
-        {
-            get
-            {
-                return ComputeReturnType(body: null, returnNullIfUnknown: false, isIterator: true);
-            }
-        }
-
-        /*
-        Note: `var` return types are currently very broken in subtle ways, in particular in the IDE scenario when random things are being bound.
-        The basic problem is that a LocalFunctionSymbol needs to compute its return type, and to do that it needs access to its BoundBlock.
-        However, the BoundBlock needs access to the local function's return type. Recursion detection is tricky, because this property (.ReturnType)
-        doesn't have access to the binder where it is being accessed from (i.e. either from inside the local function, where it should report an error,
-        or from outside, where it should attempt to infer the return type from the block).
-
-        The current (broken) system assumes that Binder_Statements.cs BindLocalFunctionStatement will always be called (and so a block will be provided)
-        before any (valid) uses of the local function are bound that require knowing the return type. This assumption breaks in the IDE, where
-        a use of a local function may be bound before BindLocalFunctionStatement is called on the corresponding local function.
-        */
-        internal TypeSymbol ComputeReturnType(BoundBlock body, bool returnNullIfUnknown, bool isIterator)
+        internal TypeSymbol ComputeReturnType()
         {
             if (_returnType != null)
             {
                 return _returnType;
             }
+
             var diagnostics = DiagnosticBag.GetInstance();
-            // we might call this multiple times if it's var. Only bind the first time, and cache if it's var.
-            TypeSymbol returnType = null; // guaranteed to be assigned, but compiler doesn't know that.
-            if (!_isVar)
-            {
-                bool isVar;
-                returnType = _binder.BindType(_syntax.ReturnType, diagnostics, out isVar);
-                _isVar = isVar;
-            }
-            if (_isVar)
-            {
-                if (isIterator) // cannot use IsIterator (the property) because that gets computed after the body is bound, which hasn't happened yet.
-                {
-                    // Completely disallow use of var inferred in an iterator context.
-                    // This is because we may have IAsyncEnumerable and similar types, which determine the type of state machine to emit.
-                    // If we infer the return type, we won't know which state machine to generate.
-                    returnType = _binder.CreateErrorType("var");
-                    // InMethodBinder reports ERR_BadIteratorReturn, so no need to report a diagnostic here.
-                }
-                else if (body == null)
-                {
-                    if (returnNullIfUnknown)
-                    {
-                        diagnostics.Free();
-                        return null;
-                    }
-                    returnType = _binder.CreateErrorType("var");
-                    diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, _syntax.ReturnType.Location, this);
-                }
-                else
-                {
-                    returnType = InferReturnType(body, diagnostics);
-                }
-            }
+            TypeSymbol returnType = _binder.BindType(_syntax.ReturnType, diagnostics);
             var raceReturnType = Interlocked.CompareExchange(ref _returnType, returnType, null);
             if (raceReturnType != null)
             {
@@ -220,71 +157,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // The return type of an async method must be void, Task or Task<T>
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
             }
+            // TODO: note there is a race condition here that will ultimately need to be fixed.
+            // Specifically, the Interlocked.CompareExchange above succeeds, and will be seen by
+            // other threads, before the diagnostics have been recorded in this symbol, below.
+            // We can resolve this with a lock around this method and any other methods that
+            // manipulate _diagnostics, directly or indirectly.
             AddDiagnostics(diagnostics.ToReadOnlyAndFree());
-            return returnType;
-        }
-
-        private TypeSymbol InferReturnType(BoundBlock body, DiagnosticBag diagnostics)
-        {
-            int numberOfDistinctReturns;
-            var resultTypes = BoundLambda.BlockReturns.GetReturnTypes(body, out numberOfDistinctReturns);
-            if (numberOfDistinctReturns != resultTypes.Length) // included a "return;", no expression
-            {
-                resultTypes = resultTypes.Concat(ImmutableArray.Create((TypeSymbol)_binder.Compilation.GetSpecialType(SpecialType.System_Void)));
-            }
-
-            TypeSymbol returnType;
-            if (resultTypes.IsDefaultOrEmpty)
-            {
-                returnType = _binder.Compilation.GetSpecialType(SpecialType.System_Void);
-            }
-            else if (resultTypes.Length == 1)
-            {
-                returnType = resultTypes[0];
-            }
-            else
-            {
-                // Make sure every return type is exactly the same (not even a subclass of each other)
-                returnType = null;
-                foreach (var resultType in resultTypes)
-                {
-                    if ((object)returnType == null)
-                    {
-                        returnType = resultType;
-                    }
-                    else if ((object)returnType != (object)resultType)
-                    {
-                        returnType = null;
-                        break;
-                    }
-                }
-                if (returnType == null)
-                {
-                    returnType = _binder.CreateErrorType("var");
-                    diagnostics.Add(ErrorCode.ERR_ReturnTypesDontMatch, Locations[0], this);
-                    return returnType;
-                }
-            }
-
-            // do this before async lifting, as inferring Task is also not allowed.
-            if (returnType.SpecialType == SpecialType.System_Void)
-            {
-                diagnostics.Add(ErrorCode.ERR_CantInferVoid, Locations[0], this);
-            }
-
-            if (IsAsync)
-            {
-                if (returnType.SpecialType == SpecialType.System_Void)
-                {
-                    returnType = _binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
-                }
-                else
-                {
-                    returnType = _binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T).Construct(returnType);
-                }
-            }
-            // cannot be iterator
-
             return returnType;
         }
 

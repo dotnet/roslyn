@@ -428,7 +428,7 @@ public class C
         }
         [WorkItem(546412, "DevDiv")]
         [Fact]
-        private void TestBug15818()
+        public void TestBug15818()
         {
             var source =
 @"using System;
@@ -526,7 +526,7 @@ class C
         [WorkItem(546853, "DevDiv")]
         [Fact]
 
-        private void TestBug16981b()
+        public void TestBug16981b()
         {
             var il = @"
 .class public auto ansi beforefieldinit B
@@ -9620,31 +9620,31 @@ public class MyClass
         }
         if ((double)(d1 - (-d1 * 1.0e-15f)) != d2)
         {
-            ret = ret + 2;
+            ret = ret + 10;
         }
-        if ((double)(d1 * (1.0f + 1.0e-15f)) != d2)
+        if ((double)(d1 * (1.0f + 1.0e-15f)) != d1) // note (1.0f + 1.0e-15f) == 1.0f
         {
-            ret = ret + 4;
+            ret = ret + 100;
         }
-        if ((double)(d1 / (1.0f - 1.0e-15f)) != d2)
+        if ((double)(d1 / (1.0f - 1.0e-15f)) != d1) // note (1.0f - 1.0e-15f) == 1.0f
         {
-            ret = ret + 8;
+            ret = ret + 1000;
         }
         if ((double)(-d1 + (-(d1 * 1.0e-15f))) != d3)
         {
-            ret = ret + 16;
+            ret = ret + 10000;
         }
         if ((double)((-d1 - (d1 * 1.0e-15f))) != d3)
         {
-            ret = ret + 32;
+            ret = ret + 100000;
         }
-        if ((double)(-d1 * (1.0f + 1.0e-15f)) != d3)
+        if ((double)(-d1 * (1.0f + 1.0e-15f)) != -d1) // note (1.0f + 1.0e-15f) == 1.0f
         {
-            ret = ret + 64;
+            ret = ret + 1000000;
         }
-        if ((double)(-d1 / (1.0f - 1.0e-15f)) != d3)
+        if ((double)(-d1 / (1.0f - 1.0e-15f)) != -d1) // note (1.0f - 1.0e-15f) == 1.0f
         {
-            ret = ret + 128;
+            ret = ret + 10000000;
         }
         Console.WriteLine(ret);
         return ret;
@@ -9653,7 +9653,7 @@ public class MyClass
             var compilation = CompileAndVerify(source, expectedOutput: "0").
 VerifyIL("MyClass.Main", @"
 {
-  // Code size      211 (0xd3)
+  // Code size      228 (0xe4)
   .maxstack  3
   .locals init (double V_0, //d1
                 double V_1, //d2
@@ -9685,84 +9685,86 @@ VerifyIL("MyClass.Main", @"
   IL_0040:  sub
   IL_0041:  conv.r8
   IL_0042:  ldloc.1
-  IL_0043:  beq.s      IL_0049
+  IL_0043:  beq.s      IL_004a
   IL_0045:  ldloc.3
-  IL_0046:  ldc.i4.2
-  IL_0047:  add
-  IL_0048:  stloc.3
-  IL_0049:  ldloc.0
-  IL_004a:  ldc.r8     1
-  IL_0053:  mul
-  IL_0054:  conv.r8
-  IL_0055:  ldloc.1
-  IL_0056:  beq.s      IL_005c
-  IL_0058:  ldloc.3
-  IL_0059:  ldc.i4.4
-  IL_005a:  add
-  IL_005b:  stloc.3
-  IL_005c:  ldloc.0
-  IL_005d:  ldc.r8     0.999999999999999
-  IL_0066:  div
-  IL_0067:  conv.r8
-  IL_0068:  ldloc.1
-  IL_0069:  beq.s      IL_006f
-  IL_006b:  ldloc.3
-  IL_006c:  ldc.i4.8
-  IL_006d:  add
-  IL_006e:  stloc.3
-  IL_006f:  ldloc.0
-  IL_0070:  neg
-  IL_0071:  ldloc.0
-  IL_0072:  ldc.r8     1.00000000362749E-15
-  IL_007b:  mul
-  IL_007c:  neg
-  IL_007d:  add
-  IL_007e:  conv.r8
-  IL_007f:  ldloc.2
-  IL_0080:  beq.s      IL_0087
-  IL_0082:  ldloc.3
-  IL_0083:  ldc.i4.s   16
-  IL_0085:  add
-  IL_0086:  stloc.3
-  IL_0087:  ldloc.0
-  IL_0088:  neg
-  IL_0089:  ldloc.0
-  IL_008a:  ldc.r8     1.00000000362749E-15
-  IL_0093:  mul
-  IL_0094:  sub
-  IL_0095:  conv.r8
-  IL_0096:  ldloc.2
-  IL_0097:  beq.s      IL_009e
-  IL_0099:  ldloc.3
-  IL_009a:  ldc.i4.s   32
-  IL_009c:  add
-  IL_009d:  stloc.3
-  IL_009e:  ldloc.0
-  IL_009f:  neg
-  IL_00a0:  ldc.r8     1
-  IL_00a9:  mul
-  IL_00aa:  conv.r8
-  IL_00ab:  ldloc.2
-  IL_00ac:  beq.s      IL_00b3
-  IL_00ae:  ldloc.3
-  IL_00af:  ldc.i4.s   64
-  IL_00b1:  add
-  IL_00b2:  stloc.3
-  IL_00b3:  ldloc.0
-  IL_00b4:  neg
-  IL_00b5:  ldc.r8     0.999999999999999
-  IL_00be:  div
-  IL_00bf:  conv.r8
-  IL_00c0:  ldloc.2
-  IL_00c1:  beq.s      IL_00cb
-  IL_00c3:  ldloc.3
-  IL_00c4:  ldc.i4     0x80
-  IL_00c9:  add
-  IL_00ca:  stloc.3
-  IL_00cb:  ldloc.3
-  IL_00cc:  call       ""void System.Console.WriteLine(int)""
-  IL_00d1:  ldloc.3
-  IL_00d2:  ret
+  IL_0046:  ldc.i4.s   10
+  IL_0048:  add
+  IL_0049:  stloc.3
+  IL_004a:  ldloc.0
+  IL_004b:  ldc.r8     1
+  IL_0054:  mul
+  IL_0055:  conv.r8
+  IL_0056:  ldloc.0
+  IL_0057:  beq.s      IL_005e
+  IL_0059:  ldloc.3
+  IL_005a:  ldc.i4.s   100
+  IL_005c:  add
+  IL_005d:  stloc.3
+  IL_005e:  ldloc.0
+  IL_005f:  ldc.r8     1
+  IL_0068:  div
+  IL_0069:  conv.r8
+  IL_006a:  ldloc.0
+  IL_006b:  beq.s      IL_0075
+  IL_006d:  ldloc.3
+  IL_006e:  ldc.i4     0x3e8
+  IL_0073:  add
+  IL_0074:  stloc.3
+  IL_0075:  ldloc.0
+  IL_0076:  neg
+  IL_0077:  ldloc.0
+  IL_0078:  ldc.r8     1.00000000362749E-15
+  IL_0081:  mul
+  IL_0082:  neg
+  IL_0083:  add
+  IL_0084:  conv.r8
+  IL_0085:  ldloc.2
+  IL_0086:  beq.s      IL_0090
+  IL_0088:  ldloc.3
+  IL_0089:  ldc.i4     0x2710
+  IL_008e:  add
+  IL_008f:  stloc.3
+  IL_0090:  ldloc.0
+  IL_0091:  neg
+  IL_0092:  ldloc.0
+  IL_0093:  ldc.r8     1.00000000362749E-15
+  IL_009c:  mul
+  IL_009d:  sub
+  IL_009e:  conv.r8
+  IL_009f:  ldloc.2
+  IL_00a0:  beq.s      IL_00aa
+  IL_00a2:  ldloc.3
+  IL_00a3:  ldc.i4     0x186a0
+  IL_00a8:  add
+  IL_00a9:  stloc.3
+  IL_00aa:  ldloc.0
+  IL_00ab:  neg
+  IL_00ac:  ldc.r8     1
+  IL_00b5:  mul
+  IL_00b6:  conv.r8
+  IL_00b7:  ldloc.0
+  IL_00b8:  neg
+  IL_00b9:  beq.s      IL_00c3
+  IL_00bb:  ldloc.3
+  IL_00bc:  ldc.i4     0xf4240
+  IL_00c1:  add
+  IL_00c2:  stloc.3
+  IL_00c3:  ldloc.0
+  IL_00c4:  neg
+  IL_00c5:  ldc.r8     1
+  IL_00ce:  div
+  IL_00cf:  conv.r8
+  IL_00d0:  ldloc.0
+  IL_00d1:  neg
+  IL_00d2:  beq.s      IL_00dc
+  IL_00d4:  ldloc.3
+  IL_00d5:  ldc.i4     0x989680
+  IL_00da:  add
+  IL_00db:  stloc.3
+  IL_00dc:  ldloc.3
+  IL_00dd:  call       ""void System.Console.WriteLine(int)""
+  IL_00e2:  ldloc.3
+  IL_00e3:  ret
 }");
         }
 

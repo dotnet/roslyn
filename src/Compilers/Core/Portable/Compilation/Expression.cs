@@ -104,7 +104,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public OperationKind Kind => OperationKind.ConditionalChoiceExpression;
 
-        public object ConstantValue => null;
+        public bool IsInvalid => Condition == null || Condition.IsInvalid || IfTrue == null || IfTrue.IsInvalid || IfFalse == null || IfFalse.IsInvalid;
+
+        public Optional<object> ConstantValue => default(Optional<object>);
     }
 
     public sealed class Assignment : IExpressionStatement
@@ -120,6 +122,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public SyntaxNode Syntax { get; }
 
         public OperationKind Kind => OperationKind.ExpressionStatement;
+
+        public bool IsInvalid => _assignment.IsInvalid;
 
         public IExpression Expression => _assignment;
 
@@ -142,7 +146,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public OperationKind Kind => OperationKind.AssignmentExpression;
 
-            public object ConstantValue => null;
+            public bool IsInvalid => Target == null || Target.IsInvalid || Value == null || Value.IsInvalid;
+
+            public Optional<object> ConstantValue => default(Optional<object>);
         }
     }
 
@@ -159,6 +165,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public SyntaxNode Syntax { get; }
 
         public OperationKind Kind => OperationKind.ExpressionStatement;
+
+        public bool IsInvalid => _compoundAssignment.IsInvalid;
 
         public IExpression Expression => _compoundAssignment;
 
@@ -187,7 +195,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public OperationKind Kind => OperationKind.CompoundAssignmentExpression;
 
-            public object ConstantValue => null;
+            public bool IsInvalid => Target == null || Target.IsInvalid || Value == null || Value.IsInvalid;
+
+            public Optional<object> ConstantValue => default(Optional<object>);
 
             public bool UsesOperatorMethod => this.Operator != null;
         }
@@ -210,7 +220,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public OperationKind Kind => OperationKind.LiteralExpression;
 
-        public object ConstantValue => _value;
+        public bool IsInvalid => false;
+
+        public Optional<object> ConstantValue => new Optional<object>(_value);
 
         public SyntaxNode Syntax { get; }
     }
@@ -232,7 +244,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public OperationKind Kind => OperationKind.LiteralExpression;
 
-        public object ConstantValue => _value.Value;
+        public bool IsInvalid => false;
+
+        public Optional<object> ConstantValue => new Optional<object>(_value.Value);
 
         public SyntaxNode Syntax { get; }
     }
@@ -241,14 +255,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         public Binary(BinaryOperationKind binaryKind, IExpression left, IExpression right, ITypeSymbol resultType, SyntaxNode syntax)
         {
-            this.BinaryKind = binaryKind;
+            this.BinaryOperationKind = binaryKind;
             this.Left = left;
             this.Right = right;
             this.ResultType = resultType;
             this.Syntax = syntax;
         }
 
-        public BinaryOperationKind BinaryKind { get; }
+        public BinaryOperationKind BinaryOperationKind { get; }
 
         public IExpression Left { get; }
 
@@ -262,7 +276,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public OperationKind Kind => OperationKind.BinaryOperatorExpression;
 
-        public object ConstantValue => null;
+        public bool IsInvalid => Left == null || Left.IsInvalid || Right == null || Right.IsInvalid;
+
+        public Optional<object> ConstantValue => default(Optional<object>);
 
         public SyntaxNode Syntax { get; }
     }
@@ -275,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             _arrayType = arrayType;
             this.DimensionSizes = ImmutableArray.Create<IExpression>(new IntegerLiteral(elementValues.Count(), null, syntax));
-            this.ElementValues = new DimensionInitializer(elementValues);
+            this.Initializer = new ArrayInitializer(elementValues, syntax, arrayType);
             this.Syntax = syntax;
         }
 
@@ -285,44 +301,38 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public ITypeSymbol ElementType => _arrayType.ElementType;
 
-        public IArrayInitializer ElementValues { get; }
+        public IArrayInitializer Initializer { get; }
 
         public SyntaxNode Syntax { get; }
 
         public OperationKind Kind => OperationKind.ArrayCreationExpression;
 
-        public object ConstantValue => null;
+        public bool IsInvalid => IsInvalidInitializer(Initializer);
+       
+        static bool IsInvalidInitializer(IArrayInitializer initializer) => initializer.IsInvalid;
 
-        private class DimensionInitializer : IDimensionArrayInitializer
+        public Optional<object> ConstantValue => default(Optional<object>);
+
+        private class ArrayInitializer : IArrayInitializer
         {
-            private readonly ImmutableArray<IArrayInitializer> _elementValues;
-
-            public DimensionInitializer(ImmutableArray<IExpression> elementValues)
+            public ArrayInitializer(ImmutableArray<IExpression> elementValues, SyntaxNode syntax, ITypeSymbol arrayType)
             {
-                ArrayBuilder<IArrayInitializer> builder = ArrayBuilder<IArrayInitializer>.GetInstance();
-                foreach (IExpression element in elementValues)
-                {
-                    builder.Add(new ExpressionInitializer(element));
-                }
-
-                _elementValues = builder.ToImmutableAndFree();
+                ElementValues = elementValues;
+                Syntax = syntax;
+                ResultType = arrayType;
             }
 
-            public ArrayInitializerKind ArrayClass => ArrayInitializerKind.Dimension;
+            public ImmutableArray<IExpression> ElementValues { get; }
 
-            public ImmutableArray<IArrayInitializer> ElementValues => _elementValues;
-        }
+            public bool IsInvalid => ElementValues.Any(v => v.IsInvalid);
 
-        private class ExpressionInitializer : IExpressionArrayInitializer
-        {
-            public ExpressionInitializer(IExpression expression)
-            {
-                ElementValue = expression;
-            }
+            public OperationKind Kind => OperationKind.ArrayInitializer;
 
-            public ArrayInitializerKind ArrayClass => ArrayInitializerKind.Expression;
+            public ITypeSymbol ResultType { get; }
 
-            public IExpression ElementValue { get; }
+            public SyntaxNode Syntax { get; }
+
+            public Optional<object> ConstantValue => default(Optional<object>);
         }
     }
     

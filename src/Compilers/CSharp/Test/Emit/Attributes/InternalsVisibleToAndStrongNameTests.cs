@@ -316,7 +316,8 @@ public class Test
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
         }
 
-        [Fact]
+        [WorkItem(5662, "https://github.com/dotnet/roslyn/issues/5662")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void PubKeyContainerBogusOptions()
         {
             string s = "public class C {}";
@@ -398,7 +399,7 @@ public class C {}";
         }
 
         [Fact]
-        public void PublicKeyFromOptions_OssSigned()
+        public void PublicKeyFromOptions_PublicSign()
         {
             // attributes are ignored
             string source = @"
@@ -407,7 +408,7 @@ public class C {}";
 public class C {}
 ";
 
-            var c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithCryptoPublicKey(s_publicKey));
+            var c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithCryptoPublicKey(s_publicKey).WithPublicSign(true));
             c.VerifyDiagnostics();
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, c.Assembly.Identity.PublicKey));
 
@@ -417,6 +418,172 @@ public class C {}
             Assert.True(identity.HasPublicKey);
             AssertEx.Equal(identity.PublicKey, s_publicKey);
             Assert.Equal(CorFlags.ILOnly | CorFlags.StrongNameSigned, metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags);
+        }
+
+        private void VerifySignedBitSetAfterEmit(Compilation comp)
+        {
+            var outStrm = new MemoryStream();
+            var emitResult = comp.Emit(outStrm);
+            Assert.True(emitResult.Success);
+
+            outStrm.Position = 0;
+
+            // Verify that the sign bit is set
+            using (var reader = new PEReader(outStrm))
+            {
+                Assert.True(reader.HasMetadata);
+
+                var flags = reader.PEHeaders.CorHeader.Flags;
+                Assert.True(flags.HasFlag(CorFlags.StrongNameSigned));
+            }
+        }
+
+        [Fact]
+        public void SnkFile_PublicSign()
+        {
+            var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
+
+            var comp = CreateCompilationWithMscorlib("public class C{}",
+                options: TestOptions.ReleaseDll
+                    .WithCryptoKeyFile(snk.Path)
+                    .WithPublicSign(true));
+
+            comp.VerifyDiagnostics();
+
+            Assert.True(comp.Options.PublicSign);
+            Assert.Null(comp.Options.DelaySign);
+            Assert.False(comp.IsRealSigned);
+            Assert.NotNull(comp.Options.CryptoKeyFile);
+
+            VerifySignedBitSetAfterEmit(comp);
+        }
+
+        [Fact]
+        public void PublicKeyFile_PublicSign()
+        {
+            var pubKeyFile = Temp.CreateFile().WriteAllBytes(TestResources.General.snPublicKey);
+
+            var comp = CreateCompilationWithMscorlib("public class C {}",
+                options: TestOptions.ReleaseDll
+                    .WithCryptoKeyFile(pubKeyFile.Path)
+                    .WithPublicSign(true));
+
+            comp.VerifyDiagnostics();
+
+            Assert.True(comp.Options.PublicSign);
+            Assert.Null(comp.Options.DelaySign);
+            Assert.False(comp.IsRealSigned);
+            Assert.NotNull(comp.Options.CryptoKeyFile);
+
+            VerifySignedBitSetAfterEmit(comp);
+        }
+
+        [Fact]
+        public void PublicSign_DelaySignAttribute()
+        {
+            var pubKeyFile = Temp.CreateFile().WriteAllBytes(TestResources.General.snPublicKey);
+
+            var comp = CreateCompilationWithMscorlib(@"
+[assembly: System.Reflection.AssemblyDelaySign(true)]
+public class C {}",
+                options: TestOptions.ReleaseDll
+                    .WithCryptoKeyFile(pubKeyFile.Path)
+                    .WithPublicSign(true));
+
+            comp.VerifyDiagnostics(
+    // warning CS1616: Option 'PublicSign' overrides attribute 'System.Reflection.AssemblyDelaySignAttribute' given in a source file or added module
+    Diagnostic(ErrorCode.WRN_CmdOptionConflictsSource).WithArguments("PublicSign", "System.Reflection.AssemblyDelaySignAttribute").WithLocation(1, 1));
+
+            Assert.True(comp.Options.PublicSign);
+            Assert.Null(comp.Options.DelaySign);
+            Assert.False(comp.IsRealSigned);
+            Assert.NotNull(comp.Options.CryptoKeyFile);
+
+            VerifySignedBitSetAfterEmit(comp);
+        }
+
+        [Fact]
+        public void KeyContainerNoSNProvider_PublicSign()
+        {
+            var comp = CreateCompilationWithMscorlib("public class C {}",
+                options: TestOptions.ReleaseDll
+                    .WithCryptoKeyContainer("roslynTestContainer")
+                    .WithPublicSign(true));
+
+            comp.VerifyDiagnostics(
+    // error CS7028: Error signing output with public key from container 'roslynTestContainer' -- Assembly signing not supported.
+    Diagnostic(ErrorCode.ERR_PublicKeyContainerFailure).WithArguments("roslynTestContainer", "Assembly signing not supported.").WithLocation(1, 1),
+    // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
+    Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void KeyContainerDesktopProvider_PublicSign()
+        {
+            var comp = CreateCompilationWithMscorlib("public class C {}",
+                options: TestOptions.ReleaseDll
+                    .WithCryptoKeyContainer("roslynTestContainer")
+                    .WithStrongNameProvider(s_defaultProvider)
+                    .WithPublicSign(true));
+
+            comp.VerifyDiagnostics();
+
+            Assert.True(comp.Options.PublicSign);
+            Assert.Null(comp.Options.DelaySign);
+            Assert.False(comp.IsRealSigned);
+            Assert.NotNull(comp.Options.CryptoKeyContainer);
+
+            VerifySignedBitSetAfterEmit(comp);
+        }
+
+        [Fact]
+        public void PublicSignAndDelaySign()
+        {
+            var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
+
+            var comp = CreateCompilationWithMscorlib("public class C {}",
+                options: TestOptions.ReleaseDll
+                    .WithPublicSign(true)
+                    .WithDelaySign(true)
+                    .WithCryptoKeyFile(snk.Path));
+
+            comp.VerifyDiagnostics(
+    // error CS7102: Compilation options 'PublicSign' and 'DelaySign' can't both be specified at the same time.
+    Diagnostic(ErrorCode.ERR_MutuallyExclusiveOptions).WithArguments("PublicSign", "DelaySign").WithLocation(1, 1));
+
+            Assert.True(comp.Options.PublicSign);
+            Assert.True(comp.Options.DelaySign);
+        }
+
+        [Fact]
+        public void PublicSignAndDelaySignFalse()
+        {
+            var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
+
+            var comp = CreateCompilationWithMscorlib("public class C {}",
+                options: TestOptions.ReleaseDll
+                    .WithPublicSign(true)
+                    .WithDelaySign(false)
+                    .WithCryptoKeyFile(snk.Path));
+
+            comp.VerifyDiagnostics();
+
+            Assert.True(comp.Options.PublicSign);
+            Assert.False(comp.Options.DelaySign);
+        }
+
+        [Fact]
+        public void PublicSignNoKey()
+        {
+            var comp = CreateCompilationWithMscorlib("public class C {}",
+                options: TestOptions.ReleaseDll
+                    .WithPublicSign(true));
+
+            comp.VerifyDiagnostics(
+    // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
+    Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1) );
+            Assert.True(comp.Options.PublicSign);
+            Assert.True(comp.Assembly.PublicKey.IsDefaultOrEmpty);
         }
 
         [Fact]
@@ -909,7 +1076,8 @@ public class Z
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyNameAttribute);
         }
 
-        [Fact]
+        [WorkItem(5665, "https://github.com/dotnet/roslyn/issues/5665")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void SignModuleKeyContainerBogus()
         {
             string s = @"[assembly: System.Reflection.AssemblyKeyName(""bogus"")] public class C {}";
@@ -1739,7 +1907,7 @@ public class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void AssemblySignatureKeyAttribute_3()
         {
             var other = CreateCompilation(

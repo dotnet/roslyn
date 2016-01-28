@@ -10,7 +10,6 @@
 
 namespace Microsoft.VisualStudio.InteractiveWindow {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -40,7 +39,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.VisualStudio.InteractiveWindow.InteractiveWindowResources", typeof(InteractiveWindowResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.VisualStudio.InteractiveWindow.InteractiveWindowResources", typeof(InteractiveWindowResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -85,6 +84,24 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         internal static string AltUpArrowHelp {
             get {
                 return ResourceManager.GetString("AltUpArrowHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete Character To Left.
+        /// </summary>
+        internal static string Backspace {
+            get {
+                return ResourceManager.GetString("Backspace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert New Line.
+        /// </summary>
+        internal static string BreakLine {
+            get {
+                return ResourceManager.GetString("BreakLine", resourceCulture);
             }
         }
         
@@ -184,6 +201,42 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         internal static string CtrlKCtrlEnterHelp {
             get {
                 return ResourceManager.GetString("CtrlKCtrlEnterHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cut Selection.
+        /// </summary>
+        internal static string Cut {
+            get {
+                return ResourceManager.GetString("Cut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cut Line.
+        /// </summary>
+        internal static string CutLine {
+            get {
+                return ResourceManager.GetString("CutLine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete Text.
+        /// </summary>
+        internal static string Delete {
+            get {
+                return ResourceManager.GetString("Delete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete Line.
+        /// </summary>
+        internal static string DeleteLine {
+            get {
+                return ResourceManager.GetString("DeleteLine", resourceCulture);
             }
         }
         
@@ -364,6 +417,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         internal static string ShiftEnterHelp {
             get {
                 return ResourceManager.GetString("ShiftEnterHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert Text.
+        /// </summary>
+        internal static string TypeChar {
+            get {
+                return ResourceManager.GetString("TypeChar", resourceCulture);
             }
         }
         

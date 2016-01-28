@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             return Simplifier.ReduceAsync(document, spans, null, cancellationToken);
         }
 
-        public SyntaxNode Cleanup(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
+        public Task<SyntaxNode> CleanupAsync(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
         {
             // Simplifier doesn't work without semantic information
-            return root;
+            return Task.FromResult(root);
         }
     }
 }

@@ -6,7 +6,7 @@
   </PropertyGroup>
   <ImportGroup Label="Settings">
     <Import Project="..\Version.targets" />
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\..\build\Targets\Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -17,7 +17,7 @@
     <AssemblyName>Microsoft.DiaSymReader</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <OutDir>$(OutDir)NetFX20\</OutDir>
+    <OutDir>$(OutDir)DiaSymReader\NetFX20\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

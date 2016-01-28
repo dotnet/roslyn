@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Extensions
             Assert.Equal(expectedName, actualNameToken.ToString())
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub MethodReturnType()
             Dim methodDeclaration = SyntaxFactory.FunctionStatement(attributeLists:=Nothing,
                                                               modifiers:=Nothing,
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Extensions
             Assert.Equal("Integer", returnTypeName)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub PropertyReturnType()
             Dim propertyDeclaration = SyntaxFactory.PropertyStatement(attributeLists:=Nothing,
                                                                modifiers:=Nothing,
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Extensions
             Assert.Equal("Public", actual)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub GetClassStatementModifiers()
             Dim code = <String>Public Class C</String>.Value
             Dim node = SyntaxFactory.ParseCompilationUnit(code).DescendantNodes.OfType(Of ClassStatementSyntax).First()
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Extensions
             Assert.Equal("Public", actualModifierName)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub GetEnumStatementModifiers()
             Dim code = <String>Public Enum E</String>.Value
             Dim node = SyntaxFactory.ParseCompilationUnit(code).DescendantNodes.OfType(Of EnumStatementSyntax).First()
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Extensions
             Assert.Equal("Public", actualModifierName)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub InterfaceBlockWithPublicModifier()
             Dim code = <String>Interface I
 End Interface</String>.Value
@@ -86,7 +86,7 @@ End Interface</String>.Value
             TestTypeBlockWithPublicModifier(Of InterfaceBlockSyntax)(code)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub ModuleBlockWithPublicModifier()
             Dim code = <String>Module M
 End Module</String>.Value
@@ -94,7 +94,7 @@ End Module</String>.Value
             TestTypeBlockWithPublicModifier(Of ModuleBlockSyntax)(code)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub StructureBlockWithPublicModifier()
             Dim code = <string>Structure S
 End Structure</string>.Value
@@ -102,7 +102,7 @@ End Structure</string>.Value
             TestTypeBlockWithPublicModifier(Of StructureBlockSyntax)(code)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub EnumBlockWithPublicModifier()
             Dim code = <String>Enum E
 End Enum</String>.Value
@@ -111,19 +111,19 @@ End Enum</String>.Value
             TestStatementDeclarationWithPublicModifier(node)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub ClassStatementWithPublicModifier()
             Dim node = SyntaxFactory.ClassStatement(SyntaxFactory.Identifier("C"))
             TestStatementDeclarationWithPublicModifier(node)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub EnumStatementWithPublicModifier()
             Dim node = SyntaxFactory.EnumStatement(SyntaxFactory.Identifier("E"))
             TestStatementDeclarationWithPublicModifier(node)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub FieldDeclarationWithPublicModifier()
             Dim code = <String>Class C
     dim _field as Integer = 1
@@ -132,7 +132,7 @@ End Class</String>.Value
             TestStatementDeclarationWithPublicModifier(node)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub EventBlockWithPublicModifier()
             Dim code = <String>Custom Event E As EventHandler
 End Event</String>.Value
@@ -140,13 +140,13 @@ End Event</String>.Value
             TestStatementDeclarationWithPublicModifier(node)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub EventStatementWithPublicModifier()
             Dim node = SyntaxFactory.EventStatement(SyntaxFactory.Identifier("E"))
             TestStatementDeclarationWithPublicModifier(node)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub PropertyBlockWithPublicModifier()
             Dim code = <String>Property P as Integer
 End Property</String>.Value
@@ -154,7 +154,7 @@ End Property</String>.Value
             TestStatementDeclarationWithPublicModifier(node)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub SubBlockWithPublicModifier()
             Dim code = <String>Sub Foo
 End Sub</String>.Value
@@ -162,42 +162,42 @@ End Sub</String>.Value
             TestStatementDeclarationWithPublicModifier(node)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub VerifyClassNameToken()
             Dim code = <String>Class C
 End Class</String>.Value
             VerifyTokenName(Of ClassBlockSyntax)(code, "C")
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub VerifyInterfaceNameToken()
             Dim code = <String>Interface I
 End Interface</String>.Value
             VerifyTokenName(Of InterfaceBlockSyntax)(code, "I")
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub VerifyStructureNameToken()
             Dim code = <String>Structure S
 End Structure</String>.Value
             VerifyTokenName(Of StructureBlockSyntax)(code, "S")
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub VerifyModuleNameToken()
             Dim code = <String>Module M
 End Module</String>.Value
             VerifyTokenName(Of ModuleBlockSyntax)(code, "M")
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub VerifyStructureStatementNameToken()
             Dim code = <String>Structure SS
 </String>.Value
             VerifyTokenName(Of StructureStatementSyntax)(code, "SS")
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub VerifyConstructorNameTokenIsNothing()
             Dim code = <String>Class C
     Sub New()
@@ -205,7 +205,7 @@ End Class</String>.Value
             VerifyTokenName(Of SubNewStatementSyntax)(code, "")
         End Sub
 
-        <WpfFact, WorkItem(552823)>
+        <Fact, WorkItem(552823)>
         Public Sub TestIsInStatementBlockOfKindForBrokenCode()
             Dim code = <String>End Sub
 End Module

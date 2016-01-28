@@ -9,7 +9,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 {
     public class SourceFileHandlingTests
     {
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         [WorkItem(1100114)]
         public void IgnoreAdditionsOfXomlFiles()

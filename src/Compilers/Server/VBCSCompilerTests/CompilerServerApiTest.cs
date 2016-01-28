@@ -11,35 +11,12 @@ using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class CompilerServerApiTest : TestBase
     {
-        private sealed class TestableDiagnosticListener : IDiagnosticListener
-        {
-            public int ProcessedCount;
-            public DateTime? LastProcessedTime;
-            public TimeSpan? KeepAlive;
-            public bool HasDetectedBadConnection;
-
-            public void ConnectionProcessed(int count)
-            {
-                ProcessedCount += count;
-                LastProcessedTime = DateTime.Now;
-            }
-
-            public void UpdateKeepAlive(TimeSpan timeSpan)
-            {
-                KeepAlive = timeSpan;
-            }
-
-            public void DetectedBadConnection()
-            {
-                HasDetectedBadConnection = true;
-            }
-        }
-
         private static readonly BuildRequest s_emptyCSharpBuildRequest = new BuildRequest(
             1,
             RequestLanguage.CSharpCompile,
@@ -48,8 +25,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         private static readonly BuildResponse s_emptyBuildResponse = new CompletedBuildResponse(
             returnCode: 0,
             utf8output: false,
-            output: string.Empty,
-            errorOutput: string.Empty);
+            output: string.Empty);
 
         private const string HelloWorldSourceText = @"
 using System;
@@ -83,7 +59,7 @@ class Hello
         {
             var connection = new Mock<IClientConnection>();
             connection
-                .Setup(x => x.HandleConnection(It.IsAny<CancellationToken>()))
+                .Setup(x => x.HandleConnection(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Returns(task);
             return connection.Object;
         }
@@ -156,7 +132,7 @@ class Hello
             var ex = new Exception();
             var clientConnection = new Mock<IClientConnection>();
             clientConnection
-                .Setup(x => x.HandleConnection(It.IsAny<CancellationToken>()))
+                .Setup(x => x.HandleConnection(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Returns(FromException<ConnectionData>(ex));
 
             var task = Task.FromResult(clientConnection.Object);
@@ -185,11 +161,12 @@ class Hello
                 .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
                 .Returns(new TaskCompletionSource<IClientConnection>().Task);
 
-            var dispatcher = new ServerDispatcher(connectionHost.Object, new EmptyDiagnosticListener());
+            var listener = new TestableDiagnosticListener();
+            var dispatcher = new ServerDispatcher(connectionHost.Object, listener);
             var startTime = DateTime.Now;
             dispatcher.ListenAndDispatchConnections(keepAlive);
 
-            Assert.True((DateTime.Now - startTime) > keepAlive);
+            Assert.True(listener.HitKeepAliveTimeout);
         }
 
         /// <summary>
@@ -198,7 +175,7 @@ class Hello
         [Fact]
         public void KeepAliveAfterSingleConnection()
         {
-            var connection = CreateClientConnection(CompletionReason.Completed);
+            var connection = CreateClientConnection(CompletionReason.CompilationCompleted);
             var host = CreateClientConnectionHost(
                 Task.FromResult(connection),
                 new TaskCompletionSource<IClientConnection>().Task);
@@ -207,9 +184,9 @@ class Hello
             var dispatcher = new ServerDispatcher(host, listener);
             dispatcher.ListenAndDispatchConnections(keepAlive);
 
-            Assert.Equal(1, listener.ProcessedCount);
+            Assert.Equal(1, listener.CompletedCount);
             Assert.True(listener.LastProcessedTime.HasValue);
-            Assert.True((DateTime.Now - listener.LastProcessedTime.Value) > keepAlive);
+            Assert.True(listener.HitKeepAliveTimeout);
         }
 
         /// <summary>
@@ -222,7 +199,7 @@ class Hello
             var list = new List<Task<IClientConnection>>();
             for (var i = 0; i < count; i++)
             {
-                var connection = CreateClientConnection(CompletionReason.Completed);
+                var connection = CreateClientConnection(CompletionReason.CompilationCompleted);
                 list.Add(Task.FromResult(connection));
             }
 
@@ -233,9 +210,9 @@ class Hello
             var dispatcher = new ServerDispatcher(host, listener);
             dispatcher.ListenAndDispatchConnections(keepAlive);
 
-            Assert.Equal(count, listener.ProcessedCount);
+            Assert.Equal(count, listener.CompletedCount);
             Assert.True(listener.LastProcessedTime.HasValue);
-            Assert.True((DateTime.Now - listener.LastProcessedTime.Value) > keepAlive);
+            Assert.True(listener.HitKeepAliveTimeout);
         }
 
         /// <summary>
@@ -272,17 +249,16 @@ class Hello
                 dispatcher.ListenAndDispatchConnections(keepAlive);
             });
 
-
             await readySource.Task.ConfigureAwait(true);
             foreach (var source in list)
             {
-                source.SetResult(new ConnectionData(CompletionReason.Completed));
+                source.SetResult(new ConnectionData(CompletionReason.CompilationCompleted));
             }
 
             await dispatcherTask.ConfigureAwait(true);
-            Assert.Equal(totalCount, listener.ProcessedCount);
+            Assert.Equal(totalCount, listener.CompletedCount);
             Assert.True(listener.LastProcessedTime.HasValue);
-            Assert.True((DateTime.Now - listener.LastProcessedTime.Value) > keepAlive);
+            Assert.True(listener.HitKeepAliveTimeout);
         }
 
         [Fact]
@@ -290,7 +266,7 @@ class Hello
         {
             var client = new Mock<IClientConnection>();
             client
-                .Setup(x => x.HandleConnection(It.IsAny<CancellationToken>()))
+                .Setup(x => x.HandleConnection(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Throws(new Exception());
 
             var listenCancellationToken = default(CancellationToken);
@@ -319,6 +295,207 @@ class Hello
 
             Assert.True(listener.HasDetectedBadConnection);
             Assert.True(listenCancellationToken.IsCancellationRequested);
+        }
+
+        [Fact]
+        public void MutexStopsServerStarting()
+        {
+            var mutexName = Guid.NewGuid().ToString("N");
+
+            bool holdsMutex;
+            using (var mutex = new Mutex(initiallyOwned: true,
+                                         name: mutexName,
+                                         createdNew: out holdsMutex))
+            {
+                Assert.True(holdsMutex);
+                try
+                {
+                    var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
+                    var result = VBCSCompiler.Run(mutexName, host.Object, keepAlive: null);
+                    Assert.Equal(CommonCompiler.Failed, result);
+                }
+                finally
+                {
+                    mutex.ReleaseMutex();
+                }
+            }
+        }
+
+        [Fact]
+        public void MutexAcquiredWhenRunningServer()
+        {
+            var mutexName = Guid.NewGuid().ToString("N");
+            var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
+            host
+                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Returns(() =>
+                {
+                    // Use a thread instead of Task to guarantee this code runs on a different
+                    // thread and we can validate the mutex state. 
+                    var source = new TaskCompletionSource<bool>();
+                    var thread = new Thread(_ => 
+                    {
+                        Mutex mutex;
+                        Assert.True(Mutex.TryOpenExisting(mutexName, out mutex));
+                        Assert.False(mutex.WaitOne(millisecondsTimeout: 0));
+                        source.SetResult(true);
+                    });
+
+                    // Synchronously wait here.  Don't returned a Task value because we need to 
+                    // ensure the above check completes before the server hits a timeout and 
+                    // releases the mutex. 
+                    thread.Start();
+                    source.Task.Wait();
+
+                    return new TaskCompletionSource<IClientConnection>().Task;
+                });
+
+            var result = VBCSCompiler.Run(mutexName, host.Object, keepAlive: TimeSpan.FromSeconds(1));
+            Assert.Equal(CommonCompiler.Succeeded, result);
+        }
+
+        [Fact]
+        public async Task ShutdownRequestDirect()
+        {
+            using (var serverData = ServerUtil.CreateServer())
+            {
+                var serverProcessId = await ServerUtil.SendShutdown(serverData.PipeName);
+                Assert.Equal(Process.GetCurrentProcess().Id, serverProcessId);
+                await serverData.Verify(connections: 1, completed: 1);
+            }
+        }
+
+        /// <summary>
+        /// A shutdown request should not abort an existing compilation.  It should be allowed to run to 
+        /// completion.
+        /// </summary>
+        [Fact]
+        public async Task ShutdownDoesNotAbortCompilation()
+        {
+            var host = new TestableCompilerServerHost();
+
+            using (var startedMre = new ManualResetEvent(initialState: false))
+            using (var finishedMre = new ManualResetEvent(initialState: false))
+            using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
+            {
+                // Create a compilation that is guaranteed to complete after the shutdown is seen. 
+                host.RunCompilation = (request, cancellationToken) =>
+                {
+                    startedMre.Set();
+                    finishedMre.WaitOne();
+                    return s_emptyBuildResponse;
+                };
+
+                var compileTask = ServerUtil.Send(serverData.PipeName, s_emptyCSharpBuildRequest);
+                startedMre.WaitOne();
+
+                // The compilation is now in progress, send the shutdown.
+                await ServerUtil.SendShutdown(serverData.PipeName);
+                Assert.False(compileTask.IsCompleted);
+                finishedMre.Set();
+
+                var response = await compileTask;
+                Assert.Equal(BuildResponse.ResponseType.Completed, response.Type);
+                Assert.Equal(0, ((CompletedBuildResponse)response).ReturnCode);
+
+                await serverData.Verify(connections: 2, completed: 2);
+            }
+        }
+
+        /// <summary>
+        /// Multiple clients should be able to send shutdown requests to the server.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task ShutdownRepeated()
+        {
+            var host = new TestableCompilerServerHost();
+
+            using (var startedMre = new ManualResetEvent(initialState: false))
+            using (var finishedMre = new ManualResetEvent(initialState: false))
+            using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
+            {
+                // Create a compilation that is guaranteed to complete after the shutdown is seen. 
+                host.RunCompilation = (request, cancellationToken) =>
+                {
+                    startedMre.Set();
+                    finishedMre.WaitOne();
+                    return s_emptyBuildResponse;
+                };
+
+                var compileTask = ServerUtil.Send(serverData.PipeName, s_emptyCSharpBuildRequest);
+                startedMre.WaitOne();
+
+                for (var i = 0; i < 10; i++)
+                {
+                    // The compilation is now in progress, send the shutdown.
+                    var processId = await ServerUtil.SendShutdown(serverData.PipeName);
+                    Assert.Equal(Process.GetCurrentProcess().Id, processId);
+                    Assert.False(compileTask.IsCompleted);
+                }
+
+                finishedMre.Set();
+
+                var response = await compileTask;
+                Assert.Equal(BuildResponse.ResponseType.Completed, response.Type);
+                Assert.Equal(0, ((CompletedBuildResponse)response).ReturnCode);
+
+                await serverData.Verify(connections: 11, completed: 11);
+            }
+        }
+
+        [Fact]
+        public async Task CancelWillCancelCompilation()
+        {
+            var host = new TestableCompilerServerHost();
+
+            using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
+            using (var mre = new ManualResetEvent(initialState: false))
+            {
+                const int requestCount = 5;
+                var count = 0;
+
+                host.RunCompilation = (request, cancellationToken) =>
+                {
+                    if (Interlocked.Increment(ref count) == requestCount)
+                    {
+                        mre.Set();
+                    }
+
+                    cancellationToken.WaitHandle.WaitOne();
+                    return new RejectedBuildResponse();
+                };
+
+                var list = new List<Task<BuildResponse>>();
+                for (var i = 0; i < requestCount; i++)
+                {
+                    var task = ServerUtil.Send(serverData.PipeName, s_emptyCSharpBuildRequest);
+                    list.Add(task);
+                }
+
+                // Wait until all of the connections are being processed by the server then cancel. 
+                mre.WaitOne();
+                serverData.CancellationTokenSource.Cancel();
+
+                var stats = await serverData.Complete();
+                Assert.Equal(requestCount, stats.Connections);
+                Assert.Equal(requestCount, count);
+
+                foreach (var task in list)
+                {
+                    var threw = false;
+                    try
+                    {
+                        await task;
+                    }
+                    catch
+                    {
+                        threw = true;
+                    }
+
+                    Assert.True(threw);
+                }
+            }
         }
     }
 }

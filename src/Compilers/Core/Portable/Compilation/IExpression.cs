@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         ITypeSymbol ResultType { get; }
         /// <summary>
-        /// If the expression evaluates to a constant value, the value of the expression, and otherwise null.
+        /// If the expression evaluates to a constant value, <see cref="Optional{Object}.HasValue"/> is true and <see cref="Optional{Object}.Value"/> is the value of the expression, and otherwise <see cref="Optional{Object}.HasValue"/> is false.
         /// </summary>
-        object ConstantValue { get; }
+        Optional<object> ConstantValue { get; }
     }
 
     /// <summary>
@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an argument in a method invocation.
     /// </summary>
-    public interface IArgument
+    public interface IArgument : IOperation
     {
         /// <summary>
         /// Kind of argument.
         /// </summary>
-        ArgumentKind Kind { get; }
+        ArgumentKind ArgumentKind { get; }
         /// <summary>
         /// Parameter the argument matches.
         /// </summary>
@@ -205,18 +205,23 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a reference to a member of a class or struct.
+    /// Represents a reference to a member of a class, struct, or interface.
     /// </summary>
     public interface IMemberReferenceExpression : IReferenceExpression
     {
         /// <summary>
-        /// Instance of the class or struct. Null if the reference is to a static/shared member.
+        /// Instance of the type. Null if the reference is to a static/shared member.
         /// </summary>
         IExpression Instance { get; }
+
+        /// <summary>
+        /// Referenced member.  
+        /// </summary>  
+        ISymbol Member { get; }
     }
 
     /// <summary>
-    /// Represents a reference to a field of a class or struct.
+    /// Represents a reference to a field.
     /// </summary>
     public interface IFieldReferenceExpression : IMemberReferenceExpression
     {
@@ -227,14 +232,15 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a reference to a method of a class or struct.
+    /// Represents a reference to a method other than as the target of an invocation.
     /// </summary>
-    public interface IMethodReferenceExpression : IMemberReferenceExpression
+    public interface IMethodBindingExpression : IMemberReferenceExpression
     {
         /// <summary>
         /// Referenced method.
         /// </summary>
         IMethodSymbol Method { get; }
+
         /// <summary>
         /// Indicates whether the reference uses virtual semantics.
         /// </summary>
@@ -242,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
     
     /// <summary>
-    /// Represents a reference to a property of a class or struct.
+    /// Represents a reference to a property.
     /// </summary>
     public interface IPropertyReferenceExpression : IMemberReferenceExpression
     {
@@ -250,6 +256,43 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Referenced property.
         /// </summary>
         IPropertySymbol Property { get; }
+    }
+
+    /// <summary>
+    /// Represents a reference to an event.
+    /// </summary>
+    public interface IEventReferenceExpression : IMemberReferenceExpression
+    {
+        /// <summary>
+        /// Referenced event.
+        /// </summary>
+        IEventSymbol Event { get; }
+    }
+
+    /// <summary>
+    /// Represents a binding of an event.
+    /// </summary>
+    public interface IEventAssignmentExpression : IExpression
+    {
+        /// <summary>
+        /// Event being bound.
+        /// </summary>
+        IEventSymbol Event { get; }
+
+        /// <summary>
+        /// Instance used to refer to the event being bound.
+        /// </summary>
+        IExpression EventInstance { get; }
+
+        /// <summary>
+        /// Handler supplied for the event.
+        /// </summary>
+        IExpression HandlerValue { get; }
+
+        /// <summary>
+        /// True for adding a binding, false for removing one.
+        /// </summary>
+        bool Adds { get; }
     }
 
     /// <summary>
@@ -286,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of unary operation.
         /// </summary>
-        UnaryOperationKind UnaryKind { get; }
+        UnaryOperationKind UnaryOperationKind { get; }
         /// <summary>
         /// Single operand.
         /// </summary>
@@ -375,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of binary operation.
         /// </summary>
-        BinaryOperationKind BinaryKind { get; }
+        BinaryOperationKind BinaryOperationKind { get; }
         /// <summary>
         /// Left operand.
         /// </summary>
@@ -577,7 +620,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of conversion.
         /// </summary>
-        ConversionKind Conversion { get; }
+        ConversionKind ConversionKind { get; }
         /// <summary>
         /// True if and only if the conversion is indicated explicity by a cast operation in the source code.
         /// </summary>
@@ -669,7 +712,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of type operation.
         /// </summary>
-        TypeOperationKind TypeOperationClass { get; }
+        TypeOperationKind TypeOperationKind { get; }
         /// <summary>
         /// Type operand.
         /// </summary>
@@ -755,9 +798,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         ImmutableArray<IMemberInitializer> MemberInitializers { get; }
     }
 
-    public interface IMemberInitializer
+    /// <summary>
+    /// Represents an object member initializer.
+    /// </summary>
+    public interface IMemberInitializer : IOperation
     {
-        MemberInitializerKind MemberClass { get; }
+        MemberInitializerKind MemberInitializerKind { get; }
         IExpression Value { get; }
     }
 
@@ -808,49 +854,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Values of elements of the created array instance.
         /// </summary>
-        IArrayInitializer ElementValues { get; }
+        IArrayInitializer Initializer { get; }
     }
 
     /// <summary>
     /// Represents the initialization of an array instance.
     /// </summary>
-    public interface IArrayInitializer
+    public interface IArrayInitializer : IExpression
     {
         /// <summary>
-        /// Kind of array initialization.
+        /// Values to initialize array elements.
         /// </summary>
-        ArrayInitializerKind ArrayClass { get; }
-    }
-
-    /// <summary>
-    /// Kinds of array initializers.
-    /// </summary>
-    public enum ArrayInitializerKind
-    {
-        /// <summary>
-        /// Initializer specifies a single element value.
-        /// </summary>
-        Expression,
-        /// <summary>
-        /// Initializer specifies multiple elements of a dimension of the array. 
-        /// </summary>
-        Dimension
-    }
-
-    /// <summary>
-    /// Represents an initialization of a single element of an array instance.
-    /// </summary>
-    public interface IExpressionArrayInitializer : IArrayInitializer
-    {
-        IExpression ElementValue { get; }
-    }
-
-    /// <summary>
-    /// Represents an initialization of a single dimension of an array instance.
-    /// </summary>
-    public interface IDimensionArrayInitializer : IArrayInitializer
-    {
-        ImmutableArray<IArrayInitializer> ElementValues { get; }
+        ImmutableArray<IExpression> ElementValues { get; }
     }
 
     /// <summary>

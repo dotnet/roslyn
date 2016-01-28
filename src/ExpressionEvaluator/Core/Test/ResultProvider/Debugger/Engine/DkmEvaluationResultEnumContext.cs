@@ -4,6 +4,7 @@
 
 #endregion
 using System;
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.CallStack;
 
 namespace Microsoft.VisualStudio.Debugger.Evaluation
@@ -29,9 +30,15 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
             return enumContext;
         }
 
-        public virtual void GetItems(DkmWorkList workList, int startIndex, int count, DkmCompletionRoutine<DkmEvaluationEnumAsyncResult> completionRoutine)
+        public void GetItems(DkmWorkList workList, int startIndex, int count, DkmCompletionRoutine<DkmEvaluationEnumAsyncResult> completionRoutine)
         {
-            throw new NotImplementedException();
+            InspectionContext.InspectionSession.InvokeResultProvider(
+                MethodId.GetItems,
+                r =>
+                {
+                    r.GetItems(this, workList, startIndex, count, completionRoutine);
+                    return (object)null;
+                });
         }
     }
 }

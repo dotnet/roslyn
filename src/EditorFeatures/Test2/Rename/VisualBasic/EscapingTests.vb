@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
     Public Class EscapingTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeTypeWhenRenamingToKeyword()
             Using result = RenameEngineResult.Create(
@@ -25,7 +25,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub DoNotEscapeMethodAfterDotWhenRenamingToKeyword()
             Using result = RenameEngineResult.Create(
@@ -47,7 +47,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeAttributeWhenRenamingToRegularKeyword()
             Using result = RenameEngineResult.Create(
@@ -73,7 +73,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeAttributeUsageWhenRenamingToAssembly()
             Using result = RenameEngineResult.Create(
@@ -100,7 +100,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeAttributeUsageWhenRenamingToModule()
             Using result = RenameEngineResult.Create(
@@ -127,7 +127,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeWhenRenamingMethodToNew()
             Using result = RenameEngineResult.Create(
@@ -156,7 +156,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeWhenRenamingMethodToRem()
             Using result = RenameEngineResult.Create(
@@ -178,7 +178,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(542104)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeWhenRenamingPropertyToMid()
@@ -205,7 +205,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(542104)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeWhenRenamingPropertyToStrangelyCasedMid()
@@ -232,7 +232,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(542166)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeWhenRenamingToMidWithTypeCharacters1()
@@ -259,7 +259,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(542166)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeWhenRenamingToMidWithTypeCharacters2()
@@ -286,7 +286,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapePreserveKeywordWhenRenamingWithRedim()
             Using result = RenameEngineResult.Create(
@@ -308,7 +308,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(542322)>
         Public Sub EscapeRemKeywordWhenDoingTypeNameQualification()
@@ -334,7 +334,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(542322)>
         Public Sub EscapeNewKeywordWhenDoingTypeNameQualification()
@@ -360,7 +360,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(542322)>
         Public Sub EscapeRemKeywordWhenDoingMeQualification()
@@ -386,7 +386,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(542322)>
         Public Sub DoNotEscapeIfKeywordWhenDoingMeQualification()
@@ -413,7 +413,7 @@ End Class
         End Sub
 
         <WorkItem(529935)>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeIdentifierWhenRenamingToRemKeyword()
             Using result = RenameEngineResult.Create(
@@ -435,7 +435,7 @@ End Module
         End Sub
 
         <WorkItem(529935)>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeIdentifierWhenRenamingToRemKeyword2()
             Using result = RenameEngineResult.Create(
@@ -458,7 +458,7 @@ End Module
         End Sub
 
         <WorkItem(529938)>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamingToEscapedIdentifierWithFullwidthSquareBracket()
             Using result = RenameEngineResult.Create(
@@ -479,7 +479,7 @@ End Module
         End Sub
 
         <WorkItem(529932)>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeContextualKeywordsInQuery1()
             Using result = RenameEngineResult.Create(
@@ -519,7 +519,7 @@ End Module
         End Sub
 
         <WorkItem(530805)>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeMidIfNeeded()
             Using result = RenameEngineResult.Create(
@@ -543,7 +543,7 @@ End Module
         End Sub
 
         <WorkItem(607067)>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamingToRemAndUsingTypeCharactersIsNotAllowed()
             Using result = RenameEngineResult.Create(
@@ -586,7 +586,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameToIdentifierBracketed()
             Using result = RenameEngineResult.Create(
                     <Workspace>
@@ -607,7 +607,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameToIdentifierBracketed_2()
             Using result = RenameEngineResult.Create(
                     <Workspace>

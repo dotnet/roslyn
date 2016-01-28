@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         protected override void AppendIdentifierEscapingPotentialKeywords(StringBuilder builder, string identifier, out bool sawInvalidIdentifier)
         {
-            sawInvalidIdentifier = !IsValidIdentifier(identifier);
+            sawInvalidIdentifier = !SyntaxFacts.IsValidIdentifier(identifier);
             if (IsPotentialKeyword(identifier))
             {
                 builder.Append('@');

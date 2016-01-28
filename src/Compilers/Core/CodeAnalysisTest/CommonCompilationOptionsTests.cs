@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "OptimizationLevel",
                 "OutputKind",
                 "Platform",
+                "PublicSign",
                 "ScriptClassName",
                 "SourceReferenceResolver",
                 "SpecificDiagnosticOptions",

@@ -1544,11 +1544,9 @@ class B {
 }
 ";
             CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
-                // (4,16): error CS0104: 'A<int>' is an ambiguous reference between 'A<T>' and 'A<T>'
+                // (4,16): error CS0104: 'A<>' is an ambiguous reference between 'A<T>' and 'A<T>'
                 //     object x = A<int>.Foo;
-                Diagnostic(ErrorCode.ERR_AmbigContext, "A<int>").WithArguments("A<int>", "A<T>", "A<T>"));
-            // Dev10 error:
-            // error CS0433: The type 'A<T>' exists in both 'X.dll' and 'X.dll'
+                Diagnostic(ErrorCode.ERR_AmbigContext, "A<int>").WithArguments("A<>", "A<T>", "A<T>").WithLocation(4, 16));
         }
 
         [WorkItem(538789, "DevDiv")]

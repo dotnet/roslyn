@@ -14,6 +14,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Identifies the kind of the operation.
         /// </summary>
         OperationKind Kind { get; }
+
+        /// <summary>
+        ///  Indicates whether the operation is invalid, either semantically or syntactically.
+        /// </summary>
+        bool IsInvalid { get; }
+
         /// <summary>
         /// Syntax that was analyzed to produce the operation.
         /// </summary>
@@ -27,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         None,
 
+        InvalidStatement,
         BlockStatement,
         VariableDeclarationStatement,
         SwitchStatement,
@@ -52,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         ExpressionStatement,
 
+        InvalidExpression,
         LiteralExpression,
         ConversionExpression,
         InvocationExpression,
@@ -61,8 +69,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         ParameterReferenceExpression,
         SyntheticLocalReferenceExpression,
         FieldReferenceExpression,
-        MethodReferenceExpression,
+        MethodBindingExpression,
         PropertyReferenceExpression,
+        EventReferenceExpression,
         LateBoundMemberReferenceExpression,
         UnaryOperatorExpression,
         BinaryOperatorExpression,
@@ -85,6 +94,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         ParenthesizedExpression,
 
         UnboundLambdaExpression,
+        EventAssignmentExpression,
 
         // VB only
 
@@ -96,6 +106,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         // Newly added
 
         ConditionalAccessExpression,
-        IncrementExpression
+        IncrementExpression,
+
+        Argument,
+        FieldInitializer,
+        PropertyInitializer,
+        ArrayInitializer,
+        VariableDeclaration,
+        SwitchSection,
+        SingleValueCaseClause,
+        RelationalCaseClause,
+        RangeCaseClause
     }
 }

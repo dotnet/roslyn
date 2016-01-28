@@ -1061,9 +1061,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        public BoundExpression Array(TypeSymbol elementType, BoundExpression[] elements)
+        public BoundExpression ArrayOrEmpty(TypeSymbol elementType, BoundExpression[] elements)
         {
-            return Array(elementType, elements.AsImmutableOrNull());
+            return ArrayOrEmpty(elementType, elements.AsImmutable());
+        }
+
+        /// <summary>
+        /// Helper that will use Array.Empty if available and elements have 0 length
+        /// NOTE: it is valid only if we know that the API that is being called will not 
+        ///       retain or use the array argument for any purpose (like locking or key in a hash table)
+        ///       Typical example of valid use is Linq.Expressions factories - they do not make any 
+        ///       assumptions about array arguments and do not keep them or rely on their identity.
+        /// </summary>
+        public BoundExpression ArrayOrEmpty(TypeSymbol elementType, ImmutableArray<BoundExpression> elements)
+        {
+            if (elements.Length == 0)
+            {
+                MethodSymbol arrayEmpty = WellKnownMethod(CodeAnalysis.WellKnownMember.System_Array__Empty, isOptional: true);
+                if ((object)arrayEmpty != null)
+                {
+                    arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(elementType));
+                    return Call(null, arrayEmpty);
+                }
+            }
+
+            return Array(elementType, elements);
         }
 
         public BoundExpression Array(TypeSymbol elementType, ImmutableArray<BoundExpression> elements)

@@ -567,7 +567,7 @@ TF-x";
             var verifier = CompileAndVerify(source: source, expectedOutput: expected);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7803")]
         public void TestLiftedComparison()
         {
             TestNullableComparison("==", "FFTFF1FTFFTF2FFTFFT3TFFTFF4FTFFTF5FFTFFT",

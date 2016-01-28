@@ -1041,7 +1041,7 @@ struct S
         }
 
         [WorkItem(528571, "DevDiv")]
-        [Fact(Skip = "528571")]
+        [Fact]
         public void ConstraintsWithinStruct()
         {
             var source =
@@ -2521,15 +2521,20 @@ class C<T>
     void M<U>() where U : Z, A { }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (4,15): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(4, 15),
-                // (5,15): error CS0246: The type or namespace name 'I<T>' could not be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I<T>").WithArguments("I<T>").WithLocation(5, 15),
                 // (10,18): error CS0246: The type or namespace name 'Y' could not be found (are you missing a using directive or an assembly reference?)
+                //     where T : A, Y
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Y").WithArguments("Y").WithLocation(10, 18),
+                // (4,15): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                //     where T : X
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(4, 15),
+                // (5,15): error CS0246: The type or namespace name 'I<>' could not be found (are you missing a using directive or an assembly reference?)
+                //     where U : I<T>
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I<T>").WithArguments("I<>").WithLocation(5, 15),
                 // (13,27): error CS0246: The type or namespace name 'Z' could not be found (are you missing a using directive or an assembly reference?)
+                //     void M<U>() where U : Z, A { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Z").WithArguments("Z").WithLocation(13, 27),
                 // (13,30): error CS0406: The class type constraint 'A' must come before any other constraints
+                //     void M<U>() where U : Z, A { }
                 Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(13, 30));
         }
 

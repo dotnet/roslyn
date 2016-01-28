@@ -9,44 +9,44 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class AliasKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AliasAfterLibNameInSub()
-            VerifyRecommendationsAreExactly(<ClassDeclaration>Declare Sub foo Lib "Foo" |</ClassDeclaration>, "Alias")
-        End Sub
+        Public Async Function AliasAfterLibNameInSubTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Declare Sub foo Lib "Foo" |</ClassDeclaration>, "Alias")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AliasAfterLibNameInFunction()
-            VerifyRecommendationsAreExactly(<ClassDeclaration>Declare Function foo Lib "Foo" |</ClassDeclaration>, "Alias")
-        End Sub
+        Public Async Function AliasAfterLibNameInFunctionTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Declare Function foo Lib "Foo" |</ClassDeclaration>, "Alias")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AliasNotAfterLibKeyword()
-            VerifyRecommendationsAreExactly(<ClassDeclaration>Declare Sub foo Lib |</ClassDeclaration>, Array.Empty(Of String)())
-        End Sub
+        Public Async Function AliasNotAfterLibKeywordTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Declare Sub foo Lib |</ClassDeclaration>, Array.Empty(Of String)())
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NothingAfterBrokenAlias()
-            VerifyRecommendationsAreExactly(<ClassDeclaration>Declare Sub foo Lib "Foo" Alais |</ClassDeclaration>, Array.Empty(Of String)())
-        End Sub
+        Public Async Function NothingAfterBrokenAliasTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Declare Sub foo Lib "Foo" Alais |</ClassDeclaration>, Array.Empty(Of String)())
+        End Function
 
         <WorkItem(530953)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoAliasAfterEol()
-            VerifyRecommendationsMissing(
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NoAliasAfterEolTest() As Task
+            Await VerifyRecommendationsMissingAsync(
 <ClassDeclaration>Declare Function foo Lib "Foo" 
     |</ClassDeclaration>, "Alias")
-        End Sub
+        End Function
 
         <WorkItem(530953)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AliasAfterExplicitLineContinuation()
-            VerifyRecommendationsAreExactly(
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AliasAfterExplicitLineContinuationTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(
 <ClassDeclaration>Declare Function foo Lib "Foo" _
 |</ClassDeclaration>, "Alias")
-        End Sub
+        End Function
     End Class
 End Namespace

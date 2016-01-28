@@ -25,13 +25,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             assemblyName As String,
             options As CompilationOptions,
             hostObjectType As Type) As Compilation Implements ICompilationFactoryService.CreateSubmissionCompilation
-
-            Throw New NotImplementedException()
-            ' https://github.com/dotnet/roslyn/issues/5944
-            'Return VisualBasicCompilation.CreateScriptCompilation(
-            '    assemblyName,
-            '    options:=DirectCast(options, VisualBasicCompilationOptions),
-            '    globalsType:=hostObjectType)
+            Return VisualBasicCompilation.CreateScriptCompilation(
+                assemblyName,
+                options:=DirectCast(options, VisualBasicCompilationOptions),
+                globalsType:=hostObjectType)
         End Function
 
         Private Function ICompilationFactoryService_GetCompilationFromCompilationReference(reference As MetadataReference) As Compilation Implements ICompilationFactoryService.GetCompilationFromCompilationReference

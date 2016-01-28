@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 {
-    interface IReplaceMethodWithPropertyService : ILanguageService
+    internal interface IReplaceMethodWithPropertyService : ILanguageService
     {
         SyntaxNode GetMethodDeclaration(SyntaxToken token);
         string GetMethodName(SyntaxNode methodDeclaration);

@@ -24,8 +24,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
             Return array
         End Function
 
-        Private Function ProduceTags(workspace As TestWorkspace, buffer As ITextBuffer, position As Integer) As IEnumerable(Of ITagSpan(Of BraceHighlightTag))
-            Dim view As New Mock(Of ITextView)
+        Private Async Function ProduceTagsAsync(workspace As TestWorkspace, buffer As ITextBuffer, position As Integer) As Tasks.Task(Of IEnumerable(Of ITagSpan(Of BraceHighlightTag)))
+            WpfTestCase.RequireWpfFact($"{NameOf(BraceHighlightingTests)}.{"ProduceTagsAsync"} creates asynchronous taggers")
+
             Dim producer = New BraceHighlightingViewTaggerProvider(
                 workspace.GetService(Of IBraceMatchingService),
                 workspace.GetService(Of IForegroundNotificationService),
@@ -34,169 +35,172 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
             Dim doc = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault()
             Dim context = New TaggerContext(Of BraceHighlightTag)(
                 doc, buffer.CurrentSnapshot, New SnapshotPoint(buffer.CurrentSnapshot, position))
-            producer.ProduceTagsAsync_ForTestingPurposesOnly(context).Wait()
+            Await producer.ProduceTagsAsync_ForTestingPurposesOnly(context)
             Return context.tagSpans
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
-        Public Sub TestParens()
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines("Module Module1",
-                             "    Function Foo(x As Integer) As Integer",
-                             "    End Function",
-                             "End Module")
+        Public Async Function TestParens() As Tasks.Task
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(
+"Module Module1
+    Function Foo(x As Integer) As Integer
+    End Function
+End Module")
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
                 ' Before open parens
-                Dim result = ProduceTags(workspace, buffer, 31)
+                Dim result = Await ProduceTagsAsync(workspace, buffer, 31)
                 Assert.True(result.IsEmpty())
 
                 ' At open parens
-                result = ProduceTags(workspace, buffer, 32)
+                result = Await ProduceTagsAsync(workspace, buffer, 32)
                 Assert.True(result.Select(Function(ts) ts.Span.Span).SetEquals(Enumerable(Span.FromBounds(32, 33), Span.FromBounds(45, 46))))
 
                 ' After open parens
-                result = ProduceTags(workspace, buffer, 33)
+                result = Await ProduceTagsAsync(workspace, buffer, 33)
                 Assert.True(result.IsEmpty())
 
                 ' Before close parens
-                result = ProduceTags(workspace, buffer, 44)
+                result = Await ProduceTagsAsync(workspace, buffer, 44)
                 Assert.True(result.IsEmpty())
 
                 ' At close parens
-                result = ProduceTags(workspace, buffer, 45)
+                result = Await ProduceTagsAsync(workspace, buffer, 45)
                 Assert.True(result.IsEmpty())
 
                 ' After close parens
-                result = ProduceTags(workspace, buffer, 46)
+                result = Await ProduceTagsAsync(workspace, buffer, 46)
                 Assert.True(result.Select(Function(ts) ts.Span.Span).SetEquals(Enumerable(Span.FromBounds(32, 33), Span.FromBounds(45, 46))))
             End Using
-        End Sub
+        End Function
 
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
-        Public Sub TestNestedTouchingItems()
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(
-                "Module Module1",
-                "    <SomeAttr(New With {.name = ""test""})>  ",
-                "    Sub Foo()",
-                "    End Sub",
-                "End Module")
+        Public Async Function TestNestedTouchingItems() As Tasks.Task
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(
+"Module Module1
+    <SomeAttr(New With {.name = ""test""})>  
+    Sub Foo()
+    End Sub
+End Module")
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
                 ' pos 0 on second line is 16
 
                 ' Before <
-                Dim result = ProduceTags(workspace, buffer, 19)
+                Dim result = Await ProduceTagsAsync(workspace, buffer, 19)
                 Assert.True(result.IsEmpty)
 
                 ' On <
-                result = ProduceTags(workspace, buffer, 20)
+                result = Await ProduceTagsAsync(workspace, buffer, 20)
                 Assert.True(result.Select(Function(ts) ts.Span.Span).SetEquals(Enumerable(Span.FromBounds(20, 21), Span.FromBounds(56, 57))))
 
                 ' After <
-                result = ProduceTags(workspace, buffer, 21)
+                result = Await ProduceTagsAsync(workspace, buffer, 21)
                 Assert.True(result.IsEmpty)
 
                 ' Before (
-                result = ProduceTags(workspace, buffer, 28)
+                result = Await ProduceTagsAsync(workspace, buffer, 28)
                 Assert.True(result.IsEmpty)
 
                 ' On (
-                result = ProduceTags(workspace, buffer, 29)
+                result = Await ProduceTagsAsync(workspace, buffer, 29)
                 Assert.True(result.Select(Function(ts) ts.Span.Span).SetEquals(Enumerable(Span.FromBounds(29, 30), Span.FromBounds(55, 56))))
 
                 ' After (
-                result = ProduceTags(workspace, buffer, 30)
+                result = Await ProduceTagsAsync(workspace, buffer, 30)
                 Assert.True(result.IsEmpty)
 
                 ' Before {
-                result = ProduceTags(workspace, buffer, 38)
+                result = Await ProduceTagsAsync(workspace, buffer, 38)
                 Assert.True(result.IsEmpty)
 
                 ' On {
-                result = ProduceTags(workspace, buffer, 39)
+                result = Await ProduceTagsAsync(workspace, buffer, 39)
                 Assert.True(result.Select(Function(ts) ts.Span.Span).SetEquals(Enumerable(Span.FromBounds(39, 40), Span.FromBounds(54, 55))))
 
                 ' After {
-                result = ProduceTags(workspace, buffer, 40)
+                result = Await ProduceTagsAsync(workspace, buffer, 40)
                 Assert.True(result.IsEmpty)
 
                 ' x is any character, | is the cursor in the following comments 
                 '|"})>
-                result = ProduceTags(workspace, buffer, 53)
+                result = Await ProduceTagsAsync(workspace, buffer, 53)
                 Assert.True(result.IsEmpty)
 
                 ' "|})>
-                result = ProduceTags(workspace, buffer, 54)
+                result = Await ProduceTagsAsync(workspace, buffer, 54)
                 Assert.True(result.Select(Function(ts) ts.Span.Span).SetEquals(Enumerable(Span.FromBounds(48, 49), Span.FromBounds(53, 54))))
 
                 ' }|)>
-                result = ProduceTags(workspace, buffer, 55)
+                result = Await ProduceTagsAsync(workspace, buffer, 55)
                 Assert.True(result.Select(Function(ts) ts.Span.Span).SetEquals(Enumerable(Span.FromBounds(39, 40), Span.FromBounds(54, 55))))
 
                 ' })|>
-                result = ProduceTags(workspace, buffer, 56)
+                result = Await ProduceTagsAsync(workspace, buffer, 56)
                 Assert.True(result.Select(Function(ts) ts.Span.Span).SetEquals(Enumerable(Span.FromBounds(29, 30), Span.FromBounds(55, 56))))
 
                 ' })>|
-                result = ProduceTags(workspace, buffer, 57)
+                result = Await ProduceTagsAsync(workspace, buffer, 57)
                 Assert.True(result.Select(Function(ts) ts.Span.Span).SetEquals(Enumerable(Span.FromBounds(20, 21), Span.FromBounds(56, 57))))
 
                 ' })>x|
-                result = ProduceTags(workspace, buffer, 58)
+                result = Await ProduceTagsAsync(workspace, buffer, 58)
                 Assert.True(result.IsEmpty)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
-        Public Sub TestUnnestedTouchingItems()
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines("Module Module1",
-                     "    Dim arr()() As Integer",
-                     "End Module")
+        Public Async Function TestUnnestedTouchingItems() As Tasks.Task
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(
+"Module Module1
+    Dim arr()() As Integer
+End Module")
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
                 ' x is any character, | is the cursor in the following comments
                 ' |x()()
-                Dim result = ProduceTags(workspace, buffer, 26)
+                Dim result = Await ProduceTagsAsync(workspace, buffer, 26)
                 Assert.True(result.IsEmpty)
 
                 ' |()()
-                result = ProduceTags(workspace, buffer, 27)
+                result = Await ProduceTagsAsync(workspace, buffer, 27)
                 Assert.True(result.Select(Function(ts) ts.Span.Span).SetEquals(Enumerable(Span.FromBounds(27, 28), Span.FromBounds(28, 29))))
 
                 ' (|)()
-                result = ProduceTags(workspace, buffer, 28)
+                result = Await ProduceTagsAsync(workspace, buffer, 28)
                 Assert.True(result.IsEmpty)
 
                 ' ()|()
-                result = ProduceTags(workspace, buffer, 29)
+                result = Await ProduceTagsAsync(workspace, buffer, 29)
                 Assert.True(result.Select(Function(ts) ts.Span.Span).SetEquals(Enumerable(Span.FromBounds(27, 28), Span.FromBounds(28, 29),
                                                                                           Span.FromBounds(29, 30), Span.FromBounds(30, 31))))
 
                 ' ()(|)
-                result = ProduceTags(workspace, buffer, 30)
+                result = Await ProduceTagsAsync(workspace, buffer, 30)
                 Assert.True(result.IsEmpty)
 
                 ' ()()|
-                result = ProduceTags(workspace, buffer, 31)
+                result = Await ProduceTagsAsync(workspace, buffer, 31)
                 Assert.True(result.Select(Function(ts) ts.Span.Span).SetEquals(Enumerable(Span.FromBounds(29, 30), Span.FromBounds(30, 31))))
 
                 ' ()()x|
-                result = ProduceTags(workspace, buffer, 32)
+                result = Await ProduceTagsAsync(workspace, buffer, 32)
                 Assert.True(result.IsEmpty)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
-        Public Sub TestAngles()
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines("Module Module1",
-                     "    <Attribute()>",
-                     "    Sub Foo()",
-                     "        Dim x = 2 > 3",
-                     "        Dim y = 4 > 5",
-                     "        Dim z = <element> </element>",
-                     "    End Sub",
-                     "End Module")
+        Public Async Function TestAngles() As Tasks.Task
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(
+"Module Module1
+    <Attribute()>
+    Sub Foo()
+        Dim x = 2 > 3
+        Dim y = 4 > 5
+        Dim z = <element></element>
+    End Sub
+End Module")
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
                 Dim line4start = buffer.CurrentSnapshot.GetLineFromLineNumber(3).Start.Position
@@ -204,53 +208,53 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
                 Dim line6start = buffer.CurrentSnapshot.GetLineFromLineNumber(5).Start.Position
 
                 ' 2| > 3
-                Dim result = ProduceTags(workspace, buffer, 15 + line4start)
+                Dim result = Await ProduceTagsAsync(workspace, buffer, 15 + line4start)
                 Assert.True(result.IsEmpty)
 
                 ' 2 |> 3
-                result = ProduceTags(workspace, buffer, 16 + line4start)
+                result = Await ProduceTagsAsync(workspace, buffer, 16 + line4start)
                 Assert.True(result.IsEmpty)
 
                 ' 2 >| 3
-                result = ProduceTags(workspace, buffer, 17 + line4start)
+                result = Await ProduceTagsAsync(workspace, buffer, 17 + line4start)
                 Assert.True(result.IsEmpty)
 
                 ' 2 > |3
-                result = ProduceTags(workspace, buffer, 18 + line4start)
+                result = Await ProduceTagsAsync(workspace, buffer, 18 + line4start)
                 Assert.True(result.IsEmpty)
 
                 ' 4| > 5
-                result = ProduceTags(workspace, buffer, 15 + line5start)
+                result = Await ProduceTagsAsync(workspace, buffer, 15 + line5start)
                 Assert.True(result.IsEmpty)
 
                 ' 4 |> 5
-                result = ProduceTags(workspace, buffer, 16 + line5start)
+                result = Await ProduceTagsAsync(workspace, buffer, 16 + line5start)
                 Assert.True(result.IsEmpty)
 
                 ' 4 >| 5
-                result = ProduceTags(workspace, buffer, 17 + line5start)
+                result = Await ProduceTagsAsync(workspace, buffer, 17 + line5start)
                 Assert.True(result.IsEmpty)
 
                 ' 4 > |5
-                result = ProduceTags(workspace, buffer, 18 + line5start)
+                result = Await ProduceTagsAsync(workspace, buffer, 18 + line5start)
                 Assert.True(result.IsEmpty)
 
-                ' |<element> </element>
-                result = ProduceTags(workspace, buffer, 16 + line6start)
+                ' |<element></element>
+                result = Await ProduceTagsAsync(workspace, buffer, 16 + line6start)
                 Assert.True(result.IsEmpty)
 
                 ' <element>| </element>
-                result = ProduceTags(workspace, buffer, 25 + line6start)
+                result = Await ProduceTagsAsync(workspace, buffer, 25 + line6start)
                 Assert.True(result.IsEmpty)
 
                 ' <element> |</element>
-                result = ProduceTags(workspace, buffer, 26 + line6start)
+                result = Await ProduceTagsAsync(workspace, buffer, 26 + line6start)
                 Assert.True(result.IsEmpty)
 
-                ' <element> </element>|
-                result = ProduceTags(workspace, buffer, 36 + line6start)
+                ' <element></element>|
+                result = Await ProduceTagsAsync(workspace, buffer, 36 + line6start)
                 Assert.True(result.IsEmpty)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

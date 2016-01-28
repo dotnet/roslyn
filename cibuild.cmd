@@ -3,7 +3,7 @@
 REM Parse Arguments.
 
 set NugetZipUrlRoot=https://dotnetci.blob.core.windows.net/roslyn
-set NugetZipUrl=%NuGetZipUrlRoot%/nuget.32.zip
+set NugetZipUrl=%NuGetZipUrlRoot%/nuget.future.7.zip
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 set BuildRestore=false
@@ -11,7 +11,7 @@ set BuildRestore=false
 REM Because override the C#/VB toolset to build against our LKG package, it is important
 REM that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise, 
 REM we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
-set MSBuildAdditionalCommandLineArgs=/nologo /v:m /m /nodeReuse:false
+set MSBuildAdditionalCommandLineArgs=/nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal
 
 :ParseArguments
 if "%1" == "" goto :DoneParsing
@@ -38,6 +38,8 @@ if defined Perf (
 
 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat" || goto :BuildFailed
 
+powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
+
 REM Restore the NuGet packages 
 if "%BuildRestore%" == "true" (
     call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
@@ -45,19 +47,23 @@ if "%BuildRestore%" == "true" (
     powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\restore.ps1 %NugetZipUrl%" || goto :BuildFailed
 )
 
-REM Set the build version only so the assembly version is set to the semantic version,
-REM which allows analyzers to laod because the compiler has binding redirects to the
-REM semantic version
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BuildVersion=0.0.0.0 %RoslynRoot%build/Toolset.sln /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% || goto :BuildFailed
+REM Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
+set bindir=%RoslynRoot%Binaries
+if not exist "%bindir%" mkdir "%bindir%" || goto :BuildFailed
 
-if not exist "%RoslynRoot%Binaries\Bootstrap" mkdir "%RoslynRoot%Binaries\Bootstrap" || goto :BuildFailed
-move "Binaries\%BuildConfiguration%\*" "%RoslynRoot%Binaries\Bootstrap" || goto :BuildFailed
-copy "build\scripts\*" "%RoslynRoot%Binaries\Bootstrap" || goto :BuildFailed
+REM Set the build version only so the assembly version is set to the semantic version,
+REM which allows analyzers to load because the compiler has binding redirects to the
+REM semantic version
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BuildVersion=0.0.0.0 %RoslynRoot%build/Toolset.sln /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile=%bindir%\Bootstrap.log || goto :BuildFailed
+
+if not exist "%bindir%\Bootstrap" mkdir "%bindir%\Bootstrap" || goto :BuildFailed
+move "Binaries\%BuildConfiguration%\*" "%bindir%\Bootstrap" || goto :BuildFailed
+copy "build\scripts\*" "%bindir%\Bootstrap" || goto :BuildFailed
 
 REM Clean the previous build
-msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%  || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%  /fileloggerparameters:LogFile=%bindir%\BootstrapClean.log || goto :BuildFailed
 
-call :TerminateCompilerServer
+call :TerminateBuildProcesses
 
 if defined Perf (
   set Target=Build
@@ -65,9 +71,9 @@ if defined Perf (
   set Target=BuildAndTest
 )
 
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath=%RoslynRoot%Binaries\Bootstrap BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath=%bindir%\Bootstrap BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:DeployExtension=false /fileloggerparameters:LogFile=%bindir%\Build.log;verbosity=diagnostic || goto :BuildFailed
 
-call :TerminateCompilerServer
+call :TerminateBuildProcesses
 
 REM Verify that our project.lock.json files didn't change as a result of 
 REM restore.  If they do then the commit changed the dependencies without 
@@ -81,9 +87,9 @@ REM )
 
 if defined Perf (
   if DEFINED JenkinsCIPerfCredentials (
-    powershell .\ciperf.ps1 -BinariesDirectory %RoslynRoot%Binaries\%BuildConfiguration% %JenkinsCIPerfCredentials% || goto :BuildFailed
+    powershell .\ciperf.ps1 -BinariesDirectory %bindir%\%BuildConfiguration% %JenkinsCIPerfCredentials% || goto :BuildFailed
   ) else (
-    powershell .\ciperf.ps1 -BinariesDirectory %RoslynRoot%Binaries\%BuildConfiguration% -StorageAccountName roslynscratch -StorageContainer drops -SCRAMScope 'Roslyn\Azure' || goto :BuildFailed
+    powershell .\ciperf.ps1 -BinariesDirectory %bindir%\%BuildConfiguration% -StorageAccountName roslynscratch -StorageContainer drops -SCRAMScope 'Roslyn\Azure' || goto :BuildFailed
   )
 )
 
@@ -91,23 +97,27 @@ REM Ensure caller sees successful exit.
 exit /b 0
 
 :Usage
-@echo Usage: cibuild.cmd [/debug^|/release] [/test32^|/test64^|/perf]
+@echo Usage: cibuild.cmd [/debug^|/release] [/test32^|/test64^|/perf] [/restore]
 @echo   /debug   Perform debug build.  This is the default.
 @echo   /release Perform release build.
 @echo   /test32  Run unit tests in the 32-bit runner.  This is the default.
 @echo   /test64  Run units tests in the 64-bit runner.
 @echo   /perf    Submit a job to the performance test system. Usually combined
 @echo            with /release. May not be combined with /test32 or /test64.
+@echo   /restore Perform actual nuget restore instead of using zip drops.
 @echo.
 @goto :eof
 
 :BuildFailed
 echo Build failed with ERRORLEVEL %ERRORLEVEL%
-call :TerminateCompilerServer
+call :TerminateBuildProcesses
 exit /b 1
 
-:TerminateCompilerServer
+:TerminateBuildProcesses
 @REM Kill any instances VBCSCompiler.exe to release locked files, ignoring stderr if process is not open
-@REM This prevents future CI runs from failing hile trying to delete those files.
+@REM This prevents future CI runs from failing while trying to delete those files.
+@REM Kill any instances of msbuild.exe to ensure that we never reuse nodes (e.g. if a non-roslyn CI run
+@REM left some floating around).
 
 taskkill /F /IM vbcscompiler.exe 2> nul
+taskkill /F /IM msbuild.exe 2> nul

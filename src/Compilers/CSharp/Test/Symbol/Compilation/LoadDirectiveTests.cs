@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var code = "#load \"b.csx\"";
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create<string, object>("a.csx", new byte[] { 0xd8, 0x00, 0x00 }),
+                KeyValuePair.Create<string, object>("a.csx", new byte[] { 0xd8, 0x00, 0x00, 0x00 }),
                 KeyValuePair.Create<string, object>("b.csx", "#load \"a.csx\""));
             var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
             var compilation = CreateCompilationWithMscorlib45(code, sourceFileName: "external1.csx", options: options, parseOptions: TestOptions.Script);
@@ -163,7 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Empty(compilation.SyntaxTrees);
             compilation.VerifyDiagnostics();
 
-            code = "#load \"a.csx\"";
             resolver = TestSourceReferenceResolver.Create(
                 KeyValuePair.Create("a.csx", "#load \"b.csx\""),
                 KeyValuePair.Create("b.csx", code));

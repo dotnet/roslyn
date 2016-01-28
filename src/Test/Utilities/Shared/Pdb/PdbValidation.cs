@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool expectedIsXmlLiteral)
         {
             Assert.NotEqual(DebugInformationFormat.Embedded, format);
-            
+
             if (format == 0 || format == DebugInformationFormat.Pdb)
             {
                 XElement actualNativePdb = XElement.Parse(GetPdbXml(compilation, debugEntryPoint, options, qualifiedMethodName, portable: false));

@@ -2,9 +2,9 @@
 
 using Roslyn.VisualStudio.Setup;
 
-[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler")]
-[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider")]
-[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler")]
-[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider")]
-[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler")]
-[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.dll")]

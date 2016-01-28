@@ -188,7 +188,10 @@ namespace Microsoft.CodeAnalysis
                     break;
 
                 case SignatureTypeCode.TypeHandle:
-                    typeSymbol = ResolveSignatureTypeHandleOrThrow(ref ppSig, out refersToNoPiaLocalType);
+                    // Spec (6th edition): In II.23.2.12 and II.23.2.14, it is implied that the token in (CLASS | VALUETYPE) TypeDefOrRefOrSpecEncoded 
+                    // can be a TypeSpec, when in fact it must be a TypeDef or TypeRef.
+                    // See https://github.com/dotnet/roslyn/issues/7970
+                    typeSymbol = ResolveSignatureTypeHandleOrThrow(ref ppSig, out refersToNoPiaLocalType, allowTypeSpec: false);
                     break;
 
                 case SignatureTypeCode.Array:
@@ -370,11 +373,16 @@ namespace Microsoft.CodeAnalysis
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded type is invalid.</exception>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private TypeSymbol ResolveSignatureTypeHandleOrThrow(ref BlobReader ppSig, out bool isNoPiaLocalType)
+        private TypeSymbol ResolveSignatureTypeHandleOrThrow(ref BlobReader ppSig, out bool isNoPiaLocalType, bool allowTypeSpec)
         {
             TypeSymbol typeSymbol;
 
             EntityHandle token = ppSig.ReadTypeHandle();
+            if (token.IsNil)
+            {
+                throw new UnsupportedSignatureContent();
+            }
+
             HandleKind tokenType = token.Kind;
 
             if (tokenType == HandleKind.TypeDefinition)
@@ -385,8 +393,15 @@ namespace Microsoft.CodeAnalysis
             {
                 typeSymbol = GetTypeOfTypeRef((TypeReferenceHandle)token, out isNoPiaLocalType);
             }
-            else
+            else 
             {
+                Debug.Assert(tokenType == HandleKind.TypeSpecification);
+
+                if (!allowTypeSpec)
+                {
+                    throw new UnsupportedSignatureContent();
+                }
+
                 isNoPiaLocalType = false;
                 typeSymbol = GetTypeOfTypeSpec((TypeSpecificationHandle)token);
             }
@@ -1088,7 +1103,7 @@ tryAgain:
                 case SignatureTypeCode.TypeHandle:
                     // The type of the parameter can either be an enum type or System.Type.
                     bool isNoPiaLocalType;
-                    type = ResolveSignatureTypeHandleOrThrow(ref sigReader, out isNoPiaLocalType);
+                    type = ResolveSignatureTypeHandleOrThrow(ref sigReader, out isNoPiaLocalType, allowTypeSpec: true);
 
                     var underlyingEnumType = GetEnumUnderlyingType(type);
 

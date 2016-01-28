@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var options = context.Options;
             var cancellationToken = context.CancellationToken;
 
-            var span = new TextSpan(position, length:0);
+            var span = new TextSpan(position, length: 0);
             var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
             var syntaxTree = semanticModel.SyntaxTree;
 

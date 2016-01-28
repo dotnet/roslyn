@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             }
         }
 
-        public Type GetLmrType()
+        public virtual Type GetLmrType()
         {
             return _lmrType;
         }

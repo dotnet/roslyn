@@ -357,13 +357,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                          where attributeSupportedLanguages != null
                                          select attributeSupportedLanguages;
 
-            IEnumerable<string> supportedLanguages = SpecializedCollections.EmptyEnumerable<string>();
-            foreach (IEnumerable<string> languages in attributeLanguagesList)
-            {
-                supportedLanguages = supportedLanguages.Concat(languages);
-            }
-
-            return supportedLanguages;
+            return attributeLanguagesList.SelectMany(x => x);
         }
 
         private static IEnumerable<string> GetSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle)

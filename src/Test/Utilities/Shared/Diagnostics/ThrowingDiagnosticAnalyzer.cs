@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -44,6 +45,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static void VerifyAnalyzerEngineIsSafeAgainstExceptions(Func<DiagnosticAnalyzer, IEnumerable<Diagnostic>> runAnalysis)
         {
+            VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(runAnalysis).Wait();
+        }
+
+        public static async Task VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(Func<DiagnosticAnalyzer, IEnumerable<Diagnostic>> runAnalysis)
+        {
+            await VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(a => Task.FromResult(runAnalysis(a)));
+        }
+
+        public static async Task VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(Func<DiagnosticAnalyzer, Task<IEnumerable<Diagnostic>>> runAnalysis)
+        {
             var handled = new bool?[AllAnalyzerMemberNames.Length];
             for (int i = 0; i < AllAnalyzerMemberNames.Length; i++)
             {
@@ -52,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 analyzer.ThrowOn(member);
                 try
                 {
-                    var diagnostics = runAnalysis(analyzer).Distinct();
+                    var diagnostics = (await runAnalysis(analyzer)).Distinct();
                     handled[i] = analyzer.Thrown ? true : (bool?)null;
                     if (analyzer.Thrown)
                     {

@@ -44,6 +44,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_FloatOverflow, "3e100m").WithArguments("decimal"));
         }
 
+        [Fact]
+        public void CS0595ERR_InvalidReal()
+        {
+            var test =
+@"public class C
+{
+    double d1 = 0e;
+    double d2 = .0e;
+    double d3 = 0.0e;
+    double d4 = 0e+;
+    double d5 = 0e-;
+}";
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                  // (3,17): error CS0595: Invalid real literal
+                  //     double d1 = 0e;
+                  Diagnostic(ErrorCode.ERR_InvalidReal, "").WithLocation(3, 17),
+                  // (4,17): error CS0595: Invalid real literal
+                  //     double d2 = .0e;
+                  Diagnostic(ErrorCode.ERR_InvalidReal, "").WithLocation(4, 17),
+                  // (5,17): error CS0595: Invalid real literal
+                  //     double d3 = 0.0e;
+                  Diagnostic(ErrorCode.ERR_InvalidReal, "").WithLocation(5, 17),
+                  // (6,17): error CS0595: Invalid real literal
+                  //     double d4 = 0e+;
+                  Diagnostic(ErrorCode.ERR_InvalidReal, "").WithLocation(6, 17),
+                  // (7,17): error CS0595: Invalid real literal
+                  //     double d5 = 0e-;
+                  Diagnostic(ErrorCode.ERR_InvalidReal, "").WithLocation(7, 17)
+                );
+        }
+
         [WorkItem(6079, "https://github.com/dotnet/roslyn/issues/6079")]
         [Fact]
         public void FloatLexicalError()
@@ -55,18 +87,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
             // The precise errors don't matter so much as the fact that the compiler should not crash.
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (3,23): error CS0594: Floating-point constant is outside the range of type 'double'
-                //     const double d1 = 0endOfDirective.Span;
-                Diagnostic(ErrorCode.ERR_FloatOverflow, "").WithArguments("double").WithLocation(3, 23),
-                // (3,25): error CS1002: ; expected
-                //     const double d1 = 0endOfDirective.Span;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ndOfDirective").WithLocation(3, 25),
-                // (3,43): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-                //     const double d1 = 0endOfDirective.Span;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 43),
-                // (3,43): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-                //     const double d1 = 0endOfDirective.Span;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 43)
+                  // (3,23): error CS0595: Invalid real literal
+                  //     const double d1 = 0endOfDirective.Span;
+                  Diagnostic(ErrorCode.ERR_InvalidReal, "").WithLocation(3, 23),
+                  // (3,25): error CS1002: ; expected
+                  //     const double d1 = 0endOfDirective.Span;
+                  Diagnostic(ErrorCode.ERR_SemicolonExpected, "ndOfDirective").WithLocation(3, 25),
+                  // (3,43): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                  //     const double d1 = 0endOfDirective.Span;
+                  Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 43),
+                  // (3,43): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                  //     const double d1 = 0endOfDirective.Span;
+                  Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 43)
                 );
         }
 
@@ -142,6 +174,46 @@ namespace x
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test, Diagnostic(ErrorCode.ERR_TooManyCharsInConst, ""));
+        }
+
+        [Fact]
+        public void CS1015ERR_TypeExpected()
+        {
+            var test = @"
+public class C
+{
+    public static void Main()
+    {
+        const int i = 0;
+        const const double d = 0;
+        const const const long l = 0;
+        const readonly readonly readonly const double r = 0;
+    }    
+}
+";
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (7,15): error CS1031: Type expected
+                //         const const double d = 0;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithArguments("const").WithLocation(7, 15),
+                // (8,15): error CS1031: Type expected
+                //         const const const long l = 0;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithArguments("const").WithLocation(8, 15),
+                // (8,21): error CS1031: Type expected
+                //         const const const long l = 0;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithArguments("const").WithLocation(8, 21),
+                // (9,15): error CS0106: The modifier 'readonly' is not valid for this item
+                //         const readonly readonly readonly const double r = 0;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 15),
+                // (9,24): error CS0106: The modifier 'readonly' is not valid for this item
+                //         const readonly readonly readonly const double r = 0;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 24),
+                // (9,33): error CS0106: The modifier 'readonly' is not valid for this item
+                //         const readonly readonly readonly const double r = 0;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 33),
+                // (9,42): error CS1031: Type expected
+                //         const readonly readonly readonly const double r = 0;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithArguments("const").WithLocation(9, 42)
+            );
         }
 
         [WorkItem(553293, "DevDiv")]

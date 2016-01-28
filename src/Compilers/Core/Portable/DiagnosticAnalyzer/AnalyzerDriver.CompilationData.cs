@@ -5,13 +5,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal abstract partial class AnalyzerDriver : IDisposable
     {
-        protected static readonly ConditionalWeakTable<Compilation, CompilationData> s_compilationDataCache = new ConditionalWeakTable<Compilation, CompilationData>();
-
         internal class CompilationData
         {
             /// <summary>
@@ -20,39 +19,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// </summary>
             private readonly Dictionary<SyntaxTree, SemanticModel> _semanticModelsMap;
 
-            /// <summary>
-            /// Cached syntax references for a symbol for the lifetime of symbol declared event.
-            /// PERF: This cache reduces allocations for computing declaring syntax references for a symbol.
-            /// </summary>
-            private readonly Dictionary<ISymbol, ImmutableArray<SyntaxReference>> _symbolDeclarationsMap;
+            private readonly Dictionary<SyntaxReference, DeclarationAnalysisData> _declarationAnalysisDataMap;
+            private readonly ObjectPool<DeclarationAnalysisData> _declarationAnalysisDataPool;
 
             public CompilationData(Compilation comp)
             {
                 _semanticModelsMap = new Dictionary<SyntaxTree, SemanticModel>();
-                _symbolDeclarationsMap = new Dictionary<ISymbol, ImmutableArray<SyntaxReference>>();
                 this.SuppressMessageAttributeState = new SuppressMessageAttributeState(comp);
-                this.DeclarationAnalysisDataMap = new Dictionary<SyntaxReference, DeclarationAnalysisData>();
+                _declarationAnalysisDataMap = new Dictionary<SyntaxReference, DeclarationAnalysisData>();
+                _declarationAnalysisDataPool = new ObjectPool<DeclarationAnalysisData>(() => new DeclarationAnalysisData());
             }
 
             public SuppressMessageAttributeState SuppressMessageAttributeState { get; }
-            public Dictionary<SyntaxReference, DeclarationAnalysisData> DeclarationAnalysisDataMap { get; }
-
+            
             public SemanticModel GetOrCreateCachedSemanticModel(SyntaxTree tree, Compilation compilation, CancellationToken cancellationToken)
             {
                 SemanticModel model;
                 lock (_semanticModelsMap)
                 {
-                    if (_semanticModelsMap.TryGetValue(tree, out model))
+                    if (_semanticModelsMap.TryGetValue(tree, out model) && model.Compilation == compilation)
                     {
                         return model;
                     }
                 }
-
-
+                
                 model = compilation.GetSemanticModel(tree);
-
-                // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
-                model.GetDiagnostics(null, cancellationToken);
 
                 lock (_semanticModelsMap)
                 {
@@ -70,33 +61,49 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            public bool TryGetCachedDeclaringReferences(ISymbol symbol, out ImmutableArray<SyntaxReference> declaringReferences)
+            internal DeclarationAnalysisData GetOrComputeDeclarationAnalysisData(
+                SyntaxReference declaration,
+                Func<Func<DeclarationAnalysisData>, DeclarationAnalysisData> computeDeclarationAnalysisData,
+                bool cacheAnalysisData)
             {
-                lock (_symbolDeclarationsMap)
+                if (!cacheAnalysisData)
                 {
-                    if (!_symbolDeclarationsMap.TryGetValue(symbol, out declaringReferences))
+                    return computeDeclarationAnalysisData(_declarationAnalysisDataPool.Allocate);
+                }
+
+                DeclarationAnalysisData data;
+                lock (_declarationAnalysisDataMap)
+                {
+                    if (_declarationAnalysisDataMap.TryGetValue(declaration, out data))
                     {
-                        declaringReferences = default(ImmutableArray<SyntaxReference>);
-                        return false;
+                        return data;
+                    }
+                }
+
+                data = computeDeclarationAnalysisData(_declarationAnalysisDataPool.Allocate);
+
+                lock (_declarationAnalysisDataMap)
+                {
+                    _declarationAnalysisDataMap[declaration] = data;
+                }
+
+                return data;
+            }
+
+            internal void ClearDeclarationAnalysisData(SyntaxReference declaration)
+            {
+                DeclarationAnalysisData declarationData;
+                lock (_declarationAnalysisDataMap)
+                {
+                    if (!_declarationAnalysisDataMap.TryGetValue(declaration, out declarationData))
+                    {
+                        return;
                     }
 
-                    return true;
-                }
-            }
+                    _declarationAnalysisDataMap.Remove(declaration);
 
-            public void CacheDeclaringReferences(ISymbol symbol, ImmutableArray<SyntaxReference> declaringReferences)
-            {
-                lock (_symbolDeclarationsMap)
-                {
-                    _symbolDeclarationsMap[symbol] = declaringReferences;
-                }
-            }
-
-            public bool RemoveCachedDeclaringReferences(ISymbol symbol)
-            {
-                lock (_symbolDeclarationsMap)
-                {
-                    return _symbolDeclarationsMap.Remove(symbol);
+                    declarationData.Free();
+                    _declarationAnalysisDataPool.Free(declarationData);
                 }
             }
         }
@@ -142,48 +149,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 DescendantNodesToAnalyze.Clear();
                 IsPartialAnalysis = false;
             }
-        }
-
-        internal static CompilationData GetOrCreateCachedCompilationData(Compilation compilation)
-        {
-            return s_compilationDataCache.GetValue(compilation, c => new CompilationData(c));
-        }
-
-        internal static bool RemoveCachedCompilationData(Compilation compilation)
-        {
-            return s_compilationDataCache.Remove(compilation);
-        }
-
-        public static SemanticModel GetOrCreateCachedSemanticModel(SyntaxTree tree, Compilation compilation, CancellationToken cancellationToken)
-        {
-            var compilationData = GetOrCreateCachedCompilationData(compilation);
-            return compilationData.GetOrCreateCachedSemanticModel(tree, compilation, cancellationToken);
-        }
-
-        public static bool RemoveCachedSemanticModel(SyntaxTree tree, Compilation compilation)
-        {
-            CompilationData compilationData;
-            return s_compilationDataCache.TryGetValue(compilation, out compilationData) &&
-                compilationData.RemoveCachedSemanticModel(tree);
-        }
-
-        public static bool TryGetCachedDeclaringReferences(ISymbol symbol, Compilation compilation, out ImmutableArray<SyntaxReference> declaringReferences)
-        {
-            var compilationData = GetOrCreateCachedCompilationData(compilation);
-            return compilationData.TryGetCachedDeclaringReferences(symbol, out declaringReferences);
-        }
-
-        public static void CacheDeclaringReferences(ISymbol symbol, Compilation compilation, ImmutableArray<SyntaxReference> declaringReferences)
-        {
-            var compilationData = GetOrCreateCachedCompilationData(compilation);
-            compilationData.CacheDeclaringReferences(symbol, declaringReferences);
-        }
-
-        public static bool RemoveCachedDeclaringReferences(ISymbol symbol, Compilation compilation)
-        {
-            CompilationData compilationData;
-            return s_compilationDataCache.TryGetValue(compilation, out compilationData) &&
-                compilationData.RemoveCachedDeclaringReferences(symbol);
         }
     }
 }

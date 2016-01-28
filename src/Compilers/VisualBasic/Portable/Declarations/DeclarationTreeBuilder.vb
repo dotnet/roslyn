@@ -91,20 +91,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return children
         End Function
 
-        Private Function GetReferenceDirectives(compilationUnit As CompilationUnitSyntax) As ImmutableArray(Of ReferenceDirective)
-            Dim directiveNodes = compilationUnit.GetReferenceDirectives(Function(d) Not d.File.ContainsDiagnostics AndAlso Not String.IsNullOrEmpty(d.File.ValueText))
-
+        Private Shared Function GetReferenceDirectives(compilationUnit As CompilationUnitSyntax) As ImmutableArray(Of ReferenceDirective)
+            Dim directiveNodes = compilationUnit.GetReferenceDirectives(
+                Function(d) Not d.File.ContainsDiagnostics AndAlso Not String.IsNullOrEmpty(d.File.ValueText))
             If directiveNodes.Count = 0 Then
                 Return ImmutableArray(Of ReferenceDirective).Empty
             End If
 
-            Dim directives = New ReferenceDirective(directiveNodes.Count - 1) {}
-
-            For i = 0 To directives.Length - 1
-                directives(i) = New ReferenceDirective(directiveNodes(i).File.ValueText, directiveNodes(i).GetLocation())
+            Dim directives = ArrayBuilder(Of ReferenceDirective).GetInstance(directiveNodes.Count)
+            For Each directiveNode In directiveNodes
+                directives.Add(New ReferenceDirective(directiveNode.File.ValueText, New SourceLocation(directiveNode)))
             Next
-
-            Return directives.AsImmutableOrNull()
+            Return directives.ToImmutableAndFree()
         End Function
 
         Private Function CreateImplicitClass(parent As VisualBasicSyntaxNode, memberNames As String(), children As ImmutableArray(Of SingleTypeDeclaration), declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As SingleNamespaceOrTypeDeclaration
@@ -162,6 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim syntaxRef = _syntaxTree.GetReference(node)
             Dim implicitClass As SingleNamespaceOrTypeDeclaration = Nothing
 
+            Dim referenceDirectives As ImmutableArray(Of ReferenceDirective)
             If _syntaxTree.Options.Kind <> SourceCodeKind.Regular Then
                 Dim childrenBuilder = ArrayBuilder(Of SingleNamespaceOrTypeDeclaration).GetInstance()
                 Dim scriptChildren = ArrayBuilder(Of SingleTypeDeclaration).GetInstance()
@@ -185,8 +184,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 implicitClass = CreateScriptClass(node, scriptChildren.ToImmutableAndFree(), memberNames, declFlags)
                 children = childrenBuilder.ToImmutableAndFree()
+                referenceDirectives = GetReferenceDirectives(node)
             Else
                 children = VisitNamespaceChildren(node, node.Members, implicitClass).ToImmutableAndFree()
+                referenceDirectives = ImmutableArray(Of ReferenceDirective).Empty
             End If
 
             ' Find children within NamespaceGlobal separately
@@ -198,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     hasImports:=True,
                     treeNode:=_syntaxTree.GetReference(node),
                     children:=globalChildren.Concat(nonGlobal),
-                    referenceDirectives:=ImmutableArray(Of ReferenceDirective).Empty,
+                    referenceDirectives:=referenceDirectives,
                     hasAssemblyAttributes:=node.Attributes.Any)
             Else
                 ' Project-level root namespace. All children without explicit global are children
@@ -213,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     hasImports:=True,
                     treeNode:=_syntaxTree.GetReference(node),
                     children:=newChildren,
-                    referenceDirectives:=ImmutableArray(Of ReferenceDirective).Empty,
+                    referenceDirectives:=referenceDirectives,
                     hasAssemblyAttributes:=node.Attributes.Any)
             End If
         End Function

@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             {
                 return SpecializedCollections.EmptyList<T>();
             }
-            
+
             return items.Where(lazy => LanguageMatches(lazy.Metadata.Language, contentType, workspaceServices)).
                 Select(lazy => lazy.Value).ToList();
         }

@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.InteropServices
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Extenders
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Interop
@@ -12,29 +13,29 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 
 #Region "Parts tests"
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Parts1()
+        Public Async Function TestParts1() As Task
             Dim code =
 <Code>
 Structure $$S
 End Structure
 </Code>
 
-            TestParts(code, 1)
-        End Sub
+            Await TestParts(code, 1)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Parts2()
+        Public Async Function TestParts2() As Task
             Dim code =
 <Code>
 Partial Structure $$S
 End Structure
 </Code>
 
-            TestParts(code, 1)
-        End Sub
+            Await TestParts(code, 1)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Parts3()
+        Public Async Function TestParts3() As Task
             Dim code =
 <Code>
 Partial Structure $$S
@@ -44,14 +45,14 @@ Partial Structure S
 End Structure
 </Code>
 
-            TestParts(code, 2)
-        End Sub
+            Await TestParts(code, 2)
+        End Function
 #End Region
 
 #Region "AddAttribute tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddAttribute1()
+        Public Async Function TestAddAttribute1() As Task
             Dim code =
 <Code>
 Imports System
@@ -68,11 +69,11 @@ Imports System
 Structure S
 End Structure
 </Code>
-            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
-        End Sub
+            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddAttribute2()
+        Public Async Function TestAddAttribute2() As Task
             Dim code =
 <Code>
 Imports System
@@ -91,12 +92,12 @@ Imports System
 Structure S
 End Structure
 </Code>
-            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True", .Position = 1})
-        End Sub
+            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True", .Position = 1})
+        End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddAttribute_BelowDocComment()
+        Public Async Function TestAddAttribute_BelowDocComment() As Task
             Dim code =
 <Code>
 Imports System
@@ -115,15 +116,15 @@ Imports System
 Structure S
 End Structure
 </Code>
-            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True"})
-        End Sub
+            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True"})
+        End Function
 
 #End Region
 
 #Region "AddImplementedInterface tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddImplementedInterface1()
+        Public Async Function TestAddImplementedInterface1() As Task
             Dim code =
 <Code>
 Structure $$S
@@ -137,11 +138,11 @@ Structure S
 End Structure
 </Code>
 
-            TestAddImplementedInterface(code, "I", Nothing, expected)
-        End Sub
+            Await TestAddImplementedInterface(code, "I", Nothing, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddImplementedInterface2()
+        Public Async Function TestAddImplementedInterface2() As Task
             Dim code =
 <Code>
 Structure $$S
@@ -157,11 +158,11 @@ Structure S
 End Structure
 </Code>
 
-            TestAddImplementedInterface(code, "J", Nothing, expected)
-        End Sub
+            Await TestAddImplementedInterface(code, "J", Nothing, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddImplementedInterface3()
+        Public Async Function TestAddImplementedInterface3() As Task
             Dim code =
 <Code>
 Structure $$S
@@ -177,26 +178,26 @@ Structure S
 End Structure
 </Code>
 
-            TestAddImplementedInterface(code, "J", -1, expected)
-        End Sub
+            Await TestAddImplementedInterface(code, "J", -1, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddImplementedInterface4()
+        Public Async Function TestAddImplementedInterface4() As Task
             Dim code =
 <Code>
 Structure $$S
 End Structure
 </Code>
 
-            TestAddImplementedInterfaceThrows(Of ArgumentException)(code, "I", 1)
-        End Sub
+            Await TestAddImplementedInterfaceThrows(Of ArgumentException)(code, "I", 1)
+        End Function
 
 #End Region
 
 #Region "RemoveImplementedInterface tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub RemoveImplementedInterface1()
+        Public Async Function TestRemoveImplementedInterface1() As Task
             Dim code =
 <Code>
 Structure $$S
@@ -209,22 +210,22 @@ End Structure
 Structure S
 End Structure
 </Code>
-            TestRemoveImplementedInterface(code, "I", expected)
-        End Sub
+            Await TestRemoveImplementedInterface(code, "I", expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub RemoveImplementedInterface2()
+        Public Async Function TestRemoveImplementedInterface2() As Task
             Dim code =
 <Code>
 Structure $$S
 End Structure
 </Code>
 
-            TestRemoveImplementedInterfaceThrows(Of COMException)(code, "I")
-        End Sub
+            Await TestRemoveImplementedInterfaceThrows(Of COMException)(code, "I")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub RemoveImplementedInterface3()
+        Public Async Function TestRemoveImplementedInterface3() As Task
             Dim code =
 <Code>
 Structure $$S
@@ -238,11 +239,11 @@ Structure S
     Implements I
 End Structure
 </Code>
-            TestRemoveImplementedInterface(code, "J", expected)
-        End Sub
+            Await TestRemoveImplementedInterface(code, "J", expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub RemoveImplementedInterface4()
+        Public Async Function TestRemoveImplementedInterface4() As Task
             Dim code =
 <Code>
 Structure $$S
@@ -256,11 +257,11 @@ Structure S
     Implements J
 End Structure
 </Code>
-            TestRemoveImplementedInterface(code, "I", expected)
-        End Sub
+            Await TestRemoveImplementedInterface(code, "I", expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub RemoveImplementedInterface5()
+        Public Async Function TestRemoveImplementedInterface5() As Task
             Dim code =
 <Code>
 Structure $$S
@@ -274,14 +275,14 @@ Structure S
     Implements I, K
 End Structure
 </Code>
-            TestRemoveImplementedInterface(code, "J", expected)
-        End Sub
+            Await TestRemoveImplementedInterface(code, "J", expected)
+        End Function
 
 #End Region
 
 #Region "Set Name tests"
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetName1()
+        Public Async Function TestSetName1() As Task
             Dim code =
 <Code>
 Structure $$Foo
@@ -294,47 +295,47 @@ Structure Bar
 End Structure
 </Code>
 
-            TestSetName(code, expected, "Bar", NoThrow(Of String)())
-        End Sub
+            Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+        End Function
 #End Region
 
 #Region "GenericExtender"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GenericExtender_GetBaseTypesCount()
+        Public Async Function TestGenericExtender_GetBaseTypesCount() As Task
             Dim code =
 <Code>
 Structure S$$
 End Structure
 </Code>
 
-            TestGenericNameExtender_GetBaseTypesCount(code, 1)
-        End Sub
+            Await TestGenericNameExtender_GetBaseTypesCount(code, 1)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GenericExtender_GetBaseGenericName()
+        Public Async Function TestGenericExtender_GetBaseGenericName() As Task
             Dim code =
 <Code>
 Structure S$$
 End Structure
 </Code>
 
-            TestGenericNameExtender_GetBaseGenericName(code, 1, "System.ValueType")
-        End Sub
+            Await TestGenericNameExtender_GetBaseGenericName(code, 1, "System.ValueType")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GenericExtender_GetImplementedTypesCount1()
+        Public Async Function TestGenericExtender_GetImplementedTypesCount1() As Task
             Dim code =
 <Code>
 Structure S$$
 End Structure
 </Code>
 
-            TestGenericNameExtender_GetImplementedTypesCount(code, 0)
-        End Sub
+            Await TestGenericNameExtender_GetImplementedTypesCount(code, 0)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GenericExtender_GetImplementedTypesCount2()
+        Public Async Function TestGenericExtender_GetImplementedTypesCount2() As Task
             Dim code =
 <Code>
 Namespace N
@@ -348,22 +349,22 @@ Namespace N
 End Namespace
 </Code>
 
-            TestGenericNameExtender_GetImplementedTypesCount(code, 1)
-        End Sub
+            Await TestGenericNameExtender_GetImplementedTypesCount(code, 1)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GenericExtender_GetImplTypeGenericName1()
+        Public Async Function TestGenericExtender_GetImplTypeGenericName1() As Task
             Dim code =
 <Code>
 Structure S$$
 End Structure
 </Code>
 
-            TestGenericNameExtender_GetImplTypeGenericName(code, 1, Nothing)
-        End Sub
+            Await TestGenericNameExtender_GetImplTypeGenericName(code, 1, Nothing)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GenericExtender_GetImplTypeGenericName2()
+        Public Async Function TestGenericExtender_GetImplTypeGenericName2() As Task
             Dim code =
 <Code>
 Namespace N
@@ -377,8 +378,8 @@ Namespace N
 End Namespace
 </Code>
 
-            TestGenericNameExtender_GetImplTypeGenericName(code, 1, "N.IFoo(Of Integer)")
-        End Sub
+            Await TestGenericNameExtender_GetImplTypeGenericName(code, 1, "N.IFoo(Of Integer)")
+        End Function
 
 #End Region
 

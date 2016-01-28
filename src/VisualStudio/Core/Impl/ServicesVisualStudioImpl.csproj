@@ -205,6 +205,7 @@
     <Compile Include="CodeModel\CodeModelProjectCache.CacheEntry.cs" />
     <Compile Include="CodeModel\CodeModelProjectCache.cs" />
     <Compile Include="CodeModel\CodeModelState.cs" />
+    <Compile Include="CodeModel\CodeModelTaskExtensions.cs" />
     <Compile Include="CodeModel\CodeTypeRef.cs" />
     <Compile Include="CodeModel\Collections\AbstractCodeElementCollection.cs" />
     <Compile Include="CodeModel\Collections\AttributeArgumentCollection.cs" />
@@ -294,6 +295,7 @@
     <Compile Include="CodeModel\MethodXml\AbstractMethodXmlBuilder.cs" />
     <Compile Include="CodeModel\MethodXml\BinaryOperatorKind.cs" />
     <Compile Include="CodeModel\MetadataNameHelpers.cs" />
+    <Compile Include="CodeModel\MethodXml\SpecialCastKind.cs" />
     <Compile Include="CodeModel\MethodXml\VariableKind.cs" />
     <Compile Include="CodeModel\NodeKeyValidation.cs" />
     <Compile Include="CodeModel\ParentHandle.cs" />
@@ -301,6 +303,7 @@
     <Compile Include="CodeModel\RootCodeModel.cs" />
     <Compile Include="CodeModel\SyntaxNodeKey.cs" />
     <Compile Include="CodeModel\TextManagerAdapter.cs" />
+    <Compile Include="Options\FullSolutionAnalysisOptionBinding.cs" />
     <Compile Include="Options\OptionLogger.cs" />
     <Compile Include="Options\OptionPreviewControl.xaml.cs">
       <DependentUpon>OptionPreviewControl.xaml</DependentUpon>

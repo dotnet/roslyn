@@ -1,30 +1,23 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
     Public Class ErrorKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ErrorOptionsAfterOn()
+        Public Async Function ErrorOptionsAfterOnTest() As Task
             ' We can always exit a Sub/Function, so it should be there
-            VerifyRecommendationsAreExactly(<MethodBody>On |</MethodBody>, "Error Resume Next", "Error GoTo")
-        End Sub
+            Await VerifyRecommendationsAreExactlyAsync(<MethodBody>On |</MethodBody>, "Error Resume Next", "Error GoTo")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ErrorStatementInMethodBody()
-            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Error")
-        End Sub
+        Public Async Function ErrorStatementInMethodBodyTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "Error")
+        End Function
 
         <WorkItem(899057)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ErrorStatementInLambda()
+        Public Async Function ErrorStatementInLambdaTest() As Task
             Dim code = <File>
 Public Class Z
     Public Sub Main()
@@ -32,7 +25,7 @@ Public Class Z
     End Sub
 End Class</File>
 
-            VerifyRecommendationsContain(code, "Error")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "Error")
+        End Function
     End Class
 End Namespace

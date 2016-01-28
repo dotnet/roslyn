@@ -1,74 +1,66 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expressions
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class KeyKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub KeyNotInStatement()
-            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Key")
-        End Sub
+        Public Async Function KeyNotInStatementTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Key")
+        End Function
 
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub KeyNotAfterArrayInitializerSquiggle()
-            VerifyRecommendationsMissing(<MethodBody>Dim x = {|</MethodBody>, "Key")
-        End Sub
+        Public Async Function KeyNotAfterArrayInitializerSquiggleTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = {|</MethodBody>, "Key")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub KeyNotAfterArrayInitializerComma()
-            VerifyRecommendationsMissing(<MethodBody>Dim x = {0, |</MethodBody>, "Key")
-        End Sub
+        Public Async Function KeyNotAfterArrayInitializerCommaTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = {0, |</MethodBody>, "Key")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub KeyNotAfterAs()
-            VerifyRecommendationsMissing(<MethodBody>Dim x As |</MethodBody>, "Key")
-        End Sub
+        Public Async Function KeyNotAfterAsTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x As |</MethodBody>, "Key")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub KeyInAnonymousInitializer1()
-            VerifyRecommendationsContain(<MethodBody>Dim x As New With {|</MethodBody>, "Key")
-        End Sub
+        Public Async Function KeyInAnonymousInitializer1Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x As New With {|</MethodBody>, "Key")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub KeyInAnonymousInitializer2()
-            VerifyRecommendationsContain(<MethodBody>Dim x As New With {.Foo = 2, |</MethodBody>, "Key")
-        End Sub
+        Public Async Function KeyInAnonymousInitializer2Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x As New With {.Foo = 2, |</MethodBody>, "Key")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub KeyInAnonymousExpression1()
-            VerifyRecommendationsContain(<MethodBody>Dim x = New With {|</MethodBody>, "Key")
-        End Sub
+        Public Async Function KeyInAnonymousExpression1Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = New With {|</MethodBody>, "Key")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub KeyInAnonymousExpression2()
-            VerifyRecommendationsContain(<MethodBody>Dim x = New With {.Foo = 2, |</MethodBody>, "Key")
-        End Sub
-
-        ''' <remark>Yes, "Onymous" is a word.</remark>
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub KeyNotInOnymousInitializer()
-            VerifyRecommendationsMissing(<MethodBody>Dim x As New Foo With {|</MethodBody>, "Key")
-        End Sub
+        Public Async Function KeyInAnonymousExpression2Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = New With {.Foo = 2, |</MethodBody>, "Key")
+        End Function
 
         ''' <remark>Yes, "Onymous" is a word.</remark>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub KeyNotInOnymousExpression()
-            VerifyRecommendationsMissing(<MethodBody>Dim x = New Foo With {|</MethodBody>, "Key")
-        End Sub
+        Public Async Function KeyNotInOnymousInitializerTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x As New Foo With {|</MethodBody>, "Key")
+        End Function
+
+        ''' <remark>Yes, "Onymous" is a word.</remark>
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function KeyNotInOnymousExpressionTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = New Foo With {|</MethodBody>, "Key")
+        End Function
     End Class
 End Namespace

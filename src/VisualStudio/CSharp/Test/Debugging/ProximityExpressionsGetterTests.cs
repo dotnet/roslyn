@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -31,12 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             return SyntaxFactory.ParseSyntaxTree(code);
         }
 
-        public void GenerateBaseline()
+        public async Task GenerateBaseline()
         {
             Console.WriteLine(typeof(FactAttribute));
 
             var text = Resources.ProximityExpressionsGetterTestFile;
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(text))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(text))
             {
                 var languageDebugInfo = new CSharpLanguageDebugInfoService();
 
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
                 var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
 
                 var builder = new StringBuilder();
-                var statements = document.GetSyntaxRootAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).DescendantTokens().Select(t => t.GetAncestor<StatementSyntax>()).Distinct().WhereNotNull();
+                var statements = (await document.GetSyntaxRootAsync(CancellationToken.None)).DescendantTokens().Select(t => t.GetAncestor<StatementSyntax>()).Distinct().WhereNotNull();
 
                 // Try to get proximity expressions at every token position and the start of every
                 // line.
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
                     builder.AppendLine("    var terms = CSharpProximityExpressionsService.Do(tree, " + token.SpanStart + ");");
 
                     var proximityExpressionsGetter = new CSharpProximityExpressionsService();
-                    var terms = proximityExpressionsGetter.GetProximityExpressionsAsync(document, token.SpanStart, CancellationToken.None).Result;
+                    var terms = await proximityExpressionsGetter.GetProximityExpressionsAsync(document, token.SpanStart, CancellationToken.None);
                     if (terms == null)
                     {
                         builder.AppendLine("    Assert.Null(terms);");
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public void TestWithinStatement_1()
         {
             var tree = GetTreeFromCode(@"using System;
@@ -119,11 +120,11 @@ namespace ConsoleApplication1
             AssertEx.Equal(new[] { "yy", "xx" }, terms);
         }
 
-        private void TestProximityExpressionGetter(
+        private async Task TestProximityExpressionGetterAsync(
             string markup,
-            Action<CSharpProximityExpressionsService, Document, int> continuation)
+            Func<CSharpProximityExpressionsService, Document, int, Task> continuation)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(markup))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(markup))
             {
                 var testDocument = workspace.Documents.Single();
                 var caretPosition = testDocument.CursorPosition.Value;
@@ -133,15 +134,15 @@ namespace ConsoleApplication1
 
                 var proximityExpressionsGetter = new CSharpProximityExpressionsService();
 
-                continuation(proximityExpressionsGetter, document, caretPosition);
+                await continuation(proximityExpressionsGetter, document, caretPosition);
             }
         }
 
-        private void TestTryDo(string input, params string[] expectedTerms)
+        private async Task TestTryDoAsync(string input, params string[] expectedTerms)
         {
-            TestProximityExpressionGetter(input, (getter, document, position) =>
+            await TestProximityExpressionGetterAsync(input, async (getter, document, position) =>
             {
-                var actualTerms = getter.GetProximityExpressionsAsync(document, position, CancellationToken.None).Result;
+                var actualTerms = await getter.GetProximityExpressionsAsync(document, position, CancellationToken.None);
 
                 Assert.Equal(expectedTerms.Length == 0, actualTerms == null);
                 if (expectedTerms.Length > 0)
@@ -151,68 +152,68 @@ namespace ConsoleApplication1
             });
         }
 
-        private void TestIsValid(string input, string expression, bool expectedValid)
+        private async Task TestIsValidAsync(string input, string expression, bool expectedValid)
         {
-            TestProximityExpressionGetter(input, (getter, semanticSnapshot, position) =>
+            await TestProximityExpressionGetterAsync(input, async (getter, semanticSnapshot, position) =>
             {
-                var actualValid = getter.IsValidAsync(semanticSnapshot, position, expression, CancellationToken.None).Result;
+                var actualValid = await getter.IsValidAsync(semanticSnapshot, position, expression, CancellationToken.None);
                 Assert.Equal(expectedValid, actualValid);
             });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestTryDo1()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestTryDo1()
         {
-            TestTryDo("class Class { void Method() { string local;$$ } }", "local", "this");
+            await TestTryDoAsync("class Class { void Method() { string local;$$ } }", "local", "this");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestNoParentToken()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestNoParentToken()
         {
-            TestTryDo("$$");
+            await TestTryDoAsync("$$");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestIsValid1()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestIsValid1()
         {
-            TestIsValid("class Class { void Method() { string local;$$ } }", "local", true);
+            await TestIsValidAsync("class Class { void Method() { string local;$$ } }", "local", true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestIsValidWithDiagnostics()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestIsValidWithDiagnostics()
         {
             // local doesn't exist in this context
-            TestIsValid("class Class { void Method() { string local; } $$}", "local", false);
+            await TestIsValidAsync("class Class { void Method() { string local; } $$}", "local", false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestIsValidReferencingLocalBeforeDeclaration()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestIsValidReferencingLocalBeforeDeclaration()
         {
-            TestIsValid("class Class { void Method() { $$int i; int j; } }", "j", false);
+            await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "j", false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestIsValidReferencingUndefinedVariable()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestIsValidReferencingUndefinedVariable()
         {
-            TestIsValid("class Class { void Method() { $$int i; int j; } }", "k", false);
+            await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "k", false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestIsValidNoTypeSymbol()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestIsValidNoTypeSymbol()
         {
-            TestIsValid("namespace Namespace$$ { }", "foo", false);
+            await TestIsValidAsync("namespace Namespace$$ { }", "foo", false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestIsValidLocalAfterPosition()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestIsValidLocalAfterPosition()
         {
-            TestIsValid("class Class { void Method() { $$ int i; string local; } }", "local", false);
+            await TestIsValidAsync("class Class { void Method() { $$ int i; string local; } }", "local", false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestThis()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestThis()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     public Class() : this(true) 
@@ -223,10 +224,10 @@ class Class
 }", "this");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestArrayCreationExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestArrayCreationExpression()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -236,10 +237,10 @@ class Class
 }", "i", "this");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestPostfixUnaryExpressionSyntax()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestPostfixUnaryExpressionSyntax()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -250,10 +251,10 @@ class Class
 }", "i", "this");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestLabeledStatement()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestLabeledStatement()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -264,10 +265,10 @@ class Class
 }", "i", "this");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestThrowStatement()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestThrowStatement()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     static void Method()
@@ -278,10 +279,10 @@ class Class
 }", "e");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestDoStatement()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestDoStatement()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     static void Method()
@@ -291,10 +292,10 @@ class Class
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestLockStatement()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestLockStatement()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     static void Method()
@@ -304,10 +305,10 @@ class Class
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestWhileStatement()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestWhileStatement()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     static void Method()
@@ -317,10 +318,10 @@ class Class
 }", "DateTime", "DateTime.Now");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestForStatementWithDeclarators()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestForStatementWithDeclarators()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     static void Method()
@@ -330,10 +331,10 @@ class Class
 }", "i");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestForStatementWithInitializers()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestForStatementWithInitializers()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     static void Method()
@@ -344,10 +345,10 @@ class Class
 }", "i");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestUsingStatement()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestUsingStatement()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -357,11 +358,11 @@ class Class
 }", "this");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         [WorkItem(538879)]
-        public void TestValueInPropertySetter()
+        public async Task TestValueInPropertySetter()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     string Name
@@ -372,10 +373,10 @@ class Class
 }", "this", "value");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestValueInEventAdd()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestValueInEventAdd()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     event Action Event
@@ -386,10 +387,10 @@ class Class
 }", "this", "value");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestValueInEventRemove()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestValueInEventRemove()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     event Action Event
@@ -400,11 +401,11 @@ class Class
 }", "this", "value");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         [WorkItem(538880)]
-        public void TestValueInIndexerSetter()
+        public async Task TestValueInIndexerSetter()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     string this[int index]
@@ -415,11 +416,11 @@ class Class
 }", "index", "this", "value");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         [WorkItem(538881)]
-        public void TestCatchBlock()
+        public async Task TestCatchBlock()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -430,11 +431,11 @@ class Class
 }", "ex", "this");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         [WorkItem(538881)]
-        public void TestCatchBlockEmpty_OpenBrace()
+        public async Task TestCatchBlockEmpty_OpenBrace()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -445,10 +446,10 @@ class Class
 }", "ex", "this");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestCatchBlockEmpty_CloseBrace()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task TestCatchBlockEmpty_CloseBrace()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -459,11 +460,11 @@ class Class
 }", "this");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         [WorkItem(538874)]
-        public void TestObjectCreation()
+        public async Task TestObjectCreation()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -473,11 +474,11 @@ class Class
 }", "a", "new Bar(a).Baz", "Foo", "this");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         [WorkItem(538874)]
-        public void Test2()
+        public async Task Test2()
         {
-            TestIsValid(@"
+            await TestIsValidAsync(@"
 class D
 {
    private static int x;
@@ -492,11 +493,11 @@ class Class
 }", "D.x", false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         [WorkItem(538890)]
-        public void TestArrayCreation()
+        public async Task TestArrayCreation()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     int a;
@@ -508,10 +509,10 @@ class Class
         }
 
         [WorkItem(751141)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void Bug751141()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task Bug751141()
         {
-            TestTryDo(@"
+            await TestTryDoAsync(@"
 class Program
 {
     double m_double = 1.1;
@@ -529,10 +530,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ForLoopExpressionsInFirstStatementOfLoop1()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ForLoopExpressionsInFirstStatementOfLoop1()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -545,10 +546,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ForLoopExpressionsInFirstStatementOfLoop2()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ForLoopExpressionsInFirstStatementOfLoop2()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -564,10 +565,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ForLoopExpressionsInFirstStatementOfLoop3()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ForLoopExpressionsInFirstStatementOfLoop3()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -583,10 +584,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ForLoopExpressionsInFirstStatementOfLoop4()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ForLoopExpressionsInFirstStatementOfLoop4()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -599,10 +600,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ForEachLoopExpressionsInFirstStatementOfLoop1()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ForEachLoopExpressionsInFirstStatementOfLoop1()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -615,10 +616,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ForEachLoopExpressionsInFirstStatementOfLoop2()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ForEachLoopExpressionsInFirstStatementOfLoop2()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -629,10 +630,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ExpressionsAfterForLoop1()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ExpressionsAfterForLoop1()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -650,10 +651,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ExpressionsAfterForLoop2()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ExpressionsAfterForLoop2()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -671,10 +672,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ExpressionsAfterForEachLoop()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ExpressionsAfterForEachLoop()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -692,10 +693,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ExpressionsAfterNestedForLoop()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ExpressionsAfterNestedForLoop()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -718,10 +719,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ExpressionsAfterCheckedStatement()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ExpressionsAfterCheckedStatement()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -739,10 +740,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ExpressionsAfterUncheckedStatement()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ExpressionsAfterUncheckedStatement()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -760,10 +761,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ExpressionsAfterIfStatement()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ExpressionsAfterIfStatement()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -781,10 +782,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ExpressionsAfterIfStatementWithElse()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ExpressionsAfterIfStatementWithElse()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -807,10 +808,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ExpressionsAfterLockStatement()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ExpressionsAfterLockStatement()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -828,10 +829,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ExpressionsAfterSwitchStatement()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ExpressionsAfterSwitchStatement()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -859,10 +860,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ExpressionsAfterTryStatement()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ExpressionsAfterTryStatement()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -890,10 +891,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ExpressionsAfterTryStatementWithFinally()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ExpressionsAfterTryStatementWithFinally()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -925,10 +926,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ExpressionsAfterUsingStatement()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ExpressionsAfterUsingStatement()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -946,10 +947,10 @@ class Program
         }
 
         [WorkItem(775161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ExpressionsAfterWhileStatement()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ExpressionsAfterWhileStatement()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -967,10 +968,10 @@ class Program
         }
 
         [WorkItem(778215)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void ExpressionsInParenthesizedExpressions()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        public async Task ExpressionsInParenthesizedExpressions()
         {
-            TestTryDo(@"class Program
+            await TestTryDoAsync(@"class Program
 {
     static void Main(string[] args)
     {

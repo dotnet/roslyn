@@ -7138,7 +7138,7 @@ class Test
         }
         [Fact]
 
-        private void TestErrorsOverridingImplementingMember()
+        public void TestErrorsOverridingImplementingMember()
         {
             // Tests:
             // Members that implement interface members are usually marked as virtual sealed -

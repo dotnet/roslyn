@@ -1275,6 +1275,29 @@ End Module
         End Sub
 
         <Fact()>
+        Public Sub BindingVariableAssignmentInScript()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="BindingVariableAssignmentInScript">
+        <file name="a.vb">
+Dim x As Object = y 'BIND:"y"
+x = x               'BIND1:"x"
+        </file>
+    </compilation>, parseOptions:=TestOptions.Script)
+
+            Dim model = GetSemanticModel(compilation, "a.vb")
+            Dim ySyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 0)
+            Dim ySymbolInfo = model.GetSymbolInfo(ySyntax)
+            Assert.Null(ySymbolInfo.Symbol)
+
+            Dim xSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 1)
+            Dim xSymbolInfo = model.GetSymbolInfo(xSyntax)
+            Assert.Equal("x", xSymbolInfo.Symbol.Name)
+            Dim typeInfo = model.GetTypeInfo(xSyntax)
+            Assert.NotNull(typeInfo.Type)
+            Assert.Equal("System.Object", typeInfo.Type.ToTestDisplayString)
+        End Sub
+
+        <Fact()>
         Public Sub BindingModuleMemberInQualifiedExpressionWithGlobal()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="BindingEnumMembers">

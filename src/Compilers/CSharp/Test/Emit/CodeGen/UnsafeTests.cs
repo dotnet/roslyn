@@ -9194,6 +9194,29 @@ public unsafe class C
             var result = CompileAndVerify(compilation, expectedOutput: "5");
         }
 
+
+        [Fact, WorkItem(7550, "https://github.com/dotnet/roslyn/issues/7550")]
+        public void EnsureNullPointerIsPoppedIfUnused()
+        {
+            string source = @"
+public class A
+{
+    public unsafe byte* Ptr;
+
+    static void Main()
+    {
+        unsafe
+        {
+            var x = new A();
+            byte* ptr = (x == null) ? null : x.Ptr;
+        }
+        System.Console.WriteLine(""OK"");
+    }
+}
+";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "OK");
+        }
+
         #endregion
     }
 }

@@ -331,6 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     //      Foo(x, ref x)     <-- x cannot be a stack local as it is used in different contexts.
     internal enum ExprContext
     {
+        None,
         Sideeffects,
         Value,
         Address,
@@ -494,6 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void PushEvalStack(BoundExpression result, ExprContext context)
         {
+            Debug.Assert(result != null || context == ExprContext.None);
             _evalStack.Add(ValueTuple.Create(result, context));
         }
 
@@ -879,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (mayPushReceiver)
             {
                 // push unknown value just to prevent access to stack locals.
-                PushEvalStack(null, ExprContext.Address);
+                PushEvalStack(null, ExprContext.None);
             }
 
             right = VisitExpression(node.Right, rhsContext);
@@ -1326,7 +1328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             var origStack = StackDepth();
 
-            PushEvalStack(null, ExprContext.Value);
+            PushEvalStack(null, ExprContext.None);
 
             var cookie = GetStackStateCookie(); // implicit goto here 
 
@@ -1446,7 +1448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (exceptionSourceOpt != null)
             {
                 // runtime pushes the exception object
-                PushEvalStack(null, ExprContext.Value);
+                PushEvalStack(null, ExprContext.None);
                 _counter++;
 
                 // We consume it by writing into the exception source.

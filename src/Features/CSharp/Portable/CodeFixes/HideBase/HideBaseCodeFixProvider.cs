@@ -44,7 +44,5 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 
             context.RegisterCodeFix(new AddNewKeywordAction(context.Document, originalNode), context.Diagnostics);
         }
-
-
     }
 }

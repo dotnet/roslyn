@@ -15,7 +15,6 @@ using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.IO;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -461,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Constants()
         {
             var source =
-    @"class C
+@"class C
 {
     const int x = 2;
     static int F(int w)
@@ -482,32 +481,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
-            ImmutableArray<MetadataReference> references;
-            byte[] exeBytes;
-            byte[] pdbBytes;
-
-            compilation0.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-
-            try
-            {
-                var runtime = CreateRuntimeInstance(
-                    ExpressionCompilerUtilities.GenerateUniqueName(),
-                    references.AddIntrinsicAssembly(),
-                    exeBytes,
-                    SymReaderFactory.CreateReader(pdbBytes, exeBytes));
-
-                var context = CreateMethodContext(
-                    runtime,
-                    methodName: "C.F",
-                    atLineNumber: 888);
-
-                var testData = new CompilationTestData();
-                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
-                string typeName;
-                context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
-                Assert.Equal(3, locals.Count);
-                VerifyLocal(testData, typeName, locals[0], "<>m0", "w");
-                VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt: @"
+            var runtime = CreateRuntimeInstance(compilation0);
+            var context = CreateMethodContext(
+                runtime,
+                methodName: "C.F",
+                atLineNumber: 888);
+            var testData = new CompilationTestData();
+            var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+            string typeName;
+            context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+            Assert.Equal(3, locals.Count);
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "w");
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt: @"
 {
 // Code size        2 (0x2)
 .maxstack  1
@@ -517,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 IL_0000:  ldc.i4.3
 IL_0001:  ret
 }");
-                VerifyLocal(testData, typeName, locals[2], "<>m2", "v", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt: @"
+            VerifyLocal(testData, typeName, locals[2], "<>m2", "v", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt: @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -527,21 +512,22 @@ IL_0001:  ret
   IL_0000:  ldnull
   IL_0001:  ret
 }");
-                locals.Free();
-                context = CreateMethodContext(
-                    runtime,
-                    methodName: "C.F",
-                    atLineNumber: 999);
-                testData = new CompilationTestData();
-                locals = ArrayBuilder<LocalAndMethod>.GetInstance();
-                context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
-                Assert.Equal(locals.Count, 5);
-                VerifyLocal(testData, typeName, locals[0], "<>m0", "w");
-                VerifyLocal(testData, typeName, locals[1], "<>m1", "u");
-                VerifyLocal(testData, typeName, locals[2], "<>m2", "y", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult);
-                VerifyLocal(testData, typeName, locals[3], "<>m3", "v", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult);
-                VerifyLocal(testData, typeName, locals[4], "<>m4", "z", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
-    @"{
+            locals.Free();
+
+            context = CreateMethodContext(
+                runtime,
+                methodName: "C.F",
+                atLineNumber: 999);
+            testData = new CompilationTestData();
+            locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+            context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+            Assert.Equal(locals.Count, 5);
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "w");
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "u");
+            VerifyLocal(testData, typeName, locals[2], "<>m2", "y", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult);
+            VerifyLocal(testData, typeName, locals[3], "<>m3", "v", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult);
+            VerifyLocal(testData, typeName, locals[4], "<>m4", "z", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
+@"{
 // Code size        6 (0x6)
 .maxstack  1
 .locals init (bool V_0,
@@ -550,21 +536,7 @@ IL_0001:  ret
 IL_0000:  ldstr      ""str""
 IL_0005:  ret
 }");
-                locals.Free();
-            }
-            catch (OverflowException e) when (LogConstantsOverflow(e, exeBytes, pdbBytes))
-            {
-            }
-        }
-
-        private static bool LogConstantsOverflow(Exception e, byte[] exeBytes, byte[] pdbBytes)
-        {
-            var id = Guid.NewGuid();
-            var tempDir = Path.GetTempPath();
-            File.WriteAllBytes(Path.Combine(tempDir, $"EEConstantsTest_{id}.exe"), exeBytes);
-            File.WriteAllBytes(Path.Combine(tempDir, $"EEConstantsTest_{id}.pdb"), pdbBytes);
-
-            return FatalError.Report(e);
+            locals.Free();
         }
 
         [Fact]

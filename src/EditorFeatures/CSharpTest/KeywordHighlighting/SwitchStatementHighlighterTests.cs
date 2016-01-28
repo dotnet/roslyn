@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -13,10 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
             return new SwitchStatementHighlighter();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_1()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestExample1_1()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         {|Cursor:[|switch|]|} (i) {
@@ -35,10 +36,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_2()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestExample1_2()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         [|switch|] (i) {
@@ -57,10 +58,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_3()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestExample1_3()
         {
-            Test(
+            await TestAsync(
 @"class C {
     void M() {
         [|switch|] (i) {
@@ -78,10 +79,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_4()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestExample1_4()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         switch (i) {
@@ -100,10 +101,10 @@ default:
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_5()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestExample1_5()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         [|switch|] (i) {
@@ -122,10 +123,10 @@ default:
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_6()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestExample1_6()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         [|switch|] (i) {
@@ -144,10 +145,10 @@ default:
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample2_1()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestExample2_1()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         [|switch|] (i) {
@@ -166,10 +167,10 @@ default:
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample2_2()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestExample2_2()
         {
-            Test(
+            await TestAsync(
 @"class C {
     void M() {
         [|switch|] (i) {
@@ -187,10 +188,10 @@ default:
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample2_3()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestExample2_3()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         switch (i) {
@@ -209,10 +210,10 @@ default:
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample2_4()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestExample2_4()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         [|switch|] (i) {
@@ -231,10 +232,10 @@ default:
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample1_9()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestNestedExample1_9()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         foreach (var a in x) {
@@ -264,10 +265,10 @@ default:
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample1_10()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestNestedExample1_10()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         foreach (var a in x) {
@@ -297,10 +298,10 @@ default:
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample1_11()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestNestedExample1_11()
         {
-            Test(
+            await TestAsync(
 @"class C {
     void M() {
         foreach (var a in x) {
@@ -329,10 +330,10 @@ default:
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample1_12()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestNestedExample1_12()
         {
-            Test(
+            await TestAsync(
 @"class C {
     void M() {
         foreach (var a in x) {
@@ -361,10 +362,10 @@ default:
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample1_13()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestNestedExample1_13()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         foreach (var a in x) {
@@ -394,10 +395,10 @@ default:
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void Bug3483()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task Bug3483()
         {
-            Test(
+            await TestAsync(
         @"class C
 {
     static void M()

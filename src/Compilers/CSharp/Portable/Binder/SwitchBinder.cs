@@ -231,9 +231,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 convertedCaseExpression = this.CreateConversion(caseExpression, conversion, switchGoverningType, diagnostics);
             }
 
-            if (switchGoverningType.IsNullableType() && convertedCaseExpression.Kind == BoundKind.Conversion)
+            if (switchGoverningType.IsNullableType()
+                && convertedCaseExpression.Kind == BoundKind.Conversion
+                // Null is a special case here because we want to compare null to the Nullable<T> itself, not to the underlying type.
+                && (convertedCaseExpression.ConstantValue == null || !convertedCaseExpression.ConstantValue.IsNull))
             {
-                constantValueOpt = ((BoundConversion)convertedCaseExpression).Operand.ConstantValue;
+                var operand = ((BoundConversion)convertedCaseExpression).Operand;
+
+                // We are not intested in the diagnostic that get created here
+                var diagnosticBag = DiagnosticBag.GetInstance();
+                constantValueOpt = CreateConversion(operand, switchGoverningType.GetNullableUnderlyingType(), diagnosticBag).ConstantValue;
+                diagnosticBag.Free();
             }
             else
             {

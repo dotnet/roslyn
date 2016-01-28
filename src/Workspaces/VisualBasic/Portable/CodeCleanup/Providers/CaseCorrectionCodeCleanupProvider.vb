@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Return CaseCorrector.CaseCorrectAsync(document, spans, cancellationToken)
         End Function
 
-        Public Function Cleanup(root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, Optional cancellationToken As CancellationToken = Nothing) As SyntaxNode Implements ICodeCleanupProvider.Cleanup
-            Return CaseCorrector.CaseCorrect(root, spans, workspace, cancellationToken)
+        Public Function CleanupAsync(root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, Optional cancellationToken As CancellationToken = Nothing) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
+            Return Task.FromResult(CaseCorrector.CaseCorrect(root, spans, workspace, cancellationToken))
         End Function
     End Class
 End Namespace

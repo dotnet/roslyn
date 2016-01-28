@@ -1,8 +1,4 @@
 {
-  "supports": {
-    "net46.app": {},
-    "dnxcore50.app": {}
-  },
   "dependencies": {
     "Microsoft.VisualBasic": "10.0.0"
   },

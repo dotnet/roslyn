@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         #region Update
 
-        [WpfFact]
+        [Fact]
         public void Update_Inner()
         {
             string src1 = @"
@@ -51,7 +51,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Foo(2);"));
         }
 
-        [WpfFact]
+        [Fact]
         public void Update_Leaf()
         {
             string src1 = @"
@@ -90,7 +90,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Update_Leaf_NewCommentAtEndOfActiveStatement()
         {
             string src1 = @"
@@ -126,7 +126,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Update_Inner_NewCommentAtEndOfActiveStatement()
         {
             string src1 = @"
@@ -163,7 +163,7 @@ class C
         }
 
         [WorkItem(846588)]
-        [WpfFact]
+        [Fact]
         public void Update_Leaf_Block()
         {
             string src1 = @"
@@ -198,7 +198,7 @@ class C : System.IDisposable
 
         #region Delete in Method Body
 
-        [WpfFact]
+        [Fact]
         public void Delete_Inner()
         {
             string src1 = @"
@@ -238,7 +238,7 @@ class C
         }
 
         // TODO (tomat): considering a change
-        [WpfFact]
+        [Fact]
         public void Delete_Inner_MultipleParents()
         {
             string src1 = @"
@@ -375,7 +375,7 @@ class C : IDisposable
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "label"));
         }
 
-        [WpfFact]
+        [Fact]
         public void Delete_Leaf1()
         {
             string src1 = @"
@@ -410,7 +410,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Delete_Leaf2()
         {
             string src1 = @"
@@ -442,7 +442,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Delete_Leaf_InTry()
         {
             string src1 = @"
@@ -489,7 +489,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Delete_Leaf_InTry2()
         {
             string src1 = @"
@@ -548,7 +548,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Delete_Inner_CommentActiveStatement()
         {
             string src1 = @"
@@ -586,7 +586,7 @@ class C
         }
 
         [WorkItem(755959)]
-        [WpfFact]
+        [Fact]
         public void Delete_Leaf_CommentActiveStatement()
         {
             string src1 = @"
@@ -622,12 +622,35 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
+        [Fact]
+        public void Delete_EntireNamespace()
+        {
+            string src1 = @"
+namespace N
+{
+    class C
+    {
+        static void Main(String[] args)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}";
+            string src2 = @"<AS:0></AS:0>";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.Delete, null, "namespace"));
+        }
+
         #endregion
 
         #region Constructors
 
         [WorkItem(740949)]
-        [WpfFact]
+        [Fact]
         public void Updated_Inner_Constructor()
         {
             string src1 = @"
@@ -676,7 +699,7 @@ class Foo
         }
 
         [WorkItem(741249)]
-        [WpfFact]
+        [Fact]
         public void Updated_Leaf_Constructor()
         {
             string src1 = @"
@@ -724,7 +747,7 @@ class Foo
         }
 
         [WorkItem(742334)]
-        [WpfFact]
+        [Fact]
         public void Updated_Leaf_Constructor_Parameter()
         {
             string src1 = @"
@@ -773,7 +796,7 @@ class Foo
         }
 
         [WorkItem(742334)]
-        [WpfFact]
+        [Fact]
         public void Updated_Leaf_Constructor_Parameter_DefaultValue()
         {
             string src1 = @"
@@ -822,7 +845,7 @@ class Foo
         }
 
         [WorkItem(742334)]
-        [WpfFact]
+        [Fact]
         public void Updated_Leaf_ConstructorChaining1()
         {
             string src1 = @"
@@ -872,7 +895,7 @@ class A
         }
 
         [WorkItem(742334)]
-        [WpfFact]
+        [Fact]
         public void Updated_Leaf_ConstructorChaining2()
         {
             string src1 = @"
@@ -922,7 +945,7 @@ class A
         }
 
         [WorkItem(742334)]
-        [WpfFact]
+        [Fact]
         public void InstanceConstructorWithoutInitializer()
         {
             string src1 = @"
@@ -955,7 +978,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void InstanceConstructorWithInitializer_Internal_Update1()
         {
             string src1 = @"
@@ -1013,7 +1036,7 @@ class C : D
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "this(false)"));
         }
 
-        [WpfFact]
+        [Fact]
         public void InstanceConstructorWithInitializer_Internal_Update2()
         {
             string src1 = @"
@@ -1063,7 +1086,7 @@ class C : D
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "public C()"));
         }
 
-        [WpfFact]
+        [Fact]
         public void InstanceConstructorWithInitializer_Internal_Update3()
         {
             string src1 = @"
@@ -1103,7 +1126,7 @@ class C : D
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "base(1)"));
         }
 
-        [WpfFact]
+        [Fact]
         public void InstanceConstructorWithInitializer_Leaf_Update1()
         {
             string src1 = @"
@@ -1142,7 +1165,7 @@ class C : D
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void InstanceConstructorWithInitializer_Leaf_Update2()
         {
             string src1 = @"
@@ -1183,7 +1206,7 @@ class C : D
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void InstanceConstructorWithInitializer_Leaf_Update3()
         {
             string src1 = @"
@@ -1224,7 +1247,7 @@ class C : D
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void InstanceConstructorWithInitializerWithLambda_Update1()
         {
             string src1 = @"
@@ -1243,7 +1266,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void InstanceConstructorWithInitializerWithLambda_Update2()
         {
             string src1 = @"
@@ -1262,7 +1285,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void InstanceConstructorWithInitializerWithLambda_Update3()
         {
             string src1 = @"
@@ -1285,7 +1308,7 @@ class C
 
         #region Field and Property Initializers
 
-        [WpfFact]
+        [Fact]
         public void InstancePropertyInitializer_Leaf_Update()
         {
             string src1 = @"
@@ -1319,7 +1342,7 @@ class C
         }
 
         [WorkItem(742334)]
-        [WpfFact]
+        [Fact]
         public void InstanceFieldInitializer_Leaf_Update1()
         {
             string src1 = @"
@@ -1352,7 +1375,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void InstanceFieldInitializer_Internal_Update1()
         {
             string src1 = @"
@@ -1396,7 +1419,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "int a = F(2)"));
         }
 
-        [WpfFact]
+        [Fact]
         public void InstanceFieldInitializer_Internal_Update2()
         {
             string src1 = @"
@@ -1440,7 +1463,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "b = F(3)"));
         }
 
-        [WpfFact]
+        [Fact]
         public void InstancePropertyInitializer_Internal_Delete1()
         {
             string src1 = @"
@@ -1476,7 +1499,7 @@ class C
                 Diagnostic(RudeEditKind.MethodBodyAdd, "get", CSharpFeaturesResources.PropertyGetter));
         }
 
-        [WpfFact]
+        [Fact]
         public void InstancePropertyInitializer_Internal_Delete2()
         {
             string src1 = @"
@@ -1513,7 +1536,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void InstanceFieldInitializer_Internal_Delete1()
         {
             string src1 = @"
@@ -1556,7 +1579,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void InstanceFieldInitializer_Internal_Delete2()
         {
             string src1 = @"
@@ -1599,7 +1622,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void InstancePropertyAndFieldInitializers_Delete1()
         {
             string src1 = @"
@@ -1636,7 +1659,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void InstancePropertyAndFieldInitializers_Delete2()
         {
             string src1 = @"
@@ -1673,7 +1696,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void InstanceFieldInitializer_SingleDeclarator()
         {
             string src1 = @"
@@ -1716,7 +1739,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void FieldInitializer_Lambda1()
         {
             string src1 = @"
@@ -1745,7 +1768,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void PropertyInitializer_Lambda1()
         {
             string src1 = @"
@@ -1774,7 +1797,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void FieldInitializer_Lambda2()
         {
             string src1 = @"
@@ -1803,7 +1826,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void PropertyInitializer_Lambda2()
         {
             string src1 = @"
@@ -1832,7 +1855,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void FieldInitializer_InsertConst1()
         {
             string src1 = @"
@@ -1860,7 +1883,7 @@ class C
                 Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1", FeaturesResources.ConstField));
         }
 
-        [WpfFact]
+        [Fact]
         public void LocalInitializer_InsertConst1()
         {
             string src1 = @"
@@ -1885,7 +1908,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void FieldInitializer_InsertConst2()
         {
             string src1 = @"
@@ -1910,7 +1933,7 @@ class C
                 Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1, b = 2", FeaturesResources.ConstField));
         }
 
-        [WpfFact]
+        [Fact]
         public void LocalInitializer_InsertConst2()
         {
             string src1 = @"
@@ -1935,7 +1958,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void FieldInitializer_Delete1()
         {
             string src1 = @"
@@ -1960,7 +1983,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void LocalInitializer_Delete1()
         {
             string src1 = @"
@@ -1979,7 +2002,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void FieldInitializer_Delete2()
         {
             string src1 = @"
@@ -2006,7 +2029,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void LocalInitializer_Delete2()
         {
             string src1 = @"
@@ -2035,7 +2058,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void FieldInitializer_Delete3()
         {
             string src1 = @"
@@ -2062,7 +2085,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Field));
         }
 
-        [WpfFact]
+        [Fact]
         public void LocalInitializer_Delete3()
         {
             string src1 = @"
@@ -2090,7 +2113,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void FieldInitializer_DeleteStaticInstance1()
         {
             string src1 = @"
@@ -2117,7 +2140,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void FieldInitializer_DeleteStaticInstance2()
         {
             string src1 = @"
@@ -2144,7 +2167,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void FieldInitializer_DeleteStaticInstance3()
         {
             string src1 = @"
@@ -2169,7 +2192,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void FieldInitializer_DeleteMove1()
         {
             string src1 = @"
@@ -2197,7 +2220,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Field));
         }
 
-        [WpfFact]
+        [Fact]
         public void LocalInitializer_DeleteReorder1()
         {
             string src1 = @"
@@ -2225,7 +2248,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void FieldToProperty1()
         {
             string src1 = @"
@@ -2247,7 +2270,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Field));
         }
 
-        [WpfFact]
+        [Fact]
         public void PropertyToField1()
         {
             string src1 = @"
@@ -2273,7 +2296,7 @@ class C
 
         #region Lock Statement
 
-        [WpfFact]
+        [Fact]
         public void LockBody_Update()
         {
             string src1 = @"
@@ -2309,7 +2332,7 @@ class Test
         }
 
         [WorkItem(755749)]
-        [WpfFact]
+        [Fact]
         public void Lock_Insert_Leaf()
         {
             string src1 = @"
@@ -2341,7 +2364,7 @@ class Test
         }
 
         [WorkItem(755749)]
-        [WpfFact]
+        [Fact]
         public void Lock_Insert_Leaf2()
         {
             string src1 = @"
@@ -2374,7 +2397,7 @@ class Test
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "lock (lockThis)", CSharpFeaturesResources.LockStatement));
         }
 
-        [WpfFact]
+        [Fact]
         public void Lock_Insert_Leaf3()
         {
             string src1 = @"
@@ -2408,7 +2431,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Lock_Insert_Leaf4()
         {
             string src1 = @"
@@ -2468,7 +2491,7 @@ class Test
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "lock (e)", CSharpFeaturesResources.LockStatement));
         }
 
-        [WpfFact]
+        [Fact]
         public void Lock_Insert_Leaf5()
         {
             string src1 = @"
@@ -2529,7 +2552,7 @@ class Test
         }
 
         [WorkItem(755752)]
-        [WpfFact]
+        [Fact]
         public void Lock_Update_Leaf()
         {
             string src1 = @"
@@ -2563,7 +2586,7 @@ class Test
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "lock (\"test\")", CSharpFeaturesResources.LockStatement));
         }
 
-        [WpfFact]
+        [Fact]
         public void Lock_Update_Leaf2()
         {
             string src1 = @"
@@ -2598,7 +2621,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Lock_Delete_Leaf()
         {
             string src1 = @"
@@ -2628,7 +2651,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Lock_Update_Lambda1()
         {
             string src1 = @"
@@ -2661,7 +2684,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Lock_Update_Lambda2()
         {
             string src1 = @"
@@ -2699,7 +2722,7 @@ class C
 
         #region Fixed Statement
 
-        [WpfFact]
+        [Fact]
         public void FixedBody_Update()
         {
             string src1 = @"
@@ -2743,7 +2766,7 @@ class Test
         }
 
         [WorkItem(755742)]
-        [WpfFact]
+        [Fact]
         public void Fixed_Insert_Leaf()
         {
             string src1 = @"
@@ -2782,7 +2805,7 @@ class Test
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "fixed (int* pj = &value)", CSharpFeaturesResources.FixedStatement));
         }
 
-        [WpfFact]
+        [Fact]
         public void Fixed_Insert_Leaf2()
         {
             string src1 = @"
@@ -2820,7 +2843,7 @@ class Test
         }
 
         [WorkItem(755742)]
-        [WpfFact]
+        [Fact]
         public void Fixed_Insert_Leaf3()
         {
             string src1 = @"
@@ -2865,7 +2888,7 @@ class Test
         }
 
         [WorkItem(755742)]
-        [WpfFact]
+        [Fact]
         public void Fixed_Reorder_Leaf1()
         {
             string src1 = @"
@@ -2913,7 +2936,7 @@ class Test
         }
 
         [WorkItem(755746)]
-        [WpfFact]
+        [Fact]
         public void Fixed_Update_Leaf1()
         {
             string src1 = @"
@@ -2956,7 +2979,7 @@ class Test
         }
 
         [WorkItem(755746)]
-        [WpfFact]
+        [Fact]
         public void Fixed_Update_Leaf2()
         {
             string src1 = @"
@@ -3017,7 +3040,7 @@ class Test
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "fixed (int* e = &value1)", CSharpFeaturesResources.FixedStatement));
         }
 
-        [WpfFact]
+        [Fact]
         public void Fixed_Delete_Leaf()
         {
             string src1 = @"
@@ -3055,7 +3078,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Fixed_Update_Lambda1()
         {
             string src1 = @"
@@ -3088,7 +3111,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Fixed_Update_Lambda2()
         {
             string src1 = @"
@@ -3126,7 +3149,7 @@ class C
 
         #region ForEach Statement
 
-        [WpfFact]
+        [Fact]
         public void ForEachBody_Update_ExpressionActive()
         {
             string src1 = @"
@@ -3161,7 +3184,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void ForEachBody_Update_InKeywordActive()
         {
             string src1 = @"
@@ -3196,7 +3219,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void ForEachBody_Update_VariableActive()
         {
             string src1 = @"
@@ -3231,7 +3254,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void ForEachBody_Update_ForeachKeywordActive()
         {
             string src1 = @"
@@ -3266,7 +3289,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void ForEachVariable_Update()
         {
             string src1 = @"
@@ -3304,7 +3327,7 @@ class Test
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "foreach (      object c        in F())", CSharpFeaturesResources.ForEachStatement));
         }
 
-        [WpfFact]
+        [Fact]
         public void ForEach_Reorder_Leaf1()
         {
             string src1 = @"
@@ -3353,7 +3376,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void ForEach_Update_Leaf1()
         {
             string src1 = @"
@@ -3402,7 +3425,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void ForEach_Update_Leaf2()
         {
             string src1 = @"
@@ -3445,7 +3468,7 @@ class Test
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "foreach (var a in e1)", CSharpFeaturesResources.ForEachStatement));
         }
 
-        [WpfFact]
+        [Fact]
         public void ForEach_Delete_Leaf1()
         {
             string src1 = @"
@@ -3491,7 +3514,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void ForEach_Delete_Leaf2()
         {
             string src1 = @"
@@ -3537,7 +3560,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void ForEach_Delete_Leaf3()
         {
             string src1 = @"
@@ -3583,7 +3606,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void ForEach_Lambda1()
         {
             string src1 = @"
@@ -3635,7 +3658,7 @@ class Test
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "foreach (var b in e1)", CSharpFeaturesResources.ForEachStatement));
         }
 
-        [WpfFact]
+        [Fact]
         public void ForEach_Update_Lambda1()
         {
             string src1 = @"
@@ -3668,7 +3691,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void ForEach_Update_Lambda2()
         {
             string src1 = @"
@@ -3706,7 +3729,7 @@ class C
 
         #region For Statement
 
-        [WpfFact]
+        [Fact]
         public void ForStatement_Initializer1()
         {
             string src1 = @"
@@ -3744,7 +3767,7 @@ class Test
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "i = F(2)"));
         }
 
-        [WpfFact]
+        [Fact]
         public void ForStatement_Initializer2()
         {
             string src1 = @"
@@ -3781,7 +3804,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void ForStatement_Initializer_Delete()
         {
             string src1 = @"
@@ -3819,7 +3842,7 @@ class Test
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "for (;       i < 10       ; i++)"));
         }
 
-        [WpfFact]
+        [Fact]
         public void ForStatement_Declarator1()
         {
             string src1 = @"
@@ -3855,7 +3878,7 @@ class Test
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "var i = F(2)"));
         }
 
-        [WpfFact]
+        [Fact]
         public void ForStatement_Declarator2()
         {
             string src1 = @"
@@ -3890,7 +3913,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void ForStatement_Declarator3()
         {
             string src1 = @"
@@ -3925,7 +3948,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void ForStatement_Condition1()
         {
             string src1 = @"
@@ -3961,7 +3984,7 @@ class Test
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "i < F(20)"));
         }
 
-        [WpfFact]
+        [Fact]
         public void ForStatement_Condition_Delete()
         {
             string src1 = @"
@@ -3997,7 +4020,7 @@ class Test
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "for (int i = 1; ;       i++       )"));
         }
 
-        [WpfFact]
+        [Fact]
         public void ForStatement_Incrementors1()
         {
             string src1 = @"
@@ -4032,7 +4055,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void ForStatement_Incrementors2()
         {
             string src1 = @"
@@ -4068,7 +4091,7 @@ class Test
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "F(2)"));
         }
 
-        [WpfFact]
+        [Fact]
         public void ForStatement_Incrementors3()
         {
             string src1 = @"
@@ -4103,7 +4126,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void ForStatement_Incrementors4()
         {
             string src1 = @"
@@ -4142,7 +4165,7 @@ class Test
 
         #region Using Statement
 
-        [WpfFact]
+        [Fact]
         public void Using_Update_Leaf1()
         {
             string src1 = @"
@@ -4191,7 +4214,7 @@ class Test
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "using (c)", CSharpFeaturesResources.UsingStatement));
         }
 
-        [WpfFact]
+        [Fact]
         public void Using_InLambdaBody1()
         {
             string src1 = @"
@@ -4252,7 +4275,7 @@ class Test
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "using (c)", CSharpFeaturesResources.UsingStatement));
         }
 
-        [WpfFact]
+        [Fact]
         public void Using_Update_Lambda1()
         {
             string src1 = @"
@@ -4285,7 +4308,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Using_Update_Lambda2()
         {
             string src1 = @"
@@ -4323,7 +4346,7 @@ class C
 
         #region Conditional Block Statements (If, Switch, While, Do)
 
-        [WpfFact]
+        [Fact]
         public void IfBody_Update1()
         {
             string src1 = @"
@@ -4358,7 +4381,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void IfBody_Update2()
         {
             string src1 = @"
@@ -4394,7 +4417,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "if (!B())"));
         }
 
-        [WpfFact]
+        [Fact]
         public void IfBody_Update_Lambda()
         {
             string src1 = @"
@@ -4429,7 +4452,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void WhileBody_Update1()
         {
             string src1 = @"
@@ -4464,7 +4487,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void WhileBody_Update2()
         {
             string src1 = @"
@@ -4500,7 +4523,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "while (!B())"));
         }
 
-        [WpfFact]
+        [Fact]
         public void WhileBody_Update_Lambda()
         {
             string src1 = @"
@@ -4535,7 +4558,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void DoWhileBody_Update1()
         {
             string src1 = @"
@@ -4572,7 +4595,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void DoWhileBody_Update2()
         {
             string src1 = @"
@@ -4610,7 +4633,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "while (!B());"));
         }
 
-        [WpfFact]
+        [Fact]
         public void DoWhileBody_Update_Lambda()
         {
             string src1 = @"
@@ -4647,7 +4670,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void SwitchCase_Update1()
         {
             string src1 = @"
@@ -4684,7 +4707,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void SwitchCase_Update_Lambda()
         {
             string src1 = @"
@@ -4725,7 +4748,7 @@ class C
 
         #region Try
 
-        [WpfFact]
+        [Fact]
         public void Try_Add_Inner()
         {
             string src1 = @"
@@ -4768,7 +4791,7 @@ class C
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "try", CSharpFeaturesResources.TryBlock));
         }
 
-        [WpfFact]
+        [Fact]
         public void Try_Add_Leaf()
         {
             string src1 = @"
@@ -4810,7 +4833,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Try_Delete_Inner()
         {
             string src1 = @"
@@ -4853,7 +4876,7 @@ class C
                 Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Foo();", CSharpFeaturesResources.TryBlock));
         }
 
-        [WpfFact]
+        [Fact]
         public void Try_Delete_Leaf()
         {
             string src1 = @"
@@ -4895,7 +4918,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Try_Update_Inner()
         {
             string src1 = @"
@@ -4944,7 +4967,7 @@ class C
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "try", CSharpFeaturesResources.TryBlock));
         }
 
-        [WpfFact]
+        [Fact]
         public void Try_Update_Inner2()
         {
             string src1 = @"
@@ -4992,7 +5015,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryFinally_Update_Inner()
         {
             string src1 = @"
@@ -5040,7 +5063,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Try_Update_Leaf()
         {
             string src1 = @"
@@ -5255,7 +5278,7 @@ class C
 
         #region Catch
 
-        [WpfFact]
+        [Fact]
         public void Catch_Add_Inner()
         {
             string src1 = @"
@@ -5298,7 +5321,7 @@ class C
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "catch", CSharpFeaturesResources.CatchClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void Catch_Add_Leaf()
         {
             string src1 = @"
@@ -5341,7 +5364,7 @@ class C
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "catch", CSharpFeaturesResources.CatchClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void Catch_Delete_Inner()
         {
             string src1 = @"
@@ -5384,7 +5407,7 @@ class C
                 Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Foo();", CSharpFeaturesResources.CatchClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void Catch_Delete_Leaf()
         {
             string src1 = @"
@@ -5427,7 +5450,7 @@ class C
                 Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Console.WriteLine(1);", CSharpFeaturesResources.CatchClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void Catch_Update_Inner()
         {
             string src1 = @"
@@ -5476,7 +5499,7 @@ class C
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "catch", CSharpFeaturesResources.CatchClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void Catch_Update_InFilter_Inner()
         {
             string src1 = @"
@@ -5522,7 +5545,7 @@ class C
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "catch", CSharpFeaturesResources.CatchClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void Catch_Update_Leaf()
         {
             string src1 = @"
@@ -5571,7 +5594,7 @@ class C
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "catch", CSharpFeaturesResources.CatchClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void CatchFilter_Update_Inner()
         {
             string src1 = @"
@@ -5618,7 +5641,7 @@ class C
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "catch", CSharpFeaturesResources.CatchClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void CatchFilter_Update_Leaf1()
         {
             string src1 = @"
@@ -5654,7 +5677,7 @@ class C
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "catch", CSharpFeaturesResources.CatchClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void CatchFilter_Update_Leaf2()
         {
             string src1 = @"
@@ -5694,7 +5717,7 @@ class C
 
         #region Finally
 
-        [WpfFact]
+        [Fact]
         public void Finally_Add_Inner()
         {
             string src1 = @"
@@ -5737,7 +5760,7 @@ class C
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "finally", CSharpFeaturesResources.FinallyClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void Finally_Add_Leaf()
         {
             string src1 = @"
@@ -5780,7 +5803,7 @@ class C
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "finally", CSharpFeaturesResources.FinallyClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void Finally_Delete_Inner()
         {
             string src1 = @"
@@ -5823,7 +5846,7 @@ class C
                 Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Foo();", CSharpFeaturesResources.FinallyClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void Finally_Delete_Leaf()
         {
             string src1 = @"
@@ -5870,7 +5893,7 @@ class C
 
         #region Try-Catch-Finally
 
-        [WpfFact]
+        [Fact]
         public void TryCatchFinally()
         {
             string src1 = @"
@@ -5958,7 +5981,7 @@ class C
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "finally", CSharpFeaturesResources.FinallyClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void TryCatchFinally_Regions()
         {
             string src1 = @"
@@ -6024,7 +6047,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryFilter_Regions1()
         {
             string src1 = @"
@@ -6069,7 +6092,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void TryFilter_Regions2()
         {
             string src1 = @"
@@ -6114,7 +6137,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Try_Lambda1()
         {
             string src1 = @"
@@ -6167,7 +6190,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Try_Lambda2()
         {
             string src1 = @"
@@ -6224,7 +6247,7 @@ class C
                 Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "return 1 + Foo(x);", CSharpFeaturesResources.TryBlock));
         }
 
-        [WpfFact]
+        [Fact]
         public void Try_Query_Join1()
         {
             string src1 = @"
@@ -6278,7 +6301,7 @@ class C
 
         #region Checked/Unchecked
 
-        [WpfFact]
+        [Fact]
         public void CheckedUnchecked_Insert_Leaf()
         {
             string src1 = @"
@@ -6308,7 +6331,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void CheckedUnchecked_Insert_Internal()
         {
             string src1 = @"
@@ -6347,7 +6370,7 @@ class Test
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "checked", CSharpFeaturesResources.CheckedStatement));
         }
 
-        [WpfFact]
+        [Fact]
         public void CheckedUnchecked_Delete_Internal()
         {
             string src1 = @"
@@ -6386,7 +6409,7 @@ class Test
                 Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "System.Console.WriteLine(5 * M(1, 2));", CSharpFeaturesResources.CheckedStatement));
         }
 
-        [WpfFact]
+        [Fact]
         public void CheckedUnchecked_Update_Internal()
         {
             string src1 = @"
@@ -6428,7 +6451,7 @@ class Test
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "checked", CSharpFeaturesResources.CheckedStatement));
         }
 
-        [WpfFact]
+        [Fact]
         public void CheckedUnchecked_Lambda1()
         {
             string src1 = @"
@@ -6474,7 +6497,7 @@ class Test
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "checked", CSharpFeaturesResources.CheckedStatement));
         }
 
-        [WpfFact]
+        [Fact]
         public void CheckedUnchecked_Query1()
         {
             string src1 = @"
@@ -6532,7 +6555,7 @@ class Test
 
         #region Lambdas
 
-        [WpfFact, WorkItem(1359)]
+        [Fact, WorkItem(1359)]
         public void Lambdas_LeafEdits_GeneralStatement()
         {
             string src1 = @"
@@ -6559,7 +6582,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact, WorkItem(1359)]
+        [Fact, WorkItem(1359)]
         public void Lambdas_LeafEdits_Nested1()
         {
             string src1 = @"
@@ -6586,7 +6609,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact, WorkItem(1359)]
+        [Fact, WorkItem(1359)]
         public void Lambdas_LeafEdits_Nested2()
         {
             string src1 = @"
@@ -6614,7 +6637,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "G(a =>       2       )"));
         }
 
-        [WpfFact, WorkItem(1359)]
+        [Fact, WorkItem(1359)]
         public void Lambdas_LeafEdits_IfStatement()
         {
             string src1 = @"
@@ -6641,7 +6664,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact, WorkItem(1359)]
+        [Fact, WorkItem(1359)]
         public void Lambdas_LeafEdits_WhileStatement()
         {
             string src1 = @"
@@ -6668,7 +6691,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact, WorkItem(1359)]
+        [Fact, WorkItem(1359)]
         public void Lambdas_LeafEdits_DoStatement()
         {
             string src1 = @"
@@ -6695,7 +6718,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact, WorkItem(1359)]
+        [Fact, WorkItem(1359)]
         public void Lambdas_LeafEdits_SwitchStatement()
         {
             string src1 = @"
@@ -6730,7 +6753,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact, WorkItem(1359)]
+        [Fact, WorkItem(1359)]
         public void Lambdas_LeafEdits_LockStatement()
         {
             string src1 = @"
@@ -6757,7 +6780,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact, WorkItem(1359)]
+        [Fact, WorkItem(1359)]
         public void Lambdas_LeafEdits_UsingStatement1()
         {
             string src1 = @"
@@ -6784,7 +6807,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Lambdas_ExpressionToStatements()
         {
             string src1 = @"
@@ -6811,7 +6834,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Lambdas_ExpressionToDelegate()
         {
             string src1 = @"
@@ -6838,7 +6861,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Lambdas_StatementsToExpression()
         {
             string src1 = @"
@@ -6865,7 +6888,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Lambdas_DelegateToExpression()
         {
             string src1 = @"
@@ -6892,7 +6915,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Lambdas_StatementsToDelegate()
         {
             string src1 = @"
@@ -6919,7 +6942,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Lambdas_ActiveStatementRemoved1()
         {
             string src1 = @"
@@ -6961,7 +6984,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "return b;", CSharpFeaturesResources.Lambda));
         }
 
-        [WpfFact]
+        [Fact]
         public void Lambdas_ActiveStatementRemoved2()
         {
             string src1 = @"
@@ -6994,7 +7017,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "(b)", CSharpFeaturesResources.Lambda));
         }
 
-        [WpfFact]
+        [Fact]
         public void Lambdas_ActiveStatementRemoved3()
         {
             string src1 = @"
@@ -7042,7 +7065,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "F(b);", CSharpFeaturesResources.Lambda));
         }
 
-        [WpfFact]
+        [Fact]
         public void Lambdas_ActiveStatementRemoved4()
         {
             string src1 = @"
@@ -7078,7 +7101,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "{", CSharpFeaturesResources.Lambda));
         }
 
-        [WpfFact]
+        [Fact]
         public void Queries_ActiveStatementRemoved_WhereClause()
         {
             string src1 = @"
@@ -7107,7 +7130,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "from", CSharpFeaturesResources.WhereClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void Queries_ActiveStatementRemoved_LetClause()
         {
             string src1 = @"
@@ -7136,7 +7159,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "from", CSharpFeaturesResources.LetClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void Queries_ActiveStatementRemoved_JoinClauseLeft()
         {
             string src1 = @"
@@ -7168,7 +7191,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "from", CSharpFeaturesResources.JoinClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void Queries_ActiveStatementRemoved_OrderBy1()
         {
             string src1 = @"
@@ -7200,7 +7223,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "from", CSharpFeaturesResources.OrderByClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void Queries_ActiveStatementRemoved_OrderBy2()
         {
             string src1 = @"
@@ -7232,7 +7255,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "from", CSharpFeaturesResources.OrderByClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void Queries_ActiveStatementRemoved_OrderBy3()
         {
             string src1 = @"
@@ -7264,7 +7287,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "from", CSharpFeaturesResources.OrderByClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void Queries_Remove_JoinInto1()
         {
             string src1 = @"
@@ -7294,7 +7317,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void Queries_Remove_QueryContinuation1()
         {
             string src1 = @"
@@ -7326,7 +7349,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "into", CSharpFeaturesResources.WhereClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void Queries_Remove_QueryContinuation2()
         {
             string src1 = @"
@@ -7357,7 +7380,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "join", CSharpFeaturesResources.SelectClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void Queries_Select_Reduced1()
         {
             string src1 = @"
@@ -7388,7 +7411,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "select", CSharpFeaturesResources.SelectClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void Queries_Select_Reduced2()
         {
             string src1 = @"
@@ -7419,7 +7442,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "F(from a in array where a > 0 select a);"));
         }
 
-        [WpfFact]
+        [Fact]
         public void Queries_GroupBy_Reduced1()
         {
             string src1 = @"
@@ -7448,7 +7471,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "group", CSharpFeaturesResources.GroupByClause));
         }
 
-        [WpfFact]
+        [Fact]
         public void Queries_GroupBy_Reduced2()
         {
             string src1 = @"
@@ -7483,7 +7506,7 @@ class C
 
         #region State Machines
 
-        [WpfFact]
+        [Fact]
         public void MethodToIteratorMethod_WithActiveStatement()
         {
             string src1 = @"
@@ -7513,7 +7536,7 @@ class C
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "yield return 1;", CSharpFeaturesResources.YieldStatement));
         }
 
-        [WpfFact]
+        [Fact]
         public void MethodToIteratorMethod_WithActiveStatementInLambda()
         {
             string src1 = @"
@@ -7543,7 +7566,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void MethodToIteratorMethod_WithoutActiveStatement()
         {
             string src1 = @"
@@ -7572,7 +7595,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void MethodToAsyncMethod_WithActiveStatement1()
         {
             string src1 = @"
@@ -7603,7 +7626,7 @@ class C
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "await", CSharpFeaturesResources.AwaitExpression));
         }
 
-        [WpfFact]
+        [Fact]
         public void MethodToAsyncMethod_WithActiveStatement2()
         {
             string src1 = @"
@@ -7631,7 +7654,7 @@ class C
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "static async void F()"));
         }
 
-        [WpfFact]
+        [Fact]
         public void MethodToAsyncMethod_WithActiveStatement3()
         {
             string src1 = @"
@@ -7659,7 +7682,7 @@ class C
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "static async void F()"));
         }
 
-        [WpfFact]
+        [Fact]
         public void MethodToAsyncMethod_WithActiveStatementInLambda1()
         {
             string src1 = @"
@@ -7689,7 +7712,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void MethodToAsyncMethod_WithActiveStatementInLambda_2()
         {
             string src1 = @"
@@ -7719,7 +7742,7 @@ class C
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "static async void F()"));
         }
 
-        [WpfFact]
+        [Fact]
         public void MethodToAsyncMethod_WithActiveStatementInLambda_3()
         {
             string src1 = @"
@@ -7747,7 +7770,7 @@ class C
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "()"));
         }
 
-        [WpfFact]
+        [Fact]
         public void MethodToAsyncMethod_WithLambda()
         {
             string src1 = @"
@@ -7777,7 +7800,7 @@ class C
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "static async void F()"));
         }
 
-        [WpfFact]
+        [Fact]
         public void MethodToAsyncMethod_WithoutActiveStatement_1()
         {
             string src1 = @"
@@ -7806,7 +7829,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WpfFact]
+        [Fact]
         public void MethodToAsyncMethod_WithoutActiveStatement_2()
         {
             string src1 = @"
@@ -7837,7 +7860,7 @@ class C
 
         #region Misplaced AS 
 
-        [WpfFact]
+        [Fact]
         public void MisplacedActiveStatement1()
         {
             string src1 = @"
@@ -7868,7 +7891,7 @@ class C
 
         #region Unmodified Documents
 
-        [WpfFact]
+        [Fact]
         public void UnmodifiedDocument1()
         {
             string src1 = @"
@@ -7914,7 +7937,7 @@ class C
             Extensions.VerifyUnchangedDocument(src2, active);
         }
 
-        [WpfFact]
+        [Fact]
         public void UnmodifiedDocument_BadSpans1()
         {
             string src1 = @"
@@ -7959,7 +7982,7 @@ class C
 
         #region Misc
 
-        [WpfFact]
+        [Fact]
         public void Delete_All_SourceText()
         {
             string src1 = @"
@@ -7982,7 +8005,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, null, FeaturesResources.Class));
         }
 
-        [WpfFact]
+        [Fact]
         public void PartiallyExecutedActiveStatement()
         {
             string src1 = @"
@@ -8021,7 +8044,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(40);"));
         }
 
-        [WpfFact]
+        [Fact]
         public void PartiallyExecutedActiveStatement_Deleted()
         {
             string src1 = @"

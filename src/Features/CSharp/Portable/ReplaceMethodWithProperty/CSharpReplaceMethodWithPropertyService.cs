@@ -75,8 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             var setAccessor = CreateSetAccessor(semanticModel, generator, getAndSetMethods);
 
             var property = SyntaxFactory.PropertyDeclaration(
-                getMethodDeclaration.AttributeLists, getMethodDeclaration.Modifiers, 
-                getMethodDeclaration.ReturnType, getMethodDeclaration.ExplicitInterfaceSpecifier, 
+                getMethodDeclaration.AttributeLists, getMethodDeclaration.Modifiers,
+                getMethodDeclaration.ReturnType, getMethodDeclaration.ExplicitInterfaceSpecifier,
                 GetPropertyName(getMethodDeclaration.Identifier, propertyName, nameChanged), accessorList: null);
 
             IEnumerable<SyntaxTrivia> trivia = getMethodDeclaration.GetLeadingTrivia();
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             private readonly SemanticModel _semanticModel;
             private readonly IParameterSymbol _parameter;
 
-            public Rewriter(SemanticModel semanticModel, IParameterSymbol parameter) 
+            public Rewriter(SemanticModel semanticModel, IParameterSymbol parameter)
             {
                 _semanticModel = semanticModel;
                 _parameter = parameter;
@@ -207,10 +207,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             }
         }
 
-        private static Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> replaceGetReferenceInvocation =
+        private static Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> s_replaceGetReferenceInvocation =
             (editor, invocation, nameNode, newName) => editor.ReplaceNode(invocation, invocation.Expression.ReplaceNode(nameNode, newName));
 
-        private static Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> replaceSetReferenceInvocation =
+        private static Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> s_replaceSetReferenceInvocation =
             (editor, invocation, nameNode, newName) =>
             {
                 if (invocation.ArgumentList?.Arguments.Count != 1)
@@ -244,12 +244,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
 
         public void ReplaceGetReference(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged)
         {
-            ReplaceInvocation(editor, nameToken, propertyName, nameChanged, replaceGetReferenceInvocation);
+            ReplaceInvocation(editor, nameToken, propertyName, nameChanged, s_replaceGetReferenceInvocation);
         }
 
         public void ReplaceSetReference(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged)
         {
-            ReplaceInvocation(editor, nameToken, propertyName, nameChanged, replaceSetReferenceInvocation);
+            ReplaceInvocation(editor, nameToken, propertyName, nameChanged, s_replaceSetReferenceInvocation);
         }
 
         public void ReplaceInvocation(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged,
@@ -282,7 +282,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
 
             // It was invoked.  Remove the invocation, and also change the name if necessary.
             replace(editor, invocation, nameNode, newName);
-
         }
 
         private static bool IsInvocationName(IdentifierNameSyntax nameNode, ExpressionSyntax invocationExpression)

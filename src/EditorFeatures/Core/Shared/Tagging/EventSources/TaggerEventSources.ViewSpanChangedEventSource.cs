@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -11,15 +13,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     {
         private class ViewSpanChangedEventSource : ITaggerEventSource
         {
-            private readonly ForegroundThreadAffinitizedObject foregroundObject = new ForegroundThreadAffinitizedObject();
+            private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
 
-            private readonly ITextView textView;
-            private readonly TaggerDelay textChangeDelay;
-            private readonly TaggerDelay scrollChangeDelay;
+            private readonly ITextView _textView;
+            private readonly TaggerDelay _textChangeDelay;
+            private readonly TaggerDelay _scrollChangeDelay;
 
-            private Span? span;
-            private ITextSnapshot viewTextSnapshot;
-            private ITextSnapshot viewVisualSnapshot;
+            private Span? _span;
+            private ITextSnapshot _viewTextSnapshot;
+            private ITextSnapshot _viewVisualSnapshot;
 
             public event EventHandler<TaggerEventArgs> Changed;
             public event EventHandler UIUpdatesPaused { add { } remove { } }
@@ -28,26 +30,26 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             public ViewSpanChangedEventSource(ITextView textView, TaggerDelay textChangeDelay, TaggerDelay scrollChangeDelay)
             {
                 Debug.Assert(textView != null);
-                this.textView = textView;
-                this.textChangeDelay = textChangeDelay;
-                this.scrollChangeDelay = scrollChangeDelay;
+                _textView = textView;
+                _textChangeDelay = textChangeDelay;
+                _scrollChangeDelay = scrollChangeDelay;
             }
 
             public void Connect()
             {
-                foregroundObject.AssertIsForeground();
-                textView.LayoutChanged += OnLayoutChanged;
+                _foregroundObject.AssertIsForeground();
+                _textView.LayoutChanged += OnLayoutChanged;
             }
 
             public void Disconnect()
             {
-                foregroundObject.AssertIsForeground();
-                textView.LayoutChanged -= OnLayoutChanged;
+                _foregroundObject.AssertIsForeground();
+                _textView.LayoutChanged -= OnLayoutChanged;
             }
 
             private void OnLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
             {
-                foregroundObject.AssertIsForeground();
+                _foregroundObject.AssertIsForeground();
                 // The formatted span refers to the span of the textview's buffer that is visible.
                 // If it changes, then we want to reclassify.  Note: the span might not change if
                 // text were overwritten.  However, in the case of text-edits, we'll hear about 
@@ -57,29 +59,29 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 // jumped directly to a location using goto-def.  It also handles view changes
                 // caused by the user collapsing an outlining region.
 
-                var lastSpan = this.span;
-                var lastViewTextSnapshot = this.viewTextSnapshot;
-                var lastViewVisualSnapshot = this.viewVisualSnapshot;
+                var lastSpan = _span;
+                var lastViewTextSnapshot = _viewTextSnapshot;
+                var lastViewVisualSnapshot = _viewVisualSnapshot;
 
-                this.span = textView.TextViewLines.FormattedSpan.Span;
-                this.viewTextSnapshot = textView.TextSnapshot;
-                this.viewVisualSnapshot = textView.VisualSnapshot;
+                _span = _textView.TextViewLines.FormattedSpan.Span;
+                _viewTextSnapshot = _textView.TextSnapshot;
+                _viewVisualSnapshot = _textView.VisualSnapshot;
 
-                if (this.span != lastSpan)
+                if (_span != lastSpan)
                 {
                     // The span changed.  This could have happened for a few different reasons.  
                     // If none of the view's text snapshots changed, then it was because of scrolling.
 
-                    if (this.viewTextSnapshot == lastViewTextSnapshot &&
-                        this.viewVisualSnapshot == lastViewVisualSnapshot)
+                    if (_viewTextSnapshot == lastViewTextSnapshot &&
+                        _viewVisualSnapshot == lastViewVisualSnapshot)
                     {
                         // We scrolled.
-                        RaiseChanged(scrollChangeDelay);
+                        RaiseChanged(_scrollChangeDelay);
                     }
                     else
                     {
                         // text changed in some way.
-                        RaiseChanged(textChangeDelay);
+                        RaiseChanged(_textChangeDelay);
                     }
                 }
             }

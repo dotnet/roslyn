@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -12,12 +13,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public partial class FormattingTests : TestBase
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void TestCSharpFormatting()
+        public async Task TestCSharpFormatting()
         {
             var text = @"public class C{public int X;}";
             var expectedFormattedText = @"public class C { public int X; }";
 
-            AssertFormatCSharp(expectedFormattedText, text);
+            await AssertFormatCSharpAsync(expectedFormattedText, text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void TestVisualBasicFormatting()
+        public async Task TestVisualBasicFormatting()
         {
             var text = @"
 Public Class C
@@ -43,7 +44,7 @@ Public Class C
 End Class
 ";
 
-            AssertFormatVB(expectedFormattedText, text);
+            await AssertFormatVBAsync(expectedFormattedText, text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -55,23 +56,23 @@ End Class
             Assert.NotEmpty(rules);
         }
 
-        private void AssertFormatCSharp(string expected, string input)
+        private Task AssertFormatCSharpAsync(string expected, string input)
         {
             var tree = CS.SyntaxFactory.ParseSyntaxTree(input);
-            AssertFormat(expected, tree);
+            return AssertFormatAsync(expected, tree);
         }
 
-        private void AssertFormatVB(string expected, string input)
+        private Task AssertFormatVBAsync(string expected, string input)
         {
             var tree = VB.SyntaxFactory.ParseSyntaxTree(input);
-            AssertFormat(expected, tree);
+            return AssertFormatAsync(expected, tree);
         }
 
-        private void AssertFormat(string expected, SyntaxTree tree)
+        private async Task AssertFormatAsync(string expected, SyntaxTree tree)
         {
             using (var workspace = new TestWorkspace())
             {
-                var formattedRoot = Formatter.Format(tree.GetRoot(), workspace);
+                var formattedRoot = await Formatter.FormatAsync(tree.GetRoot(), workspace);
                 var actualFormattedText = formattedRoot.ToFullString();
 
                 Assert.Equal(expected, actualFormattedText);

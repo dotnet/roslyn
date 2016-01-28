@@ -13,30 +13,54 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo : IObjectWritable
     {
         private const string PrefixMetadataSymbolTreeInfo = "<MetadataSymbolTreeInfoPersistence>_";
-        private const string SerializationFormat = "1";
+        private const string SerializationFormat = "9";
 
-        /// <summary>
-        /// this is for a metadata reference in a solution
-        /// </summary>
-        private static async Task<SymbolTreeInfo> LoadOrCreateAsync(Solution solution, IAssemblySymbol assembly, string filePath, CancellationToken cancellationToken)
+        private static bool ShouldCreateFromScratch(
+            Solution solution,
+            IAssemblySymbol assembly,
+            string filePath,
+            out string prefix,
+            out VersionStamp version,
+            CancellationToken cancellationToken)
         {
+            prefix = null;
+            version = default(VersionStamp);
+
             var service = solution.Workspace.Services.GetService<IAssemblySerializationInfoService>();
             if (service == null)
             {
-                return Create(VersionStamp.Default, assembly, cancellationToken);
+                return true;
             }
 
             // check whether the assembly that belong to a solution is something we can serialize
             if (!service.Serializable(solution, filePath))
             {
-                return Create(VersionStamp.Default, assembly, cancellationToken);
+                return true;
             }
 
-            string prefix;
-            VersionStamp version;
             if (!service.TryGetSerializationPrefixAndVersion(solution, filePath, out prefix, out version))
             {
-                return Create(VersionStamp.Default, assembly, cancellationToken);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// this is for a metadata reference in a solution
+        /// </summary>
+        private static async Task<SymbolTreeInfo> LoadOrCreateAsync(
+            Solution solution,
+            IAssemblySymbol assembly,
+            string filePath,
+            bool loadOnly,
+            CancellationToken cancellationToken)
+        {
+            string prefix;
+            VersionStamp version;
+            if (ShouldCreateFromScratch(solution, assembly, filePath, out prefix, out version, cancellationToken))
+            {
+                return loadOnly ? null : Create(VersionStamp.Default, assembly, cancellationToken);
             }
 
             var persistentStorageService = solution.Workspace.Services.GetService<IPersistentStorageService>();
@@ -63,6 +87,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
+
+                if (loadOnly)
+                {
+                    return null;
+                }
 
                 // compute it if we couldn't load it from cache
                 info = Create(version, assembly, cancellationToken);
@@ -93,6 +122,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 writer.WriteString(node.Name);
                 writer.WriteInt32(node.ParentIndex);
             }
+
+            _spellChecker.WriteTo(writer);
         }
 
         internal static SymbolTreeInfo ReadFrom(ObjectReader reader)
@@ -110,7 +141,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var count = reader.ReadInt32();
                 if (count == 0)
                 {
-                    return new SymbolTreeInfo(version, ImmutableArray<Node>.Empty);
+                    return new SymbolTreeInfo(version, ImmutableArray<Node>.Empty, SpellChecker.Empty);
                 }
 
                 var nodes = new Node[count];
@@ -122,7 +153,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     nodes[i] = new Node(name, parentIndex);
                 }
 
-                return new SymbolTreeInfo(version, nodes);
+                return new SymbolTreeInfo(version, nodes, SpellChecker.ReadFrom(reader));
             }
             catch (Exception)
             {

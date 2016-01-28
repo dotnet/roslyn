@@ -1,20 +1,51 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 {
-    internal abstract class AbstractSyntaxNodeOutliner
+    internal abstract class AbstractSyntaxNodeOutliner<TSyntaxNode> : AbstractSyntaxOutliner
+        where TSyntaxNode : SyntaxNode
     {
-        public abstract void CollectOutliningSpans(Document document, SyntaxNode node, List<OutliningSpan> spans, CancellationToken cancellationToken);
-
-        // For testing purposes.
-        internal IEnumerable<OutliningSpan> GetOutliningSpans(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        public override void CollectOutliningSpans(
+            Document document,
+            SyntaxNode node,
+            List<OutliningSpan> spans,
+            CancellationToken cancellationToken)
         {
-            var spans = new List<OutliningSpan>();
-            this.CollectOutliningSpans(document, node, spans, cancellationToken);
-            return spans;
+            if (!SupportedInWorkspaceKind(document.Project.Solution.Workspace.Kind))
+            {
+                return;
+            }
+
+            CollectOutliningSpans(node, spans, cancellationToken);
         }
+
+        public sealed override void CollectOutliningSpans(
+            Document document,
+            SyntaxTrivia trivia,
+            List<OutliningSpan> spans,
+            CancellationToken cancellationToken)
+        {
+            throw new NotSupportedException();
+        }
+
+        private void CollectOutliningSpans(SyntaxNode node, List<OutliningSpan> spans, CancellationToken cancellationToken)
+        {
+            if (node is TSyntaxNode)
+            {
+                CollectOutliningSpans((TSyntaxNode)node, spans, cancellationToken);
+            }
+        }
+
+        protected virtual bool SupportedInWorkspaceKind(string kind)
+        {
+            // We have other outliners specific to Metadata-as-Source.
+            return kind != WorkspaceKind.MetadataAsSource;
+        }
+
+        protected abstract void CollectOutliningSpans(TSyntaxNode node, List<OutliningSpan> spans, CancellationToken cancellationToken);
     }
 }

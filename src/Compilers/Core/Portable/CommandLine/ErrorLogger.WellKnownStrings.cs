@@ -11,9 +11,10 @@ namespace Microsoft.CodeAnalysis
         {
             public const string OutputFormatVersion = "version";
             public const string ToolFileVersion = "fileVersion";
-            public const string ToolAssemblyVersion = "productVersion";
+            public const string ToolAssemblyVersion = "version";
             public const string ToolInfo = "toolInfo";
-            public const string ToolName = "toolName";
+            public const string ToolName = "name";
+            public const string RunLogs = "runLogs";
             public const string Issues = "issues";
             public const string DiagnosticId = "ruleId";
             public const string Locations = "locations";
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis
             public const string IsSuppressedInSource = "isSuppressedInSource";
             public const string Properties = "properties";
             public const string Location = "analysisTarget";
-            public const string LocationSyntaxTreePath = "uri";
+            public const string LocationSyntaxTreeUri = "uri";
             public const string LocationSpanInfo = "region";
             public const string LocationSpanStartLine = "startLine";
             public const string LocationSpanStartColumn = "startColumn";
