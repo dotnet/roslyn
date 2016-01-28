@@ -94,17 +94,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 var projectId = Extensions.GetProjectId(Primary);
                 if (projectId == null)
                 {
-                    return null;
+                    return ServicesVSResources.Unknown;
                 }
 
                 if (_cache == null)
                 {
                     // return single project name
-                    return Workspace.GetProjectName(projectId);
+                    return Workspace.GetProjectName(projectId) ?? ServicesVSResources.Unknown;
                 }
 
                 // return joined project names
-                return _cache.GetProjectName(Workspace);
+                return _cache.GetProjectName(Workspace) ?? ServicesVSResources.Unknown;
             }
         }
 
