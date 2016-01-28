@@ -116,10 +116,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                                 // If the resultant intersecting type contains any Type arguments that could be replaced 
                                 // using the type constraints then recursively update the type until all constraints are appropriately handled
                                 var typeConstraintConvertedType = resultantIntersectingType.Accept(this);
-                                var knownsimilarTypesInCompilation = SymbolFinder.FindSimilarSymbols(typeConstraintConvertedType, _compilation, _cancellationToken);
-                                if (knownsimilarTypesInCompilation.Any())
+                                var knownSimilarTypesInCompilation = SymbolFinder.FindSimilarSymbols(typeConstraintConvertedType, _compilation, _cancellationToken);
+                                if (knownSimilarTypesInCompilation.Any())
                                 {
-                                    return knownsimilarTypesInCompilation.First();
+                                    return knownSimilarTypesInCompilation.First();
                                 }
 
                                 var resultantSimilarKnownTypes = SymbolFinder.FindSimilarSymbols(resultantIntersectingType, _compilation, _cancellationToken);
