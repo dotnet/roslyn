@@ -28,6 +28,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             protected abstract Solution UpdateSolution(Document newDocument);
 
+            public override int CompareTo(Reference other)
+            {
+                var diff = base.CompareTo(other);
+                if (diff != 0)
+                {
+                    return diff;
+                }
+
+                var name1 = this.SymbolResult.DesiredName;
+                var name2 = (other as SymbolReference)?.SymbolResult.DesiredName;
+                return StringComparer.Ordinal.Compare(name1, name2);
+            }
+
             private async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {

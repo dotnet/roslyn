@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 this.SearchResult = searchResult;
             }
 
-            public int CompareTo(Reference other)
+            public virtual int CompareTo(Reference other)
             {
                 // If references have different weights, order by the ones with lower weight (i.e.
                 // they are better matches).
