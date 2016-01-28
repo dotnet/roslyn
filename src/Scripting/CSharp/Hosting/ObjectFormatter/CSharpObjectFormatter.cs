@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
-    public class CSharpObjectFormatter : ObjectFormatter
+    public sealed class CSharpObjectFormatter : ObjectFormatter
     {
         public static CSharpObjectFormatter Instance { get; } = new CSharpObjectFormatter();
 

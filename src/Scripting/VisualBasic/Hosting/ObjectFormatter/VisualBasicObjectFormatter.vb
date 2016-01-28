@@ -1,11 +1,10 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
-    Public Class VisualBasicObjectFormatter
+    Public NotInheritable Class VisualBasicObjectFormatter
         Inherits ObjectFormatter
 
         Public Shared ReadOnly Property Instance As New VisualBasicObjectFormatter()
