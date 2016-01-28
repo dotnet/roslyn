@@ -482,15 +482,8 @@ End Module
 } // end of class C
 "
 
-            Dim ilBytes As ImmutableArray(Of Byte) = Nothing
-            Dim ilPdbBytes As ImmutableArray(Of Byte) = Nothing
-            EmitILToArray(ilSource, appendDefaultHeader:=True, includePdb:=True, assemblyBytes:=ilBytes, pdbBytes:=ilPdbBytes)
-
-            Dim runtime = CreateRuntimeInstance(
-                references:={MscorlibRef},
-                exeBytes:=ilBytes,
-                symReader:=SymReaderFactory.CreateReader(ilPdbBytes))
-
+            Dim ilModule = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource)
+            Dim runtime = CreateRuntimeInstance(ilModule, {MscorlibRef})
             Dim context = CreateMethodContext(runtime, "C._Lambda$__1")
             VerifyNoMe(context)
         End Sub

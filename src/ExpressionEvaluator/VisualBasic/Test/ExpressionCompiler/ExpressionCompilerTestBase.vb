@@ -63,13 +63,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         End Function
 
         Friend Function CreateRuntimeInstance(
-            references As IEnumerable(Of MetadataReference),
-            exeBytes As ImmutableArray(Of Byte),
-            symReader As ISymUnmanagedReader,
-            Optional assemblyName As String = Nothing,
+            [module] As ModuleInstance,
+            Optional references As IEnumerable(Of MetadataReference) = Nothing,
             Optional includeLocalSignatures As Boolean = True) As RuntimeInstance
 
-            Dim instance = RuntimeInstance.Create(references, exeBytes, symReader, assemblyName, includeLocalSignatures)
+            Dim instance = RuntimeInstance.Create([module], references, includeLocalSignatures)
             _runtimeInstances.Add(instance)
             Return instance
         End Function

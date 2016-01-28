@@ -344,14 +344,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
             ImmutableArray<byte> exeBytes;
             ImmutableArray<byte> pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            compilationB.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
+            compilationB.EmitAndGetReferences(out exeBytes, out pdbBytes);
             const int methodVersion = 1;
+
+            var referencesB = new[] { MscorlibRef, referenceA };
+            var moduleB1 = ModuleInstance.Create(exeBytes, SymReaderFactory.CreateReader(pdbBytes));
+            var moduleB2 = ModuleInstance.Create(exeBytes, SymReaderFactory.CreateReader(pdbBytes));
 
             CSharpMetadataContext previous = default(CSharpMetadataContext);
             int startOffset;
             int endOffset;
-            var runtime = CreateRuntimeInstance(references, exeBytes, SymReaderFactory.CreateReader(pdbBytes));
+            var runtime = CreateRuntimeInstance(moduleB1, referencesB);
             ImmutableArray<MetadataBlock> typeBlocks;
             ImmutableArray<MetadataBlock> methodBlocks;
             Guid moduleVersionId;
@@ -417,9 +420,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             }
 
             // With different references.
-            var fewerReferences = references.Remove(referenceA);
-            Assert.Equal(fewerReferences.Length, references.Length - 1);
-            runtime = CreateRuntimeInstance(fewerReferences, exeBytes, SymReaderFactory.CreateReader(pdbBytes));
+            var fewerReferences = new[] { MscorlibRef };
+            runtime = CreateRuntimeInstance(moduleB2, fewerReferences);
             GetContextState(runtime, "C.F", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
 
             // Different references. No reuse.
@@ -1079,15 +1081,8 @@ class B : A
     ret
   }
 }";
-            ImmutableArray<byte> exeBytes;
-            ImmutableArray<byte> pdbBytes;
-            EmitILToArray(source, appendDefaultHeader: true, includePdb: true, assemblyBytes: out exeBytes, pdbBytes: out pdbBytes);
-
-            var runtime = CreateRuntimeInstance(
-                references: new[] { MscorlibRef },
-                peImage: exeBytes,
-                symReader: SymReaderFactory.CreateReader(pdbBytes));
-
+            var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(source);
+            var runtime = CreateRuntimeInstance(new[] { module, MscorlibRef.ToModuleInstance() });
             var context = CreateMethodContext(runtime, methodName: "C.M");
 
             string error;
@@ -1129,18 +1124,10 @@ class B : A
     ret
   }
 }";
-            ImmutableArray<byte> exeBytes;
-            ImmutableArray<byte> pdbBytes;
-            EmitILToArray(source, appendDefaultHeader: true, includePdb: true, assemblyBytes: out exeBytes, pdbBytes: out pdbBytes);
+            var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(source);
+            var runtime = CreateRuntimeInstance(new[] { module, MscorlibRef.ToModuleInstance() });            
+            var context = CreateMethodContext(runtime, "C.M");
 
-            var runtime = CreateRuntimeInstance(
-                references: new[] { MscorlibRef },
-                peImage: exeBytes,
-                symReader: SymReaderFactory.CreateReader(pdbBytes));
-
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
             string error;
             var testData = new CompilationTestData();
             context.CompileExpression("c.F", out error, testData);
@@ -1179,15 +1166,8 @@ class B : A
   }
 }
 ";
-            ImmutableArray<byte> exeBytes;
-            ImmutableArray<byte> pdbBytes;
-            EmitILToArray(source, appendDefaultHeader: true, includePdb: true, assemblyBytes: out exeBytes, pdbBytes: out pdbBytes);
-
-            var runtime = CreateRuntimeInstance(
-                references: new[] { MscorlibRef },
-                peImage: exeBytes,
-                symReader: SymReaderFactory.CreateReader(pdbBytes));
-
+            var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(source);
+            var runtime = CreateRuntimeInstance(new[] { module, MscorlibRef.ToModuleInstance() });
             var context = CreateMethodContext(runtime, "C.M");
 
             string error;
@@ -4513,15 +4493,8 @@ class C
     ret
   }
 }";
-            ImmutableArray<byte> exeBytes;
-            ImmutableArray<byte> pdbBytes;
-            EmitILToArray(source, appendDefaultHeader: true, includePdb: true, assemblyBytes: out exeBytes, pdbBytes: out pdbBytes);
-
-            var runtime = CreateRuntimeInstance(
-                references: new[] { MscorlibRef },
-                peImage: exeBytes,
-                symReader: SymReaderFactory.CreateReader(pdbBytes));
-
+            var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(source);
+            var runtime = CreateRuntimeInstance(new[] { module, MscorlibRef.ToModuleInstance() });
             var context = CreateMethodContext(runtime, methodName: "C.M");
 
             string error;
@@ -4689,15 +4662,8 @@ struct S
     ret
   }
 }";
-            ImmutableArray<byte> exeBytes;
-            ImmutableArray<byte> pdbBytes;
-            EmitILToArray(source, appendDefaultHeader: true, includePdb: true, assemblyBytes: out exeBytes, pdbBytes: out pdbBytes);
-
-            var runtime = CreateRuntimeInstance(
-                references: new[] { MscorlibRef },
-                peImage: exeBytes,
-                symReader: SymReaderFactory.CreateReader(pdbBytes));
-
+            var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(source);
+            var runtime = CreateRuntimeInstance(new[] { module, MscorlibRef.ToModuleInstance() });
             var context = CreateMethodContext(runtime, methodName: "C.<>c__DisplayClass2.<Test>b__1");
 
             string error;
@@ -5140,16 +5106,8 @@ class C
   }
 } // end of class C
 ";
-
-            ImmutableArray<byte> ilBytes;
-            ImmutableArray<byte> ilPdbBytes;
-            EmitILToArray(ilSource, appendDefaultHeader: true, includePdb: true, assemblyBytes: out ilBytes, pdbBytes: out ilPdbBytes);
-
-            var runtime = CreateRuntimeInstance(
-                references: WinRtRefs,
-                peImage: ilBytes,
-                symReader: SymReaderFactory.CreateReader(ilPdbBytes));
-
+            var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource);
+            var runtime = CreateRuntimeInstance(module, WinRtRefs);
             var context = CreateMethodContext(runtime, "C.M");
 
             var actionType = context.Compilation.GetWellKnownType(WellKnownType.System_Action);
@@ -5479,14 +5437,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             var modulesBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
-            var corruptMetadata = new ModuleInstance(
-                metadataReference: null,
-                moduleMetadata: null,
-                moduleVersionId: default(Guid),
-                fullImage: default(ImmutableArray<byte>),
-                metadataOnly: CommonResources.NoValidTables,
-                symReader: null,
-                includeLocalSignatures: false);
+            var corruptMetadata = ModuleInstance.Create(CommonResources.NoValidTables);
 
             var runtime = RuntimeInstance.Create(new[] { corruptMetadata , comp.ToModuleInstance(), MscorlibRef.ToModuleInstance() });
             var context = CreateMethodContext(runtime, "C.M");
@@ -5732,8 +5683,9 @@ public class C
             var comp = CreateCompilationWithMscorlib(source);
             var peImage = comp.EmitToArray();
             var symReader = new MockSymUnmanagedReader(ImmutableDictionary<int, MethodDebugInfoBytes>.Empty);
+            var module = ModuleInstance.Create(peImage, symReader);
 
-            var runtime = CreateRuntimeInstance(new[] { MscorlibRef }, peImage, symReader);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "C.Main");
             string error;
             var testData = new CompilationTestData();
@@ -5763,7 +5715,8 @@ public class C
 ";
             var comp = CreateCompilationWithMscorlib(source);
             var peImage = comp.EmitToArray();
-            var runtime = CreateRuntimeInstance(new[] { MscorlibRef }, peImage, NotImplementedSymUnmanagedReader.Instance);
+            var module = ModuleInstance.Create(peImage, NotImplementedSymUnmanagedReader.Instance);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "C.Main");
 
             string error;
@@ -5907,10 +5860,8 @@ public class C
                 var symReader = SymReaderFactory.CreateReader(pdbStream1);
                 symReader.UpdateSymbolStore(pdbStream2);
 
-                var runtime = CreateRuntimeInstance(
-                    new[] { MscorlibRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference },
-                    peStream2.ToImmutable(),
-                    symReader);
+                var module = ModuleInstance.Create(peStream2.ToImmutable(), symReader);
+                var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference });
 
                 ImmutableArray<MetadataBlock> blocks;
                 Guid moduleVersionId;

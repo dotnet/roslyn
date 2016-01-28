@@ -202,7 +202,8 @@ End Class
                 "@FA:O=1", ' Invalid
                 "@FA:SC=System.Collections") ' Valid
 
-            Dim runtime = CreateRuntimeInstance({MscorlibRef}, exeBytes, symReader)
+            Dim exeModule = ModuleInstance.Create(exeBytes, symReader)
+            Dim runtime = CreateRuntimeInstance(exeModule, {MscorlibRef})
             Dim evalContext = CreateMethodContext(runtime, "C.Main")
             Dim compContext = evalContext.CreateCompilationContext(SyntaxHelpers.ParseDebuggerExpression("Nothing", consumeFullText:=True)) ' Used to throw.
 
@@ -237,7 +238,8 @@ End Class
                 "@FA:S.I=System.IO", ' Invalid
                 "@FA:SC=System.Collections") ' Valid
 
-            Dim runtime = CreateRuntimeInstance({MscorlibRef}, exeBytes, symReader)
+            Dim exeModule = ModuleInstance.Create(exeBytes, symReader)
+            Dim runtime = CreateRuntimeInstance(exeModule, {MscorlibRef})
             Dim evalContext = CreateMethodContext(runtime, "C.Main")
             Dim compContext = evalContext.CreateCompilationContext(SyntaxHelpers.ParseDebuggerExpression("Nothing", consumeFullText:=True)) ' Used to throw.
 

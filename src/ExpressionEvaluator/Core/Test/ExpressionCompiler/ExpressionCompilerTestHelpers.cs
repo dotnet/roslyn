@@ -400,13 +400,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         internal static void EmitAndGetReferences(
             this Compilation compilation,
             out ImmutableArray<byte> exeBytes,
-            out ImmutableArray<byte> pdbBytes,
-            out ImmutableArray<MetadataReference> references)
+            out ImmutableArray<byte> pdbBytes)
         {
             var pdbStream = new MemoryStream();
             exeBytes = compilation.EmitToArray(EmitOptions.Default, pdbStream: pdbStream);
             pdbBytes = pdbStream.ToImmutable();
-            references = GetEmittedReferences(compilation, exeBytes);
         }
 
         internal static ImmutableArray<MetadataReference> GetEmittedReferences(this Compilation compilation, ImmutableArray<byte> peImage)
@@ -500,22 +498,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         internal static ModuleInstance ToModuleInstance(
             this MetadataReference reference,
-            ImmutableArray<byte> fullImage = default(ImmutableArray<byte>),
-            object symReader = null,
             bool includeLocalSignatures = true)
         {
-            var moduleMetadata = reference.GetModuleMetadata();
-            var moduleId = moduleMetadata.Module.GetModuleVersionIdOrThrow();
-            // The Expression Compiler expects metadata only, no headers or IL.
-            var metadataBytes = moduleMetadata.Module.PEReaderOpt.GetMetadata().GetContent().ToArray();
-            return new ModuleInstance(
-                reference,
-                moduleMetadata,
-                moduleId,
-                fullImage,
-                metadataBytes,
-                symReader,
-                includeLocalSignatures && (fullImage != null));
+            return ModuleInstance.Create(reference, default(ImmutableArray<byte>), null, includeLocalSignatures);
         }
 
         internal static ModuleInstance ToModuleInstance(
@@ -528,16 +513,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             var symReader = (debugFormat != 0) ? SymReaderFactory.CreateReader(pdbStream, new PEReader(peImage)) : null;
 
             var exeReference = AssemblyMetadata.CreateFromImage(peImage).GetReference(display: compilation.AssemblyName);
-            return exeReference.ToModuleInstance(peImage, symReader, includeLocalSignatures);
+            return ModuleInstance.Create(exeReference, peImage, symReader, includeLocalSignatures);
         }
 
         internal static ModuleInstance GetModuleInstanceForIL(string ilSource)
         {
             ImmutableArray<byte> peBytes;
             ImmutableArray<byte> pdbBytes;
-            CommonTestBase.EmitILToArray(ilSource, appendDefaultHeader: false, includePdb: true, assemblyBytes: out peBytes, pdbBytes: out pdbBytes);
+            CommonTestBase.EmitILToArray(ilSource, appendDefaultHeader: true, includePdb: true, assemblyBytes: out peBytes, pdbBytes: out pdbBytes);
             var reference = AssemblyMetadata.CreateFromImage(peBytes).GetReference();
-            return reference.ToModuleInstance(peBytes, SymReaderFactory.CreateReader(pdbBytes));
+            return ModuleInstance.Create(reference, peBytes, SymReaderFactory.CreateReader(pdbBytes), includeLocalSignatures: true);
         }
 
         internal static AssemblyIdentity GetAssemblyIdentity(this MetadataReference reference)

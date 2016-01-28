@@ -3,16 +3,28 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
+using Microsoft.DiaSymReader;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
     internal sealed class ModuleInstance : IDisposable
     {
-        internal ModuleInstance(
+        internal readonly MetadataReference MetadataReference;
+        internal readonly ModuleMetadata ModuleMetadata;
+        internal readonly Guid ModuleVersionId;
+        internal readonly ImmutableArray<byte> FullImage;
+        internal readonly byte[] MetadataOnly;
+        internal readonly GCHandle MetadataHandle;
+        internal readonly object SymReader;
+        private readonly bool _includeLocalSignatures;
+        private bool _disposed;
+
+        private ModuleInstance(
             MetadataReference metadataReference,
             ModuleMetadata moduleMetadata,
             Guid moduleVersionId,
@@ -33,14 +45,43 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             _includeLocalSignatures = includeLocalSignatures;
         }
 
-        internal readonly MetadataReference MetadataReference;
-        internal readonly ModuleMetadata ModuleMetadata;
-        internal readonly Guid ModuleVersionId;
-        internal readonly ImmutableArray<byte> FullImage;
-        internal readonly byte[] MetadataOnly;
-        internal readonly GCHandle MetadataHandle;
-        internal readonly object SymReader;
-        private readonly bool _includeLocalSignatures;
+        public static ModuleInstance Create(byte[] metadataOnly)
+        {
+            return new ModuleInstance(
+                metadataReference: null,
+                moduleMetadata: null,
+                moduleVersionId: default(Guid),
+                fullImage: default(ImmutableArray<byte>),
+                metadataOnly: metadataOnly,
+                symReader: null,
+                includeLocalSignatures: false);
+        }
+
+        public static ModuleInstance Create(
+            MetadataReference reference,
+            ImmutableArray<byte> peImage,
+            object symReader,
+            bool includeLocalSignatures)
+        {
+            var moduleMetadata = reference.GetModuleMetadata();
+            var moduleId = moduleMetadata.Module.GetModuleVersionIdOrThrow();
+            // The Expression Compiler expects metadata only, no headers or IL.
+            var metadataBytes = moduleMetadata.Module.PEReaderOpt.GetMetadata().GetContent().ToArray();
+            return new ModuleInstance(
+                reference,
+                moduleMetadata,
+                moduleId,
+                peImage,
+                metadataBytes,
+                symReader,
+                includeLocalSignatures && (peImage != null));
+        }
+
+        public static ModuleInstance Create(ImmutableArray<byte> peImage, ISymUnmanagedReader symReader)
+        {
+            var peReference = AssemblyMetadata.CreateFromImage(peImage).GetReference();
+            return Create(peReference, peImage, symReader, includeLocalSignatures: true);
+        }
 
         internal IntPtr MetadataAddress
         {
@@ -62,7 +103,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             get { return new MetadataReader((byte*)MetadataHandle.AddrOfPinnedObject(), MetadataLength); }
         }
 
-        private bool _disposed;
         public void Dispose()
         {
             if (!_disposed)

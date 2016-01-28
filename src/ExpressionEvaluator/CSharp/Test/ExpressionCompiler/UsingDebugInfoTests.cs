@@ -340,7 +340,8 @@ public class C
                 "UACultureInfo TSystem.Globalization.CultureInfo, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", // Invalid - skipped.
                 "ASI USystem.IO"); // Valid.
 
-            var runtime = CreateRuntimeInstance(new[] { MscorlibRef }, peImage, symReader);
+            var module = ModuleInstance.Create(peImage, symReader);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)); // Used to throw.
             var imports = compContext.NamespaceBinder.ImportChain.Single();
@@ -371,7 +372,8 @@ public class C
                 "AMy.Alias TSystem.Globalization.CultureInfo, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", // Invalid - skipped.
                 "ASI USystem.IO"); // Valid.
 
-            var runtime = CreateRuntimeInstance(new[] { MscorlibRef }, peImage, symReader);
+            var module = ModuleInstance.Create(peImage, symReader);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)); // Used to throw.
             var imports = compContext.NamespaceBinder.ImportChain.Single();
@@ -408,7 +410,8 @@ public class C
                 }.ToImmutableDictionary());
             }
 
-            var runtime = CreateRuntimeInstance(new[] { MscorlibRef }, peImage, symReader);
+            var module = ModuleInstance.Create(peImage, symReader);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
             var imports = compContext.NamespaceBinder.ImportChain.Single();
@@ -448,7 +451,8 @@ namespace N
                 }.ToImmutableDictionary());
             }
 
-            var runtime = CreateRuntimeInstance(new[] { MscorlibRef }, peImage, symReader);
+            var module = ModuleInstance.Create(peImage, symReader);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "N.C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
             var imports = compContext.NamespaceBinder.ImportChain.Single();
@@ -488,7 +492,8 @@ namespace N
                 }.ToImmutableDictionary());
             }
 
-            var runtime = CreateRuntimeInstance(new[] { MscorlibRef }, peImage, symReader);
+            var module = ModuleInstance.Create(peImage, symReader);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "N.C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
             var imports = compContext.NamespaceBinder.ImportChain.Single();

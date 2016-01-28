@@ -254,17 +254,24 @@ End Interface"
 End Class"
             Dim compA = CreateCompilationWithMscorlib({sourceA}, options:=TestOptions.DebugDll)
             Dim referenceA = compA.EmitToImageReference()
+
             Dim compB = CreateCompilationWithMscorlib({sourceB}, options:=TestOptions.DebugDll, references:={referenceA})
             Dim exeBytes As ImmutableArray(Of Byte) = Nothing
             Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            compB.EmitAndGetReferences(exeBytes, pdbBytes, references)
+            compB.EmitAndGetReferences(exeBytes, pdbBytes)
+
+            Dim referencesB = {MscorlibRef, referenceA}
+            Dim moduleB1 = ModuleInstance.Create(exeBytes, SymReaderFactory.CreateReader(pdbBytes))
+            Dim moduleB2 = ModuleInstance.Create(exeBytes, SymReaderFactory.CreateReader(pdbBytes))
+
             Const methodVersion = 1
 
             Dim previous As VisualBasicMetadataContext = Nothing
             Dim startOffset = 0
             Dim endOffset = 0
-            Dim runtime = CreateRuntimeInstance(references, exeBytes, SymReaderFactory.CreateReader(pdbBytes))
+
+            Dim runtime = CreateRuntimeInstance(moduleB1, referencesB)
+
             Dim typeBlocks As ImmutableArray(Of MetadataBlock) = Nothing
             Dim methodBlocks As ImmutableArray(Of MetadataBlock) = Nothing
             Dim moduleVersionId As Guid = Nothing
@@ -324,9 +331,8 @@ End Class"
             Next
 
             ' With different references.
-            Dim fewerReferences = references.Remove(referenceA)
-            Assert.Equal(fewerReferences.Length, references.Length - 1)
-            runtime = CreateRuntimeInstance(fewerReferences, exeBytes, SymReaderFactory.CreateReader(pdbBytes), ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim fewerReferences = {MscorlibRef}
+            runtime = CreateRuntimeInstance(moduleB2, fewerReferences)
             methodBlocks = Nothing
             moduleVersionId = Nothing
             symReader = Nothing
@@ -1068,7 +1074,7 @@ End Class
         ''' </summary>
         <Fact>
         Public Sub LocalType_FromIL()
-            Const il = "
+            Const ilSource = "
 .class public C
 {
   .method public specialname rtspecialname instance void .ctor()
@@ -1083,15 +1089,8 @@ End Class
   }
 }
 "
-
-            Dim exeBytes As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
-            EmitILToArray(il, appendDefaultHeader:=True, includePdb:=True, assemblyBytes:=exeBytes, pdbBytes:=pdbBytes)
-
-            Dim runtime = CreateRuntimeInstance(
-                references:={MscorlibRef},
-                exeBytes:=exeBytes,
-                symReader:=SymReaderFactory.CreateReader(pdbBytes))
+            Dim ilModule = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource)
+            Dim runtime = CreateRuntimeInstance(ilModule, {MscorlibRef})
 
             Dim context = CreateMethodContext(runtime, methodName:="C.M")
             Dim errorMessage As String = Nothing
@@ -1120,7 +1119,7 @@ End Class
         <WorkItem(884627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884627")>
         <Fact>
         Public Sub LocalType_CustomModifiers()
-            Const il = "
+            Const ilSource = "
 .class public C
 {
   .method public specialname rtspecialname instance void .ctor()
@@ -1135,15 +1134,8 @@ End Class
   }
 }
 "
-
-            Dim exeBytes As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
-            EmitILToArray(il, appendDefaultHeader:=True, includePdb:=True, assemblyBytes:=exeBytes, pdbBytes:=pdbBytes)
-
-            Dim runtime = CreateRuntimeInstance(
-                references:={MscorlibRef},
-                exeBytes:=exeBytes,
-                symReader:=SymReaderFactory.CreateReader(pdbBytes))
+            Dim ilModule = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource)
+            Dim runtime = CreateRuntimeInstance(ilModule, {MscorlibRef})
 
             Dim context = CreateMethodContext(runtime, methodName:="C.M")
             Dim errorMessage As String = Nothing
@@ -1171,7 +1163,7 @@ End Class
         <WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")>
         <Fact>
         Public Sub LocalType_ByRefOrPinned()
-            Const il = "
+            Const ilSource = "
 .class private auto ansi beforefieldinit C
        extends [mscorlib]System.Object
 {
@@ -1186,15 +1178,8 @@ End Class
   }
 }
 "
-
-            Dim exeBytes As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
-            EmitILToArray(il, appendDefaultHeader:=True, includePdb:=True, assemblyBytes:=exeBytes, pdbBytes:=pdbBytes)
-
-            Dim runtime = CreateRuntimeInstance(
-                references:={MscorlibRef},
-                exeBytes:=exeBytes,
-                symReader:=SymReaderFactory.CreateReader(pdbBytes))
+            Dim ilModule = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource)
+            Dim runtime = CreateRuntimeInstance(ilModule, {MscorlibRef})
 
             Dim context = CreateMethodContext(runtime, methodName:="C.M")
             Dim errorMessage As String = Nothing
@@ -3028,7 +3013,7 @@ End Class
         Public Sub StaticLambdaInDisplayClass()
             ' Note:  I don't think the VB compiler ever generated code like this, but
             '        it doesn't hurt to make sure we do the right thing if it did...
-            Dim source =
+            Dim ilSource =
 ".class private auto ansi C
        extends [mscorlib]System.Object
 {
@@ -3064,18 +3049,10 @@ End Class
     ret
   }
 }"
-            Dim exeBytes As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
-            EmitILToArray(source, appendDefaultHeader:=True, includePdb:=True, assemblyBytes:=exeBytes, pdbBytes:=pdbBytes)
+            Dim ilModule = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource)
+            Dim runtime = CreateRuntimeInstance(ilModule, {MscorlibRef})
+            Dim context = CreateMethodContext(runtime, "C._Closure$__1._Lambda$__2")
 
-            Dim runtime = CreateRuntimeInstance(
-                references:={MscorlibRef},
-                exeBytes:=exeBytes,
-                symReader:=SymReaderFactory.CreateReader(pdbBytes))
-
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C._Closure$__1._Lambda$__2")
             Dim errorMessage As String = Nothing
             Dim testData As New CompilationTestData()
             context.CompileExpression("x", errorMessage, testData)
@@ -3636,14 +3613,7 @@ Class C
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
 
-            Dim corruptMetadata = New ModuleInstance(
-                metadataReference:=Nothing,
-                moduleMetadata:=Nothing,
-                moduleVersionId:=Nothing,
-                fullImage:=Nothing,
-                metadataOnly:=CommonResources.NoValidTables,
-                symReader:=Nothing,
-                includeLocalSignatures:=False)
+            Dim corruptMetadata = ModuleInstance.Create(CommonResources.NoValidTables)
 
             Dim runtime = CreateRuntimeInstance({corruptMetadata, comp.ToModuleInstance(), MscorlibRef.ToModuleInstance()})
             Dim context = CreateMethodContext(runtime, "C.M")
@@ -3811,8 +3781,9 @@ End Class
             Dim comp = CreateCompilationWithMscorlib({source})
             Dim exeBytes = comp.EmitToArray()
             Dim symReader As ISymUnmanagedReader = New MockSymUnmanagedReader(ImmutableDictionary(Of Integer, MethodDebugInfoBytes).Empty)
+            Dim exeModule = ModuleInstance.Create(exeBytes, symReader)
 
-            Dim runtime = CreateRuntimeInstance({MscorlibRef}, exeBytes, symReader)
+            Dim runtime = CreateRuntimeInstance(exeModule, {MscorlibRef})
             Dim evalContext = CreateMethodContext(runtime, "C.Main")
             Dim errorMessage As String = Nothing
             Dim testData As New CompilationTestData()
@@ -3840,8 +3811,8 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib({source})
             Dim exeBytes = comp.EmitToArray()
-
-            Dim runtime = CreateRuntimeInstance({MscorlibRef}, exeBytes, NotImplementedSymUnmanagedReader.Instance)
+            Dim exeModule = ModuleInstance.Create(exeBytes, NotImplementedSymUnmanagedReader.Instance)
+            Dim runtime = CreateRuntimeInstance(exeModule, {MscorlibRef})
             Dim evalContext = CreateMethodContext(runtime, "C.Main")
             Dim errorMessage As String = Nothing
             Dim testData As New CompilationTestData()
@@ -4059,10 +4030,8 @@ End Class
                 Dim symReader = SymReaderFactory.CreateReader(pdbStream1)
                 symReader.UpdateSymbolStore(pdbStream2)
 
-                Dim runtime = CreateRuntimeInstance(
-                    {MscorlibRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference},
-                    peStream2.ToImmutable(),
-                    symReader)
+                Dim module2 = ModuleInstance.Create(peStream2.ToImmutable(), symReader)
+                Dim runtime = CreateRuntimeInstance(module2, {MscorlibRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference})
 
                 Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
                 Dim moduleVersionId As Guid = Nothing

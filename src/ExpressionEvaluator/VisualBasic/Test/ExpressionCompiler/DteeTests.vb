@@ -274,14 +274,6 @@ End Namespace
         Public Sub FalseModule_Nested()
             ' NOTE: VB only allows top-level module types.
             Dim ilSource = "
-.assembly 'IL' {} 
-
-.assembly extern mscorlib 
-{
-  .publickeytoken = (B7 7A 5C 56 19 34 E0 89)
-  .ver 4:0:0:0
-} 
-
 .assembly extern Microsoft.VisualBasic { } 
 
 .class public auto ansi N1.Outer
@@ -326,14 +318,6 @@ End Namespace
         Public Sub FalseModule_Generic()
             ' NOTE: VB only allows non-generic module types.
             Dim ilSource = "
-.assembly 'IL' {} 
-
-.assembly extern mscorlib 
-{
-  .publickeytoken = (B7 7A 5C 56 19 34 E0 89)
-  .ver 4:0:0:0
-} 
-
 .assembly extern Microsoft.VisualBasic { } 
 
 .class public auto ansi sealed N1.M`1<T>
@@ -359,14 +343,6 @@ End Namespace
         Public Sub FalseModule_Interface()
             ' NOTE: VB only allows non-interface module types.
             Dim ilSource = "
-.assembly 'IL' {} 
-
-.assembly extern mscorlib 
-{
-  .publickeytoken = (B7 7A 5C 56 19 34 E0 89)
-  .ver 4:0:0:0
-} 
-
 .assembly extern Microsoft.VisualBasic { } 
 
 .class interface private abstract auto ansi I

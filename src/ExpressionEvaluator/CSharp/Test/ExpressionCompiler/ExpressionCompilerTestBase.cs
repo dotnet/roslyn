@@ -66,13 +66,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         }
 
         internal RuntimeInstance CreateRuntimeInstance(
+            ModuleInstance module,
             IEnumerable<MetadataReference> references,
-            ImmutableArray<byte> peImage,
-            ISymUnmanagedReader symReader,
-            string assemblyName = null,
             bool includeLocalSignatures = true)
         {
-            var instance = RuntimeInstance.Create(references, peImage, symReader, assemblyName, includeLocalSignatures);
+            var instance = RuntimeInstance.Create(module, references, includeLocalSignatures);
             _runtimeInstances.Add(instance);
             return instance;
         }

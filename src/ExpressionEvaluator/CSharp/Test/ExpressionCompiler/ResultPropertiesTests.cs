@@ -110,15 +110,8 @@ class C
 
 } // end of class C
 ";
-            ImmutableArray<byte> exeBytes;
-            ImmutableArray<byte> pdbBytes;
-            EmitILToArray(ilSource, appendDefaultHeader: true, includePdb: true, assemblyBytes: out exeBytes, pdbBytes: out pdbBytes);
-
-            var runtime = CreateRuntimeInstance(
-                references: new[] { MscorlibRef },
-                peImage: exeBytes,
-                symReader: SymReaderFactory.CreateReader(pdbBytes));
-
+            var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var context = CreateMethodContext(runtime, methodName: "C.Test");
 
             Assert.Equal(DkmEvaluationResultAccessType.Private, GetResultProperties(context, "Private").AccessType);

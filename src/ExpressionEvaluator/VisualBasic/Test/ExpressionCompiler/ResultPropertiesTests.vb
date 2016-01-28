@@ -105,15 +105,8 @@ End Class
 
 } // end of class C
 "
-            Dim exeBytes As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
-            EmitILToArray(ilSource, appendDefaultHeader:=True, includePdb:=True, assemblyBytes:=exeBytes, pdbBytes:=pdbBytes)
-
-            Dim runtime = CreateRuntimeInstance(
-                references:={MscorlibRef},
-                exeBytes:=exeBytes,
-                symReader:=SymReaderFactory.CreateReader(pdbBytes))
-
+            Dim ilModule = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource)
+            Dim runtime = CreateRuntimeInstance(ilModule, {MscorlibRef})
             Dim context = CreateMethodContext(runtime, "C.Test")
 
             Assert.Equal(DkmEvaluationResultAccessType.Private, GetResultProperties(context, "[Private]").AccessType)
@@ -260,15 +253,8 @@ End Class
 
 } // end of class C
 "
-            Dim exeBytes As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
-            EmitILToArray(ilSource, appendDefaultHeader:=True, includePdb:=True, assemblyBytes:=exeBytes, pdbBytes:=pdbBytes)
-
-            Dim runtime = CreateRuntimeInstance(
-                references:={MscorlibRef},
-                exeBytes:=exeBytes,
-                symReader:=SymReaderFactory.CreateReader(pdbBytes))
-
+            Dim ilModule = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource)
+            Dim runtime = CreateRuntimeInstance(ilModule, {MscorlibRef})
             Dim context = CreateMethodContext(runtime, methodName:="C.Test")
 
             Assert.Equal(DkmEvaluationResultTypeModifierFlags.None, GetResultProperties(context, "F").ModifierFlags)

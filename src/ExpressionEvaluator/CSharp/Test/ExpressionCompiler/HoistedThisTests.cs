@@ -628,17 +628,10 @@ class C : I<int>
 
 } // end of class C
 ";
-
-            ImmutableArray<byte> ilBytes;
-            ImmutableArray<byte> ilPdbBytes;
-            EmitILToArray(ilSource, appendDefaultHeader: true, includePdb: true, assemblyBytes: out ilBytes, pdbBytes: out ilPdbBytes);
-
-            var runtime = CreateRuntimeInstance(
-                references: new[] { MscorlibRef },
-                peImage: ilBytes,
-                symReader: SymReaderFactory.CreateReader(ilPdbBytes));
-
+            var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var context = CreateMethodContext(runtime, "C.<I<System.Int32>.F>d__0.MoveNext");
+
             VerifyHasThis(context, "C", @"
 {
   // Code size        7 (0x7)
@@ -782,16 +775,8 @@ static class C
   }
 } // end of class C
 ";
-
-            ImmutableArray<byte> ilBytes;
-            ImmutableArray<byte> ilPdbBytes;
-            EmitILToArray(ilSource, appendDefaultHeader: true, includePdb: true, assemblyBytes: out ilBytes, pdbBytes: out ilPdbBytes);
-
-            var runtime = CreateRuntimeInstance(
-                references: new[] { MscorlibRef },
-                peImage: ilBytes,
-                symReader: SymReaderFactory.CreateReader(ilPdbBytes));
-
+            var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });            
             var context = CreateMethodContext(runtime, "C.<M>b__0");
             VerifyNoThis(context);
         }

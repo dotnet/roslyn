@@ -37,43 +37,30 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             DebugInformationFormat debugFormat = 0,
             bool includeLocalSignatures = true)
         {
-            var exeModuleInstance = compilation.ToModuleInstance(debugFormat, includeLocalSignatures);
+            var module = compilation.ToModuleInstance(debugFormat, includeLocalSignatures);
 
             if (references == null)
             {
-                references = compilation.GetEmittedReferences(exeModuleInstance.FullImage);
+                references = compilation.GetEmittedReferences(module.FullImage);
             }
 
             references = references.Concat(new[] { ExpressionCompilerTestHelpers.IntrinsicAssemblyReference });
 
-            return Create(references, exeModuleInstance, includeLocalSignatures);
+            return Create(module, references, includeLocalSignatures);
         }
 
         internal static RuntimeInstance Create(
+            ModuleInstance module,
             IEnumerable<MetadataReference> references,
-            ModuleInstance exeModuleInstance,
             bool includeLocalSignatures = true)
         {
             // Create modules for the references and the program
             var modules = ImmutableArray.CreateRange(
                 references.Select(r => r.ToModuleInstance(includeLocalSignatures: includeLocalSignatures)).
-                Concat(new[] { exeModuleInstance }));
+                Concat(new[] { module }));
 
             modules.VerifyAllModules();
             return new RuntimeInstance(modules);
-        }
-
-        // TODO: remove
-        internal static RuntimeInstance Create(
-            IEnumerable<MetadataReference> references,
-            ImmutableArray<byte> peImage,
-            ISymUnmanagedReader symReaderOpt,
-            string assemblyName = null,
-            bool includeLocalSignatures = true)
-        {
-            var exeReference = AssemblyMetadata.CreateFromImage(peImage).GetReference(display: assemblyName);
-            var exeModuleInstance = exeReference.ToModuleInstance(peImage, symReaderOpt, includeLocalSignatures: includeLocalSignatures);
-            return Create(references, exeModuleInstance, includeLocalSignatures);
         }
     }
 }
