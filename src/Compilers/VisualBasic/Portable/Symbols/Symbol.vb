@@ -877,7 +877,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case errorInfo.Code
                     Case ERRID.ERR_UnreferencedAssemblyBase3,
                          ERRID.ERR_UnreferencedAssemblyImplements3
-                        errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssembly3, errorInfo.Arguments(0), errorInfo.Arguments(1))
+                        errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssembly3,
+                                                           CustomSymbolDisplayFormatter.DefaultErrorFormatIfErrorSymbol(errorInfo.Arguments(0)),
+                                                           CustomSymbolDisplayFormatter.DefaultErrorFormatIfErrorSymbol(errorInfo.Arguments(1)))
 
                     Case ERRID.ERR_UnreferencedModuleBase3,
                          ERRID.ERR_UnreferencedModuleImplements3
