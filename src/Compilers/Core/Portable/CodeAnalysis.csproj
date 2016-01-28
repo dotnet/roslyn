@@ -63,6 +63,7 @@
     <Compile Include="CaseInsensitiveComparison.cs" />
     <Compile Include="CodeGen\ILEmitStyle.cs" />
     <Compile Include="Compilation\IOperationVisitor.cs" />
+    <Compile Include="Compilation\IOperationWalker.cs" />
     <Compile Include="Compilation\ScriptCompilationInfo.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.GeneratedCodeUtilities.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.CompilationData.cs" />
