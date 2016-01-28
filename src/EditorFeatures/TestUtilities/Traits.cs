@@ -77,6 +77,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeModel = "CodeModel";
             public const string CodeModelEvents = "CodeModel.Events";
             public const string CodeModelMethodXml = "CodeModel.MethodXml";
+            public const string CommentBlockCompletion = "CommentBlockCompletion";
             public const string CommentSelection = "CommentSelection";
             public const string Completion = "Completion";
             public const string DebuggingBreakpoints = "Debugging.Breakpoints";
