@@ -17,16 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         SyntaxNode IOperation.Syntax => this.Syntax;
 
         protected abstract OperationKind StatementKind { get; }
-        
-        public virtual void Accept(IOperationVisitor visitor)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
 
-        public virtual TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
+        public abstract void Accept(IOperationVisitor visitor);
+
+        public abstract TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument);
     }
 
     partial class BoundBlock : IBlockStatement
@@ -328,11 +322,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    partial class BoundSwitchSection
-    {
-        protected override OperationKind StatementKind => OperationKind.None;
-    }
-
     partial class BoundSwitchLabel : ISingleValueCaseClause
     {
         IExpression ISingleValueCaseClause.Value => this.ExpressionOpt;
@@ -575,31 +564,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    partial class BoundStatementList
-    {
-        protected override OperationKind StatementKind => OperationKind.None;
-    }
-
-    partial class BoundConditionalGoto
-    {
-        protected override OperationKind StatementKind => OperationKind.None;
-    }
-
-    partial class BoundSequencePoint
-    {
-        protected override OperationKind StatementKind => OperationKind.None;
-    }
-
-    partial class BoundSequencePointWithSpan
-    {
-        protected override OperationKind StatementKind => OperationKind.None;
-    }
-
-    partial class BoundStateMachineScope
-    {
-        protected override OperationKind StatementKind => OperationKind.None;
-    }
-
     partial class BoundLocalDeclaration : IVariableDeclarationStatement
     {
         private static readonly ConditionalWeakTable<BoundLocalDeclaration, object> s_variablesMappings =
@@ -706,6 +670,96 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitExpressionStatement(this, argument);
+        }
+    }
+
+    partial class BoundSwitchSection
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+    }
+
+    partial class BoundStatementList
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+    }
+
+    partial class BoundConditionalGoto
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+    }
+
+    partial class BoundSequencePoint
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+    }
+
+    partial class BoundSequencePointWithSpan
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+    }
+
+    partial class BoundStateMachineScope
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }

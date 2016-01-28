@@ -27,17 +27,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overridable Function StatementKind() As OperationKind
-            Return OperationKind.None
-        End Function
+        Protected MustOverride Function StatementKind() As OperationKind
 
-        Public Overridable Overloads Sub Accept(visitor As IOperationVisitor) Implements IOperation.Accept
-            Throw ExceptionUtilities.Unreachable
-        End Sub
+        Public MustOverride Overloads Sub Accept(visitor As IOperationVisitor) Implements IOperation.Accept
 
-        Public Overridable Overloads Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
-            Throw ExceptionUtilities.Unreachable
-        End Function
+        Public MustOverride Overloads Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
     End Class
 
     Partial Class BoundIfStatement
@@ -229,6 +223,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundCaseBlock
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitEmptyStatement(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitEmptyStatement(Me, argument)
         End Function
     End Class
 
@@ -433,6 +435,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Cases are found by going through ISwitch, so the VB Case statement is orphaned.
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitEmptyStatement(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitEmptyStatement(Me, argument)
         End Function
     End Class
 
@@ -1155,17 +1165,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitEmptyStatement(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitEmptyStatement(Me, argument)
+        End Function
     End Class
 
     Partial Class BoundSequencePointWithSpan
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitEmptyStatement(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitEmptyStatement(Me, argument)
+        End Function
     End Class
 
     Partial Class BoundStateMachineScope
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitEmptyStatement(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitEmptyStatement(Me, argument)
         End Function
     End Class
 
@@ -1461,5 +1495,201 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                           End Function)
             End Get
         End Property
+    End Class
+
+    Partial Class BoundRedimStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Throw ExceptionUtilities.Unreachable
+        End Function
+    End Class
+
+    Partial Class BoundRedimClause
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Throw ExceptionUtilities.Unreachable
+        End Function
+    End Class
+
+    Partial Class BoundEraseStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Throw ExceptionUtilities.Unreachable
+        End Function
+    End Class
+
+    Partial Class BoundLocalDeclaration
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Throw ExceptionUtilities.Unreachable
+        End Function
+    End Class
+
+    Partial Class BoundAsNewLocalDeclarations
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Throw ExceptionUtilities.Unreachable
+        End Function
+    End Class
+
+    Partial Class BoundInitializer
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Throw ExceptionUtilities.Unreachable
+        End Function
+    End Class
+
+    Partial Class BoundConditionalGoto
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Throw ExceptionUtilities.Unreachable
+        End Function
+    End Class
+
+    Partial Class BoundStatementList
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Throw ExceptionUtilities.Unreachable
+        End Function
+    End Class
+
+    Partial Class BoundRaiseEventStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Throw ExceptionUtilities.Unreachable
+        End Function
+    End Class
+
+    Partial Class BoundResumeStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Throw ExceptionUtilities.Unreachable
+        End Function
+    End Class
+
+    Partial Class BoundOnErrorStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Throw ExceptionUtilities.Unreachable
+        End Function
+    End Class
+
+    Partial Class BoundUnstructuredExceptionHandlingStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Throw ExceptionUtilities.Unreachable
+        End Function
+    End Class
+
+    Partial Class BoundUnstructuredExceptionOnErrorSwitch
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Throw ExceptionUtilities.Unreachable
+        End Function
+    End Class
+
+    Partial Class BoundUnstructuredExceptionResumeSwitch
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Throw ExceptionUtilities.Unreachable
+        End Function
     End Class
 End Namespace

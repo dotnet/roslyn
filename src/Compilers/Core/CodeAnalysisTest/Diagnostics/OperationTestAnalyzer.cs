@@ -1107,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public static readonly DiagnosticDescriptor NoneOperationDescriptor = new DiagnosticDescriptor(
             "NoneOperation",
             "None operation found",
-            "an IOperation of None kind is found",
+            "An IOperation of None kind is found",
             ReliabilityCategory,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
