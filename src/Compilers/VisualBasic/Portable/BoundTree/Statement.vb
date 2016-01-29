@@ -1610,16 +1610,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundRaiseEventStatement
+        Implements IExpressionStatement
+
+        Public ReadOnly Property Expression As IExpression Implements IExpressionStatement.Expression
+            Get
+                Return Me.EventInvocation
+            End Get
+        End Property
+
         Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
+            Return OperationKind.ExpressionStatement
         End Function
 
         Public Overrides Sub Accept(visitor As IOperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitExpressionStatement(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As IOperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitExpressionStatement(Me, argument)
         End Function
     End Class
 
