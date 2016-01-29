@@ -38,6 +38,7 @@ Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.MetadataShad
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.NeedsShadowCopy(string fullPath) -> bool
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.SuppressShadowCopy(string originalPath) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter
+Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.FormatObject(object obj) -> string
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.Ellipsis.get -> string
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.Ellipsis.set -> void
