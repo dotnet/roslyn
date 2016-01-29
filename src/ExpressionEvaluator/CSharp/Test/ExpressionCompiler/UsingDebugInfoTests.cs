@@ -11,16 +11,16 @@ using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.DiaSymReader;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class UsingDebugInfoTests : ExpressionCompilerTestBase
     {
@@ -331,21 +331,17 @@ public class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source);
-
-            byte[] exeBytes;
-            byte[] unusedPdbBytes;
-            ImmutableArray<MetadataReference> references;
-            var result = comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
-            Assert.True(result);
+            var peImage = comp.EmitToArray();
 
             var symReader = ExpressionCompilerTestHelpers.ConstructSymReaderWithImports(
-                exeBytes,
+                peImage,
                 "Main",
                 "USystem", // Valid.
                 "UACultureInfo TSystem.Globalization.CultureInfo, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", // Invalid - skipped.
                 "ASI USystem.IO"); // Valid.
 
-            var runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader);
+            var module = ModuleInstance.Create(peImage, symReader);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)); // Used to throw.
             var imports = compContext.NamespaceBinder.ImportChain.Single();
@@ -367,21 +363,17 @@ public class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source);
-
-            byte[] exeBytes;
-            byte[] unusedPdbBytes;
-            ImmutableArray<MetadataReference> references;
-            var result = comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
-            Assert.True(result);
+            var peImage = comp.EmitToArray();
 
             var symReader = ExpressionCompilerTestHelpers.ConstructSymReaderWithImports(
-                exeBytes,
+                peImage,
                 "Main",
                 "USystem", // Valid.
                 "AMy.Alias TSystem.Globalization.CultureInfo, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", // Invalid - skipped.
                 "ASI USystem.IO"); // Valid.
 
-            var runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader);
+            var module = ModuleInstance.Create(peImage, symReader);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)); // Used to throw.
             var imports = compContext.NamespaceBinder.ImportChain.Single();
@@ -403,15 +395,10 @@ public class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source);
-
-            byte[] exeBytes;
-            byte[] unusedPdbBytes;
-            ImmutableArray<MetadataReference> references;
-            var result = comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
-            Assert.True(result);
+            var peImage = comp.EmitToArray();
 
             ISymUnmanagedReader symReader;
-            using (var peReader = new PEReader(ImmutableArray.Create(exeBytes)))
+            using (var peReader = new PEReader(peImage))
             {
                 var metadataReader = peReader.GetMetadataReader();
                 var methodHandle = metadataReader.MethodDefinitions.Single(h => metadataReader.StringComparer.Equals(metadataReader.GetMethodDefinition(h).Name, "Main"));
@@ -423,7 +410,8 @@ public class C
                 }.ToImmutableDictionary());
             }
 
-            var runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader);
+            var module = ModuleInstance.Create(peImage, symReader);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
             var imports = compContext.NamespaceBinder.ImportChain.Single();
@@ -448,15 +436,10 @@ namespace N
 }
 ";
             var comp = CreateCompilationWithMscorlib(source);
-
-            byte[] exeBytes;
-            byte[] unusedPdbBytes;
-            ImmutableArray<MetadataReference> references;
-            var result = comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
-            Assert.True(result);
+            var peImage = comp.EmitToArray();
 
             ISymUnmanagedReader symReader;
-            using (var peReader = new PEReader(ImmutableArray.Create(exeBytes)))
+            using (var peReader = new PEReader(peImage))
             {
                 var metadataReader = peReader.GetMetadataReader();
                 var methodHandle = metadataReader.MethodDefinitions.Single(h => metadataReader.StringComparer.Equals(metadataReader.GetMethodDefinition(h).Name, "Main"));
@@ -468,7 +451,8 @@ namespace N
                 }.ToImmutableDictionary());
             }
 
-            var runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader);
+            var module = ModuleInstance.Create(peImage, symReader);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "N.C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
             var imports = compContext.NamespaceBinder.ImportChain.Single();
@@ -493,15 +477,10 @@ namespace N
 }
 ";
             var comp = CreateCompilationWithMscorlib(source);
-
-            byte[] exeBytes;
-            byte[] unusedPdbBytes;
-            ImmutableArray<MetadataReference> references;
-            var result = comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
-            Assert.True(result);
+            var peImage = comp.EmitToArray();
 
             ISymUnmanagedReader symReader;
-            using (var peReader = new PEReader(ImmutableArray.Create(exeBytes)))
+            using (var peReader = new PEReader(peImage))
             {
                 var metadataReader = peReader.GetMetadataReader();
                 var methodHandle = metadataReader.MethodDefinitions.Single(h => metadataReader.StringComparer.Equals(metadataReader.GetMethodDefinition(h).Name, "Main"));
@@ -513,7 +492,8 @@ namespace N
                 }.ToImmutableDictionary());
             }
 
-            var runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader);
+            var module = ModuleInstance.Create(peImage, symReader);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "N.C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
             var imports = compContext.NamespaceBinder.ImportChain.Single();
@@ -543,7 +523,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();
@@ -576,7 +556,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();
@@ -619,7 +599,7 @@ namespace A
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "A.C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single()).AsEnumerable().ToArray();
             Assert.Equal(2, importsList.Length);
 
@@ -655,7 +635,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();
@@ -695,7 +675,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();
@@ -725,7 +705,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();
@@ -779,7 +759,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();
@@ -828,7 +808,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();
@@ -867,7 +847,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("X")) });
             comp.VerifyDiagnostics();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();
@@ -886,9 +866,6 @@ class C
             Assert.Equal(SymbolKind.Namespace, targetSymbol.Kind);
             Assert.True(((NamespaceSymbol)targetSymbol).IsGlobalNamespace);
             Assert.Equal("System.Xml.Linq", targetSymbol.ContainingAssembly.Name);
-
-            var moduleInstance = runtime.Modules.Single(m => m.ModuleMetadata.Name.StartsWith("System.Xml.Linq", StringComparison.OrdinalIgnoreCase));
-            AssertEx.SetEqual(moduleInstance.MetadataReference.Properties.Aliases, "X");
         }
 
         [Fact]
@@ -912,7 +889,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("X")) });
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();
@@ -958,7 +935,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("global", "X")) });
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
+            var runtime = CreateRuntimeInstance(comp);
             var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
             var imports = importsList.Single();
@@ -1074,45 +1051,36 @@ public class C2 : C1
 {
 }
 ";
-            ImmutableArray<MetadataReference> unused;
+            var comp1 = CreateCompilation(source1, new[] { MscorlibRef_v20 }, TestOptions.DebugDll);
+            var module1 = comp1.ToModuleInstance();
 
-            var comp1 = CreateCompilation(source1, new[] { MscorlibRef_v20 }, TestOptions.DebugDll, assemblyName: "A");
-            byte[] dllBytes1;
-            byte[] pdbBytes1;
-            comp1.EmitAndGetReferences(out dllBytes1, out pdbBytes1, out unused);
-            var ref1 = AssemblyMetadata.CreateFromImage(dllBytes1).GetReference(display: "A");
+            var comp2 = CreateCompilation(source2, new[] { MscorlibRef_v4_0_30316_17626, module1.GetReference() }, TestOptions.DebugDll);
+            var module2 = comp2.ToModuleInstance();
 
-            var comp2 = CreateCompilation(source2, new[] { MscorlibRef_v4_0_30316_17626, ref1 }, TestOptions.DebugDll, assemblyName: "B");
-            byte[] dllBytes2;
-            byte[] pdbBytes2;
-            comp2.EmitAndGetReferences(out dllBytes2, out pdbBytes2, out unused);
-            var ref2 = AssemblyMetadata.CreateFromImage(dllBytes2).GetReference(display: "B");
-
-            var modulesBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
-            modulesBuilder.Add(ref1.ToModuleInstance(dllBytes1, SymReaderFactory.CreateReader(pdbBytes1)));
-            modulesBuilder.Add(ref2.ToModuleInstance(dllBytes2, SymReaderFactory.CreateReader(pdbBytes2)));
-            modulesBuilder.Add(MscorlibRef_v4_0_30316_17626.ToModuleInstance(fullImage: null, symReader: null));
-            modulesBuilder.Add(ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance(fullImage: null, symReader: null));
-
-            using (var runtime = new RuntimeInstance(modulesBuilder.ToImmutableAndFree()))
+            var runtime = CreateRuntimeInstance(new[] 
             {
-                var context = CreateMethodContext(runtime, "C1.M");
+                module1,
+                module2,
+                MscorlibRef_v4_0_30316_17626.ToModuleInstance(),
+                ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance()
+            });
 
-                string error;
-                var testData = new CompilationTestData();
-                context.CompileExpression("typeof(SI)", out error, testData);
-                Assert.Null(error);
+            var context = CreateMethodContext(runtime, "C1.M");
 
-                testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+            string error;
+            var testData = new CompilationTestData();
+            context.CompileExpression("typeof(SI)", out error, testData);
+            Assert.Null(error);
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
-  // Code size       11 (0xb)
-  .maxstack  1
-  IL_0000:  ldtoken    ""int""
-  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_000a:  ret
+// Code size       11 (0xb)
+.maxstack  1
+IL_0000:  ldtoken    ""int""
+IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+IL_000a:  ret
 }
 ");
-            }
         }
     }
 

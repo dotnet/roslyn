@@ -4,16 +4,18 @@ Imports System.Collections.Immutable
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
     Public Class MissingAssemblyTests
         Inherits ExpressionCompilerTestBase
 
@@ -85,7 +87,8 @@ End Class
 "
             Dim libRef = CreateCompilationWithMscorlib({libSource}, {}, TestOptions.DebugDll, assemblyName:="Lib").EmitToImageReference()
             Dim comp = CreateCompilationWithMscorlib({source}, {libRef}, TestOptions.DebugDll)
-            Dim context = CreateMethodContextWithReferences(comp, "C.M", MscorlibRef)
+            Dim runtime = CreateRuntimeInstance(comp, {MscorlibRef})
+            Dim context = CreateMethodContext(runtime, "C.M")
 
             Const expectedError = "error BC30652: Reference required to assembly 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Missing'. Add one to your project."
             Dim expectedMissingAssemblyIdentity = New AssemblyIdentity("Lib")
@@ -175,8 +178,8 @@ Public Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, {SystemRef, SystemCoreRef, SystemXmlRef, SystemXmlLinqRef}, TestOptions.DebugDll)
-            comp.AssertNoErrors()
-            Dim context = CreateMethodContextWithReferences(comp, "C.M", MscorlibRef)
+            Dim runtime = CreateRuntimeInstance(comp, {MscorlibRef})
+            Dim context = CreateMethodContext(runtime, "C.M")
 
             Const expectedError = "error BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types."
 
@@ -211,7 +214,8 @@ Public Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim context = CreateMethodContextWithReferences(comp, "C.M", MscorlibRef)
+            Dim runtime = CreateRuntimeInstance(comp, {MscorlibRef})
+            Dim context = CreateMethodContext(runtime, "C.M")
 
             Const expectedError = "error BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Operators.CompareObjectEqual' is not defined."
             Dim expectedMissingAssemblyIdentity = EvaluationContextBase.MicrosoftVisualBasicIdentity
@@ -245,9 +249,13 @@ End Class
 "
 
             Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef}.Concat(WinRtRefs), TestOptions.DebugDll)
+
             Dim runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI")
             Assert.True(runtimeAssemblies.Any())
-            Dim context = CreateMethodContextWithReferences(comp, "C.M", ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies))
+
+            Dim runtime = CreateRuntimeInstance(comp, {MscorlibRef}.Concat(runtimeAssemblies))
+            Dim context = CreateMethodContext(runtime, "C.M")
+
             Dim globalNamespace = context.Compilation.GlobalNamespace
 
             Dim expectedIdentity = New AssemblyIdentity("Windows.Storage", contentType:=AssemblyContentType.WindowsRuntime)
@@ -283,8 +291,8 @@ Public Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, {SystemCoreRef}, TestOptions.DebugDll)
-            comp.AssertNoErrors()
-            Dim context = CreateMethodContextWithReferences(comp, "C.M", MscorlibRef)
+            Dim runtime = CreateRuntimeInstance(comp, {MscorlibRef})
+            Dim context = CreateMethodContext(runtime, "C.M")
 
             Const expectedErrorTemplate = "error BC30456: '{0}' is not a member of 'Integer()'."
             Dim expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity
@@ -332,21 +340,9 @@ Public Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, {}, TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(comp, {CSharpRef})
+            Dim context = CreateMethodContext(runtime, "C.M")
 
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim unusedReferences As ImmutableArray(Of MetadataReference) = Nothing
-            Dim result = comp.EmitAndGetReferences(exeBytes, pdbBytes, unusedReferences)
-            Assert.True(result)
-
-            Dim runtime = CreateRuntimeInstance(
-                GetUniqueName(),
-                ImmutableArray.Create(CSharpRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference),
-                exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes))
-            Dim context = CreateMethodContext(
-                runtime,
-                "C.M")
             Dim aliases = ImmutableArray.Create(ExceptionAlias("Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version = 4.0.0.0, Culture = neutral, PublicKeyToken = b03f5f7f11d50a3a", stowed:=True))
 
             Const expectedError = "error BC30002: Type 'System.Void' is not defined."
@@ -384,7 +380,9 @@ End Class
             Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef}.Concat(WinRtRefs), TestOptions.DebugDll)
             Dim runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage")
             Assert.True(runtimeAssemblies.Any())
-            Dim context = CreateMethodContextWithReferences(comp, "C.M", ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies))
+
+            Dim runtime = CreateRuntimeInstance(comp, {MscorlibRef}.Concat(runtimeAssemblies))
+            Dim context = CreateMethodContext(runtime, "C.M")
 
             Const expectedError = "error BC30456: 'UI' is not a member of 'Windows'."
             Dim expectedMissingAssemblyIdentity = New AssemblyIdentity("Windows.UI", contentType:=System.Reflection.AssemblyContentType.WindowsRuntime)
@@ -422,7 +420,9 @@ End Class
             Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef}.Concat(WinRtRefs), TestOptions.DebugDll)
             Dim runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI")
             Assert.True(runtimeAssemblies.Any())
-            Dim context = CreateMethodContextWithReferences(comp, "C.M", ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies))
+
+            Dim runtime = CreateRuntimeInstance(comp, {MscorlibRef}.Concat(runtimeAssemblies))
+            Dim context = CreateMethodContext(runtime, "C.M")
 
             Const expectedError = "error BC30456: 'Xaml' is not a member of 'Windows.UI'."
             Dim expectedMissingAssemblyIdentity = New AssemblyIdentity("Windows.UI.Xaml", contentType:=System.Reflection.AssemblyContentType.WindowsRuntime)
@@ -455,9 +455,12 @@ End Class
 "
 
             Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef}.Concat(WinRtRefs), TestOptions.DebugDll)
+
             Dim runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage")
             Assert.True(runtimeAssemblies.Any())
-            Dim context = CreateMethodContextWithReferences(comp, "C.M", ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies))
+
+            Dim runtime = CreateRuntimeInstance(comp, {MscorlibRef}.Concat(runtimeAssemblies))
+            Dim context = CreateMethodContext(runtime, "C.M")
 
             Const expectedError = "error BC30002: Type 'Windows.UI.Colors' is not defined."
             Dim expectedMissingAssemblyIdentity = New AssemblyIdentity("Windows.UI", contentType:=System.Reflection.AssemblyContentType.WindowsRuntime)
@@ -493,7 +496,7 @@ End Class
             Dim context = CreateMethodContext(runtime, "C.M")
 
             Dim missingModule = runtime.Modules.First()
-            Dim missingIdentity = missingModule.MetadataReader.ReadAssemblyIdentityOrThrow()
+            Dim missingIdentity = missingModule.GetMetadataReader().ReadAssemblyIdentityOrThrow()
 
             Dim numRetries = 0
             Dim errorMessage As String = Nothing
@@ -530,14 +533,12 @@ Class UseLinq
 End Class"
 
             Dim compilation = CreateCompilationWithMscorlib({source}, references:={SystemCoreRef})
-            Dim exeBytes() As Byte = Nothing, pdbBytes() As Byte = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            compilation.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim systemCore = SystemCoreRef.ToModuleInstance(fullImage:=Nothing, symReader:=Nothing)
-            Dim referencesWithoutSystemCore = references.Where(Function(r) r IsNot SystemCoreRef).ToImmutableArray()
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), referencesWithoutSystemCore.AddIntrinsicAssembly(), exeBytes, symReader:=Nothing)
+
+            Dim runtime = CreateRuntimeInstance(compilation, {MscorlibRef})
             Dim context = CreateMethodContext(runtime, "C.Main")
-            Dim fakeSystemLinq = CreateCompilationWithMscorlib({""}, options:=TestOptions.ReleaseDll, assemblyName:="System.Linq").EmitToImageReference().ToModuleInstance(fullImage:=Nothing, symReader:=Nothing)
+
+            Dim systemCore = SystemCoreRef.ToModuleInstance()
+            Dim fakeSystemLinq = CreateCompilationWithMscorlib({""}, options:=TestOptions.ReleaseDll, assemblyName:="System.Linq").ToModuleInstance()
 
             Dim errorMessage As String = Nothing
             Dim testData As CompilationTestData = Nothing
@@ -568,21 +569,6 @@ End Class"
 
             Assert.Equal(2, retryCount)
         End Sub
-
-        Private Function CreateMethodContextWithReferences(comp As Compilation, methodName As String, ParamArray references As MetadataReference()) As EvaluationContext
-            Return CreateMethodContextWithReferences(comp, methodName, ImmutableArray.CreateRange(references))
-        End Function
-
-        Private Function CreateMethodContextWithReferences(comp As Compilation, methodName As String, references As ImmutableArray(Of MetadataReference)) As EvaluationContext
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim unusedReferences As ImmutableArray(Of MetadataReference) = Nothing
-            Dim result = comp.EmitAndGetReferences(exeBytes, pdbBytes, unusedReferences)
-            Assert.True(result)
-
-            Dim runtime = CreateRuntimeInstance(GetUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes))
-            Return CreateMethodContext(runtime, methodName)
-        End Function
 
         Private Shared Function GetMissingAssemblyIdentities(code As ERRID, ParamArray arguments() As Object) As ImmutableArray(Of AssemblyIdentity)
             Return GetMissingAssemblyIdentities(code, arguments, globalNamespace:=Nothing)

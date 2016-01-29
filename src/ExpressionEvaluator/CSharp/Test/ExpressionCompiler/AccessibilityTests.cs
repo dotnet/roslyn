@@ -8,8 +8,9 @@ using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using System;
 using Xunit;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class AccessibilityTests : ExpressionCompilerTestBase
     {
