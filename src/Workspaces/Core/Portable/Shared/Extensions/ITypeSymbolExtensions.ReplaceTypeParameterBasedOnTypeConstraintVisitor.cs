@@ -101,8 +101,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                             var derivedImplementedTypesOfEachConstraintType = symbol.ConstraintTypes.Select(ct =>
                             {
                                 var derivedAndImplementedTypes = new List<INamedTypeSymbol>();
-                                return ((INamedTypeSymbol)ct).FindDerivedClassesAsync(_solution, immutableProjects, _cancellationToken).WaitAndGetResult(_cancellationToken)
-                                       .Concat(((INamedTypeSymbol)ct).FindImplementingTypesAsync(_solution, immutableProjects, _cancellationToken).WaitAndGetResult(_cancellationToken))
+                                return SymbolFinder.FindDerivedClassesAsync((INamedTypeSymbol)ct, _solution, immutableProjects, _cancellationToken).WaitAndGetResult(_cancellationToken)
+                                       .Concat(DependentTypeFinder.FindImplementingTypesAsync((INamedTypeSymbol)ct, _solution, immutableProjects, _cancellationToken).WaitAndGetResult(_cancellationToken))
                                        .ToList();
                             });
 
