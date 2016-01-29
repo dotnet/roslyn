@@ -79,6 +79,7 @@
     <Compile Include="AutomaticCompletion\Sessions\LessAndGreaterThanCompletionSession.cs" />
     <Compile Include="AutomaticCompletion\Sessions\ParenthesisCompletionSession.cs" />
     <Compile Include="AutomaticCompletion\Sessions\StringLiteralCompletionSession.cs" />
+    <Compile Include="BlockCommentCompletion\BlockCommentCompletionCommandHandler.cs" />
     <Compile Include="BraceMatching\AbstractCSharpBraceMatcher.cs" />
     <Compile Include="BraceMatching\LessThanGreaterThanBraceMatcher.cs" />
     <Compile Include="BraceMatching\OpenCloseBraceBraceMatcher.cs" />
@@ -89,7 +90,6 @@
     <Compile Include="CallHierarchy\CallHierarchyCommandHandler.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureCommandHandler.cs" />
     <Compile Include="Classification\CSharpEditorClassificationService.cs" />
-    <Compile Include="CommentBlockCompletion\CommentBlockCompletionCommandHandler.cs" />
     <Compile Include="CommentSelection\CSharpCommentUncommentService.cs" />
     <Compile Include="Completion\CompletionProviders\OverrideCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\PartialCompletionProvider.cs" />

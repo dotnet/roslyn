@@ -1,30 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentBlockCompletion
+namespace Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentCompletion
 {
-    internal abstract class AbstractCommentBlockCompletionCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
+    internal abstract class AbstractBlockCommentCompletionCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
-        protected AbstractCommentBlockCompletionCommandHandler(
+        protected AbstractBlockCommentCompletionCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
         {
@@ -48,8 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentBlockCompletion
                 nextHandler();
                 return;
             }
-
-            var snapshot = subjectBuffer.CurrentSnapshot;
 
             var exteriorText = GetExteriorTextForNextLine(caretPosition.Value);
             if (exteriorText == null)

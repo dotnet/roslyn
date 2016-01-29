@@ -1,32 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Implementation.CommentBlockCompletion;
+using Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentCompletion;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
-using Microsoft.VisualStudio.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentBlockCompletion
+namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentCompletion
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.CommentBlockCompletion, ContentTypeNames.CSharpContentType)]
-    internal class CommentBlockCompletionCommandHandler : AbstractCommentBlockCompletionCommandHandler
+    [ExportCommandHandler(PredefinedCommandHandlerNames.BlockCommentCompletion, ContentTypeNames.CSharpContentType)]
+    internal class BlockCommentCompletionCommandHandler : AbstractBlockCommentCompletionCommandHandler
     {
         [ImportingConstructor]
-        public CommentBlockCompletionCommandHandler(
+        public BlockCommentCompletionCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService) : base(undoHistoryRegistry, editorOperationsFactoryService)
         {
@@ -42,23 +35,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentBlockCompletion
                 return null;
             }
 
-            var isCurrentLineStartsWithCommentBlockStart = snapshotLine.StartsWith(firstNonWhitespacePosition, "/*", false);
-            var isCurrentLineStartsWithCommentBlockEnd = snapshotLine.StartsWith(firstNonWhitespacePosition, "*/", false);
-            var isCurrentLineStartsWithCommentBlockMiddle = snapshotLine.StartsWith(firstNonWhitespacePosition, "*", false);
+            var currentLineStartsWithBlockCommentStartString = snapshotLine.StartsWith(firstNonWhitespacePosition, "/*", false);
+            var currentLineStartsWithBlockCommentEndString = snapshotLine.StartsWith(firstNonWhitespacePosition, "*/", false);
+            var currentLineStartsWithBlockCommentMiddleString = snapshotLine.StartsWith(firstNonWhitespacePosition, "*", false);
 
-            if (!isCurrentLineStartsWithCommentBlockStart && !isCurrentLineStartsWithCommentBlockMiddle)
+            if (!currentLineStartsWithBlockCommentStartString && !currentLineStartsWithBlockCommentMiddleString)
             {
                 return null;
             }
 
-            if (!IsCaretInsideCommentBlockSyntax(caretPosition))
+            if (!IsCaretInsideBlockCommentSyntax(caretPosition))
             {
                 return null;
             }
 
-            if (isCurrentLineStartsWithCommentBlockStart)
+            if (currentLineStartsWithBlockCommentStartString)
             {
-                if (IsCommentBlockEndsAfterCaret(caretPosition))
+                if (BlockCommentEndsRightAfterCaret(caretPosition))
                 {
                     //      /*|*/
                     return " ";
@@ -75,9 +68,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentBlockCompletion
                 }
             }
 
-            if (isCurrentLineStartsWithCommentBlockEnd)
+            if (currentLineStartsWithBlockCommentEndString)
             {
-                if (IsCommentBlockEndsAfterCaret(caretPosition))
+                if (BlockCommentEndsRightAfterCaret(caretPosition))
                 {
                     //      /*
                     //      |*/
@@ -96,9 +89,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentBlockCompletion
                 }
             }
 
-            if (isCurrentLineStartsWithCommentBlockMiddle)
+            if (currentLineStartsWithBlockCommentMiddleString)
             {
-                if (IsCommentBlockEndsAfterCaret(caretPosition))
+                if (BlockCommentEndsRightAfterCaret(caretPosition))
                 {
                     //      *|*/
                     return "";
@@ -119,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentBlockCompletion
             return null;
         }
 
-        private static bool IsCommentBlockEndsAfterCaret(SnapshotPoint caretPosition) => caretPosition.Snapshot.GetText(caretPosition, 2) == "*/";
+        private static bool BlockCommentEndsRightAfterCaret(SnapshotPoint caretPosition) => caretPosition.Snapshot.GetText(caretPosition, 2) == "*/";
 
         private static string GetPaddingOrIndentation(ITextSnapshotLine snapshotLine, int caretPosition, int firstNonWhitespacePosition, string exteriorText)
         {
@@ -161,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentBlockCompletion
             }
         }
 
-        private static bool IsCaretInsideCommentBlockSyntax(SnapshotPoint caretPosition)
+        private static bool IsCaretInsideBlockCommentSyntax(SnapshotPoint caretPosition)
         {
             var document = caretPosition.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)

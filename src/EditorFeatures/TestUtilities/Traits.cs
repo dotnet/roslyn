@@ -19,6 +19,7 @@ namespace Roslyn.Test.Utilities
             public const string AsyncLazy = nameof(AsyncLazy);
             public const string AutomaticEndConstructCorrection = "AutomaticEndConstructCorrection";
             public const string AutomaticCompletion = "AutomaticCompletion";
+            public const string BlockCommentCompletion = "BlockCommentCompletion";
             public const string BraceHighlighting = "BraceHighlighting";
             public const string BraceMatching = "BraceMatching";
             public const string CallHierarchy = "CallHierarchy";
@@ -77,7 +78,6 @@ namespace Roslyn.Test.Utilities
             public const string CodeModel = "CodeModel";
             public const string CodeModelEvents = "CodeModel.Events";
             public const string CodeModelMethodXml = "CodeModel.MethodXml";
-            public const string CommentBlockCompletion = "CommentBlockCompletion";
             public const string CommentSelection = "CommentSelection";
             public const string Completion = "Completion";
             public const string DebuggingBreakpoints = "Debugging.Breakpoints";

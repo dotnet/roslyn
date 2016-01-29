@@ -20,6 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor
         public const string AutomaticLineEnder = "Automatic Line Ender Command Handler";
 
         /// <summary>
+        /// Command handler name for Comment Block Completion.
+        /// </summary>
+        /// <remarks></remarks>
+        public const string BlockCommentCompletion = "Block Comment Completion Command Handler";
+
+        /// <summary>
         /// Command handler name for Change Signature.
         /// </summary>
         public const string ChangeSignature = "Change Signature";
@@ -28,12 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Command handler name for Class View.
         /// </summary>
         public const string ClassView = "Class View";
-
-        /// <summary>
-        /// Command handler name for Comment Block Completion.
-        /// </summary>
-        /// <remarks></remarks>
-        public const string CommentBlockCompletion = "Comment Block Completion Command Handler";
 
         /// <summary>
         /// Command handler name for Comment Selection.
