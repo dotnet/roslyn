@@ -54,6 +54,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
 
                 return TryGoToImplementations(implementations, mapping, cancellationToken, out message);
             }
+            else if ((mapping.Symbol as INamedTypeSymbol)?.TypeKind == TypeKind.Class)
+            {
+                var implementations =
+                    SymbolFinder.FindDerivedClassesAsync((INamedTypeSymbol)mapping.Symbol, mapping.Solution, cancellationToken: cancellationToken)
+                        .WaitAndGetResult(cancellationToken)
+                        .Concat(mapping.Symbol);
+
+                return TryGoToImplementations(implementations, mapping, cancellationToken, out message);
+            }
             else if (mapping.Symbol.IsOverridable())
             {
                 var implementations =
