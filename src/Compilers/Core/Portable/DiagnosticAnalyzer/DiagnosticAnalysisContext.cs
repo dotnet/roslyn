@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -195,6 +196,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public virtual void ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags analysisMode)
         {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="key"/>.
+        /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
+        /// <param name="key"><see cref="SourceText"/> for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value associated with the key.</param>
+        /// <param name="value">Value associated with the key.</param>
+        /// <returns>Returns true on success, false otherwise.</returns>
+        public bool TryGetValue<TValue>(SourceText key, SourceTextValueProvider<TValue> valueProvider, out TValue value)
+        {
+            return TryGetValue(key, valueProvider.CoreValueProvider, out value);
+        }
+
+        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)
+            where TKey : class
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(key, valueProvider);
+            return valueProvider.TryGetValue(key, out value);
         }
     }
 
@@ -408,6 +430,47 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             throw new NotImplementedException();
         }
+
+        /// <summary>
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="key"/>.
+        /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
+        /// <param name="key"><see cref="SourceText"/> for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value associated with the key.</param>
+        /// <param name="value">Value associated with the key.</param>
+        /// <returns>Returns true on success, false otherwise.</returns>
+        public bool TryGetValue<TValue>(SourceText key, SourceTextValueProvider<TValue> valueProvider, out TValue value)
+        {
+            return TryGetValue(key, valueProvider.CoreValueProvider, out value);
+        }
+
+        /// <summary>
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="key"/>.
+        /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
+        /// <param name="key"><see cref="SyntaxTree"/> instance for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value associated with the key.</param>
+        /// <param name="value">Value associated with the key.</param>
+        /// <returns>Returns true on success, false otherwise.</returns>
+        public bool TryGetValue<TValue>(SyntaxTree key, SyntaxTreeValueProvider<TValue> valueProvider, out TValue value)
+        {
+            return TryGetValue(key, valueProvider.CoreValueProvider, out value);
+        }
+
+        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)
+            where TKey : class
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(key, valueProvider);
+            return TryGetValueCore(key, valueProvider, out value);
+        }
+
+        internal virtual bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)
+            where TKey : class
+        {
+            throw new NotImplementedException();
+        }
     }
 
     /// <summary>
@@ -420,6 +483,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
+        private readonly CompilationAnalysisValueProviderFactory _compilationAnalysisValueProviderFactoryOpt;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -438,11 +502,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
         public CompilationAnalysisContext(Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+            : this(compilation, options, reportDiagnostic, isSupportedDiagnostic, null, cancellationToken)
+        {
+        }
+
+        internal CompilationAnalysisContext(
+            Compilation compilation,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            CompilationAnalysisValueProviderFactory compilationAnalysisValueProviderFactoryOpt,
+            CancellationToken cancellationToken)
         {
             _compilation = compilation;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            _compilationAnalysisValueProviderFactoryOpt = compilationAnalysisValueProviderFactoryOpt;
             _cancellationToken = cancellationToken;
         }
 
@@ -457,6 +533,48 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 _reportDiagnostic(diagnostic);
             }
+        }
+
+        /// <summary>
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="key"/>.
+        /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
+        /// <param name="key"><see cref="SourceText"/> for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value associated with the key.</param>
+        /// <param name="value">Value associated with the key.</param>
+        /// <returns>Returns true on success, false otherwise.</returns>
+        public bool TryGetValue<TValue>(SourceText key, SourceTextValueProvider<TValue> valueProvider, out TValue value)
+        {
+            return TryGetValue(key, valueProvider.CoreValueProvider, out value);
+        }
+
+        /// <summary>
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="key"/>.
+        /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
+        /// <param name="key"><see cref="SyntaxTree"/> for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value associated with the key.</param>
+        /// <param name="value">Value associated with the key.</param>
+        /// <returns>Returns true on success, false otherwise.</returns>
+        public bool TryGetValue<TValue>(SyntaxTree key, SyntaxTreeValueProvider<TValue> valueProvider, out TValue value)
+        {
+            return TryGetValue(key, valueProvider.CoreValueProvider, out value);
+        }
+
+        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)
+            where TKey : class
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(key, valueProvider);
+
+            if (_compilationAnalysisValueProviderFactoryOpt != null)
+            {
+                var compilationAnalysisValueProvider = _compilationAnalysisValueProviderFactoryOpt.GetValueProvider(valueProvider);
+                return compilationAnalysisValueProvider.TryGetValue(key, out value);
+            }
+
+            return valueProvider.TryGetValue(key, out value);
         }
     }
 

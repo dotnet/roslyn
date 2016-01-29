@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -833,6 +834,139 @@ namespace Microsoft.CodeAnalysis
                 // error diagnostic
                 diagnostic = Diagnostic.Create(Error, location, messageArguments);
                 addDiagnostic(diagnostic);
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class SharedStateAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly SyntaxTreeValueProvider<bool> _treeValueProvider;
+            private readonly HashSet<SyntaxTree> _treeCallbackSet;
+
+            private readonly SourceTextValueProvider<int> _textValueProvider;
+            private readonly HashSet<SourceText> _textCallbackSet;
+
+            public static readonly DiagnosticDescriptor GeneratedCodeDescriptor = new DiagnosticDescriptor(
+                "GeneratedCodeDiagnostic",
+                "Title1",
+                "GeneratedCodeDiagnostic {0}",
+                "Category",
+                DiagnosticSeverity.Warning,
+                true);
+
+            public static readonly DiagnosticDescriptor NonGeneratedCodeDescriptor = new DiagnosticDescriptor(
+                "UserCodeDiagnostic",
+                "Title2",
+                "UserCodeDiagnostic {0}",
+                "Category",
+                DiagnosticSeverity.Warning,
+                true);
+
+            public static readonly DiagnosticDescriptor UniqueTextFileDescriptor = new DiagnosticDescriptor(
+                "UniqueTextFileDiagnostic",
+                "Title3",
+                "UniqueTextFileDiagnostic {0}",
+                "Category",
+                DiagnosticSeverity.Warning,
+                true);
+
+            public static readonly DiagnosticDescriptor NumberOfUniqueTextFileDescriptor = new DiagnosticDescriptor(
+                "NumberOfUniqueTextFileDescriptor",
+                "Title4",
+                "NumberOfUniqueTextFileDescriptor {0}",
+                "Category",
+                DiagnosticSeverity.Warning,
+                true);
+
+            public SharedStateAnalyzer()
+            {
+                _treeValueProvider = new SyntaxTreeValueProvider<bool>(IsGeneratedCode);
+                _treeCallbackSet = new HashSet<SyntaxTree>(SyntaxTreeComparer.Instance);
+
+                _textValueProvider = new SourceTextValueProvider<int>(GetCharacterCount);
+                _textCallbackSet = new HashSet<SourceText>(SourceTextComparer.Instance);
+            }
+
+            private bool IsGeneratedCode(SyntaxTree tree)
+            {
+                lock (_treeCallbackSet)
+                {
+                    if (!_treeCallbackSet.Add(tree))
+                    {
+                        throw new Exception("Expected driver to make a single callback per tree");
+                    }
+                }
+
+                var fileNameWithoutExtension = PathUtilities.GetFileName(tree.FilePath, includeExtension: false);
+                return fileNameWithoutExtension.EndsWith(".designer", StringComparison.OrdinalIgnoreCase) ||
+                    fileNameWithoutExtension.EndsWith(".generated", StringComparison.OrdinalIgnoreCase);
+            }
+
+            private int GetCharacterCount(SourceText text)
+            {
+                lock (_textCallbackSet)
+                {
+                    if (!_textCallbackSet.Add(text))
+                    {
+                        throw new Exception("Expected driver to make a single callback per text");
+                    }
+                }
+
+                return text.Length;
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(GeneratedCodeDescriptor, NonGeneratedCodeDescriptor, UniqueTextFileDescriptor, NumberOfUniqueTextFileDescriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationStartAction(this.OnCompilationStart);
+            }
+
+            private void OnCompilationStart(CompilationStartAnalysisContext context)
+            {
+                context.RegisterSymbolAction(symbolContext =>
+                {
+                    var descriptor = GeneratedCodeDescriptor;
+                    foreach (var location in symbolContext.Symbol.Locations)
+                    {
+                        bool isGeneratedCode;
+                        context.TryGetValue(location.SourceTree, _treeValueProvider, out isGeneratedCode);
+                        if (!isGeneratedCode)
+                        {
+                            descriptor = NonGeneratedCodeDescriptor;
+                            break;
+                        }
+                    }
+
+                    var diagnostic = Diagnostic.Create(descriptor, symbolContext.Symbol.Locations[0], symbolContext.Symbol.Name);
+                    symbolContext.ReportDiagnostic(diagnostic);
+                }, SymbolKind.NamedType);
+
+                context.RegisterSyntaxTreeAction(treeContext =>
+                {
+                    bool isGeneratedCode;
+                    context.TryGetValue(treeContext.Tree, _treeValueProvider, out isGeneratedCode);
+                    var descriptor = isGeneratedCode ? GeneratedCodeDescriptor : NonGeneratedCodeDescriptor;
+
+                    var diagnostic = Diagnostic.Create(descriptor, Location.None, treeContext.Tree.FilePath);
+                    treeContext.ReportDiagnostic(diagnostic);
+
+                    int length;
+                    context.TryGetValue(treeContext.Tree.GetText(), _textValueProvider, out length);
+                    diagnostic = Diagnostic.Create(UniqueTextFileDescriptor, Location.None, treeContext.Tree.FilePath);
+                    treeContext.ReportDiagnostic(diagnostic);
+                });
+
+                context.RegisterCompilationEndAction(endContext =>
+                {
+                    if (_treeCallbackSet.Count != endContext.Compilation.SyntaxTrees.Count())
+                    {
+                        throw new Exception("Expected driver to make a callback for every tree");
+                    }
+
+                    var diagnostic = Diagnostic.Create(NumberOfUniqueTextFileDescriptor, Location.None, _textCallbackSet.Count);
+                    endContext.ReportDiagnostic(diagnostic);
+                });
             }
         }
     }

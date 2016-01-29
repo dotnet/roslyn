@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Func<DiagnosticAnalyzer, bool> _shouldSkipAnalysisOnGeneratedCode;
         private readonly Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> _shouldSuppressGeneratedCodeDiagnostic;
         private readonly ConcurrentDictionary<DiagnosticAnalyzer, TimeSpan> _analyzerExecutionTimeMapOpt;
+        private readonly CompilationAnalysisValueProviderFactory _compilationAnalysisValueProviderFactory;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -163,6 +164,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _addCategorizedLocalDiagnosticOpt = addCategorizedLocalDiagnosticOpt;
             _addCategorizedNonLocalDiagnosticOpt = addCategorizedNonLocalDiagnosticOpt;
             _cancellationToken = cancellationToken;
+
+            _compilationAnalysisValueProviderFactory = new CompilationAnalysisValueProviderFactory();
         }
 
         public AnalyzerExecutor WithCancellationToken(CancellationToken cancellationToken)
@@ -212,7 +215,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _cancellationToken.ThrowIfCancellationRequested();
 
                 ExecuteAndCatchIfThrows(startAction.Analyzer,
-                    () => startAction.Action(new AnalyzerCompilationStartAnalysisContext(startAction.Analyzer, compilationScope, _compilation, _analyzerOptions, _cancellationToken)),
+                    () => startAction.Action(new AnalyzerCompilationStartAnalysisContext(startAction.Analyzer, compilationScope, 
+                        _compilation, _analyzerOptions, _compilationAnalysisValueProviderFactory, _cancellationToken)),
                     new AnalysisContextInfo(_compilation));
             }
         }
@@ -263,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     ExecuteAndCatchIfThrows(endAction.Analyzer,
                         () => endAction.Action(new CompilationAnalysisContext(
                             _compilation, _analyzerOptions, addDiagnostic,
-                            d => IsSupportedDiagnostic(endAction.Analyzer, d), _cancellationToken)),
+                            d => IsSupportedDiagnostic(endAction.Analyzer, d), _compilationAnalysisValueProviderFactory, _cancellationToken)),
                         new AnalysisContextInfo(_compilation));
 
                     analyzerStateOpt?.ProcessedActions.Add(endAction);

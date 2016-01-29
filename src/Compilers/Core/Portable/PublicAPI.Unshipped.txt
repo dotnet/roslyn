@@ -2,7 +2,12 @@ Microsoft.CodeAnalysis.CompilationOptions.PublicSign.get -> bool
 Microsoft.CodeAnalysis.CompilationOptions.WithPublicSign(bool publicSign) -> Microsoft.CodeAnalysis.CompilationOptions
 Microsoft.CodeAnalysis.CompilationReference.Equals(Microsoft.CodeAnalysis.CompilationReference other) -> bool
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.Semantics.OperationKind[] operationKinds) -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.Text.SourceText key, Microsoft.CodeAnalysis.Diagnostics.SourceTextValueProvider<TValue> valueProvider, out TValue value) -> bool
+Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.SyntaxTree key, Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeValueProvider<TValue> valueProvider, out TValue value) -> bool
+Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.Text.SourceText key, Microsoft.CodeAnalysis.Diagnostics.SourceTextValueProvider<TValue> valueProvider, out TValue value) -> bool
 Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.Semantics.OperationKind[] operationKinds) -> void
+Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.SyntaxTree key, Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeValueProvider<TValue> valueProvider, out TValue value) -> bool
+Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.Text.SourceText key, Microsoft.CodeAnalysis.Diagnostics.SourceTextValueProvider<TValue> valueProvider, out TValue value) -> bool
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.AnalyzerExceptionFilter.get -> System.Func<System.Exception, bool>
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.CompilationWithAnalyzersOptions(Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<System.Exception, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostic> onAnalyzerException, System.Func<System.Exception, bool> analyzerExceptionFilter, bool concurrentAnalysis, bool logAnalyzerExecutionTime) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.CompilationWithAnalyzersOptions(Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<System.Exception, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostic> onAnalyzerException, System.Func<System.Exception, bool> analyzerExceptionFilter, bool concurrentAnalysis, bool logAnalyzerExecutionTime, bool reportSuppressedDiagnostics) -> void
@@ -31,6 +36,10 @@ Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.OperationB
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.OwningSymbol.get -> Microsoft.CodeAnalysis.ISymbol
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.Semantics.OperationKind[] operationKinds) -> void
+Microsoft.CodeAnalysis.Diagnostics.SourceTextValueProvider<TValue>
+Microsoft.CodeAnalysis.Diagnostics.SourceTextValueProvider<TValue>.SourceTextValueProvider(System.Func<Microsoft.CodeAnalysis.Text.SourceText, TValue> computeValue, System.Collections.Generic.IEqualityComparer<Microsoft.CodeAnalysis.Text.SourceText> sourceTextComparer = null) -> void
+Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeValueProvider<TValue>
+Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeValueProvider<TValue>.SyntaxTreeValueProvider(System.Func<Microsoft.CodeAnalysis.SyntaxTree, TValue> computeValue, System.Collections.Generic.IEqualityComparer<Microsoft.CodeAnalysis.SyntaxTree> syntaxTreeComparer = null) -> void
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockEndActionsCount.get -> int
