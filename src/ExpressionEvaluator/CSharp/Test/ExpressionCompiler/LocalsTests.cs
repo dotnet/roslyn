@@ -7,8 +7,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
@@ -16,7 +16,7 @@ using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class LocalsTests : ExpressionCompilerTestBase
     {
@@ -148,17 +148,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            compilation0.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-            var runtime = CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                references,
-                exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes),
-                includeLocalSignatures: false);
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(comp, includeLocalSignatures: false);
+
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M",
@@ -556,12 +548,8 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            compilation0.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes));
+            
+            var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
@@ -617,15 +605,9 @@ class P
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            compilation0.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
+            var runtime = CreateRuntimeInstance(compilation0);
+            var context = CreateMethodContext(runtime, "C.M");
 
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes));
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
@@ -1654,20 +1636,9 @@ public struct B
                 options: TestOptions.DebugDll,
                 references: new[] { compilation0.EmitToImageReference() });
 
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            compilation1.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-
-            var runtime = CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                ImmutableArray.Create(MscorlibRef), // no reference to compilation0
-                exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes));
-
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
+            // no reference to compilation0
+            var runtime = CreateRuntimeInstance(compilation1, new[] { MscorlibRef });
+            var context = CreateMethodContext(runtime, "C.M");
 
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -1707,15 +1678,8 @@ public struct B
                 options: TestOptions.DebugDll,
                 references: new[] { compilation0.EmitToImageReference() });
 
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            compilation1.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-            var runtime = CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                ImmutableArray.Create(MscorlibRef), // no reference to compilation0
-                exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes));
+            // no reference to compilation0
+            var runtime = CreateRuntimeInstance(compilation1, new[] { MscorlibRef });
 
             var context = CreateMethodContext(
                 runtime,
@@ -1808,15 +1772,8 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes));
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, "C.M");
 
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -1847,15 +1804,8 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes));
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, "C.M");
 
             var testData = new CompilationTestData();
 
@@ -1889,15 +1839,8 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes));
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, methodName: "C.M");
 
             string errorMessage;
             var testData = new CompilationTestData();
@@ -2669,13 +2612,9 @@ class C
             var libRef = CreateCompilationWithMscorlib(libSource).EmitToImageReference();
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemRef }, TestOptions.DebugDll);
 
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> unusedReferences;
-            var result = comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out unusedReferences);
-            Assert.True(result);
-
-            var runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.Create(MscorlibRef, SystemRef, SystemCoreRef, SystemXmlLinqRef, libRef), exeBytes, SymReaderFactory.CreateReader(pdbBytes));
+            var runtime = CreateRuntimeInstance(
+                comp, 
+                new[] { MscorlibRef, SystemRef, SystemCoreRef, SystemXmlLinqRef, libRef });
 
             string typeName;
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();

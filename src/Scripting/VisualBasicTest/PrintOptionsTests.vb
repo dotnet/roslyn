@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.UnitTests
             Assert.Equal("ChrW(&H10)", Formatter.FormatObject(ChrW(&H10), options))
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8241")>
         Public Sub ValidMemberDisplayFormat()
             Dim options = New PrintOptions()
 

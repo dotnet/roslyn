@@ -3,7 +3,7 @@
 using System;
 using System.Globalization;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
     internal sealed class CustomDiagnosticFormatter : DiagnosticFormatter
     {
