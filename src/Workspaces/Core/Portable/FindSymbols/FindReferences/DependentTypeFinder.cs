@@ -127,27 +127,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
         }
 
-        public static Task<IEnumerable<INamedTypeSymbol>> FindDerivedInterfacesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            CancellationToken cancellationToken)
-        {
-            if (type != null && type.TypeKind == TypeKind.Interface)
-            {
-                type = type.OriginalDefinition;
-                return GetDependentTypesAsync(
-                    type,
-                    solution,
-                    projects,
-                    s_findDerivedInterfacesPredicate,
-                    s_derivedInterfacesCache,
-                    cancellationToken);
-            }
-
-            return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
-        }
-
         public static Task<IEnumerable<INamedTypeSymbol>> FindImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
