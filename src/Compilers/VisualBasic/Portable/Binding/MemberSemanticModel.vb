@@ -795,17 +795,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     result = summary.LowestBoundNode
             End Select
 
-            ' Screen out bound nodes that aren't appropriate as IOperations.
-            If result IsNot Nothing Then
-                If result.Kind = BoundKind.EqualsValue Then
-                    result = DirectCast(result, BoundEqualsValue).Value
-                End If
-
-                If result.Kind = BoundKind.FieldOrPropertyInitializer Then
-                    result = DirectCast(result, BoundFieldOrPropertyInitializer).InitialValue
-                End If
-            End If
-
             Return TryCast(result, IOperation)
         End Function
 

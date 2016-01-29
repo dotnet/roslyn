@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
                 io,
                 compiler,
                 VisualBasicScriptCompiler.Instance,
-                VisualBasicObjectFormatter.Instance)
+                New VisualBasicObjectFormatter())
         End Function
 
         <Fact()>

@@ -68,8 +68,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return VisitBlock(CType(node, BoundBlock), arg)
                 Case BoundKind.LocalDeclaration
                     Return VisitLocalDeclaration(CType(node, BoundLocalDeclaration), arg)
-                Case BoundKind.FieldOrPropertyInitializer
-                    Return VisitFieldOrPropertyInitializer(CType(node, BoundFieldOrPropertyInitializer), arg)
+                Case BoundKind.FieldInitializer
+                    Return VisitFieldInitializer(CType(node, BoundFieldInitializer), arg)
+                Case BoundKind.PropertyInitializer
+                    Return VisitPropertyInitializer(CType(node, BoundPropertyInitializer), arg)
                 Case BoundKind.Sequence
                     Return VisitSequence(CType(node, BoundSequence), arg)
                 Case BoundKind.ExpressionStatement

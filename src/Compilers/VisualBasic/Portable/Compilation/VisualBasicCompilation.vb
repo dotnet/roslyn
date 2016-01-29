@@ -2681,12 +2681,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If current.Kind = DeclarationKind.Namespace Then
                     If includeNamespace AndAlso predicate(current.Name) Then
                         Dim container = GetSpineSymbol(spine)
-                        [set].Add(GetSymbol(container, current))
+                        Dim symbol = GetSymbol(container, current)
+                        If symbol IsNot Nothing Then
+                            [set].Add(symbol)
+                        End If
                     End If
                 Else
                     If includeType AndAlso predicate(current.Name) Then
                         Dim container = GetSpineSymbol(spine)
-                        [set].Add(GetSymbol(container, current))
+                        Dim symbol = GetSymbol(container, current)
+                        If symbol IsNot Nothing Then
+                            [set].Add(symbol)
+                        End If
                     End If
 
                     If includeMember Then
@@ -2719,7 +2725,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For Each name In mergedType.MemberNames
                     If predicate(name) Then
                         container = If(container, GetSpineSymbol(spine))
-                        [set].UnionWith(container.GetMembers(name))
+                        If container IsNot Nothing Then
+                            [set].UnionWith(container.GetMembers(name))
+                        End If
                     End If
                 Next
 
