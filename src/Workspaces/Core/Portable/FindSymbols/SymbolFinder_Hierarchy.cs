@@ -162,8 +162,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // A symbol can only have implementations if it's an interface or a
-            // method/property/event from an interface.  TODO(cyrusn): Handle events once they're
-            // exposed in the compiler layer.
+            // method/property/event from an interface.
             if (symbol is INamedTypeSymbol)
             {
                 var namedTypeSymbol = (INamedTypeSymbol)symbol;

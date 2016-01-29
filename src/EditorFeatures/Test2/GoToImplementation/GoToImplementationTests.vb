@@ -187,6 +187,23 @@ interface I { void $$M(); }
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithOneEventImplementation() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class C : I { public event EventHandler [|E|]; }
+interface I { event EventHandler $$E; }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         Public Async Function TestWithTwoMethodImplementations() As Task
             Dim workspace =
 <Workspace>
