@@ -372,6 +372,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             DefaultVisit(operation);
         }
+
+        public virtual void VisitLocalFunctionStatement(IStatement operation)
+        {
+            DefaultVisit(operation);
+        }
     }
 
     /// <summary>
@@ -749,6 +754,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitInvalidExpression(IExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitLocalFunctionStatement(IStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

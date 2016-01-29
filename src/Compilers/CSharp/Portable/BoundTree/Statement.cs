@@ -766,5 +766,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     partial class BoundLocalFunctionStatement
     {
         protected override OperationKind StatementKind => OperationKind.LocalFunctionStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitLocalFunctionStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitLocalFunctionStatement(this, argument);
+        }
     }
 }

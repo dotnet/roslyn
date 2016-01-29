@@ -1,17 +1,4 @@
 *REMOVED*static Microsoft.CodeAnalysis.SyntaxNodeExtensions.NormalizeWhitespace<TNode>(this TNode node, string indentation = "    ", bool elasticTrivia = false) -> TNode
-abstract Microsoft.CodeAnalysis.Diagnostic.IsSuppressed.get -> bool
-abstract Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.ConfigureGeneratedCodeAnalysis(Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags analysisMode) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.EnableConcurrentExecution() -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.OperationKind> operationKinds) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationBlockStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext> action) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.OperationKind> operationKinds) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterOperationBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterOperationBlockStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext> action) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.OperationKind> operationKinds) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationBlockEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
-abstract Microsoft.CodeAnalysis.ParseOptions.CommonWithKind(Microsoft.CodeAnalysis.SourceCodeKind kind) -> Microsoft.CodeAnalysis.ParseOptions
-abstract Microsoft.CodeAnalysis.SemanticModel.GetOperationCore(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.Semantics.IOperation
 Microsoft.CodeAnalysis.CommandLineArguments.InteractiveMode.get -> bool
 Microsoft.CodeAnalysis.CommandLineArguments.PathMap.get -> System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<string, string>>
 Microsoft.CodeAnalysis.CommandLineArguments.ScriptArguments.get -> System.Collections.Immutable.ImmutableArray<string>
@@ -73,8 +60,8 @@ Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.OwningSymbol.ge
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
-Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.OperationBlocks.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IOperation>
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.OperationBlockStartAnalysisContext(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IOperation> operationBlocks, Microsoft.CodeAnalysis.ISymbol owningSymbol, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Threading.CancellationToken cancellationToken) -> void
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.OperationBlocks.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IOperation>
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.OwningSymbol.get -> Microsoft.CodeAnalysis.ISymbol
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.Semantics.OperationKind[] operationKinds) -> void
@@ -277,8 +264,8 @@ Microsoft.CodeAnalysis.Semantics.CaseKind.SingleValue = 0 -> Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.ConversionKind.AsCast = 2 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.ConversionKind.Basic = 3 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
-Microsoft.CodeAnalysis.Semantics.ConversionKind.Cast = 1 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.ConversionKind.CSharp = 4 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
+Microsoft.CodeAnalysis.Semantics.ConversionKind.Cast = 1 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.ConversionKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.ConversionKind.Operator = 5 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.IAddressOfExpression
@@ -384,10 +371,10 @@ Microsoft.CodeAnalysis.Semantics.IInvocationExpression.TargetMethod.get -> Micro
 Microsoft.CodeAnalysis.Semantics.IIsExpression
 Microsoft.CodeAnalysis.Semantics.IIsExpression.IsType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.IIsExpression.Operand.get -> Microsoft.CodeAnalysis.Semantics.IExpression
-Microsoft.CodeAnalysis.Semantics.ILabeledStatement
-Microsoft.CodeAnalysis.Semantics.ILabeledStatement.Labeled.get -> Microsoft.CodeAnalysis.Semantics.IStatement
 Microsoft.CodeAnalysis.Semantics.ILabelStatement
 Microsoft.CodeAnalysis.Semantics.ILabelStatement.Label.get -> Microsoft.CodeAnalysis.ILabelSymbol
+Microsoft.CodeAnalysis.Semantics.ILabeledStatement
+Microsoft.CodeAnalysis.Semantics.ILabeledStatement.Labeled.get -> Microsoft.CodeAnalysis.Semantics.IStatement
 Microsoft.CodeAnalysis.Semantics.ILambdaExpression
 Microsoft.CodeAnalysis.Semantics.ILambdaExpression.Body.get -> Microsoft.CodeAnalysis.Semantics.IBlockStatement
 Microsoft.CodeAnalysis.Semantics.ILambdaExpression.Signature.get -> Microsoft.CodeAnalysis.IMethodSymbol
@@ -530,8 +517,8 @@ Microsoft.CodeAnalysis.Semantics.OperationKind.InvalidExpression = 25 -> Microso
 Microsoft.CodeAnalysis.Semantics.OperationKind.InvalidStatement = 1 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.InvocationExpression = 28 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.IsExpression = 51 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.LabeledStatement = 11 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.LabelStatement = 10 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.LabeledStatement = 11 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.LambdaExpression = 43 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.LateBoundMemberReferenceExpression = 38 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.LiteralExpression = 26 -> Microsoft.CodeAnalysis.Semantics.OperationKind
@@ -643,6 +630,19 @@ Microsoft.CodeAnalysis.SourceFileResolver.PathMap.get -> System.Collections.Immu
 Microsoft.CodeAnalysis.SourceFileResolver.SourceFileResolver(System.Collections.Immutable.ImmutableArray<string> searchPaths, string baseDirectory, System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<string, string>> pathMap) -> void
 Microsoft.CodeAnalysis.StrongNameProvider.StrongNameProvider() -> void
 Microsoft.CodeAnalysis.SyntaxNode.FindTrivia(int position, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, bool> stepInto) -> Microsoft.CodeAnalysis.SyntaxTrivia
+abstract Microsoft.CodeAnalysis.Diagnostic.IsSuppressed.get -> bool
+abstract Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.ConfigureGeneratedCodeAnalysis(Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags analysisMode) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.EnableConcurrentExecution() -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.OperationKind> operationKinds) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationBlockStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext> action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.OperationKind> operationKinds) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterOperationBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterOperationBlockStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext> action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.OperationKind> operationKinds) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationBlockEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
+abstract Microsoft.CodeAnalysis.ParseOptions.CommonWithKind(Microsoft.CodeAnalysis.SourceCodeKind kind) -> Microsoft.CodeAnalysis.ParseOptions
+abstract Microsoft.CodeAnalysis.SemanticModel.GetOperationCore(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.Semantics.IOperation
 override Microsoft.CodeAnalysis.CompilationReference.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.CompilationReference.GetHashCode() -> int
 override Microsoft.CodeAnalysis.SyntaxTree.ToString() -> string
@@ -692,11 +692,12 @@ virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitInvalidExpressio
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitInvalidStatement(Microsoft.CodeAnalysis.Semantics.IStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitInvocationExpression(Microsoft.CodeAnalysis.Semantics.IInvocationExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitIsExpression(Microsoft.CodeAnalysis.Semantics.IIsExpression operation) -> void
-virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitLabeledStatement(Microsoft.CodeAnalysis.Semantics.ILabeledStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitLabelStatement(Microsoft.CodeAnalysis.Semantics.ILabelStatement operation) -> void
+virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitLabeledStatement(Microsoft.CodeAnalysis.Semantics.ILabeledStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitLambdaExpression(Microsoft.CodeAnalysis.Semantics.ILambdaExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitLateBoundMemberReferenceExpression(Microsoft.CodeAnalysis.Semantics.ILateBoundMemberReferenceExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitLiteralExpression(Microsoft.CodeAnalysis.Semantics.ILiteralExpression operation) -> void
+virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitLocalFunctionStatement(Microsoft.CodeAnalysis.Semantics.IStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitLocalReferenceExpression(Microsoft.CodeAnalysis.Semantics.ILocalReferenceExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitLockStatement(Microsoft.CodeAnalysis.Semantics.ILockStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor.VisitMethodBindingExpression(Microsoft.CodeAnalysis.Semantics.IMethodBindingExpression operation) -> void
@@ -765,11 +766,12 @@ virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.V
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitInvalidStatement(Microsoft.CodeAnalysis.Semantics.IStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitInvocationExpression(Microsoft.CodeAnalysis.Semantics.IInvocationExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitIsExpression(Microsoft.CodeAnalysis.Semantics.IIsExpression operation, TArgument argument) -> TResult
-virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitLabeledStatement(Microsoft.CodeAnalysis.Semantics.ILabeledStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitLabelStatement(Microsoft.CodeAnalysis.Semantics.ILabelStatement operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitLabeledStatement(Microsoft.CodeAnalysis.Semantics.ILabeledStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitLambdaExpression(Microsoft.CodeAnalysis.Semantics.ILambdaExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitLateBoundMemberReferenceExpression(Microsoft.CodeAnalysis.Semantics.ILateBoundMemberReferenceExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitLiteralExpression(Microsoft.CodeAnalysis.Semantics.ILiteralExpression operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitLocalFunctionStatement(Microsoft.CodeAnalysis.Semantics.IStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitLocalReferenceExpression(Microsoft.CodeAnalysis.Semantics.ILocalReferenceExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitLockStatement(Microsoft.CodeAnalysis.Semantics.ILockStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.IOperationVisitor<TArgument, TResult>.VisitMethodBindingExpression(Microsoft.CodeAnalysis.Semantics.IMethodBindingExpression operation, TArgument argument) -> TResult
