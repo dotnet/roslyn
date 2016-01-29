@@ -1627,7 +1627,9 @@
     }
   },
   "projectFileDependencyGroups": {
-    "": [],
+    "": [
+      "System.Runtime >= 4.0.21-beta-23504"
+    ],
     ".NETFramework,Version=v4.6": []
   }
 }

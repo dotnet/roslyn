@@ -2360,6 +2360,7 @@
   "projectFileDependencyGroups": {
     "": [
       "Microsoft.NETCore.Portable.Compatibility >= 1.0.1-beta-23504",
+      "System.Collections.Immutable >= 1.1.37<= 1.1.37.0",
       "System.Runtime >= 4.0.21-beta-23504"
     ],
     ".NETFramework,Version=v4.6": []
