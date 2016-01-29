@@ -3,13 +3,14 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface ICodeActionEditHandlerService
     {
         ITextBufferAssociatedViewService AssociatedViewService { get; }
-        SolutionPreviewResult GetPreviews(Workspace workspace, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken);
+        SolutionPreviewResult GetPreviews(Workspace workspace, IEnumerable<CodeActionOperation> operations, ITextView textView, CancellationToken cancellationToken);
         void Apply(Workspace workspace, Document fromDocument, IEnumerable<CodeActionOperation> operations, string title, CancellationToken cancellationToken);
     }
 }

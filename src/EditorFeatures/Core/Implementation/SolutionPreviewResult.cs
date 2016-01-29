@@ -13,10 +13,27 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
+    internal struct PreviewsAndOptions
+    {
+        public readonly IReadOnlyList<object> Previews;
+        public readonly bool HideDefaultChrome;
+
+        public PreviewsAndOptions(IReadOnlyList<object> previews, bool hideDefaultChrome)
+        {
+            Previews = previews;
+            HideDefaultChrome = hideDefaultChrome;
+        }
+    }
+
     internal class SolutionPreviewResult : ForegroundThreadAffinitizedObject
     {
         private readonly IList<SolutionPreviewItem> _previews;
         public readonly SolutionChangeSummary ChangeSummary;
+
+        public SolutionPreviewResult(SolutionPreviewItem preview, SolutionChangeSummary changeSummary = null)
+            : this(new List<SolutionPreviewItem> { preview }, changeSummary)
+        {
+        }
 
         public SolutionPreviewResult(IList<SolutionPreviewItem> previews, SolutionChangeSummary changeSummary = null)
         {
@@ -26,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
         public bool IsEmpty => _previews.Count == 0;
 
-        public async Task<IList<object>> GetPreviewsAsync(DocumentId preferredDocumentId = null, ProjectId preferredProjectId = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<PreviewsAndOptions> GetPreviewsAsync(DocumentId preferredDocumentId = null, ProjectId preferredProjectId = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             AssertIsForeground();
             cancellationToken.ThrowIfCancellationRequested();
@@ -50,6 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
             var result = new List<object>();
             var gotRichPreview = false;
+            var hideDefaultChrome = false;
 
             foreach (var previewItem in _previews)
             {
@@ -67,9 +85,13 @@ namespace Microsoft.CodeAnalysis.Editor
                         gotRichPreview = true;
                     }
                 }
+
+                hideDefaultChrome |= previewItem.HideDefaultChrome;
             }
 
-            return result.Count == 0 ? null : result;
+            return new PreviewsAndOptions(
+                result.Count == 0 ? null : result,
+                hideDefaultChrome);
         }
 
         internal static SolutionPreviewResult Merge(SolutionPreviewResult result1, SolutionPreviewResult result2)

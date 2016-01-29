@@ -81,7 +81,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             return helpLink;
         }
 
-        object IPreviewPaneService.GetPreviewPane(DiagnosticData diagnostic, string language, string projectType, IList<object> previewContent)
+        object IPreviewPaneService.GetPreviewPane(
+            DiagnosticData diagnostic, string language, string projectType, IReadOnlyList<object> previewContent, bool hideDefaultChrome)
         {
             var title = diagnostic?.Message;
 
@@ -96,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
                 return new PreviewPane(
                     severityIcon: null, id: null, title: null, description: null, helpLink: null, helpLinkToolTipText: null,
-                    previewContent: previewContent, logIdVerbatimInTelemetry: false);
+                    previewContent: previewContent, logIdVerbatimInTelemetry: false, hideDefaultChrome: hideDefaultChrome);
             }
 
             var helpLinkToolTipText = string.Empty;
@@ -109,7 +110,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 helpLink: helpLink,
                 helpLinkToolTipText: helpLinkToolTipText,
                 previewContent: previewContent,
-                logIdVerbatimInTelemetry: diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry));
+                logIdVerbatimInTelemetry: diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry),
+                hideDefaultChrome: hideDefaultChrome);
         }
     }
 }

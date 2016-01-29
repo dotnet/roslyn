@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
@@ -37,7 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             get { return _associatedViewService; }
         }
 
-        public SolutionPreviewResult GetPreviews(Workspace workspace, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
+        public SolutionPreviewResult GetPreviews(
+            Workspace workspace, IEnumerable<CodeActionOperation> operations, ITextView textView, CancellationToken cancellationToken)
         {
             if (operations == null)
             {
@@ -65,11 +67,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     }
                 }
 
+                var previewOpWithTextView = op as PreviewOperationWithTextView;
+                if (previewOpWithTextView != null)
+                {
+                    currentResult = SolutionPreviewResult.Merge(currentResult,
+                        new SolutionPreviewResult(new SolutionPreviewItem(
+                            projectId: null, documentId: null,
+                            lazyPreview: c => previewOpWithTextView.GetPreviewAsync(textView, c),
+                            hideDefaultChrome: previewOpWithTextView.HideDefaultPreviewChrome)));
+                    continue;
+                }
+
                 var previewOp = op as PreviewOperation;
                 if (previewOp != null)
                 {
-                    currentResult = SolutionPreviewResult.Merge(currentResult, new SolutionPreviewResult(new List<SolutionPreviewItem>() { new SolutionPreviewItem(projectId: null, documentId: null,
-                        lazyPreview: c => previewOp.GetPreviewAsync(c)) }));
+                    currentResult = SolutionPreviewResult.Merge(currentResult,
+                        new SolutionPreviewResult(new SolutionPreviewItem(
+                            projectId: null, documentId: null,
+                            lazyPreview: c => previewOp.GetPreviewAsync(c),
+                            hideDefaultChrome: previewOp.HideDefaultPreviewChrome)));
                     continue;
                 }
 
@@ -78,7 +94,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 if (title != null)
                 {
                     currentResult = SolutionPreviewResult.Merge(currentResult,
-                        new SolutionPreviewResult(new List<SolutionPreviewItem> { new SolutionPreviewItem(projectId: null, documentId: null, text: title) }));
+                        new SolutionPreviewResult(new SolutionPreviewItem(
+                            projectId: null, documentId: null, text: title, hideDefaultChrome: op.HideDefaultPreviewChrome)));
                     continue;
                 }
             }

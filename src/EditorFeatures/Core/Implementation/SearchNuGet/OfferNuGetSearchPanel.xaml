@@ -1,0 +1,30 @@
+﻿<UserControl x:Class="Microsoft.CodeAnalysis.Editor.Implementation.SearchNuGet.OfferNuGetSearchPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Microsoft.CodeAnalysis.Editor.Implementation.SearchNuGet"
+             xmlns:utilities="clr-namespace:Microsoft.CodeAnalysis.Editor.Shared.Utilities"
+             x:ClassModifier="internal"
+             Background="{DynamicResource {x:Static utilities:CodeAnalysisColors.CommandBarMenuBackgroundGradientBrushKey}}"  
+             mc:Ignorable="d" Width="430">
+    <Grid>
+        <StackPanel>
+            <TextBlock x:Name="textBlock" TextWrapping="Wrap" Margin="10,10,10,0">
+                <Run Text="&quot;Add Import&quot; can find and install packages with matching type names from NuGet.org. In order to find matches, information about NuGet.org packages will be downloaded and kept up to date."/>
+                <LineBreak/><Run/><LineBreak/>
+                <Run Text="All package searching will be done locally, with no information sent to any other computer. Installation of a package may require network access."/>
+                <LineBreak/><Run/><LineBreak/>
+                <Run Text="This feature can be enabled or disabled at any time from:"/>
+                <LineBreak/><Run/><LineBreak/>
+                <Run Text="  Tools | Options | Text Editor | C# | Advanced | Search NuGet.org"/>
+                <LineBreak/><Run/><LineBreak/>
+                <Run Text="Would you like to enable searching?"/><LineBreak/><Run/></TextBlock>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+                <Button x:Name="yesButton" Content="Yes" Width="86" Height="24" Margin="0,0,5,0"/>
+                <Button x:Name="noButton" Content="No" Width="86" Height="24" Margin="5,0,0,0"/>
+            </StackPanel>
+        </StackPanel>
+
+    </Grid>
+</UserControl>

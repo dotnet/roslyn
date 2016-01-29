@@ -111,6 +111,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             CodeAnalysisColors.RenameErrorTextBrushKey = VSCodeAnalysisColors.RenameErrorTextBrushKey;
             CodeAnalysisColors.RenameResolvableConflictTextBrushKey = VSCodeAnalysisColors.RenameResolvableConflictTextBrushKey;
             CodeAnalysisColors.BackgroundBrushKey = VsBrushes.CommandBarGradientBeginKey;
+            CodeAnalysisColors.SmartTagFillBrushKey = EnvironmentColors.SmartTagFillBrushKey;
+            CodeAnalysisColors.SystemMenuBrushKey = EnvironmentColors.SystemMenuBrushKey;
+            CodeAnalysisColors.SystemInfoBackgroundBrushKey = EnvironmentColors.SystemInfoBackgroundBrushKey;
+            CodeAnalysisColors.CommandBarMenuBackgroundGradientBrushKey = EnvironmentColors.CommandBarMenuBackgroundGradientBrushKey;
+            CodeAnalysisColors.PanelTextBrushKey = EnvironmentColors.PanelTextBrushKey;
             CodeAnalysisColors.ButtonStyleKey = VsResourceKeys.ButtonStyleKey;
             CodeAnalysisColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
         }

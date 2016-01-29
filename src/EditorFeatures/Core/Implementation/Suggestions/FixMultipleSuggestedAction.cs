@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -28,8 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IWaitIndicator waitIndicator,
             FixMultipleCodeAction codeAction,
             FixAllProvider provider,
+            ITextView textView = null,
             ITextBuffer subjectBufferOpt = null)
-            : base(workspace, subjectBufferOpt, editHandler, waitIndicator, codeAction, provider, originalFixedDiagnostic: codeAction.GetTriggerDiagnostic())
+            : base(workspace, textView, subjectBufferOpt, editHandler, waitIndicator, codeAction, provider, originalFixedDiagnostic: codeAction.GetTriggerDiagnostic())
         {
             _triggerDocumentOpt = codeAction.FixAllContext.Document;
 

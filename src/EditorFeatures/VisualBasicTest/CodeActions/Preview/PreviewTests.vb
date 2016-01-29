@@ -73,7 +73,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             provider.ComputeRefactoringsAsync(context).Wait()
             Dim action = refactorings.Single()
             Dim editHandler = workspace.ExportProvider.GetExportedValue(Of ICodeActionEditHandlerService)()
-            previews = editHandler.GetPreviews(workspace, action.GetPreviewOperationsAsync(CancellationToken.None).Result, CancellationToken.None)
+            previews = editHandler.GetPreviews(workspace, action.GetPreviewOperationsAsync(CancellationToken.None).Result,
+                                               textView:=Nothing, cancellationToken:=CancellationToken.None)
         End Sub
 
         <WpfFact>
@@ -85,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 
                 ' The changed document comes first.
                 Dim previewObjects = Await previews.GetPreviewsAsync()
-                Dim preview = previewObjects(0)
+                Dim preview = previewObjects.Previews(0)
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is IWpfDifferenceViewer)
                 Dim diffView = DirectCast(preview, IWpfDifferenceViewer)
@@ -94,14 +95,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 diffView.Close()
 
                 ' Then comes the removed metadata reference.
-                preview = previewObjects(1)
+                preview = previewObjects.Previews(1)
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is String)
                 text = DirectCast(preview, String)
                 Assert.Contains(s_removedMetadataReferenceDisplayName, text, StringComparison.Ordinal)
 
                 ' And finally the added project.
-                preview = previewObjects(2)
+                preview = previewObjects.Previews(2)
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is String)
                 text = DirectCast(preview, String)

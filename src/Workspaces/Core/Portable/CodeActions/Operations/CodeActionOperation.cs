@@ -24,5 +24,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public virtual void Apply(Workspace workspace, CancellationToken cancellationToken)
         {
         }
+
+        /// <summary>
+        /// Controls whether the SuggestedAction infrastructure should show the default chrome around
+        /// the preview.  i.e. the information about the Diagnostic, and the items to control things
+        /// like Fix-All scopes and whatnot.
+        /// </summary>
+        internal virtual bool HideDefaultPreviewChrome => false;
     }
 }

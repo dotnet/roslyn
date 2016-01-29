@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
@@ -32,9 +33,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         internal readonly CodeAction CodeAction;
         private readonly ImmutableArray<SuggestedActionSet> _actionSets;
         protected readonly IWaitIndicator WaitIndicator;
+        protected readonly ITextView TextView;
 
         internal SuggestedAction(
             Workspace workspace,
+            ITextView textView,
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
             IWaitIndicator waitIndicator,
@@ -50,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             this.EditHandler = editHandler;
             this.WaitIndicator = waitIndicator;
             this.Provider = provider;
+            TextView = textView;
             _actionSets = actionSets.AsImmutableOrEmpty();
         }
 
@@ -165,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // We use ConfigureAwait(true) to stay on the UI thread.
             var operations = await GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(true);
 
-            return EditHandler.GetPreviews(Workspace, operations, cancellationToken);
+            return EditHandler.GetPreviews(Workspace, operations, TextView, cancellationToken);
         }
 
         public virtual bool HasPreview
@@ -202,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var previewResult = await GetPreviewResultAsync(cancellationToken).ConfigureAwait(true);
                 if (previewResult == null)
                 {
-                    return null;
+                    return default(PreviewsAndOptions);
                 }
                 else
                 {
@@ -212,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 // GetPreviewPane() below needs to run on UI thread. We use ConfigureAwait(true) to stay on the UI thread.
-            }, defaultValue: null).ConfigureAwait(true);
+            }, defaultValue: default(PreviewsAndOptions)).ConfigureAwait(true);
 
             var previewPaneService = Workspace.Services.GetService<IPreviewPaneService>();
             if (previewPaneService == null)
@@ -229,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             string projectType;
             Workspace.GetLanguageAndProjectType(preferredProjectId, out language, out projectType);
 
-            return previewPaneService.GetPreviewPane(GetDiagnostic(), language, projectType, previewContent);
+            return previewPaneService.GetPreviewPane(GetDiagnostic(), language, projectType, previewContent.Previews, previewContent.HideDefaultChrome);
         }
 
         protected virtual DiagnosticData GetDiagnostic()

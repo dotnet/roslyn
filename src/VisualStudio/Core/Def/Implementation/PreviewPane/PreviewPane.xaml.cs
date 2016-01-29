@@ -16,6 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 {
     internal partial class PreviewPane : UserControl, IDisposable
     {
+        private const double DefaultWidth = 400;
+
         private static readonly string s_dummyThreeLineTitle = "A" + Environment.NewLine + "A" + Environment.NewLine + "A";
         private static readonly Size s_infiniteSize = new Size(double.PositiveInfinity, double.PositiveInfinity);
 
@@ -26,8 +28,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         private double _heightForThreeLineTitle;
         private IWpfDifferenceViewer _previewDiffViewer;
 
-        public PreviewPane(Image severityIcon, string id, string title, string description, Uri helpLink, string helpLinkToolTipText,
-            IList<object> previewContent, bool logIdVerbatimInTelemetry)
+        public PreviewPane(
+            Image severityIcon,
+            string id,
+            string title,
+            string description,
+            Uri helpLink,
+            string helpLinkToolTipText,
+            IReadOnlyList<object> previewContent,
+            bool logIdVerbatimInTelemetry,
+            bool hideDefaultChrome)
         {
             InitializeComponent();
 
@@ -58,11 +68,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 }
             }
 
+            if (hideDefaultChrome)
+            {
+                HeaderStackPanel.Visibility = Visibility.Collapsed;
+                PreviewScrollViewer.Padding = new Thickness(0);
+                PreviewScrollViewer.IsTabStop = false;
+            }
+
             // Initialize preview (i.e. diff view) portion.
             InitializePreviewElement(previewContent);
         }
 
-        private void InitializePreviewElement(IList<object> previewItems)
+        private void InitializePreviewElement(IReadOnlyList<object> previewItems)
         {
             var previewElement = CreatePreviewElement(previewItems);
 
@@ -84,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             AdjustWidthAndHeight(previewElement);
         }
 
-        private FrameworkElement CreatePreviewElement(IList<object> previewItems)
+        private FrameworkElement CreatePreviewElement(IReadOnlyList<object> previewItems)
         {
             if (previewItems == null || previewItems.Count == 0)
             {
@@ -112,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 }
                 else if (previewItem is string)
                 {
-                    previewElement = GetPreviewForString((string)previewItem, createBorder: previewItems.Count == 0);
+                    previewElement = GetPreviewForString((string)previewItem, createBorder: previewItems.Count == 1);
                 }
                 else if (previewItem is FrameworkElement)
                 {
@@ -175,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             {
                 preview = new Border()
                 {
-                    Width = 400,
+                    Width = DefaultWidth,
                     MinHeight = 75,
                     Child = textBlock
                 };
@@ -202,7 +219,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             }
             else
             {
-                PreviewDockPanel.Measure(availableSize: new Size(previewElement.Width, double.PositiveInfinity));
+                PreviewDockPanel.Measure(availableSize: new Size(
+                    double.IsNaN(previewElement.Width) ? DefaultWidth : previewElement.Width,
+                    double.PositiveInfinity));
                 headerStackPanelWidth = PreviewDockPanel.DesiredSize.Width;
                 if (IsNormal(headerStackPanelWidth))
                 {

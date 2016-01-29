@@ -22,126 +22,130 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 {
-    using SymbolReference = ValueTuple<INamespaceOrTypeSymbol, MetadataReference>;
+    using static AddImportDiagnosticIds;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddUsingOrImport), Shared]
-    internal class CSharpAddImportCodeFixProvider : AbstractAddImportCodeFixProvider<SimpleNameSyntax>
+    internal static class AddImportDiagnosticIds
     {
         /// <summary>
         /// name does not exist in context
         /// </summary>
-        private const string CS0103 = "CS0103";
+        public const string CS0103 = "CS0103";
 
         /// <summary>
         /// type or namespace could not be found
         /// </summary>
-        private const string CS0246 = "CS0246";
+        public const string CS0246 = "CS0246";
 
         /// <summary>
         /// wrong number of type args
         /// </summary>
-        private const string CS0305 = "CS0305";
+        public const string CS0305 = "CS0305";
 
         /// <summary>
         /// type does not contain a definition of method or extension method
         /// </summary>
-        private const string CS1061 = "CS1061";
+        public const string CS1061 = "CS1061";
 
         /// <summary>
         /// cannot find implementation of query pattern
         /// </summary>
-        private const string CS1935 = "CS1935";
+        public const string CS1935 = "CS1935";
 
         /// <summary>
         /// The non-generic type 'A' cannot be used with type arguments
         /// </summary>
-        private const string CS0308 = "CS0308";
+        public const string CS0308 = "CS0308";
 
         /// <summary>
         /// 'A' is inaccessible due to its protection level
         /// </summary>
-        private const string CS0122 = "CS0122";
+        public const string CS0122 = "CS0122";
 
         /// <summary>
         /// The using alias 'A' cannot be used with type arguments
         /// </summary>
-        private const string CS0307 = "CS0307";
+        public const string CS0307 = "CS0307";
 
         /// <summary>
         /// 'A' is not an attribute class
         /// </summary>
-        private const string CS0616 = "CS0616";
+        public const string CS0616 = "CS0616";
 
         /// <summary>
         ///  No overload for method 'X' takes 'N' arguments
         /// </summary>
-        private const string CS1501 = "CS1501";
+        public const string CS1501 = "CS1501";
 
         /// <summary>
         /// cannot convert from 'int' to 'string'
         /// </summary>
-        private const string CS1503 = "CS1503";
+        public const string CS1503 = "CS1503";
 
         /// <summary>
         /// XML comment on 'construct' has syntactically incorrect cref attribute 'name'
         /// </summary>
-        private const string CS1574 = "CS1574";
+        public const string CS1574 = "CS1574";
 
         /// <summary>
         /// Invalid type for parameter 'parameter number' in XML comment cref attribute
         /// </summary>
-        private const string CS1580 = "CS1580";
+        public const string CS1580 = "CS1580";
 
         /// <summary>
         /// Invalid return type in XML comment cref attribute
         /// </summary>
-        private const string CS1581 = "CS1581";
+        public const string CS1581 = "CS1581";
 
         /// <summary>
         /// XML comment has syntactically incorrect cref attribute
         /// </summary>
-        private const string CS1584 = "CS1584";
+        public const string CS1584 = "CS1584";
 
         /// <summary>
         /// Type 'X' does not contain a valid extension method accepting 'Y'
         /// </summary>
-        private const string CS1929 = "CS1929";
+        public const string CS1929 = "CS1929";
 
         /// <summary>
         /// Cannot convert method group 'X' to non-delegate type 'Y'. Did you intend to invoke the method?
         /// </summary>
-        private const string CS0428 = "CS0428";
+        public const string CS0428 = "CS0428";
 
         /// <summary>
         ///  There is no argument given that corresponds to the required formal parameter 'X' of 'Y'
         /// </summary>
-        private const string CS7036 = "CS7036";
+        public const string CS7036 = "CS7036";
 
-        public override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get
-            {
-                return ImmutableArray.Create(
-                    CS0103,
-                    CS0246,
-                    CS0305,
+        public static ImmutableArray<string> FixableTypeIds =
+            ImmutableArray.Create(
+                CS0103,
+                CS0246,
+                CS0305,
+                CS0308,
+                CS0122,
+                CS0307,
+                CS0616,
+                CS1580,
+                CS1581);
+
+        public static ImmutableArray<string> FixableDiagnosticIds =
+            FixableTypeIds.Concat(ImmutableArray.Create(
                     CS1061,
                     CS1935,
-                    CS0308,
-                    CS0122,
-                    CS0307,
-                    CS0616,
                     CS1501,
                     CS1503,
                     CS1574,
-                    CS1580,
-                    CS1581,
                     CS1584,
                     CS1929,
                     CS0428,
-                    CS7036);
-            }
-        }
+                    CS7036));
+    }
+
+
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddUsingOrImport), Shared]
+    internal class CSharpAddImportCodeFixProvider : AbstractAddImportCodeFixProvider<SimpleNameSyntax>
+    {
+        public override ImmutableArray<string> FixableDiagnosticIds => AddImportDiagnosticIds.FixableDiagnosticIds;
 
         protected override bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken)
         {

@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor
         public readonly DocumentId DocumentId;
         public readonly Func<CancellationToken, Task<object>> LazyPreview;
         public readonly string Text;
+        public readonly bool HideDefaultChrome;
 
         /// <summary>
         /// Construct an instance of <see cref="SolutionPreviewItem"/>
@@ -20,22 +21,22 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <param name="projectId"><see cref="ProjectId"/> for the <see cref="Project"/> that contains the content being visualized in the supplied <paramref name="lazyPreview"/></param>
         /// <param name="documentId"><see cref="DocumentId"/> for the <see cref="Document"/> being visualized in the supplied <paramref name="lazyPreview"/></param>
         /// <param name="lazyPreview">Lazily instantiated preview content.</param>
+        /// <param name="hideDefaultChrome">Hide the default chrome that the preview pane puts on an item.</param>
         /// <remarks>Use lazy instantiation to ensure that any IWpfTextViews that may be present inside a given preview are only instantiated at the point
         /// when the VS lightbulb requests that preview. Otherwise, we could end up instantiating a bunch of IWpfTextViews most of which will never get
         /// passed to the VS lightbulb. Such zombie IWpfTextViews will never get closed and we will end up leaking memory.</remarks>
-        public SolutionPreviewItem(ProjectId projectId, DocumentId documentId, Func<CancellationToken, Task<object>> lazyPreview)
+        public SolutionPreviewItem(ProjectId projectId, DocumentId documentId, Func<CancellationToken, Task<object>> lazyPreview, bool hideDefaultChrome = false)
         {
             ProjectId = projectId;
             DocumentId = documentId;
             LazyPreview = lazyPreview;
+            HideDefaultChrome = hideDefaultChrome;
         }
 
-        public SolutionPreviewItem(ProjectId projectId, DocumentId documentId, string text)
+        public SolutionPreviewItem(ProjectId projectId, DocumentId documentId, string text, bool hideDefaultChrome = false)
+            : this(projectId, documentId, c => Task.FromResult<object>(text), hideDefaultChrome)
         {
-            ProjectId = projectId;
-            DocumentId = documentId;
             Text = text;
-            LazyPreview = c => Task.FromResult<object>(text);
         }
     }
 }

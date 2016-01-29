@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
@@ -22,13 +23,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         internal FixAllSuggestedAction(
             Workspace workspace,
+            ITextView textView,
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
             IWaitIndicator waitIndicator,
             FixAllCodeAction codeAction,
             FixAllProvider provider,
             Diagnostic originalFixedDiagnostic)
-            : base(workspace, subjectBuffer, editHandler, waitIndicator, codeAction, provider)
+            : base(workspace, textView, subjectBuffer, editHandler, waitIndicator, codeAction, provider)
         {
             _fixedDiagnostic = originalFixedDiagnostic;
         }
