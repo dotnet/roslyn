@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Semantics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -16,6 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         SyntaxNode IOperation.Syntax => this.Syntax;
 
         protected abstract OperationKind StatementKind { get; }
+
+        public abstract void Accept(IOperationVisitor visitor);
+
+        public abstract TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument);
     }
 
     partial class BoundBlock : IBlockStatement
@@ -25,6 +30,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImmutableArray<ILocalSymbol> IBlockStatement.Locals => this.Locals.As<ILocalSymbol>();
 
         protected override OperationKind StatementKind => OperationKind.BlockStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitBlockStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitBlockStatement(this, argument);
+        }
     }
 
     partial class BoundContinueStatement : IBranchStatement
@@ -32,6 +47,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         ILabelSymbol IBranchStatement.Target => this.Label;
 
         protected override OperationKind StatementKind => OperationKind.ContinueStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitBranchStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitBranchStatement(this, argument);
+        }
     }
 
     partial class BoundBreakStatement : IBranchStatement
@@ -39,11 +64,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         ILabelSymbol IBranchStatement.Target => this.Label;
 
         protected override OperationKind StatementKind => OperationKind.BreakStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitBranchStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitBranchStatement(this, argument);
+        }
     }
 
     partial class BoundYieldBreakStatement
     {
         protected override OperationKind StatementKind => OperationKind.YieldBreakStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitYieldBreakStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitYieldBreakStatement(this, argument);
+        }
     }
 
     partial class BoundGotoStatement : IBranchStatement
@@ -51,11 +96,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         ILabelSymbol IBranchStatement.Target => this.Label;
 
         protected override OperationKind StatementKind => OperationKind.GoToStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitBranchStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitBranchStatement(this, argument);
+        }
     }
 
     partial class BoundNoOpStatement
     {
         protected override OperationKind StatementKind => OperationKind.EmptyStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitEmptyStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitEmptyStatement(this, argument);
+        }
     }
 
     partial class BoundIfStatement : IIfStatement
@@ -67,6 +132,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         IStatement IIfStatement.IfFalse => this.AlternativeOpt;
 
         protected override OperationKind StatementKind => OperationKind.IfStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitIfStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitIfStatement(this, argument);
+        }
     }
 
     partial class BoundWhileStatement : IWhileUntilLoopStatement
@@ -82,6 +157,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         IStatement ILoopStatement.Body => this.Body;
 
         protected override OperationKind StatementKind => OperationKind.LoopStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitWhileUntilLoopStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitWhileUntilLoopStatement(this, argument);
+        }
     }
 
     partial class BoundDoStatement : IWhileUntilLoopStatement
@@ -97,6 +182,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         IStatement ILoopStatement.Body => this.Body;
 
         protected override OperationKind StatementKind => OperationKind.LoopStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitWhileUntilLoopStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitWhileUntilLoopStatement(this, argument);
+        }
     }
 
     partial class BoundForStatement : IForLoopStatement
@@ -129,6 +224,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return ImmutableArray.Create<IStatement>(statement);
         }
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitForLoopStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitForLoopStatement(this, argument);
+        }
     }
 
     partial class BoundForEachStatement : IForEachLoopStatement
@@ -142,6 +247,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         IStatement ILoopStatement.Body => this.Body;
 
         protected override OperationKind StatementKind => OperationKind.LoopStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitForEachLoopStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitForEachLoopStatement(this, argument);
+        }
     }
 
     partial class BoundSwitchStatement : ISwitchStatement
@@ -165,7 +280,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind StatementKind => OperationKind.SwitchStatement;
 
-        private class SwitchSection : ICase
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitSwitchStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitSwitchStatement(this, argument);
+        }
+
+        private sealed class SwitchSection : ICase
         {
             public SwitchSection(BoundSwitchSection boundNode)
             {
@@ -181,15 +306,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool IsInvalid { get; }
 
-            public OperationKind Kind => OperationKind.SwitchSection;
+            OperationKind IOperation.Kind => OperationKind.SwitchSection;
 
             public SyntaxNode Syntax { get; }
-        }
-    }
 
-    partial class BoundSwitchSection
-    {
-        protected override OperationKind StatementKind => OperationKind.None;
+            void IOperation.Accept(IOperationVisitor visitor)
+            {
+                visitor.VisitCase(this);
+            }
+            
+            TResult IOperation.Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+            {
+                return visitor.VisitCase(this, argument);
+            }
+        }
     }
 
     partial class BoundSwitchLabel : ISingleValueCaseClause
@@ -240,6 +370,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool IOperation.IsInvalid => this.HasErrors;
 
         SyntaxNode IOperation.Syntax => this.Syntax;
+
+        void IOperation.Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitSingleValueCaseClause(this);
+        }
+
+        TResult IOperation.Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitSingleValueCaseClause(this, argument);
+        }
     }
 
     partial class BoundTryStatement : ITryStatement
@@ -251,6 +391,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         IBlockStatement ITryStatement.FinallyHandler => this.FinallyBlockOpt;
 
         protected override OperationKind StatementKind => OperationKind.TryStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitTryStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitTryStatement(this, argument);
+        }
     }
 
     partial class BoundCatchBlock : ICatch
@@ -268,6 +418,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool IOperation.IsInvalid => this.Body.HasErrors || (this.ExceptionFilterOpt != null && this.ExceptionFilterOpt.HasErrors);
 
         SyntaxNode IOperation.Syntax => this.Syntax;
+
+        void IOperation.Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitCatch(this);
+        }
+
+        TResult IOperation.Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitCatch(this, argument);
+        }
     }
 
     partial class BoundFixedStatement : IFixedStatement
@@ -277,6 +437,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         IStatement IFixedStatement.Body => this.Body;
 
         protected override OperationKind StatementKind => OperationKind.FixedStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitFixedStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitFixedStatement(this, argument);
+        }
     }
 
     partial class BoundUsingStatement : IUsingWithDeclarationStatement, IUsingWithExpressionStatement
@@ -288,6 +458,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         IStatement IUsingStatement.Body => this.Body;
 
         protected override OperationKind StatementKind => this.ExpressionOpt != null ? OperationKind.UsingWithExpressionStatement : OperationKind.UsingWithDeclarationStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            if (this.StatementKind == OperationKind.UsingWithExpressionStatement)
+            {
+                visitor.VisitUsingWithExpressionStatement(this);
+            }
+            else
+            {
+                visitor.VisitUsingWithDeclarationStatement(this);
+            }
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return this.StatementKind == OperationKind.UsingWithExpressionStatement
+                    ? visitor.VisitUsingWithExpressionStatement(this, argument)
+                    : visitor.VisitUsingWithDeclarationStatement(this, argument);
+        }
     }
 
     partial class BoundThrowStatement : IThrowStatement
@@ -295,6 +484,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         IExpression IThrowStatement.Thrown => this.ExpressionOpt;
 
         protected override OperationKind StatementKind => OperationKind.ThrowStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitThrowStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitThrowStatement(this, argument);
+        }
     }
 
     partial class BoundReturnStatement : IReturnStatement
@@ -302,6 +501,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         IExpression IReturnStatement.Returned => this.ExpressionOpt;
 
         protected override OperationKind StatementKind => OperationKind.ReturnStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitReturnStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitReturnStatement(this, argument);
+        }
     }
 
     partial class BoundYieldReturnStatement : IReturnStatement
@@ -309,6 +518,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         IExpression IReturnStatement.Returned => this.Expression;
 
         protected override OperationKind StatementKind => OperationKind.YieldReturnStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitReturnStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitReturnStatement(this, argument);
+        }
     }
 
     partial class BoundLockStatement : ILockStatement
@@ -318,36 +537,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         IStatement ILockStatement.Body => this.Body;
 
         protected override OperationKind StatementKind => OperationKind.LockStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitLockStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitLockStatement(this, argument);
+        }
     }
 
     partial class BoundBadStatement
     {
         protected override OperationKind StatementKind => OperationKind.InvalidStatement;
-    }
 
-    partial class BoundStatementList
-    {
-        protected override OperationKind StatementKind => OperationKind.None;
-    }
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitInvalidStatement(this);
+        }
 
-    partial class BoundConditionalGoto
-    {
-        protected override OperationKind StatementKind => OperationKind.None;
-    }
-
-    partial class BoundSequencePoint
-    {
-        protected override OperationKind StatementKind => OperationKind.None;
-    }
-
-    partial class BoundSequencePointWithSpan
-    {
-        protected override OperationKind StatementKind => OperationKind.None;
-    }
-
-    partial class BoundStateMachineScope
-    {
-        protected override OperationKind StatementKind => OperationKind.None;
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitInvalidStatement(this, argument);
+        }
     }
 
     partial class BoundLocalDeclaration : IVariableDeclarationStatement
@@ -365,6 +579,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected override OperationKind StatementKind => OperationKind.VariableDeclarationStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitVariableDeclarationStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitVariableDeclarationStatement(this, argument);
+        }
     }
 
     partial class BoundMultipleLocalDeclarations : IVariableDeclarationStatement
@@ -384,6 +608,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected override OperationKind StatementKind => OperationKind.VariableDeclarationStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitVariableDeclarationStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitVariableDeclarationStatement(this, argument);
+        }
     }
 
     partial class BoundLabelStatement : ILabelStatement
@@ -391,6 +625,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         ILabelSymbol ILabelStatement.Label => this.Label;
 
         protected override OperationKind StatementKind => OperationKind.LabelStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitLabelStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitLabelStatement(this, argument);
+        }
     }
 
     partial class BoundLabeledStatement : ILabeledStatement
@@ -400,6 +644,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         ILabelSymbol ILabelStatement.Label => this.Label;
 
         protected override OperationKind StatementKind => OperationKind.LabeledStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitLabeledStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitLabeledStatement(this, argument);
+        }
     }
 
     partial class BoundExpressionStatement : IExpressionStatement
@@ -407,10 +661,120 @@ namespace Microsoft.CodeAnalysis.CSharp
         IExpression IExpressionStatement.Expression => this.Expression;
 
         protected override OperationKind StatementKind => OperationKind.ExpressionStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitExpressionStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitExpressionStatement(this, argument);
+        }
+    }
+
+    partial class BoundSwitchSection
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+    }
+
+    partial class BoundStatementList
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+    }
+
+    partial class BoundConditionalGoto
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+    }
+
+    partial class BoundSequencePoint
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+    }
+
+    partial class BoundSequencePointWithSpan
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+    }
+
+    partial class BoundStateMachineScope
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
     }
 
     partial class BoundLocalFunctionStatement
     {
         protected override OperationKind StatementKind => OperationKind.LocalFunctionStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitLocalFunctionStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitLocalFunctionStatement(this, argument);
+        }
     }
 }

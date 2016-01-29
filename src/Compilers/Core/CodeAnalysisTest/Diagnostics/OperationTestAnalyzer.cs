@@ -1097,4 +1097,35 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.ParameterInitializerAtDeclaration);
         }
     }
+
+    /// <summary>Analyzer used to test None IOperations.</summary>
+    public class NoneOperationTestAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        // We should not see this warning triggered by any code
+        public static readonly DiagnosticDescriptor NoneOperationDescriptor = new DiagnosticDescriptor(
+            "NoneOperation",
+            "None operation found",
+            "An IOperation of None kind is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+        
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(NoneOperationDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(NoneOperationDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 // None kind is only supposed to be used internally and will not actually register actions.
+                 OperationKind.None);
+        }
+    }
 }

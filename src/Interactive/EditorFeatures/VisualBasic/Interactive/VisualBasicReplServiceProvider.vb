@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ObjectFormatter As ObjectFormatter = New VisualBasicObjectFormatter()
+        Public Overrides ReadOnly Property ObjectFormatter As ObjectFormatter = VisualBasicObjectFormatter.Instance
 
         Public Overrides Function CreateScript(Of T)(code As String, options As ScriptOptions, globalsTypeOpt As Type, assemblyLoader As InteractiveAssemblyLoader) As Script(Of T)
             Return VisualBasicScript.Create(Of T)(code, options, globalsTypeOpt, assemblyLoader)
