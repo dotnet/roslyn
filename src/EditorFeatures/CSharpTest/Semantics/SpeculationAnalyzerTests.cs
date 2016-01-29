@@ -316,6 +316,20 @@ public interface IRogueAction
 }           ", "Name", semanticChanges: false, isBrokenCode: true);
         }
 
+        [Fact, WorkItem(8111, "https://github.com/dotnet/roslyn/issues/8111")]
+        public void SpeculationAnalyzerAnonymousObjectMemberDeclaredWithNeededCast()
+        {
+            Test(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        object thing = new { shouldBeAnInt = [|(int)Directions.South|] };
+    }
+    public enum Directions { North, East, South, West }
+}           ", "Directions.South", semanticChanges: true);
+        }
+
         protected override SyntaxTree Parse(string text)
         {
             return SyntaxFactory.ParseSyntaxTree(text);
