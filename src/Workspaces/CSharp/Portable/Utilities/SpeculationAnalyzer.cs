@@ -430,8 +430,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 return !TypesAreCompatible((ImplicitArrayCreationExpressionSyntax)currentOriginalNode, (ImplicitArrayCreationExpressionSyntax)currentReplacedNode);
             }
+            else if (currentOriginalNode is AnonymousObjectMemberDeclaratorSyntax)
+            {
+                var originalAnonymousObjectMemberDeclarator = (AnonymousObjectMemberDeclaratorSyntax)currentOriginalNode;
+                var replacedAnonymousObjectMemberDeclarator = (AnonymousObjectMemberDeclaratorSyntax)currentReplacedNode;
+                return ReplacementBreaksAnonymousObjectMemberDeclarator(originalAnonymousObjectMemberDeclarator, replacedAnonymousObjectMemberDeclarator);
+            }
 
             return false;
+        }
+
+        private bool ReplacementBreaksAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax originalAnonymousObjectMemberDeclarator, AnonymousObjectMemberDeclaratorSyntax replacedAnonymousObjectMemberDeclarator)
+        {
+            var originalExpressionType = this.OriginalSemanticModel.GetTypeInfo(originalAnonymousObjectMemberDeclarator.Expression, this.CancellationToken).Type;
+            var newExpressionType = this.SpeculativeSemanticModel.GetTypeInfo(replacedAnonymousObjectMemberDeclarator.Expression, this.CancellationToken).Type;
+            return originalExpressionType != newExpressionType;
         }
 
         private bool ReplacementBreaksConstructorInitializer(ConstructorInitializerSyntax ctorInitializer, ConstructorInitializerSyntax newCtorInitializer)

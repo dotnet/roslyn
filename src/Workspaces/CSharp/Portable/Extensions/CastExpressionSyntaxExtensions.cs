@@ -396,12 +396,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return expressionType != null && expressionType.Equals(outerType);
             }
 
-            //Don't remove cast if it would change the shape of a new anonymous object
-            if (cast.IsParentKind(SyntaxKind.AnonymousObjectMemberDeclarator))
-            {
-                return false;
-            }
-
             if (parentIsOrAsExpression)
             {
                 // Note: speculationAnalyzer.ReplacementChangesSemantics() ensures that the parenting is or as expression are not broken.
