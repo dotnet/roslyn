@@ -496,7 +496,7 @@ End Class
             Dim context = CreateMethodContext(runtime, "C.M")
 
             Dim missingModule = runtime.Modules.First()
-            Dim missingIdentity = missingModule.MetadataReader.ReadAssemblyIdentityOrThrow()
+            Dim missingIdentity = missingModule.GetMetadataReader().ReadAssemblyIdentityOrThrow()
 
             Dim numRetries = 0
             Dim errorMessage As String = Nothing

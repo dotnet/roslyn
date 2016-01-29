@@ -600,7 +600,7 @@ class C
             var context = CreateMethodContext(runtime, "C.M");
 
             var missingModule = runtime.Modules.First();
-            var missingIdentity = missingModule.MetadataReader.ReadAssemblyIdentityOrThrow();
+            var missingIdentity = missingModule.GetMetadataReader().ReadAssemblyIdentityOrThrow();
 
             var numRetries = 0;
             string errorMessage;
@@ -641,7 +641,7 @@ class C
             var context = CreateMethodContext(runtime, "C.M");
 
             var missingModule = runtime.Modules.First();
-            var missingIdentity = missingModule.MetadataReader.ReadAssemblyIdentityOrThrow();
+            var missingIdentity = missingModule.GetMetadataReader().ReadAssemblyIdentityOrThrow();
 
             var shouldSucceed = false;
             string errorMessage;

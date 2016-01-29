@@ -408,7 +408,7 @@ End Namespace
         Private Shared Function MakeAssemblyReaders(runtimeInstance As RuntimeInstance) As ImmutableArray(Of AssemblyReaders)
             Return ImmutableArray.CreateRange(runtimeInstance.Modules.
                 Where(Function(instance) instance.SymReader IsNot Nothing).
-                Select(Function(instance) New AssemblyReaders(instance.MetadataReader, instance.SymReader)))
+                Select(Function(instance) New AssemblyReaders(instance.GetMetadataReader(), instance.SymReader)))
         End Function
 
         Private Shared Sub CheckDteeMethodDebugInfo(methodDebugInfo As MethodDebugInfo, ParamArray namespaceNames As String())

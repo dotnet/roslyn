@@ -3609,18 +3609,19 @@ Class C
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
 
-            Dim corruptMetadata = ModuleInstance.Create(CommonResources.NoValidTables)
+            Using pinnedMetadata = New PinnedBlob(CommonResources.NoValidTables)
+                Dim corruptMetadata = ModuleInstance.Create(pinnedMetadata.Pointer, pinnedMetadata.Size, moduleVersionId:=Nothing)
+                Dim runtime = CreateRuntimeInstance({corruptMetadata, comp.ToModuleInstance(), MscorlibRef.ToModuleInstance()})
 
-            Dim runtime = CreateRuntimeInstance({corruptMetadata, comp.ToModuleInstance(), MscorlibRef.ToModuleInstance()})
-            Dim context = CreateMethodContext(runtime, "C.M")
-            Dim resultProperties As ResultProperties
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            ' Verify that we can still evaluate expressions for modules that are not corrupt.
-            context.CompileExpression("(new C()).F", resultProperties, errorMessage, testData)
-            Assert.Null(errorMessage)
-            Assert.Equal(DkmClrCompilationResultFlags.None, resultProperties.Flags)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+                Dim context = CreateMethodContext(runtime, "C.M")
+                Dim resultProperties As ResultProperties
+                Dim errorMessage As String = Nothing
+                Dim testData = New CompilationTestData()
+                ' Verify that we can still evaluate expressions for modules that are not corrupt.
+                context.CompileExpression("(new C()).F", resultProperties, errorMessage, testData)
+                Assert.Null(errorMessage)
+                Assert.Equal(DkmClrCompilationResultFlags.None, resultProperties.Flags)
+                testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -3628,6 +3629,7 @@ End Class"
   IL_0005:  ldfld      ""C.F As Integer""
   IL_000a:  ret
 }")
+            End Using
         End Sub
 
         <WorkItem(1089688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")>

@@ -64,10 +64,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 
         Friend Function CreateRuntimeInstance(
             [module] As ModuleInstance,
-            Optional references As IEnumerable(Of MetadataReference) = Nothing,
-            Optional includeLocalSignatures As Boolean = True) As RuntimeInstance
+            Optional references As IEnumerable(Of MetadataReference) = Nothing) As RuntimeInstance
 
-            Dim instance = RuntimeInstance.Create([module], references, includeLocalSignatures)
+            Dim instance = RuntimeInstance.Create([module], references)
             _runtimeInstances.Add(instance)
             Return instance
         End Function

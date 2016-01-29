@@ -397,17 +397,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             }
         }
 
-        internal static ImmutableArray<MetadataReference> GetEmittedReferences(this Compilation compilation, ImmutableArray<byte> peImage)
+        internal static ImmutableArray<MetadataReference> GetEmittedReferences(Compilation compilation, MetadataReader mdReader)
         {
             // Determine the set of references that were actually used
             // and ignore any references that were dropped in emit.
-            HashSet<string> referenceNames;
-            using (var metadata = ModuleMetadata.CreateFromImage(peImage))
-            {
-                var reader = metadata.MetadataReader;
-                referenceNames = new HashSet<string>(reader.AssemblyReferences.Select(h => GetAssemblyReferenceName(reader, h)));
-            }
-
+            var referenceNames = new HashSet<string>(mdReader.AssemblyReferences.Select(h => GetAssemblyReferenceName(mdReader, h)));
             return ImmutableArray.CreateRange(compilation.References.Where(r => IsReferenced(r, referenceNames)));
         }
 
@@ -459,37 +453,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return referenceNames.Contains(name);
         }
 
-        /// <summary>
-        /// Verify the set of module metadata blocks
-        /// contains all blocks referenced by the set.
-        /// </summary>
-        internal static void VerifyAllModules(this ImmutableArray<ModuleInstance> modules)
+        internal static ModuleInstance ToModuleInstance(this MetadataReference reference)
         {
-            var blocks = modules.SelectAsArray(m => m.MetadataBlock).SelectAsArray(b => ModuleMetadata.CreateFromMetadata(b.Pointer, b.Size));
-            var names = new HashSet<string>(blocks.Select(b => b.Name));
-            foreach (var block in blocks)
-            {
-                foreach (var name in block.GetModuleNames())
-                {
-                    Assert.True(names.Contains(name));
-                }
-            }
-        }
-
-        internal static ModuleMetadata GetModuleMetadata(this MetadataReference reference)
-        {
-            var metadata = ((MetadataImageReference)reference).GetMetadata();
-            var assemblyMetadata = metadata as AssemblyMetadata;
-            Assert.True((assemblyMetadata == null) || (assemblyMetadata.GetModules().Length == 1));
-            return (assemblyMetadata == null) ? (ModuleMetadata)metadata : assemblyMetadata.GetModules()[0];
-        }
-
-        internal static ModuleInstance ToModuleInstance(
-            this MetadataReference reference,
-            bool includeLocalSignatures = true)
-        {
-            var metadata = ((PortableExecutableReference)reference).GetMetadata();
-            return ModuleInstance.Create(metadata, default(ImmutableArray<byte>), null, includeLocalSignatures);
+            return ModuleInstance.Create((PortableExecutableReference)reference);
         }
 
         internal static ModuleInstance ToModuleInstance(
@@ -501,7 +467,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             var peImage = compilation.EmitToArray(new EmitOptions(debugInformationFormat: debugFormat), pdbStream: pdbStream);
             var symReader = (debugFormat != 0) ? SymReaderFactory.CreateReader(pdbStream, new PEReader(peImage)) : null;
 
-            return ModuleInstance.Create(AssemblyMetadata.CreateFromImage(peImage), peImage, symReader, includeLocalSignatures);
+            return ModuleInstance.Create(peImage, symReader, includeLocalSignatures);
         }
 
         internal static ModuleInstance GetModuleInstanceForIL(string ilSource)
@@ -509,21 +475,30 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             ImmutableArray<byte> peBytes;
             ImmutableArray<byte> pdbBytes;
             CommonTestBase.EmitILToArray(ilSource, appendDefaultHeader: true, includePdb: true, assemblyBytes: out peBytes, pdbBytes: out pdbBytes);
-            return ModuleInstance.Create(AssemblyMetadata.CreateFromImage(peBytes), peBytes, SymReaderFactory.CreateReader(pdbBytes), includeLocalSignatures: true);
+            return ModuleInstance.Create(peBytes, SymReaderFactory.CreateReader(pdbBytes), includeLocalSignatures: true);
         }
 
         internal static AssemblyIdentity GetAssemblyIdentity(this MetadataReference reference)
         {
-            var moduleMetadata = reference.GetModuleMetadata();
-            var reader = moduleMetadata.MetadataReader;
-            return reader.ReadAssemblyIdentityOrThrow();
+            using (var moduleMetadata = GetManifestModuleMetadata(reference))
+            {
+                return moduleMetadata.MetadataReader.ReadAssemblyIdentityOrThrow();
+            }
         }
 
         internal static Guid GetModuleVersionId(this MetadataReference reference)
         {
-            var moduleMetadata = reference.GetModuleMetadata();
-            var reader = moduleMetadata.MetadataReader;
-            return reader.GetModuleVersionIdOrThrow();
+            using (var moduleMetadata = GetManifestModuleMetadata(reference))
+            {
+                return moduleMetadata.MetadataReader.GetModuleVersionIdOrThrow();
+            }
+        }
+
+        private static ModuleMetadata GetManifestModuleMetadata(MetadataReference reference)
+        {
+            // make a copy to avoid disposing shared reference metadata:
+            var metadata = ((MetadataImageReference)reference).GetMetadata().Copy();
+            return (metadata as AssemblyMetadata)?.GetModules()[0] ?? (ModuleMetadata)metadata;
         }
 
         internal static void VerifyLocal<TMethodSymbol>(

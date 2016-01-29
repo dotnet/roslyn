@@ -67,10 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
         internal RuntimeInstance CreateRuntimeInstance(
             ModuleInstance module,
-            IEnumerable<MetadataReference> references,
-            bool includeLocalSignatures = true)
+            IEnumerable<MetadataReference> references)
         {
-            var instance = RuntimeInstance.Create(module, references, includeLocalSignatures);
+            var instance = RuntimeInstance.Create(module, references);
             _runtimeInstances.Add(instance);
             return instance;
         }

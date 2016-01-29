@@ -5433,18 +5433,21 @@ class C
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             var modulesBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
-            var corruptMetadata = ModuleInstance.Create(CommonResources.NoValidTables);
 
-            var runtime = RuntimeInstance.Create(new[] { corruptMetadata , comp.ToModuleInstance(), MscorlibRef.ToModuleInstance() });
-            var context = CreateMethodContext(runtime, "C.M");
-            ResultProperties resultProperties;
-            string error;
-            var testData = new CompilationTestData();
-            // Verify that we can still evaluate expressions for modules that are not corrupt.
-            context.CompileExpression("(new C()).F", out resultProperties, out error, testData);
-            Assert.Null(error);
-            Assert.Equal(DkmClrCompilationResultFlags.None, resultProperties.Flags);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+            using (var pinnedMetadata = new PinnedBlob(CommonResources.NoValidTables))
+            {
+                var corruptMetadata = ModuleInstance.Create(pinnedMetadata.Pointer, pinnedMetadata.Size, default(Guid));
+
+                var runtime = RuntimeInstance.Create(new[] { corruptMetadata, comp.ToModuleInstance(), MscorlibRef.ToModuleInstance() });
+                var context = CreateMethodContext(runtime, "C.M");
+                ResultProperties resultProperties;
+                string error;
+                var testData = new CompilationTestData();
+                // Verify that we can still evaluate expressions for modules that are not corrupt.
+                context.CompileExpression("(new C()).F", out resultProperties, out error, testData);
+                Assert.Null(error);
+                Assert.Equal(DkmClrCompilationResultFlags.None, resultProperties.Flags);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -5452,6 +5455,7 @@ class C
   IL_0005:  ldfld      ""int C.F""
   IL_000a:  ret
 }");
+            }
         }
 
         [WorkItem(1089688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")]

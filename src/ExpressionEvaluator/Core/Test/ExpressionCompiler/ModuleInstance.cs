@@ -14,53 +14,57 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
     internal sealed class ModuleInstance : IDisposable
     {
-        private readonly Metadata _metadata;
+        // Metadata are owned and disposed by the containing object:
+        private readonly Metadata _metadataOpt;
+        
+        internal readonly int MetadataLength;
+        internal readonly IntPtr MetadataAddress;
+
         internal readonly Guid ModuleVersionId;
-        internal readonly ImmutableArray<byte> FullImage;
-        internal readonly byte[] MetadataOnly;
-        internal readonly GCHandle MetadataHandle;
         internal readonly object SymReader;
         private readonly bool _includeLocalSignatures;
-        private bool _disposed;
 
         private ModuleInstance(
             Metadata metadata,
             Guid moduleVersionId,
-            ImmutableArray<byte> fullImage,
-            byte[] metadataOnly,
+            int metadataLength,
+            IntPtr metadataAddress,
             object symReader,
             bool includeLocalSignatures)
         {
-            Debug.Assert((fullImage == null) || (fullImage.Length > metadataOnly.Length));
-
-            _metadata = metadata;
+            _metadataOpt = metadata;
             ModuleVersionId = moduleVersionId;
-            FullImage = fullImage;
-            MetadataOnly = metadataOnly;
-            MetadataHandle = GCHandle.Alloc(metadataOnly, GCHandleType.Pinned);
+            MetadataLength = metadataLength;
+            MetadataAddress = metadataAddress;
             SymReader = symReader; // should be non-null if and only if there are symbols
             _includeLocalSignatures = includeLocalSignatures;
         }
 
-        public MetadataReference GetReference()
-        {
-            return (_metadata as AssemblyMetadata)?.GetReference() ?? ((ModuleMetadata)_metadata).GetReference();
-        }
-
-        public static ModuleInstance Create(byte[] metadataOnly)
+        public static ModuleInstance Create(IntPtr metadataAddress, int metadataLength, Guid moduleVersionId)
         {
             return new ModuleInstance(
                 metadata: null,
-                moduleVersionId: default(Guid),
-                fullImage: default(ImmutableArray<byte>),
-                metadataOnly: metadataOnly,
+                moduleVersionId: moduleVersionId,
+                metadataLength: metadataLength,
+                metadataAddress: metadataAddress,
                 symReader: null,
                 includeLocalSignatures: false);
         }
 
-        public static ModuleInstance Create(
+        public unsafe static ModuleInstance Create(PortableExecutableReference reference)
+        {
+            // make a copy of the metadata, so that we don't dispose the metadata of a reference that are shared accross tests:
+            return Create(reference.GetMetadata().Copy(), symReader: null, includeLocalSignatures: false);
+        }
+
+        public unsafe static ModuleInstance Create(ImmutableArray<byte> assemblyImage, ISymUnmanagedReader symReader, bool includeLocalSignatures = true)
+        {
+            // create a new instance of metadata, the resulting object takes an ownership:
+            return Create(AssemblyMetadata.CreateFromImage(assemblyImage), symReader, includeLocalSignatures);
+        }
+
+        private unsafe static ModuleInstance Create(
             Metadata metadata,
-            ImmutableArray<byte> peImage,
             object symReader,
             bool includeLocalSignatures)
         {
@@ -68,50 +72,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             var moduleMetadata = (assemblyMetadata == null) ? (ModuleMetadata)metadata : assemblyMetadata.GetModules()[0];
 
             var moduleId = moduleMetadata.Module.GetModuleVersionIdOrThrow();
-            // The Expression Compiler expects metadata only, no headers or IL.
-            var metadataBytes = moduleMetadata.Module.PEReaderOpt.GetMetadata().GetContent().ToArray();
+            var metadataBlock = moduleMetadata.Module.PEReaderOpt.GetMetadata();
+                
             return new ModuleInstance(
                 metadata,
                 moduleId,
-                peImage,
-                metadataBytes,
+                metadataBlock.Length,
+                (IntPtr)metadataBlock.Pointer,
                 symReader,
-                includeLocalSignatures && !peImage.IsDefault);
+                includeLocalSignatures);
         }
 
-        public static ModuleInstance Create(ImmutableArray<byte> peImage, ISymUnmanagedReader symReader)
-        {
-            return Create(AssemblyMetadata.CreateFromImage(peImage), peImage, symReader, includeLocalSignatures: true);
-        }
+        public void Dispose() => _metadataOpt?.Dispose();
 
-        internal IntPtr MetadataAddress
-        {
-            get { return this.MetadataHandle.AddrOfPinnedObject(); }
-        }
+        public MetadataReference GetReference() => (_metadataOpt as AssemblyMetadata)?.GetReference() ?? ((ModuleMetadata)_metadataOpt).GetReference();
 
-        internal int MetadataLength
-        {
-            get { return this.MetadataOnly.Length; }
-        }
+        internal MetadataBlock MetadataBlock => new MetadataBlock(ModuleVersionId, Guid.Empty, MetadataAddress, MetadataLength);
 
-        internal MetadataBlock MetadataBlock
-        {
-            get { return new MetadataBlock(this.ModuleVersionId, Guid.Empty, this.MetadataAddress, this.MetadataLength); }
-        }
-
-        internal unsafe MetadataReader MetadataReader
-        {
-            get { return new MetadataReader((byte*)MetadataHandle.AddrOfPinnedObject(), MetadataLength); }
-        }
-
-        public void Dispose()
-        {
-            if (!_disposed)
-            {
-                this.MetadataHandle.Free();
-                _disposed = true;
-            }
-        }
+        internal unsafe MetadataReader GetMetadataReader() => new MetadataReader((byte*)MetadataAddress, MetadataLength);
 
         internal int GetLocalSignatureToken(MethodDefinitionHandle methodHandle)
         {
@@ -120,13 +98,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 return 0;
             }
 
-            using (var metadata = ModuleMetadata.CreateFromImage(this.FullImage))
-            {
-                var reader = metadata.MetadataReader;
-                var methodIL = metadata.Module.GetMethodBodyOrThrow(methodHandle);
-                var localSignatureHandle = methodIL.LocalSignature;
-                return reader.GetToken(localSignatureHandle);
-            }
+            var moduleMetadata = (_metadataOpt as AssemblyMetadata)?.GetModules()[0] ?? (ModuleMetadata)_metadataOpt;
+            var methodIL = moduleMetadata.Module.GetMethodBodyOrThrow(methodHandle);
+            var localSignatureHandle = methodIL.LocalSignature;
+            return moduleMetadata.MetadataReader.GetToken(localSignatureHandle);
         }
     }
 }

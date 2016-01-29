@@ -278,7 +278,7 @@ IL_0005:  ret
             ImmutableArray<AssemblyIdentity> expectedIdentities)
         {
             Assert.True(references.Contains(target));
-            var modules = references.SelectAsArray(r => r.ToModuleInstance(includeLocalSignatures: false));
+            var modules = references.SelectAsArray(r => r.ToModuleInstance());
             using (var runtime = new RuntimeInstance(modules))
             {
                 var moduleVersionId = target.GetModuleVersionId();

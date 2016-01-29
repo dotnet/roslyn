@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.DiaSymReader;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
@@ -41,26 +42,42 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
             if (references == null)
             {
-                references = compilation.GetEmittedReferences(module.FullImage);
+                references = ExpressionCompilerTestHelpers.GetEmittedReferences(compilation, module.GetMetadataReader());
             }
 
             references = references.Concat(new[] { ExpressionCompilerTestHelpers.IntrinsicAssemblyReference });
 
-            return Create(module, references, includeLocalSignatures);
+            return Create(module, references);
         }
 
         internal static RuntimeInstance Create(
             ModuleInstance module,
-            IEnumerable<MetadataReference> references,
-            bool includeLocalSignatures = true)
+            IEnumerable<MetadataReference> references)
         {
             // Create modules for the references and the program
             var modules = ImmutableArray.CreateRange(
-                references.Select(r => r.ToModuleInstance(includeLocalSignatures: includeLocalSignatures)).
+                references.Select(r => r.ToModuleInstance()).
                 Concat(new[] { module }));
 
-            modules.VerifyAllModules();
+            VerifyAllModules(modules);
             return new RuntimeInstance(modules);
+        }
+
+        /// <summary>
+        /// Verify the set of module metadata blocks
+        /// contains all blocks referenced by the set.
+        /// </summary>
+        private static void VerifyAllModules(IEnumerable<ModuleInstance> modules)
+        {
+            var blocks = modules.Select(m => m.MetadataBlock).Select(b => ModuleMetadata.CreateFromMetadata(b.Pointer, b.Size));
+            var names = new HashSet<string>(blocks.Select(b => b.Name));
+            foreach (var block in blocks)
+            {
+                foreach (var name in block.GetModuleNames())
+                {
+                    Assert.True(names.Contains(name));
+                }
+            }
         }
     }
 }
