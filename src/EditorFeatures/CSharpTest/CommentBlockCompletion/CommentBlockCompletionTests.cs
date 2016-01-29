@@ -85,6 +85,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentBlockCompletion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CommentBlockCompletion)]
+        public async Task InsertOnStartLine5()
+        {
+            var code = @"
+    /********$$
+";
+            var expected = @"
+    /********
+     * $$
+";
+            await VerifyAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CommentBlockCompletion)]
+        public async Task InsertOnStartLine6()
+        {
+            var code = @"
+    /*   $$
+";
+            var expected = @"
+    /*   
+     *   $$
+";
+            await VerifyAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CommentBlockCompletion)]
         public async Task NotInsertOnStartLine0()
         {
             var code = @"
@@ -183,6 +209,25 @@ $$*
         {
             var code = @"
     /*
+     *   1.
+     *   $$
+     */
+";
+            var expected = @"
+    /*
+     *   1.
+     *   
+     *   $$
+     */
+";
+            await VerifyAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CommentBlockCompletion)]
+        public async Task InsertOnMiddleLine6()
+        {
+            var code = @"
+    /*
   $$   *
      */
 ";
@@ -190,6 +235,23 @@ $$*
     /*
   
      * $$   *
+     */
+";
+            await VerifyAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CommentBlockCompletion)]
+        public async Task InsertOnMiddleLine7()
+        {
+            var code = @"
+    /*
+     *************$$
+     */
+";
+            var expected = @"
+    /*
+     *************
+     * $$
      */
 ";
             await VerifyAsync(code, expected);

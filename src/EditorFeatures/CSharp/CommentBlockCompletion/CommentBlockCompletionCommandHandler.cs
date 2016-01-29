@@ -131,20 +131,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentBlockCompletion
             var lineText = snapshotLine.GetText();
             if ((lineText.Length == firstNonWhitespaceOffset + exteriorText.Length))
             {
+                //     *|
                 return " ";
             }
 
             var interiorText = lineText.Substring(firstNonWhitespaceOffset + exteriorText.Length);
             var interiorFirstNonWhitespaceOffset = interiorText.GetFirstNonWhitespaceOffset() ?? -1;
 
-            if (interiorFirstNonWhitespaceOffset == -1)
+            if (interiorFirstNonWhitespaceOffset == 0)
             {
+                // /****|
                 return " ";
             }
 
             var interiorFirstWhitespacePosition = firstNonWhitespacePosition + exteriorText.Length;
-            if (caretPosition <= interiorFirstWhitespacePosition + interiorFirstNonWhitespaceOffset)
+            if (interiorFirstNonWhitespaceOffset == -1 || caretPosition <= interiorFirstWhitespacePosition + interiorFirstNonWhitespaceOffset)
             {
+                // *  |
+                // or
                 // *  |  1.
                 //  ^^
                 return snapshotLine.Snapshot.GetText(interiorFirstWhitespacePosition, caretPosition - interiorFirstWhitespacePosition);
