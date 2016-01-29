@@ -1240,7 +1240,34 @@ End Class
                                            Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= ""Hello""").WithLocation(3, 25),
                                            Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= Foo()").WithLocation(4, 26),
                                            Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 20").WithLocation(10, 84))
+        End Sub
 
+
+        <Fact>
+        Public Sub NoneOperationVisualBasic()
+            ' BoundCaseStatement is OperationKind.None
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub M1(x as Integer)
+        Select Case x
+            Case 1, 2
+                Exit Select
+            Case = 10
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New NoneOperationTestAnalyzer}, Nothing, Nothing, False)
         End Sub
     End Class
 End Namespace

@@ -1,11 +1,5 @@
-function Get-ScriptDirectory
-{
-    $Invocation = (Get-Variable MyInvocation -Scope 1).Value
-    Split-Path $Invocation.MyCommand.Path
-}
-
-$ScriptDir = Get-ScriptDirectory
-$AzCopyLoc = "C:\Program Files (x86)\Microsoft SDKs\Azure\AzCopy\AzCopy.exe"
+$ScriptDir = $PSScriptRoot
+$AzCopyLoc = Join-Path ${env:ProgramFiles(x86)} "Microsoft SDKs\Azure\AzCopy\AzCopy.exe"
 
 If (-Not (Test-Path $AzCopyLoc)) {
     echo "Azure Copy could not be found.  Download and install here:"

@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -53,6 +54,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return _locals != null;
                 }
+            }
+
+            protected override OperationKind ExpressionKind => OperationKind.None;
+
+            public override void Accept(IOperationVisitor visitor)
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+            {
+                throw ExceptionUtilities.Unreachable;
             }
 
             public ImmutableArray<LocalSymbol> GetLocals()

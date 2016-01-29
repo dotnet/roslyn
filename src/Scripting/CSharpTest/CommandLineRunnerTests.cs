@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
                 args ?? DefaultArgs,
                 new NotImplementedAnalyzerLoader());
 
-            return new CommandLineRunner(io, compiler, CSharpScriptCompiler.Instance, new CSharpObjectFormatter());
+            return new CommandLineRunner(io, compiler, CSharpScriptCompiler.Instance, CSharpObjectFormatter.Instance);
         }
 
         [Fact]
