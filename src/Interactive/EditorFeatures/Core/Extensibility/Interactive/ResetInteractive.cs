@@ -104,11 +104,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 await interactiveEvaluator.SetPathsAsync(referenceSearchPaths, sourceSearchPaths, projectDirectory).ConfigureAwait(true);
             }
 
-            await interactiveWindow.SubmitAsync(new[]
+            var importReferencesCommand = referencePaths.Select(_createReference);
+            var importNamespacesCommand = namespacesToImport.Select(_createImport).Join("\r\n");
+            await interactiveWindow.SubmitAsync(importReferencesCommand.Concat(new[]
             {
-                referencePaths.Select(_createReference).Join("\r\n"),
-                namespacesToImport.Select(_createImport).Join("\r\n")
-            }).ConfigureAwait(true);
+                importNamespacesCommand
+            })).ConfigureAwait(true);
         }
 
         /// <summary>

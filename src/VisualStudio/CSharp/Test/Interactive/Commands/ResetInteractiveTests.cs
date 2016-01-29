@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
                 Assert.True(replReferenceCommands.Any(rc => rc.EndsWith(@"ResetInteractiveTestsAssembly.dll""")));
                 Assert.True(replReferenceCommands.Any(rc => rc.EndsWith(@"ResetInteractiveVisualBasicSubproject.dll""")));
 
-                var expectedSubmissions = new List<string> {
-                    string.Join("\r\n", replReferenceCommands) + "\r\n",
-                    string.Join("\r\n", @"using ""ns1"";", @"using ""ns2"";") + "\r\n"};
+                var expectedSubmissions = new List<string>();
+                expectedSubmissions.AddRange(replReferenceCommands.Select(r => r + "\r\n"));
+                expectedSubmissions.Add(string.Join("\r\n", @"using ""ns1"";", @"using ""ns2"";") + "\r\n");
                 AssertResetInteractive(workspace, project, buildSucceeds: true, expectedSubmissions: expectedSubmissions);
 
                 // Test that no submissions are executed if the build fails.
