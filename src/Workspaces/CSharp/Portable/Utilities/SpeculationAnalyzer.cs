@@ -642,26 +642,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 !SymbolInfosAreCompatible(originalClauseInfo.OperationInfo, newClauseInfo.OperationInfo);
         }
 
+
         protected override bool ConversionsAreCompatible(SemanticModel originalModel, ExpressionSyntax originalExpression, SemanticModel newModel, ExpressionSyntax newExpression)
         {
-            if (originalModel == null || originalExpression == null || newModel == null || newExpression == null)
-            {
-                return false;
-            }
-
             return ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression));
         }
 
         protected override bool ConversionsAreCompatible(ExpressionSyntax originalExpression, ITypeSymbol originalTargetType, ExpressionSyntax newExpression, ITypeSymbol newTargetType)
         {
-            if (originalExpression == null || originalTargetType == null || newExpression == null || newTargetType == null)
+            Conversion? originalConversion = null;
+            Conversion? newConversion = null;
+
+            if (HasNonNullType(this.OriginalSemanticModel, originalExpression) &&
+                HasNonNullType(this.SpeculativeSemanticModel, newExpression))
             {
-                return false;
+                originalConversion = this.OriginalSemanticModel.ClassifyConversion(originalExpression, originalTargetType);
+                newConversion = this.SpeculativeSemanticModel.ClassifyConversion(newExpression, newTargetType);
+            }
+            else
+            {
+                ITypeSymbol originalConvertedTypeSymbol = null;
+                if (TryGetConvertedTypeForExpression(this.OriginalSemanticModel, originalExpression, out originalConvertedTypeSymbol))
+                {
+                    originalConversion = this.OriginalSemanticModel.Compilation.ClassifyConversion(originalConvertedTypeSymbol, originalTargetType);
+                }
+
+                ITypeSymbol newConvertedTypeSymbol = null;
+                if (TryGetConvertedTypeForExpression(this.SpeculativeSemanticModel, newExpression, out newConvertedTypeSymbol))
+                {
+                    newConversion = this.SpeculativeSemanticModel.Compilation.ClassifyConversion(originalConvertedTypeSymbol, newTargetType);
+                }
+
+                if (originalConversion == null || newConversion == null)
+                {
+                    return false;
+                }
             }
 
-            var originalConversion = this.OriginalSemanticModel.ClassifyConversion(originalExpression, originalTargetType);
-            var newConversion = this.SpeculativeSemanticModel.ClassifyConversion(newExpression, newTargetType);
-            return ConversionsAreCompatible(originalConversion, newConversion);
+            return ConversionsAreCompatible(originalConversion.Value, newConversion.Value);
         }
 
         private bool ConversionsAreCompatible(Conversion originalConversion, Conversion newConversion)

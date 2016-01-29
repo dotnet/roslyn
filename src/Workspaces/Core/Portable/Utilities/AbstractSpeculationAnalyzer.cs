@@ -1046,5 +1046,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             return true;
         }
+
+        protected static bool HasNonNullType(SemanticModel model, TExpressionSyntax expression) => model.GetTypeInfo(expression).Type != null;
+
+        protected static bool TryGetConvertedTypeForExpression(SemanticModel model, TExpressionSyntax expression, out ITypeSymbol convertedTypeSymbol)
+        {
+            convertedTypeSymbol = model.GetTypeInfo(expression).ConvertedType;
+            return convertedTypeSymbol != null;
+        }
     }
 }

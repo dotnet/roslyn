@@ -518,21 +518,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             Return node.IsKind(SyntaxKind.ParenthesizedExpression)
         End Function
 
-        Protected Overrides Function ConversionsAreCompatible(originalModel As SemanticModel, originalExpression As ExpressionSyntax, newModel As SemanticModel, newExpression As ExpressionSyntax) As Boolean
-            If originalExpression Is Nothing OrElse originalModel Is Nothing OrElse newExpression Is Nothing OrElse newModel Is Nothing Then
-                Return False
-            End If
+        Private Shared Function IsUnderNode(node As SyntaxNode, root As SyntaxNode) As Boolean
+            While node IsNot Nothing
+                If node Is root Then
+                    Return True
+                End If
+                If node.IsStructuredTrivia Then
+                    node = DirectCast(node, StructuredTriviaSyntax).ParentTrivia.Token.Parent
+                Else
+                    node = node.Parent
+                End If
+            End While
+            Return False
+        End Function
 
+        Protected Overrides Function ConversionsAreCompatible(originalModel As SemanticModel, originalExpression As ExpressionSyntax, newModel As SemanticModel, newExpression As ExpressionSyntax) As Boolean
             Return ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression))
         End Function
 
         Protected Overrides Function ConversionsAreCompatible(originalExpression As ExpressionSyntax, originalTargetType As ITypeSymbol, newExpression As ExpressionSyntax, newTargetType As ITypeSymbol) As Boolean
-            If originalExpression Is Nothing OrElse originalTargetType Is Nothing OrElse newExpression Is Nothing OrElse newTargetType Is Nothing Then
-                Return False
-            End If
+            Dim originalConversion As Conversion?
+            Dim newConversion As Conversion?
 
-            Dim originalConversion = Me.OriginalSemanticModel.ClassifyConversion(originalExpression, originalTargetType)
-            Dim newConversion = Me.SpeculativeSemanticModel.ClassifyConversion(newExpression, newTargetType)
+            If HasNonNullType(Me.OriginalSemanticModel, originalExpression) AndAlso
+               HasNonNullType(Me.SpeculativeSemanticModel, newExpression) Then
+                originalConversion = Me.OriginalSemanticModel.ClassifyConversion(originalExpression, originalTargetType)
+                newConversion = Me.SpeculativeSemanticModel.ClassifyConversion(newExpression, newTargetType)
+            Else
+                Dim originalConvertedTypeSymbol As ITypeSymbol = Nothing
+                If TryGetConvertedTypeForExpression(Me.OriginalSemanticModel, originalExpression, originalConvertedTypeSymbol) Then
+                    originalConversion = Me.OriginalSemanticModel.Compilation.ClassifyConversion(originalConvertedTypeSymbol, originalTargetType)
+                End If
+                
+                Dim newConvertedTypeSymbol As ITypeSymbol = Nothing
+                If TryGetConvertedTypeForExpression(Me.SpeculativeSemanticModel, newExpression, newConvertedTypeSymbol) Then
+                    newConversion = Me.SpeculativeSemanticModel.Compilation.ClassifyConversion(newConvertedTypeSymbol, newTargetType)
+                End If
+
+                If originalConversion Is Nothing OrElse newConversion Is Nothing
+                    Return False
+                End If
+            End If
 
             ' When Option Strict is not Off and the new expression has a constant value, it's possible that
             ' there Is a hidden narrowing conversion that will be missed. In that case, use the
@@ -540,12 +566,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
             If Me.OriginalSemanticModel.OptionStrict() <> OptionStrict.Off AndAlso
                Me.SpeculativeSemanticModel.GetConstantValue(newExpression).HasValue Then
-
                 Dim newExpressionType = Me.SpeculativeSemanticModel.GetTypeInfo(newExpression).Type
                 newConversion = Me.OriginalSemanticModel.Compilation.ClassifyConversion(newExpressionType, newTargetType)
             End If
 
-            Return ConversionsAreCompatible(originalConversion, newConversion)
+            Return ConversionsAreCompatible(originalConversion.Value, newConversion.Value)
         End Function
 
         Private Overloads Function ConversionsAreCompatible(originalConversion As Conversion, newConversion As Conversion) As Boolean
