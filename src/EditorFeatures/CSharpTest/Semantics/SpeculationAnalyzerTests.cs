@@ -330,6 +330,20 @@ class Program
 }           ", "Directions.South", semanticChanges: true);
         }
 
+        [Fact, WorkItem(8111, "https://github.com/dotnet/roslyn/issues/8111")]
+        public void SpeculationAnalyzerAnonymousObjectMemberDeclaredWithUnneededCast()
+        {
+            Test(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        object thing = new { shouldBeAnInt = [|(Directions)Directions.South|] };
+    }
+    public enum Directions { North, East, South, West }
+}           ", "Directions.South", semanticChanges: false);
+        }
+
         protected override SyntaxTree Parse(string text)
         {
             return SyntaxFactory.ParseSyntaxTree(text);

@@ -3807,5 +3807,33 @@ class Program
 }
 ");
         }
+
+        [WorkItem(8111, "https://github.com/dotnet/roslyn/issues/8111")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastThatDoesntChangeShapeOfAnonymousTypeObject()
+        {
+            await TestAsync(
+            @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        object thing = new { shouldBeAnInt = [|(Directions)Directions.South|] };
+    }
+    public enum Directions { North, East, South, West }
+}
+",
+
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        object thing = new { shouldBeAnInt = Directions.South };
+    }
+    public enum Directions { North, East, South, West }
+}
+");
+        }
     }
 }
