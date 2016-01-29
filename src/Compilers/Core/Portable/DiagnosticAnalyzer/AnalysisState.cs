@@ -252,10 +252,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         if (symbolDeclaredEvent?.DeclaringSyntaxReferences.Length > 1)
                         {
                             if (_partialSymbolsWithGeneratedSourceEvents.Contains(symbolDeclaredEvent.Symbol))
-                            {
-                                // already processed.
-                                continue;
-                            }
+                        {
+                            // already processed.
+                            continue;
+                        }
                             else
                             {
                                 newPartialSymbols = newPartialSymbols ?? ArrayBuilder<ISymbol>.GetInstance();
