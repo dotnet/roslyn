@@ -225,7 +225,7 @@ interface I { void $$M(); }
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-class C : I { public void [|M|]() { } }
+class C { public void [|M|]() { } }
 class D : C, I { }
 interface I { void $$M(); }
         </Document>
