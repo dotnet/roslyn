@@ -1,5 +1,8 @@
-{
-  "dependencies": { },
+﻿{
+  "dependencies": {
+    "Microsoft.VisualBasic": "10.0.1-beta-23504",
+    "System.AppContext": "4.0.1-beta-23504"
+  },
   "frameworks": {
     "dotnet5.4": {
       "imports": "portable-net452"
