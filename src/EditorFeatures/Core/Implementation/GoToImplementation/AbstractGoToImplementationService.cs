@@ -50,26 +50,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             {
                 var implementations =
                     SymbolFinder.FindImplementationsAsync(mapping.Symbol, mapping.Solution, cancellationToken: cancellationToken)
-                        .WaitAndGetResult(cancellationToken)
-                        .Where(s => s.Locations.Any(l => l.IsInSource))
-                        .ToList();
+                        .WaitAndGetResult(cancellationToken);
 
-                return TryGoToImplementations(mapping, implementations, cancellationToken, out message);
+                return TryGoToImplementations(implementations, mapping, cancellationToken, out message);
             }
             else if (mapping.Symbol.IsOverridable())
             {
-                var overrides =
+                var implementations =
                     SymbolFinder.FindOverridesAsync(mapping.Symbol, mapping.Solution, cancellationToken: cancellationToken)
                         .WaitAndGetResult(cancellationToken)
-                        .ToList();
+                        .Concat(mapping.Symbol);
 
-                // If the original symbol isn't abstract, then it's an implementation too
-                if (!mapping.Symbol.IsAbstract)
-                {
-                    overrides.Add(mapping.Symbol);
-                }
-
-                return TryGoToImplementations(mapping, overrides, cancellationToken, out message);
+                return TryGoToImplementations(implementations, mapping, cancellationToken, out message);
             }
             else
             {
@@ -87,8 +79,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             }
         }
 
-        private bool TryGoToImplementations(SymbolMappingResult mapping, IList<ISymbol> implementations, CancellationToken cancellationToken, out string message)
+        private bool TryGoToImplementations(IEnumerable<ISymbol> candidateImplementations, SymbolMappingResult mapping, CancellationToken cancellationToken, out string message)
         {
+            var implementations = candidateImplementations
+                .Where(s => !s.IsAbstract && s.Locations.Any(l => l.IsInSource))
+                .ToList();
+
             if (implementations.Count == 0)
             {
                 message = EditorFeaturesResources.SymbolHasNoImplementations;
