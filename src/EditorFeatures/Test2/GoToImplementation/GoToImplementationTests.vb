@@ -236,6 +236,74 @@ interface I { void $$M(); }
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
+        Public Async Function TestWithVirtualMethodImplementationWithInterfaceOnBaseClass() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C : I { public virtual void [|M|]() { } }
+class D : C { public override void [|M|]() { } }
+interface I { void $$M(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
+        Public Async Function TestWithVirtualMethodImplementationWithInterfaceOnDerivedClass() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C { public virtual void M() { } }
+class D : C, I { public override void [|M|]() { } }
+interface I { void $$M(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
+        Public Async Function TestWithVirtualMethodImplementationAndInterfaceImplementedOnDerivedType() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C : I { public virtual void [|M|]() { } }
+class D : C, I { public override void [|M|]() { } }
+interface I { void $$M(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
+        Public Async Function TestWithAbstractMethodImplementation() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C : I { public abstract void M() { } }
+class D : C { public override void [|M|]() { } }}
+interface I { void $$M(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         Public Async Function TestWithInterfaceMemberFromMetdataAtUseSite() As Task
             Dim workspace =
 <Workspace>

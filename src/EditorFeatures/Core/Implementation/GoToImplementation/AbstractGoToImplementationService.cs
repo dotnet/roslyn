@@ -52,7 +52,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
                     SymbolFinder.FindImplementationsAsync(mapping.Symbol, mapping.Solution, cancellationToken: cancellationToken)
                         .WaitAndGetResult(cancellationToken);
 
-                return TryGoToImplementations(implementations, mapping, cancellationToken, out message);
+                // It's important we use a HashSet here -- we may have cases in an inheritence hierarchy where more than one method
+                // in an overrides chain implements the same interface method, and we want to duplicate those. The easiest way to do it
+                // is to just use a HashSet.
+                var implementationsAndOverrides = new HashSet<ISymbol>();
+
+                foreach (var implementation in implementations)
+                {
+                    implementationsAndOverrides.Add(implementation);
+
+                    // FindImplementationsAsync will only return the base virtual/abstract method, not that method and the overrides
+                    // of the method. We should also include those.
+                    if (implementation.IsOverridable())
+                    {
+                        implementationsAndOverrides.AddRange(
+                            SymbolFinder.FindOverridesAsync(implementation, mapping.Solution, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken));
+                    }
+                }
+
+                return TryGoToImplementations(implementationsAndOverrides, mapping, cancellationToken, out message);
             }
             else if ((mapping.Symbol as INamedTypeSymbol)?.TypeKind == TypeKind.Class)
             {
