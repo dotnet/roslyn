@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 {
-    [ExportCommandHandler("BlockCommentEditingCommandHandler", ContentTypeNames.CSharpContentType)]
+    [ExportCommandHandler(nameof(BlockCommentEditingCommandHandler), ContentTypeNames.CSharpContentType)]
     [Order(After = PredefinedCommandHandlerNames.Completion)]
     internal class BlockCommentEditingCommandHandler : AbstractBlockCommentEditingCommandHandler
     {
