@@ -22,8 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
     /// It uses the original tree's semantic model to create a speculative semantic model and verifies that
     /// the syntax replacement doesn't break the semantics of any parenting nodes of the original expression.
     /// </summary>
-    internal class SpeculationAnalyzer : AbstractSpeculationAnalyzer<SyntaxNode, ExpressionSyntax, TypeSyntax, AttributeSyntax,
-        ArgumentSyntax, ForEachStatementSyntax, ThrowStatementSyntax, SemanticModel>
+    internal class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
+        SyntaxNode, ExpressionSyntax, TypeSyntax, AttributeSyntax,
+        ArgumentSyntax, ForEachStatementSyntax, ThrowStatementSyntax, SemanticModel, Conversion>
     {
         /// <summary>
         /// Creates a semantic analyzer for speculative syntax replacement.
@@ -642,7 +643,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 !SymbolInfosAreCompatible(originalClauseInfo.OperationInfo, newClauseInfo.OperationInfo);
         }
 
-
         protected override bool ConversionsAreCompatible(SemanticModel originalModel, ExpressionSyntax originalExpression, SemanticModel newModel, ExpressionSyntax newExpression)
         {
             return ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression));
@@ -653,30 +653,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             Conversion? originalConversion = null;
             Conversion? newConversion = null;
 
-            if (HasNonNullType(this.OriginalSemanticModel, originalExpression) &&
-                HasNonNullType(this.SpeculativeSemanticModel, newExpression))
-            {
-                originalConversion = this.OriginalSemanticModel.ClassifyConversion(originalExpression, originalTargetType);
-                newConversion = this.SpeculativeSemanticModel.ClassifyConversion(newExpression, newTargetType);
-            }
-            else
-            {
-                ITypeSymbol originalConvertedTypeSymbol = null;
-                if (TryGetConvertedTypeForExpression(this.OriginalSemanticModel, originalExpression, out originalConvertedTypeSymbol))
-                {
-                    originalConversion = this.OriginalSemanticModel.Compilation.ClassifyConversion(originalConvertedTypeSymbol, originalTargetType);
-                }
+            this.GetConversions(originalExpression, originalTargetType, newExpression, newTargetType, out originalConversion, out newConversion);
 
-                ITypeSymbol newConvertedTypeSymbol = null;
-                if (TryGetConvertedTypeForExpression(this.SpeculativeSemanticModel, newExpression, out newConvertedTypeSymbol))
-                {
-                    newConversion = this.SpeculativeSemanticModel.Compilation.ClassifyConversion(originalConvertedTypeSymbol, newTargetType);
-                }
-
-                if (originalConversion == null || newConversion == null)
-                {
-                    return false;
-                }
+            if (originalConversion == null || newConversion == null)
+            {
+                return false;
             }
 
             return ConversionsAreCompatible(originalConversion.Value, newConversion.Value);
@@ -725,5 +706,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             return compilation.ClassifyConversion(sourceType, targetType).IsReference;
         }
+
+        protected override Conversion ClassifyConversion(SemanticModel model, ExpressionSyntax expression, ITypeSymbol targetType) =>
+            model.ClassifyConversion(expression, targetType);
+
+        protected override Conversion ClassifyConversion(SemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType) =>
+            model.Compilation.ClassifyConversion(originalType, targetType);
     }
 }
