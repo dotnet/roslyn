@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     internal partial class ErrorLogger : IDisposable
     {
         // Internal for testing purposes.
-        internal const string OutputFormatVersion = "0.1";
+        internal const string OutputFormatVersion = "0.4";
 
         private readonly JsonWriter _writer;
 
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
 
             WriteToolInfo(toolName, toolFileVersion, toolAssemblyVersion);
 
-            _writer.WriteArrayStart("issues");
+            _writer.WriteArrayStart("results");
         }
 
         private void WriteToolInfo(string name, string fileVersion, Version assemblyVersion)
@@ -54,8 +54,9 @@ namespace Microsoft.CodeAnalysis
 
         internal void LogDiagnostic(Diagnostic diagnostic, CultureInfo culture)
         {
-            _writer.WriteObjectStart(); // issue
+            _writer.WriteObjectStart(); // result
             _writer.Write("ruleId", diagnostic.Id);
+            _writer.Write("kind", GetKind(diagnostic.Severity));
 
             WriteLocations(diagnostic.Location, diagnostic.AdditionalLocations);
 
@@ -76,9 +77,13 @@ namespace Microsoft.CodeAnalysis
                 _writer.Write("fullMessage", description);
             }
 
+            _writer.Write("isSuppressedInSource", diagnostic.IsSuppressed);
+
+            WriteTags(diagnostic);
+
             WriteProperties(diagnostic, culture);
 
-            _writer.WriteObjectEnd(); // issue
+            _writer.WriteObjectEnd(); // result
         }
 
         private void WriteLocations(Location location, IReadOnlyList<Location> additionalLocations)
@@ -143,6 +148,21 @@ namespace Microsoft.CodeAnalysis
             return uri.ToString();
         }
 
+        private void WriteTags(Diagnostic diagnostic)
+        {
+            if (diagnostic.CustomTags.Count > 0)
+            {
+                _writer.WriteArrayStart("tags");
+
+                foreach (string tag in diagnostic.CustomTags)
+                {
+                    _writer.Write(tag);
+                }
+
+                _writer.WriteArrayEnd();
+            }
+        }
+
         private void WriteProperties(Diagnostic diagnostic, CultureInfo culture)
         {
             _writer.WriteObjectStart("properties");
@@ -172,13 +192,6 @@ namespace Microsoft.CodeAnalysis
 
             _writer.Write("isEnabledByDefault", diagnostic.IsEnabledByDefault.ToString());
 
-            _writer.Write("isSuppressedInSource", diagnostic.IsSuppressed.ToString());
-
-            if (diagnostic.CustomTags.Count > 0)
-            {
-                _writer.Write("customTags", diagnostic.CustomTags.WhereNotNull().Join(";"));
-            }
-
             foreach (var pair in diagnostic.Properties.OrderBy(x => x.Key, StringComparer.Ordinal))
             {
                 _writer.Write("customProperties." + pair.Key, pair.Value);
@@ -187,10 +200,30 @@ namespace Microsoft.CodeAnalysis
             _writer.WriteObjectEnd(); // properties
         }
 
+        private static string GetKind(DiagnosticSeverity severity)
+        {
+            switch (severity)
+            {
+                case DiagnosticSeverity.Info:
+                    return "note";
+
+                case DiagnosticSeverity.Error:
+                    return "error";
+
+                case DiagnosticSeverity.Warning:
+                case DiagnosticSeverity.Hidden:
+                default:
+                    // note that in the hidden or default cases, we still write out the actual severity as a
+                    // property so no information is lost. We have to conform to the SARIF spec for kind,
+                    // which allows only pass, warning, error, or notApplicable.
+                    return "warning";
+            }
+        }
+
         public void Dispose()
         {
-            _writer.WriteArrayEnd();  // issues
-            _writer.WriteObjectEnd(); // single runLog
+            _writer.WriteArrayEnd();  // results
+            _writer.WriteObjectEnd(); // runLog
             _writer.WriteArrayEnd();  // runLogs
             _writer.WriteObjectEnd(); // root
             _writer.Dispose();
