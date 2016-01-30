@@ -20,12 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor
         public const string AutomaticLineEnder = "Automatic Line Ender Command Handler";
 
         /// <summary>
-        /// Command handler name for Comment Block Editing.
-        /// </summary>
-        /// <remarks></remarks>
-        public const string BlockCommentEditing = "Block Comment Editing Command Handler";
-
-        /// <summary>
         /// Command handler name for Change Signature.
         /// </summary>
         public const string ChangeSignature = "Change Signature";

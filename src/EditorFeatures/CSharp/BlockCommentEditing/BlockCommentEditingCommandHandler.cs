@@ -2,20 +2,22 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentEditing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.BlockCommentEditing, ContentTypeNames.CSharpContentType)]
+    [ExportCommandHandler("BlockCommentEditingCommandHandler", ContentTypeNames.CSharpContentType)]
+    [Order(After = PredefinedCommandHandlerNames.Completion)]
     internal class BlockCommentEditingCommandHandler : AbstractBlockCommentEditingCommandHandler
     {
         [ImportingConstructor]
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             var syntaxTree = document.GetSyntaxTreeAsync().WaitAndGetResult(CancellationToken.None);
             var trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(caretPosition, CancellationToken.None);
 
-            return trivia.RawKind == (int)SyntaxKind.MultiLineCommentTrivia;
+            return trivia.RawKind == (int)SyntaxKind.MultiLineCommentTrivia || trivia.RawKind == (int)SyntaxKind.MultiLineDocumentationCommentTrivia;
         }
     }
 }
