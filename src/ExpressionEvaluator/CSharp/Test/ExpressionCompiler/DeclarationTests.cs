@@ -30,20 +30,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "int z = 1, F = 2;", out flags, out testData);
-            Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
-@"{
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "int z = 1, F = 2;", out flags, out testData);
+                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
   // Code size       85 (0x55)
   .maxstack  4
   .locals init (object V_0, //y
@@ -76,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0053:  stind.i4
   IL_0054:  ret
 }");
+            });
         }
 
         [Fact]
@@ -92,30 +91,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         object y;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                "C.M");
-            var aliases = ImmutableArray.Create(
-                VariableAlias("x", typeof(string)),
-                VariableAlias("y", typeof(int)),
-                VariableAlias("T", typeof(object)),
-                VariableAlias("D", "C"),
-                VariableAlias("F", typeof(int)));
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "(object)x ?? (object)y ?? (object)T ?? (object)F ?? ((C)D).F ?? C.G",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error,
-                testData);
-            Assert.Equal(testData.Methods.Count, 1);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                var aliases = ImmutableArray.Create(
+                    VariableAlias("x", typeof(string)),
+                    VariableAlias("y", typeof(int)),
+                    VariableAlias("T", typeof(object)),
+                    VariableAlias("D", "C"),
+                    VariableAlias("F", typeof(int)));
+
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "(object)x ?? (object)y ?? (object)T ?? (object)F ?? ((C)D).F ?? C.G",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error,
+                    testData);
+
+                Assert.Equal(testData.Methods.Count, 1);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
 @"{
   // Code size       78 (0x4e)
   .maxstack  2
@@ -150,6 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0048:  ldsfld     ""object C.G""
   IL_004d:  ret
 }");
+            });
         }
 
         [Fact]
@@ -162,24 +162,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                "C.M");
-            string error;
-            var testData = new CompilationTestData();
-            var result = context.CompileExpression(
-                "*(&c) = 'A'",
-                DkmEvaluationFlags.None,
-                ImmutableArray.Create(VariableAlias("c", typeof(char))),
-                out error,
-                testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                var testData = new CompilationTestData();
+                var result = context.CompileExpression(
+                    "*(&c) = 'A'",
+                    DkmEvaluationFlags.None,
+                    ImmutableArray.Create(VariableAlias("c", typeof(char))),
+                    out error,
+                    testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       18 (0x12)
   .maxstack  3
   .locals init (char V_0)
@@ -193,6 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0010:  ldloc.0
   IL_0011:  ret
 }");
+            });
         }
 
         [Fact]
@@ -205,61 +202,59 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            string error;
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            // Expression without ';' as statement.
-            var result = context.CompileExpression("3", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Null(error);
+                string error;
 
-            // Expression with ';' as statement.
-            result = context.CompileExpression("3;", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Null(error);
+                // Expression without ';' as statement.
+                var result = context.CompileExpression("3", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Null(error);
 
-            // Expression with format specifiers but without ';' as statement.
-            result = context.CompileExpression("string.Empty, nq", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Null(error);
-            AssertEx.SetEqual(result.FormatSpecifiers, new[] { "nq" });
+                // Expression with ';' as statement.
+                result = context.CompileExpression("3;", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Null(error);
 
-            // Expression with format specifiers with ';' as statement.
-            result = context.CompileExpression("string.Empty, nq;", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Equal(error, "error CS1073: Unexpected token ','");
-            Assert.Null(result);
+                // Expression with format specifiers but without ';' as statement.
+                result = context.CompileExpression("string.Empty, nq", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Null(error);
+                AssertEx.SetEqual(result.FormatSpecifiers, new[] { "nq" });
 
-            // Assignment without ';' as statement.
-            result = context.CompileExpression("x = 2", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Null(error);
+                // Expression with format specifiers with ';' as statement.
+                result = context.CompileExpression("string.Empty, nq;", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Equal(error, "error CS1073: Unexpected token ','");
+                Assert.Null(result);
 
-            // Assignment with ';' as statement.
-            result = context.CompileExpression("x = 2;", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Null(error);
+                // Assignment without ';' as statement.
+                result = context.CompileExpression("x = 2", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Null(error);
 
-            // Statement without ';' as statement.
-            result = context.CompileExpression("int o", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
+                // Assignment with ';' as statement.
+                result = context.CompileExpression("x = 2;", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Null(error);
 
-            // Neither statement nor expression as statement.
-            result = context.CompileExpression("M(;", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Equal(error, "error CS1026: ) expected");
+                // Statement without ';' as statement.
+                result = context.CompileExpression("int o", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
 
-            // Statement without ';' as expression.
-            result = context.CompileExpression("int o", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
-            Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
+                // Neither statement nor expression as statement.
+                result = context.CompileExpression("M(;", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Equal(error, "error CS1026: ) expected");
 
-            // Statement with ';' as expression.
-            result = context.CompileExpression("int o;", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
-            Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
+                // Statement without ';' as expression.
+                result = context.CompileExpression("int o", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
+                Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
 
-            // Neither statement nor expression as expression.
-            result = context.CompileExpression("M(;", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
-            Assert.Equal(error, "error CS1026: ) expected");
+                // Statement with ';' as expression.
+                result = context.CompileExpression("int o;", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
+                Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
+
+                // Neither statement nor expression as expression.
+                result = context.CompileExpression("M(;", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
+                Assert.Equal(error, "error CS1026: ) expected");
+            });
         }
 
         [Fact]
@@ -272,25 +267,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                "C.M");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "System.ValueType C = (int)$3;",
-                DkmEvaluationFlags.None,
-                ImmutableArray.Create(ObjectIdAlias(3, typeof(int))),
-                out error,
-                testData);
-            Assert.Null(error);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "System.ValueType C = (int)$3;",
+                    DkmEvaluationFlags.None,
+                    ImmutableArray.Create(ObjectIdAlias(3, typeof(int))),
+                    out error,
+                    testData);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       62 (0x3e)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -311,6 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_003c:  stind.ref
   IL_003d:  ret
 }");
+            });
         }
 
         [Fact]
@@ -323,20 +315,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "var x = 1;", out flags, out testData);
-            Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "var x = 1;", out flags, out testData);
+                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       43 (0x2b)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -354,6 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0029:  stind.i4
   IL_002a:  ret
 }");
+            });
         }
 
         [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
@@ -367,20 +358,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "dynamic d = 1;", out flags, out testData);
-            Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "dynamic d = 1;", out flags, out testData);
+                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       58 (0x3a)
   .maxstack  7
   IL_0000:  ldtoken    ""object""
@@ -402,6 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0038:  stind.ref
   IL_0039:  ret
 }");
+            });
         }
 
         [Fact]
@@ -414,21 +402,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            string error;
-            context.CompileExpression(
-                "object o = F();",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal(error, "error CS0103: The name 'F' does not exist in the current context");
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                context.CompileExpression(
+                    "object o = F();",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal(error, "error CS0103: The name 'F' does not exist in the current context");
+            });
         }
 
         [Fact]
@@ -441,21 +426,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            string error;
-            context.CompileExpression(
-                "var y;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal(error, "error CS0818: Implicitly-typed variables must be initialized");
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                context.CompileExpression(
+                    "var y;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+
+                Assert.Equal(error, "error CS0818: Implicitly-typed variables must be initialized");
+            });
         }
 
         [Fact]
@@ -468,21 +451,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            string error;
-            context.CompileExpression(
-                "var z = null;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal(error, "error CS0815: Cannot assign <null> to an implicitly-typed variable");
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                context.CompileExpression(
+                    "var z = null;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal(error, "error CS0815: Cannot assign <null> to an implicitly-typed variable");
+            });
         }
 
         [Fact]
@@ -495,21 +476,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            string error;
-            context.CompileExpression(
-                "var w = M();",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal(error, "error CS0815: Cannot assign void to an implicitly-typed variable");
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                context.CompileExpression(
+                    "var w = M();",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+
+                Assert.Equal(error, "error CS0815: Cannot assign void to an implicitly-typed variable");
+            });
         }
 
         [Fact]
@@ -522,24 +501,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "T x = default(T), y = x;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error,
-                testData);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
-@"{
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "T x = default(T), y = x;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error,
+                    testData);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
   // Code size      115 (0x73)
   .maxstack  4
   .locals init (System.Guid V_0,
@@ -574,6 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_006d:  stobj      ""T""
   IL_0072:  ret
 }");
+            });
         }
 
         [WorkItem(1094107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094107")]
@@ -587,29 +563,26 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "object o = o ?? null;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error,
-                testData);
-            // The compiler reports "CS0165: Use of unassigned local variable 'o'"
-            // in flow analysis. But since flow analysis is skipped in the EE,
-            // compilation succeeds and references to the local in the initializer
-            // are treated as default(T). That matches the legacy EE.
-            Assert.Null(error);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "object o = o ?? null;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error,
+                    testData);
+                // The compiler reports "CS0165: Use of unassigned local variable 'o'"
+                // in flow analysis. But since flow analysis is skipped in the EE,
+                // compilation succeeds and references to the local in the initializer
+                // are treated as default(T). That matches the legacy EE.
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       57 (0x39)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -632,15 +605,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0037:  stind.ref
   IL_0038:  ret
 }");
-            testData = new CompilationTestData();
-            context.CompileExpression(
-                "string s = s.Substring(0);",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error,
-                testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+                testData = new CompilationTestData();
+                context.CompileExpression(
+                    "string s = s.Substring(0);",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error,
+                    testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       63 (0x3f)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -662,6 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_003d:  stind.ref
   IL_003e:  ret
 }");
+            });
         }
 
         [Fact]
@@ -674,21 +648,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            string error;
-            context.CompileExpression(
-                "object x = y, y;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal(error, "error CS0841: Cannot use local variable 'y' before it is declared");
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                context.CompileExpression(
+                    "object x = y, y;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal(error, "error CS0841: Cannot use local variable 'y' before it is declared");
+            });
         }
 
         [WorkItem(1094104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
@@ -702,21 +673,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            string error;
-            context.CompileExpression(
-                "var x = 4;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal(error, "...");
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                context.CompileExpression(
+                    "var x = 4;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal(error, "...");
+            });
         }
 
         [WorkItem(1094104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
@@ -731,21 +699,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         object y;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            string error;
-            context.CompileExpression(
-                "object y = 5;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal(error, "...");
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                context.CompileExpression(
+                    "object y = 5;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal(error, "...");
+            });
         }
 
         [WorkItem(1094104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
@@ -759,21 +724,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                "C.M");
-            string error;
-            context.CompileExpression(
-                "object z = 6;",
-                DkmEvaluationFlags.None,
-                ImmutableArray.Create(VariableAlias("z", typeof(int))),
-                out error);
-            Assert.Equal(error, "...");
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                context.CompileExpression(
+                    "object z = 6;",
+                    DkmEvaluationFlags.None,
+                    ImmutableArray.Create(VariableAlias("z", typeof(int))),
+                    out error);
+                Assert.Equal(error, "...");
+            });
         }
 
         [Fact]
@@ -786,22 +748,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            // Local declaration arguments (error only).
-            string error;
-            context.CompileExpression(
-                "int a[3];",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                // Local declaration arguments (error only).
+                string error;
+                context.CompileExpression(
+                    "int a[3];",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
+            });
         }
 
         [Fact]
@@ -814,25 +773,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "object @class, @this = @class;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error,
-                testData);
-            Assert.Null(error);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "object @class, @this = @class;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error,
+                    testData);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       82 (0x52)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -859,6 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0050:  stind.ref
   IL_0051:  ret
 }");
+            });
         }
 
         [Fact]
@@ -871,26 +827,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "const int x = 1;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error,
-                testData);
-            // Legacy EE reports "Invalid expression term 'const'".
-            Assert.Null(error);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "const int x = 1;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error,
+                    testData);
+                // Legacy EE reports "Invalid expression term 'const'".
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       43 (0x2b)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -908,6 +860,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0029:  stind.i4
   IL_002a:  ret
 }");
+            });
         }
 
         [Fact]
@@ -920,24 +873,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "T y = x;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error,
-                testData);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
-@"{
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "T y = x;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error,
+                    testData);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
   // Code size       47 (0x2f)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -955,6 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0029:  stobj      ""T""
   IL_002e:  ret
 }");
+            });
         }
 
         /// <summary>
@@ -971,47 +921,44 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            string error;
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
 
-            // $1
-            context.CompileExpression(
-                "var $1 = 1;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal(error, "error CS1056: Unexpected character '$'");
+                // $1
+                context.CompileExpression(
+                    "var $1 = 1;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal(error, "error CS1056: Unexpected character '$'");
 
-            // $exception
-            context.CompileExpression(
-                "var $exception = 2;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal(error, "error CS1056: Unexpected character '$'");
+                // $exception
+                context.CompileExpression(
+                    "var $exception = 2;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal(error, "error CS1056: Unexpected character '$'");
 
-            // $ReturnValue
-            context.CompileExpression(
-                "var $ReturnValue = 3;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal(error, "error CS1056: Unexpected character '$'");
+                // $ReturnValue
+                context.CompileExpression(
+                    "var $ReturnValue = 3;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal(error, "error CS1056: Unexpected character '$'");
 
-            // $x
-            context.CompileExpression(
-                "var $x = 4;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal(error, "error CS1056: Unexpected character '$'");
+                // $x
+                context.CompileExpression(
+                    "var $x = 4;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal(error, "error CS1056: Unexpected character '$'");
+            });
         }
 
         /// <summary>
@@ -1028,24 +975,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "System.Action b = () => { object c = null; };",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error,
-                testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "System.Action b = () => { object c = null; };",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error,
+                    testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       73 (0x49)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -1071,6 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0047:  stind.ref
   IL_0048:  ret
 }");
+            });
         }
 
         [WorkItem(1094148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094148")]
@@ -1084,21 +1028,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression("while(false) ;", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Equal(error, "error CS8092: Expression or declaration statement expected.");
-            testData = new CompilationTestData();
-            context.CompileExpression("try { } catch (System.Exception) { }", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Equal(error, "error CS8092: Expression or declaration statement expected.");
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("while(false) ;", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Equal(error, "error CS8092: Expression or declaration statement expected.");
+                testData = new CompilationTestData();
+                context.CompileExpression("try { } catch (System.Exception) { }", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Equal(error, "error CS8092: Expression or declaration statement expected.");
+            });
         }
 
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
@@ -1118,14 +1059,15 @@ class Generic<T>
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, "C.M");
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "Generic<C> g = null;", out flags, out testData);
-            Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "Generic<C> g = null;", out flags, out testData);
+                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       43 (0x2b)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -1143,6 +1085,7 @@ class Generic<T>
   IL_0029:  stind.ref
   IL_002a:  ret
 }");
+            });
         }
 
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
@@ -1161,15 +1104,16 @@ class Generic<T>
 {
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, "C.M");
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "Generic<int> g = null;", out flags, out testData);
-            Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "Generic<int> g = null;", out flags, out testData);
+                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       43 (0x2b)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -1187,6 +1131,7 @@ class Generic<T>
   IL_0029:  stind.ref
   IL_002a:  ret
 }");
+            });
         }
 
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
@@ -1206,14 +1151,15 @@ struct S
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, "C.M");
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "S* s = null;", out flags, out testData);
-            Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "S* s = null;", out flags, out testData);
+                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       44 (0x2c)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -1232,6 +1178,7 @@ struct S
   IL_002a:  stind.i
   IL_002b:  ret
 }");
+            });
         }
 
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
@@ -1246,15 +1193,16 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, "C.M");
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "int* p = null;", out flags, out testData);
-            Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "int* p = null;", out flags, out testData);
+                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       44 (0x2c)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -1273,6 +1221,7 @@ class C
   IL_002a:  stind.i
   IL_002b:  ret
 }");
+            });
         }
 
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
@@ -1291,15 +1240,16 @@ struct S
 {
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, "C.M");
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "S? s = null;", out flags, out testData);
-            Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "S? s = null;", out flags, out testData);
+                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       55 (0x37)
   .maxstack  4
   .locals init (System.Guid V_0,
@@ -1320,6 +1270,7 @@ struct S
   IL_0031:  stobj      ""S?""
   IL_0036:  ret
 }");
+            });
         }
 
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
@@ -1334,15 +1285,16 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, "C.M");
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "int? n = null;", out flags, out testData);
-            Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "int? n = null;", out flags, out testData);
+                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       55 (0x37)
   .maxstack  4
   .locals init (System.Guid V_0,
@@ -1363,6 +1315,7 @@ class C
   IL_0031:  stobj      ""int?""
   IL_0036:  ret
 }");
+            });
         }
 
         private static void CompileDeclaration(EvaluationContext context, string declaration, out DkmClrCompilationResultFlags flags, out CompilationTestData testData)

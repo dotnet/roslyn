@@ -142,134 +142,133 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 options: TestOptions.DebugDll);
 
             // Duplicate assemblies, target module referencing BS1.
-            var runtime = CreateRuntimeInstance(
-                compilationCN1, 
-                new[] { MscorlibRef, referenceAS1, referenceAS2, referenceBS2, referenceBS1, referenceBS2 });
+            WithRuntimeInstance(compilationCN1, new[] { MscorlibRef, referenceAS1, referenceAS2, referenceBS2, referenceBS1, referenceBS2 }, runtime =>
+            {
+                ImmutableArray<MetadataBlock> typeBlocks;
+                ImmutableArray<MetadataBlock> methodBlocks;
+                Guid moduleVersionId;
+                ISymUnmanagedReader symReader;
+                int typeToken;
+                int methodToken;
+                int localSignatureToken;
+                GetContextState(runtime, "C", out typeBlocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);
+                GetContextState(runtime, "C.M", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
+                uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
 
-            ImmutableArray<MetadataBlock> typeBlocks;
-            ImmutableArray<MetadataBlock> methodBlocks;
-            Guid moduleVersionId;
-            ISymUnmanagedReader symReader;
-            int typeToken;
-            int methodToken;
-            int localSignatureToken;
-            GetContextState(runtime, "C", out typeBlocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);
-            GetContextState(runtime, "C.M", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
-            uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
+                // Compile expression with type context with all modules.
+                var context = EvaluationContext.CreateTypeContext(
+                    default(CSharpMetadataContext),
+                    typeBlocks,
+                    moduleVersionId,
+                    typeToken);
+                string error;
+                // A is ambiguous.
+                var testData = new CompilationTestData();
+                context.CompileExpression("new A()", out error, testData);
+                Assert.True(error.StartsWith("error CS0433: The type 'A' exists in both "));
+                testData = new CompilationTestData();
+                // B is ambiguous.
+                context.CompileExpression("new B()", out error, testData);
+                Assert.True(error.StartsWith("error CS0433: The type 'B' exists in both "));
+                var previous = new CSharpMetadataContext(typeBlocks, context);
 
-            // Compile expression with type context with all modules.
-            var context = EvaluationContext.CreateTypeContext(
-                default(CSharpMetadataContext),
-                typeBlocks,
-                moduleVersionId,
-                typeToken);
-            string error;
-            // A is ambiguous.
-            var testData = new CompilationTestData();
-            context.CompileExpression("new A()", out error, testData);
-            Assert.True(error.StartsWith("error CS0433: The type 'A' exists in both "));
-            testData = new CompilationTestData();
-            // B is ambiguous.
-            context.CompileExpression("new B()", out error, testData);
-            Assert.True(error.StartsWith("error CS0433: The type 'B' exists in both "));
-            var previous = new CSharpMetadataContext(typeBlocks, context);
-
-            // Compile expression with type context with referenced modules only.
-            context = EvaluationContext.CreateTypeContext(
-                typeBlocks.ToCompilationReferencedModulesOnly(moduleVersionId),
-                moduleVersionId,
-                typeToken);
-            // A is unrecognized since there were no direct references to AS1 or AS2.
-            testData = new CompilationTestData();
-            context.CompileExpression("new A()", out error, testData);
-            Assert.Equal(error, "error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)");
-            testData = new CompilationTestData();
-            // B should be resolved to BS2.
-            context.CompileExpression("new B()", out error, testData);
-            var methodData = testData.GetMethodData("<>x.<>m0");
-            methodData.VerifyIL(
-@"{
+                // Compile expression with type context with referenced modules only.
+                context = EvaluationContext.CreateTypeContext(
+                    typeBlocks.ToCompilationReferencedModulesOnly(moduleVersionId),
+                    moduleVersionId,
+                    typeToken);
+                // A is unrecognized since there were no direct references to AS1 or AS2.
+                testData = new CompilationTestData();
+                context.CompileExpression("new A()", out error, testData);
+                Assert.Equal(error, "error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)");
+                testData = new CompilationTestData();
+                // B should be resolved to BS2.
+                context.CompileExpression("new B()", out error, testData);
+                var methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+    @"{
 // Code size        6 (0x6)
 .maxstack  1
 IL_0000:  newobj     ""B..ctor()""
 IL_0005:  ret
 }");
-            Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityBS2.GetDisplayName());
-            // B.F should result in missing assembly AS2 since there were no direct references to AS2.
-            ResultProperties resultProperties;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            testData = new CompilationTestData();
-            context.CompileExpression(
-                "(new B()).F",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                DebuggerDiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            AssertEx.Equal(missingAssemblyIdentities, ImmutableArray.Create(identityAS2));
+                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityBS2.GetDisplayName());
+                // B.F should result in missing assembly AS2 since there were no direct references to AS2.
+                ResultProperties resultProperties;
+                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                testData = new CompilationTestData();
+                context.CompileExpression(
+                    "(new B()).F",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out error,
+                    out missingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData);
+                AssertEx.Equal(missingAssemblyIdentities, ImmutableArray.Create(identityAS2));
 
-            // Compile expression with method context with all modules.
-            context = EvaluationContext.CreateMethodContext(
-                previous,
-                methodBlocks,
-                symReader,
-                moduleVersionId,
-                methodToken: methodToken,
-                methodVersion: 1,
-                ilOffset: ilOffset,
-                localSignatureToken: localSignatureToken);
-            Assert.Equal(previous.Compilation, context.Compilation); // re-use type context compilation
-            testData = new CompilationTestData();
-            // A is ambiguous.
-            testData = new CompilationTestData();
-            context.CompileExpression("new A()", out error, testData);
-            Assert.True(error.StartsWith("error CS0433: The type 'A' exists in both "));
-            testData = new CompilationTestData();
-            // B is ambiguous.
-            context.CompileExpression("new B()", out error, testData);
-            Assert.True(error.StartsWith("error CS0433: The type 'B' exists in both "));
+                // Compile expression with method context with all modules.
+                context = EvaluationContext.CreateMethodContext(
+                    previous,
+                    methodBlocks,
+                    symReader,
+                    moduleVersionId,
+                    methodToken: methodToken,
+                    methodVersion: 1,
+                    ilOffset: ilOffset,
+                    localSignatureToken: localSignatureToken);
+                Assert.Equal(previous.Compilation, context.Compilation); // re-use type context compilation
+                testData = new CompilationTestData();
+                // A is ambiguous.
+                testData = new CompilationTestData();
+                context.CompileExpression("new A()", out error, testData);
+                Assert.True(error.StartsWith("error CS0433: The type 'A' exists in both "));
+                testData = new CompilationTestData();
+                // B is ambiguous.
+                context.CompileExpression("new B()", out error, testData);
+                Assert.True(error.StartsWith("error CS0433: The type 'B' exists in both "));
 
-            // Compile expression with method context with referenced modules only.
-            context = EvaluationContext.CreateMethodContext(
-                methodBlocks.ToCompilationReferencedModulesOnly(moduleVersionId),
-                symReader,
-                moduleVersionId,
-                methodToken: methodToken,
-                methodVersion: 1,
-                ilOffset: ilOffset,
-                localSignatureToken: localSignatureToken);
-            // A is unrecognized since there were no direct references to AS1 or AS2.
-            testData = new CompilationTestData();
-            context.CompileExpression("new A()", out error, testData);
-            Assert.Equal(error, "error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)");
-            testData = new CompilationTestData();
-            // B should be resolved to BS2.
-            context.CompileExpression("new B()", out error, testData);
-            methodData = testData.GetMethodData("<>x.<>m0");
-            methodData.VerifyIL(
-@"{
+                // Compile expression with method context with referenced modules only.
+                context = EvaluationContext.CreateMethodContext(
+                    methodBlocks.ToCompilationReferencedModulesOnly(moduleVersionId),
+                    symReader,
+                    moduleVersionId,
+                    methodToken: methodToken,
+                    methodVersion: 1,
+                    ilOffset: ilOffset,
+                    localSignatureToken: localSignatureToken);
+                // A is unrecognized since there were no direct references to AS1 or AS2.
+                testData = new CompilationTestData();
+                context.CompileExpression("new A()", out error, testData);
+                Assert.Equal(error, "error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)");
+                testData = new CompilationTestData();
+                // B should be resolved to BS2.
+                context.CompileExpression("new B()", out error, testData);
+                methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+    @"{
 // Code size        6 (0x6)
 .maxstack  1
 IL_0000:  newobj     ""B..ctor()""
 IL_0005:  ret
 }");
-            Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityBS2.GetDisplayName());
-            // B.F should result in missing assembly AS2 since there were no direct references to AS2.
-            testData = new CompilationTestData();
-            context.CompileExpression(
-                "(new B()).F",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                DebuggerDiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            AssertEx.Equal(missingAssemblyIdentities, ImmutableArray.Create(identityAS2));
+                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityBS2.GetDisplayName());
+                // B.F should result in missing assembly AS2 since there were no direct references to AS2.
+                testData = new CompilationTestData();
+                context.CompileExpression(
+                    "(new B()).F",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out error,
+                    out missingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData);
+                AssertEx.Equal(missingAssemblyIdentities, ImmutableArray.Create(identityAS2));
+            });
         }
 
         private static void VerifyAssemblyReferences(
@@ -567,15 +566,16 @@ IL_0005:  ret
                 references: contractReferences,
                 options: TestOptions.DebugDll);
 
-            var runtime = CreateRuntimeInstance(compilation, runtimeReferences);
-            var context = CreateMethodContext(runtime, "C.Main");
-            string errorMessage;
+            WithRuntimeInstance(compilation, runtimeReferences, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.Main");
+                string errorMessage;
 
-            // { System.Console, mscorlib }
-            var testData = new CompilationTestData();
-            context.CompileExpression("typeof(System.Console)", out errorMessage, testData);
-            var methodData = testData.GetMethodData("<>x.<>m0");
-            methodData.VerifyIL(@"
+                // { System.Console, mscorlib }
+                var testData = new CompilationTestData();
+                context.CompileExpression("typeof(System.Console)", out errorMessage, testData);
+                var methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(@"
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -586,11 +586,11 @@ IL_0005:  ret
   IL_000a:  ret
 }");
 
-            // { mscorlib, System.ObjectModel }
-            testData = new CompilationTestData();
-            context.CompileExpression("(System.Collections.ObjectModel.ReadOnlyDictionary<object, object>)null", out errorMessage, testData);
-            methodData = testData.GetMethodData("<>x.<>m0");
-            methodData.VerifyIL(@"
+                // { mscorlib, System.ObjectModel }
+                testData = new CompilationTestData();
+                context.CompileExpression("(System.Collections.ObjectModel.ReadOnlyDictionary<object, object>)null", out errorMessage, testData);
+                methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(@"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -599,7 +599,8 @@ IL_0005:  ret
   IL_0000:  ldnull
   IL_0001:  ret
 }");
-            Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityObjectModel.GetDisplayName());
+                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityObjectModel.GetDisplayName());
+            });
         }
 
         /// <summary>

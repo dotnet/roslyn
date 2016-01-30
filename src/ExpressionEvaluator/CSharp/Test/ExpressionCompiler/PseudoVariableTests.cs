@@ -28,9 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            string error;
-            Evaluate(source, "C.M", "$v", out error);
-            Assert.Equal(error, "error CS0103: The name '$v' does not exist in the current context");
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                string error;
+                Evaluate(runtime, "C.M", "$v", out error);
+                Assert.Equal(error, "error CS0103: The name '$v' does not exist in the current context");
+            });
         }
 
         [Fact]
@@ -66,24 +70,26 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     }
 }";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            ResultProperties resultProperties;
-            string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            context.CompileExpression(
-                "this.$exception",
-                DkmEvaluationFlags.TreatAsExpression,
-                NoAliases,
-                DebuggerDiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData: null);
-            AssertEx.SetEqual(missingAssemblyIdentities, EvaluationContextBase.SystemCoreIdentity);
-            Assert.Equal(error, "error CS1061: 'C' does not contain a definition for '$exception' and no extension method '$exception' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)");
+                ResultProperties resultProperties;
+                string error;
+                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                context.CompileExpression(
+                    "this.$exception",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out error,
+                    out missingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData: null);
+                AssertEx.SetEqual(missingAssemblyIdentities, EvaluationContextBase.SystemCoreIdentity);
+                Assert.Equal(error, "error CS1061: 'C' does not contain a definition for '$exception' and no extension method '$exception' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)");
+            });
         }
 
         /// <summary>
@@ -100,28 +106,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                "C.M");
-            var aliases = ImmutableArray.Create(
-                ExceptionAlias(typeof(System.IO.IOException)),
-                ExceptionAlias(typeof(InvalidOperationException), stowed: true));
-            string error;
-            var testData = new CompilationTestData();
-            var result = context.CompileExpression(
-                "(System.Exception)$exception ?? $stowedexception",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error,
-                testData);
-            Assert.Null(error);
-            Assert.Equal(testData.Methods.Count, 1);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                var aliases = ImmutableArray.Create(
+                    ExceptionAlias(typeof(System.IO.IOException)),
+                    ExceptionAlias(typeof(InvalidOperationException), stowed: true));
+                string error;
+                var testData = new CompilationTestData();
+                var result = context.CompileExpression(
+                    "(System.Exception)$exception ?? $stowedexception",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error,
+                    testData);
+                Assert.Null(error);
+                Assert.Equal(testData.Methods.Count, 1);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       25 (0x19)
   .maxstack  2
@@ -134,6 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0013:  castclass  ""System.InvalidOperationException""
   IL_0018:  ret
 }");
+            });
         }
 
         [Fact]
@@ -146,27 +149,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                "C.M");
-            var aliases = ImmutableArray.Create(
-                ReturnValueAlias(type: typeof(object)),
-                ReturnValueAlias(2, typeof(string)));
-            string error;
-            var testData = new CompilationTestData();
-            var result = context.CompileExpression(
-                "$ReturnValue ?? $ReturnValue2",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error,
-                testData);
-            Assert.Equal(testData.Methods.Count, 1);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                var aliases = ImmutableArray.Create(
+                    ReturnValueAlias(type: typeof(object)),
+                    ReturnValueAlias(2, typeof(string)));
+                string error;
+                var testData = new CompilationTestData();
+                var result = context.CompileExpression(
+                    "$ReturnValue ?? $ReturnValue2",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error,
+                    testData);
+                Assert.Equal(testData.Methods.Count, 1);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       22 (0x16)
   .maxstack  2
@@ -180,20 +179,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0010:  castclass  ""string""
   IL_0015:  ret
 }");
-            // Value type $ReturnValue.
-            context = CreateMethodContext(
-                runtime,
-                "C.M");
-            aliases = ImmutableArray.Create(
-                ReturnValueAlias(type: typeof(int?)));
-            testData = new CompilationTestData();
-            result = context.CompileExpression(
-                "((int?)$ReturnValue).HasValue",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error,
-                testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+                // Value type $ReturnValue.
+                context = CreateMethodContext(
+                    runtime,
+                    "C.M");
+                aliases = ImmutableArray.Create(
+                    ReturnValueAlias(type: typeof(int?)));
+                testData = new CompilationTestData();
+                result = context.CompileExpression(
+                    "((int?)$ReturnValue).HasValue",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error,
+                    testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       20 (0x14)
   .maxstack  1
@@ -206,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_000e:  call       ""bool int?.HasValue.get""
   IL_0013:  ret
 }");
+            });
         }
 
         /// <summary>
@@ -221,14 +221,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            string error;
-            var testData = Evaluate(
-                source,
-                "C.M",
-                "(int)$ReturnValue-2",
-                out error,
-                ReturnValueAlias());
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                string error;
+                var testData = Evaluate(
+                    runtime,
+                    "C.M",
+                    "(int)$ReturnValue-2",
+                    out error,
+                    ReturnValueAlias());
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       14 (0xe)
   .maxstack  2
@@ -239,6 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_000c:  sub
   IL_000d:  ret
 }");
+            });
         }
 
         /// <summary>
@@ -255,19 +259,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            string error;
-            context.CompileExpression(
-                "23#",
-                out error);
-            Assert.Equal(error, "error CS2043: 'id#' syntax is no longer supported. Use '$id' instead.");
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                context.CompileExpression(
+                    "23#",
+                    out error);
+                Assert.Equal(error, "error CS2043: 'id#' syntax is no longer supported. Use '$id' instead.");
+            });
         }
 
         [Fact]
@@ -280,27 +281,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(
                 runtime,
                 "C.M");
-            var aliases = ImmutableArray.Create(
-                ObjectIdAlias(23, typeof(string)),
-                ObjectIdAlias(4, typeof(Type)));
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "(object)$23 ?? $4.BaseType",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error,
-                testData);
-            Assert.Equal(testData.Methods.Count, 1);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+                var aliases = ImmutableArray.Create(
+                    ObjectIdAlias(23, typeof(string)),
+                    ObjectIdAlias(4, typeof(Type)));
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "(object)$23 ?? $4.BaseType",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error,
+                    testData);
+                Assert.Equal(testData.Methods.Count, 1);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       40 (0x28)
   .maxstack  2
@@ -316,6 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0022:  callvirt   ""System.Type System.Type.BaseType.get""
   IL_0027:  ret
 }");
+            });
         }
 
         [WorkItem(1101017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101017")]
@@ -333,32 +333,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                "C.M");
-            var aliases = ImmutableArray.Create(
-                VariableAlias("s", "C+S`1[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]"));
-            ResultProperties resultProperties;
-            string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "s.F + 1",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                DebuggerDiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                null, // preferredUICulture 
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                var aliases = ImmutableArray.Create(
+                    VariableAlias("s", "C+S`1[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]"));
+                ResultProperties resultProperties;
+                string error;
+                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "s.F + 1",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out error,
+                    out missingAssemblyIdentities,
+                    null, // preferredUICulture 
+                    testData);
+                Assert.Empty(missingAssemblyIdentities);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       23 (0x17)
   .maxstack  2
@@ -370,6 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0015:  add
   IL_0016:  ret
 }");
+            });
         }
 
         [Fact]
@@ -383,33 +380,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                "C.M");
-            var aliases = ImmutableArray.Create(
-                VariableAlias("a", "C[]"),
-                VariableAlias("b", "System.Int32[,], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
-            ResultProperties resultProperties;
-            string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "a[b[1, 0]].F",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                DebuggerDiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                var aliases = ImmutableArray.Create(
+                    VariableAlias("a", "C[]"),
+                    VariableAlias("b", "System.Int32[,], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
+                ResultProperties resultProperties;
+                string error;
+                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "a[b[1, 0]].F",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out error,
+                    out missingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData);
+                Assert.Empty(missingAssemblyIdentities);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       44 (0x2c)
   .maxstack  4
@@ -426,6 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0026:  ldfld      ""object C.F""
   IL_002b:  ret
 }");
+            });
         }
 
         /// <summary>
@@ -448,73 +442,52 @@ class C
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            string error;
-            var testData = new CompilationTestData();
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                string error;
+                var testData = new CompilationTestData();
 
-            // Unrecognized type.
-            var context = CreateMethodContext(
-                runtime,
-                "C.M");
-            var aliases = ImmutableArray.Create(
-                VariableAlias("o", "T, 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24AB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
-            context.CompileExpression(
-                "o.P",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error,
-                testData);
-            Assert.Equal(error, "error CS0648: '' is a type not supported by the language");
+                // Unrecognized type.
+                var context = CreateMethodContext(
+                    runtime,
+                    "C.M");
+                var aliases = ImmutableArray.Create(
+                    VariableAlias("o", "T, 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24AB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
+                context.CompileExpression(
+                    "o.P",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error,
+                    testData);
+                Assert.Equal(error, "error CS0648: '' is a type not supported by the language");
 
-            // Unrecognized array element type.
-            aliases = ImmutableArray.Create(
-                VariableAlias("a", "T[], 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24AB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
-            context.CompileExpression(
-                "a[0].P",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error,
-                testData);
-            Assert.Equal(error, "error CS0648: '' is a type not supported by the language");
+                // Unrecognized array element type.
+                aliases = ImmutableArray.Create(
+                    VariableAlias("a", "T[], 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24AB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
+                context.CompileExpression(
+                    "a[0].P",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error,
+                    testData);
+                Assert.Equal(error, "error CS0648: '' is a type not supported by the language");
 
-            // Unrecognized generic type argument.
-            aliases = ImmutableArray.Create(
-                VariableAlias("s", "S`1[[T, 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24AB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]"));
-            context.CompileExpression(
-                "s.F",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error,
-                testData);
-            Assert.Equal(error, "error CS0648: '' is a type not supported by the language");
+                // Unrecognized generic type argument.
+                aliases = ImmutableArray.Create(
+                    VariableAlias("s", "S`1[[T, 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24AB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]"));
+                context.CompileExpression(
+                    "s.F",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error,
+                    testData);
+                Assert.Equal(error, "error CS0648: '' is a type not supported by the language");
+            });
         }
 
         [Fact]
         public void Variables()
-        {
-            CheckVariable("$exception", ExceptionAlias(), valid: true);
-            CheckVariable("$stowedexception", ExceptionAlias(stowed: true), valid: true);
-            CheckVariable("$Exception", ExceptionAlias(), valid: false);
-            CheckVariable("$STOWEDEXCEPTION", ExceptionAlias(stowed: true), valid: false);
-            CheckVariable("$ReturnValue", ReturnValueAlias(), valid: true);
-            CheckVariable("$RETURNVALUE", ReturnValueAlias(), valid: false);
-            CheckVariable("$returnvalue", ReturnValueAlias(), valid: true); // Lowercase $ReturnValue supported.
-            CheckVariable("$ReturnValue0", ReturnValueAlias(0), valid: true);
-            CheckVariable("$returnvalue21", ReturnValueAlias(21), valid: true);
-            CheckVariable("$ReturnValue3A", ReturnValueAlias(0x3a), valid: false);
-            CheckVariable("$33", ObjectIdAlias(33), valid: true);
-            CheckVariable("$03", ObjectIdAlias(3), valid: false);
-            CheckVariable("$3A", ObjectIdAlias(0x3a), valid: false);
-            CheckVariable("$0", ObjectIdAlias(1), valid: false);
-            CheckVariable("$", ObjectIdAlias(1), valid: false);
-            CheckVariable("$Unknown", VariableAlias("x"), valid: false);
-        }
-
-        private void CheckVariable(string variableName, Alias alias, bool valid)
         {
             var source =
 @"class C
@@ -523,8 +496,32 @@ class C
     {
     }
 }";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                CheckVariable(runtime, "$exception", ExceptionAlias(), valid: true);
+                CheckVariable(runtime, "$stowedexception", ExceptionAlias(stowed: true), valid: true);
+                CheckVariable(runtime, "$Exception", ExceptionAlias(), valid: false);
+                CheckVariable(runtime, "$STOWEDEXCEPTION", ExceptionAlias(stowed: true), valid: false);
+                CheckVariable(runtime, "$ReturnValue", ReturnValueAlias(), valid: true);
+                CheckVariable(runtime, "$RETURNVALUE", ReturnValueAlias(), valid: false);
+                CheckVariable(runtime, "$returnvalue", ReturnValueAlias(), valid: true); // Lowercase $ReturnValue supported.
+                CheckVariable(runtime, "$ReturnValue0", ReturnValueAlias(0), valid: true);
+                CheckVariable(runtime, "$returnvalue21", ReturnValueAlias(21), valid: true);
+                CheckVariable(runtime, "$ReturnValue3A", ReturnValueAlias(0x3a), valid: false);
+                CheckVariable(runtime, "$33", ObjectIdAlias(33), valid: true);
+                CheckVariable(runtime, "$03", ObjectIdAlias(3), valid: false);
+                CheckVariable(runtime, "$3A", ObjectIdAlias(0x3a), valid: false);
+                CheckVariable(runtime, "$0", ObjectIdAlias(1), valid: false);
+                CheckVariable(runtime, "$", ObjectIdAlias(1), valid: false);
+                CheckVariable(runtime, "$Unknown", VariableAlias("x"), valid: false);
+            });
+        }
+
+        private void CheckVariable(RuntimeInstance runtime, string variableName, Alias alias, bool valid)
+        {
             string error;
-            var testData = Evaluate(source, "C.M", variableName, out error, alias);
+            var testData = Evaluate(runtime, "C.M", variableName, out error, alias);
             if (valid)
             {
                 var expectedNames = new[] { "<>x.<>m0()" };
@@ -547,21 +544,28 @@ class C
     {
     }
 }";
-            string error;
-            var testData = Evaluate(
-                source,
-                "C.M",
-                "$ReturnValue1<object>",
-                out error,
-                ReturnValueAlias(1));
-            Assert.Equal(error, "error CS0307: The variable '$ReturnValue1' cannot be used with type arguments");
-            testData = Evaluate(
-                source,
-                "C.M",
-                "$ReturnValue2()",
-                out error,
-                ReturnValueAlias(2));
-            Assert.Equal(error, "error CS0149: Method name expected");
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                string error;
+                var testData = Evaluate(
+                    runtime,
+                    "C.M",
+                    "$ReturnValue1<object>",
+                    out error,
+                    ReturnValueAlias(1));
+
+                Assert.Equal(error, "error CS0307: The variable '$ReturnValue1' cannot be used with type arguments");
+
+                testData = Evaluate(
+                    runtime,
+                    "C.M",
+                    "$ReturnValue2()",
+                    out error,
+                    ReturnValueAlias(2));
+
+                Assert.Equal(error, "error CS0149: Method name expected");
+            });
         }
 
         /// <summary>
@@ -582,15 +586,18 @@ class C
     {
     }
 }";
-            string error;
-            var testData = Evaluate(
-                source,
-                "C.M",
-                "F(() => o ?? $exception)",
-                out error,
-                ExceptionAlias());
-            testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0()").VerifyIL(
-@"{
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                string error;
+                var testData = Evaluate(
+                    runtime,
+                    "C.M",
+                    "F(() => o ?? $exception)",
+                    out error,
+                    ExceptionAlias());
+                testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0()").VerifyIL(
+    @"{
   // Code size       16 (0x10)
   .maxstack  2
   IL_0000:  ldarg.0
@@ -601,6 +608,7 @@ class C
   IL_000a:  call       ""System.Exception Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException()""
   IL_000f:  ret
 }");
+            });
         }
 
         [Fact]
@@ -613,31 +621,27 @@ class C
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                "C.M");
-            var aliases = ImmutableArray.Create(
-                ExceptionAlias());
-            ResultProperties resultProperties;
-            string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            var testData = new CompilationTestData();
-            context.CompileAssignment(
-                target: "e",
-                expr: "$exception.InnerException ?? $exception",
-                aliases: aliases,
-                formatter: DebuggerDiagnosticFormatter.Instance,
-                resultProperties: out resultProperties,
-                error: out error,
-                missingAssemblyIdentities: out missingAssemblyIdentities,
-                preferredUICulture: EnsureEnglishUICulture.PreferredOrNull,
-                testData: testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                var aliases = ImmutableArray.Create(
+                    ExceptionAlias());
+                ResultProperties resultProperties;
+                string error;
+                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                var testData = new CompilationTestData();
+                context.CompileAssignment(
+                    target: "e",
+                    expr: "$exception.InnerException ?? $exception",
+                    aliases: aliases,
+                    formatter: DebuggerDiagnosticFormatter.Instance,
+                    resultProperties: out resultProperties,
+                    error: out error,
+                    missingAssemblyIdentities: out missingAssemblyIdentities,
+                    preferredUICulture: EnsureEnglishUICulture.PreferredOrNull,
+                    testData: testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       22 (0x16)
   .maxstack  2
@@ -650,6 +654,7 @@ class C
   IL_0013:  starg.s    V_0
   IL_0015:  ret
 }");
+            });
         }
 
         [Fact]
@@ -662,9 +667,13 @@ class C
     {
     }
 }";
-            string error;
-            Evaluate(source, "C.M", "$exception = null", out error, ExceptionAlias());
-            Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                string error;
+                Evaluate(runtime, "C.M", "$exception = null", out error, ExceptionAlias());
+                Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
+            });
         }
 
         [WorkItem(1100849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100849")]
@@ -680,87 +689,83 @@ class C
         return t;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                "C.F");
-            var aliases = ImmutableArray.Create(
-                ExceptionAlias(),
-                ReturnValueAlias(),
-                ObjectIdAlias(1),
-                VariableAlias("x", typeof(int)));
-            string error;
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.F");
+                var aliases = ImmutableArray.Create(
+                    ExceptionAlias(),
+                    ReturnValueAlias(),
+                    ObjectIdAlias(1),
+                    VariableAlias("x", typeof(int)));
+                string error;
 
-            // $exception
-            context.CompileExpression(
-                "$exception = null",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error);
-            Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
-            context.CompileExpression(
-                "F(ref $exception)",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error);
-            Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
+                // $exception
+                context.CompileExpression(
+                    "$exception = null",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error);
+                Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
+                context.CompileExpression(
+                    "F(ref $exception)",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error);
+                Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
 
-            // Object at address
-            context.CompileExpression(
-                "@0x123 = null",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error);
-            Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
-            context.CompileExpression(
-                "F(ref @0x123)",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error);
-            Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
+                // Object at address
+                context.CompileExpression(
+                    "@0x123 = null",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error);
+                Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
+                context.CompileExpression(
+                    "F(ref @0x123)",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error);
+                Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
 
-            // $ReturnValue
-            context.CompileExpression(
-                "$ReturnValue = null",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error);
-            Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
-            context.CompileExpression(
-                "F(ref $ReturnValue)",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error);
-            Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
+                // $ReturnValue
+                context.CompileExpression(
+                    "$ReturnValue = null",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error);
+                Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
+                context.CompileExpression(
+                    "F(ref $ReturnValue)",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error);
+                Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
 
-            // Object id
-            context.CompileExpression(
-                "$1 = null",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error);
-            Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
-            context.CompileExpression(
-                "F(ref $1)",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error);
-            Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
+                // Object id
+                context.CompileExpression(
+                    "$1 = null",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error);
+                Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
+                context.CompileExpression(
+                    "F(ref $1)",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error);
+                Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
 
-            // Declared variable
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "x = 1",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error,
-                testData);
-            Assert.Null(error);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+                // Declared variable
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "x = 1",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error,
+                    testData);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
 @"{
   // Code size       16 (0x10)
   .maxstack  3
@@ -775,15 +780,15 @@ class C
   IL_000e:  ldloc.1
   IL_000f:  ret
 }");
-            testData = new CompilationTestData();
-            var result = context.CompileExpression(
-                "F(ref x)",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error,
-                testData);
-            Assert.Null(error);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+                testData = new CompilationTestData();
+                var result = context.CompileExpression(
+                    "F(ref x)",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error,
+                    testData);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
 @"{
   // Code size       16 (0x10)
   .maxstack  1
@@ -793,6 +798,7 @@ class C
   IL_000a:  call       ""int C.F<int>(ref int)""
   IL_000f:  ret
 }");
+            });
         }
 
         [Fact]
@@ -809,25 +815,23 @@ class C
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(
                 runtime,
                 "C.M");
-            var aliases = ImmutableArray.Create(
-                VariableAlias("s", "S"));
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "s.F = 1",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error,
-                testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+                var aliases = ImmutableArray.Create(
+                    VariableAlias("s", "S"));
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "s.F = 1",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error,
+                    testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       25 (0x19)
   .maxstack  3
@@ -842,6 +846,7 @@ class C
   IL_0017:  ldloc.0
   IL_0018:  ret
 }");
+            });
         }
 
         [Fact]
@@ -858,25 +863,21 @@ class C
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                "C.M");
-            var aliases = ImmutableArray.Create(
-                VariableAlias("s", "S"));
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "s.F += 2",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error,
-                testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                var aliases = ImmutableArray.Create(
+                    VariableAlias("s", "S"));
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "s.F += 2",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error,
+                    testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       24 (0x18)
   .maxstack  3
@@ -894,6 +895,7 @@ class C
   IL_0016:  ldloc.0
   IL_0017:  ret
 }");
+            });
         }
 
         /// <summary>
@@ -943,26 +945,24 @@ class C
                 references: new[] { MscorlibRef_v20 },
                 options: TestOptions.DebugDll.WithDelaySign(true));
 
-            var runtime = CreateRuntimeInstance(compilationB1, new[] { MscorlibRef, compilationA2.EmitToImageReference() });
+            WithRuntimeInstance(compilationB1, new[] { MscorlibRef, compilationA2.EmitToImageReference() }, runtime =>
+            {
+                // typeof(Exception), typeof(A<B<object>>), typeof(B<A<object>[]>)
+                var context = CreateMethodContext(runtime, "C.M");
+                var aliases = ImmutableArray.Create(
+                    ExceptionAlias("System.Exception, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+                    ObjectIdAlias(1, "A`1[[B`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], 397300B0-B, Version=1.2.2.2, Culture=neutral, PublicKeyToken=null]], 397300B0-A, Version=2.1.2.1, Culture=neutral, PublicKeyToken=1f8a32457d187bf3"),
+                    ObjectIdAlias(2, "B`1[[A`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]][], 397300B0-A, Version=2.1.2.1, Culture=neutral, PublicKeyToken=1f8a32457d187bf3]], 397300B0-B, Version=1.2.2.2, Culture=neutral, PublicKeyToken=null"));
+                string error;
+                var testData = new CompilationTestData();
 
-            // typeof(Exception), typeof(A<B<object>>), typeof(B<A<object>[]>)
-            var context = CreateMethodContext(
-                runtime,
-                "C.M");
-            var aliases = ImmutableArray.Create(
-                ExceptionAlias("System.Exception, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-                ObjectIdAlias(1, "A`1[[B`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], 397300B0-B, Version=1.2.2.2, Culture=neutral, PublicKeyToken=null]], 397300B0-A, Version=2.1.2.1, Culture=neutral, PublicKeyToken=1f8a32457d187bf3"),
-                ObjectIdAlias(2, "B`1[[A`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]][], 397300B0-A, Version=2.1.2.1, Culture=neutral, PublicKeyToken=1f8a32457d187bf3]], 397300B0-B, Version=1.2.2.2, Culture=neutral, PublicKeyToken=null"));
-            string error;
-            var testData = new CompilationTestData();
-
-            context.CompileExpression(
-                "(object)$exception ?? (object)$1 ?? $2",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error,
-                testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+                context.CompileExpression(
+                    "(object)$exception ?? (object)$1 ?? $2",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error,
+                    testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       44 (0x2c)
   .maxstack  2
@@ -982,6 +982,7 @@ class C
   IL_0026:  castclass  ""B<A<object>[]>""
   IL_002b:  ret
 }");
+            });
         }
 
         /// <summary>
@@ -1101,22 +1102,23 @@ IL_0010:  ret
     }
 }";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, "C.M");
-            var aliases = ImmutableArray.Create(ReturnValueAlias(type: typeof(int*)));
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                var aliases = ImmutableArray.Create(ReturnValueAlias(type: typeof(int*)));
 
-            string error;
-            var testData = new CompilationTestData();
-            var result = context.CompileExpression(
-                "$ReturnValue",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error,
-                testData);
-            var methodData = testData.GetMethodData("<>x.<>m0");
-            Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)methodData.Method.ReturnType).PointedAtType.SpecialType);
-            methodData.VerifyIL(
-@"{
+                string error;
+                var testData = new CompilationTestData();
+                var result = context.CompileExpression(
+                    "$ReturnValue",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error,
+                    testData);
+                var methodData = testData.GetMethodData("<>x.<>m0");
+                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)methodData.Method.ReturnType).PointedAtType.SpecialType);
+                methodData.VerifyIL(
+    @"{
   // Code size       17 (0x11)
   .maxstack  1
   IL_0000:  ldc.i4.0
@@ -1125,6 +1127,7 @@ IL_0010:  ret
   IL_000b:  call       ""void* System.IntPtr.op_Explicit(System.IntPtr)""
   IL_0010:  ret
 }");
+            });
         }
 
         [WorkItem(1140387, "DevDiv")]
@@ -1139,22 +1142,23 @@ IL_0010:  ret
     }
 }";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, "C.M");
-            var aliases = ImmutableArray.Create(VariableAlias("p", typeof(char*)));
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                var aliases = ImmutableArray.Create(VariableAlias("p", typeof(char*)));
 
-            string error;
-            var testData = new CompilationTestData();
-            var result = context.CompileExpression(
-                "p",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error,
-                testData);
-            var methodData = testData.GetMethodData("<>x.<>m0");
-            Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)methodData.Method.ReturnType).PointedAtType.SpecialType);
-            methodData.VerifyIL(
-@"{
+                string error;
+                var testData = new CompilationTestData();
+                var result = context.CompileExpression(
+                    "p",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error,
+                    testData);
+                var methodData = testData.GetMethodData("<>x.<>m0");
+                Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)methodData.Method.ReturnType).PointedAtType.SpecialType);
+                methodData.VerifyIL(
+    @"{
   // Code size       21 (0x15)
   .maxstack  1
   IL_0000:  ldstr      ""p""
@@ -1163,17 +1167,16 @@ IL_0010:  ret
   IL_000f:  call       ""void* System.IntPtr.op_Explicit(System.IntPtr)""
   IL_0014:  ret
 }");
+            });
         }
 
         private CompilationTestData Evaluate(
-            string source,
+            RuntimeInstance runtime,
             string methodName,
             string expr,
             out string error,
             params Alias[] aliases)
         {
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(comp);
             var context = CreateMethodContext(runtime, methodName);
             var testData = new CompilationTestData();
             var result = context.CompileExpression(
