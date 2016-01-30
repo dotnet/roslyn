@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
         {
             public string DisplayString => _lazyDisplayString.Value;
             public Document Document { get; }
-            public Glyph Glyph => _lazySymbol.Value?.GetGlyph() ?? Glyph.Error;
+            public Glyph Glyph => Symbol?.GetGlyph() ?? Glyph.Error;
             public TextSpan SourceSpan => _declaredSymbolInfo.Span;
             public ISymbol Symbol => _lazySymbol.Value;
             public ImmutableArray<INavigableItem> ChildItems => ImmutableArray<INavigableItem>.Empty;
