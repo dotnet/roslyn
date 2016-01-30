@@ -494,6 +494,8 @@ namespace Microsoft.CodeAnalysis.CSharp
        
         protected override OperationKind ExpressionKind => OperationKind.MethodBindingExpression;
 
+        SyntaxNode IOperation.Syntax => this.Argument.Syntax;
+
         public override void Accept(IOperationVisitor visitor)
         {
             visitor.VisitMethodBindingExpression(this);

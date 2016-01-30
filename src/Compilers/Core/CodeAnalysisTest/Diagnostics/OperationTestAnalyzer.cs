@@ -951,19 +951,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      IEventAssignmentExpression eventAssignment = (IEventAssignmentExpression)operationContext.Operation;
-                     if (eventAssignment.Event.Name == "Mumble")
-                     {
-                         operationContext.ReportDiagnostic(Diagnostic.Create(eventAssignment.Adds? HandlerAddedDescriptor : HandlerRemovedDescriptor, operationContext.Operation.Syntax.GetLocation()));
-                     }
+                     operationContext.ReportDiagnostic(Diagnostic.Create(eventAssignment.Adds? HandlerAddedDescriptor : HandlerRemovedDescriptor, operationContext.Operation.Syntax.GetLocation()));
                  },
                  OperationKind.EventAssignmentExpression);
-
-            context.RegisterOperationAction(
-                (operationContext) =>
-                {
-                    operationContext.ReportDiagnostic(Diagnostic.Create(EventReferenceDescriptor, operationContext.Operation.Syntax.GetLocation()));
-                },
-                OperationKind.EventAssignmentExpression);
 
             context.RegisterOperationAction(
                  (operationContext) =>
