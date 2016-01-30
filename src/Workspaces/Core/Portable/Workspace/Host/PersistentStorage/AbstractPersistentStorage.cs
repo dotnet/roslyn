@@ -68,10 +68,20 @@ namespace Microsoft.CodeAnalysis.Host
 
         public abstract Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<Stream> ReadStreamAsync(TextDocument document, string name, CancellationToken cancellationToken = default(CancellationToken));
 
         public abstract Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<bool> WriteStreamAsync(TextDocument document, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken));
+
+        public virtual Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return ReadStreamAsync((TextDocument)document, name, cancellationToken);
+        }
+
+        public virtual Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return WriteStreamAsync((TextDocument)document, name, stream, cancellationToken);
+        }
     }
 }

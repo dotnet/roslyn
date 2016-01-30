@@ -193,7 +193,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 Throw New NotImplementedException()
             End Sub
 
-            Public Sub OnAdditionalDocumentClosed(documentId As DocumentId, textBuffer As ITextBuffer, loader As TextLoader) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentClosed
+            Public Sub OnAdditionalDocumentClosed(documentId As DocumentId, textBuffer As ITextBuffer, loader As TextLoader, updateActiveContext As Boolean) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentClosed
                 Throw New NotImplementedException()
             End Sub
 

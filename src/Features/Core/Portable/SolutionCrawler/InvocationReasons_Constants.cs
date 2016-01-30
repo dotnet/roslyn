@@ -56,12 +56,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                     PredefinedInvocationReasons.SyntaxChanged,
                                     PredefinedInvocationReasons.SemanticChanged));
 
-        public static readonly InvocationReasons AdditionalDocumentChanged =
-            new InvocationReasons(
-                ImmutableHashSet.Create<string>(
-                                    PredefinedInvocationReasons.SyntaxChanged,
-                                    PredefinedInvocationReasons.SemanticChanged));
-
         public static readonly InvocationReasons SyntaxChanged =
             new InvocationReasons(
                 ImmutableHashSet.Create<string>(

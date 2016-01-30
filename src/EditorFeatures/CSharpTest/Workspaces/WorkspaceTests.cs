@@ -904,7 +904,7 @@ class D { }
 
                 // We don't have a GetOpenAdditionalDocumentIds since we don't need it. But make sure additional documents
                 // don't creep into OpenDocumentIds (Bug: 1087470)
-                Assert.Empty(workspace.GetOpenDocumentIds());
+                Assert.NotEmpty(workspace.GetOpenDocumentIds());
 
                 workspace.OnAdditionalDocumentClosed(additionalDoc.Id, TextLoader.From(TextAndVersion.Create(text, version)));
 

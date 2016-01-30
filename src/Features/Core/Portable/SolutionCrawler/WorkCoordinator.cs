@@ -273,11 +273,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         break;
 
                     case WorkspaceChangeKind.AdditionalDocumentAdded:
-                    case WorkspaceChangeKind.AdditionalDocumentRemoved:
                     case WorkspaceChangeKind.AdditionalDocumentChanged:
                     case WorkspaceChangeKind.AdditionalDocumentReloaded:
-                        // If an additional file has changed we need to reanalyze the entire project.
-                        EnqueueEvent(e.NewSolution, e.ProjectId, InvocationReasons.AdditionalDocumentChanged, asyncToken);
+                        EnqueueEvent(e.NewSolution, e.DocumentId, asyncToken);
+                        break;
+
+                    case WorkspaceChangeKind.AdditionalDocumentRemoved:
+                        EnqueueEvent(e.OldSolution, e.DocumentId, asyncToken);
                         break;
 
                     default:
@@ -392,6 +394,35 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 // document changed event is the special one.
                 _eventProcessingQueue.ScheduleTask(
                     () => EnqueueWorkItemAfterDiffAsync(oldSolution, newSolution, documentId), _shutdownToken).CompletesAsyncOperation(asyncToken);
+            }
+
+            private void EnqueueEvent(Solution solution, DocumentId documentId, IAsyncToken asyncToken)
+            {
+                using (asyncToken)
+                {
+                    // additional file change can be very expensive but at least this doesnt walk up dependency chain to
+                    // propagate changes.
+
+                    // If an additional file has changed we need to reanalyze related projects.
+                    // but, for additional file change, we only re-run diagnostic analyzer. if there is any other
+                    // incremental analyzer that care about additional file, we could include those here as well.
+
+                    // take care most common and cheapest case.
+                    var relatedDocumentIds = solution.GetRelatedDocumentIds(documentId);
+                    if (relatedDocumentIds.Length == 1)
+                    {
+                        var project = solution.GetProject(documentId.ProjectId);
+                        Reanalyze(_documentAndProjectWorkerProcessor.DiagnosticAnalyzer, project?.DocumentIds ?? SpecializedCollections.EmptyEnumerable<DocumentId>());
+                        return;
+                    }
+
+                    // here, we can't directly use args.ProjectId to find out which project to re-analyze 
+                    // since context can be changed implicitly by us, and there is no way for user to know it. 
+                    // we do need to track context internally so all other service works as expected without explicit 
+                    // special case on additional files.
+                    var documentIds = relatedDocumentIds.Select(d => d.ProjectId).Distinct().SelectMany(p => solution.GetProject(p).DocumentIds);
+                    Reanalyze(_documentAndProjectWorkerProcessor.DiagnosticAnalyzer, documentIds);
+                }
             }
 
             private async Task EnqueueWorkItemAsync(Document document, InvocationReasons invocationReasons, SyntaxNode changedMember = null)

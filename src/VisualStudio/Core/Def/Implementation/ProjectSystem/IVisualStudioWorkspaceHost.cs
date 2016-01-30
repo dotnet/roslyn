@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         void OnAdditionalDocumentAdded(DocumentInfo additionalDocument);
         void OnAdditionalDocumentRemoved(DocumentId additionalDocument);
         void OnAdditionalDocumentOpened(DocumentId documentId, ITextBuffer textBuffer, bool isCurrentContext);
-        void OnAdditionalDocumentClosed(DocumentId documentId, ITextBuffer textBuffer, TextLoader loader);
+        void OnAdditionalDocumentClosed(DocumentId documentId, ITextBuffer textBuffer, TextLoader loader, bool updateActiveContext);
         void OnAdditionalDocumentTextUpdatedOnDisk(DocumentId id);
     }
 }

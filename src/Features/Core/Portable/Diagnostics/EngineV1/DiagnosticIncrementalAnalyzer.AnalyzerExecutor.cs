@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     builder.AddRange(existingData.Items);
                 }
 
-                foreach (var document in project.Documents)
+                foreach (var document in project.GetTextDocuments())
                 {
                     existingData = await state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
                     if (existingData == null)

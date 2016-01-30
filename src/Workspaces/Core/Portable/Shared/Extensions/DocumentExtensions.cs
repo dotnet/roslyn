@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return document?.Project?.LanguageServices?.GetService<TLanguageService>();
         }
 
-        public static bool IsOpen(this Document document)
+        public static bool IsOpen(this TextDocument document)
         {
             var workspace = document.Project.Solution.Workspace as Workspace;
             return workspace != null && workspace.IsDocumentOpen(document.Id);

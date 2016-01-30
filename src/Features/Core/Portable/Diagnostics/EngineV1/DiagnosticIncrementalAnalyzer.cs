@@ -425,9 +425,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             // clear all existing data
             state.Remove(project.Id);
-            foreach (var document in project.Documents)
+            foreach (var documentId in project.GetTextDocumentIds())
             {
-                state.Remove(document.Id);
+                state.Remove(documentId);
             }
 
             // quick bail out
@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
 
                 // save document scope diagnostics
-                var document = project.GetDocument(kv.Key);
+                var document = project.GetTextDocument(kv.Key);
                 if (document == null)
                 {
                     continue;
@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     continue;
                 }
 
-                var document = project.GetDocument(documentId);
+                var document = project.GetTextDocument(documentId);
                 var argument = documentId == null ? new SolutionArgument(null, documentId.ProjectId, documentId) : new SolutionArgument(document);
                 RaiseDiagnosticsRemoved(StateType.Project, documentId, stateSet, argument);
             }
@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     continue;
                 }
 
-                RaiseDiagnosticsCreated(StateType.Project, kv.Key, stateSet, new SolutionArgument(project.GetDocument(kv.Key)), kv.ToImmutableArrayOrEmpty());
+                RaiseDiagnosticsCreated(StateType.Project, kv.Key, stateSet, new SolutionArgument(project.GetTextDocument(kv.Key)), kv.ToImmutableArrayOrEmpty());
             }
         }
 
@@ -874,6 +874,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 yield break;
             }
 
+            var additionalFileAllowed = project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.AllowDiagnosticOnAdditionalFiles);
+
             foreach (var diagnostic in diagnostics)
             {
                 if (diagnostic.Location == null || diagnostic.Location == Location.None)
@@ -882,14 +884,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     continue;
                 }
 
+                if (additionalFileAllowed && diagnostic.Location.Kind == LocationKind.ExternalFile)
+                {
+                    var diagnosticData = GetDiagnosticDataForAdditionalDocument(project, diagnostic);
+                    if (diagnosticData != null)
+                    {
+                        yield return diagnosticData;
+                    }
+
+                    continue;
+                }
+
                 var document = project.GetDocument(diagnostic.Location.SourceTree);
+                if (document != null)
+                {
+                    yield return DiagnosticData.Create(document, diagnostic);
+                }
+            }
+        }
+
+        private static DiagnosticData GetDiagnosticDataForAdditionalDocument(Project project, Diagnostic diagnostic)
+        {
+            foreach (var documentId in project.Solution.GetDocumentIdsWithFilePath(diagnostic.Location.GetLineSpan().Path))
+            {
+                if (documentId.ProjectId != project.Id)
+                {
+                    continue;
+                }
+
+                var document = project.GetAdditionalDocument(documentId);
                 if (document == null)
                 {
                     continue;
                 }
 
-                yield return DiagnosticData.Create(document, diagnostic);
+                return DiagnosticData.Create(document, diagnostic);
             }
+
+            return null;
         }
 
         private static async Task<IEnumerable<DiagnosticData>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzerDriver userDiagnosticDriver, DiagnosticAnalyzer analyzer)

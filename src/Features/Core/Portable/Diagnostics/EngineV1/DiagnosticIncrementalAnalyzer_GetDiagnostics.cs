@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
@@ -97,8 +98,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 get { return this.Owner._stateManager; }
             }
 
-            protected abstract Task AppendDocumentDiagnosticsOfStateTypeAsync(Document document, StateType stateType, CancellationToken cancellationToken);
-            protected abstract Task AppendProjectStateDiagnosticsAsync(Project project, Document document, Func<DiagnosticData, bool> predicate, CancellationToken cancellationToken);
+            protected abstract Task AppendDocumentDiagnosticsOfStateTypeAsync(TextDocument document, StateType stateType, CancellationToken cancellationToken);
+            protected abstract Task AppendProjectStateDiagnosticsAsync(Project project, TextDocument document, Func<DiagnosticData, bool> predicate, CancellationToken cancellationToken);
 
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
             {
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 if (documentId != null)
                 {
-                    var document = solution.GetDocument(documentId);
+                    var document = solution.GetTextDocument(documentId);
 
                     await AppendSyntaxAndDocumentDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
                     await AppendProjectStateDiagnosticsAsync(document.Project, document, d => d.DocumentId == documentId, cancellationToken).ConfigureAwait(false);
@@ -201,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
-            protected async Task AppendSyntaxAndDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+            protected async Task AppendSyntaxAndDocumentDiagnosticsAsync(TextDocument document, CancellationToken cancellationToken)
             {
                 if (document == null)
                 {
@@ -252,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var documentId = key as DocumentId;
                 if (documentId != null)
                 {
-                    return solution.GetDocument(documentId);
+                    return solution.GetTextDocument(documentId);
                 }
 
                 var projectId = key as ProjectId;
@@ -322,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return existingData.Items;
             }
 
-            protected override async Task AppendDocumentDiagnosticsOfStateTypeAsync(Document document, StateType stateType, CancellationToken cancellationToken)
+            protected override async Task AppendDocumentDiagnosticsOfStateTypeAsync(TextDocument document, StateType stateType, CancellationToken cancellationToken)
             {
                 foreach (var stateSet in this.StateManager.GetStateSets(document.Project))
                 {
@@ -341,9 +342,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
 
             protected override async Task AppendProjectStateDiagnosticsAsync(
-                Project project, Document document, Func<DiagnosticData, bool> predicate, CancellationToken cancellationToken)
+                Project project, TextDocument document, Func<DiagnosticData, bool> predicate, CancellationToken cancellationToken)
             {
-                var documents = document == null ? project.Documents.ToList() : SpecializedCollections.SingletonEnumerable(document);
+                var documents = document == null ? project.GetTextDocuments().ToList() : SpecializedCollections.SingletonEnumerable(document);
 
                 foreach (var stateSet in this.StateManager.GetStateSets(project))
                 {
@@ -388,13 +389,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             protected abstract Task<AnalysisData> GetDiagnosticAnalysisDataAsync(Solution solution, DiagnosticAnalyzerDriver analyzerDriver, StateSet stateSet, StateType stateType, VersionArgument versions);
             protected abstract void FilterDiagnostics(AnalysisData analysisData, Func<DiagnosticData, bool> predicateOpt = null);
 
-            protected override Task AppendDocumentDiagnosticsOfStateTypeAsync(Document document, StateType stateType, CancellationToken cancellationToken)
+            protected override Task AppendDocumentDiagnosticsOfStateTypeAsync(TextDocument document, StateType stateType, CancellationToken cancellationToken)
             {
+                Contract.ThrowIfFalse(document == null || document is Document);
                 return AppendDiagnosticsOfStateTypeAsync(document, stateType, d => true, cancellationToken);
             }
 
-            protected override Task AppendProjectStateDiagnosticsAsync(Project project, Document document, Func<DiagnosticData, bool> predicate, CancellationToken cancellationToken)
+            protected override Task AppendProjectStateDiagnosticsAsync(Project project, TextDocument document, Func<DiagnosticData, bool> predicate, CancellationToken cancellationToken)
             {
+                Contract.ThrowIfFalse(document == null || document is Document);
                 return AppendDiagnosticsOfStateTypeAsync(project, StateType.Project, predicate, cancellationToken);
             }
 
@@ -515,7 +518,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             protected Project GetProject(object documentOrProject)
             {
-                var document = documentOrProject as Document;
+                var document = documentOrProject as TextDocument;
                 if (document != null)
                 {
                     return document.Project;

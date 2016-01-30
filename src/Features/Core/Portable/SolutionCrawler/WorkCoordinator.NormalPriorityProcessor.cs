@@ -64,13 +64,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Start();
                     }
 
-                    internal ImmutableArray<IIncrementalAnalyzer> Analyzers
-                    {
-                        get
-                        {
-                            return _lazyAnalyzers.Value;
-                        }
-                    }
+                    public Task Running => _running;
+                    public bool HasAnyWork => _workItemQueue.HasAnyWork;
+                    public ImmutableArray<IIncrementalAnalyzer> Analyzers => _lazyAnalyzers.Value;
 
                     public void Enqueue(WorkItem item)
                     {
@@ -129,22 +125,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
 
                         return _workItemQueue.WaitAsync(cancellationToken);
-                    }
-
-                    public Task Running
-                    {
-                        get
-                        {
-                            return _running;
-                        }
-                    }
-
-                    public bool HasAnyWork
-                    {
-                        get
-                        {
-                            return _workItemQueue.HasAnyWork;
-                        }
                     }
 
                     protected override async Task ExecuteAsync()

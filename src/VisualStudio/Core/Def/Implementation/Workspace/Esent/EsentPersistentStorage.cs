@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
 
         public string EsentDirectory { get; }
 
-        public override Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<Stream> ReadStreamAsync(TextDocument document, string name, CancellationToken cancellationToken = default(CancellationToken))
         {
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(name));
 
@@ -151,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             }
         }
 
-        public override Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<bool> WriteStreamAsync(TextDocument document, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
         {
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(name));
             Contract.ThrowIfNull(stream);
@@ -327,7 +327,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 (EsentStorage.ProjectDocumentTableAccessor)_esentStorage.GetProjectTableAccessor();
         }
 
-        private bool TryGetProjectAndDocumentKey(Document document, out EsentStorage.Key key)
+        private bool TryGetProjectAndDocumentKey(TextDocument document, out EsentStorage.Key key)
         {
             key = default(EsentStorage.Key);
 
