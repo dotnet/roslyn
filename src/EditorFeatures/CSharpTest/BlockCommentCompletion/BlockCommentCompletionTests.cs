@@ -338,6 +338,178 @@ $$
             await VerifyAsync(code, expected);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentCompletion)]
+        public async Task BoundCheckInsertOnStartLine0()
+        {
+            var code = @"
+    /$$*";
+            var expected = @"
+    /
+$$*";
+            await VerifyAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentCompletion)]
+        public async Task BoundCheckInsertOnStartLine1()
+        {
+            var code = @"
+    /*$$ ";
+            var expected = @"
+    /*
+     *$$ ";
+            await VerifyAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentCompletion)]
+        public async Task BoundCheckInsertOnMiddleLine()
+        {
+            var code = @"
+    /*
+     *$$ ";
+            var expected = @"
+    /*
+     *
+     *$$ ";
+            await VerifyAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentCompletion)]
+        public async Task BoundCheckInsertOnEndLine()
+        {
+            var code = @"
+    /*
+     *$$/";
+            var expected = @"
+    /*
+     *
+     *$$/";
+            await VerifyAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentCompletion)]
+        public async Task InsertOnStartLine2_Tab()
+        {
+            var code = @"
+    /*$$<tab>*/
+";
+            var expected = @"
+    /*
+     *$$<tab>*/
+";
+            await VerifyTabsAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentCompletion)]
+        public async Task InsertOnStartLine3_Tab()
+        {
+            var code = @"
+    /*<tab>$$<tab>1.
+     */
+";
+            var expected = @"
+    /*<tab>
+     *<tab>$$<tab>1.
+     */
+";
+            await VerifyTabsAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentCompletion)]
+        public async Task InsertOnStartLine4_Tab()
+        {
+            var code = @"
+    /* <tab>1.$$
+     */
+";
+            var expected = @"
+    /* <tab>1.
+     * <tab>$$
+     */
+";
+            await VerifyTabsAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentCompletion)]
+        public async Task InsertOnStartLine6_Tab()
+        {
+            var code = @"
+    /*<tab>$$
+";
+            var expected = @"
+    /*<tab>
+     *<tab>$$
+";
+            await VerifyTabsAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentCompletion)]
+        public async Task InsertOnMiddleLine2_Tab()
+        {
+            var code = @"
+    /*
+     *$$<tab>*/
+";
+            var expected = @"
+    /*
+     *
+     *$$<tab>*/
+";
+            await VerifyTabsAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentCompletion)]
+        public async Task InsertOnMiddleLine3_Tab()
+        {
+            var code = @"
+    /*
+     * $$<tab>1.
+     */
+";
+            var expected = @"
+    /*
+     * 
+     * $$<tab>1.
+     */
+";
+            await VerifyTabsAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentCompletion)]
+        public async Task InsertOnMiddleLine4_Tab()
+        {
+            var code = @"
+    /*
+     * <tab>1.$$
+     */
+";
+            var expected = @"
+    /*
+     * <tab>1.
+     * <tab>$$
+     */
+";
+            await VerifyTabsAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentCompletion)]
+        public async Task InsertOnMiddleLine5_Tab()
+        {
+            var code = @"
+    /*
+     *<tab> 1.
+     *<tab> $$
+     */
+";
+            var expected = @"
+    /*
+     *<tab> 1.
+     *<tab> 
+     *<tab> $$
+     */
+";
+            await VerifyTabsAsync(code, expected);
+        }
+
         protected override Task<TestWorkspace> CreateTestWorkspaceAsync(string initialMarkup) => TestWorkspace.CreateCSharpAsync(initialMarkup);
 
         internal override ICommandHandler<ReturnKeyCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService)

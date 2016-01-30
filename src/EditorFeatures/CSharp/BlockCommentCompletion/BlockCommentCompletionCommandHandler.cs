@@ -27,17 +27,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentCompletion
 
         protected override string GetExteriorTextForNextLine(SnapshotPoint caretPosition)
         {
-            var snapshotLine = caretPosition.Snapshot.GetLineFromPosition(caretPosition);
+            var currentLine = caretPosition.Snapshot.GetLineFromPosition(caretPosition);
 
-            var firstNonWhitespacePosition = snapshotLine.GetFirstNonWhitespacePosition() ?? -1;
+            var firstNonWhitespacePosition = currentLine.GetFirstNonWhitespacePosition() ?? -1;
             if (firstNonWhitespacePosition == -1)
             {
                 return null;
             }
 
-            var currentLineStartsWithBlockCommentStartString = snapshotLine.StartsWith(firstNonWhitespacePosition, "/*", false);
-            var currentLineStartsWithBlockCommentEndString = snapshotLine.StartsWith(firstNonWhitespacePosition, "*/", false);
-            var currentLineStartsWithBlockCommentMiddleString = snapshotLine.StartsWith(firstNonWhitespacePosition, "*", false);
+            var currentLineStartsWithBlockCommentStartString = currentLine.StartsWith(firstNonWhitespacePosition, "/*", false);
+            var currentLineStartsWithBlockCommentEndString = currentLine.StartsWith(firstNonWhitespacePosition, "*/", false);
+            var currentLineStartsWithBlockCommentMiddleString = currentLine.StartsWith(firstNonWhitespacePosition, "*", false);
 
             if (!currentLineStartsWithBlockCommentStartString && !currentLineStartsWithBlockCommentMiddleString)
             {
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentCompletion
                 else
                 {
                     //      /*|
-                    return " *" + GetPaddingOrIndentation(snapshotLine, caretPosition, firstNonWhitespacePosition, "/*");
+                    return " *" + GetPaddingOrIndentation(currentLine, caretPosition, firstNonWhitespacePosition, "/*");
                 }
             }
 
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentCompletion
                 else if (caretPosition > firstNonWhitespacePosition)
                 {
                     //      *|
-                    return "*" + GetPaddingOrIndentation(snapshotLine, caretPosition, firstNonWhitespacePosition, "*");
+                    return "*" + GetPaddingOrIndentation(currentLine, caretPosition, firstNonWhitespacePosition, "*");
                 }
                 else
                 {
@@ -112,16 +112,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentCompletion
             return null;
         }
 
-        private static bool BlockCommentEndsRightAfterCaret(SnapshotPoint caretPosition) => caretPosition.Snapshot.GetText(caretPosition, 2) == "*/";
+        private static bool BlockCommentEndsRightAfterCaret(SnapshotPoint caretPosition)
+        {
+            var snapshot = caretPosition.Snapshot;
+            return (caretPosition.Position + 2 > snapshot.Length) ? false : snapshot.GetText(caretPosition, 2) == "*/";
+        }
 
-        private static string GetPaddingOrIndentation(ITextSnapshotLine snapshotLine, int caretPosition, int firstNonWhitespacePosition, string exteriorText)
+        private static string GetPaddingOrIndentation(ITextSnapshotLine currentLine, int caretPosition, int firstNonWhitespacePosition, string exteriorText)
         {
             Debug.Assert(caretPosition >= firstNonWhitespacePosition + exteriorText.Length);
 
-            var firstNonWhitespaceOffset = firstNonWhitespacePosition - snapshotLine.Start;
+            var firstNonWhitespaceOffset = firstNonWhitespacePosition - currentLine.Start;
             Debug.Assert(firstNonWhitespaceOffset > -1);
 
-            var lineText = snapshotLine.GetText();
+            var lineText = currentLine.GetText();
             if ((lineText.Length == firstNonWhitespaceOffset + exteriorText.Length))
             {
                 //     *|
@@ -133,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentCompletion
 
             if (interiorFirstNonWhitespaceOffset == 0)
             {
-                // /****|
+                //    /****|
                 return " ";
             }
 
@@ -144,13 +148,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentCompletion
                 // or
                 // *  |  1.
                 //  ^^
-                return snapshotLine.Snapshot.GetText(interiorFirstWhitespacePosition, caretPosition - interiorFirstWhitespacePosition);
+                return currentLine.Snapshot.GetText(interiorFirstWhitespacePosition, caretPosition - interiorFirstWhitespacePosition);
             }
             else
             {
                 // *   1. |
                 //  ^^^
-                return snapshotLine.Snapshot.GetText(interiorFirstWhitespacePosition, interiorFirstNonWhitespaceOffset);
+                return currentLine.Snapshot.GetText(interiorFirstWhitespacePosition, interiorFirstNonWhitespaceOffset);
             }
         }
 

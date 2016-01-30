@@ -29,21 +29,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentCompletion
 
         public void ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler)
         {
+            if (TryHandleReturnKey(args))
+            {
+                return;
+            }
+
+            nextHandler();
+        }
+
+        private bool TryHandleReturnKey(ReturnKeyCommandArgs args)
+        {
             var subjectBuffer = args.SubjectBuffer;
             var textView = args.TextView;
 
             var caretPosition = textView.GetCaretPoint(subjectBuffer);
             if (caretPosition == null)
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             var exteriorText = GetExteriorTextForNextLine(caretPosition.Value);
             if (exteriorText == null)
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             using (var transaction = _undoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(EditorFeaturesResources.InsertNewLine))
@@ -54,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentCompletion
                 editorOperations.InsertText(exteriorText);
 
                 transaction.Complete();
+                return true;
             }
         }
 

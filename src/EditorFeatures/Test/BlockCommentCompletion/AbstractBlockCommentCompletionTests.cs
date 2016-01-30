@@ -53,13 +53,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BlockCommentCompletion
             }
         }
 
+        protected Task VerifyTabsAsync(string initialMarkup, string expectedMarkup) => VerifyAsync(ReplaceTabTags(initialMarkup), ReplaceTabTags(expectedMarkup));
+
+        private string ReplaceTabTags(string markup) => markup.Replace("<tab>", "\t");
+
         private Action CreateInsertTextHandler(ITextView textView, string text)
         {
             return () =>
             {
                 var caretPosition = textView.Caret.Position.BufferPosition;
                 var newSpanshot = textView.TextBuffer.Insert(caretPosition, text);
-                textView.Caret.MoveTo(new SnapshotPoint(newSpanshot, caretPosition + text.Length));
+                textView.Caret.MoveTo(new SnapshotPoint(newSpanshot, (int)caretPosition + text.Length));
             };
         }
     }
