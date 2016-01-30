@@ -4,7 +4,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentCompletion;
+using Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentEditing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
@@ -13,13 +13,13 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentCompletion
+namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.BlockCommentCompletion, ContentTypeNames.CSharpContentType)]
-    internal class BlockCommentCompletionCommandHandler : AbstractBlockCommentCompletionCommandHandler
+    [ExportCommandHandler(PredefinedCommandHandlerNames.BlockCommentEditing, ContentTypeNames.CSharpContentType)]
+    internal class BlockCommentEditingCommandHandler : AbstractBlockCommentEditingCommandHandler
     {
         [ImportingConstructor]
-        public BlockCommentCompletionCommandHandler(
+        public BlockCommentEditingCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService) : base(undoHistoryRegistry, editorOperationsFactoryService)
         {

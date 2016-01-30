@@ -7,14 +7,14 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentCompletion
+namespace Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentEditing
 {
-    internal abstract class AbstractBlockCommentCompletionCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
+    internal abstract class AbstractBlockCommentEditingCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
-        protected AbstractBlockCommentCompletionCommandHandler(
+        protected AbstractBlockCommentEditingCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
         {

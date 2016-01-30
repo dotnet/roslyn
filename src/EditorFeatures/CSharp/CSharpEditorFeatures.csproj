@@ -79,7 +79,7 @@
     <Compile Include="AutomaticCompletion\Sessions\LessAndGreaterThanCompletionSession.cs" />
     <Compile Include="AutomaticCompletion\Sessions\ParenthesisCompletionSession.cs" />
     <Compile Include="AutomaticCompletion\Sessions\StringLiteralCompletionSession.cs" />
-    <Compile Include="BlockCommentCompletion\BlockCommentCompletionCommandHandler.cs" />
+    <Compile Include="BlockCommentEditing\BlockCommentEditingCommandHandler.cs" />
     <Compile Include="BraceMatching\AbstractCSharpBraceMatcher.cs" />
     <Compile Include="BraceMatching\LessThanGreaterThanBraceMatcher.cs" />
     <Compile Include="BraceMatching\OpenCloseBraceBraceMatcher.cs" />

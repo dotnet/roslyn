@@ -16,9 +16,9 @@ using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.BlockCommentCompletion
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.BlockCommentEditing
 {
-    public abstract class AbstractBlockCommentCompletionTests
+    public abstract class AbstractBlockCommentEditingTests
     {
         internal abstract ICommandHandler<ReturnKeyCommandArgs> CreateCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
