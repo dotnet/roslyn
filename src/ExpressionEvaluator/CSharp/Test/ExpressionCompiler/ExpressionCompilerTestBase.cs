@@ -47,6 +47,42 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             _runtimeInstances.Free();
         }
 
+        // TODO: remove -- workaround for bugs in Portable PDB handling in EE
+        internal static void WithRuntimeInstancePortableBug(Compilation compilation, Action<RuntimeInstance> validator)
+        {
+            WithRuntimeInstancePortableBug(compilation, null, validator);
+        }
+
+        // TODO: remove -- workaround for bugs in Portable PDB handling in EE
+        internal static void WithRuntimeInstancePortableBug(Compilation compilation, IEnumerable<MetadataReference> references, Action<RuntimeInstance> validator)
+        {
+            using (var instance = RuntimeInstance.Create(compilation, references, DebugInformationFormat.Pdb, true))
+            {
+                validator(instance);
+            }
+        }
+
+        internal static void WithRuntimeInstance(Compilation compilation, Action<RuntimeInstance> validator)
+        {
+            WithRuntimeInstance(compilation, null, true, validator);
+        }
+
+        internal static void WithRuntimeInstance(Compilation compilation, IEnumerable<MetadataReference> references, Action<RuntimeInstance> validator)
+        {
+            WithRuntimeInstance(compilation, references, true, validator);
+        }
+
+        internal static void WithRuntimeInstance(Compilation compilation, IEnumerable<MetadataReference> references, bool includeLocalSignatures, Action<RuntimeInstance> validator)
+        {
+            foreach (var debugFormat in new[] { DebugInformationFormat.Pdb, DebugInformationFormat.PortablePdb })
+            {
+                using (var instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures))
+                {
+                    validator(instance);
+                }
+            }
+        }
+
         internal RuntimeInstance CreateRuntimeInstance(IEnumerable<ModuleInstance> modules)
         {
             var instance = RuntimeInstance.Create(modules);
