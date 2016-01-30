@@ -103,7 +103,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         ? FeaturesResources.Find_and_install_latest_version
                         : string.Format(FeaturesResources.Use_local_version_0, versionOpt);
                     return new OperationBasedCodeAction(
-                        title, c => GetOperationsAsync(versionOpt, document, node, placeSystemNamespaceFirst, c));
+                        title, CodeAnalysis.Glyph.NuGet,
+                        c => GetOperationsAsync(versionOpt, document, node, placeSystemNamespaceFirst, c));
                 }
 
                 private async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(

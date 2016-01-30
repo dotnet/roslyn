@@ -369,14 +369,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private class OperationBasedCodeAction : CodeAction
         {
             private readonly string _title;
+            private readonly Glyph? _glyph;
             private readonly Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>> _getOperations;
 
             public override string Title => _title;
+            internal override Glyph? Glyph => _glyph;
             public override string EquivalenceKey => _title;
 
-            public OperationBasedCodeAction(string title, Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>> getOperations)
+            public OperationBasedCodeAction(string title, Glyph? glyph,  Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>> getOperations)
             {
                 _title = title;
+                _glyph = glyph;
                 _getOperations = getOperations;
             }
 

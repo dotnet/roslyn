@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             public override SymbolReference CreateReference<T>(SymbolResult<T> symbol)
             {
                 return new ProjectSymbolReference(
-                    provider, symbol.WithSymbol<INamespaceOrTypeSymbol>(symbol.Symbol), _project.Id);
+                    provider, symbol.WithSymbol<INamespaceOrTypeSymbol>(symbol.Symbol), _project);
             }
         }
 

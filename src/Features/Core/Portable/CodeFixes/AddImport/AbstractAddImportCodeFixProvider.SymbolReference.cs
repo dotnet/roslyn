@@ -8,8 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Packaging;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -27,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             protected abstract Solution UpdateSolution(Document newDocument);
+            protected abstract Glyph? GetGlyph(Document document);
 
             public override int CompareTo(Reference other)
             {
@@ -98,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return null;
                 }
 
-                return new OperationBasedCodeAction(description, c => this.GetOperationsAsync(document, node, placeSystemNamespaceFirst, c));
+                return new OperationBasedCodeAction(description, GetGlyph(document), c => this.GetOperationsAsync(document, node, placeSystemNamespaceFirst, c));
             }
         }
     }
