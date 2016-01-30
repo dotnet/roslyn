@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// Represents a <see cref="IOperation"/> visitor that visits only the single IOperation
     /// passed into its Visit method.
     /// </summary>
-    public abstract class IOperationVisitor
+    public abstract class OperationVisitor
     {
         public virtual void Visit(IOperation operation)
         {
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <typeparam name="TResult">
     /// The type of the return value of this visitor's Visit method.
     /// </typeparam>
-    public abstract class IOperationVisitor<TArgument, TResult>
+    public abstract class OperationVisitor<TArgument, TResult>
     {
         public virtual TResult Visit(IOperation operation, TArgument argument)
         {

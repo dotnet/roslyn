@@ -5,10 +5,10 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a <see cref="IOperationVisitor"/> that descends an entire <see cref="IOperation"/> tree
+    /// Represents a <see cref="OperationVisitor"/> that descends an entire <see cref="IOperation"/> tree
     /// visiting each IOperation and its child IOperation nodes in depth-first order.
     /// </summary>
-    public abstract class OperationWalker : IOperationVisitor
+    public abstract class OperationWalker : OperationVisitor
     {
         private int _recursionDepth;
 
