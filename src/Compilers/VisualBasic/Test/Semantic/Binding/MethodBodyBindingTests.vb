@@ -398,11 +398,14 @@ End Module
         End Sub
 
         <WorkItem(529206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529206")>
+        <WorkItem(8238, "https://github.com/dotnet/roslyn/issues/8238")>
         <Fact>
         Public Sub IntrinsicAliases_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
         <file name="a.vb">
+Imports System
+
 Module Module1
 
     Sub Main()
@@ -424,6 +427,15 @@ Module Module1
         system.[Long].Parse("123")
         system.[ULong].Parse("123")
         system.[Date].FromOADate(123)
+
+        Dim z = GetType([Integer])
+
+        System.Integer()
+        System.[Integer]()
+        Integer()
+        [Integer]()
+
+        Dim u = [Integer].MinValue
     End Sub
 End Module
         </file>
@@ -434,6 +446,21 @@ End Module
 BC30002: Type 'System.Integer' is not defined.
         Dim x As System.Integer = System.Integer.MinValue
                  ~~~~~~~~~~~~~~
+BC30002: Type 'Integer' is not defined.
+        Dim z = GetType([Integer])
+                        ~~~~~~~~~
+BC30110: 'Integer' is a structure type and cannot be used as an expression.
+        System.Integer()
+        ~~~~~~~~~~~~~~
+BC30110: 'Integer' is a structure type and cannot be used as an expression.
+        System.[Integer]()
+        ~~~~~~~~~~~~~~~~
+BC30110: 'Integer' is a structure type and cannot be used as an expression.
+        Integer()
+        ~~~~~~~
+BC30110: 'Integer' is a structure type and cannot be used as an expression.
+        [Integer]()
+        ~~~~~~~~~
 </expected>)
         End Sub
 
@@ -463,12 +490,9 @@ End Namespace
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC31091: Import of type 'Integer' from assembly or module 'Bug529206.dll' failed.
+BC30456: 'Integer' is not a member of 'System'.
     Dim x = System.Integer.MinValue
             ~~~~~~~~~~~~~~
-BC30456: 'MinValue' is not a member of 'Integer'.
-    Dim x = System.Integer.MinValue
-            ~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
         End Sub
 
@@ -486,6 +510,200 @@ Module Module1
 End Module
         </file>
     </compilation>)
+
+            Dim model = compilation.GetSemanticModel(compilation.SyntaxTrees(0))
+            Dim node1 = CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb", 1)
+
+            Dim symbolInfo As SymbolInfo = model.GetSymbolInfo(node1)
+
+            Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString())
+
+            Dim typeInfo As TypeInfo = model.GetTypeInfo(node1)
+
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString())
+        End Sub
+
+        <WorkItem(8238, "https://github.com/dotnet/roslyn/issues/8238")>
+        <Fact>
+        Public Sub IntrinsicAliases_4()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb">
+Imports System
+Imports X
+
+Public Class TestClass
+
+    Shared Sub Main()
+         System.Console.WriteLine(System.Integer.Parse("1"))
+         System.Console.WriteLine(System.[Integer].Parse("2"))
+
+         System.Console.WriteLine(Integer.Parse("3"))
+         System.Console.WriteLine([Integer].Parse("4"))
+    End Sub    
+
+End Class
+
+namespace X
+    module M
+        Class [Integer]
+        End Class
+    end module
+end namespace
+        </file>
+    </compilation>, options:=TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+1
+2
+3
+4
+]]>)
+        End Sub
+
+        <WorkItem(8238, "https://github.com/dotnet/roslyn/issues/8238")>
+        <Fact>
+        Public Sub IntrinsicAliases_5()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb">
+Imports System
+Imports X
+
+Public Class TestClass
+
+    Shared Sub Main()
+         System.Console.WriteLine(System.Integer.Parse("1"))
+         System.Console.WriteLine(System.[Integer].Parse("2"))
+
+         System.Console.WriteLine(Integer.Parse("3"))
+         System.Console.WriteLine([Integer].Parse("4"))
+    End Sub    
+
+End Class
+
+namespace X
+    Class [Integer]
+    End Class
+end namespace
+        </file>
+    </compilation>)
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC30561: 'Int32' is ambiguous, imported from the namespaces or types 'System, X'.
+         System.Console.WriteLine([Integer].Parse("4"))
+                                  ~~~~~~~~~
+</expected>)
+        End Sub
+
+        <WorkItem(8238, "https://github.com/dotnet/roslyn/issues/8238")>
+        <Fact>
+        Public Sub IntrinsicAliases_6()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb">
+Imports System
+
+Public Class TestClass
+
+    Shared Sub Main()
+         System.Console.WriteLine(System.Integer.Parse("1"))
+         System.Console.WriteLine(System.[Integer].Parse("2"))
+
+         System.Console.WriteLine(Integer.Parse("3"))
+         System.Console.WriteLine([Integer].Parse("4"))
+    End Sub    
+
+End Class
+
+namespace System
+    Class [Integer]
+    End Class
+end namespace
+        </file>
+    </compilation>)
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC30456: 'Parse' is not a member of '[Integer]'.
+         System.Console.WriteLine(System.Integer.Parse("1"))
+                                  ~~~~~~~~~~~~~~~~~~~~
+BC30456: 'Parse' is not a member of '[Integer]'.
+         System.Console.WriteLine(System.[Integer].Parse("2"))
+                                  ~~~~~~~~~~~~~~~~~~~~~~
+BC30456: 'Parse' is not a member of '[Integer]'.
+         System.Console.WriteLine([Integer].Parse("4"))
+                                  ~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <WorkItem(8238, "https://github.com/dotnet/roslyn/issues/8238")>
+        <Fact>
+        Public Sub IntrinsicAliases_7()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+    <compilation>
+        <file name="a.vb">
+Imports System
+
+Public Class TestClass
+
+    Shared Sub Main()
+         System.Console.WriteLine(System.Integer.Parse("1"))
+         System.Console.WriteLine(System.[Integer].Parse("2"))
+
+         System.Console.WriteLine(Integer.Parse("3"))
+         System.Console.WriteLine([Integer].Parse("4"))
+    End Sub    
+
+End Class
+        </file>
+    </compilation>,
+    {
+CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb">
+namespace System
+    public Class [Integer]
+    End Class
+end namespace
+        </file>
+    </compilation>, options:=TestOptions.ReleaseDll).ToMetadataReference()
+    })
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC30560: 'Int32' is ambiguous in the namespace 'System'.
+         System.Console.WriteLine(System.Integer.Parse("1"))
+                                  ~~~~~~~~~~~~~~
+BC30560: 'Int32' is ambiguous in the namespace 'System'.
+         System.Console.WriteLine(System.[Integer].Parse("2"))
+                                  ~~~~~~~~~~~~~~~~
+BC30560: 'Int32' is ambiguous in the namespace 'System'.
+         System.Console.WriteLine([Integer].Parse("4"))
+                                  ~~~~~~~~~
+</expected>)
+        End Sub
+
+        <WorkItem(8238, "https://github.com/dotnet/roslyn/issues/8238")>
+        <Fact>
+        Public Sub IntrinsicAliases_8()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb">
+Imports System
+
+Module Module1
+
+    Sub Main()
+        Dim x = [Integer].MinValue 'BIND1:"[Integer]"
+    End Sub
+End Module
+        </file>
+    </compilation>)
+
+            compilation.VerifyDiagnostics()
 
             Dim model = compilation.GetSemanticModel(compilation.SyntaxTrees(0))
             Dim node1 = CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb", 1)
