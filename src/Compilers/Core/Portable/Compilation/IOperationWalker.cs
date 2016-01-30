@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// Represents a <see cref="IOperationVisitor"/> that descends an entire <see cref="IOperation"/> tree
     /// visiting each IOperation and its child IOperation nodes in depth-first order.
     /// </summary>
-    public abstract class IOperationWalker : IOperationVisitor
+    public abstract class OperationWalker : IOperationVisitor
     {
         private int _recursionDepth;
 
