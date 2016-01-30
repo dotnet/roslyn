@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // derived types.  TODO(cyrusn): This seems extremely costly.  Is there any way to
                 // speed this up?
                 var containingType = symbol.ContainingType.OriginalDefinition;
-                var derivedTypes = await containingType.FindDerivedClassesAsync(solution, projects, cancellationToken).ConfigureAwait(false);
+                var derivedTypes = await FindDerivedClassesAsync(containingType, solution, projects, cancellationToken).ConfigureAwait(false);
 
                 List<ISymbol> results = null;
                 foreach (var type in derivedTypes)
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // In this case, Base.Foo *does* implement IFoo.Foo in the context of the type
                     // Derived.
                     var containingType = symbol.ContainingType.OriginalDefinition;
-                    var derivedClasses = await containingType.FindDerivedClassesAsync(solution, projects, cancellationToken).ConfigureAwait(false);
+                    var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(containingType, solution, projects, cancellationToken).ConfigureAwait(false);
                     var allTypes = derivedClasses.Concat(containingType);
 
                     List<ISymbol> results = null;
@@ -130,24 +131,48 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         /// <summary>
+        /// Finds the derived classes of the given type. Implementations of an interface are not considered "derived", but can be found
+        /// with <see cref="FindImplementationsAsync"/>.
+        /// </summary>
+        /// <param name="type">The symbol to find derived types of.</param>
+        /// <param name="solution">The solution to search in.</param>
+        /// <param name="projects">The projects to search. Can be null to search the entire solution.</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>The derived types of the symbol. The symbol passed in is not included in this list.</returns>
+        public static Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
+            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (solution == null)
+            {
+                throw new ArgumentNullException(nameof(solution));
+            }
+
+            return DependentTypeFinder.FindDerivedClassesAsync(type, solution, projects, cancellationToken);
+        }
+
+        /// <summary>
         /// Finds the symbols that implement an interface or interface member.
         /// </summary>
         public static async Task<IEnumerable<ISymbol>> FindImplementationsAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // A symbol can only have implementations if it's an interface or a
-            // method/property/event from an interface.  TODO(cyrusn): Handle events once they're
-            // exposed in the compiler layer.
+            // method/property/event from an interface.
             if (symbol is INamedTypeSymbol)
             {
                 var namedTypeSymbol = (INamedTypeSymbol)symbol;
-                var implementingTypes = await namedTypeSymbol.FindImplementingTypesAsync(solution, projects, cancellationToken).ConfigureAwait(false);
+                var implementingTypes = await DependentTypeFinder.FindImplementingTypesAsync(namedTypeSymbol, solution, projects, cancellationToken).ConfigureAwait(false);
                 return implementingTypes.Where(IsAccessible);
             }
             else if (symbol.IsImplementableMember())
             {
                 var containingType = symbol.ContainingType.OriginalDefinition;
-                var allTypes = await containingType.FindImplementingTypesAsync(solution, projects, cancellationToken).ConfigureAwait(false);
+                var allTypes = await DependentTypeFinder.FindImplementingTypesAsync(containingType, solution, projects, cancellationToken).ConfigureAwait(false);
 
                 List<ISymbol> results = null;
                 foreach (var t in allTypes)
