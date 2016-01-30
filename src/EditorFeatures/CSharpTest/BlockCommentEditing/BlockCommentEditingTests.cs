@@ -101,6 +101,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing
         public async Task InsertOnStartLine6()
         {
             var code = @"
+    /**$$
+";
+            var expected = @"
+    /**
+     * $$
+";
+            await VerifyAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public async Task InsertOnStartLine7()
+        {
+            var code = @"
     /*   $$
 ";
             var expected = @"
@@ -258,6 +271,23 @@ $$*
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public async Task InsertOnMiddleLine8()
+        {
+            var code = @"
+    /**
+     *$$
+     */
+";
+            var expected = @"
+    /**
+     *
+     * $$
+     */
+";
+            await VerifyAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
         public async Task InsertOnEndLine0()
         {
             var code = @"
@@ -276,6 +306,21 @@ $$*
         public async Task InsertOnEndLine1()
         {
             var code = @"
+    /**
+     *$$/
+";
+            var expected = @"
+    /**
+     *
+     *$$/
+";
+            await VerifyAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public async Task InsertOnEndLine2()
+        {
+            var code = @"
     /*
   $$   */
 ";
@@ -288,7 +333,7 @@ $$*
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnEndLine2()
+        public async Task InsertOnEndLine3()
         {
             var code = @"
     /*
