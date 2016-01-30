@@ -484,6 +484,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to _Insert * at the start of new lines when writing /* */ comments.
+        /// </summary>
+        internal static string Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments {
+            get {
+                return ResourceManager.GetString("Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Add new line on enter after end of fully typed word.
         /// </summary>
         internal static string Option_InsertNewlineOnEnterWithWholeWord {

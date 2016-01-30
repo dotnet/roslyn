@@ -354,6 +354,9 @@
   <data name="Option_Highlighting" xml:space="preserve">
     <value>Highlighting</value>
   </data>
+  <data name="Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments" xml:space="preserve">
+    <value>_Insert * at the start of new lines when writing /* */ comments</value>
+  </data>
   <data name="Option_OptimizeForSolutionSize" xml:space="preserve">
     <value>Optimize for solution size</value>
   </data>

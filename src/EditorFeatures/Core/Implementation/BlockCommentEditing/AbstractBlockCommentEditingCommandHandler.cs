@@ -3,6 +3,7 @@
 using System;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
@@ -41,6 +42,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentEditing
         {
             var subjectBuffer = args.SubjectBuffer;
             var textView = args.TextView;
+
+            if (!subjectBuffer.GetOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString))
+            {
+                return false;
+            }
 
             var caretPosition = textView.GetCaretPoint(subjectBuffer);
             if (caretPosition == null)
