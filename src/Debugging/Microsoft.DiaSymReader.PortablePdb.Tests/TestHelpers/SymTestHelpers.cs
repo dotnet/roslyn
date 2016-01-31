@@ -16,7 +16,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
     {
         public static ISymUnmanagedReader CreateSymReaderFromResource(KeyValuePair<byte[], byte[]> peAndPdb)
         {
-            return SymReaderFactory.CreateReader(new MemoryStream(peAndPdb.Value), metadataImporter: new SymMetadataImport(new MemoryStream(peAndPdb.Key)));
+            return SymReaderFactory.CreateReaderImpl(new MemoryStream(peAndPdb.Value), metadataImporter: new SymMetadataImport(new MemoryStream(peAndPdb.Key)));
         }
 
         public static void ValidateDocumentUrl(ISymUnmanagedDocument document, string url)

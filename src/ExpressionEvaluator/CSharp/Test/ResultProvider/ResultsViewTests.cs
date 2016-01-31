@@ -12,7 +12,7 @@ using System.Linq;
 using Xunit;
 using BindingFlags = System.Reflection.BindingFlags;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class ResultsViewTests : CSharpResultProviderTestBase
     {
