@@ -138,7 +138,6 @@ namespace Microsoft.CodeAnalysis.Editor
                     semanticModel,
                     pointInRoslynSnapshot.Position,
                     workspace,
-                    bindLiteralsToUnderlyingType: true,
                     cancellationToken: cancellationToken);
 
                 if (symbol == null)
