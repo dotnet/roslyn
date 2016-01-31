@@ -3161,14 +3161,14 @@ namespace Microsoft.Cci
             var arguments = customAttribute.GetArguments(Context);
             Debug.Assert(parameters.Length == arguments.Length);
 
-            var encoder = new BlobEncoder(builder).CustomAttributeSignature(customAttribute.NamedArgumentCount);
+            var encoder = new BlobEncoder(builder).CustomAttributeSignature();
 
             for (int i = 0; i < parameters.Length; i++)
             {
                 encoder = SerializeMetadataExpression(encoder.AddArgument(), arguments[i], parameters[i].GetType(Context));
             }
 
-            SerializeCustomAttributeNamedArguments(encoder.EndArguments(), customAttribute);
+            SerializeCustomAttributeNamedArguments(encoder.EndArguments().Count(customAttribute.NamedArgumentCount), customAttribute);
         }
 
         private T SerializeCustomAttributeNamedArguments<T>(NamedArgumentsEncoder<T> encoder, ICustomAttribute customAttribute)
