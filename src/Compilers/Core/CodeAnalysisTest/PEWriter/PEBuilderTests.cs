@@ -18,6 +18,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
     using Roslyn.Reflection.PortableExecutable;
     using Roslyn.Reflection.Metadata.Ecma335.Blobs;
 
+    internal static class BlobEncoderExtensions
+    {
+        public static void Parameters(this MethodSignatureEncoder encoder, int parameterCount, Action<ReturnTypeEncoder> returnType, Action<ParametersEncoder> parameters)
+        {
+            ReturnTypeEncoder returnTypeEncoder;
+            ParametersEncoder parametersEncoder;
+            encoder.Parameters(parameterCount, out returnTypeEncoder, out parametersEncoder);
+            returnType(returnTypeEncoder);
+            parameters(parametersEncoder);
+        }
+    }
+
     public class PEBuilderTests
     {
         [Fact]
@@ -122,32 +134,41 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 metadata.GetString("System"),
                 metadata.GetString("Console"));
 
-            var consoleWriteLineSignature = new BlobEncoder(new BlobBuilder()).
+            var consoleWriteLineSignature = new BlobBuilder();
+
+            new BlobEncoder(consoleWriteLineSignature).
                 MethodSignature().
-                Parameters(1).
-                    Void().
-                    AddParameter().Type().String().
-                EndParameters();
+                Parameters(1,
+                    returnType => returnType.Void(),
+                    parameters =>
+                    {
+                        parameters.AddParameter().Type().String();
+                        parameters.EndParameters();
+                    });
 
             var consoleWriteLineMemberRef = metadata.AddMemberReference(
                 systemConsoleTypeRefHandle,
                 metadata.GetString("WriteLine"),
-                metadata.GetBlob(consoleWriteLineSignature.Builder));
+                metadata.GetBlob(consoleWriteLineSignature));
 
-            var parameterlessCtorSignature = new BlobEncoder(new BlobBuilder()).
+            var parameterlessCtorSignature = new BlobBuilder();
+
+            new BlobEncoder(parameterlessCtorSignature).
                 MethodSignature(isInstanceMethod: true).
-                Parameters(0).Void().EndParameters();
+                Parameters(0, returnType => returnType.Void(), parameters => parameters.EndParameters());
 
-            var parameterlessCtorBlobIndex = metadata.GetBlob(parameterlessCtorSignature.Builder);
+            var parameterlessCtorBlobIndex = metadata.GetBlob(parameterlessCtorSignature);
 
             var objectCtorMemberRef = metadata.AddMemberReference(
                 systemObjectTypeRef,
                 metadata.GetString(".ctor"),
                 parameterlessCtorBlobIndex);
 
-            var mainSignature = new BlobEncoder(new BlobBuilder()).
+            var mainSignature = new BlobBuilder();
+
+            new BlobEncoder(mainSignature).
                 MethodSignature().
-                Parameters(0).Void().EndParameters();
+                Parameters(0, returnType => returnType.Void(), parameters => parameters.EndParameters());
 
             var methodBodies = new MethodBodiesEncoder(ilBuilder);
 
@@ -223,7 +244,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
                 MethodImplAttributes.IL | MethodImplAttributes.Managed,
                 metadata.GetString("Main"),
-                metadata.GetBlob(mainSignature.Builder),
+                metadata.GetBlob(mainSignature),
                 mainBodyOffset,
                 paramList: default(ParameterHandle));
 

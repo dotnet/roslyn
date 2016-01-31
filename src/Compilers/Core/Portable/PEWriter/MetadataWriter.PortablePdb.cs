@@ -158,7 +158,7 @@ namespace Microsoft.Cci
             // TODO: BlobEncoder.LocalConstantSignature
 
             // CustomMod*
-            var encoder = new CustomModifiersEncoder<BlobEncoder>(new BlobEncoder(builder));
+            var encoder = new CustomModifiersEncoder(builder);
             SerializeCustomModifiers(encoder, localConstant.CustomModifiers);
 
             var type = localConstant.Type;
