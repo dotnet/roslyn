@@ -93,17 +93,12 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
             return new MethodSignatureEncoder<BlobEncoder>(this, isVarArg: false);
         }
 
-        public FixedArgumentsEncoder<NamedArgumentsEncoder<BlobEncoder>> CustomAttributeSignature(int namedArgumentCount)
+        public FixedArgumentsEncoder<CustomAttributeNamedArgumentsEncoder<BlobEncoder>> CustomAttributeSignature()
         {
-            if (unchecked((ushort)namedArgumentCount) > ushort.MaxValue)
-            {
-                throw new ArgumentOutOfRangeException(nameof(namedArgumentCount));
-            }
-
             Builder.WriteUInt16(0x0001);
 
-            return new FixedArgumentsEncoder<NamedArgumentsEncoder<BlobEncoder>>(
-                new NamedArgumentsEncoder<BlobEncoder>(this, (ushort)namedArgumentCount, writeCount: true));
+            return new FixedArgumentsEncoder<CustomAttributeNamedArgumentsEncoder<BlobEncoder>>(
+                new CustomAttributeNamedArgumentsEncoder<BlobEncoder>(this));
         }
 
         public LocalVariablesEncoder<BlobEncoder> LocalVariableSignature(int count)
@@ -135,7 +130,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
             }
 
             Builder.WriteCompressedInteger(argumentCount);
-            return new NamedArgumentsEncoder<BlobEncoder>(this, (ushort)argumentCount, writeCount: false);
+            return new NamedArgumentsEncoder<BlobEncoder>(this, (ushort)argumentCount);
         }
 
         // TOOD: add ctor to SignatureHeader
@@ -566,6 +561,33 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
 #if SRM
     public
 #endif
+    struct CustomAttributeNamedArgumentsEncoder<T> : IBlobEncoder
+        where T : IBlobEncoder
+    {
+        public BlobBuilder Builder => _continuation.Builder;
+
+        private readonly T _continuation;
+
+        internal CustomAttributeNamedArgumentsEncoder(T continuation)
+        {
+            _continuation = continuation;
+        }
+
+        public NamedArgumentsEncoder<T> Count(int count)
+        {
+            if (unchecked((ushort)count) > ushort.MaxValue)
+            {
+                throw new ArgumentOutOfRangeException(nameof(count));
+            }
+            
+            Builder.WriteUInt16((ushort)count);
+            return new NamedArgumentsEncoder<T>(_continuation, (ushort)count);
+        }
+    }
+
+#if SRM
+    public
+#endif
     struct NamedArgumentsEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
@@ -573,13 +595,11 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
 
         private readonly T _continuation;
         private readonly ushort _count;
-        private readonly bool _writeCount;
 
-        internal NamedArgumentsEncoder(T continuation, ushort count, bool writeCount)
+        internal NamedArgumentsEncoder(T continuation, ushort count)
         {
             _continuation = continuation;
             _count = count;
-            _writeCount = writeCount;
         }
 
         public NamedArgumentTypeEncoder<NameEncoder<LiteralEncoder<NamedArgumentsEncoder<T>>>> AddArgument(bool isField)
@@ -589,17 +609,12 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
                 throw new InvalidOperationException();
             }
 
-            if (_writeCount)
-            {
-                Builder.WriteUInt16(_count);
-            }
-
             Builder.WriteByte(isField ? (byte)0x53 : (byte)0x54);
             
             return new NamedArgumentTypeEncoder<NameEncoder<LiteralEncoder<NamedArgumentsEncoder<T>>>>(
                 new NameEncoder<LiteralEncoder<NamedArgumentsEncoder<T>>>(
                     new LiteralEncoder<NamedArgumentsEncoder<T>>(
-                        new NamedArgumentsEncoder<T>(_continuation, (ushort)(_count - 1), writeCount: false))));
+                        new NamedArgumentsEncoder<T>(_continuation, (ushort)(_count - 1)))));
         }
 
         public T EndArguments()
@@ -607,11 +622,6 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
             if (_count > 0)
             {
                 throw new InvalidOperationException();
-            }
-
-            if (_writeCount)
-            {
-                Builder.WriteUInt16(0);
             }
 
             return _continuation;
