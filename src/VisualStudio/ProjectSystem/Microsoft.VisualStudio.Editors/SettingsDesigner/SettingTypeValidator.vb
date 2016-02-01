@@ -51,7 +51,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 If tc.CanConvertFrom(GetType(String)) AndAlso tc.CanConvertTo(GetType(String)) Then
                     Return True
                 End If
-                If type.GetConstructor(Reflection.BindingFlags.Instance Or Reflection.BindingFlags.Public, Nothing, System.Reflection.CallingConventions.HasThis, System.Type.EmptyTypes, Nothing) IsNot Nothing Then
+                If type.GetConstructor(BindingFlags.Instance Or Reflection.BindingFlags.Public, Nothing, System.Reflection.CallingConventions.HasThis, System.Type.EmptyTypes, Nothing) IsNot Nothing Then
                     Return True
                 End If
             Catch ex As Exception

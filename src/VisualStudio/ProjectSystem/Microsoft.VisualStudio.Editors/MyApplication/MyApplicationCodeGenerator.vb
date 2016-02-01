@@ -15,12 +15,13 @@ Imports System.IO
 Imports System.Text.RegularExpressions
 
 Imports EnvDTE
-Imports Microsoft.VisualStudio.shell
-Imports Microsoft.VisualStudio.shell.Interop
-Imports Microsoft.VisualStudio.ole.Interop
+Imports Microsoft.VisualStudio.Shell
+Imports Microsoft.VisualStudio.Shell.Interop
+Imports Microsoft.VisualStudio.OLE.Interop
 Imports Microsoft.VisualStudio.Designer.Interfaces
 Imports Microsoft.VisualStudio.Editors.Interop
 Imports Microsoft.VSDesigner.Common
+Imports System.Reflection
 
 Namespace Microsoft.VisualStudio.Editors.MyApplication
 
@@ -172,7 +173,7 @@ Namespace Microsoft.VisualStudio.Editors.MyApplication
                 Next
 
                 'Set the class visibility
-                GeneratedType.TypeAttributes = Reflection.TypeAttributes.Class Or Reflection.TypeAttributes.NotPublic
+                GeneratedType.TypeAttributes = TypeAttributes.Class Or TypeAttributes.NotPublic
 
                 'We don't write out an Inherits line - the partial class in the
                 '  My stuff controls the base class used.

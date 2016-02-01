@@ -4,6 +4,7 @@ Imports System.ComponentModel
 Imports System.Windows.Forms
 Imports VSLangProj80
 Imports VSLangProj110
+Imports System.Reflection
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
@@ -60,7 +61,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 Return False
             Catch exc As NullReferenceException
                 Return False
-            Catch ex As Reflection.TargetInvocationException
+            Catch ex As TargetInvocationException
                 Return False
             End Try
 

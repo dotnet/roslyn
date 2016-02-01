@@ -15,6 +15,7 @@ Imports Microsoft.VisualBasic
 Imports Microsoft.VisualStudio.PlatformUI
 Imports VBStrings = Microsoft.VisualBasic.Strings
 Imports VSLangProj80
+Imports System.Reflection
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
@@ -38,14 +39,14 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             InitializeComponent()
 
             'Add any initialization after the InitializeComponent() call
-            
+
             ' Scale the width of the overarching table layout panel
             Me.overarchingTableLayoutPanel.Width = DpiHelper.LogicalToDeviceUnitsX(overarchingTableLayoutPanel.Width)
 
             Me.MinimumSize = Me.PreferredSize()
 
             AddChangeHandlers()
-            
+
             Me.AutoScaleMode = AutoScaleMode.Font
             MyBase.PageRequiresScaling = False
         End Sub
@@ -301,14 +302,14 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         Protected Overrides ReadOnly Property ControlData() As PropertyControlData()
             Get
                 If m_ControlData Is Nothing Then
-                    m_ControlData = New PropertyControlData() { _
-                    New PropertyControlData(CSharpProjPropId.CSPROJPROPID_LanguageVersion, "LanguageVersion", Me.cboLanguageVersion, AddressOf LanguageVersionSet, AddressOf LanguageVersionGet, ControlDataFlags.None, New Control() {Me.lblLanguageVersion}), _
-                    New PropertyControlData(CSharpProjPropId.CSPROJPROPID_ErrorReport, "ErrorReport", Me.cboReportCompilerErrors, AddressOf ErrorReportSet, AddressOf ErrorReportGet, ControlDataFlags.None, New Control() {Me.lblReportCompilerErrors}), _
-                    New PropertyControlData(VsProjPropId.VBPROJPROPID_CheckForOverflowUnderflow, "CheckForOverflowUnderflow", Me.chkOverflow, AddressOf OverflowUnderflowSet, AddressOf OverflowUnderflowGet), _
-                    New PropertyControlData(VsProjPropId.VBPROJPROPID_FileAlignment, "FileAlignment", Me.cboFileAlignment, AddressOf FileAlignmentSet, AddressOf FileAlignmentGet, ControlDataFlags.None, New Control() {Me.lblFileAlignment}), _
-                    New PropertyControlData(VsProjPropId.VBPROJPROPID_BaseAddress, "BaseAddress", Me.txtDLLBase, AddressOf BaseAddressSet, AddressOf BaseAddressGet, ControlDataFlags.None, New Control() {Me.lblDLLBase}), _
-                    New SingleConfigPropertyControlData(SingleConfigPropertyControlData.Configs.Release, _
-                        VsProjPropId80.VBPROJPROPID_DebugInfo, "DebugInfo", Me.cboDebugInfo, AddressOf DebugInfoSet, AddressOf DebugInfoGet, ControlDataFlags.None, New Control() {Me.lblDebugInfo}), _
+                    m_ControlData = New PropertyControlData() {
+                    New PropertyControlData(CSharpProjPropId.CSPROJPROPID_LanguageVersion, "LanguageVersion", Me.cboLanguageVersion, AddressOf LanguageVersionSet, AddressOf LanguageVersionGet, ControlDataFlags.None, New Control() {Me.lblLanguageVersion}),
+                    New PropertyControlData(CSharpProjPropId.CSPROJPROPID_ErrorReport, "ErrorReport", Me.cboReportCompilerErrors, AddressOf ErrorReportSet, AddressOf ErrorReportGet, ControlDataFlags.None, New Control() {Me.lblReportCompilerErrors}),
+                    New PropertyControlData(VsProjPropId.VBPROJPROPID_CheckForOverflowUnderflow, "CheckForOverflowUnderflow", Me.chkOverflow, AddressOf OverflowUnderflowSet, AddressOf OverflowUnderflowGet),
+                    New PropertyControlData(VsProjPropId.VBPROJPROPID_FileAlignment, "FileAlignment", Me.cboFileAlignment, AddressOf FileAlignmentSet, AddressOf FileAlignmentGet, ControlDataFlags.None, New Control() {Me.lblFileAlignment}),
+                    New PropertyControlData(VsProjPropId.VBPROJPROPID_BaseAddress, "BaseAddress", Me.txtDLLBase, AddressOf BaseAddressSet, AddressOf BaseAddressGet, ControlDataFlags.None, New Control() {Me.lblDLLBase}),
+                    New SingleConfigPropertyControlData(SingleConfigPropertyControlData.Configs.Release,
+                        VsProjPropId80.VBPROJPROPID_DebugInfo, "DebugInfo", Me.cboDebugInfo, AddressOf DebugInfoSet, AddressOf DebugInfoGet, ControlDataFlags.None, New Control() {Me.lblDebugInfo}),
                     New PropertyControlData(VsProjPropId.VBPROJPROPID_DebugSymbols, "DebugSymbols", Nothing, AddressOf DebugSymbolsSet, AddressOf DebugSymbolsGet)}
                 End If
                 Return m_ControlData
@@ -405,7 +406,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
         ''' <param name="value"></param>
         ''' <remarks></remarks>
         Private Function ErrorReportSet(ByVal control As Control, ByVal prop As PropertyDescriptor, ByVal value As Object) As Boolean
-            If (Not(PropertyControlData.IsSpecialValue(value))) Then
+            If (Not (PropertyControlData.IsSpecialValue(value))) Then
                 Dim stValue As String = CType(value, String)
                 If stValue <> "" Then
                     Me.cboReportCompilerErrors.Text = stValue
@@ -513,7 +514,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
             Catch ex As InvalidCastException
                 '// When all else fails assume dll (so they can edit it)
                 OutputType = VSLangProj.prjOutputType.prjOutputTypeLibrary
-            Catch ex As Reflection.TargetInvocationException
+            Catch ex As TargetInvocationException
                 ' Property must be missing for this project flavor
                 OutputType = VSLangProj.prjOutputType.prjOutputTypeLibrary
             End Try

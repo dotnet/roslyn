@@ -15,6 +15,7 @@ Imports System.ComponentModel
 Imports System.Diagnostics
 Imports System.Drawing
 Imports System.IO
+Imports System.Reflection
 Imports Microsoft.VisualStudio.Editors.Common.Utils
 
 
@@ -351,7 +352,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                     Debug.Fail("ResXFileRef can't convert from string?")
                     Throw NewException(SR.GetString(SR.RSE_Err_LoadingResource_1Arg, FilePath), HelpIDs.Err_LoadingResource)
                 End If
-            Catch ex As Reflection.TargetInvocationException
+            Catch ex As TargetInvocationException
                 'Pull out the inner exception and rethrow that - the target invocation exception doesn't give us
                 '  any new information (it's because of the Activator.CreateInstance call that happens in the
                 '  ResXFileRef).

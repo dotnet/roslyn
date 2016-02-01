@@ -14,13 +14,14 @@ Imports System.CodeDom
 Imports System.CodeDom.Compiler
 Imports System.IO
 
-Imports Microsoft.VisualStudio.shell
-Imports Microsoft.VisualStudio.shell.Interop
-Imports Microsoft.VisualStudio.ole.Interop
+Imports Microsoft.VisualStudio.Shell
+Imports Microsoft.VisualStudio.Shell.Interop
+Imports Microsoft.VisualStudio.OLE.Interop
 Imports Microsoft.VisualStudio.Designer.Interfaces
 Imports Microsoft.VisualStudio.Editors.Interop
 Imports Microsoft.VSDesigner.VSDesignerPackage
 Imports Microsoft.VSDesigner.Common
+Imports System.Reflection
 
 Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 
@@ -83,7 +84,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         '@ <value>MemberAttributes indicating what visibility to make the generated properties.</value>
         Friend Overridable ReadOnly Property SettingsClassVisibility() As System.Reflection.TypeAttributes
             Get
-                Return Reflection.TypeAttributes.Sealed Or Reflection.TypeAttributes.NestedAssembly
+                Return TypeAttributes.Sealed Or TypeAttributes.NestedAssembly
             End Get
         End Property
 
@@ -149,12 +150,12 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 '
                 Dim shouldGenerateMyStuff As Boolean = (isVB AndAlso IsDefaultSettingsFile(wszInputFilePath))
 
-                Dim typeAttrs As Reflection.TypeAttributes
+                Dim typeAttrs As TypeAttributes
 
                 If CodeDomProvider.FileExtension.Equals(".jsl", StringComparison.OrdinalIgnoreCase) Then
                     ' VsWhidbey 302842, J# doesn't have assembly-only scoped types.... gotta generate the type
                     ' as Public for now - hopefully we'll have a better solution post beta1
-                    typeAttrs = Reflection.TypeAttributes.Public Or Reflection.TypeAttributes.Sealed
+                    typeAttrs = TypeAttributes.Public Or TypeAttributes.Sealed
                 Else
                     typeAttrs = SettingsClassVisibility
                 End If
@@ -261,16 +262,16 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <param name="GenerateVBMyAutoSave"></param>
         ''' <returns>CodeCompileUnit of the given DesignTimeSettings object</returns>
         ''' <remarks></remarks>
-        Friend Shared Function Create(ByVal Hierarchy As IVsHierarchy, _
-                                      ByVal Settings As DesignTimeSettings, _
-                                      ByVal DefaultNamespace As String, _
-                                      ByVal FilePath As String, _
-                                      ByVal IsDesignTime As Boolean, _
-                                      ByVal GenerateProgress As Shell.Interop.IVsGeneratorProgress, _
-                                      ByVal GeneratedClassVisibility As Reflection.TypeAttributes, _
-                                      Optional ByVal GeneratorSupportsTryCatch As Boolean = True, _
-                                      Optional ByVal GenerateVBMyAutoSave As Boolean = False, _
-                                      Optional ByVal ProjectRootNamespace As String = "", _
+        Friend Shared Function Create(ByVal Hierarchy As IVsHierarchy,
+                                      ByVal Settings As DesignTimeSettings,
+                                      ByVal DefaultNamespace As String,
+                                      ByVal FilePath As String,
+                                      ByVal IsDesignTime As Boolean,
+                                      ByVal GenerateProgress As Shell.Interop.IVsGeneratorProgress,
+                                      ByVal GeneratedClassVisibility As TypeAttributes,
+                                      Optional ByVal GeneratorSupportsTryCatch As Boolean = True,
+                                      Optional ByVal GenerateVBMyAutoSave As Boolean = False,
+                                      Optional ByVal ProjectRootNamespace As String = "",
                                       <Out()> Optional ByRef generatedType As CodeTypeDeclaration = Nothing) As CodeCompileUnit
 
             Dim CompileUnit As New CodeCompileUnit
@@ -312,8 +313,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             ' Tell FXCop that we are compiler generated stuff...
             Static toolName As String = GetType(SettingsSingleFileGenerator).FullName
             Static toolVersion As String = GetType(SettingsSingleFileGenerator).Assembly.GetName().Version.ToString()
-            Dim GeneratedCodeAttribute As New CodeAttributeDeclaration(CreateGlobalCodeTypeReference(GetType(System.CodeDom.Compiler.GeneratedCodeAttribute)), _
-                                                                       New CodeAttributeArgument() {New CodeAttributeArgument(New CodePrimitiveExpression(toolName)), _
+            Dim GeneratedCodeAttribute As New CodeAttributeDeclaration(CreateGlobalCodeTypeReference(GetType(System.CodeDom.Compiler.GeneratedCodeAttribute)),
+                                                                       New CodeAttributeArgument() {New CodeAttributeArgument(New CodePrimitiveExpression(toolName)),
                                                                                                      New CodeAttributeArgument(New CodePrimitiveExpression(toolVersion))})
             generatedType.CustomAttributes.Add(GeneratedCodeAttribute)
 
@@ -760,7 +761,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
             '        
             Dim ModuleDecl As New CodeTypeDeclaration(MySettingsModuleName)
             ModuleDecl.UserData("Module") = True
-            ModuleDecl.TypeAttributes = Reflection.TypeAttributes.Sealed Or Reflection.TypeAttributes.NestedAssembly
+            ModuleDecl.TypeAttributes = TypeAttributes.Sealed Or TypeAttributes.NestedAssembly
             ModuleDecl.CustomAttributes.Add(New CodeAttributeDeclaration(CreateGlobalCodeTypeReference(GetType(Microsoft.VisualBasic.HideModuleNameAttribute))))
             ModuleDecl.CustomAttributes.Add(New CodeAttributeDeclaration(CreateGlobalCodeTypeReference(GetType(System.Diagnostics.DebuggerNonUserCodeAttribute))))
             ' add the CompilerGeneratedAttribute in order to support deploying VB apps in Yukon (where

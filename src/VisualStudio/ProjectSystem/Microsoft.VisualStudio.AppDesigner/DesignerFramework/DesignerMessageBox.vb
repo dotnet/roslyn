@@ -14,6 +14,7 @@ Imports System.Windows.Forms.Design
 Imports System.ComponentModel
 Imports System.ComponentModel.Design
 Imports System.Runtime.InteropServices
+Imports System.Reflection
 
 Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
 
@@ -81,7 +82,7 @@ Namespace Microsoft.VisualStudio.Editors.AppDesDesignerFramework
             End If
 
             'Pull out the original exception from target invocation exceptions (happen during serialization, etc.)
-            If TypeOf ex Is Reflection.TargetInvocationException Then
+            If TypeOf ex Is TargetInvocationException Then
                 ex = ex.InnerException
             End If
 

@@ -21,6 +21,7 @@ Imports Microsoft.VisualStudio.PlatformUI
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports VSLangProj80
 Imports VSLangProj110
+Imports System.Reflection
 
 Namespace Microsoft.VisualStudio.Editors.PropertyPages
 
@@ -676,7 +677,7 @@ Namespace Microsoft.VisualStudio.Editors.PropertyPages
                 Return True
             Catch exc As NullReferenceException
                 Return True
-            Catch ex As Reflection.TargetInvocationException
+            Catch ex As TargetInvocationException
                 Return True
             End Try
 

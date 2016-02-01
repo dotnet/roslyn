@@ -11,6 +11,7 @@ Imports System
 Imports System.CodeDom
 Imports System.CodeDom.Compiler
 Imports System.Diagnostics
+Imports System.Reflection
 
 Namespace Microsoft.VisualStudio.Editors.SettingsDesigner.ProjectUtils
     Friend Module ProjectUtils
@@ -793,16 +794,16 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner.ProjectUtils
 
             Select Case cc2.Access
                 Case EnvDTE.vsCMAccess.vsCMAccessProject
-                    returnValue = Reflection.TypeAttributes.NestedAssembly
+                    returnValue = TypeAttributes.NestedAssembly
                 Case EnvDTE.vsCMAccess.vsCMAccessPublic
-                    returnValue = Reflection.TypeAttributes.Public
+                    returnValue = TypeAttributes.Public
                 Case Else
                     System.Diagnostics.Debug.Fail("Unexpected access for settings class: " & cc2.Access.ToString())
-                    returnValue = Reflection.TypeAttributes.NestedAssembly
+                    returnValue = TypeAttributes.NestedAssembly
             End Select
 
             If cc2.InheritanceKind = EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindSealed Then
-                returnValue = returnValue Or Reflection.TypeAttributes.Sealed
+                returnValue = returnValue Or TypeAttributes.Sealed
             End If
 
             Return returnValue

@@ -23,6 +23,7 @@ Imports System.Runtime.InteropServices
 Imports System.Windows.Forms
 
 Imports Microsoft.VSDesigner
+Imports System.Reflection
 
 Namespace Microsoft.VisualStudio.Editors.SettingsGlobalObjects
     ''' <summary>
@@ -46,8 +47,8 @@ Namespace Microsoft.VisualStudio.Editors.SettingsGlobalObjects
     '''     When asked for an instance of a global object, the Settings provider will re-parse the .settings file and update 
     '''     values for each global object.  If an item is no longer present, PerformRemove will be called for that item.
     ''' </summary>
-    <System.Runtime.InteropServices.Guid("13dc9681-b779-3d9a-9208-c346fe982b63")> _
-    <System.Runtime.InteropServices.ComVisible(true)> _
+    <System.Runtime.InteropServices.Guid("13dc9681-b779-3d9a-9208-c346fe982b63")>
+    <System.Runtime.InteropServices.ComVisible(True)>
     Friend NotInheritable Class SettingsGlobalObjectProvider
         Inherits GlobalObjectProvider
         Implements IServiceProvider, IVsRunningDocTableEvents, IVsTrackProjectDocumentsEvents2
@@ -1382,7 +1383,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsGlobalObjects
 
             Dim isDesignTime As Boolean = True
 
-            Dim ccu As CodeCompileUnit = SettingsSingleFileGenerator.Create(_hierarchy, designTimeSettingsToPresent, _namespace, fileName, isDesignTime, Nothing, Reflection.TypeAttributes.Public Or Reflection.TypeAttributes.Sealed)
+            Dim ccu As CodeCompileUnit = SettingsSingleFileGenerator.Create(_hierarchy, designTimeSettingsToPresent, _namespace, fileName, isDesignTime, Nothing, TypeAttributes.Public Or TypeAttributes.Sealed)
             Debug.Assert(ccu.Namespaces.Count = 1, "Expected a single namespace from SettingsSingleFileGenerator")
 
             ' Remove structure from the compile unit that virtual types can't handle.  

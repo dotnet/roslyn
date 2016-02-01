@@ -13,13 +13,14 @@ Imports System.CodeDom
 Imports System.CodeDom.Compiler
 Imports System.IO
 
-Imports Microsoft.VisualStudio.shell
-Imports Microsoft.VisualStudio.shell.Interop
-Imports Microsoft.VisualStudio.ole.Interop
+Imports Microsoft.VisualStudio.Shell
+Imports Microsoft.VisualStudio.Shell.Interop
+Imports Microsoft.VisualStudio.OLE.Interop
 Imports Microsoft.VisualStudio.Designer.Interfaces
 Imports Microsoft.VisualStudio.Editors.Interop
 Imports Microsoft.VSDesigner.VSDesignerPackage
 Imports Microsoft.VSDesigner.Common
+Imports System.Reflection
 
 Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
 
@@ -39,7 +40,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <value>MemberAttributes indicating what visibility to make the generated properties.</value>
         Friend Overrides ReadOnly Property SettingsClassVisibility() As System.Reflection.TypeAttributes
             Get
-                Return Reflection.TypeAttributes.Sealed Or Reflection.TypeAttributes.Public
+                Return TypeAttributes.Sealed Or TypeAttributes.Public
             End Get
         End Property
 
