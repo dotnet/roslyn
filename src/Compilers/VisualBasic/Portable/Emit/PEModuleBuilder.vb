@@ -457,7 +457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                                         context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(
                                                                                     ERRID.ERR_ForwardedTypeConflictsWithExportedType,
                                                                                     CustomSymbolDisplayFormatter.DefaultErrorFormat(exportedType),
-                                                                                    CustomSymbolDisplayFormatter.DefaultErrorFormat(exportedType.ContainingAssembly),
+                                                                                    exportedType.ContainingAssembly,
                                                                                     CustomSymbolDisplayFormatter.DefaultErrorFormat(contender),
                                                                                     CustomSymbolDisplayFormatter.DefaultErrorFormat(contender.ContainingModule)),
                                                                                  NoLocation.Singleton))
@@ -466,9 +466,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                                         context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(
                                                                                     ERRID.ERR_ForwardedTypesConflict,
                                                                                     CustomSymbolDisplayFormatter.DefaultErrorFormat(exportedType),
-                                                                                    CustomSymbolDisplayFormatter.DefaultErrorFormat(exportedType.ContainingAssembly),
+                                                                                    exportedType.ContainingAssembly,
                                                                                     CustomSymbolDisplayFormatter.DefaultErrorFormat(contender),
-                                                                                    CustomSymbolDisplayFormatter.DefaultErrorFormat(contender.ContainingAssembly)),
+                                                                                    contender.ContainingAssembly),
                                                                                  NoLocation.Singleton))
                                     End If
                                 End If

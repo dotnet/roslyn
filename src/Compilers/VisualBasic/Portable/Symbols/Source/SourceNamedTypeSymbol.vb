@@ -542,15 +542,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         Else
                             ' Neither of types is embedded.
-                            Dim _6thArg As Object = Me.ContainingSymbol.ToErrorMessageArgument(ERRID.ERR_TypeConflict6)
-
                             If (Me.ContainingType Is Nothing OrElse
                                     container.Locations.Length = 1 OrElse
                                     Not (TypeOf container Is SourceMemberContainerTypeSymbol) OrElse
                                     CType(container, SourceMemberContainerTypeSymbol).IsPartial) Then
                                 Binder.ReportDiagnostic(diagBag, id, ERRID.ERR_TypeConflict6,
                                                         Me.GetKindText(), id.ToString, _3rdArg, s.Name,
-                                                        container.GetKindText(), _6thArg)
+                                                        container.GetKindText(), Me.ContainingSymbol.ToErrorMessageArgument(ERRID.ERR_TypeConflict6))
                             End If
 
                         End If

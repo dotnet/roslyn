@@ -1,5 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     ''' <summary>
@@ -125,14 +127,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New FormattedSymbol(symbol, SymbolDisplayFormat.VisualBasicErrorMessageFormat)
         End Function
 
-        Public Shared Function DefaultErrorFormatIfErrorSymbol(arg As Object) As Object
+        Public Shared Function DefaultErrorFormatIfSpecialType(arg As Object) As Object
 
             Dim symbol = TryCast(arg, Symbol)
             If symbol Is Nothing Then
                 Return arg
             End If
 
-            If TypeOf symbol Is ITypeSymbol AndAlso DirectCast(symbol, ITypeSymbol).SpecialType <> SpecialType.None Then
+            If TypeOf symbol Is TypeSymbol AndAlso DirectCast(symbol, TypeSymbol).SpecialType <> SpecialType.None Then
                 Return DefaultErrorFormat(symbol)
             End If
 

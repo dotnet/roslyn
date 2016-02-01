@@ -207,9 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' TODO: Perhaps the error wording could be changed a bit to say "type of event..." ?
                         '
                         ' Reference required to assembly '{0}' containing the definition for event '{1}'. Add one to your project.
-                        errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssemblyEvent3,
-                                                           CustomSymbolDisplayFormatter.DefaultErrorFormatIfErrorSymbol(errorInfo.Arguments(0)),
-                                                           CustomSymbolDisplayFormatter.DefaultErrorFormatIfErrorSymbol(Me))
+                        errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssemblyEvent3, errorInfo.Arguments(0), Me)
 
                     Case ERRID.ERR_UnreferencedModule3
                         ' NOTE: interestingly the error in Dev10 and thus here refers to the definition of the event
