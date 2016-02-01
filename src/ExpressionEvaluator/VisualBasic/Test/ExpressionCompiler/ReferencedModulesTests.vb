@@ -80,50 +80,50 @@ End Class"
                 options:=TestOptions.DebugDll)
 
             ' Duplicate assemblies, target module referencing BS1.
-            Dim runtime = CreateRuntimeInstance(
-                compilationCN1,
-                {MscorlibRef, referenceAS1, referenceAS2, referenceBS2, referenceBS1, referenceBS2})
+            WithRuntimeInstance(compilationCN1, {MscorlibRef, referenceAS1, referenceAS2, referenceBS2, referenceBS1, referenceBS2},
+                Sub(runtime)
+                    Dim typeBlocks As ImmutableArray(Of MetadataBlock) = Nothing
+                    Dim methodBlocks As ImmutableArray(Of MetadataBlock) = Nothing
+                    Dim moduleVersionId As Guid = Nothing
+                    Dim symReader As ISymUnmanagedReader = Nothing
+                    Dim typeToken = 0
+                    Dim methodToken = 0
+                    Dim localSignatureToken = 0
+                    GetContextState(runtime, "C", typeBlocks, moduleVersionId, symReader, typeToken, localSignatureToken)
+                    GetContextState(runtime, "C.M", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
 
-            Dim typeBlocks As ImmutableArray(Of MetadataBlock) = Nothing
-            Dim methodBlocks As ImmutableArray(Of MetadataBlock) = Nothing
-            Dim moduleVersionId As Guid = Nothing
-            Dim symReader As ISymUnmanagedReader = Nothing
-            Dim typeToken = 0
-            Dim methodToken = 0
-            Dim localSignatureToken = 0
-            GetContextState(runtime, "C", typeBlocks, moduleVersionId, symReader, typeToken, localSignatureToken)
-            GetContextState(runtime, "C.M", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+                    ' Compile expression with type context.
+                    Dim context = EvaluationContext.CreateTypeContext(
+                        Nothing,
+                        typeBlocks,
+                        moduleVersionId,
+                        typeToken)
+                    Dim errorMessage As String = Nothing
+                    ' A is ambiguous since there were no explicit references to AS1 or AS2.
+                    context.CompileExpression("New A()", errorMessage)
+                    Assert.Equal(errorMessage, "error BC30554: 'A' is ambiguous.")
+                    ' Ideally, B should be resolved to BS1.
+                    context.CompileExpression("New B()", errorMessage)
+                    Assert.Equal(errorMessage, "error BC30554: 'B' is ambiguous.")
 
-            ' Compile expression with type context.
-            Dim context = EvaluationContext.CreateTypeContext(
-                Nothing,
-                typeBlocks,
-                moduleVersionId,
-                typeToken)
-            Dim errorMessage As String = Nothing
-            ' A is ambiguous since there were no explicit references to AS1 or AS2.
-            context.CompileExpression("New A()", errorMessage)
-            Assert.Equal(errorMessage, "error BC30554: 'A' is ambiguous.")
-            ' Ideally, B should be resolved to BS1.
-            context.CompileExpression("New B()", errorMessage)
-            Assert.Equal(errorMessage, "error BC30554: 'B' is ambiguous.")
+                    ' Compile expression with method context.
+                    Dim previous = New VisualBasicMetadataContext(typeBlocks, context)
+                    context = EvaluationContext.CreateMethodContext(
+                        previous,
+                        methodBlocks,
+                        MakeDummyLazyAssemblyReaders(),
+                        symReader,
+                        moduleVersionId,
+                        methodToken,
+                        methodVersion:=1,
+                        ilOffset:=0,
+                        localSignatureToken:=localSignatureToken)
+                    Assert.Equal(previous.Compilation, context.Compilation) ' re-use type context compilation
+                    ' Ideally, B should be resolved to BS1.
+                    context.CompileExpression("New B()", errorMessage)
+                    Assert.Equal(errorMessage, "error BC30554: 'B' is ambiguous.")
 
-            ' Compile expression with method context.
-            Dim previous = New VisualBasicMetadataContext(typeBlocks, context)
-            context = EvaluationContext.CreateMethodContext(
-                previous,
-                methodBlocks,
-                MakeDummyLazyAssemblyReaders(),
-                symReader,
-                moduleVersionId,
-                methodToken,
-                methodVersion:=1,
-                ilOffset:=0,
-                localSignatureToken:=localSignatureToken)
-            Assert.Equal(previous.Compilation, context.Compilation) ' re-use type context compilation
-            ' Ideally, B should be resolved to BS1.
-            context.CompileExpression("New B()", errorMessage)
-            Assert.Equal(errorMessage, "error BC30554: 'B' is ambiguous.")
+                End Sub)
         End Sub
 
         <Fact>
@@ -311,41 +311,43 @@ End Class"
                 options:=TestOptions.DebugDll,
                 references:={MscorlibRef, referenceA1})
 
-            Dim runtime = CreateRuntimeInstance(compilationB, {MscorlibRef, SystemRef, MsvbRef, referenceA1, referenceA2})
+            WithRuntimeInstancePortableBug(compilationB, {MscorlibRef, SystemRef, MsvbRef, referenceA1, referenceA2},
+                Sub(runtime)
 
-            Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
-            Dim moduleVersionId As Guid = Nothing
-            Dim symReader As ISymUnmanagedReader = Nothing
-            Dim typeToken = 0
-            Dim methodToken = 0
-            Dim localSignatureToken = 0
-            GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+                    Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
+                    Dim moduleVersionId As Guid = Nothing
+                    Dim symReader As ISymUnmanagedReader = Nothing
+                    Dim typeToken = 0
+                    Dim methodToken = 0
+                    Dim localSignatureToken = 0
+                    GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
 
-            Dim context = EvaluationContext.CreateMethodContext(
-                Nothing,
-                blocks,
-                MakeDummyLazyAssemblyReaders(),
-                symReader,
-                moduleVersionId,
-                methodToken,
-                methodVersion:=1,
-                ilOffset:=0,
-                localSignatureToken:=localSignatureToken)
-            Dim errorMessage As String = Nothing
-            context.CompileExpression("F()", errorMessage)
-            Assert.Equal(errorMessage, "error BC30562: 'F' is ambiguous between declarations in Modules 'N.M, N.M'.")
+                    Dim context = EvaluationContext.CreateMethodContext(
+                        Nothing,
+                        blocks,
+                        MakeDummyLazyAssemblyReaders(),
+                        symReader,
+                        moduleVersionId,
+                        methodToken,
+                        methodVersion:=1,
+                        ilOffset:=0,
+                        localSignatureToken:=localSignatureToken)
+                    Dim errorMessage As String = Nothing
+                    context.CompileExpression("F()", errorMessage)
+                    Assert.Equal(errorMessage, "error BC30562: 'F' is ambiguous between declarations in Modules 'N.M, N.M'.")
 
-            Dim testData As New CompilationTestData()
-            Dim contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
-            ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "F()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+                    Dim testData As New CompilationTestData()
+                    Dim contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
+                    ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "F()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
 // Code size        6 (0x6)
 .maxstack  1
 IL_0000:  call       ""Function N.M.F() As Object""
 IL_0005:  ret
 }")
+                End Sub)
         End Sub
 
         <WorkItem(1170032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170032")>
@@ -394,14 +396,15 @@ End Class"
             ' is compiled with facade assemblies.
             compilation = CreateCompilationWithReferences(MakeSources(source), references:=contractReferences, options:=TestOptions.DebugDll)
 
-            Dim runtime = CreateRuntimeInstance(compilation, runtimeReferences)
-            Dim context = CreateMethodContext(runtime, "C.Main")
-            Dim errorMessage As String = Nothing
-            ' { System.Console, mscorlib }
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("GetType(System.Console)", errorMessage, testData)
-            Dim methodData = testData.GetMethodData("<>x.<>m0")
-            methodData.VerifyIL(
+            WithRuntimeInstance(compilation, runtimeReferences,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.Main")
+                    Dim errorMessage As String = Nothing
+                    ' { System.Console, mscorlib }
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("GetType(System.Console)", errorMessage, testData)
+                    Dim methodData = testData.GetMethodData("<>x.<>m0")
+                    methodData.VerifyIL(
 "{
   // Code size       11 (0xb)
   .maxstack  1
@@ -411,11 +414,11 @@ End Class"
   IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
   IL_000a:  ret
 }")
-            ' { mscorlib, System.ObjectModel }
-            testData = New CompilationTestData()
-            context.CompileExpression("DirectCast(Nothing, System.Collections.ObjectModel.ReadOnlyDictionary(Of Object, Object))", errorMessage, testData)
-            methodData = testData.GetMethodData("<>x.<>m0")
-            methodData.VerifyIL(
+                    ' { mscorlib, System.ObjectModel }
+                    testData = New CompilationTestData()
+                    context.CompileExpression("DirectCast(Nothing, System.Collections.ObjectModel.ReadOnlyDictionary(Of Object, Object))", errorMessage, testData)
+                    methodData = testData.GetMethodData("<>x.<>m0")
+                    methodData.VerifyIL(
 "{
   // Code size        2 (0x2)
   .maxstack  1
@@ -424,7 +427,8 @@ End Class"
   IL_0000:  ldnull
   IL_0001:  ret
 }")
-            Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityObjectModel.GetDisplayName())
+                    Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityObjectModel.GetDisplayName())
+                End Sub)
         End Sub
 
         Private Shared Function CreateTypeContextFactory(
