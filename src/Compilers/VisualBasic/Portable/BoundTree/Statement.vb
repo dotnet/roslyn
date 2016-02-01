@@ -841,6 +841,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundBlock
         Implements IBlockStatement
 
+        Private Shared ReadOnly s_blockStatementsMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundBlock, Object)
+
         Private ReadOnly Property ILocals As ImmutableArray(Of ILocalSymbol) Implements IBlockStatement.Locals
             Get
                 Return Me.Locals.As(Of ILocalSymbol)()
@@ -849,7 +851,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IStatements As ImmutableArray(Of IStatement) Implements IBlockStatement.Statements
             Get
-                Return Me.Statements.As(Of IStatement)()
+                Dim statements = s_blockStatementsMappings.GetValue(Me, Function(boundBlock)
+                                                                            Return boundBlock.Statements.As(Of IStatement).WhereAsArray(Function(statement)
+                                                                                                                                            Return statement.Kind <> OperationKind.None
+                                                                                                                                        End Function)
+                                                                        End Function)
+                Return DirectCast(statements, ImmutableArray(Of IStatement))
             End Get
         End Property
 
