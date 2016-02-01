@@ -1141,6 +1141,8 @@ Class C
         AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)
         AddHandler Mumble, New MumbleEventHandler(Sub(s As Object, a As System.EventArgs)
                                                   End Sub)
+        AddHandler Mumble, Sub(s As Object, a As System.EventArgs)
+                           End Sub
         RaiseEvent Mumble(Me, args)
         ' Dim o As object = AddressOf Mumble
         Dim d As MumbleEventHandler = AddressOf Mumbler
@@ -1158,14 +1160,16 @@ End Class
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New MemberReferenceAnalyzer}, Nothing, Nothing, False,
-                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)").WithLocation(7, 9),
+                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)").WithLocation(7, 9),  ' Bug: Missing a EventReferenceExpression here
                  Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(7, 51),
                  Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(Sub(s As Object, a As System.EventArgs)
-                                                  End Sub)").WithLocation(8, 9),
-                 Diagnostic(MemberReferenceAnalyzer.FieldReferenceDescriptor.Id, "Mumble").WithLocation(10, 20),
-                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(12, 39),
-                 Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "RemoveHandler Mumble, AddressOf Mumbler").WithLocation(14, 9),
-                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(14, 31))
+                                                  End Sub)").WithLocation(8, 9),                                                                                    ' Bug: Missing a EventReferenceExpression here
+                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, Sub(s As Object, a As System.EventArgs)
+                           End Sub").WithLocation(10, 9),                                                                                                           ' Bug: Missing a EventReferenceExpression here
+                 Diagnostic(MemberReferenceAnalyzer.FieldReferenceDescriptor.Id, "Mumble").WithLocation(12, 20),   ' Bug: This should be an event reference.
+                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(14, 39),
+                 Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "RemoveHandler Mumble, AddressOf Mumbler").WithLocation(16, 9),                    ' Bug: Missing a EventReferenceExpression here
+                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(16, 31))
         End Sub
 
         <Fact>

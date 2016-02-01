@@ -1091,6 +1091,7 @@ class C
     {
         Mumble += new MumbleEventHandler(Mumbler);
         Mumble += (s, a) => {};
+        Mumble += new MumbleEventHandler((s, a) => {});
         Mumble(this, args);
         object o = Mumble;
         MumbleEventHandler d = Mumbler;
@@ -1106,13 +1107,19 @@ class C
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new MemberReferenceAnalyzer() }, null, null, false,
                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "Mumble += new MumbleEventHandler(Mumbler)").WithLocation(10, 9),
+                // Bug: Missing a EventReferenceExpression here
                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(10, 42),
                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "Mumble += (s, a) => {}").WithLocation(11, 9),
-                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(12, 9),
-                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(13, 20),
-                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(14, 32),
-                Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "Mumble -= new MumbleEventHandler(Mumbler)").WithLocation(16, 9),
-                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(16, 42)
+                // Bug: Missing a EventReferenceExpression here
+                Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "Mumble += new MumbleEventHandler((s, a) => {})").WithLocation(12, 9),
+                // Bug: Missing a EventReferenceExpression here
+                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "(s, a) => {}").WithLocation(12, 42),   // Bug: this is not a method binding
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(13, 9),
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(14, 20),
+                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(15, 32),
+                Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "Mumble -= new MumbleEventHandler(Mumbler)").WithLocation(17, 9),
+                // Bug: Missing a EventReferenceExpression here
+                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(17, 42)
                 );
         }
         
