@@ -431,11 +431,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static MethodContextReuseConstraints GetReuseConstraints(this ArrayBuilder<ISymUnmanagedScope> scopes, Guid moduleVersionId, int methodToken, int methodVersion, int ilOffset, bool isEndInclusive)
         {
-            var builder = new MethodContextReuseConstraints.Builder(moduleVersionId, methodToken, methodVersion, ilOffset, isEndInclusive);
+            var builder = new MethodContextReuseConstraints.Builder(moduleVersionId, methodToken, methodVersion, ilOffset);
             foreach (ISymUnmanagedScope scope in scopes)
             {
-                builder.AddRange((uint)scope.GetStartOffset(), (uint)scope.GetEndOffset());
+                builder.AddRange((uint)scope.GetStartOffset(), (uint)(scope.GetEndOffset() + (isEndInclusive ? 1 : 0)));
             }
+
             return builder.Build();
         }
 

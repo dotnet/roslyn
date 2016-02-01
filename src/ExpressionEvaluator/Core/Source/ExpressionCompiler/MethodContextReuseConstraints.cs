@@ -59,12 +59,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             private readonly int _methodToken;
             private readonly int _methodVersion;
             private readonly int _ilOffset;
-            private readonly bool _areRangesEndInclusive;
 
             private uint _startOffset;
             private uint _endOffsetExclusive;
 
-            public Builder(Guid moduleVersionId, int methodToken, int methodVersion, int ilOffset, bool areRangesEndInclusive)
+            public Builder(Guid moduleVersionId, int methodToken, int methodVersion, int ilOffset)
             {
                 Debug.Assert(moduleVersionId != default(Guid));
                 Debug.Assert(MetadataTokens.Handle(methodToken).Kind == HandleKind.MethodDefinition);
@@ -75,31 +74,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 _methodToken = methodToken;
                 _methodVersion = methodVersion;
                 _ilOffset = ilOffset;
-                _areRangesEndInclusive = areRangesEndInclusive;
 
                 _startOffset = 0;
                 _endOffsetExclusive = uint.MaxValue;
             }
 
-            public Builder(MethodContextReuseConstraints existingConstraints, int ilOffset, bool areRangesEndInclusive)
+            public Builder(MethodContextReuseConstraints existingConstraints, int ilOffset)
             {
                 _moduleVersionId = existingConstraints._moduleVersionId;
                 _methodToken = existingConstraints._methodToken;
                 _methodVersion = existingConstraints._methodVersion;
                 _ilOffset = ilOffset;
-                _areRangesEndInclusive = areRangesEndInclusive;
 
                 _startOffset = existingConstraints._startOffset;
                 _endOffsetExclusive = existingConstraints._endOffsetExclusive;
             }
 
-            public void AddRange(uint startOffset, uint endOffset)
+            public void AddRange(uint startOffset, uint endOffsetExclusive)
             {
                 Debug.Assert(startOffset >= 0);
-                Debug.Assert(startOffset <= endOffset);
-                Debug.Assert(!_areRangesEndInclusive || endOffset < int.MaxValue);
-
-                uint endOffsetExclusive = _areRangesEndInclusive ? (endOffset + 1) : endOffset;
+                Debug.Assert(startOffset <= endOffsetExclusive);
 
                 if (_ilOffset < startOffset)
                 {

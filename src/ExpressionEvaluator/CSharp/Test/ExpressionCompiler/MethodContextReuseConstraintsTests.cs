@@ -35,36 +35,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         }
 
         [Fact]
-        public void EndInclusive()
-        {
-            var moduleVersionId = Guid.NewGuid();
-            const int methodToken = 0x06000001;
-            const int methodVersion = 1;
-
-            var builder = new MethodContextReuseConstraints.Builder(moduleVersionId, methodToken, methodVersion, ilOffset: 5, areRangesEndInclusive: true);
-            Assert.True(builder.Build().HasExpectedSpan(0u, uint.MaxValue));
-
-            builder.AddRange(1, 9);
-            Assert.True(builder.Build().HasExpectedSpan(1, 10));
-
-            builder.AddRange(2, 8);
-            Assert.True(builder.Build().HasExpectedSpan(2, 9));
-
-            builder.AddRange(1, 3);
-            Assert.True(builder.Build().HasExpectedSpan(4, 9));
-
-            builder.AddRange(7, 9);
-            Assert.True(builder.Build().HasExpectedSpan(4, 7));
-        }
-
-        [Fact]
         public void EndExclusive()
         {
             var moduleVersionId = Guid.NewGuid();
             const int methodToken = 0x06000001;
             const int methodVersion = 1;
 
-            var builder = new MethodContextReuseConstraints.Builder(moduleVersionId, methodToken, methodVersion, ilOffset: 5, areRangesEndInclusive: false);
+            var builder = new MethodContextReuseConstraints.Builder(moduleVersionId, methodToken, methodVersion, ilOffset: 5);
             Assert.True(builder.Build().HasExpectedSpan(0u, uint.MaxValue));
 
             builder.AddRange(1, 9);
@@ -87,20 +64,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             const int methodToken = 0x06000001;
             const int methodVersion = 1;
 
-            var builder = new MethodContextReuseConstraints.Builder(moduleVersionId, methodToken, methodVersion, ilOffset: 5, areRangesEndInclusive: false);
+            var builder = new MethodContextReuseConstraints.Builder(moduleVersionId, methodToken, methodVersion, ilOffset: 5);
             Assert.True(builder.Build().HasExpectedSpan(0u, uint.MaxValue));
 
             builder.AddRange(1, 10);
             Assert.True(builder.Build().HasExpectedSpan(1, 10));
-            builder = new MethodContextReuseConstraints.Builder(builder.Build(), ilOffset: 5, areRangesEndInclusive: true);
+            builder = new MethodContextReuseConstraints.Builder(builder.Build(), ilOffset: 5);
 
-            builder.AddRange(2, 8);
+            builder.AddRange(2, 9);
             Assert.True(builder.Build().HasExpectedSpan(2, 9));
-            builder = new MethodContextReuseConstraints.Builder(builder.Build(), ilOffset: 5, areRangesEndInclusive: false);
+            builder = new MethodContextReuseConstraints.Builder(builder.Build(), ilOffset: 5);
 
             builder.AddRange(1, 3);
             Assert.True(builder.Build().HasExpectedSpan(3, 9));
-            builder = new MethodContextReuseConstraints.Builder(builder.Build(), ilOffset: 5, areRangesEndInclusive: true);
+            builder = new MethodContextReuseConstraints.Builder(builder.Build(), ilOffset: 5);
 
             builder.AddRange(7, 9);
             Assert.True(builder.Build().HasExpectedSpan(3, 7));

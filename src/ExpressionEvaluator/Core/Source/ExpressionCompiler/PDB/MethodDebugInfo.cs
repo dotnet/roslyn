@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             var constraintsBuilder =
-                new MethodContextReuseConstraints.Builder(methodContextReuseConstraints, ilOffset, areRangesEndInclusive: false);
+                new MethodContextReuseConstraints.Builder(methodContextReuseConstraints, ilOffset);
 
             var scopesBuilder = ArrayBuilder<int>.GetInstance();
             int i = 0;
