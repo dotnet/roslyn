@@ -5,8 +5,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal sealed class NativeExternAliasRecord<TAssemblySymbol> : ExternAliasRecord
-        where TAssemblySymbol : class, IAssemblySymbol
+    internal sealed class NativeExternAliasRecord : ExternAliasRecord
     {
         private readonly AssemblyIdentity _targetAssemblyIdentity;
 
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             for (int i = 0; i < assembliesAndModules.Length; i++)
             {
-                var assembly = assembliesAndModules[i] as TAssemblySymbol;
+                var assembly = assembliesAndModules[i] as IAssemblySymbol;
                 if (assembly != null && assemblyIdentityComparer.ReferenceMatchesDefinition(_targetAssemblyIdentity, assembly.Identity))
                 {
                     return i;

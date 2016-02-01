@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal struct MethodDebugInfo
+    internal partial struct MethodDebugInfo
     {
         public readonly ImmutableArray<HoistedLocalScopeRecord> HoistedLocalScopeRecords;
         public readonly ImmutableArray<ImmutableArray<ImportRecord>> ImportRecordGroups;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             int i = 0;
             foreach (var record in this.HoistedLocalScopeRecords)
             {
-                constraintsBuilder.AddRange(record.StartOffset, record.StartOffset + record.Length);
+                constraintsBuilder.AddRange((uint)record.StartOffset, (uint)(record.StartOffset + record.Length));
 
                 var delta = ilOffset - record.StartOffset;
                 if (0 <= delta && delta < record.Length)

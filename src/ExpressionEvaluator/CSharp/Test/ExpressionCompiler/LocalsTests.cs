@@ -1251,7 +1251,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>d__2.MoveNext", atLineNumber: 999);
                 var testData = new CompilationTestData();
@@ -1301,7 +1301,7 @@ class C
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(
                 runtime,
@@ -1371,7 +1371,7 @@ struct S<T> where T : class
                 options: TestOptions.DebugDll,
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
 
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "S.<F>d__1.MoveNext");
 
@@ -1442,7 +1442,7 @@ class C
                 options: TestOptions.DebugDll,
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
 
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<M>d__1.MoveNext");
 
@@ -1571,7 +1571,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.<>c.<<M>b__0_0>d.MoveNext");
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -2498,7 +2498,7 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(compilation, runtime =>
+            WithRuntimeInstance(compilation, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<M>d__1.MoveNext", atLineNumber: 999);
                 var testData = new CompilationTestData();
@@ -2558,7 +2558,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<M>d__1.MoveNext", atLineNumber: 999);
                 var testData = new CompilationTestData();
@@ -2710,7 +2710,7 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(compilation, runtime =>
+            WithRuntimeInstance(compilation, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<M>d__0.MoveNext()", atLineNumber: 999);
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();

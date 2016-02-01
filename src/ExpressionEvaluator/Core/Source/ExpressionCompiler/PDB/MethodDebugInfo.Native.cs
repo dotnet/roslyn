@@ -3,16 +3,57 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using System.Reflection.Metadata;
 using Microsoft.DiaSymReader;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal static class SymUnmanagedReaderExtensions
+    partial struct MethodDebugInfo
     {
-        public static MethodDebugInfo GetMethodDebugInfo(
-            this ISymUnmanagedReader reader,
+        public unsafe static bool TryReadMethodDebugInfo(ISymUnmanagedReader symReader, int methodToken, int methodVersion, ArrayBuilder<ISymUnmanagedScope> allScopes, out MethodDebugInfo info)
+        {
+            var symReader4 = symReader as ISymUnmanagedReader4;
+            if (symReader4 != null)
+            {
+                byte* metadata;
+                int size;
+
+                // TODO: version
+                int hr = symReader4.GetPortableDebugMetadata(out metadata, out size);
+                SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
+
+                if (metadata != null)
+                {
+                    var mdReader = new MetadataReader(metadata, size);
+                    try
+                    {
+                        info = ReadFromPortable(mdReader, methodToken);
+                        return true;
+                    }
+                    catch (BadImageFormatException)
+                    {
+                        // bad CDI, ignore
+                        info = default(MethodDebugInfo);
+                        return false;
+                    }
+                }
+            }
+
+            try
+            {
+                info = ReadFromNative(symReader, methodToken, methodVersion, allScopes);
+                return true;
+            }
+            catch (InvalidOperationException)
+            {
+                // bad CDI, ignore
+                info = default(MethodDebugInfo);
+                return false;
+            }
+        }
+
+        private static MethodDebugInfo ReadFromNative(
+            ISymUnmanagedReader reader,
             int methodToken,
             int methodVersion,
             ArrayBuilder<ISymUnmanagedScope> scopes)
@@ -71,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             continue;
                         }
 
-                        externAliasRecordBuilder.Add(new NativeExternAliasRecord<AssemblySymbol>(alias, targetIdentity));
+                        externAliasRecordBuilder.Add(new NativeExternAliasRecord(alias, targetIdentity));
                     }
                 }
             }
@@ -88,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 if (!customDebugInfoRecord.IsDefault)
                 {
                     hoistedLocalScopeRecords = CustomDebugInfoReader.DecodeStateMachineHoistedLocalScopesRecord(customDebugInfoRecord)
-                        .SelectAsArray(s => HoistedLocalScopeRecord.FromNative(s.StartOffset, s.EndOffset));
+                        .SelectAsArray(s => new HoistedLocalScopeRecord(s.StartOffset, s.EndOffset - s.StartOffset + 1));
                 }
 
                 CustomDebugInfoReader.GetCSharpDynamicLocalInfo(

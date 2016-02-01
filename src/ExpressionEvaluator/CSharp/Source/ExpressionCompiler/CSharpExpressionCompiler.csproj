@@ -52,7 +52,6 @@
     <Compile Include="CSharpCompileResult.cs" />
     <Compile Include="CSharpInScopeHoistedLocals.cs" />
     <Compile Include="CSharpLocalAndMethod.cs" />
-    <Compile Include="SymUnmanagedReaderExtensions.cs" />
     <Compile Include="CompilationContext.cs" />
     <Compile Include="CompilationExtensions.cs" />
     <Compile Include="CSharpLanguageInstructionDecoder.cs" />

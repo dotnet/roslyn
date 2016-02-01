@@ -912,7 +912,7 @@ class C
 ";
 
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var dummyComp = CreateCompilationWithMscorlib("", new[] { comp.EmitToImageReference() }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
                 var typeC = dummyComp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -935,7 +935,7 @@ class C
         private void VerifyHasThis(string source, string methodName, string expectedType, string expectedIL, bool thisCanBeElided = true)
         {
             var sourceCompilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            WithRuntimeInstancePortableBug(sourceCompilation, runtime =>
+            WithRuntimeInstance(sourceCompilation, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName);
                 VerifyHasThis(context, expectedType, expectedIL);
@@ -943,7 +943,7 @@ class C
 
             // Now recompile and test CompileExpression with optimized code.
             sourceCompilation = sourceCompilation.WithOptions(sourceCompilation.Options.WithOptimizationLevel(OptimizationLevel.Release));
-            WithRuntimeInstancePortableBug(sourceCompilation, runtime =>
+            WithRuntimeInstance(sourceCompilation, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName);
                 // In C#, "this" may be optimized away.
@@ -1045,7 +1045,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>d__1.MoveNext");
                 string error;
@@ -1081,7 +1081,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>d__1.MoveNext");
                 string error;
@@ -1118,7 +1118,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>b__1_0");
                 string error;
@@ -1154,7 +1154,7 @@ class Derived : Base
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "Derived.<M>d__1.MoveNext");
                 string error;
@@ -1195,7 +1195,7 @@ class Derived : Base
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "Derived.<M>d__1.MoveNext");
                 string error;
@@ -1237,7 +1237,7 @@ class Derived : Base
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "Derived.<F>b__1_0");
                 string error;
