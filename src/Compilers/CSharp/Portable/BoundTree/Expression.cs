@@ -494,6 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
        
         protected override OperationKind ExpressionKind => OperationKind.MethodBindingExpression;
 
+        // SyntaxNode for MethodBindingExpression is the argument of DelegateCreationExpression 
         SyntaxNode IOperation.Syntax => this.Argument.Syntax;
 
         public override void Accept(OperationVisitor visitor)

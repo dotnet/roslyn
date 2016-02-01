@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
+                // This is to filter out operations of kind None.
                 return (ImmutableArray<IStatement>) s_blockStatementsMappings.GetValue(this,
                     blockStatement => { return blockStatement.Statements.AsImmutable<IStatement>().WhereAsArray(statement => statement.Kind != OperationKind.None); }
                     );

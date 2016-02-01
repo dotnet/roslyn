@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private int _recursionDepth;
 
-        private void VisitList<T>(ImmutableArray<T> list) where T : IOperation
+        private void VisitArray<T>(ImmutableArray<T> list) where T : IOperation
         {
             if (!list.IsDefault)
             {
-                for (int i = 0; i < list.Length; i++)
+                foreach (var operation in list)
                 {
-                    Visit(list[i]);
+                    Visit(operation);
                 }
             }
         }
@@ -28,20 +28,27 @@ namespace Microsoft.CodeAnalysis.Semantics
             if (operation != null)
             {
                 _recursionDepth++;
-                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
-                operation.Accept(this);
-                _recursionDepth--;
+                try
+                {
+                    StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+                    operation.Accept(this);
+                }
+                finally
+                {
+                    _recursionDepth--;
+                }
+                
             }
         }
 
         public override void VisitBlockStatement(IBlockStatement operation)
         {
-            VisitList(operation.Statements);
+            VisitArray(operation.Statements);
         }
 
         public override void VisitVariableDeclarationStatement(IVariableDeclarationStatement operation)
         {
-            VisitList(operation.Variables);
+            VisitArray(operation.Variables);
         }
 
         public override void VisitVariable(IVariable operation)
@@ -52,13 +59,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitSwitchStatement(ISwitchStatement operation)
         {
             Visit(operation.Value);
-            VisitList(operation.Cases);
+            VisitArray(operation.Cases);
         }
 
         public override void VisitCase(ICase operation)
         {
-            VisitList(operation.Clauses);
-            VisitList(operation.Body);
+            VisitArray(operation.Clauses);
+            VisitArray(operation.Body);
         }
 
         public override void VisitSingleValueCaseClause(ISingleValueCaseClause operation)
@@ -100,10 +107,10 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitForLoopStatement(IForLoopStatement operation)
         {
-            VisitList(operation.Before);
+            VisitArray(operation.Before);
             Visit(operation.Condition);
             Visit(operation.Body);
-            VisitList(operation.AtLoopBottom);
+            VisitArray(operation.AtLoopBottom);
         }
 
         public override void VisitForEachLoopStatement(IForEachLoopStatement operation)
@@ -148,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitTryStatement(ITryStatement operation)
         {
             Visit(operation.Body);
-            VisitList(operation.Catches);
+            VisitArray(operation.Catches);
             Visit(operation.FinallyHandler);
         }
 
@@ -194,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitInvocationExpression(IInvocationExpression operation)
         {
             Visit(operation.Instance);
-            VisitList(operation.ArgumentsInSourceOrder);
+            VisitArray(operation.ArgumentsInSourceOrder);
         }
 
         public override void VisitArgument(IArgument operation)
@@ -210,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation)
         {
             Visit(operation.ArrayReference);
-            VisitList(operation.Indices);
+            VisitArray(operation.Indices);
         }
 
         public override void VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
@@ -318,8 +325,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitObjectCreationExpression(IObjectCreationExpression operation)
         {
-            VisitList(operation.ConstructorArguments);
-            VisitList(operation.MemberInitializers);
+            VisitArray(operation.ConstructorArguments);
+            VisitArray(operation.MemberInitializers);
         }
 
         public override void VisitFieldInitializer(IFieldInitializer operation)
@@ -339,13 +346,13 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitArrayCreationExpression(IArrayCreationExpression operation)
         {
-            VisitList(operation.DimensionSizes);
+            VisitArray(operation.DimensionSizes);
             Visit(operation.Initializer);
         }
 
         public override void VisitArrayInitializer(IArrayInitializer operation)
         {
-            VisitList(operation.ElementValues);
+            VisitArray(operation.ElementValues);
         }
 
         public override void VisitAssignmentExpression(IAssignmentExpression operation)

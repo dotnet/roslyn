@@ -851,6 +851,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IStatements As ImmutableArray(Of IStatement) Implements IBlockStatement.Statements
             Get
+                ' This is to filter out operations of kind None.
                 Dim statements = s_blockStatementsMappings.GetValue(Me, Function(boundBlock)
                                                                             Return boundBlock.Statements.As(Of IStatement).WhereAsArray(Function(statement)
                                                                                                                                             Return statement.Kind <> OperationKind.None

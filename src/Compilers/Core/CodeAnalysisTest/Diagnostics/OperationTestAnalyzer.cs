@@ -1149,12 +1149,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get { return ImmutableArray.Create(LambdaExpressionDescriptor, 
-                                                TooManyStatementsInLambdaExpressionDescriptor,
-                                                NoneOperationInLambdaExpressionDescriptor); }
-        }
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => 
+            ImmutableArray.Create(LambdaExpressionDescriptor, 
+                                  TooManyStatementsInLambdaExpressionDescriptor,
+                                  NoneOperationInLambdaExpressionDescriptor);
 
         public sealed override void Initialize(AnalysisContext context)
         {
