@@ -101,8 +101,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                             var derivedImplementedTypesOfEachConstraintType = symbol.ConstraintTypes.Select(ct =>
                             {
                                 var derivedAndImplementedTypes = new List<INamedTypeSymbol>();
-                                return ((INamedTypeSymbol)ct).FindDerivedClassesAsync(_solution, immutableProjects, _cancellationToken).WaitAndGetResult(_cancellationToken)
-                                       .Concat(((INamedTypeSymbol)ct).FindImplementingTypesAsync(_solution, immutableProjects, _cancellationToken).WaitAndGetResult(_cancellationToken))
+                                return SymbolFinder.FindDerivedClassesAsync((INamedTypeSymbol)ct, _solution, immutableProjects, _cancellationToken).WaitAndGetResult(_cancellationToken)
+                                       .Concat(DependentTypeFinder.FindImplementingTypesAsync((INamedTypeSymbol)ct, _solution, immutableProjects, _cancellationToken).WaitAndGetResult(_cancellationToken))
                                        .ToList();
                             });
 
@@ -116,10 +116,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                                 // If the resultant intersecting type contains any Type arguments that could be replaced 
                                 // using the type constraints then recursively update the type until all constraints are appropriately handled
                                 var typeConstraintConvertedType = resultantIntersectingType.Accept(this);
-                                var knownsimilarTypesInCompilation = SymbolFinder.FindSimilarSymbols(typeConstraintConvertedType, _compilation, _cancellationToken);
-                                if (knownsimilarTypesInCompilation.Any())
+                                var knownSimilarTypesInCompilation = SymbolFinder.FindSimilarSymbols(typeConstraintConvertedType, _compilation, _cancellationToken);
+                                if (knownSimilarTypesInCompilation.Any())
                                 {
-                                    return knownsimilarTypesInCompilation.First();
+                                    return knownSimilarTypesInCompilation.First();
                                 }
 
                                 var resultantSimilarKnownTypes = SymbolFinder.FindSimilarSymbols(resultantIntersectingType, _compilation, _cancellationToken);

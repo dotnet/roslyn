@@ -3,14 +3,15 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
     Public Class HoistedMeTests
         Inherits ExpressionCompilerTestBase
 
@@ -481,16 +482,8 @@ End Module
 } // end of class C
 "
 
-            Dim ilBytes As ImmutableArray(Of Byte) = Nothing
-            Dim ilPdbBytes As ImmutableArray(Of Byte) = Nothing
-            EmitILToArray(ilSource, appendDefaultHeader:=True, includePdb:=True, assemblyBytes:=ilBytes, pdbBytes:=ilPdbBytes)
-
-            Dim runtime = CreateRuntimeInstance(
-                assemblyName:=GetUniqueName(),
-                references:=ImmutableArray.Create(MscorlibRef),
-                exeBytes:=ilBytes.ToArray(),
-                symReader:=SymReaderFactory.CreateReader(ilPdbBytes.ToArray()))
-
+            Dim ilModule = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource)
+            Dim runtime = CreateRuntimeInstance(ilModule, {MscorlibRef})
             Dim context = CreateMethodContext(runtime, "C._Lambda$__1")
             VerifyNoMe(context)
         End Sub

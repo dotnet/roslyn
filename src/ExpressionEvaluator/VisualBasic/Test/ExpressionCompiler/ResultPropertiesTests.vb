@@ -3,13 +3,15 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
+Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
     Public Class ResultPropertiesTests
         Inherits ExpressionCompilerTestBase
 
@@ -103,16 +105,9 @@ End Class
 
 } // end of class C
 "
-            Dim exeBytes As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
-            EmitILToArray(ilSource, appendDefaultHeader:=True, includePdb:=True, assemblyBytes:=exeBytes, pdbBytes:=pdbBytes)
-
-            Dim runtime = CreateRuntimeInstance(
-                assemblyName:=GetUniqueName(),
-                references:=ImmutableArray.Create(MscorlibRef),
-                exeBytes:=exeBytes.ToArray(),
-                symReader:=SymReaderFactory.CreateReader(pdbBytes))
-            Dim context = CreateMethodContext(runtime, methodName:="C.Test")
+            Dim ilModule = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource)
+            Dim runtime = CreateRuntimeInstance(ilModule, {MscorlibRef})
+            Dim context = CreateMethodContext(runtime, "C.Test")
 
             Assert.Equal(DkmEvaluationResultAccessType.Private, GetResultProperties(context, "[Private]").AccessType)
             Assert.Equal(DkmEvaluationResultAccessType.Protected, GetResultProperties(context, "[Protected]").AccessType)
@@ -258,15 +253,8 @@ End Class
 
 } // end of class C
 "
-            Dim exeBytes As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
-            EmitILToArray(ilSource, appendDefaultHeader:=True, includePdb:=True, assemblyBytes:=exeBytes, pdbBytes:=pdbBytes)
-
-            Dim runtime = CreateRuntimeInstance(
-                assemblyName:=GetUniqueName(),
-                references:=ImmutableArray.Create(MscorlibRef),
-                exeBytes:=exeBytes.ToArray(),
-                symReader:=SymReaderFactory.CreateReader(pdbBytes))
+            Dim ilModule = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource)
+            Dim runtime = CreateRuntimeInstance(ilModule, {MscorlibRef})
             Dim context = CreateMethodContext(runtime, methodName:="C.Test")
 
             Assert.Equal(DkmEvaluationResultTypeModifierFlags.None, GetResultProperties(context, "F").ModifierFlags)

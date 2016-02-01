@@ -11,16 +11,16 @@ using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.DiaSymReader;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class UsingDebugInfoTests : ExpressionCompilerTestBase
     {
@@ -331,21 +331,17 @@ public class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source);
-
-            byte[] exeBytes;
-            byte[] unusedPdbBytes;
-            ImmutableArray<MetadataReference> references;
-            var result = comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
-            Assert.True(result);
+            var peImage = comp.EmitToArray();
 
             var symReader = ExpressionCompilerTestHelpers.ConstructSymReaderWithImports(
-                exeBytes,
+                peImage,
                 "Main",
                 "USystem", // Valid.
                 "UACultureInfo TSystem.Globalization.CultureInfo, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", // Invalid - skipped.
                 "ASI USystem.IO"); // Valid.
 
-            var runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader);
+            var module = ModuleInstance.Create(peImage, symReader);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)); // Used to throw.
             var imports = compContext.NamespaceBinder.ImportChain.Single();
@@ -367,21 +363,17 @@ public class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source);
-
-            byte[] exeBytes;
-            byte[] unusedPdbBytes;
-            ImmutableArray<MetadataReference> references;
-            var result = comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
-            Assert.True(result);
+            var peImage = comp.EmitToArray();
 
             var symReader = ExpressionCompilerTestHelpers.ConstructSymReaderWithImports(
-                exeBytes,
+                peImage,
                 "Main",
                 "USystem", // Valid.
                 "AMy.Alias TSystem.Globalization.CultureInfo, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", // Invalid - skipped.
                 "ASI USystem.IO"); // Valid.
 
-            var runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader);
+            var module = ModuleInstance.Create(peImage, symReader);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)); // Used to throw.
             var imports = compContext.NamespaceBinder.ImportChain.Single();
@@ -403,15 +395,10 @@ public class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source);
-
-            byte[] exeBytes;
-            byte[] unusedPdbBytes;
-            ImmutableArray<MetadataReference> references;
-            var result = comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
-            Assert.True(result);
+            var peImage = comp.EmitToArray();
 
             ISymUnmanagedReader symReader;
-            using (var peReader = new PEReader(ImmutableArray.Create(exeBytes)))
+            using (var peReader = new PEReader(peImage))
             {
                 var metadataReader = peReader.GetMetadataReader();
                 var methodHandle = metadataReader.MethodDefinitions.Single(h => metadataReader.StringComparer.Equals(metadataReader.GetMethodDefinition(h).Name, "Main"));
@@ -423,7 +410,8 @@ public class C
                 }.ToImmutableDictionary());
             }
 
-            var runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader);
+            var module = ModuleInstance.Create(peImage, symReader);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
             var imports = compContext.NamespaceBinder.ImportChain.Single();
@@ -448,15 +436,10 @@ namespace N
 }
 ";
             var comp = CreateCompilationWithMscorlib(source);
-
-            byte[] exeBytes;
-            byte[] unusedPdbBytes;
-            ImmutableArray<MetadataReference> references;
-            var result = comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
-            Assert.True(result);
+            var peImage = comp.EmitToArray();
 
             ISymUnmanagedReader symReader;
-            using (var peReader = new PEReader(ImmutableArray.Create(exeBytes)))
+            using (var peReader = new PEReader(peImage))
             {
                 var metadataReader = peReader.GetMetadataReader();
                 var methodHandle = metadataReader.MethodDefinitions.Single(h => metadataReader.StringComparer.Equals(metadataReader.GetMethodDefinition(h).Name, "Main"));
@@ -468,7 +451,8 @@ namespace N
                 }.ToImmutableDictionary());
             }
 
-            var runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader);
+            var module = ModuleInstance.Create(peImage, symReader);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "N.C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
             var imports = compContext.NamespaceBinder.ImportChain.Single();
@@ -493,15 +477,10 @@ namespace N
 }
 ";
             var comp = CreateCompilationWithMscorlib(source);
-
-            byte[] exeBytes;
-            byte[] unusedPdbBytes;
-            ImmutableArray<MetadataReference> references;
-            var result = comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
-            Assert.True(result);
+            var peImage = comp.EmitToArray();
 
             ISymUnmanagedReader symReader;
-            using (var peReader = new PEReader(ImmutableArray.Create(exeBytes)))
+            using (var peReader = new PEReader(peImage))
             {
                 var metadataReader = peReader.GetMetadataReader();
                 var methodHandle = metadataReader.MethodDefinitions.Single(h => metadataReader.StringComparer.Equals(metadataReader.GetMethodDefinition(h).Name, "Main"));
@@ -513,7 +492,8 @@ namespace N
                 }.ToImmutableDictionary());
             }
 
-            var runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader);
+            var module = ModuleInstance.Create(peImage, symReader);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "N.C.Main");
             var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
             var imports = compContext.NamespaceBinder.ImportChain.Single();
@@ -543,18 +523,20 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
-            var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+            WithRuntimeInstancePortableBug(comp, runtime =>
+            {
+                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
-            var imports = importsList.Single();
+                var imports = importsList.Single();
 
-            Assert.Equal(0, imports.UsingAliases.Count);
-            Assert.Equal(0, imports.ExternAliases.Length);
+                Assert.Equal(0, imports.UsingAliases.Count);
+                Assert.Equal(0, imports.ExternAliases.Length);
 
-            var actualNamespace = imports.Usings.Single().NamespaceOrType;
-            Assert.Equal(SymbolKind.Namespace, actualNamespace.Kind);
-            Assert.Equal(NamespaceKind.Module, ((NamespaceSymbol)actualNamespace).Extent.Kind);
-            Assert.Equal("System", actualNamespace.ToTestDisplayString());
+                var actualNamespace = imports.Usings.Single().NamespaceOrType;
+                Assert.Equal(SymbolKind.Namespace, actualNamespace.Kind);
+                Assert.Equal(NamespaceKind.Module, ((NamespaceSymbol)actualNamespace).Extent.Kind);
+                Assert.Equal("System", actualNamespace.ToTestDisplayString());
+            });
         }
 
         [Fact]
@@ -576,25 +558,27 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
-            var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
-
-            var imports = importsList.Single();
-
-            Assert.Equal(0, imports.UsingAliases.Count);
-            Assert.Equal(0, imports.ExternAliases.Length);
-
-            var usings = imports.Usings.Select(u => u.NamespaceOrType).ToArray();
-            Assert.Equal(3, usings.Length);
-
-            var expectedNames = new[] { "System", "System.IO", "System.Text" };
-            for (int i = 0; i < usings.Length; i++)
+            WithRuntimeInstancePortableBug(comp, runtime =>
             {
-                var actualNamespace = usings[i];
-                Assert.Equal(SymbolKind.Namespace, actualNamespace.Kind);
-                Assert.Equal(NamespaceKind.Module, ((NamespaceSymbol)actualNamespace).Extent.Kind);
-                Assert.Equal(expectedNames[i], actualNamespace.ToTestDisplayString());
-            }
+                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+
+                var imports = importsList.Single();
+
+                Assert.Equal(0, imports.UsingAliases.Count);
+                Assert.Equal(0, imports.ExternAliases.Length);
+
+                var usings = imports.Usings.Select(u => u.NamespaceOrType).ToArray();
+                Assert.Equal(3, usings.Length);
+
+                var expectedNames = new[] { "System", "System.IO", "System.Text" };
+                for (int i = 0; i < usings.Length; i++)
+                {
+                    var actualNamespace = usings[i];
+                    Assert.Equal(SymbolKind.Namespace, actualNamespace.Kind);
+                    Assert.Equal(NamespaceKind.Module, ((NamespaceSymbol)actualNamespace).Extent.Kind);
+                    Assert.Equal(expectedNames[i], actualNamespace.ToTestDisplayString());
+                }
+            });
         }
 
         [Fact]
@@ -619,23 +603,25 @@ namespace A
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
-            var importsList = GetImports(runtime, "A.C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single()).AsEnumerable().ToArray();
-            Assert.Equal(2, importsList.Length);
-
-            var expectedNames = new[] { "System.IO", "System" }; // Innermost-to-outermost
-            for (int i = 0; i < importsList.Length; i++)
+            WithRuntimeInstancePortableBug(comp, runtime =>
             {
-                var imports = importsList[i];
+                var importsList = GetImports(runtime, "A.C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single()).AsEnumerable().ToArray();
+                Assert.Equal(2, importsList.Length);
 
-                Assert.Equal(0, imports.UsingAliases.Count);
-                Assert.Equal(0, imports.ExternAliases.Length);
+                var expectedNames = new[] { "System.IO", "System" }; // Innermost-to-outermost
+                for (int i = 0; i < importsList.Length; i++)
+                {
+                    var imports = importsList[i];
 
-                var actualNamespace = imports.Usings.Single().NamespaceOrType;
-                Assert.Equal(SymbolKind.Namespace, actualNamespace.Kind);
-                Assert.Equal(NamespaceKind.Module, ((NamespaceSymbol)actualNamespace).Extent.Kind);
-                Assert.Equal(expectedNames[i], actualNamespace.ToTestDisplayString());
-            }
+                    Assert.Equal(0, imports.UsingAliases.Count);
+                    Assert.Equal(0, imports.ExternAliases.Length);
+
+                    var actualNamespace = imports.Usings.Single().NamespaceOrType;
+                    Assert.Equal(SymbolKind.Namespace, actualNamespace.Kind);
+                    Assert.Equal(NamespaceKind.Module, ((NamespaceSymbol)actualNamespace).Extent.Kind);
+                    Assert.Equal(expectedNames[i], actualNamespace.ToTestDisplayString());
+                }
+            });
         }
 
         [Fact]
@@ -655,26 +641,28 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
-            var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+            WithRuntimeInstancePortableBug(comp, runtime =>
+            {
+                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
-            var imports = importsList.Single();
+                var imports = importsList.Single();
 
-            Assert.Equal(0, imports.Usings.Length);
-            Assert.Equal(0, imports.ExternAliases.Length);
+                Assert.Equal(0, imports.Usings.Length);
+                Assert.Equal(0, imports.ExternAliases.Length);
 
-            var usingAliases = imports.UsingAliases;
+                var usingAliases = imports.UsingAliases;
 
-            Assert.Equal(1, usingAliases.Count);
-            Assert.Equal("S", usingAliases.Keys.Single());
+                Assert.Equal(1, usingAliases.Count);
+                Assert.Equal("S", usingAliases.Keys.Single());
 
-            var aliasSymbol = usingAliases.Values.Single().Alias;
-            Assert.Equal("S", aliasSymbol.Name);
+                var aliasSymbol = usingAliases.Values.Single().Alias;
+                Assert.Equal("S", aliasSymbol.Name);
 
-            var namespaceSymbol = aliasSymbol.Target;
-            Assert.Equal(SymbolKind.Namespace, namespaceSymbol.Kind);
-            Assert.Equal(NamespaceKind.Module, ((NamespaceSymbol)namespaceSymbol).Extent.Kind);
-            Assert.Equal("System", namespaceSymbol.ToTestDisplayString());
+                var namespaceSymbol = aliasSymbol.Target;
+                Assert.Equal(SymbolKind.Namespace, namespaceSymbol.Kind);
+                Assert.Equal(NamespaceKind.Module, ((NamespaceSymbol)namespaceSymbol).Extent.Kind);
+                Assert.Equal("System", namespaceSymbol.ToTestDisplayString());
+            });
         }
 
         [WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
@@ -695,17 +683,19 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
-            var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+            WithRuntimeInstancePortableBug(comp, runtime =>
+            {
+                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
-            var imports = importsList.Single();
+                var imports = importsList.Single();
 
-            Assert.Equal(0, imports.UsingAliases.Count);
-            Assert.Equal(0, imports.ExternAliases.Length);
+                Assert.Equal(0, imports.UsingAliases.Count);
+                Assert.Equal(0, imports.ExternAliases.Length);
 
-            var actualType = imports.Usings.Single().NamespaceOrType;
-            Assert.Equal(SymbolKind.NamedType, actualType.Kind);
-            Assert.Equal("System.Math", actualType.ToTestDisplayString());
+                var actualType = imports.Usings.Single().NamespaceOrType;
+                Assert.Equal(SymbolKind.NamedType, actualType.Kind);
+                Assert.Equal("System.Math", actualType.ToTestDisplayString());
+            });
         }
 
         [Fact]
@@ -725,25 +715,27 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
-            var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+            WithRuntimeInstancePortableBug(comp, runtime =>
+            {
+                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
-            var imports = importsList.Single();
+                var imports = importsList.Single();
 
-            Assert.Equal(0, imports.Usings.Length);
-            Assert.Equal(0, imports.ExternAliases.Length);
+                Assert.Equal(0, imports.Usings.Length);
+                Assert.Equal(0, imports.ExternAliases.Length);
 
-            var usingAliases = imports.UsingAliases;
+                var usingAliases = imports.UsingAliases;
 
-            Assert.Equal(1, usingAliases.Count);
-            Assert.Equal("I", usingAliases.Keys.Single());
+                Assert.Equal(1, usingAliases.Count);
+                Assert.Equal("I", usingAliases.Keys.Single());
 
-            var aliasSymbol = usingAliases.Values.Single().Alias;
-            Assert.Equal("I", aliasSymbol.Name);
+                var aliasSymbol = usingAliases.Values.Single().Alias;
+                Assert.Equal("I", aliasSymbol.Name);
 
-            var typeSymbol = aliasSymbol.Target;
-            Assert.Equal(SymbolKind.NamedType, typeSymbol.Kind);
-            Assert.Equal(SpecialType.System_Int32, ((NamedTypeSymbol)typeSymbol).SpecialType);
+                var typeSymbol = aliasSymbol.Target;
+                Assert.Equal(SymbolKind.NamedType, typeSymbol.Kind);
+                Assert.Equal(SpecialType.System_Int32, ((NamedTypeSymbol)typeSymbol).SpecialType);
+            });
         }
 
         [Fact]
@@ -779,36 +771,38 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
-            var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+            WithRuntimeInstancePortableBug(comp, runtime =>
+            {
+                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
-            var imports = importsList.Single();
+                var imports = importsList.Single();
 
-            Assert.Equal(0, imports.ExternAliases.Length);
+                Assert.Equal(0, imports.ExternAliases.Length);
 
-            var @using = imports.Usings.Single();
-            var importedNamespace = @using.NamespaceOrType;
-            Assert.Equal(SymbolKind.Namespace, importedNamespace.Kind);
-            Assert.Equal("namespace", importedNamespace.Name);
+                var @using = imports.Usings.Single();
+                var importedNamespace = @using.NamespaceOrType;
+                Assert.Equal(SymbolKind.Namespace, importedNamespace.Kind);
+                Assert.Equal("namespace", importedNamespace.Name);
 
-            var usingAliases = imports.UsingAliases;
+                var usingAliases = imports.UsingAliases;
 
-            const string keyword1 = "object";
-            const string keyword2 = "string";
-            AssertEx.SetEqual(usingAliases.Keys, keyword1, keyword2);
+                const string keyword1 = "object";
+                const string keyword2 = "string";
+                AssertEx.SetEqual(usingAliases.Keys, keyword1, keyword2);
 
-            var namespaceAlias = usingAliases[keyword1];
-            var typeAlias = usingAliases[keyword2];
+                var namespaceAlias = usingAliases[keyword1];
+                var typeAlias = usingAliases[keyword2];
 
-            Assert.Equal(keyword1, namespaceAlias.Alias.Name);
-            var aliasedNamespace = namespaceAlias.Alias.Target;
-            Assert.Equal(SymbolKind.Namespace, aliasedNamespace.Kind);
-            Assert.Equal("@namespace", aliasedNamespace.ToTestDisplayString());
+                Assert.Equal(keyword1, namespaceAlias.Alias.Name);
+                var aliasedNamespace = namespaceAlias.Alias.Target;
+                Assert.Equal(SymbolKind.Namespace, aliasedNamespace.Kind);
+                Assert.Equal("@namespace", aliasedNamespace.ToTestDisplayString());
 
-            Assert.Equal(keyword2, typeAlias.Alias.Name);
-            var aliasedType = typeAlias.Alias.Target;
-            Assert.Equal(SymbolKind.NamedType, aliasedType.Kind);
-            Assert.Equal("@namespace.@class<@namespace.@interface>.@struct", aliasedType.ToTestDisplayString());
+                Assert.Equal(keyword2, typeAlias.Alias.Name);
+                var aliasedType = typeAlias.Alias.Target;
+                Assert.Equal(SymbolKind.NamedType, aliasedType.Kind);
+                Assert.Equal("@namespace.@class<@namespace.@interface>.@struct", aliasedType.ToTestDisplayString());
+            });
         }
 
         [Fact]
@@ -828,25 +822,27 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
-            var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+            WithRuntimeInstancePortableBug(comp, runtime =>
+            {
+                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
-            var imports = importsList.Single();
+                var imports = importsList.Single();
 
-            Assert.Equal(0, imports.Usings.Length);
-            Assert.Equal(0, imports.ExternAliases.Length);
+                Assert.Equal(0, imports.Usings.Length);
+                Assert.Equal(0, imports.ExternAliases.Length);
 
-            var usingAliases = imports.UsingAliases;
+                var usingAliases = imports.UsingAliases;
 
-            Assert.Equal(1, usingAliases.Count);
-            Assert.Equal("I", usingAliases.Keys.Single());
+                Assert.Equal(1, usingAliases.Count);
+                Assert.Equal("I", usingAliases.Keys.Single());
 
-            var aliasSymbol = usingAliases.Values.Single().Alias;
-            Assert.Equal("I", aliasSymbol.Name);
+                var aliasSymbol = usingAliases.Values.Single().Alias;
+                Assert.Equal("I", aliasSymbol.Name);
 
-            var typeSymbol = aliasSymbol.Target;
-            Assert.Equal(SymbolKind.NamedType, typeSymbol.Kind);
-            Assert.Equal("System.Collections.Generic.IEnumerable<System.String>", typeSymbol.ToTestDisplayString());
+                var typeSymbol = aliasSymbol.Target;
+                Assert.Equal(SymbolKind.NamedType, typeSymbol.Kind);
+                Assert.Equal("System.Collections.Generic.IEnumerable<System.String>", typeSymbol.ToTestDisplayString());
+            });
         }
 
         [Fact]
@@ -867,28 +863,27 @@ class C
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("X")) });
             comp.VerifyDiagnostics();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
-            var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+            WithRuntimeInstancePortableBug(comp, runtime =>
+            {
+                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
-            var imports = importsList.Single();
+                var imports = importsList.Single();
 
-            Assert.Equal(0, imports.Usings.Length);
-            Assert.Equal(0, imports.UsingAliases.Count);
+                Assert.Equal(0, imports.Usings.Length);
+                Assert.Equal(0, imports.UsingAliases.Count);
 
-            var externAliases = imports.ExternAliases;
+                var externAliases = imports.ExternAliases;
 
-            Assert.Equal(1, externAliases.Length);
+                Assert.Equal(1, externAliases.Length);
 
-            var aliasSymbol = externAliases.Single().Alias;
-            Assert.Equal("X", aliasSymbol.Name);
+                var aliasSymbol = externAliases.Single().Alias;
+                Assert.Equal("X", aliasSymbol.Name);
 
-            var targetSymbol = aliasSymbol.Target;
-            Assert.Equal(SymbolKind.Namespace, targetSymbol.Kind);
-            Assert.True(((NamespaceSymbol)targetSymbol).IsGlobalNamespace);
-            Assert.Equal("System.Xml.Linq", targetSymbol.ContainingAssembly.Name);
-
-            var moduleInstance = runtime.Modules.Single(m => m.ModuleMetadata.Name.StartsWith("System.Xml.Linq", StringComparison.OrdinalIgnoreCase));
-            AssertEx.SetEqual(moduleInstance.MetadataReference.Properties.Aliases, "X");
+                var targetSymbol = aliasSymbol.Target;
+                Assert.Equal(SymbolKind.Namespace, targetSymbol.Kind);
+                Assert.True(((NamespaceSymbol)targetSymbol).IsGlobalNamespace);
+                Assert.Equal("System.Xml.Linq", targetSymbol.ContainingAssembly.Name);
+            });
         }
 
         [Fact]
@@ -912,29 +907,31 @@ class C
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("X")) });
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
-            var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+            WithRuntimeInstancePortableBug(comp, runtime =>
+            {
+                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
-            var imports = importsList.Single();
+                var imports = importsList.Single();
 
-            Assert.Equal(1, imports.ExternAliases.Length);
+                Assert.Equal(1, imports.ExternAliases.Length);
 
-            var @using = imports.Usings.Single();
-            var importedNamespace = @using.NamespaceOrType;
-            Assert.Equal(SymbolKind.Namespace, importedNamespace.Kind);
-            Assert.Equal("System.Xml", importedNamespace.ToTestDisplayString());
+                var @using = imports.Usings.Single();
+                var importedNamespace = @using.NamespaceOrType;
+                Assert.Equal(SymbolKind.Namespace, importedNamespace.Kind);
+                Assert.Equal("System.Xml", importedNamespace.ToTestDisplayString());
 
-            var usingAliases = imports.UsingAliases;
-            Assert.Equal(2, usingAliases.Count);
-            AssertEx.SetEqual(usingAliases.Keys, "SXL", "LO");
+                var usingAliases = imports.UsingAliases;
+                Assert.Equal(2, usingAliases.Count);
+                AssertEx.SetEqual(usingAliases.Keys, "SXL", "LO");
 
-            var typeAlias = usingAliases["SXL"].Alias;
-            Assert.Equal("SXL", typeAlias.Name);
-            Assert.Equal("System.Xml.Linq", typeAlias.Target.ToTestDisplayString());
+                var typeAlias = usingAliases["SXL"].Alias;
+                Assert.Equal("SXL", typeAlias.Name);
+                Assert.Equal("System.Xml.Linq", typeAlias.Target.ToTestDisplayString());
 
-            var namespaceAlias = usingAliases["LO"].Alias;
-            Assert.Equal("LO", namespaceAlias.Name);
-            Assert.Equal("System.Xml.Linq.LoadOptions", namespaceAlias.Target.ToTestDisplayString());
+                var namespaceAlias = usingAliases["LO"].Alias;
+                Assert.Equal("LO", namespaceAlias.Name);
+                Assert.Equal("System.Xml.Linq.LoadOptions", namespaceAlias.Target.ToTestDisplayString());
+            });
         }
 
         [Fact]
@@ -958,32 +955,32 @@ class C
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("global", "X")) });
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            var runtime = CreateRuntimeInstance(comp, includeSymbols: true);
-            var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+            WithRuntimeInstancePortableBug(comp, runtime =>
+            {
+                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
-            var imports = importsList.Single();
+                var imports = importsList.Single();
 
-            Assert.Equal(0, imports.Usings.Length);
-            Assert.Equal(1, imports.ExternAliases.Length);
+                Assert.Equal(0, imports.Usings.Length);
+                Assert.Equal(1, imports.ExternAliases.Length);
 
-            var usingAliases = imports.UsingAliases;
-            Assert.Equal(2, usingAliases.Count);
-            AssertEx.SetEqual(usingAliases.Keys, "A", "B");
+                var usingAliases = imports.UsingAliases;
+                Assert.Equal(2, usingAliases.Count);
+                AssertEx.SetEqual(usingAliases.Keys, "A", "B");
 
-            var aliasA = usingAliases["A"].Alias;
-            Assert.Equal("A", aliasA.Name);
-            Assert.Equal("System.Xml.Linq", aliasA.Target.ToTestDisplayString());
+                var aliasA = usingAliases["A"].Alias;
+                Assert.Equal("A", aliasA.Name);
+                Assert.Equal("System.Xml.Linq", aliasA.Target.ToTestDisplayString());
 
-            var aliasB = usingAliases["B"].Alias;
-            Assert.Equal("B", aliasB.Name);
-            Assert.Equal(aliasA.Target, aliasB.Target);
+                var aliasB = usingAliases["B"].Alias;
+                Assert.Equal("B", aliasB.Name);
+                Assert.Equal(aliasA.Target, aliasB.Target);
+            });
         }
 
         private static ImportChain GetImports(RuntimeInstance runtime, string methodName, Syntax.ExpressionSyntax syntax)
         {
-            var evalContext = CreateMethodContext(
-                runtime,
-                methodName: methodName);
+            var evalContext = CreateMethodContext(runtime, methodName);
             var compContext = evalContext.CreateCompilationContext(syntax);
             return compContext.NamespaceBinder.ImportChain;
         }
@@ -1074,45 +1071,36 @@ public class C2 : C1
 {
 }
 ";
-            ImmutableArray<MetadataReference> unused;
+            var comp1 = CreateCompilation(source1, new[] { MscorlibRef_v20 }, TestOptions.DebugDll);
+            var module1 = comp1.ToModuleInstance();
 
-            var comp1 = CreateCompilation(source1, new[] { MscorlibRef_v20 }, TestOptions.DebugDll, assemblyName: "A");
-            byte[] dllBytes1;
-            byte[] pdbBytes1;
-            comp1.EmitAndGetReferences(out dllBytes1, out pdbBytes1, out unused);
-            var ref1 = AssemblyMetadata.CreateFromImage(dllBytes1).GetReference(display: "A");
+            var comp2 = CreateCompilation(source2, new[] { MscorlibRef_v4_0_30316_17626, module1.GetReference() }, TestOptions.DebugDll);
+            var module2 = comp2.ToModuleInstance();
 
-            var comp2 = CreateCompilation(source2, new[] { MscorlibRef_v4_0_30316_17626, ref1 }, TestOptions.DebugDll, assemblyName: "B");
-            byte[] dllBytes2;
-            byte[] pdbBytes2;
-            comp2.EmitAndGetReferences(out dllBytes2, out pdbBytes2, out unused);
-            var ref2 = AssemblyMetadata.CreateFromImage(dllBytes2).GetReference(display: "B");
-
-            var modulesBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
-            modulesBuilder.Add(ref1.ToModuleInstance(dllBytes1, SymReaderFactory.CreateReader(pdbBytes1)));
-            modulesBuilder.Add(ref2.ToModuleInstance(dllBytes2, SymReaderFactory.CreateReader(pdbBytes2)));
-            modulesBuilder.Add(MscorlibRef_v4_0_30316_17626.ToModuleInstance(fullImage: null, symReader: null));
-            modulesBuilder.Add(ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance(fullImage: null, symReader: null));
-
-            using (var runtime = new RuntimeInstance(modulesBuilder.ToImmutableAndFree()))
+            var runtime = CreateRuntimeInstance(new[] 
             {
-                var context = CreateMethodContext(runtime, "C1.M");
+                module1,
+                module2,
+                MscorlibRef_v4_0_30316_17626.ToModuleInstance(),
+                ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance()
+            });
 
-                string error;
-                var testData = new CompilationTestData();
-                context.CompileExpression("typeof(SI)", out error, testData);
-                Assert.Null(error);
+            var context = CreateMethodContext(runtime, "C1.M");
 
-                testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+            string error;
+            var testData = new CompilationTestData();
+            context.CompileExpression("typeof(SI)", out error, testData);
+            Assert.Null(error);
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
-  // Code size       11 (0xb)
-  .maxstack  1
-  IL_0000:  ldtoken    ""int""
-  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_000a:  ret
+// Code size       11 (0xb)
+.maxstack  1
+IL_0000:  ldtoken    ""int""
+IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+IL_000a:  ret
 }
 ");
-            }
         }
     }
 

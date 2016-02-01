@@ -5,7 +5,7 @@ using System.Diagnostics.SymbolStore;
 using System.Runtime.InteropServices.ComTypes;
 using Microsoft.DiaSymReader;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
     internal sealed class NotImplementedSymUnmanagedReader : ISymUnmanagedReader, ISymUnmanagedReader2, ISymUnmanagedReader3
     {

@@ -4,7 +4,7 @@ using System;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class MethodContextReuseConstraintsTests : ExpressionCompilerTestBase
     {
