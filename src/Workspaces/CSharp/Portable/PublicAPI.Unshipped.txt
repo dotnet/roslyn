@@ -1,2 +1,0 @@
-static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInAccessors.get -> Microsoft.CodeAnalysis.Options.Option<bool>
-static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInProperties.get -> Microsoft.CodeAnalysis.Options.Option<bool>

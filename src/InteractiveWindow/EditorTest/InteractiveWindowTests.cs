@@ -1088,6 +1088,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.Equal("> xyz", GetTextFromCurrentSnapshot());
         }
 
+        // TODO (https://github.com/dotnet/roslyn/issues/7976): delete this
+        [WorkItem(7976, "https://github.com/dotnet/roslyn/issues/7976")]
+        [WpfFact]
+        public void Workaround7976()
+        {
+            Thread.Sleep(TimeSpan.FromSeconds(10));
+        }
+
         private string GetTextFromCurrentSnapshot()
         {
             return Window.TextView.TextBuffer.CurrentSnapshot.GetText();

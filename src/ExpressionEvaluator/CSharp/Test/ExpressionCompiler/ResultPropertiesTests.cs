@@ -33,16 +33,18 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, methodName: "C.Test");
-
-            foreach (var expr in new[] { "this", "null", "1", "F", "p", "l" })
+            WithRuntimeInstance(comp, runtime =>
             {
-                Assert.Equal(DkmEvaluationResultCategory.Data, GetResultProperties(context, expr).Category);
-            }
+                var context = CreateMethodContext(runtime, methodName: "C.Test");
 
-            Assert.Equal(DkmEvaluationResultCategory.Method, GetResultProperties(context, "M()").Category);
-            Assert.Equal(DkmEvaluationResultCategory.Property, GetResultProperties(context, "P").Category);
+                foreach (var expr in new[] { "this", "null", "1", "F", "p", "l" })
+                {
+                    Assert.Equal(DkmEvaluationResultCategory.Data, GetResultProperties(context, expr).Category);
+                }
+
+                Assert.Equal(DkmEvaluationResultCategory.Method, GetResultProperties(context, "M()").Category);
+                Assert.Equal(DkmEvaluationResultCategory.Property, GetResultProperties(context, "P").Category);
+            });
         }
 
         [Fact]
@@ -66,18 +68,20 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, methodName: "C.Test");
-
-            foreach (var expr in new[] { "this", "null", "1", "P", "F", "M()", "p", "l" })
+            WithRuntimeInstance(comp, runtime =>
             {
-                Assert.Equal(DkmEvaluationResultStorageType.None, GetResultProperties(context, expr).StorageType);
-            }
+                var context = CreateMethodContext(runtime, methodName: "C.Test");
 
-            foreach (var expr in new[] { "SP", "SF", "SM()" })
-            {
-                Assert.Equal(DkmEvaluationResultStorageType.Static, GetResultProperties(context, expr).StorageType);
-            }
+                foreach (var expr in new[] { "this", "null", "1", "P", "F", "M()", "p", "l" })
+                {
+                    Assert.Equal(DkmEvaluationResultStorageType.None, GetResultProperties(context, expr).StorageType);
+                }
+
+                foreach (var expr in new[] { "SP", "SF", "SM()" })
+                {
+                    Assert.Equal(DkmEvaluationResultStorageType.Static, GetResultProperties(context, expr).StorageType);
+                }
+            });
         }
 
         [Fact]
@@ -142,11 +146,13 @@ internal class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, methodName: "C.Test");
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, methodName: "C.Test");
 
-            // Used the declared accessibility, rather than the effective accessibility.
-            Assert.Equal(DkmEvaluationResultAccessType.Public, GetResultProperties(context, "F").AccessType);
+                // Used the declared accessibility, rather than the effective accessibility.
+                Assert.Equal(DkmEvaluationResultAccessType.Public, GetResultProperties(context, "F").AccessType);
+            });
         }
 
         [Fact]
@@ -171,18 +177,20 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, methodName: "C.Test");
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, methodName: "C.Test");
 
-            Assert.Equal(DkmEvaluationResultTypeModifierFlags.None, GetResultProperties(context, "P").ModifierFlags);
-            Assert.Equal(DkmEvaluationResultTypeModifierFlags.Virtual, GetResultProperties(context, "VP").ModifierFlags);
+                Assert.Equal(DkmEvaluationResultTypeModifierFlags.None, GetResultProperties(context, "P").ModifierFlags);
+                Assert.Equal(DkmEvaluationResultTypeModifierFlags.Virtual, GetResultProperties(context, "VP").ModifierFlags);
 
-            Assert.Equal(DkmEvaluationResultTypeModifierFlags.None, GetResultProperties(context, "M()").ModifierFlags);
-            Assert.Equal(DkmEvaluationResultTypeModifierFlags.Virtual, GetResultProperties(context, "VM()").ModifierFlags);
+                Assert.Equal(DkmEvaluationResultTypeModifierFlags.None, GetResultProperties(context, "M()").ModifierFlags);
+                Assert.Equal(DkmEvaluationResultTypeModifierFlags.Virtual, GetResultProperties(context, "VM()").ModifierFlags);
 
-            // Field-like events are borderline since they bind as event accesses, but get emitted as field accesses.
-            Assert.Equal(DkmEvaluationResultTypeModifierFlags.None, GetResultProperties(context, "E").ModifierFlags);
-            Assert.Equal(DkmEvaluationResultTypeModifierFlags.Virtual, GetResultProperties(context, "VE").ModifierFlags);
+                // Field-like events are borderline since they bind as event accesses, but get emitted as field accesses.
+                Assert.Equal(DkmEvaluationResultTypeModifierFlags.None, GetResultProperties(context, "E").ModifierFlags);
+                Assert.Equal(DkmEvaluationResultTypeModifierFlags.Virtual, GetResultProperties(context, "VE").ModifierFlags);
+            });
         }
 
         [Fact]
@@ -207,11 +215,13 @@ abstract class Derived : Base
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, methodName: "Derived.Test");
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, methodName: "Derived.Test");
 
-            Assert.Equal(DkmEvaluationResultTypeModifierFlags.Virtual, GetResultProperties(context, "Abstract").ModifierFlags);
-            Assert.Equal(DkmEvaluationResultTypeModifierFlags.Virtual, GetResultProperties(context, "Override").ModifierFlags);
+                Assert.Equal(DkmEvaluationResultTypeModifierFlags.Virtual, GetResultProperties(context, "Abstract").ModifierFlags);
+                Assert.Equal(DkmEvaluationResultTypeModifierFlags.Virtual, GetResultProperties(context, "Override").ModifierFlags);
+            });
         }
 
         [Fact]
@@ -234,18 +244,20 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, methodName: "C.Test");
-
-            foreach (var expr in new[] { "null", "1", "1 + 1", "CF", "cl" })
+            WithRuntimeInstance(comp, runtime =>
             {
-                Assert.Equal(DkmEvaluationResultTypeModifierFlags.Constant, GetResultProperties(context, expr).ModifierFlags);
-            }
+                var context = CreateMethodContext(runtime, methodName: "C.Test");
 
-            foreach (var expr in new[] { "this", "F", "SRF", "p", "l" })
-            {
-                Assert.Equal(DkmEvaluationResultTypeModifierFlags.None, GetResultProperties(context, expr).ModifierFlags);
-            }
+                foreach (var expr in new[] { "null", "1", "1 + 1", "CF", "cl" })
+                {
+                    Assert.Equal(DkmEvaluationResultTypeModifierFlags.Constant, GetResultProperties(context, expr).ModifierFlags);
+                }
+
+                foreach (var expr in new[] { "this", "F", "SRF", "p", "l" })
+                {
+                    Assert.Equal(DkmEvaluationResultTypeModifierFlags.None, GetResultProperties(context, expr).ModifierFlags);
+                }
+            });
         }
 
         [Fact]
@@ -266,11 +278,13 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, methodName: "C.Test");
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, methodName: "C.Test");
 
-            Assert.Equal(DkmEvaluationResultTypeModifierFlags.None, GetResultProperties(context, "F").ModifierFlags);
-            Assert.Equal(DkmEvaluationResultTypeModifierFlags.Volatile, GetResultProperties(context, "VF").ModifierFlags);
+                Assert.Equal(DkmEvaluationResultTypeModifierFlags.None, GetResultProperties(context, "F").ModifierFlags);
+                Assert.Equal(DkmEvaluationResultTypeModifierFlags.Volatile, GetResultProperties(context, "VF").ModifierFlags);
+            });
         }
 
         [Fact]
@@ -287,22 +301,24 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, methodName: "C.Test");
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, methodName: "C.Test");
 
-            ResultProperties resultProperties;
-            string error;
-            var testData = new CompilationTestData();
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            context.CompileAssignment("P", "1", NoAliases, DebuggerDiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
-            Assert.Null(error);
-            Assert.Empty(missingAssemblyIdentities);
+                ResultProperties resultProperties;
+                string error;
+                var testData = new CompilationTestData();
+                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                context.CompileAssignment("P", "1", NoAliases, DebuggerDiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
+                Assert.Null(error);
+                Assert.Empty(missingAssemblyIdentities);
 
-            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect, resultProperties.Flags);
-            Assert.Equal(default(DkmEvaluationResultCategory), resultProperties.Category); // Not Data
-            Assert.Equal(default(DkmEvaluationResultAccessType), resultProperties.AccessType); // Not Public
-            Assert.Equal(default(DkmEvaluationResultStorageType), resultProperties.StorageType);
-            Assert.Equal(default(DkmEvaluationResultTypeModifierFlags), resultProperties.ModifierFlags); // Not Virtual
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect, resultProperties.Flags);
+                Assert.Equal(default(DkmEvaluationResultCategory), resultProperties.Category); // Not Data
+                Assert.Equal(default(DkmEvaluationResultAccessType), resultProperties.AccessType); // Not Public
+                Assert.Equal(default(DkmEvaluationResultStorageType), resultProperties.StorageType);
+                Assert.Equal(default(DkmEvaluationResultTypeModifierFlags), resultProperties.ModifierFlags); // Not Virtual
+            });
         }
 
         [Fact]
@@ -319,31 +335,33 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, methodName: "C.Test");
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, methodName: "C.Test");
 
-            ResultProperties resultProperties;
-            string error;
-            var testData = new CompilationTestData();
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            context.CompileExpression(
-                "int z = 1;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                DebuggerDiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Null(error);
-            Assert.Empty(missingAssemblyIdentities);
+                ResultProperties resultProperties;
+                string error;
+                var testData = new CompilationTestData();
+                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                context.CompileExpression(
+                    "int z = 1;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out error,
+                    out missingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData);
+                Assert.Null(error);
+                Assert.Empty(missingAssemblyIdentities);
 
-            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
-            Assert.Equal(default(DkmEvaluationResultCategory), resultProperties.Category); // Not Data
-            Assert.Equal(default(DkmEvaluationResultAccessType), resultProperties.AccessType);
-            Assert.Equal(default(DkmEvaluationResultStorageType), resultProperties.StorageType);
-            Assert.Equal(default(DkmEvaluationResultTypeModifierFlags), resultProperties.ModifierFlags);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
+                Assert.Equal(default(DkmEvaluationResultCategory), resultProperties.Category); // Not Data
+                Assert.Equal(default(DkmEvaluationResultAccessType), resultProperties.AccessType);
+                Assert.Equal(default(DkmEvaluationResultStorageType), resultProperties.StorageType);
+                Assert.Equal(default(DkmEvaluationResultTypeModifierFlags), resultProperties.ModifierFlags);
+            });
         }
 
         [Fact]
@@ -358,13 +376,15 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, methodName: "C.Test");
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, methodName: "C.Test");
 
-            VerifyErrorResultProperties(context, "x => x");
-            VerifyErrorResultProperties(context, "Test");
-            VerifyErrorResultProperties(context, "Missing");
-            VerifyErrorResultProperties(context, "C");
+                VerifyErrorResultProperties(context, "x => x");
+                VerifyErrorResultProperties(context, "Test");
+                VerifyErrorResultProperties(context, "Missing");
+                VerifyErrorResultProperties(context, "C");
+            });
         }
 
         private static ResultProperties GetResultProperties(EvaluationContext context, string expr)

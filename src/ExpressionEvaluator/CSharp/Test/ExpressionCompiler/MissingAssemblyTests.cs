@@ -83,28 +83,30 @@ public class C
             var libRef = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib").EmitToImageReference();
             var comp = CreateCompilationWithMscorlib(source, new[] { libRef }, TestOptions.DebugDll);
 
-            var runtime = CreateRuntimeInstance(comp, new[] { MscorlibRef });
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            var expectedError = "error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.";
-            var expectedMissingAssemblyIdentity = new AssemblyIdentity("Lib");
+                var expectedError = "error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.";
+                var expectedMissingAssemblyIdentity = new AssemblyIdentity("Lib");
 
-            ResultProperties resultProperties;
-            string actualError;
-            ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
+                ResultProperties resultProperties;
+                string actualError;
+                ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
 
-            context.CompileExpression(
-                "parameter",
-                DkmEvaluationFlags.TreatAsExpression,
-                NoAliases,
-                DebuggerDiagnosticFormatter.Instance,
-                out resultProperties,
-                out actualError,
-                out actualMissingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData: null);
-            Assert.Equal(expectedError, actualError);
-            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+                context.CompileExpression(
+                    "parameter",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out actualError,
+                    out actualMissingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData: null);
+                Assert.Equal(expectedError, actualError);
+                Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+            });
         }
 
         [Fact]
@@ -120,28 +122,30 @@ public class C
 ";
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
 
-            var runtime = CreateRuntimeInstance(comp, new[] { MscorlibRef });
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            var expectedError = "error CS1935: Could not find an implementation of the query pattern for source type 'int[]'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?";
-            var expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity;
+                var expectedError = "error CS1935: Could not find an implementation of the query pattern for source type 'int[]'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?";
+                var expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity;
 
-            ResultProperties resultProperties;
-            string actualError;
-            ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
+                ResultProperties resultProperties;
+                string actualError;
+                ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
 
-            context.CompileExpression(
-                "from i in array select i",
-                DkmEvaluationFlags.TreatAsExpression,
-                NoAliases,
-                DebuggerDiagnosticFormatter.Instance,
-                out resultProperties,
-                out actualError,
-                out actualMissingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData: null);
-            Assert.Equal(expectedError, actualError);
-            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+                context.CompileExpression(
+                    "from i in array select i",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out actualError,
+                    out actualMissingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData: null);
+                Assert.Equal(expectedError, actualError);
+                Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+            });
         }
 
         [WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
@@ -159,41 +163,43 @@ public class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(comp, new[] { MscorlibRef });
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            var expectedErrorTemplate = "error CS1061: 'int[]' does not contain a definition for '{0}' and no extension method '{0}' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)";
-            var expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity;
+                var expectedErrorTemplate = "error CS1061: 'int[]' does not contain a definition for '{0}' and no extension method '{0}' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)";
+                var expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity;
 
-            ResultProperties resultProperties;
-            string actualError;
-            ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
+                ResultProperties resultProperties;
+                string actualError;
+                ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
 
-            context.CompileExpression(
-                "array.Count()",
-                DkmEvaluationFlags.TreatAsExpression,
-                NoAliases,
-                DebuggerDiagnosticFormatter.Instance,
-                out resultProperties,
-                out actualError,
-                out actualMissingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData: null);
-            Assert.Equal(string.Format(expectedErrorTemplate, "Count"), actualError);
-            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+                context.CompileExpression(
+                    "array.Count()",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out actualError,
+                    out actualMissingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData: null);
+                Assert.Equal(string.Format(expectedErrorTemplate, "Count"), actualError);
+                Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
 
-            context.CompileExpression(
-                "array.NoSuchMethod()",
-                DkmEvaluationFlags.TreatAsExpression,
-                NoAliases,
-                DebuggerDiagnosticFormatter.Instance,
-                out resultProperties,
-                out actualError,
-                out actualMissingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData: null);
-            Assert.Equal(string.Format(expectedErrorTemplate, "NoSuchMethod"), actualError);
-            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+                context.CompileExpression(
+                    "array.NoSuchMethod()",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out actualError,
+                    out actualMissingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData: null);
+                Assert.Equal(string.Format(expectedErrorTemplate, "NoSuchMethod"), actualError);
+                Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+            });
         }
 
         /// <remarks>
@@ -223,41 +229,43 @@ namespace System.Linq
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(comp, new[] { MscorlibRef });
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            var expectedErrorTemplate = "error CS1061: 'int[]' does not contain a definition for '{0}' and no extension method '{0}' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)";
-            var expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity;
+                var expectedErrorTemplate = "error CS1061: 'int[]' does not contain a definition for '{0}' and no extension method '{0}' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)";
+                var expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity;
 
-            ResultProperties resultProperties;
-            string actualError;
-            ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
+                ResultProperties resultProperties;
+                string actualError;
+                ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
 
-            context.CompileExpression(
-                "array.Count()",
-                DkmEvaluationFlags.TreatAsExpression,
-                NoAliases,
-                DebuggerDiagnosticFormatter.Instance,
-                out resultProperties,
-                out actualError,
-                out actualMissingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData: null);
-            Assert.Equal(string.Format(expectedErrorTemplate, "Count"), actualError);
-            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+                context.CompileExpression(
+                    "array.Count()",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out actualError,
+                    out actualMissingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData: null);
+                Assert.Equal(string.Format(expectedErrorTemplate, "Count"), actualError);
+                Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
 
-            context.CompileExpression(
-                "array.NoSuchMethod()",
-                DkmEvaluationFlags.TreatAsExpression,
-                NoAliases,
-                DebuggerDiagnosticFormatter.Instance,
-                out resultProperties,
-                out actualError,
-                out actualMissingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData: null);
-            Assert.Equal(string.Format(expectedErrorTemplate, "NoSuchMethod"), actualError);
-            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+                context.CompileExpression(
+                    "array.NoSuchMethod()",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out actualError,
+                    out actualMissingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData: null);
+                Assert.Equal(string.Format(expectedErrorTemplate, "NoSuchMethod"), actualError);
+                Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+            });
         }
 
         [Fact]
@@ -301,59 +309,61 @@ class C
 ";
             var ilRef = CompileIL(il, appendDefaultHeader: false);
             var comp = CreateCompilationWithMscorlib(csharp, new[] { ilRef });
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            var expectedMissingAssemblyIdentity = new AssemblyIdentity("pe2");
+                var expectedMissingAssemblyIdentity = new AssemblyIdentity("pe2");
 
-            ResultProperties resultProperties;
-            string actualError;
-            ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
+                ResultProperties resultProperties;
+                string actualError;
+                ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
 
-            context.CompileExpression(
-                "new global::Forwarded()",
-                DkmEvaluationFlags.TreatAsExpression,
-                NoAliases,
-                DebuggerDiagnosticFormatter.Instance,
-                out resultProperties,
-                out actualError,
-                out actualMissingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData: null);
-            Assert.Equal(
-                "error CS1068: The type name 'Forwarded' could not be found in the global namespace. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.",
-                actualError);
-            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+                context.CompileExpression(
+                    "new global::Forwarded()",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out actualError,
+                    out actualMissingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData: null);
+                Assert.Equal(
+                    "error CS1068: The type name 'Forwarded' could not be found in the global namespace. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.",
+                    actualError);
+                Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
 
-            context.CompileExpression(
-                "new Forwarded()",
-                DkmEvaluationFlags.TreatAsExpression,
-                NoAliases,
-                DebuggerDiagnosticFormatter.Instance,
-                out resultProperties,
-                out actualError,
-                out actualMissingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData: null);
-            Assert.Equal(
-                "error CS1070: The type name 'Forwarded' could not be found. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider adding a reference to that assembly.",
-                actualError);
-            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+                context.CompileExpression(
+                    "new Forwarded()",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out actualError,
+                    out actualMissingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData: null);
+                Assert.Equal(
+                    "error CS1070: The type name 'Forwarded' could not be found. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider adding a reference to that assembly.",
+                    actualError);
+                Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
 
-            context.CompileExpression(
-                "new NS.Forwarded()",
-                DkmEvaluationFlags.TreatAsExpression,
-                NoAliases,
-                DebuggerDiagnosticFormatter.Instance,
-                out resultProperties,
-                out actualError,
-                out actualMissingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData: null);
-            Assert.Equal(
-                "error CS1069: The type name 'Forwarded' could not be found in the namespace 'NS'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.",
-                actualError);
-            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+                context.CompileExpression(
+                    "new NS.Forwarded()",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out actualError,
+                    out actualMissingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData: null);
+                Assert.Equal(
+                    "error CS1069: The type name 'Forwarded' could not be found in the namespace 'NS'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.",
+                    actualError);
+                Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+            });
         }
 
         [Fact]
@@ -482,27 +492,29 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(comp, new[] { CSharpRef });
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(comp, new[] { CSharpRef }, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            const string expectedError = "error CS0012: The type 'Exception' is defined in an assembly that is not referenced. You must add a reference to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.";
-            var expectedMissingAssemblyIdentity = comp.Assembly.CorLibrary.Identity;
+                const string expectedError = "error CS0012: The type 'Exception' is defined in an assembly that is not referenced. You must add a reference to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.";
+                var expectedMissingAssemblyIdentity = comp.Assembly.CorLibrary.Identity;
 
-            ResultProperties resultProperties;
-            string actualError;
-            ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
-            context.CompileExpression(
-                "$stowedexception",
-                DkmEvaluationFlags.TreatAsExpression,
-                ImmutableArray.Create(ExceptionAlias("Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", stowed: true)),
-                DebuggerDiagnosticFormatter.Instance,
-                out resultProperties,
-                out actualError,
-                out actualMissingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData: null);
-            Assert.Equal(expectedError, actualError);
-            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+                ResultProperties resultProperties;
+                string actualError;
+                ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
+                context.CompileExpression(
+                    "$stowedexception",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    ImmutableArray.Create(ExceptionAlias("Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", stowed: true)),
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out actualError,
+                    out actualMissingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData: null);
+                Assert.Equal(expectedError, actualError);
+                Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+            });
         }
 
         [WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")]
@@ -520,27 +532,29 @@ class C
             var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage");
             Assert.True(runtimeAssemblies.Any());
 
-            var runtime = CreateRuntimeInstance(comp, new[] { MscorlibRef }.Concat(runtimeAssemblies));
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(comp, new[] { MscorlibRef }.Concat(runtimeAssemblies), runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            const string expectedError = "error CS0234: The type or namespace name 'UI' does not exist in the namespace 'Windows' (are you missing an assembly reference?)";
-            var expectedMissingAssemblyIdentity = new AssemblyIdentity("Windows.UI", contentType: System.Reflection.AssemblyContentType.WindowsRuntime);
+                const string expectedError = "error CS0234: The type or namespace name 'UI' does not exist in the namespace 'Windows' (are you missing an assembly reference?)";
+                var expectedMissingAssemblyIdentity = new AssemblyIdentity("Windows.UI", contentType: System.Reflection.AssemblyContentType.WindowsRuntime);
 
-            ResultProperties resultProperties;
-            string actualError;
-            ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
-            context.CompileExpression(
-                "typeof(@Windows.UI.Colors)",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                DebuggerDiagnosticFormatter.Instance,
-                out resultProperties,
-                out actualError,
-                out actualMissingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData: null);
-            Assert.Equal(expectedError, actualError);
-            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+                ResultProperties resultProperties;
+                string actualError;
+                ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
+                context.CompileExpression(
+                    "typeof(@Windows.UI.Colors)",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out actualError,
+                    out actualMissingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData: null);
+                Assert.Equal(expectedError, actualError);
+                Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+            });
         }
 
         /// <remarks>
@@ -561,27 +575,29 @@ class C
             var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI");
             Assert.True(runtimeAssemblies.Any());
 
-            var runtime = CreateRuntimeInstance(comp, new[] { MscorlibRef }.Concat(runtimeAssemblies));
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(comp, new[] { MscorlibRef }.Concat(runtimeAssemblies), runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            const string expectedError = "error CS0234: The type or namespace name 'Xaml' does not exist in the namespace 'Windows.UI' (are you missing an assembly reference?)";
-            var expectedMissingAssemblyIdentity = new AssemblyIdentity("Windows.UI.Xaml", contentType: System.Reflection.AssemblyContentType.WindowsRuntime);
+                const string expectedError = "error CS0234: The type or namespace name 'Xaml' does not exist in the namespace 'Windows.UI' (are you missing an assembly reference?)";
+                var expectedMissingAssemblyIdentity = new AssemblyIdentity("Windows.UI.Xaml", contentType: System.Reflection.AssemblyContentType.WindowsRuntime);
 
-            ResultProperties resultProperties;
-            string actualError;
-            ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
-            context.CompileExpression(
-                "typeof(Windows.@UI.Xaml.Application)",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                DebuggerDiagnosticFormatter.Instance,
-                out resultProperties,
-                out actualError,
-                out actualMissingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData: null);
-            Assert.Equal(expectedError, actualError);
-            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+                ResultProperties resultProperties;
+                string actualError;
+                ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
+                context.CompileExpression(
+                    "typeof(Windows.@UI.Xaml.Application)",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out actualError,
+                    out actualMissingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData: null);
+                Assert.Equal(expectedError, actualError);
+                Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+            });
         }
 
         [WorkItem(1154988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")]
@@ -596,33 +612,35 @@ class C
     } 
 }";
             var comp = CreateCompilationWithMscorlib(source);
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            var missingModule = runtime.Modules.First();
-            var missingIdentity = missingModule.GetMetadataReader().ReadAssemblyIdentityOrThrow();
+                var missingModule = runtime.Modules.First();
+                var missingIdentity = missingModule.GetMetadataReader().ReadAssemblyIdentityOrThrow();
 
-            var numRetries = 0;
-            string errorMessage;
-            ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
-                runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
-                context,
-                (_, diagnostics) =>
-                {
-                    numRetries++;
-                    Assert.InRange(numRetries, 0, 2); // We don't want to loop forever... 
-                    diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NoTypeDef, "MissingType", missingIdentity), Location.None));
-                    return null;
-                },
-                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
-                {
-                    uSize = (uint)missingModule.MetadataLength;
-                    return missingModule.MetadataAddress;
-                },
-                out errorMessage);
+                var numRetries = 0;
+                string errorMessage;
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
+                    runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                    context,
+                    (_, diagnostics) =>
+                    {
+                        numRetries++;
+                        Assert.InRange(numRetries, 0, 2); // We don't want to loop forever... 
+                        diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NoTypeDef, "MissingType", missingIdentity), Location.None));
+                        return null;
+                    },
+                    (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                    {
+                        uSize = (uint)missingModule.MetadataLength;
+                        return missingModule.MetadataAddress;
+                    },
+                    out errorMessage);
 
-            Assert.Equal(2, numRetries); // Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.
-            Assert.Equal($"error CS0012: The type 'MissingType' is defined in an assembly that is not referenced. You must add a reference to assembly '{missingIdentity}'.", errorMessage);
+                Assert.Equal(2, numRetries); // Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.
+                Assert.Equal($"error CS0012: The type 'MissingType' is defined in an assembly that is not referenced. You must add a reference to assembly '{missingIdentity}'.", errorMessage);
+            });
         }
 
         [WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
@@ -637,39 +655,41 @@ class C
     } 
 }";
             var comp = CreateCompilationWithMscorlib(source);
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            var missingModule = runtime.Modules.First();
-            var missingIdentity = missingModule.GetMetadataReader().ReadAssemblyIdentityOrThrow();
+                var missingModule = runtime.Modules.First();
+                var missingIdentity = missingModule.GetMetadataReader().ReadAssemblyIdentityOrThrow();
 
-            var shouldSucceed = false;
-            string errorMessage;
-            var compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
-                runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
-                context,
-                (_, diagnostics) =>
-                {
-                    if (shouldSucceed)
+                var shouldSucceed = false;
+                string errorMessage;
+                var compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
+                    runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                    context,
+                    (_, diagnostics) =>
                     {
-                        return TestCompileResult.Instance;
-                    }
-                    else
+                        if (shouldSucceed)
+                        {
+                            return TestCompileResult.Instance;
+                        }
+                        else
+                        {
+                            shouldSucceed = true;
+                            diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NoTypeDef, "MissingType", missingIdentity), Location.None));
+                            return null;
+                        }
+                    },
+                    (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                     {
-                        shouldSucceed = true;
-                        diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NoTypeDef, "MissingType", missingIdentity), Location.None));
-                        return null;
-                    }
-                },
-                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
-                {
-                    uSize = (uint)missingModule.MetadataLength;
-                    return missingModule.MetadataAddress;
-                },
-                out errorMessage);
+                        uSize = (uint)missingModule.MetadataLength;
+                        return missingModule.MetadataAddress;
+                    },
+                    out errorMessage);
 
-            Assert.Same(TestCompileResult.Instance, compileResult);
-            Assert.Null(errorMessage);
+                Assert.Same(TestCompileResult.Instance, compileResult);
+                Assert.Null(errorMessage);
+            });
         }
 
         [WorkItem(2547, "https://github.com/dotnet/roslyn/issues/2547")]
@@ -690,46 +710,47 @@ class UseLinq
 }";
 
             var compilation = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef });
+            WithRuntimeInstance(compilation, new[] { MscorlibRef }, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            var runtime = CreateRuntimeInstance(compilation, new[] { MscorlibRef });
-            var context = CreateMethodContext(runtime, "C.M");
+                var systemCore = SystemCoreRef.ToModuleInstance();
+                var fakeSystemLinq = CreateCompilationWithMscorlib45("", assemblyName: "System.Linq").
+                    EmitToImageReference().ToModuleInstance();
 
-            var systemCore = SystemCoreRef.ToModuleInstance();
-            var fakeSystemLinq = CreateCompilationWithMscorlib45("", assemblyName: "System.Linq").
-                EmitToImageReference().ToModuleInstance();
-
-            string errorMessage;
-            CompilationTestData testData;
-            int retryCount = 0;
-            var compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
-                runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
-                "args.Where(a => a.Length > 0)",
-                ImmutableArray<Alias>.Empty,
-                (_1, _2) => context, // ignore new blocks and just keep using the same failed context...
-                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
-                {
-                    retryCount++;
-                    MetadataBlock block;
-                    switch (retryCount)
+                string errorMessage;
+                CompilationTestData testData;
+                int retryCount = 0;
+                var compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
+                    runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                    "args.Where(a => a.Length > 0)",
+                    ImmutableArray<Alias>.Empty,
+                    (_1, _2) => context, // ignore new blocks and just keep using the same failed context...
+                    (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                     {
-                        case 1:
-                            Assert.Equal(EvaluationContextBase.SystemLinqIdentity, assemblyIdentity);
-                            block = fakeSystemLinq.MetadataBlock;
-                            break;
-                        case 2:
-                            Assert.Equal(EvaluationContextBase.SystemCoreIdentity, assemblyIdentity);
-                            block = systemCore.MetadataBlock;
-                            break;
-                        default:
-                            throw ExceptionUtilities.Unreachable;
-                    }
-                    uSize = (uint)block.Size;
-                    return block.Pointer;
-                },
-                errorMessage: out errorMessage,
-                testData: out testData);
+                        retryCount++;
+                        MetadataBlock block;
+                        switch (retryCount)
+                        {
+                            case 1:
+                                Assert.Equal(EvaluationContextBase.SystemLinqIdentity, assemblyIdentity);
+                                block = fakeSystemLinq.MetadataBlock;
+                                break;
+                            case 2:
+                                Assert.Equal(EvaluationContextBase.SystemCoreIdentity, assemblyIdentity);
+                                block = systemCore.MetadataBlock;
+                                break;
+                            default:
+                                throw ExceptionUtilities.Unreachable;
+                        }
+                        uSize = (uint)block.Size;
+                        return block.Pointer;
+                    },
+                    errorMessage: out errorMessage,
+                    testData: out testData);
 
-            Assert.Equal(2, retryCount);
+                Assert.Equal(2, retryCount);
+            });
         }
 
         private sealed class TestCompileResult : CompileResult
