@@ -51,7 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             ImmutableArray<SubscriptionWithoutLock> snapshot;
             List<TableEntriesFactory<TData>> factories;
-
             lock (_gate)
             {
                 snapshot = _subscriptions;
