@@ -2048,7 +2048,7 @@ public struct S2<T>
         }
 
         [ClrOnlyFact]
-        [WorkItem(685240, "DevDiv")]
+        [WorkItem(685240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685240")]
         public void Bug685240()
         {
             string piaSource = @"

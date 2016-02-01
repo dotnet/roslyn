@@ -1028,7 +1028,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             await SubmitAsync("1").ConfigureAwait(true);
         }
 
-        [WorkItem(5964)]
+        [WorkItem(5964, "https://github.com/dotnet/roslyn/issues/5964")]
         [WpfFact]
         public async Task SubmitAsyncMultiple()
         {
@@ -1086,6 +1086,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Window.Operations.TypeChar('y');
             Window.Operations.TypeChar('z');
             Assert.Equal("> xyz", GetTextFromCurrentSnapshot());
+        }
+
+        // TODO (https://github.com/dotnet/roslyn/issues/7976): delete this
+        [WorkItem(7976, "https://github.com/dotnet/roslyn/issues/7976")]
+        [WpfFact]
+        public void Workaround7976()
+        {
+            Thread.Sleep(TimeSpan.FromSeconds(10));
         }
 
         private string GetTextFromCurrentSnapshot()

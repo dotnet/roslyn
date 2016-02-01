@@ -280,7 +280,7 @@ End Class
                                 Diagnostic(ERRID.ERR_ExpectedExpression, ""))
         End Sub
 
-        <Fact, WorkItem(529545, "DevDiv"), WorkItem(782216, "DevDiv")>
+        <Fact, WorkItem(529545, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529545"), WorkItem(782216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782216")>
         Public Sub ExitPropertyInSyncLock()
 
             CreateCompilationWithMscorlibAndVBRuntime(
@@ -309,7 +309,7 @@ End Module
 </compilation>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543319, "DevDiv")>
+        <WorkItem(543319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543319")>
         <Fact()>
         Public Sub SyncLockInSelect()
 
@@ -427,7 +427,7 @@ End Class
                         Diagnostic(ERRID.ERR_EndSyncLockNoSyncLock, "End SyncLock"))
         End Sub
 
-        <Fact(), WorkItem(529059, "DevDiv")>
+        <Fact(), WorkItem(529059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529059")>
         Public Sub SingleElseInSyncLock()
             CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SingleElseInSyncLock">
@@ -443,7 +443,7 @@ End Module
 </compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_ElseNoMatchingIf, "Else"))
         End Sub
 
-        <WorkItem(529066, "DevDiv")>
+        <WorkItem(529066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529066")>
         <Fact()>
         Public Sub SingleCaseElseInSyncLock()
             CreateCompilationWithMscorlibAndVBRuntime(

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
             Return New FunctionAggregationSignatureHelpProvider()
         End Function
 
-        <WorkItem(529682)>
+        <WorkItem(529682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529682")>
         <Fact(), Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestAggregateFunctionInAggregateClause() As Task
             Dim markup = <Text><![CDATA[

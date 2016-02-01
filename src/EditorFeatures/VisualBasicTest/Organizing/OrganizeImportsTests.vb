@@ -530,7 +530,7 @@ Imports SystemZ
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        <WorkItem(538367)>
+        <WorkItem(538367, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538367")>
         Public Async Function TestXml() As Task
             Dim initial =
 <content><![CDATA[Imports System

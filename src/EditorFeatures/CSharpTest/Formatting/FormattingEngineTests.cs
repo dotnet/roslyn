@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
     public class FormattingEngineTests : FormattingEngineTestBase
     {
         [WpfFact]
-        [WorkItem(539682)]
+        [WorkItem(539682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539682")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatDocumentCommandHandler()
         {
@@ -50,7 +50,7 @@ int y;
         }
 
         [WpfFact]
-        [WorkItem(539682)]
+        [WorkItem(539682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539682")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatDocumentPasteCommandHandler()
         {
@@ -78,7 +78,7 @@ int y;
         }
 
         [WpfFact]
-        [WorkItem(547261)]
+        [WorkItem(547261, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547261")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatDocumentReadOnlyWorkspacePasteCommandHandler()
         {
@@ -106,7 +106,7 @@ int y;
         }
 
         [WpfFact]
-        [WorkItem(912965)]
+        [WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatUsingStatementOnReturn()
         {
@@ -134,7 +134,7 @@ int y;
         }
 
         [WpfFact]
-        [WorkItem(912965)]
+        [WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatNotUsingStatementOnReturn()
         {
@@ -161,7 +161,7 @@ int y;
             await AssertFormatWithPasteOrReturnAsync(expected, code, allowDocumentChanges: true, isPaste: false);
         }
 
-        [WorkItem(977133)]
+        [WorkItem(977133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/977133")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task DoNotFormatRangeButFormatTokenOnOpenBrace()
         {
@@ -182,7 +182,7 @@ int y;
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(1007071)]
+        [WorkItem(1007071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007071")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatPragmaWarningInbetweenDelegateDeclarationStatement()
         {
@@ -215,7 +215,7 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(771761)]
+        [WorkItem(771761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatHashRegion()
         {
@@ -240,7 +240,7 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(771761)]
+        [WorkItem(771761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatHashEndRegion()
         {
@@ -267,7 +267,7 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(987373)]
+        [WorkItem(987373, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/987373")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSpansIndividuallyWithoutCollapsing()
         {
@@ -362,7 +362,7 @@ class Program
             }
         }
 
-        [WorkItem(987373)]
+        [WorkItem(987373, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/987373")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSpansWithCollapsing()
         {
@@ -458,7 +458,7 @@ class Program
             }
         }
 
-        [WorkItem(1044118)]
+        [WorkItem(1044118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044118")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SemicolonInCommentOnLastLineDoesNotFormat()
         {
@@ -484,8 +484,8 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(449)]
-        [WorkItem(1077103)]
+        [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
+        [WorkItem(1077103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoFormattingInsideSingleLineRegularComment_1()
         {
@@ -509,8 +509,8 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(449)]
-        [WorkItem(1077103)]
+        [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
+        [WorkItem(1077103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoFormattingInsideSingleLineRegularComment_2()
         {
@@ -536,8 +536,8 @@ class Program
 
 
 
-        [WorkItem(449)]
-        [WorkItem(1077103)]
+        [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
+        [WorkItem(1077103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoFormattingInsideMultiLineRegularComment_1()
         {
@@ -559,8 +559,8 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(449)]
-        [WorkItem(1077103)]
+        [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
+        [WorkItem(1077103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoFormattingInsideMultiLineRegularComment_2()
         {
@@ -584,8 +584,8 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(449)]
-        [WorkItem(1077103)]
+        [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
+        [WorkItem(1077103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoFormattingInsideMultiLineRegularComment_3()
         {
@@ -609,8 +609,8 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(449)]
-        [WorkItem(1077103)]
+        [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
+        [WorkItem(1077103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoFormattingInsideSingleLineDocComment_1()
         {
@@ -634,8 +634,8 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(449)]
-        [WorkItem(1077103)]
+        [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
+        [WorkItem(1077103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoFormattingInsideSingleLineDocComment_2()
         {
@@ -659,8 +659,8 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(449)]
-        [WorkItem(1077103)]
+        [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
+        [WorkItem(1077103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoFormattingInsideMultiLineDocComment_1()
         {
@@ -684,8 +684,8 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(449)]
-        [WorkItem(1077103)]
+        [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
+        [WorkItem(1077103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoFormattingInsideMultiLineDocComment_2()
         {
@@ -711,8 +711,8 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(449)]
-        [WorkItem(1077103)]
+        [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
+        [WorkItem(1077103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoFormattingInsideMultiLineDocComment_3()
         {
@@ -738,8 +738,8 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(449)]
-        [WorkItem(1077103)]
+        [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
+        [WorkItem(1077103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoFormattingInsideInactiveCode()
         {
@@ -769,8 +769,8 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(449)]
-        [WorkItem(1077103)]
+        [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
+        [WorkItem(1077103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoFormattingInsideStringLiteral()
         {
@@ -792,8 +792,8 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(449)]
-        [WorkItem(1077103)]
+        [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
+        [WorkItem(1077103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoFormattingInsideCharLiteral()
         {
@@ -815,8 +815,8 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(449)]
-        [WorkItem(1077103)]
+        [WorkItem(449, "https://github.com/dotnet/roslyn/issues/449")]
+        [WorkItem(1077103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoFormattingInsideCommentsOfPreprocessorDirectives()
         {
@@ -842,8 +842,8 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(464)]
-        [WorkItem(908729)]
+        [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
+        [WorkItem(908729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task ColonInSwitchCase()
         {
@@ -873,8 +873,8 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(464)]
-        [WorkItem(908729)]
+        [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
+        [WorkItem(908729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task ColonInDefaultSwitchCase()
         {
@@ -906,8 +906,8 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(464)]
-        [WorkItem(908729)]
+        [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
+        [WorkItem(908729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task ColonInLabeledStatement()
         {
@@ -929,8 +929,8 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(464)]
-        [WorkItem(908729)]
+        [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
+        [WorkItem(908729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task DoNotFormatColonInTargetAttribute()
         {
@@ -948,8 +948,8 @@ class C : Attribute
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(464)]
-        [WorkItem(908729)]
+        [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
+        [WorkItem(908729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task DoNotFormatColonInBaseList()
         {
@@ -963,8 +963,8 @@ class C : Attribute
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(464)]
-        [WorkItem(908729)]
+        [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
+        [WorkItem(908729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task DoNotFormatColonInThisConstructor()
         {
@@ -992,8 +992,8 @@ class C : Attribute
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(464)]
-        [WorkItem(908729)]
+        [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
+        [WorkItem(908729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task DoNotFormatColonInConditionalOperator()
         {
@@ -1015,8 +1015,8 @@ class C : Attribute
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(464)]
-        [WorkItem(908729)]
+        [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
+        [WorkItem(908729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task DoNotFormatColonInArgument()
         {
@@ -1038,8 +1038,8 @@ class C : Attribute
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
-        [WorkItem(464)]
-        [WorkItem(908729)]
+        [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
+        [WorkItem(908729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task DoNotFormatColonInTypeParameter()
         {

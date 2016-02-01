@@ -163,5 +163,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var declarationInfo = await SyntaxTreeInfo.GetDeclarationInfoAsync(document, cancellationToken).ConfigureAwait(false);
             return declarationInfo.DeclaredSymbolInfos;
         }
+
+        /// <summary>
+        /// Returns the semantic model for this document that may be produced from partial semantics. The semantic model
+        /// is only guaranteed to contain the syntax tree for <paramref name="document"/> and nothing else.
+        /// </summary>
+        public static async Task<SemanticModel> GetPartialSemanticModelAsync(this Document document, CancellationToken cancellationToken)
+        {
+            Compilation compilation;
+
+            if (document.Project.TryGetCompilation(out compilation))
+            {
+                // We already have a compilation, so at this point it's fastest to just get a SemanticModel
+                return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                var frozenDocument = await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
+                return await frozenDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+        }
     }
 }

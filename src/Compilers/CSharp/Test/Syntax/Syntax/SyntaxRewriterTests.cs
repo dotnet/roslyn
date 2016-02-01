@@ -365,8 +365,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(rewrittenRoot, rewrittenRoot.SyntaxTree.GetRoot());
         }
 
-        [WorkItem(545049, "DevDiv")]
-        [WorkItem(896538, "DevDiv")]
+        [WorkItem(545049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545049")]
+        [WorkItem(896538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/896538")]
         [Fact]
         public void RewriteMissingIdentifierInExpressionStatement_ImplicitlyCreatedSyntaxTree()
         {
@@ -412,8 +412,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFacts.IsStatementExpression(expression);
         }
 
-        [WorkItem(545049, "DevDiv")]
-        [WorkItem(896538, "DevDiv")]
+        [WorkItem(545049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545049")]
+        [WorkItem(896538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/896538")]
         [Fact]
         public void RewriteMissingIdentifierInExpressionStatement_WithSyntaxTree()
         {
@@ -474,7 +474,7 @@ class C { }
             Assert.Equal(expectedNewSource, newRoot.ToFullString());
         }
 
-        [WorkItem(991474, "DevDiv")]
+        [WorkItem(991474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991474")]
         [Fact]
         public void ReturnNullFromStructuredTriviaRoot_Succeeds()
         {

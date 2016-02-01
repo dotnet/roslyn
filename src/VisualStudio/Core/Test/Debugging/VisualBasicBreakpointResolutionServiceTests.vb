@@ -33,7 +33,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
             End Using
         End Function
 
-        <WorkItem(876520)>
+        <WorkItem(876520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876520")>
         <Fact>
         Public Async Function TestBreakpointSpansMultipleMethods() As Task
             ' Normal case: debugger passing BP spans "sub Foo() end sub"

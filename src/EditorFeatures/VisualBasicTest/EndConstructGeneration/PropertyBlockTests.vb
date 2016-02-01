@@ -29,7 +29,7 @@ End Class",
                 caret:={1, -1})
         End Function
 
-        <WorkItem(530329)>
+        <WorkItem(530329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530329")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DontApplyForMustInheritProperty() As Task
             Await VerifyStatementEndConstructNotAppliedAsync(
@@ -194,7 +194,7 @@ End Class",
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        <WorkItem(536376)>
+        <WorkItem(536376, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536376")>
         Public Async Function TestApplyForPropertyWithIndexer() As Task
             Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
@@ -215,7 +215,7 @@ End Class",
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        <WorkItem(536391)>
+        <WorkItem(536391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
         Public Async Function DontApplyForDuplicateGet() As Task
             Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class c1
@@ -230,7 +230,7 @@ End Class",
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        <WorkItem(536391)>
+        <WorkItem(536391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
         Public Async Function DontApplyForDuplicateSet() As Task
             Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class c1
@@ -245,7 +245,7 @@ End Class",
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        <WorkItem(536391)>
+        <WorkItem(536391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
         Public Async Function DontApplyForSetInReadOnly() As Task
             Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class c1
@@ -256,7 +256,7 @@ End Class",
                 caret:={2, -1})
         End Function
 
-        <WorkItem(536391)>
+        <WorkItem(536391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DontApplyForGetInReadOnly() As Task
             Await VerifyStatementEndConstructNotAppliedAsync(
@@ -277,7 +277,7 @@ End Class",
                 caret:={1, -1})
         End Function
 
-        <WorkItem(544197)>
+        <WorkItem(544197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544197")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DontApplyInsideAnInterface() As Task
             Await VerifyStatementEndConstructNotAppliedAsync(

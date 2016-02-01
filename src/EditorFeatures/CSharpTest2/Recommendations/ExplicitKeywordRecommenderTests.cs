@@ -331,7 +331,7 @@ using Bar;"));
     readonly $$");
         }
 
-        [WorkItem(544102)]
+        [WorkItem(544102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544102")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterUnsafeStaticPublic()
         {

@@ -3,15 +3,16 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
     Public Class LocalsTests
         Inherits ExpressionCompilerTestBase
 
@@ -243,15 +244,13 @@ End Class"
     End Sub
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes), includeLocalSignatures:=False)
+            Dim runtime = CreateRuntimeInstance(comp, includeLocalSignatures:=False)
+
             Dim context = CreateMethodContext(
                 runtime,
                 methodName:="C.M",
                 atLineNumber:=999)
+
             Dim testData = New CompilationTestData()
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
@@ -557,14 +556,9 @@ Class C
     End Sub
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugExe)
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes))
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C.M")
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(runtime, "C.M")
+
             Dim testData = New CompilationTestData()
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
@@ -613,14 +607,10 @@ Class P
     End Sub
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugExe)
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes))
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C.M")
+
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(runtime, "C.M")
+
             Dim testData = New CompilationTestData()
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
@@ -1400,7 +1390,7 @@ End Class
             locals.Free()
         End Sub
 
-        <Fact, WorkItem(1002672, "DevDiv")>
+        <Fact, WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
         Public Sub Async_InstanceMethod_Generic()
             Const source = "
 Imports System.Threading.Tasks
@@ -1489,7 +1479,7 @@ End Structure
             locals.Free()
         End Sub
 
-        <Fact, WorkItem(1002672, "DevDiv")>
+        <Fact, WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
         Public Sub Async_StaticMethod()
             Const source = "
 Imports System.Threading.Tasks
@@ -1555,10 +1545,10 @@ End Class
             locals.Free()
         End Sub
 
-        <WorkItem(995976)>
-        <WorkItem(997613)>
-        <WorkItem(1002672)>
-        <WorkItem(1085911)>
+        <WorkItem(995976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995976")>
+        <WorkItem(997613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997613")>
+        <WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
+        <WorkItem(1085911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085911")>
         <Fact>
         Public Sub AsyncAndLambda()
             Const source =
@@ -1627,7 +1617,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <WorkItem(2240)>
+        <WorkItem(2240, "https://github.com/dotnet/roslyn/issues/2240")>
         <Fact>
         Public Sub AsyncLambda()
             Const source =
@@ -1679,7 +1669,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <WorkItem(996571)>
+        <WorkItem(996571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/996571")>
         <Fact>
         Public Sub MissingReference()
             Const source0 =
@@ -1694,19 +1684,10 @@ End Structure"
 End Class"
             Dim comp0 = CreateCompilationWithMscorlib({source0}, options:=TestOptions.DebugDll)
             Dim comp1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.DebugDll, references:={comp0.EmitToImageReference()})
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp1.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim runtime = CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                ImmutableArray.Create(MscorlibRef), ' no reference to compilation0
-                exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes))
 
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C.M")
+            ' no reference to compilation0
+            Dim runtime = CreateRuntimeInstance(comp1, {MscorlibRef})
+            Dim context = CreateMethodContext(runtime, "C.M")
 
             Dim testData = New CompilationTestData()
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
@@ -1759,7 +1740,7 @@ End Class
 }")
         End Sub
 
-        <WorkItem(1015887)>
+        <WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")>
         <Fact>
         Public Sub LocalDateConstant()
             Const source = "
@@ -1771,15 +1752,9 @@ Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
 
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes))
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C.M")
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(runtime, "C.M")
 
             Dim errorMessage As String = Nothing
             context.CompileAssignment("d", "Nothing", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
@@ -1809,7 +1784,7 @@ End Class
 }")
         End Sub
 
-        <WorkItem(1015887)>
+        <WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")>
         <Fact>
         Public Sub LocalDecimalConstant()
             Const source = "
@@ -1820,15 +1795,8 @@ Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes))
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C.M")
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(runtime, "C.M")
 
             Dim errorMessage As String = Nothing
             context.CompileAssignment("d", "Nothing", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
@@ -1853,7 +1821,7 @@ End Class
 }")
         End Sub
 
-        <Fact, WorkItem(1022165), WorkItem(1028883), WorkItem(1034204)>
+        <Fact, WorkItem(1022165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022165"), WorkItem(1028883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028883"), WorkItem(1034204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034204")>
         Public Sub KeywordIdentifiers()
             Const source = "
 Class C
@@ -1978,7 +1946,7 @@ End Module
             Assert.Equal(SpecialType.System_Int32, methodData.Method.ReturnType.SpecialType)
         End Sub
 
-        <WorkItem(1014763)>
+        <WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")>
         <Fact>
         Public Sub TypeVariablesTypeParameterNames()
             Const source = "
@@ -2012,7 +1980,7 @@ End Class
             Assert.Equal("T", typeVariablesType.TypeArguments.Single().Name)
         End Sub
 
-        <Fact, WorkItem(1063254)>
+        <Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")>
         Public Sub OverloadedIteratorDifferentParameterTypes_ArgumentsOnly()
             Dim source = "
 Imports System.Collections.Generic
@@ -2095,7 +2063,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <Fact, WorkItem(1063254)>
+        <Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")>
         Public Sub OverloadedAsyncDifferentParameterTypes_ArgumentsOnly()
             Dim source = "
 Imports System.Threading.Tasks
@@ -2175,7 +2143,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <Fact, WorkItem(1063254)>
+        <Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")>
         Public Sub MultipleLambdasDifferentParameterNames_ArgumentsOnly()
             Dim source = "
 Imports System
@@ -2245,7 +2213,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <Fact, WorkItem(1063254)>
+        <Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")>
         Public Sub OverloadedRegularMethodDifferentParameterTypes_ArgumentsOnly()
             Dim source = "
 Class C
@@ -2334,7 +2302,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <Fact, WorkItem(1063254)>
+        <Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")>
         Public Sub MultipleMethodsLocalConflictsWithParameterName_ArgumentsOnly()
             Dim source = "
 Imports System.Collections.Generic
@@ -2445,7 +2413,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <WorkItem(1115044, "DevDiv")>
+        <WorkItem(1115044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115044")>
         <Fact>
         Public Sub CaseSensitivity()
             Const source = "
@@ -2491,7 +2459,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1115030)>
+        <WorkItem(1115030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115030")>
         <Fact>
         Public Sub CatchInAsyncStateMachine()
             Const source =
@@ -2550,7 +2518,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <WorkItem(1115030)>
+        <WorkItem(1115030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115030")>
         <Fact>
         Public Sub CatchInIteratorStateMachine()
             Const source =
@@ -2610,7 +2578,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <WorkItem(947)>
+        <WorkItem(947, "unknown")>
         <Fact>
         Public Sub DuplicateEditorBrowsableAttributes()
             Const libSource = "
@@ -2644,16 +2612,9 @@ End Class
             Dim libRef = CreateCompilationWithMscorlib({libSource}, options:=TestOptions.DebugDll).EmitToImageReference()
             Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef, SystemRef}, TestOptions.DebugDll)
 
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim unusedReferences As ImmutableArray(Of MetadataReference) = Nothing
-            Dim result = comp.EmitAndGetReferences(exeBytes, pdbBytes, unusedReferences)
-            Assert.True(result)
-
             ' Referencing SystemCoreRef and SystemXmlLinqRef will cause Microsoft.VisualBasic.Embedded to be compiled
             ' and it depends on EditorBrowsableAttribute.
-            Dim runtimeReferences = ImmutableArray.Create(MscorlibRef, SystemRef, SystemCoreRef, SystemXmlLinqRef, libRef)
-            Dim runtime = CreateRuntimeInstance(GetUniqueName(), runtimeReferences, exeBytes, SymReaderFactory.CreateReader(pdbBytes))
+            Dim runtime = CreateRuntimeInstance(comp, {MscorlibRef, SystemRef, SystemCoreRef, SystemXmlLinqRef, libRef})
 
             Dim typeName As String = Nothing
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
@@ -2750,7 +2711,7 @@ End Class
             locals.Free()
         End Sub
 
-        <WorkItem(1139013, "DevDiv")>
+        <WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
         <Fact>
         Public Sub TransparentIdentifiers_FromParameter()
             Const source = "
@@ -2833,7 +2794,7 @@ End Class
             testData.GetMethodData("<>x.<>m0").VerifyIL(yIL)
         End Sub
 
-        <WorkItem(1139013, "DevDiv")>
+        <WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
         <Fact>
         Public Sub TransparentIdentifiers_FromDisplayClassField()
             Const source = "
@@ -2938,7 +2899,7 @@ End Class
             testData.GetMethodData("<>x.<>m0").VerifyIL(yIL)
         End Sub
 
-        <WorkItem(1139013, "DevDiv")>
+        <WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
         <Fact>
         Public Sub TransparentIdentifiers_It1()
             Const source = "
@@ -3017,7 +2978,7 @@ End Class
             testData.GetMethodData("<>x.<>m0").VerifyIL(yIL)
         End Sub
 
-        <WorkItem(1139013, "DevDiv")>
+        <WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
         <Fact>
         Public Sub TransparentIdentifiers_It2()
             Const source = "
@@ -3097,7 +3058,7 @@ End Class
             testData.GetMethodData("<>x.<>m0").VerifyIL(zIL)
         End Sub
 
-        <WorkItem(1139013, "DevDiv")>
+        <WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")>
         <Fact>
         Public Sub TransparentIdentifiers_ItAnonymous()
             Const source = "

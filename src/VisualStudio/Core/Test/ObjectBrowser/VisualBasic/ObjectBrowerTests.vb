@@ -68,7 +68,7 @@ End Namespace
             End Using
         End Function
 
-        <WorkItem(932387)>
+        <WorkItem(932387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestContent_InheritedMembers1() As Task
             Dim code =
@@ -124,7 +124,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(932387)>
+        <WorkItem(932387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestContent_InheritedMembers2() As Task
             Dim code =
@@ -181,7 +181,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(932387)>
+        <WorkItem(932387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestContent_InheritedMembers3() As Task
             Dim code =
@@ -238,7 +238,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(932387)>
+        <WorkItem(932387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestContent_HelpKeyword_Ctor() As Task
             Dim code =
@@ -817,7 +817,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "N.C")}")
             End Using
         End Function
 
-        <WorkItem(939739)>
+        <WorkItem(939739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939739")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestDescription_SubInInterface() As Task
             Dim code =
@@ -2115,7 +2115,7 @@ ServicesVSResources.Library_Remarks & vbCrLf &
             End Using
         End Function
 
-        <WorkItem(942021)>
+        <WorkItem(942021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942021")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestNavInfo_Class() As Task
             Dim code =
@@ -2139,7 +2139,7 @@ End Namespace
             End Using
         End Function
 
-        <WorkItem(942021)>
+        <WorkItem(942021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942021")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Async Function TestNavInfo_NestedEnum() As Task
             Dim code =

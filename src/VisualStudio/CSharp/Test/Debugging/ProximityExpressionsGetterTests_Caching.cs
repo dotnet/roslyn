@@ -88,7 +88,7 @@ class Class
             await TestCachingAsync(input, new[] { "args", "this" }, new[] { "i", "args", "this" }, new[] { "i", "j", "k", "this", "args" });
         }
 
-        [WorkItem(538259)]
+        [WorkItem(538259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538259")]
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestCaching2()
         {
@@ -113,7 +113,7 @@ class Program
             await TestCachingAsync(input, new[] { "i" }, new[] { "i", "j" }, new[] { "j", "i" }, new[] { "k", "j" }, new[] { "k", "j" }, new[] { "j" });
         }
 
-        [WorkItem(538259)]
+        [WorkItem(538259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538259")]
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestCaching3()
         {

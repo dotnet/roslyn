@@ -338,7 +338,7 @@ End Namespace
             Assert.NotEqual(symbol1, symbol2)
         End Sub
 
-        <WorkItem(539707, "DevDiv")>
+        <WorkItem(539707, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539707")>
         <Fact()>
         Public Sub GetDeclaredSymbolSameForStatementOrBlock()
 
@@ -540,7 +540,7 @@ Class M
         End Sub
 
 
-        <WorkItem(540580, "DevDiv")>
+        <WorkItem(540580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540580")>
         <Fact()>
         Public Sub GetSemanticInfoInsideType()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1495,7 +1495,7 @@ End Class
 
         End Sub
 
-        <WorkItem(540877, "DevDiv")>
+        <WorkItem(540877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540877")>
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromAlias()
 
@@ -1616,7 +1616,7 @@ End Class
         End Sub
 
 
-        <WorkItem(541238, "DevDiv")>
+        <WorkItem(541238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541238")>
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromAliasDecl()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
@@ -1644,7 +1644,7 @@ Imports VB6 = Microsoft.VisualBasic
 
         End Sub
 
-        <Fact(), WorkItem(544076, "DevDiv")>
+        <Fact(), WorkItem(544076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544076")>
         Public Sub TestGetDeclaredSymbolFromSubFunctionConstructor()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -2143,7 +2143,7 @@ End Class
             Assert.Equal("System.Int32()", symbol.Type.ToTestDisplayString())
         End Sub
 
-        <WorkItem(543476, "DevDiv")>
+        <WorkItem(543476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543476")>
         <Fact()>
         Public Sub BindingLocalConstantValue()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2245,7 +2245,7 @@ End Module
             Assert.Equal(Nothing, semanticInfo.ConstantValue.Value)
         End Sub
 
-        <WorkItem(543476, "DevDiv")>
+        <WorkItem(543476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543476")>
         <Fact()>
         Public Sub BindingLocalConstantVariable()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2352,7 +2352,7 @@ End Module
 
 #Region "Regression"
 
-        <WorkItem(540374, "DevDiv")>
+        <WorkItem(540374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540374")>
         <Fact()>
         Public Sub Bug6617()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2389,7 +2389,7 @@ End Class
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(540665, "DevDiv")>
+        <WorkItem(540665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540665")>
         <Fact()>
         Public Sub GetSemanticInfoForPartiallyTypedMemberAccessNodes()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2456,7 +2456,7 @@ End Namespace
             Assert.Equal("Integer", info.Type.ToString())
         End Sub
 
-        <WorkItem(541134, "DevDiv")>
+        <WorkItem(541134, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541134")>
         <Fact()>
         Public Sub Bug7732()
 
@@ -2479,7 +2479,7 @@ End Namespace
             Assert.Equal("Program.D", delegateSymbol.ToDisplayString(SymbolDisplayFormat.TestFormat))
         End Sub
 
-        <WorkItem(541244, "DevDiv")>
+        <WorkItem(541244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541244")>
         <Fact()>
         Public Sub GetDeclaredSymbolDelegateStatementSyntax()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
@@ -2521,7 +2521,7 @@ End Namespace
             Assert.Equal("Foo.Bar.Server.C1.FD4", symbol.ToString())
         End Sub
 
-        <WorkItem(541379, "DevDiv")>
+        <WorkItem(541379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541379")>
         <Fact()>
         Public Sub GetDeclaredSymbolLambdaParamError()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
@@ -2550,7 +2550,7 @@ End Module
             Assert.Equal("lambdaParam As Integer", symbol.ToDisplayString())
         End Sub
 
-        <WorkItem(541425, "DevDiv")>
+        <WorkItem(541425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541425")>
         <Fact()>
         Public Sub NoParenthesisSub()
             Dim xml =
@@ -2576,7 +2576,7 @@ End Class
             Assert.Equal("Sub [Class].Bob()", memberSymbol.ToDisplayString(SymbolDisplayFormat.TestFormat))
         End Sub
 
-        <WorkItem(542342, "DevDiv")>
+        <WorkItem(542342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542342")>
         <Fact()>
         Public Sub SourceNamespaceSymbolMergeWithMetadata()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2634,7 +2634,7 @@ End Namespace
             Assert.Equal(Of ISymbol)(nsSymbolA, memSymbol)
         End Sub
 
-        <WorkItem(542595, "DevDiv")>
+        <WorkItem(542595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542595")>
         <Fact()>
         Public Sub Bug9881Test()
 
@@ -2658,7 +2658,7 @@ End Namespace
             Dim info1 = model.GetSemanticInfoSummary(binaryOp)
         End Sub
 
-        <WorkItem(542702, "DevDiv")>
+        <WorkItem(542702, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542702")>
         <Fact>
         Public Sub Bug10037()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -2684,7 +2684,7 @@ End Module
             CheckSymbol(symbol, "functio As Object")
         End Sub
 
-        <WorkItem(543605, "DevDiv")>
+        <WorkItem(543605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543605")>
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromParameterInLambdaExprOfAddHandlerStatement()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -2720,7 +2720,7 @@ BC30201: Expression expected.
             Assert.Equal("x As System.Object", paramSymbol1.ToTestDisplayString())
         End Sub
 
-        <WorkItem(543666, "DevDiv")>
+        <WorkItem(543666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543666")>
         <Fact()>
         Public Sub BindingLocalConstantObjectVariable()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2833,7 +2833,7 @@ End Module
             Assert.Equal(0, CType(local.ConstantValue, Integer))
         End Sub
 
-        <Fact(), WorkItem(545106, "DevDiv")>
+        <Fact(), WorkItem(545106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545106")>
         Public Sub GetDeclaredSymbolForDeclaredControlVariable()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -2875,7 +2875,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(611537, "DevDiv")>
+        <WorkItem(611537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611537")>
         <Fact()>
         Public Sub Bug611537()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2893,7 +2893,7 @@ Property 'BIND1:"Property"
             Assert.Null(semanticModel.GetDeclaredSymbol(nodes(0)))
         End Sub
 
-        <Fact(), WorkItem(747446, "DevDiv")>
+        <Fact(), WorkItem(747446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747446")>
         Public Sub TestGetDeclaredSymbolWithChangedRootNamespace()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">

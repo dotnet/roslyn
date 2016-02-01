@@ -1087,8 +1087,8 @@ End Interface
         End Sub
 
         <WorkItem(6214, "https://github.com/dotnet/roslyn/issues/6214")>
-        <WorkItem(545182, "DevDiv")>
-        <WorkItem(545184, "DevDiv")>
+        <WorkItem(545182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545182")>
+        <WorkItem(545184, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545184")>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6214")>
         Public Sub TestHandlesForWithEventsFromBaseFromADifferentAssembly()
             Dim assembly1Compilation = CreateVisualBasicCompilation("TestHandlesForWithEventsFromBaseFromADifferentAssembly_Assembly1",
@@ -1136,7 +1136,7 @@ End Module]]>,
         End Sub
 
         <WorkItem(6214, "https://github.com/dotnet/roslyn/issues/6214")>
-        <WorkItem(545185, "DevDiv")>
+        <WorkItem(545185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545185")>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6214")>
         Public Sub TestNameOfWithEventsSetterParameter()
             Dim comp = CreateVisualBasicCompilation("TestNameOfWithEventsSetterParameter",
@@ -1158,7 +1158,7 @@ End Class]]>,
             verifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(529548, "DevDiv")>
+        <WorkItem(529548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529548")>
         <Fact()>
         Public Sub TestIssueWeFixedInNativeCompiler()
             Dim comp = CreateVisualBasicCompilation("TestIssueWeFixedInNativeCompiler",
@@ -1185,7 +1185,7 @@ End Class]]>,
             verifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(545188, "DevDiv")>
+        <WorkItem(545188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545188")>
         <Fact>
         Public Sub Bug13470()
             Dim compilation1 = CompileAndVerify(
@@ -1210,7 +1210,7 @@ End Class
 </compilation>, expectedOutput:="True")
         End Sub
 
-        <WorkItem(545187, "DevDiv")>
+        <WorkItem(545187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545187")>
         <Fact>
         Public Sub Bug13469()
             'Note: Below IL is for the following VB code compiled with Dev11 (using /debug-) -
@@ -1409,7 +1409,7 @@ End Class
             CompileAndVerify(source)
         End Sub
 
-        <Fact(), WorkItem(545250, "DevDiv")>
+        <Fact(), WorkItem(545250, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545250")>
         Public Sub HookupOrder()
             CompileAndVerify(
     <compilation>
@@ -1471,7 +1471,7 @@ Derived
 ]]>)
         End Sub
 
-        <Fact, WorkItem(529653, "DevDiv")>
+        <Fact, WorkItem(529653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529653")>
         Public Sub TestExecutionOrder1()
             Dim vbCompilation = CreateVisualBasicCompilation("TestExecutionOrder1",
             <![CDATA[Imports System, System.Collections.Generic
@@ -1591,7 +1591,7 @@ End Module]]>,
             vbVerifier.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(529653, "DevDiv")>
+        <Fact, WorkItem(529653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529653")>
         Public Sub TestExecutionOrder2()
             Dim assembly1Compilation = CreateVisualBasicCompilation("TestExecutionOrder2",
             <![CDATA[Option Strict Off
@@ -1674,7 +1674,7 @@ Derived H2]]>)
             assembly2Verifier.VerifyDiagnostics()
         End Sub
 
-        <Fact(), WorkItem(545250, "DevDiv"), WorkItem(529653, "DevDiv")>
+        <Fact(), WorkItem(545250, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545250"), WorkItem(529653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529653")>
         Public Sub TestCrossLanguageOptionalAndParamarray1()
             Dim csCompilation = CreateCSharpCompilation("TestCrossLanguageOptionalAndParamarray1_CS",
             <![CDATA[public class CSClass
@@ -1876,7 +1876,7 @@ End Module]]>,
                 Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"))
         End Sub
 
-        <Fact, WorkItem(545257, "DevDiv")>
+        <Fact, WorkItem(545257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545257")>
         Public Sub TestCrossLanguageOptionalAndParamarray_Error2()
             Dim csCompilation = CreateCSharpCompilation("CS",
             <![CDATA[public class CSClass

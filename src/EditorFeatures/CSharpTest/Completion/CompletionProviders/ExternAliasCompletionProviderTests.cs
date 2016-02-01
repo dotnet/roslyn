@@ -63,7 +63,7 @@ extern alias $$";
             await VerifyItemWithAliasedMetadataReferencesAsync(markup, "foo", "foo", 0, "C#", "C#", false);
         }
 
-        [WorkItem(1075278)]
+        [WorkItem(1075278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075278")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInComment()
         {

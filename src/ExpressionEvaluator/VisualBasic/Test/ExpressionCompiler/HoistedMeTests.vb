@@ -3,18 +3,19 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
     Public Class HoistedMeTests
         Inherits ExpressionCompilerTestBase
 
-        <WorkItem(1067379)>
+        <WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")>
         <Fact>
         Public Sub InstanceIterator_NoCapturing()
             Const source = "
@@ -38,7 +39,7 @@ End Class
             VerifyHasMe(source, "C.VB$StateMachine_1_F.MoveNext", "C", expectedIL)
         End Sub
 
-        <WorkItem(1067379)>
+        <WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")>
         <Fact>
         Public Sub InstanceAsync_NoCapturing()
             Const source = "
@@ -67,7 +68,7 @@ End Class
             VerifyHasMe(source, "C.VB$StateMachine_1_F.MoveNext", "C", expectedIL)
         End Sub
 
-        <WorkItem(1067379)>
+        <WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")>
         <Fact>
         Public Sub InstanceLambda_NoCapturing()
             Const source = "
@@ -450,7 +451,7 @@ End Module
             VerifyNoMe(source, "M._Closure$__0-0._Lambda$__0")
         End Sub
 
-        <WorkItem(1072296)>
+        <WorkItem(1072296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072296")>
         <Fact>
         Public Sub OldStyleNonCapturingLambda()
             Const ilSource = "
@@ -481,22 +482,14 @@ End Module
 } // end of class C
 "
 
-            Dim ilBytes As ImmutableArray(Of Byte) = Nothing
-            Dim ilPdbBytes As ImmutableArray(Of Byte) = Nothing
-            EmitILToArray(ilSource, appendDefaultHeader:=True, includePdb:=True, assemblyBytes:=ilBytes, pdbBytes:=ilPdbBytes)
-
-            Dim runtime = CreateRuntimeInstance(
-                assemblyName:=GetUniqueName(),
-                references:=ImmutableArray.Create(MscorlibRef),
-                exeBytes:=ilBytes.ToArray(),
-                symReader:=SymReaderFactory.CreateReader(ilPdbBytes.ToArray()))
-
+            Dim ilModule = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource)
+            Dim runtime = CreateRuntimeInstance(ilModule, {MscorlibRef})
             Dim context = CreateMethodContext(runtime, "C._Lambda$__1")
             VerifyNoMe(context)
         End Sub
 
-        <WorkItem(1067379)>
-        <WorkItem(1069554)>
+        <WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")>
+        <WorkItem(1069554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069554")>
         <Fact>
         Public Sub LambdaLocations_HasThis()
             Const source = "
@@ -569,7 +562,7 @@ End Class
             Next
         End Sub
 
-        <WorkItem(1069554)>
+        <WorkItem(1069554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069554")>
         <Fact>
         Public Sub LambdaLocations_NoThis()
             Const source = "
@@ -717,7 +710,7 @@ End Module
                             })
         End Sub
 
-        <WorkItem(1024137)>
+        <WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
         <Fact>
         Public Sub InstanceMembersInIterator()
             Const source = "
@@ -752,7 +745,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1024137)>
+        <WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
         <Fact>
         Public Sub InstanceMembersInLambda()
             Const source = "
@@ -785,7 +778,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1024137)>
+        <WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
         <Fact>
         Public Sub InstanceMembersInAsync()
             Const source = "

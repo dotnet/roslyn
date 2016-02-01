@@ -7,7 +7,7 @@ Imports System.Reflection
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 
     Public Class ResultsViewTests
         Inherits VisualBasicResultProviderTestBase
@@ -110,7 +110,7 @@ End Class"
             End Using
         End Sub
 
-        <WorkItem(1043746)>
+        <WorkItem(1043746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043746")>
         <Fact>
         Public Sub GetProxyPropertyValueError()
             Const source =

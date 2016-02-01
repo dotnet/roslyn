@@ -6,9 +6,10 @@ Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Microsoft.DiaSymReader
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
@@ -17,7 +18,7 @@ Imports Roslyn.Test.Utilities
 Imports Xunit
 Imports CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
     Public Class ExpressionCompilerTests
         Inherits ExpressionCompilerTestBase
 
@@ -31,7 +32,7 @@ End Class
         ''' <summary>
         ''' Each assembly should have a unique MVID and assembly name.
         ''' </summary>
-        <WorkItem(1029280)>
+        <WorkItem(1029280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029280")>
         <Fact>
         Public Sub UniqueModuleVersionId()
             Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, options:=TestOptions.DebugDll)
@@ -97,7 +98,7 @@ End Class
         ''' <summary>
         ''' Diagnostics should be formatted with the CurrentUICulture.
         ''' </summary>
-        <WorkItem(941599)>
+        <WorkItem(941599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941599")>
         <Fact>
         Public Sub FormatterCultureInfo()
             Dim previousCulture = Thread.CurrentThread.CurrentCulture
@@ -196,7 +197,7 @@ Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp, includeSymbols:=False)
+            Dim runtime = CreateRuntimeInstance(comp, debugFormat:=Nothing)
             For Each moduleInstance In runtime.Modules
                 Assert.Null(moduleInstance.SymReader)
             Next
@@ -253,17 +254,20 @@ End Interface"
 End Class"
             Dim compA = CreateCompilationWithMscorlib({sourceA}, options:=TestOptions.DebugDll)
             Dim referenceA = compA.EmitToImageReference()
+
             Dim compB = CreateCompilationWithMscorlib({sourceB}, options:=TestOptions.DebugDll, references:={referenceA})
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            compB.EmitAndGetReferences(exeBytes, pdbBytes, references)
+
+            Dim referencesB = {MscorlibRef, referenceA}
+            Dim moduleB = compB.ToModuleInstance()
+
             Const methodVersion = 1
 
             Dim previous As VisualBasicMetadataContext = Nothing
             Dim startOffset = 0
             Dim endOffset = 0
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes))
+
+            Dim runtime = CreateRuntimeInstance(moduleB, referencesB)
+
             Dim typeBlocks As ImmutableArray(Of MetadataBlock) = Nothing
             Dim methodBlocks As ImmutableArray(Of MetadataBlock) = Nothing
             Dim moduleVersionId As Guid = Nothing
@@ -323,9 +327,8 @@ End Class"
             Next
 
             ' With different references.
-            Dim fewerReferences = references.Remove(referenceA)
-            Assert.Equal(fewerReferences.Length, references.Length - 1)
-            runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), fewerReferences, exeBytes, SymReaderFactory.CreateReader(pdbBytes))
+            Dim fewerReferences = {MscorlibRef}
+            runtime = CreateRuntimeInstance(moduleB, fewerReferences)
             methodBlocks = Nothing
             moduleVersionId = Nothing
             symReader = Nothing
@@ -405,7 +408,7 @@ Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp, includeSymbols:=False)
+            Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, methodName:="C.F")
             Dim errorMessage As String = Nothing
 
@@ -1067,7 +1070,7 @@ End Class
         ''' </summary>
         <Fact>
         Public Sub LocalType_FromIL()
-            Const il = "
+            Const ilSource = "
 .class public C
 {
   .method public specialname rtspecialname instance void .ctor()
@@ -1082,16 +1085,8 @@ End Class
   }
 }
 "
-
-            Dim exeBytes As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
-            EmitILToArray(il, appendDefaultHeader:=True, includePdb:=True, assemblyBytes:=exeBytes, pdbBytes:=pdbBytes)
-
-            Dim runtime = CreateRuntimeInstance(
-                    assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
-                    references:=ImmutableArray.Create(MscorlibRef),
-                    exeBytes:=exeBytes.ToArray(),
-                    symReader:=SymReaderFactory.CreateReader(pdbBytes))
+            Dim ilModule = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource)
+            Dim runtime = CreateRuntimeInstance(ilModule, {MscorlibRef})
 
             Dim context = CreateMethodContext(runtime, methodName:="C.M")
             Dim errorMessage As String = Nothing
@@ -1117,10 +1112,10 @@ End Class
         ''' The custom modifiers are not copied to the corresponding local
         ''' in the generated method since there is no need.
         ''' </remarks>
-        <WorkItem(884627)>
+        <WorkItem(884627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884627")>
         <Fact>
         Public Sub LocalType_CustomModifiers()
-            Const il = "
+            Const ilSource = "
 .class public C
 {
   .method public specialname rtspecialname instance void .ctor()
@@ -1135,16 +1130,8 @@ End Class
   }
 }
 "
-
-            Dim exeBytes As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
-            EmitILToArray(il, appendDefaultHeader:=True, includePdb:=True, assemblyBytes:=exeBytes, pdbBytes:=pdbBytes)
-
-            Dim runtime = CreateRuntimeInstance(
-                    assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
-                    references:=ImmutableArray.Create(MscorlibRef),
-                    exeBytes:=exeBytes.ToArray(),
-                    symReader:=SymReaderFactory.CreateReader(pdbBytes))
+            Dim ilModule = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource)
+            Dim runtime = CreateRuntimeInstance(ilModule, {MscorlibRef})
 
             Dim context = CreateMethodContext(runtime, methodName:="C.M")
             Dim errorMessage As String = Nothing
@@ -1169,10 +1156,10 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1012956)>
+        <WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")>
         <Fact>
         Public Sub LocalType_ByRefOrPinned()
-            Const il = "
+            Const ilSource = "
 .class private auto ansi beforefieldinit C
        extends [mscorlib]System.Object
 {
@@ -1187,16 +1174,8 @@ End Class
   }
 }
 "
-
-            Dim exeBytes As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
-            EmitILToArray(il, appendDefaultHeader:=True, includePdb:=True, assemblyBytes:=exeBytes, pdbBytes:=pdbBytes)
-
-            Dim runtime = CreateRuntimeInstance(
-                    assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
-                    references:=ImmutableArray.Create(MscorlibRef),
-                    exeBytes:=exeBytes.ToArray(),
-                    symReader:=SymReaderFactory.CreateReader(pdbBytes))
+            Dim ilModule = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource)
+            Dim runtime = CreateRuntimeInstance(ilModule, {MscorlibRef})
 
             Dim context = CreateMethodContext(runtime, methodName:="C.M")
             Dim errorMessage As String = Nothing
@@ -1296,7 +1275,7 @@ End Class
 }")
         End Sub
 
-        <WorkItem(1034549)>
+        <WorkItem(1034549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034549")>
         <Fact>
         Public Sub AssignLocal()
             Const source =
@@ -1654,7 +1633,7 @@ End Class
 }")
         End Sub
 
-        <Fact, WorkItem(1112400)>
+        <Fact, WorkItem(1112400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112400")>
         Public Sub EvaluateMethodGroup()
             Dim errorMessage As String = Nothing
 
@@ -1742,15 +1721,8 @@ End Class"
                 MakeSources(source),
                 options:=TestOptions.DebugDll,
                 references:=allReferences)
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim runtime = CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                allReferences,
-                exeBytes,
-                Nothing)
+
+            Dim runtime = CreateRuntimeInstance(comp, allReferences)
             Dim context = CreateMethodContext(runtime, "C.M")
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
@@ -1760,7 +1732,7 @@ End Class"
 "{
   // Code size       22 (0x16)
   .maxstack  3
-  .locals init (String V_0)
+  .locals init (String V_0) //y
   IL_0000:  ldarg.0
   IL_0001:  ldstr      ""a""
   IL_0006:  ldstr      """"
@@ -1784,15 +1756,8 @@ End Class"
                 MakeSources(source),
                 options:=TestOptions.DebugDll.WithRootNamespace("Root"),
                 references:=allReferences)
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim runtime = CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                allReferences,
-                exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes)) ' Need SymReader to find root namespace.
+
+            Dim runtime = CreateRuntimeInstance(comp, allReferences)
             Dim context = CreateMethodContext(runtime, "Root.C.M")
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
@@ -1833,16 +1798,9 @@ End Class"
             Dim compReferences = xmlReferences.Concat(ImmutableArray.Create(ref1, ref2))
             Dim comp = CreateCompilationWithReferences(tree, compReferences, TestOptions.DebugDll, assemblyName:="Test")
 
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim runtime = CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                compReferences,
-                exeBytes,
-                Nothing)
+            Dim runtime = CreateRuntimeInstance(comp, compReferences)
             Dim context = CreateMethodContext(runtime, "C1.M") ' In Module1
+
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
             Dim result = context.CompileExpression("x.@a", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
@@ -1945,7 +1903,7 @@ End Namespace
             Assert.Equal("error BC30109: 'C' is a class type and cannot be used as an expression.", errorMessage)
         End Sub
 
-        <WorkItem(986227)>
+        <WorkItem(986227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")>
         <Fact>
         Public Sub RewriteCatchLocal()
             Const source =
@@ -2016,7 +1974,7 @@ End Function, Func(Of E(Of T)))()")
 }")
         End Sub
 
-        <WorkItem(986227)>
+        <WorkItem(986227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986227")>
         <Fact>
         Public Sub RewriteSequenceTemps()
             Const source =
@@ -2330,7 +2288,7 @@ End Class"
             Assert.Equal(errorMessage, "error BC36675: Statement lambdas cannot be converted to expression trees.")
         End Sub
 
-        <WorkItem(1096605)>
+        <WorkItem(1096605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1096605")>
         <Fact>
         Public Sub EvaluateAsync()
             Const source =
@@ -2411,7 +2369,7 @@ End Class"
 }")
         End Sub
 
-        <WorkItem(958448)>
+        <WorkItem(958448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")>
         <Fact>
         Public Sub ConditionalAttribute()
             Const source =
@@ -2441,7 +2399,7 @@ End Class"
 }")
         End Sub
 
-        <WorkItem(958448)>
+        <WorkItem(958448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958448")>
         <Fact>
         Public Sub ConditionalAttribute_CollectionInitializer()
             Const source =
@@ -2483,7 +2441,7 @@ End Class"
 }")
         End Sub
 
-        <WorkItem(994485)>
+        <WorkItem(994485, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994485")>
         <Fact>
         Public Sub Repro994485()
             Const source = "
@@ -2609,7 +2567,7 @@ End Class
 }")
         End Sub
 
-        <WorkItem(1000946)>
+        <WorkItem(1000946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1000946")>
         <Fact>
         Public Sub MyBaseExpression()
             Const source = "
@@ -2906,7 +2864,7 @@ End Module
             Assert.Equal("error BC32001: 'MyBase' is not valid within a Module.", errorMessage)
         End Sub
 
-        <WorkItem(1010922)>
+        <WorkItem(1010922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010922")>
         <Fact>
         Public Sub IntegerOverflow()
             Const source = "
@@ -2935,7 +2893,7 @@ End Class
             Assert.Equal("error BC30439: Constant expression not representable in type 'Integer'.", errorMessage)
         End Sub
 
-        <WorkItem(1012956)>
+        <WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")>
         <Fact>
         Public Sub AssignmentConversion()
             Const source = "
@@ -2954,7 +2912,7 @@ End Class
             Assert.Equal("error BC30439: Constant expression not representable in type 'Integer'.", errorMessage)
         End Sub
 
-        <WorkItem(1016530)>
+        <WorkItem(1016530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016530")>
         <Fact>
         Public Sub EvaluateStatement()
             Dim source = "
@@ -2976,7 +2934,7 @@ End Class
             Assert.Equal("error BC30201: Expression expected.", errorMessage)
         End Sub
 
-        <WorkItem(1015887)>
+        <WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")>
         <Fact>
         Public Sub DateTimeFieldConstant()
             Dim source = "
@@ -3009,7 +2967,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1015887)>
+        <WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")>
         <Fact>
         Public Sub DecimalFieldConstant()
             Dim source = "
@@ -3046,12 +3004,12 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1028808)>
+        <WorkItem(1028808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028808")>
         <Fact>
         Public Sub StaticLambdaInDisplayClass()
             ' Note:  I don't think the VB compiler ever generated code like this, but
             '        it doesn't hurt to make sure we do the right thing if it did...
-            Dim source =
+            Dim ilSource =
 ".class private auto ansi C
        extends [mscorlib]System.Object
 {
@@ -3087,19 +3045,10 @@ End Class
     ret
   }
 }"
-            Dim exeBytes As ImmutableArray(Of Byte) = Nothing
-            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
-            EmitILToArray(source, appendDefaultHeader:=True, includePdb:=True, assemblyBytes:=exeBytes, pdbBytes:=pdbBytes)
+            Dim ilModule = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource)
+            Dim runtime = CreateRuntimeInstance(ilModule, {MscorlibRef})
+            Dim context = CreateMethodContext(runtime, "C._Closure$__1._Lambda$__2")
 
-            Dim runtime = CreateRuntimeInstance(
-                assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
-                references:=ImmutableArray.Create(MscorlibRef),
-                exeBytes:=exeBytes.ToArray(),
-                symReader:=SymReaderFactory.CreateReader(pdbBytes))
-
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C._Closure$__1._Lambda$__2")
             Dim errorMessage As String = Nothing
             Dim testData As New CompilationTestData()
             context.CompileExpression("x", errorMessage, testData)
@@ -3114,7 +3063,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1030236)>
+        <WorkItem(1030236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1030236")>
         <Fact>
         Public Sub ExtensionMethodInContainingType()
             Dim source = "
@@ -3154,7 +3103,7 @@ End Module
 ")
         End Sub
 
-        <WorkItem(1030236)>
+        <WorkItem(1030236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1030236")>
         <Fact>
         Public Sub ExtensionMethodInContainingNamespace()
             Dim source = "
@@ -3196,7 +3145,7 @@ End Module
 ")
         End Sub
 
-        <WorkItem(1030236)>
+        <WorkItem(1030236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1030236")>
         <Fact>
         Public Sub ExtensionMethodInImportedNamespace()
             Dim source = "
@@ -3241,7 +3190,7 @@ End Namespace
 ")
         End Sub
 
-        <WorkItem(1030236)>
+        <WorkItem(1030236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1030236")>
         <Fact>
         Public Sub InaccessibleExtensionMethod() ' EE will be able to access this extension method anyway...
             Dim source = "
@@ -3281,7 +3230,7 @@ End Module
 ")
         End Sub
 
-        <WorkItem(1042918)>
+        <WorkItem(1042918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042918")>
         <WorkItem(964, "https://github.com/dotnet/roslyn/issues/964")>
         <Fact>
         Public Sub ConditionalAccessExpressionType()
@@ -3303,15 +3252,8 @@ End Class"
                 MakeSources(source),
                 options:=TestOptions.DebugDll,
                 references:=allReferences)
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim runtime = CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                allReferences,
-                exeBytes,
-                Nothing)
+
+            Dim runtime = CreateRuntimeInstance(comp, allReferences)
             Dim context = CreateMethodContext(runtime, "C.M")
 
             Dim errorMessage As String = Nothing
@@ -3323,7 +3265,7 @@ End Class"
 "{
   // Code size       25 (0x19)
   .maxstack  1
-  .locals init (String V_0,
+  .locals init (String V_0, //dummy
                 Integer? V_1)
   IL_0000:  ldarg.0
   IL_0001:  brtrue.s   IL_000d
@@ -3351,7 +3293,7 @@ End Class"
 "{
   // Code size       32 (0x20)
   .maxstack  3
-  .locals init (String V_0)
+  .locals init (String V_0) //dummy
   IL_0000:  ldarg.0
   IL_0001:  brtrue.s   IL_0005
   IL_0003:  ldnull
@@ -3383,7 +3325,7 @@ End Class"
 "{
   // Code size       17 (0x11)
   .maxstack  2
-  .locals init (String V_0)
+  .locals init (String V_0) //dummy
   IL_0000:  ldarg.0
   IL_0001:  callvirt   ""Function C.G() As C""
   IL_0006:  dup
@@ -3399,7 +3341,7 @@ End Class"
             Assert.Equal(errorMessage, "error BC30491: Expression does not produce a value.")
         End Sub
 
-        <WorkItem(1024137)>
+        <WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
         <Fact>
         Public Sub IteratorParameters()
             Const source = "
@@ -3431,7 +3373,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1024137)>
+        <WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
         <Fact>
         Public Sub IteratorGenericLocal()
             Const source = "
@@ -3535,7 +3477,7 @@ End Structure
 ")
         End Sub
 
-        <WorkItem(1079749)>
+        <WorkItem(1079749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079749")>
         <Fact>
         Public Sub RangeVariableError()
             Const source =
@@ -3555,7 +3497,7 @@ End Class"
             Assert.Equal("error BC36593: Expression of type 'String' is not queryable. Make sure you are not missing an assembly reference and/or namespace import for the LINQ provider.", errorMessage)
         End Sub
 
-        <WorkItem(1079762)>
+        <WorkItem(1079762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079762")>
         <Fact>
         Public Sub Bug1079762()
             Const source = "
@@ -3590,7 +3532,7 @@ End Class
             Assert.Equal("error BC30451: 'y' is not declared. It may be inaccessible due to its protection level.", errorMessage)
         End Sub
 
-        <WorkItem(1014763)>
+        <WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")>
         <Fact>
         Public Sub NonStateMachineTypeParameter()
             Const source = "
@@ -3621,7 +3563,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1014763)>
+        <WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")>
         <Fact>
         Public Sub StateMachineTypeParameter()
             Const source = "
@@ -3656,7 +3598,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1085642)>
+        <WorkItem(1085642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085642")>
         <Fact>
         Public Sub ModuleWithBadImageFormat()
             Dim source = "
@@ -3666,28 +3608,11 @@ Class C
     End Sub
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
-            Dim exeBytes() As Byte = Nothing
-            Dim pdbBytes() As Byte = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim exeReference = AssemblyMetadata.CreateFromImage(exeBytes).GetReference(display:=Guid.NewGuid().ToString("D"))
 
-            Dim modulesBuilder = ArrayBuilder(Of ModuleInstance).GetInstance()
-            Dim corruptMetadata = New ModuleInstance(
-                metadataReference:=Nothing,
-                moduleMetadata:=Nothing,
-                moduleVersionId:=Nothing,
-                fullImage:=Nothing,
-                metadataOnly:=CommonResources.NoValidTables,
-                symReader:=Nothing,
-                includeLocalSignatures:=False)
+            Using pinnedMetadata = New PinnedBlob(CommonResources.NoValidTables)
+                Dim corruptMetadata = ModuleInstance.Create(pinnedMetadata.Pointer, pinnedMetadata.Size, moduleVersionId:=Nothing)
+                Dim runtime = CreateRuntimeInstance({corruptMetadata, comp.ToModuleInstance(), MscorlibRef.ToModuleInstance()})
 
-            modulesBuilder.Add(corruptMetadata)
-            modulesBuilder.Add(exeReference.ToModuleInstance(exeBytes, SymReaderFactory.CreateReader(pdbBytes)))
-            modulesBuilder.AddRange(references.Select(Function(r) r.ToModuleInstance(fullImage:=Nothing, symReader:=Nothing)))
-            Dim modules = modulesBuilder.ToImmutableAndFree()
-
-            Using runtime = New RuntimeInstance(modules)
                 Dim context = CreateMethodContext(runtime, "C.M")
                 Dim resultProperties As ResultProperties
                 Dim errorMessage As String = Nothing
@@ -3707,7 +3632,7 @@ End Class"
             End Using
         End Sub
 
-        <WorkItem(1089688)>
+        <WorkItem(1089688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089688")>
         <Fact>
         Public Sub MissingType()
             Const libSource = "
@@ -3727,13 +3652,7 @@ End Class
             Dim libRef = CreateCompilationWithMscorlib({libSource}, assemblyName:="Lib", options:=TestOptions.DebugDll).EmitToImageReference()
             Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef, libRef}, TestOptions.DebugDll)
 
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim unusedReferences As ImmutableArray(Of MetadataReference) = Nothing
-            Dim result = comp.EmitAndGetReferences(exeBytes, pdbBytes, unusedReferences)
-            Assert.True(result)
-
-            Dim runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.Create(MscorlibRef), exeBytes, SymReaderFactory.CreateReader(pdbBytes))
+            Dim runtime = CreateRuntimeInstance(comp, {MscorlibRef})
             Dim context = CreateMethodContext(runtime, "C.M")
 
             Const expectedError1 = "error BC30652: Reference required to assembly 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Missing'. Add one to your project."
@@ -3773,7 +3692,7 @@ End Class
             verify("0", expectedError1)
         End Sub
 
-        <WorkItem(1090458)>
+        <WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")>
         <Fact>
         Public Sub ObsoleteAttribute()
             Const source = "
@@ -3797,7 +3716,7 @@ End Class
             Assert.Null(errorMessage)
         End Sub
 
-        <WorkItem(1090458)>
+        <WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")>
         <Fact>
         Public Sub DeprecatedAttribute()
             Const source = "
@@ -3847,7 +3766,7 @@ End Namespace
             Assert.Null(errorMessage)
         End Sub
 
-        <WorkItem(1089591)>
+        <WorkItem(1089591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089591")>
         <Fact>
         Public Sub BadPdb_MissingMethod()
             Const source = "
@@ -3858,16 +3777,11 @@ End Class
 "
 
             Dim comp = CreateCompilationWithMscorlib({source})
-
-            Dim exeBytes As Byte() = Nothing
-            Dim unusedPdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            Dim result = comp.EmitAndGetReferences(exeBytes, unusedPdbBytes, references)
-            Assert.True(result)
-
+            Dim exeBytes = comp.EmitToArray()
             Dim symReader As ISymUnmanagedReader = New MockSymUnmanagedReader(ImmutableDictionary(Of Integer, MethodDebugInfoBytes).Empty)
+            Dim exeModule = ModuleInstance.Create(exeBytes, symReader)
 
-            Dim runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader)
+            Dim runtime = CreateRuntimeInstance(exeModule, {MscorlibRef})
             Dim evalContext = CreateMethodContext(runtime, "C.Main")
             Dim errorMessage As String = Nothing
             Dim testData As New CompilationTestData()
@@ -3883,7 +3797,7 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1108133)>
+        <WorkItem(1108133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108133")>
         <Fact>
         Public Sub SymUnmanagedReaderNotImplemented()
             Const source = "
@@ -3894,14 +3808,9 @@ End Class
 "
 
             Dim comp = CreateCompilationWithMscorlib({source})
-
-            Dim exeBytes As Byte() = Nothing
-            Dim unusedPdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            Dim result = comp.EmitAndGetReferences(exeBytes, unusedPdbBytes, references)
-            Assert.True(result)
-
-            Dim runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, NotImplementedSymUnmanagedReader.Instance)
+            Dim exeBytes = comp.EmitToArray()
+            Dim exeModule = ModuleInstance.Create(exeBytes, NotImplementedSymUnmanagedReader.Instance)
+            Dim runtime = CreateRuntimeInstance(exeModule, {MscorlibRef})
             Dim evalContext = CreateMethodContext(runtime, "C.Main")
             Dim errorMessage As String = Nothing
             Dim testData As New CompilationTestData()
@@ -3963,7 +3872,7 @@ End Sub)",
 }")
         End Sub
 
-        <WorkItem(1115543)>
+        <WorkItem(1115543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115543")>
         <Fact>
         Public Sub MethodTypeParameterInLambda()
             Const source = "
@@ -4017,7 +3926,7 @@ End Class"
 }")
         End Sub
 
-        <WorkItem(1112496)>
+        <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
         <Fact>
         Public Sub EvaluateLocalInAsyncLambda()
             Const source = "
@@ -4119,11 +4028,8 @@ End Class
                 Dim symReader = SymReaderFactory.CreateReader(pdbStream1)
                 symReader.UpdateSymbolStore(pdbStream2)
 
-                Dim runtime = CreateRuntimeInstance(
-                    GetUniqueName(),
-                    ImmutableArray.Create(MscorlibRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference),
-                    peStream2.ToArray(),
-                    symReader)
+                Dim module2 = ModuleInstance.Create(peStream2.ToImmutable(), symReader)
+                Dim runtime = CreateRuntimeInstance(module2, {MscorlibRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference})
 
                 Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
                 Dim moduleVersionId As Guid = Nothing
@@ -4270,7 +4176,7 @@ End Module"
 }")
         End Sub
 
-        <WorkItem(1145125)>
+        <WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")>
         <Fact>
         Public Sub LocalInLambda()
             Dim source = "
@@ -4309,7 +4215,7 @@ End Class"
 }")
         End Sub
 
-        <WorkItem(1145125)>
+        <WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")>
         <Fact>
         Public Sub CapturedLocalInLambda()
             Dim source = "
@@ -4349,7 +4255,7 @@ End Class"
 }")
         End Sub
 
-        <WorkItem(1145125)>
+        <WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")>
         <Fact>
         Public Sub CapturedParameterAndLocalInLambda()
             Dim source = "
@@ -4415,7 +4321,7 @@ End Class"
 }")
         End Sub
 
-        <WorkItem(1145125)>
+        <WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")>
         <Fact>
         Public Sub CapturedParameterAndLocalInNestedLambda()
             Dim source = "
@@ -4515,7 +4421,7 @@ End Class"
         ''' DkmClrInstructionAddress.ILOffset is set to UInteger.MaxValue
         ''' if the instruction does not map to an IL offset.
         ''' </summary>
-        <WorkItem(1185315)>
+        <WorkItem(1185315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1185315")>
         <Fact>
         Public Sub NoILOffset()
             Const source =

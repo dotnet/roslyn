@@ -1819,7 +1819,7 @@ M5 - 1
         End Sub
 
 
-        <Fact, WorkItem(1005639)>
+        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
         Public Sub Resume_in_If_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -3218,7 +3218,7 @@ M5 - 0
             CompileAndVerify(compilation, expectedOutput:=expected)
         End Sub
 
-        <Fact, WorkItem(1005639)>
+        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
         Public Sub Resume_in_Select_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -4681,7 +4681,7 @@ End Module
 
         End Sub
 
-        <Fact, WorkItem(1005639)>
+        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
         Public Sub Resume_in_While_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -4933,7 +4933,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(1005639)>
+        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
         Public Sub Resume_in_Do_While_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -5185,7 +5185,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(1005639)>
+        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
         Public Sub Resume_in_Do_Until_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -5735,7 +5735,7 @@ End Module
 }]]>)
         End Sub
 
-        <Fact, WorkItem(1005639)>
+        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
         Public Sub Resume_in_Do_Loop_While_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -5984,7 +5984,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(1005639)>
+        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
         Public Sub Resume_in_Do_Loop_Until_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -6557,7 +6557,7 @@ End Module
 }]]>)
         End Sub
 
-        <Fact, WorkItem(1005639)>
+        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
         Public Sub Resume_in_Do_Loop_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -6793,7 +6793,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(737273, "DevDiv")>
+        <Fact(), WorkItem(737273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737273")>
         Public Sub Resume_in_ForEach_Enumerable_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -7190,7 +7190,7 @@ End Module
 
         End Sub
 
-        <Fact, WorkItem(1005639)>
+        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
         Public Sub Resume_in_ForEach_Enumerable_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -8759,7 +8759,7 @@ End Module
 
         End Sub
 
-        <Fact, WorkItem(1005639)>
+        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
         Public Sub Resume_in_ForTo_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -9652,7 +9652,7 @@ End Module
 }]]>)
         End Sub
 
-        <Fact, WorkItem(1005639)>
+        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
         Public Sub Resume_in_ForTo_3()
             Dim source =
 <compilation name="ErrorHandling">
@@ -10379,7 +10379,7 @@ End Module
 }]]>)
         End Sub
 
-        <Fact, WorkItem(1005639)>
+        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
         Public Sub Resume_in_ForEach_String_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -10665,7 +10665,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(737273, "DevDiv")>
+        <Fact(), WorkItem(737273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737273")>
         Public Sub Resume_in_ForEach_Array_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -10751,7 +10751,7 @@ End Module
 
         End Sub
 
-        <Fact, WorkItem(1005639)>
+        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
         Public Sub Resume_in_ForEach_Array_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -14550,7 +14550,7 @@ BC42105: Function 'test1' doesn't return a value on all code paths. A null refer
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(547095, "DevDiv")>
+        <Fact(), WorkItem(547095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547095")>
         Public Sub Bug17937()
             Dim source =
 <compilation name="AscW">
@@ -15557,8 +15557,8 @@ End Module
 }]]>)
         End Sub
 
-        <WorkItem(737273, "DevDiv")>
-        <Fact, WorkItem(1005639)>
+        <WorkItem(737273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737273")>
+        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
         Public Sub OnError_WithLoopingConstructs()
             'Various Looping constructs with Errors and capturing the behavior of Resume Next as going into the loop rather
             ' then skipping to the next statement outside of the loop
@@ -16898,7 +16898,7 @@ After 2 Exception]]>)
 }]]>)
         End Sub
 
-        <Fact, WorkItem(1005639)>
+        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
         Public Sub OnError_WithSyncLock_1()
             'This is the typical scenario documented in the spec to ensure that infinite
             'recursion does not occur
@@ -17365,7 +17365,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(1005639)>
+        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
         Public Sub OnError_ResumeWithConditionBlocks()
             'This verifies that resume next will resume inside the IF block when an error occurs in the
             'IF statement / ELSEIF and also and multiple condition IF With ANDALSO

@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 {
     public abstract class ObjectFormatterTestBase
     {
-        internal static readonly ObjectFormattingOptions s_hexa = new ObjectFormattingOptions(useHexadecimalNumbers: true, maxOutputLength: int.MaxValue);
-        internal static readonly ObjectFormattingOptions s_memberList = new ObjectFormattingOptions(memberFormat: MemberDisplayFormat.List, maxOutputLength: int.MaxValue);
-        internal static readonly ObjectFormattingOptions s_inline = new ObjectFormattingOptions(memberFormat: MemberDisplayFormat.Inline, maxOutputLength: int.MaxValue);
+        protected static PrintOptions SingleLineOptions => new PrintOptions { MemberDisplayFormat = MemberDisplayFormat.SingleLine };
+        protected static PrintOptions SeparateLinesOptions => new PrintOptions { MemberDisplayFormat = MemberDisplayFormat.SeparateLines, MaximumOutputLength = int.MaxValue };
+        protected static PrintOptions HiddenOptions => new PrintOptions { MemberDisplayFormat = MemberDisplayFormat.Hidden };
 
         public void AssertMembers(string str, params string[] expected)
         {

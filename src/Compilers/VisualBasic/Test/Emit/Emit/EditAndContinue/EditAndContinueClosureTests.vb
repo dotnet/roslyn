@@ -438,7 +438,7 @@ End Module
                 Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
         End Sub
 
-        <WorkItem(1067140)>
+        <WorkItem(1067140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067140")>
         <Fact>
         Public Sub AnonymousDelegates()
             Dim sources0a = <compilation>
@@ -1692,7 +1692,7 @@ End Class
 ")
         End Sub
 
-        <Fact(Skip:="2504"), WorkItem(2504)>
+        <Fact(Skip:="2504"), WorkItem(2504, "https://github.com/dotnet/roslyn/issues/2504")>
         Public Sub InsertConstructorInPresenceOfFieldInitializersWithLambdas()
             Dim source0 = MarkedSource("
 Imports System
@@ -1744,7 +1744,7 @@ End Class
                 "C._Closure$__: {$I0-0, $I0-1#1, $I0-2#1, _Lambda$__0-0, _Lambda$__0-1#1, _Lambda$__0-2#1}")
         End Sub
 
-        <Fact, WorkItem(1170899, "DevDiv")>
+        <Fact, WorkItem(1170899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")>
         Public Sub CapturedAnonymousDelegates()
             Dim source0 = MarkedSource("
 Class C
@@ -1900,7 +1900,7 @@ End Class
 ")
         End Sub
 
-        <Fact, WorkItem(1170899, "DevDiv")>
+        <Fact, WorkItem(1170899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")>
         Public Sub CapturedAnonymousTypes()
             Dim source0 = MarkedSource("
 Imports System
@@ -2036,7 +2036,7 @@ End Class
 ")
         End Sub
 
-        <Fact, WorkItem(1170899, "DevDiv")>
+        <Fact, WorkItem(1170899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")>
         Public Sub CapturedAnonymousTypes2()
             Dim template = "
 Imports System
@@ -2114,7 +2114,7 @@ End Class
             diff2.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "2"))
         End Sub
 
-        <Fact, WorkItem(1170899, "DevDiv")>
+        <Fact, WorkItem(1170899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")>
         Public Sub CapturedAnonymousTypes3()
             Dim template = "
 Imports System

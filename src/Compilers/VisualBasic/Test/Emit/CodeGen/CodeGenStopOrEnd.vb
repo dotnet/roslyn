@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 }]]>)
         End Sub
 
-        <Fact, WorkItem(910884)>
+        <Fact, WorkItem(910884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910884")>
         Public Sub StopStatement_In_DebugMode()
             Dim Source = <compilation>
                              <file name="a.vb">

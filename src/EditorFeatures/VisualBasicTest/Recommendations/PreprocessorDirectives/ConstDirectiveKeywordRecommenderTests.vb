@@ -22,13 +22,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
                                          </File>, "#Const")
         End Function
 
-        <WorkItem(544629)>
+        <WorkItem(544629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544629")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function HashConstAfterSingleNonMatchingCharacterTest() As Task
             Await VerifyRecommendationsContainAsync(<File>a|</File>, "#Const")
         End Function
 
-        <WorkItem(544629)>
+        <WorkItem(544629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544629")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function HashConstAfterPartialConstWithoutHashTest() As Task
             Await VerifyRecommendationsContainAsync(<File>Con|</File>, "#Const")

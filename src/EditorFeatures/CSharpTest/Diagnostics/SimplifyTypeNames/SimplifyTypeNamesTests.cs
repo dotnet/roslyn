@@ -1013,7 +1013,7 @@ namespace N1
 }", index: 0);
         }
 
-        [WorkItem(995168), WorkItem(1073099)]
+        [WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf1()
         {
@@ -1028,7 +1028,7 @@ class Program
 }");
         }
 
-        [WorkItem(995168)]
+        [WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf2()
         {
@@ -1043,7 +1043,7 @@ class Program
 }");
         }
 
-        [WorkItem(995168), WorkItem(1073099)]
+        [WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf3()
         {
@@ -1058,7 +1058,7 @@ class Program
 }");
         }
 
-        [WorkItem(995168), WorkItem(1073099)]
+        [WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf4()
         {
@@ -1117,7 +1117,7 @@ class Program
 }");
         }
 
-        [WorkItem(995168)]
+        [WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyCrefAliasPredefinedType()
         {
@@ -1145,7 +1145,7 @@ class Program
 }", index: 0);
         }
 
-        [WorkItem(538727)]
+        [WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyAlias1()
         {
@@ -1162,7 +1162,7 @@ namespace N1
             await TestMissingAsync(content);
         }
 
-        [WorkItem(538727)]
+        [WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyAlias2()
         {
@@ -1187,7 +1187,7 @@ namespace N1
 }", index: 0);
         }
 
-        [WorkItem(538727)]
+        [WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyAlias3()
         {
@@ -1218,7 +1218,7 @@ namespace Outer
 }", index: 0);
         }
 
-        [WorkItem(538727)]
+        [WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyAlias4()
         {
@@ -1251,7 +1251,7 @@ namespace Outer
 }", index: 0);
         }
 
-        [WorkItem(544631)]
+        [WorkItem(544631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544631")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyAlias5()
         {
@@ -1273,7 +1273,7 @@ namespace N
             await TestAsync(content, result);
         }
 
-        [WorkItem(919815)]
+        [WorkItem(919815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/919815")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyReturnTypeOnMethodCallToAlias()
         {
@@ -1295,7 +1295,7 @@ class A
 }", index: 0);
         }
 
-        [WorkItem(538949)]
+        [WorkItem(538949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538949")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyComplexGeneric1()
         {
@@ -1310,7 +1310,7 @@ class A
 interface I<T> { }");
         }
 
-        [WorkItem(538949)]
+        [WorkItem(538949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538949")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyComplexGeneric2()
         {
@@ -1325,7 +1325,7 @@ interface I<T> { }");
 interface I<T> { }");
         }
 
-        [WorkItem(538991)]
+        [WorkItem(538991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538991")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyMissingOnGeneric()
         {
@@ -1338,7 +1338,7 @@ interface I<T> { }");
             await TestMissingAsync(content);
         }
 
-        [WorkItem(539000)]
+        [WorkItem(539000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539000")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyMissingOnUnmentionableTypeParameter1()
         {
@@ -1368,8 +1368,8 @@ class C
 }");
         }
 
-        [WorkItem(539000)]
-        [WorkItem(838109)]
+        [WorkItem(539000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539000")]
+        [WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyUnmentionableTypeParameter2()
         {
@@ -1386,7 +1386,7 @@ class C
 }");
         }
 
-        [WorkItem(539000)]
+        [WorkItem(539000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539000")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyUnmentionableTypeParameter2_1()
         {
@@ -1412,7 +1412,7 @@ class C
 index: 0);
         }
 
-        [WorkItem(541748)]
+        [WorkItem(541748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnErrorInScript()
         {
@@ -1580,7 +1580,7 @@ index: 1,
 compareTokens: false);
         }
 
-        [WorkItem(542100)]
+        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestPreventSimplificationThatWouldCauseConflict()
         {
@@ -1592,7 +1592,7 @@ compareTokens: false);
 @"namespace N { class Program { class Foo { public static void Bar ( ) { } } static void Main ( ) { [|Program . Foo . Bar |]( ) ; { int Foo ; } } } } ");
         }
 
-        [WorkItem(541929)]
+        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnOpenType1()
         {
@@ -1600,7 +1600,7 @@ compareTokens: false);
 @"class Program < T > { public class Inner { [ Bar ( typeof ( [|Program < > . Inner|] ) ) ] void Foo ( ) { } } } ");
         }
 
-        [WorkItem(541929)]
+        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnOpenType2()
         {
@@ -1609,7 +1609,7 @@ compareTokens: false);
 @"class Program { public class Inner < T > { [ Bar ( typeof ( Inner < > ) ) ] void Foo ( ) { } } } ");
         }
 
-        [WorkItem(541929)]
+        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnOpenType3()
         {
@@ -1617,14 +1617,14 @@ compareTokens: false);
 @"class Program < X > { public class Inner < Y > { [ Bar ( typeof ( [|Program < > . Inner < >|] ) ) ] void Foo ( ) { } } } ");
         }
 
-        [WorkItem(541929)]
+        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnOpenType4()
         {
             await TestMissingAsync(@"class Program < X > { public class Inner < Y > { [ Bar ( typeof ( [|Program <X > . Inner < >|] ) ) ] void Foo ( ) { } } } ");
         }
 
-        [WorkItem(541929)]
+        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnOpenType5()
         {
@@ -1632,7 +1632,7 @@ compareTokens: false);
 @"class Program < X > { public class Inner < Y > { [ Bar ( typeof ( [|Program < > . Inner < Y >|] ) ) ] void Foo ( ) { } } } ");
         }
 
-        [WorkItem(541929)]
+        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnOpenType6()
         {
@@ -1640,7 +1640,7 @@ compareTokens: false);
 @"class Program < X > { public class Inner < Y > { [ Bar ( typeof ( [|Program < Y > . Inner < X >|] ) ) ] void Foo ( ) { } } } ");
         }
 
-        [WorkItem(541929)]
+        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnNonOpenType1()
         {
@@ -1650,7 +1650,7 @@ compareTokens: false);
 index: 0);
         }
 
-        [WorkItem(541929)]
+        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnNonOpenType2()
         {
@@ -1660,7 +1660,7 @@ index: 0);
 index: 0);
         }
 
-        [WorkItem(541929)]
+        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnNonOpenType3()
         {
@@ -1670,7 +1670,7 @@ index: 0);
 index: 0);
         }
 
-        [WorkItem(541929)]
+        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnNonOpenType4()
         {
@@ -1680,7 +1680,7 @@ index: 0);
 index: 0);
         }
 
-        [WorkItem(541929)]
+        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnNonOpenType5()
         {
@@ -1690,7 +1690,7 @@ index: 0);
 index: 0);
         }
 
-        [WorkItem(541929)]
+        [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnNonOpenType6()
         {
@@ -1698,7 +1698,7 @@ index: 0);
 @"class Program < X > { public class Inner < Y > { [ Bar ( typeof ( [|Program < Y > . Inner < Y >|] ) ) ] void Foo ( ) { } } } ");
         }
 
-        [WorkItem(542650)]
+        [WorkItem(542650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542650")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestWithInterleavedDirective1()
         {
@@ -1723,7 +1723,7 @@ class B
 }");
         }
 
-        [WorkItem(542719)]
+        [WorkItem(542719, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542719")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestGlobalMissing1()
         {
@@ -1731,7 +1731,7 @@ class B
 @"class Program { class System { } int Console = 7; void Main() { string v = null; [|global::System.Console.WriteLine(v)|]; } } ");
         }
 
-        [WorkItem(544615)]
+        [WorkItem(544615, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544615")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestMissingOnAmbiguousCast()
         {
@@ -1739,7 +1739,7 @@ class B
 @"enum E { } class C { void Main() { var x = ([|global::E|])-1; } } ");
         }
 
-        [WorkItem(544616)]
+        [WorkItem(544616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544616")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task ParenthesizeIfParseChanges()
         {
@@ -1764,7 +1764,7 @@ class C
 }", index: 0, compareTokens: false);
         }
 
-        [WorkItem(544974)]
+        [WorkItem(544974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplification1()
         {
@@ -1774,7 +1774,7 @@ class C
 index: 0);
         }
 
-        [WorkItem(544974)]
+        [WorkItem(544974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplification3()
         {
@@ -1783,7 +1783,7 @@ index: 0);
 @"class C { static void Main (int? i) { } }");
         }
 
-        [WorkItem(544974)]
+        [WorkItem(544974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplification4()
         {
@@ -1792,7 +1792,7 @@ index: 0);
 @"class C { static void Main (int? i) { } }");
         }
 
-        [WorkItem(544977)]
+        [WorkItem(544977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544977")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplification5()
         {
@@ -2090,7 +2090,7 @@ class Program
 }", 0);
         }
 
-        [WorkItem(551040)]
+        [WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyStaticMemberAccess()
         {
@@ -2130,7 +2130,7 @@ static class M
 }", 0);
         }
 
-        [WorkItem(551040)]
+        [WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyNestedType()
         {
@@ -2176,7 +2176,7 @@ class M
 }", null, 0);
         }
 
-        [WorkItem(568043)]
+        [WorkItem(568043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568043")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DontSimplifyNamesWhenThereAreParseErrors()
         {
@@ -2198,7 +2198,7 @@ class Program
             await TestMissingAsync(markup);
         }
 
-        [WorkItem(566749)]
+        [WorkItem(566749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566749")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestMethodGroups1()
         {
@@ -2214,7 +2214,7 @@ class Program
 }");
         }
 
-        [WorkItem(566749)]
+        [WorkItem(566749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566749")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestMethodGroups2()
         {
@@ -2230,7 +2230,7 @@ class Program
 }");
         }
 
-        [WorkItem(554010)]
+        [WorkItem(554010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554010")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestMethodGroups3()
         {
@@ -2255,7 +2255,7 @@ class Program
 }");
         }
 
-        [WorkItem(578686)]
+        [WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task FixAllOccurrences1()
         {
@@ -2314,7 +2314,7 @@ namespace C
 }");
         }
 
-        [WorkItem(578686)]
+        [WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DontUseAlias1()
         {
@@ -2352,7 +2352,7 @@ namespace NoAlias{
 }");
         }
 
-        [WorkItem(577169)]
+        [WorkItem(577169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577169")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SuitablyReplaceNullables1()
         {
@@ -2369,7 +2369,7 @@ class Program
 }");
         }
 
-        [WorkItem(577169)]
+        [WorkItem(577169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577169")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SuitablyReplaceNullables2()
         {
@@ -2386,7 +2386,7 @@ class Program
 }");
         }
 
-        [WorkItem(608190)]
+        [WorkItem(608190, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608190")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Bugfix_608190()
         {
@@ -2413,7 +2413,7 @@ struct S
 ");
         }
 
-        [WorkItem(608190)]
+        [WorkItem(608190, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608190")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Bugfix_608190_1()
         {
@@ -2440,7 +2440,7 @@ struct S
 ");
         }
 
-        [WorkItem(608932)]
+        [WorkItem(608932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608932")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Bugfix_608932()
         {
@@ -2470,7 +2470,7 @@ namespace X
 ");
         }
 
-        [WorkItem(635933)]
+        [WorkItem(635933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635933")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Bugfix_635933()
         {
@@ -2505,7 +2505,7 @@ class C<T> : B
 }");
         }
 
-        [WorkItem(547246)]
+        [WorkItem(547246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547246")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task CodeIssueAtRightSpan()
         {
@@ -2529,7 +2529,7 @@ class Program
             }
         }
 
-        [WorkItem(579172)]
+        [WorkItem(579172, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579172")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Bugfix_579172()
         {
@@ -2542,7 +2542,7 @@ class C<T, S>
 ");
         }
 
-        [WorkItem(633182)]
+        [WorkItem(633182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633182")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Bugfix_633182()
         {
@@ -2558,7 +2558,7 @@ class C
 ");
         }
 
-        [WorkItem(627102)]
+        [WorkItem(627102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627102")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Bugfix_627102()
         {
@@ -2592,7 +2592,7 @@ class C<T> : B
 ");
         }
 
-        [WorkItem(629572)]
+        [WorkItem(629572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629572")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DoNotIncludeAliasNameIfLastTargetNameIsTheSame_1()
         {
@@ -2628,7 +2628,7 @@ class Program
             }
         }
 
-        [WorkItem(629572)]
+        [WorkItem(629572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629572")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DoNotIncludeAliasNameIfLastTargetNameIsTheSame_2()
         {
@@ -2664,7 +2664,7 @@ class Program
             }
         }
 
-        [WorkItem(736377)]
+        [WorkItem(736377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736377")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DontSimplifyTypeNameBrokenCode()
         {
@@ -2686,7 +2686,7 @@ class Program
 ");
         }
 
-        [WorkItem(813385)]
+        [WorkItem(813385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813385")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DontSimplifyAliases()
         {
@@ -2700,7 +2700,7 @@ class C
 }");
         }
 
-        [WorkItem(825541)]
+        [WorkItem(825541, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/825541")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task ShowOnlyRelevantSpanForReductionOfGenericName()
         {
@@ -2731,7 +2731,7 @@ namespace A
             }
         }
 
-        [WorkItem(878773)]
+        [WorkItem(878773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/878773")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DontSimplifyAttributeNameWithJustAttribute()
         {
@@ -2761,7 +2761,7 @@ class C
 ", new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
         }
 
-        [WorkItem(942568)]
+        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInLocalDeclarationDefaultValue1()
         {
@@ -2783,7 +2783,7 @@ class C
 }");
         }
 
-        [WorkItem(942568)]
+        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInLocalDeclarationDefaultValue2()
         {
@@ -2805,7 +2805,7 @@ class C
 }", compareTokens: false);
         }
 
-        [WorkItem(942568)]
+        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_Default_1()
         {
@@ -2829,7 +2829,7 @@ class C
 }", compareTokens: false);
         }
 
-        [WorkItem(942568)]
+        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_Default_2()
         {
@@ -2851,7 +2851,7 @@ class C
 }", compareTokens: false);
         }
 
-        [WorkItem(942568)]
+        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_Default_3()
         {
@@ -2875,8 +2875,8 @@ class C
 }", compareTokens: false);
         }
 
-        [WorkItem(942568)]
-        [WorkItem(954536)]
+        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_1()
         {
@@ -2892,8 +2892,8 @@ class C
 }", options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, "C#"), false } });
         }
 
-        [WorkItem(942568)]
-        [WorkItem(954536)]
+        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_2()
         {
@@ -2918,8 +2918,8 @@ class C
 }", options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, "C#"), false } });
         }
 
-        [WorkItem(942568)]
-        [WorkItem(954536)]
+        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
+        [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_3()
         {
@@ -2935,7 +2935,7 @@ class C
 }", options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, "C#"), false } });
         }
 
-        [WorkItem(954536)]
+        [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_4()
         {
@@ -2961,7 +2961,7 @@ class C
 options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, "C#"), false } });
         }
 
-        [WorkItem(954536)]
+        [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_5()
         {
@@ -2976,7 +2976,7 @@ class C
 }", options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, "C#"), false } });
         }
 
-        [WorkItem(954536)]
+        [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_6()
         {
@@ -3000,7 +3000,7 @@ class C
 options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, "C#"), false } });
         }
 
-        [WorkItem(942568)]
+        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_1()
         {
@@ -3017,7 +3017,7 @@ class C
 ", options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, "C#"), false } });
         }
 
-        [WorkItem(942568)]
+        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_2()
         {
@@ -3034,7 +3034,7 @@ class C
 ", options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, "C#"), false } });
         }
 
-        [WorkItem(942568)]
+        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_3()
         {
@@ -3051,7 +3051,7 @@ class C
 ", options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, "C#"), false } });
         }
 
-        [WorkItem(942568)]
+        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInMemberAccess_Default_1()
         {
@@ -3073,7 +3073,7 @@ class C
 }");
         }
 
-        [WorkItem(942568)]
+        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInMemberAccess_Default_2()
         {
@@ -3097,7 +3097,7 @@ class C
 }");
         }
 
-        [WorkItem(956667)]
+        [WorkItem(956667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956667")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInMemberAccess_Default_3()
         {
@@ -3118,7 +3118,7 @@ class C2
 }");
         }
 
-        [WorkItem(942568)]
+        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInMemberAccess_NonDefault_1()
         {
@@ -3135,7 +3135,7 @@ class C
 ", options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, "C#"), false } });
         }
 
-        [WorkItem(942568)]
+        [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInMemberAccess_NonDefault_2()
         {
@@ -3151,7 +3151,7 @@ class C
 ", options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, "C#"), false } });
         }
 
-        [WorkItem(965208)]
+        [WorkItem(965208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyDiagnosticId()
         {
@@ -3208,7 +3208,7 @@ class C
             }
         }
 
-        [WorkItem(1019276)]
+        [WorkItem(1019276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019276")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyTypeNameDoesNotAddUnnecessaryParens()
         {
@@ -3240,7 +3240,7 @@ class Program
 }");
         }
 
-        [WorkItem(1068445)]
+        [WorkItem(1068445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068445")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyTypeNameInPropertyLambda()
         {
@@ -3260,7 +3260,7 @@ class Program
 }");
         }
 
-        [WorkItem(1068445)]
+        [WorkItem(1068445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068445")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyTypeNameInMethodLambda()
         {
@@ -3274,7 +3274,7 @@ class Program
 }");
         }
 
-        [WorkItem(1068445)]
+        [WorkItem(1068445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068445")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyTypeNameInIndexerLambda()
         {

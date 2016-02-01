@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(correctSpan, vbTrivia3.Span);
         }
 
-        [Fact, WorkItem(824695, "DevDiv")]
+        [Fact, WorkItem(824695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824695")]
         public void CSharpSyntax_VisualBasicKind()
         {
             var node = CSharp.SyntaxFactory.Identifier("a");
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(VB.SyntaxKind.None, VisualBasic.VisualBasicExtensions.Kind(trivia));
         }
 
-        [Fact, WorkItem(824695, "DevDiv")]
+        [Fact, WorkItem(824695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824695")]
         public void VisualBasicSyntax_CSharpKind()
         {
             var node = VisualBasic.SyntaxFactory.Identifier("a");

@@ -5099,7 +5099,7 @@ class UsePia5
             CompileAndVerify(compilation4, verify: false);
         }
 
-        [Fact, WorkItem(611578, "DevDiv")]
+        [Fact, WorkItem(611578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611578")]
         public void Bug611578()
         {
             string IEvent_cs = @"
@@ -5320,7 +5320,7 @@ E02");
             }
         }
 
-        [Fact, WorkItem(651240, "DevDiv")]
+        [Fact, WorkItem(651240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651240")]
         public void Bug651240()
         {
             string pia = @"
@@ -5378,7 +5378,7 @@ namespace NoPiaTestApp
             VerifyEmitDiagnostics(compilation2, false, expected, expectedMEtadataOnly);
         }
 
-        [Fact, WorkItem(651408, "DevDiv")]
+        [Fact, WorkItem(651408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651408")]
         public void Bug651408()
         {
             string pia = @"
@@ -5492,7 +5492,7 @@ namespace NetImplNS2
             VerifyEmitDiagnostics(compilation2, true, expected);
         }
 
-        [Fact, WorkItem(673546, "DevDiv")]
+        [Fact, WorkItem(673546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673546")]
         public void MissingComAwareEventInfo()
         {
             string pia = @"

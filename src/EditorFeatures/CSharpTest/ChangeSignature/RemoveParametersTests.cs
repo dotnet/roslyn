@@ -178,7 +178,7 @@ public class DP20<T>
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        [WorkItem(1102830)]
+        [WorkItem(1102830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1102830")]
         [WorkItem(784, "https://github.com/dotnet/roslyn/issues/784")]
         public async Task RemoveParameters_ExtensionMethodInAnotherFile()
         {

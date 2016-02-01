@@ -661,7 +661,7 @@ public class DATest : DATestBase {
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"));
         }
 
-        [WorkItem(529602, "DevDiv")]
+        [WorkItem(529602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529602")]
         [Fact]
         public void DoWhileStatement()
         {
@@ -757,7 +757,7 @@ public class DATest : DATestBase {
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"));
         }
 
-        [WorkItem(529602, "DevDiv")]
+        [WorkItem(529602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529602")]
         [Fact]
         public void UnreachableDoWhileCondition()
         {
@@ -1529,7 +1529,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "("));
         }
 
-        [WorkItem(648107, "DevDiv")]
+        [WorkItem(648107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648107")]
         [Fact]
         public void WhidbeyBug479106()
         {
@@ -1582,7 +1582,7 @@ class C
             CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
-        [WorkItem(529603, "DevDiv")]
+        [WorkItem(529603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529603")]
         [Fact]
         public void TernaryOperator()
         {
@@ -1968,7 +1968,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"));
         }
 
-        [Fact, WorkItem(529603, "DevDiv")]
+        [Fact, WorkItem(529603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529603")]
         public void IfConditionalAnd()
         {
             var source = @"
@@ -1999,7 +1999,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x"));
         }
 
-        [WorkItem(545352, "DevDiv")]
+        [WorkItem(545352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545352")]
         [Fact]
         public void UseDefViolationInDelegateInSwitchWithGoto()
         {

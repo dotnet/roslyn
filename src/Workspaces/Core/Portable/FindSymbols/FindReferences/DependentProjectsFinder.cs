@@ -21,14 +21,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal static class DependentProjectsFinder
     {
+        /// <summary>
+        /// A helper struct used for keying in <see cref="s_dependentProjectsCache"/>.
+        /// </summary>
         private struct DefinitionProject
         {
-            private readonly bool _isSourceProject;
+            private readonly ProjectId _sourceProjectId;
             private readonly string _assemblyName;
 
-            public DefinitionProject(bool isSourceProject, string assemblyName)
+            public DefinitionProject(ProjectId sourceProjectId, string assemblyName)
             {
-                _isSourceProject = isSourceProject;
+                _sourceProjectId = sourceProjectId;
                 _assemblyName = assemblyName;
             }
         }
@@ -155,7 +158,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 // We cache the dependent projects for non-private symbols, check in the cache first.
                 ConcurrentDictionary<DefinitionProject, IEnumerable<DependentProject>> dependentProjectsMap = s_dependentProjectsCache.GetValue(solution, s_createDependentProjectsMapCallback);
-                var key = new DefinitionProject(isSourceProject: sourceProject != null, assemblyName: containingAssembly.Name.ToLower());
+                var key = new DefinitionProject(sourceProjectId: sourceProject?.Id, assemblyName: containingAssembly.Name.ToLower());
 
                 if (!dependentProjectsMap.TryGetValue(key, out dependentProjects))
                 {

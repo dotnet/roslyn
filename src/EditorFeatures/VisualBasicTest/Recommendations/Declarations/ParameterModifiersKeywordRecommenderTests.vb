@@ -136,25 +136,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Shared Operator &amp;(i As Integer, |</ClassDeclaration>, "ByVal")
         End Function
 
-        <WorkItem(529209)>
+        <WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OnlyByValForPropertyAccessorTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(<PropertyDeclaration>Set(| value As String)</PropertyDeclaration>, "ByVal")
         End Function
 
-        <WorkItem(529209)>
+        <WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OnlyByValForAddHandlerAccessorTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(<CustomEventDeclaration>AddHandler(| value As EventHandler)</CustomEventDeclaration>, "ByVal")
         End Function
 
-        <WorkItem(529209)>
+        <WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OnlyByValForRemoveHandlerAccessorTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(<CustomEventDeclaration>RemoveHandler(| value As EventHandler)</CustomEventDeclaration>, "ByVal")
         End Function
 
-        <WorkItem(529209)>
+        <WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OnlyByValForRemoveHandlerWhenAllAccessorsPresentTest() As Task
             Dim code =
@@ -173,13 +173,13 @@ End Class
             Await VerifyRecommendationsAreExactlyAsync(code, "ByVal")
         End Function
 
-        <WorkItem(529209)>
+        <WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OnlyByValForRaiseEventHandlerAccessorTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(<CustomEventDeclaration>RaiseEvent(| sender As Object, e As EventArgs)</CustomEventDeclaration>, "ByVal")
         End Function
 
-        <WorkItem(529209)>
+        <WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OnlyByValForRaiseEventHandlerWhenAllAccessorsPresentTest() As Task
             Dim code =
@@ -198,7 +198,7 @@ End Class
             Await VerifyRecommendationsAreExactlyAsync(code, "ByVal")
         End Function
 
-        <WorkItem(530953)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AfterLineContinuationTest() As Task
             Await VerifyRecommendationsContainAsync(
