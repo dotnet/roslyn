@@ -237,6 +237,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 SnapshotSpan range,
                 CancellationToken cancellationToken)
             {
+                this.AssertIsForeground();
+
                 if (_owner._codeFixService != null && supportsFeatureService.SupportsCodeFixes(document) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
                 {
@@ -245,14 +247,58 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var includeSuppressionFixes = requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Any);
 
                     var fixes = Task.Run(
-                        async () => await _owner._codeFixService.GetFixesAsync(
-                            document, range.Span.ToTextSpan(), includeSuppressionFixes, cancellationToken).ConfigureAwait(false),
+                        async () =>
+                        {
+                            var stream = await _owner._codeFixService.GetFixesAsync(
+                                document, range.Span.ToTextSpan(), includeSuppressionFixes, cancellationToken).ConfigureAwait(false);
+                            return stream.ToList();
+                        },
                         cancellationToken).WaitAndGetResult(cancellationToken);
 
-                    return OrganizeFixes(workspace, fixes, hasSuppressionFixes: includeSuppressionFixes);
+                    var filteredFixes = FilterOnUIThread(fixes, workspace, cancellationToken);
+
+                    return OrganizeFixes(workspace, filteredFixes, hasSuppressionFixes: includeSuppressionFixes);
                 }
 
                 return null;
+            }
+
+            private List<CodeFixCollection> FilterOnUIThread(
+                List<CodeFixCollection> collections, Workspace workspace, CancellationToken cancellationToken)
+            {
+                this.AssertIsForeground();
+                return collections.Select(c => FilterOnUIThread(c, workspace, cancellationToken)).WhereNotNull().ToList();
+            }
+
+            private CodeFixCollection FilterOnUIThread(CodeFixCollection collection, Workspace workspace, CancellationToken cancellationToken)
+            {
+                this.AssertIsForeground();
+
+                var applicableFixes = collection.Fixes.Where(f => f.Action.IsApplicable(workspace, cancellationToken)).ToList();
+                return applicableFixes.Count == 0
+                    ? null
+                    : applicableFixes.Count == collection.Fixes.Length
+                        ? collection
+                        : new CodeFixCollection(collection.Provider, collection.TextSpan, applicableFixes, collection.FixAllContext);
+            }
+
+            private List<CodeRefactoring> FilterOnUIThread(
+                List<CodeRefactoring> refactorings, Workspace workspace, CancellationToken cancellationToken)
+            {
+                this.AssertIsForeground();
+                return refactorings.Select(r => FilterOnUIThread(r, workspace, cancellationToken)).WhereNotNull().ToList();
+            }
+
+            private CodeRefactoring FilterOnUIThread(CodeRefactoring refactoring, Workspace workspace, CancellationToken cancellationToken)
+            {
+                this.AssertIsForeground();
+
+                var actions = refactoring.Actions.Where(a => a.IsApplicable(workspace, cancellationToken)).ToList();
+                return actions.Count == 0
+                    ? null
+                    : actions.Count == refactoring.Actions.Count
+                        ? refactoring
+                        : new CodeRefactoring(refactoring.Provider, actions);
             }
 
             /// <summary>
@@ -390,6 +436,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 SnapshotSpan range,
                 CancellationToken cancellationToken)
             {
+                this.AssertIsForeground();
+
                 var optionService = workspace.Services.GetService<IOptionService>();
 
                 if (optionService.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
@@ -407,11 +455,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     }
 
                     var refactorings = Task.Run(
-                        async () => await _owner._codeRefactoringService.GetRefactoringsAsync(
-                            document, selection.Value, cancellationToken).ConfigureAwait(false),
+                        async () =>
+                        {
+                            var stream = await _owner._codeRefactoringService.GetRefactoringsAsync(
+                                document, selection.Value, cancellationToken).ConfigureAwait(false);
+                            return stream.ToList();
+                        },
                         cancellationToken).WaitAndGetResult(cancellationToken);
 
-                    return refactorings.Select(r => OrganizeRefactorings(workspace, r));
+                    var filteredRefactorings = FilterOnUIThread(refactorings, workspace, cancellationToken);
+                    return filteredRefactorings.Select(r => OrganizeRefactorings(workspace, r));
                 }
 
                 return null;
