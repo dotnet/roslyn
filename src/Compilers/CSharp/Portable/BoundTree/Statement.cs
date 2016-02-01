@@ -25,7 +25,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundBlock : IBlockStatement
     {
-        ImmutableArray<IStatement> IBlockStatement.Statements => this.Statements.As<IStatement>();
+        private static readonly ConditionalWeakTable<BoundBlock, object> s_blockStatementsMappings =
+            new ConditionalWeakTable<BoundBlock, object>();
+
+        ImmutableArray<IStatement> IBlockStatement.Statements
+        {
+            get
+            {
+                return (ImmutableArray<IStatement>) s_blockStatementsMappings.GetValue(this,
+                    blockStatement => { return blockStatement.Statements.AsImmutable<IStatement>().WhereAsArray(statement => statement.Kind != OperationKind.None); }
+                    );
+            }
+        }
 
         ImmutableArray<ILocalSymbol> IBlockStatement.Locals => this.Locals.As<ILocalSymbol>();
 

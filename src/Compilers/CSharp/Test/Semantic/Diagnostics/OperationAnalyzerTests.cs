@@ -1196,5 +1196,47 @@ class C
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NoneOperationTestAnalyzer() }, null, null, false);
         }
+
+        [Fact]
+        public void LambdaExpressionCSharp()
+        {
+            const string source = @"
+using System;
+
+class B
+{
+    public void M0()
+    {
+        Action<int> action1 = input => { };
+        Action<int> action2 = input => input++;
+        Func<int,bool> func1 = input => { input++; input++; if (input > 0) return true; return false; };
+    }
+}
+
+public delegate void MumbleEventHandler(object sender, System.EventArgs args);
+
+class C
+{
+    public event MumbleEventHandler Mumble;
+
+    public void OnMumble(System.EventArgs args)
+    {
+        Mumble += new MumbleEventHandler((s, e) => { });
+        Mumble += (s, e) => { int i = 0; i++; i++; i++; };
+        Mumble(this, args);
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new LambdaTestAnalyzer() }, null, null, false,
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "input => { }").WithLocation(8, 31),
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "input => input++").WithLocation(9, 31),
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "input => { input++; input++; if (input > 0) return true; return false; }").WithLocation(10, 32),
+                Diagnostic(LambdaTestAnalyzer.TooManyStatementsInLambdaExpressionDescriptor.Id, "input => { input++; input++; if (input > 0) return true; return false; }").WithLocation(10, 32),
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "(s, e) => { }").WithLocation(22, 42),
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "(s, e) => { int i = 0; i++; i++; i++; }").WithLocation(23, 19),
+                Diagnostic(LambdaTestAnalyzer.TooManyStatementsInLambdaExpressionDescriptor.Id, "(s, e) => { int i = 0; i++; i++; i++; }").WithLocation(23, 19));
+        }
     }
 }
