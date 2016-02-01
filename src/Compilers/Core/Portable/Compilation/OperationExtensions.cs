@@ -16,28 +16,27 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         public static IEnumerable<IOperation> Descendants(this IOperation operation)
         {
-            var searchable = operation as IOperationSearchable;
-            if (searchable != null)
-            {
-                return searchable.Descendants();
-            }
-            else
+            if (operation == null)
             {
                 return SpecializedCollections.EmptyEnumerable<IOperation>();
             }
+            var list = new List<IOperation>();
+            var collector = new OperationCollector(list);
+            collector.Visit(operation);
+            list.RemoveAt(0);
+            return list;
         }
 
         public static IEnumerable<IOperation> DescendantsAndSelf(this IOperation operation)
         {
-            var searchable = operation as IOperationSearchable;
-            if (searchable != null)
-            {
-                return searchable.DescendantsAndSelf();
-            }
-            else
+            if (operation == null)
             {
                 return SpecializedCollections.EmptyEnumerable<IOperation>();
             }
+            var list = new List<IOperation>();
+            var collector = new OperationCollector(list);
+            collector.Visit(operation);
+            return list;
         }
 
         public static IOperation GetRootOperation(this ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken))
@@ -50,6 +49,25 @@ namespace Microsoft.CodeAnalysis.Semantics
             else
             {
                 return null;
+            }
+        }
+
+        private sealed class OperationCollector : OperationWalker
+        {
+            private readonly List<IOperation> _list;
+
+            public OperationCollector(List<IOperation> list)
+            {
+                _list = list;
+            }
+
+            public override void Visit(IOperation operation)
+            {
+                if (operation != null)
+                {
+                    _list.Add(operation);
+                }
+                base.Visit(operation);
             }
         }
     }
