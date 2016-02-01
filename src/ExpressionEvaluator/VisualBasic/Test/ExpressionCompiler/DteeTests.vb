@@ -116,24 +116,26 @@ End Namespace
         Public Sub DteeEntryPointImportsIgnored()
             Dim comp = CreateCompilationWithMscorlib({s_dteeEntryPointSource}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
 
-            Dim runtimeInstance = CreateRuntimeInstance(comp, {MscorlibRef})
-            Dim lazyAssemblyReaders = MakeLazyAssemblyReaders(runtimeInstance)
+            WithRuntimeInstance(comp, {MscorlibRef},
+                Sub(runtime)
+                    Dim lazyAssemblyReaders = MakeLazyAssemblyReaders(runtime)
 
-            Dim evalContext = CreateMethodContext(runtimeInstance, s_dteeEntryPointName, lazyAssemblyReaders:=lazyAssemblyReaders)
-            Dim compContext = evalContext.CreateCompilationContext(MakeDummySyntax())
+                    Dim evalContext = CreateMethodContext(runtime, s_dteeEntryPointName, lazyAssemblyReaders:=lazyAssemblyReaders)
+                    Dim compContext = evalContext.CreateCompilationContext(MakeDummySyntax())
 
-            Dim rootNamespace As NamespaceSymbol = Nothing
-            Dim currentNamespace As NamespaceSymbol = Nothing
-            Dim typesAndNamespaces As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition) = Nothing
-            Dim aliases As Dictionary(Of String, AliasAndImportsClausePosition) = Nothing
-            Dim xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
-            ImportsDebugInfoTests.GetImports(compContext, rootNamespace, currentNamespace, typesAndNamespaces, aliases, xmlNamespaces)
+                    Dim rootNamespace As NamespaceSymbol = Nothing
+                    Dim currentNamespace As NamespaceSymbol = Nothing
+                    Dim typesAndNamespaces As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition) = Nothing
+                    Dim aliases As Dictionary(Of String, AliasAndImportsClausePosition) = Nothing
+                    Dim xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
+                    ImportsDebugInfoTests.GetImports(compContext, rootNamespace, currentNamespace, typesAndNamespaces, aliases, xmlNamespaces)
 
-            Assert.Equal("", rootNamespace.Name)
-            Assert.Equal("", currentNamespace.Name)
-            Assert.True(typesAndNamespaces.IsDefault)
-            Assert.Null(aliases)
-            Assert.Null(xmlNamespaces)
+                    Assert.Equal("", rootNamespace.Name)
+                    Assert.Equal("", currentNamespace.Name)
+                    Assert.True(typesAndNamespaces.IsDefault)
+                    Assert.Null(aliases)
+                    Assert.Null(xmlNamespaces)
+                End Sub)
         End Sub
 
         <Fact>
@@ -211,12 +213,13 @@ End Namespace
         <Fact>
         Public Sub ImportStrings_NoMethods()
             Dim comp = CreateCompilationWithMscorlib({""}, {MsvbRef}, options:=TestOptions.DebugDll.WithRootNamespace("root"), assemblyName:=GetUniqueName())
-            Dim runtimeInstance = CreateRuntimeInstance(comp, {MscorlibRef, MsvbRef})
-
-            ' Since there are no methods in the assembly, there is no import custom debug info, so we
-            ' have no way to find the root namespace.
-            Dim methodDebugInfo = EvaluationContext.SynthesizeMethodDebugInfoForDtee(MakeAssemblyReaders(runtimeInstance))
-            CheckDteeMethodDebugInfo(methodDebugInfo)
+            WithRuntimeInstance(comp, {MscorlibRef, MsvbRef},
+                Sub(runtime)
+                    ' Since there are no methods in the assembly, there is no import custom debug info, so we
+                    ' have no way to find the root namespace.
+                    Dim methodDebugInfo = EvaluationContext.SynthesizeMethodDebugInfoForDtee(MakeAssemblyReaders(runtime))
+                    CheckDteeMethodDebugInfo(methodDebugInfo)
+                End Sub)
         End Sub
 
         <Fact>

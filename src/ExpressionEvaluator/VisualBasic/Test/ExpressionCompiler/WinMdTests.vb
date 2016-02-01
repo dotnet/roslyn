@@ -36,13 +36,13 @@ End Class"
             Assert.True(runtimeAssemblies.Length >= 2)
 
             ' no reference to Windows.winmd
-            Dim runtime = CreateRuntimeInstance(comp, {MscorlibRef}.Concat(runtimeAssemblies))
-
-            Dim context = CreateMethodContext(runtime, "C.M")
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("If(p Is Nothing, f, Nothing)", errorMessage, testData)
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            WithRuntimeInstance(comp, {MscorlibRef}.Concat(runtimeAssemblies),
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("If(p Is Nothing, f, Nothing)", errorMessage, testData)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size        7 (0x7)
   .maxstack  1
@@ -53,6 +53,7 @@ End Class"
   IL_0005:  ldarg.0
   IL_0006:  ret
 }")
+                End Sub)
         End Sub
 
         <Fact>
@@ -116,14 +117,15 @@ End Class"
     End Sub
 End Class"
             Dim c0 = CreateCompilationWithMscorlib({source}, compileReferences, TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(c0, runtimeReferences)
-            Dim context = CreateMethodContext(runtime, "C.M")
+            WithRuntimeInstance(c0, runtimeReferences,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
 
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("If(a, If(b, If(t, f)))", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("If(a, If(b, If(t, f)))", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       17 (0x11)
   .maxstack  2
@@ -142,39 +144,41 @@ End Class"
   IL_000f:  ldarg.3
   IL_0010:  ret
 }")
-            testData = New CompilationTestData()
-            Dim result = context.CompileExpression("f", errorMessage, testData)
-            Assert.Null(errorMessage)
-            Dim methodData = testData.GetMethodData("<>x.<>m0")
-            methodData.VerifyIL(
+                    testData = New CompilationTestData()
+                    Dim result = context.CompileExpression("f", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    Dim methodData = testData.GetMethodData("<>x.<>m0")
+                    methodData.VerifyIL(
 "{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.3
   IL_0001:  ret
 }")
-            ' Check return type is from runtime assembly.
-            Dim assemblyReference = AssemblyMetadata.CreateFromImage(result.Assembly).GetReference()
-            Dim comp = VisualBasicCompilation.Create(
-                assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
-                references:=runtimeReferences.Concat(ImmutableArray.Create(Of MetadataReference)(assemblyReference)))
+                    ' Check return type is from runtime assembly.
+                    Dim assemblyReference = AssemblyMetadata.CreateFromImage(result.Assembly).GetReference()
+                    Dim comp = VisualBasicCompilation.Create(
+                        assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
+                        references:=runtimeReferences.Concat(ImmutableArray.Create(Of MetadataReference)(assemblyReference)))
 
-            Using metadata = ModuleMetadata.CreateFromImage(result.Assembly)
-                Dim reader = metadata.MetadataReader
-                Dim typeDef = reader.GetTypeDef("<>x")
-                Dim methodHandle = reader.GetMethodDefHandle(typeDef, "<>m0")
-                Dim [module] = DirectCast(comp.GetMember("<>x").ContainingModule, PEModuleSymbol)
-                Dim metadataDecoder = New MetadataDecoder([module])
-                Dim signatureHeader As SignatureHeader = Nothing
-                Dim metadataException As BadImageFormatException = Nothing
-                Dim parameters = metadataDecoder.GetSignatureForMethod(methodHandle, signatureHeader, metadataException)
-                Assert.Equal(parameters.Length, 5)
-                Dim actualReturnType = parameters(0).Type
-                Assert.Equal(actualReturnType.TypeKind, TypeKind.Class) ' not error
-                Dim expectedReturnType = comp.GetMember("Windows.Storage.StorageFolder")
-                Assert.Equal(expectedReturnType, actualReturnType)
-                Assert.Equal(storageAssemblyName, actualReturnType.ContainingAssembly.Name)
-            End Using
+                    Using metadata = ModuleMetadata.CreateFromImage(result.Assembly)
+                        Dim reader = metadata.MetadataReader
+                        Dim typeDef = reader.GetTypeDef("<>x")
+                        Dim methodHandle = reader.GetMethodDefHandle(typeDef, "<>m0")
+                        Dim [module] = DirectCast(comp.GetMember("<>x").ContainingModule, PEModuleSymbol)
+                        Dim metadataDecoder = New MetadataDecoder([module])
+                        Dim signatureHeader As SignatureHeader = Nothing
+                        Dim metadataException As BadImageFormatException = Nothing
+                        Dim parameters = metadataDecoder.GetSignatureForMethod(methodHandle, signatureHeader, metadataException)
+                        Assert.Equal(parameters.Length, 5)
+                        Dim actualReturnType = parameters(0).Type
+                        Assert.Equal(actualReturnType.TypeKind, TypeKind.Class) ' not error
+                        Dim expectedReturnType = comp.GetMember("Windows.Storage.StorageFolder")
+                        Assert.Equal(expectedReturnType, actualReturnType)
+                        Assert.Equal(storageAssemblyName, actualReturnType.ContainingAssembly.Name)
+                    End Using
+
+                End Sub)
         End Sub
 
         ''' <summary>
@@ -192,21 +196,22 @@ End Class"
 
             Dim comp = CreateCompilationWithMscorlib({source}, WinRtRefs, TestOptions.DebugDll)
             Dim runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage", "Windows.Foundation.Collections")
-            Dim runtime = CreateRuntimeInstance(comp, {MscorlibRef}.Concat(runtimeAssemblies))
-            Dim context = CreateMethodContext(runtime, "C.M")
+            WithRuntimeInstance(comp, {MscorlibRef}.Concat(runtimeAssemblies),
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
 
-            Dim aliases = ImmutableArray.Create(
-                VariableAlias("s", "Windows.Storage.StorageFolder, Windows.Storage, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"),
-                VariableAlias("d", "Windows.Foundation.DateTime, Windows.Foundation, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"))
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression(
-                "If(DirectCast(s.Attributes, Object), d.UniversalTime)",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                errorMessage,
-                testData)
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+                    Dim aliases = ImmutableArray.Create(
+                        VariableAlias("s", "Windows.Storage.StorageFolder, Windows.Storage, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"),
+                        VariableAlias("d", "Windows.Foundation.DateTime, Windows.Foundation, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"))
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression(
+                        "If(DirectCast(s.Attributes, Object), d.UniversalTime)",
+                        DkmEvaluationFlags.TreatAsExpression,
+                        aliases,
+                        errorMessage,
+                        testData)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       55 (0x37)
   .maxstack  2
@@ -225,6 +230,8 @@ End Class"
   IL_0031:  box        ""Long""
   IL_0036:  ret
 }")
+
+                End Sub)
         End Sub
 
         Private Shared Function ToVersion1_3(bytes As Byte()) As Byte()
