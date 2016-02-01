@@ -1,44 +1,9 @@
-Microsoft.CodeAnalysis.Scripting.CompilationErrorException
-Microsoft.CodeAnalysis.Scripting.CompilationErrorException.CompilationErrorException(string message, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics) -> void
-Microsoft.CodeAnalysis.Scripting.CompilationErrorException.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
-Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals
-Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.Args.get -> System.Collections.Generic.IList<string>
-Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.CommandLineScriptGlobals(System.IO.TextWriter outputWriter, Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter objectFormatter) -> void
-Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.Print(object value) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.PrintOptions.get -> Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions
-Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy
-Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy.FullPath.get -> string
-Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy.OriginalPath.get -> string
-Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader
-Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader.Dispose() -> void
-Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader.InteractiveAssemblyLoader(Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider shadowCopyProvider = null) -> void
-Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader.RegisterDependency(Microsoft.CodeAnalysis.AssemblyIdentity dependency, string path) -> void
-Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader.RegisterDependency(System.Reflection.Assembly dependency) -> void
-Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals
-Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.Args.get -> System.Collections.Generic.IList<string>
-Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.InteractiveScriptGlobals(System.IO.TextWriter outputWriter, Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter objectFormatter) -> void
-Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.Print(object value) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.PrintOptions.get -> Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions
-Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.ReferencePaths.get -> System.Collections.Generic.IList<string>
-Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.SourcePaths.get -> System.Collections.Generic.IList<string>
 Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat
 Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat.Hidden = 2 -> Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat
 Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat.SeparateLines = 1 -> Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat
 Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat.SingleLine = 0 -> Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat
-Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopy
-Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopy.DocumentationFile.get -> Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy
-Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopy.Metadata.get -> Microsoft.CodeAnalysis.Metadata
-Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopy.PrimaryModule.get -> Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy
-Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider
-Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.Dispose() -> void
-Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.GetMetadata(string fullPath, Microsoft.CodeAnalysis.MetadataImageKind kind) -> Microsoft.CodeAnalysis.Metadata
-Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.GetMetadataShadowCopy(string fullPath, Microsoft.CodeAnalysis.MetadataImageKind kind) -> Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopy
-Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.IsShadowCopy(string fullPath) -> bool
-Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.MetadataShadowCopyProvider(string directory = null, System.Collections.Generic.IEnumerable<string> noShadowCopyDirectories = null, System.Globalization.CultureInfo documentationCommentsCulture = null) -> void
-Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.NeedsShadowCopy(string fullPath) -> bool
-Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.SuppressShadowCopy(string originalPath) -> void
-Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter
-Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.FormatObject(object obj) -> string
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.Ellipsis.get -> string
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.Ellipsis.set -> void
@@ -50,88 +15,6 @@ Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.MemberDisplayFormat.get ->
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.MemberDisplayFormat.set -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.NumberRadix.get -> int
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.NumberRadix.set -> void
-Microsoft.CodeAnalysis.Scripting.Script
-Microsoft.CodeAnalysis.Scripting.Script.Code.get -> string
-Microsoft.CodeAnalysis.Scripting.Script.Compile(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
-Microsoft.CodeAnalysis.Scripting.Script.ContinueWith(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null) -> Microsoft.CodeAnalysis.Scripting.Script<object>
-Microsoft.CodeAnalysis.Scripting.Script.ContinueWith<TResult>(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null) -> Microsoft.CodeAnalysis.Scripting.Script<TResult>
-Microsoft.CodeAnalysis.Scripting.Script.GetCompilation() -> Microsoft.CodeAnalysis.Compilation
-Microsoft.CodeAnalysis.Scripting.Script.GlobalsType.get -> System.Type
-Microsoft.CodeAnalysis.Scripting.Script.Options.get -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.Script.Previous.get -> Microsoft.CodeAnalysis.Scripting.Script
-Microsoft.CodeAnalysis.Scripting.Script.RunAsync(object globals = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState>
-Microsoft.CodeAnalysis.Scripting.Script.WithOptions(Microsoft.CodeAnalysis.Scripting.ScriptOptions options) -> Microsoft.CodeAnalysis.Scripting.Script
-Microsoft.CodeAnalysis.Scripting.Script<T>
-Microsoft.CodeAnalysis.Scripting.Script<T>.CreateDelegate(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Scripting.ScriptRunner<T>
-Microsoft.CodeAnalysis.Scripting.Script<T>.RunAsync(object globals = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<T>>
-Microsoft.CodeAnalysis.Scripting.Script<T>.WithOptions(Microsoft.CodeAnalysis.Scripting.ScriptOptions options) -> Microsoft.CodeAnalysis.Scripting.Script<T>
-Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver
-Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.BaseDirectory.get -> string
-Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.Equals(Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver other) -> bool
-Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.SearchPaths.get -> System.Collections.Immutable.ImmutableArray<string>
-Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.WithBaseDirectory(string baseDirectory) -> Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver
-Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.WithSearchPaths(System.Collections.Generic.IEnumerable<string> searchPaths) -> Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver
-Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.WithSearchPaths(System.Collections.Immutable.ImmutableArray<string> searchPaths) -> Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver
-Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.WithSearchPaths(params string[] searchPaths) -> Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver
-Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.AddImports(System.Collections.Generic.IEnumerable<string> imports) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.AddImports(params string[] imports) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.AddReferences(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.AddReferences(System.Collections.Generic.IEnumerable<System.Reflection.Assembly> references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.AddReferences(System.Collections.Generic.IEnumerable<string> references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.AddReferences(params Microsoft.CodeAnalysis.MetadataReference[] references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.AddReferences(params System.Reflection.Assembly[] references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.AddReferences(params string[] references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.FilePath.get -> string
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.Imports.get -> System.Collections.Immutable.ImmutableArray<string>
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.MetadataReferences.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference>
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.MetadataResolver.get -> Microsoft.CodeAnalysis.MetadataReferenceResolver
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.SourceResolver.get -> Microsoft.CodeAnalysis.SourceReferenceResolver
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithFilePath(string filePath) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithImports(System.Collections.Generic.IEnumerable<string> imports) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithImports(params string[] imports) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithMetadataResolver(Microsoft.CodeAnalysis.MetadataReferenceResolver resolver) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithReferences(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithReferences(System.Collections.Generic.IEnumerable<System.Reflection.Assembly> references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithReferences(System.Collections.Generic.IEnumerable<string> references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithReferences(params Microsoft.CodeAnalysis.MetadataReference[] references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithReferences(params System.Reflection.Assembly[] references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithReferences(params string[] references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithSourceResolver(Microsoft.CodeAnalysis.SourceReferenceResolver resolver) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptRunner<T>
-Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver
-Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.Equals(Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver other) -> bool
-Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.WithBaseDirectory(string baseDirectory) -> Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver
-Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.WithSearchPaths(System.Collections.Generic.IEnumerable<string> searchPaths) -> Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver
-Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.WithSearchPaths(System.Collections.Immutable.ImmutableArray<string> searchPaths) -> Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver
-Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.WithSearchPaths(params string[] searchPaths) -> Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver
-Microsoft.CodeAnalysis.Scripting.ScriptState
-Microsoft.CodeAnalysis.Scripting.ScriptState.ContinueWithAsync(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<object>>
-Microsoft.CodeAnalysis.Scripting.ScriptState.ContinueWithAsync<TResult>(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<TResult>>
-Microsoft.CodeAnalysis.Scripting.ScriptState.GetVariable(string name) -> Microsoft.CodeAnalysis.Scripting.ScriptVariable
-Microsoft.CodeAnalysis.Scripting.ScriptState.ReturnValue.get -> object
-Microsoft.CodeAnalysis.Scripting.ScriptState.Script.get -> Microsoft.CodeAnalysis.Scripting.Script
-Microsoft.CodeAnalysis.Scripting.ScriptState.Variables.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Scripting.ScriptVariable>
-Microsoft.CodeAnalysis.Scripting.ScriptState<T>
-Microsoft.CodeAnalysis.Scripting.ScriptState<T>.ReturnValue.get -> T
-Microsoft.CodeAnalysis.Scripting.ScriptVariable
-Microsoft.CodeAnalysis.Scripting.ScriptVariable.IsReadOnly.get -> bool
-Microsoft.CodeAnalysis.Scripting.ScriptVariable.Name.get -> string
-Microsoft.CodeAnalysis.Scripting.ScriptVariable.Type.get -> System.Type
-Microsoft.CodeAnalysis.Scripting.ScriptVariable.Value.get -> object
-Microsoft.CodeAnalysis.Scripting.ScriptVariable.Value.set -> void
 abstract Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.FormatObject(object obj, Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions options) -> string
 abstract Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.FormatUnhandledException(System.Exception e) -> string
-abstract Microsoft.CodeAnalysis.Scripting.Script.ReturnType.get -> System.Type
-override Microsoft.CodeAnalysis.Scripting.Script<T>.ReturnType.get -> System.Type
-override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.Equals(object other) -> bool
-override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.GetHashCode() -> int
-override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.ResolveMissingAssemblies.get -> bool
-override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.ResolveMissingAssembly(Microsoft.CodeAnalysis.MetadataReference definition, Microsoft.CodeAnalysis.AssemblyIdentity referenceIdentity) -> Microsoft.CodeAnalysis.PortableExecutableReference
-override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.ResolveReference(string reference, string baseFilePath, Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.PortableExecutableReference>
-override Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.Equals(object obj) -> bool
-override Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.GetHashCode() -> int
-static Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.Default.get -> Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver
-static Microsoft.CodeAnalysis.Scripting.ScriptOptions.Default.get -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-static Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.Default.get -> Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver
 virtual Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.IsValidRadix(int radix) -> bool
