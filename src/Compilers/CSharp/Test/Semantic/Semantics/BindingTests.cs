@@ -3154,5 +3154,64 @@ static class Extension2
             Assert.False(symbols.Where(s => s.Name == "MathMax2").Any());
             Assert.False(symbols.Where(s => s.Name == "MathMax3").Any());
         }
+
+        [Fact, WorkItem(8234, "https://github.com/dotnet/roslyn/issues/8234")]
+        public void EventAccessInTypeNameContext()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main() {}
+
+    event System.EventHandler E1;
+
+    void Test(Program x)
+    {
+        System.Console.WriteLine();
+        x.E1.E
+        System.Console.WriteLine();
+    }
+
+    void Dummy()
+    {
+        E1 = null;
+        var x = E1;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+
+            comp.VerifyDiagnostics(
+    // (11,15): error CS1001: Identifier expected
+    //         x.E1.E
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(11, 15),
+    // (11,15): error CS1002: ; expected
+    //         x.E1.E
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 15),
+    // (11,9): error CS0118: 'x' is a variable but is used like a type
+    //         x.E1.E
+    Diagnostic(ErrorCode.ERR_BadSKknown, "x").WithArguments("x", "variable", "type").WithLocation(11, 9)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "E").Single().Parent;
+            Assert.Equal("x.E1.E", node1.ToString());
+            Assert.Equal(SyntaxKind.QualifiedName, node1.Kind());
+
+            var node2 = ((QualifiedNameSyntax)node1).Left;
+            Assert.Equal("x.E1", node2.ToString());
+
+            var symbolInfo2 = model.GetSymbolInfo(node2);
+            Assert.Null(symbolInfo2.Symbol);
+            Assert.Equal("event System.EventHandler Program.E1", symbolInfo2.CandidateSymbols.Single().ToTestDisplayString());
+            Assert.Equal(CandidateReason.NotATypeOrNamespace, symbolInfo2.CandidateReason);
+
+            var symbolInfo1 = model.GetSymbolInfo(node1);
+            Assert.Null(symbolInfo1.Symbol);
+            Assert.True(symbolInfo1.CandidateSymbols.IsEmpty);
+        }
     }
 }

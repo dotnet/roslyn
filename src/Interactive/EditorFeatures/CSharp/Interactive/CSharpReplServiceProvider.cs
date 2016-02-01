@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         {
         }
 
-        public override ObjectFormatter ObjectFormatter { get; } = new CSharpObjectFormatter();
+        public override ObjectFormatter ObjectFormatter { get; } = CSharpObjectFormatter.Instance;
         public override CommandLineParser CommandLineParser => CSharpCommandLineParser.ScriptRunner;
         public override DiagnosticFormatter DiagnosticFormatter => CSharpDiagnosticFormatter.Instance;
 

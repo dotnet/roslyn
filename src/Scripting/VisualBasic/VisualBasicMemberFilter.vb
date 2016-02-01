@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
         Inherits CommonMemberFilter
 
         Protected Overrides Function IsGeneratedMemberName(name As String) As Boolean
-            ' TODO (tomat)
+            ' TODO (https://github.com/dotnet/roslyn/issues/8241)
             Return MyBase.IsGeneratedMemberName(name)
         End Function
     End Class

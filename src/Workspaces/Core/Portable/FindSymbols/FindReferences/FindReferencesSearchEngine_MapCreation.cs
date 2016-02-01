@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(FunctionId.FindReference_DetermineAllSymbolsAsync, _cancellationToken))
             {
-                var result = new ConcurrentSet<ISymbol>(SymbolEquivalenceComparer.Instance);
+                var result = new ConcurrentSet<ISymbol>(MetadataUnifyingEquivalenceComparer.Instance);
                 await DetermineAllSymbolsCoreAsync(symbol, result).ConfigureAwait(false);
                 return result;
             }

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         protected abstract CommonTypeNameFormatter TypeNameFormatter { get; }
         protected abstract CommonPrimitiveFormatter PrimitiveFormatter { get; }
 
-        internal virtual BuilderOptions GetInternalBuilderOptions(PrintOptions printOptions) =>
+        protected virtual BuilderOptions GetInternalBuilderOptions(PrintOptions printOptions) =>
             new BuilderOptions(
                 indentation: "  ",
                 newLine: Environment.NewLine,
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// Returns a method signature display string. Used to display stack frames.
         /// </summary>
         /// <returns>Null if the method is a compiler generated method that shouldn't be displayed to the user.</returns>
-        internal virtual string FormatMethodSignature(MethodBase method)
+        protected virtual string FormatMethodSignature(MethodBase method)
         {
             var pooled = PooledStringBuilder.GetInstance();
             var builder = pooled.Builder;

@@ -25,24 +25,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
-            this INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            CancellationToken cancellationToken)
-        {
-            return DependentTypeFinder.FindDerivedClassesAsync(type, solution, projects, cancellationToken);
-        }
-
-        public static Task<IEnumerable<INamedTypeSymbol>> FindImplementingTypesAsync(
-            this INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            CancellationToken cancellationToken)
-        {
-            return DependentTypeFinder.FindImplementingTypesAsync(type, solution, projects, cancellationToken);
-        }
-
         public static IEnumerable<ITypeParameterSymbol> GetAllTypeParameters(this INamedTypeSymbol symbol)
         {
             var stack = GetContainmentStack(symbol);
