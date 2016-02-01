@@ -7,8 +7,8 @@ Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
-Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
@@ -160,7 +160,7 @@ End Class"
                         diagnostics:=diagnostics,
                         typeName:=typeName,
                         testData:=testData)
-                    Assert.Equal(7, locals.Count)
+            Assert.Equal(6, locals.Count)
                     VerifyLocal(testData, typeName, locals(0), "<>m0", "$exception", "Error", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
 "{
   // Code size       11 (0xb)
@@ -178,15 +178,16 @@ End Class"
   IL_0006:  castclass  ""String""
   IL_000b:  ret
 }")
-                    VerifyLocal(testData, typeName, locals(2), "<>m2", "$ReturnValue", "Method M returned", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
-"{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldc.i4.0
-  IL_0001:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(Integer) As Object""
-  IL_0006:  ret
-}")
-                    VerifyLocal(testData, typeName, locals(3), "<>m3", "$2", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+                    ' $ReturnValue is suppressed since it always matches the last $ReturnValueN
+                    '            VerifyLocal(testData, typeName, locals(2), "<>m2", "$ReturnValue", "Method M returned", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+                    '"{
+                    '  // Code size        7 (0x7)
+                    '  .maxstack  1
+                    '  IL_0000:  ldc.i4.0
+                    '  IL_0001:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(Integer) As Object""
+                    '  IL_0006:  ret
+                    '}")
+                    VerifyLocal(testData, typeName, locals(2), "<>m2", "$2", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
 "{
   // Code size       16 (0x10)
   .maxstack  1
@@ -195,7 +196,7 @@ End Class"
   IL_000a:  unbox.any  ""Boolean""
   IL_000f:  ret
 }")
-                    VerifyLocal(testData, typeName, locals(4), "<>m4", "o", expectedILOpt:=
+                    VerifyLocal(testData, typeName, locals(3), "<>m3", "o", expectedILOpt:=
 "{
   // Code size       16 (0x10)
   .maxstack  1
@@ -204,14 +205,14 @@ End Class"
   IL_000a:  castclass  ""C""
   IL_000f:  ret
 }")
-                    VerifyLocal(testData, typeName, locals(5), "<>m5", "Me", expectedILOpt:=
+                    VerifyLocal(testData, typeName, locals(4), "<>m4", "Me", expectedILOpt:=
 "{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ret
 }")
-                    VerifyLocal(testData, typeName, locals(6), "<>m6", "o", expectedILOpt:=
+                    VerifyLocal(testData, typeName, locals(5), "<>m5", "o", expectedILOpt:=
 "{
   // Code size        2 (0x2)
   .maxstack  1
@@ -219,6 +220,11 @@ End Class"
   IL_0001:  ret
 }")
                     locals.Free()
+                    
+                    ' Confirm that the Watch window is unaffected by the filtering in the Locals window.
+                    Dim errorString As String = Nothing
+                    context.CompileExpression("$ReturnValue", DkmEvaluationFlags.TreatAsExpression, aliases, errorString)
+                    Assert.Null(errorString)
                 End Sub)
         End Sub
 

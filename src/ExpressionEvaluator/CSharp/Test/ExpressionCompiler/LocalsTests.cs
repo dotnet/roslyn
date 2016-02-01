@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
+using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     typeName: out typeName,
                     testData: testData);
                 diagnostics.Free();
-                Assert.Equal(locals.Count, 7);
+                Assert.Equal(locals.Count, 6);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "$exception", "Error", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
 @"{
   // Code size       11 (0xb)
@@ -262,15 +262,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0006:  castclass  ""string""
   IL_000b:  ret
 }");
-                VerifyLocal(testData, typeName, locals[2], "<>m2", "$ReturnValue", "Method M returned", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
-@"{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldc.i4.0
-  IL_0001:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(int)""
-  IL_0006:  ret
-}");
-                VerifyLocal(testData, typeName, locals[3], "<>m3", "$2", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
+                // $ReturnValue is suppressed since it always matches the last $ReturnValueN
+//                VerifyLocal(testData, typeName, locals[2], "<>m2", "$ReturnValue", "Method M returned", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
+//@"{
+//  // Code size        7 (0x7)
+//  .maxstack  1
+//  IL_0000:  ldc.i4.0
+//  IL_0001:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(int)""
+//  IL_0006:  ret
+//}");
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "$2", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
 @"{
   // Code size       16 (0x10)
   .maxstack  1
@@ -279,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_000a:  unbox.any  ""bool""
   IL_000f:  ret
 }");
-                VerifyLocal(testData, typeName, locals[4], "<>m4", "o", expectedILOpt:
+                VerifyLocal(testData, typeName, locals[3], "<>m3", "o", expectedILOpt:
 @"{
   // Code size       16 (0x10)
   .maxstack  1
@@ -288,14 +289,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_000a:  castclass  ""C""
   IL_000f:  ret
 }");
-                VerifyLocal(testData, typeName, locals[5], "<>m5", "this", expectedILOpt:
+                VerifyLocal(testData, typeName, locals[4], "<>m4", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
-                VerifyLocal(testData, typeName, locals[6], "<>m6", "o", expectedILOpt:
+                VerifyLocal(testData, typeName, locals[5], "<>m5", "o", expectedILOpt:
 @"{
   // Code size        2 (0x2)
   .maxstack  1
@@ -303,6 +304,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0001:  ret
 }");
                 locals.Free();
+
+                // Confirm that the Watch window is unaffected by the filtering in the Locals window.
+                string error;
+                context.CompileExpression("$ReturnValue", DkmEvaluationFlags.TreatAsExpression, aliases, out error);
+                Assert.Null(error);
             });
         }
 

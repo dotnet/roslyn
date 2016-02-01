@@ -54,5 +54,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return DkmClrCompilationResultFlags.None;
             }
         }
+
+        internal static bool IsReturnValue0(this Alias alias)
+        {
+            int index;
+            return
+                alias.Kind == DkmClrAliasKind.ReturnValue &&
+                TryParseReturnValueIndex(alias.FullName, out index) &&
+                index == 0;
+        }
     }
 }

@@ -297,6 +297,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             var typeNameDecoder = new EETypeNameDecoder(Compilation, (PEModuleSymbol)_currentFrame.ContainingModule);
                             foreach (var alias in aliases)
                             {
+                                if (alias.IsReturnValue0())
+                                {
+                                    Debug.Assert(aliases.Where(a => a.Kind == DkmClrAliasKind.ReturnValue).Count() > 1);
+                                    continue;
+                                }
+
                                 var local = PlaceholderLocalSymbol.Create(
                                     typeNameDecoder,
                                     _currentFrame,
