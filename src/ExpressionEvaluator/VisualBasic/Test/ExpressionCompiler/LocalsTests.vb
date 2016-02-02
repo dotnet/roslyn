@@ -2577,7 +2577,6 @@ End Class"
                 End Sub)
         End Sub
 
-        <WorkItem(947, "unknown")>
         <Fact>
         Public Sub DuplicateEditorBrowsableAttributes()
             Const libSource = "

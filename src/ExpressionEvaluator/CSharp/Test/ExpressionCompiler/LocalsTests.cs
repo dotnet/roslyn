@@ -2589,7 +2589,6 @@ class C
             });
         }
 
-        [WorkItem(947, "unknown")]
         [Fact]
         public void DuplicateEditorBrowsableAttributes()
         {

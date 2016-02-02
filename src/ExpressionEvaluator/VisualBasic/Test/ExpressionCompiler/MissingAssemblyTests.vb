@@ -541,7 +541,6 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(2547, "unknown")>
         <Fact>
         Public Sub TryDifferentLinqLibraryOnRetry()
             Dim source = "
