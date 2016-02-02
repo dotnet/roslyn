@@ -31,96 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         
         protected abstract OperationKind ExpressionKind { get; }
 
-        public abstract void Accept(IOperationVisitor visitor);
+        public abstract void Accept(OperationVisitor visitor);
 
-        public abstract TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument);
-    }
-
-    internal abstract partial class BoundNode : IOperationSearchable
-    {
-        IEnumerable<IOperation> IOperationSearchable.Descendants()
-        {
-            var list = new List<IOperation>();
-            new Collector(list).Visit(this);
-            list.RemoveAt(0);
-            return list;
-        }
-
-        IEnumerable<IOperation> IOperationSearchable.DescendantsAndSelf()
-        {
-            var list = new List<IOperation>();
-            new Collector(list).Visit(this);
-            return list;
-        }
-
-        private class Collector : BoundTreeWalkerWithStackGuard
-        {
-            private readonly List<IOperation> _nodes;
-
-            public Collector(List<IOperation> nodes)
-            {
-                this._nodes = nodes;
-            }
-
-            public override BoundNode Visit(BoundNode node)
-            {
-                IOperation operation = node as IOperation;
-                if (operation != null && operation.Kind != OperationKind.None)
-                {
-                    this._nodes.Add(operation);
-                    // Certain child operations of the following operation kinds do not occur in bound nodes, 
-                    // and those child-operation nodes have to be added explicitly.
-                    //  1. IArgument
-                    //  2. IMemberInitializer
-                    //  3. ICase
-                    switch (operation.Kind)
-                    {
-                        case OperationKind.InvocationExpression:
-                            _nodes.AddRange(((IInvocationExpression)operation).ArgumentsInSourceOrder);
-                            break;
-                        case OperationKind.ObjectCreationExpression:
-                            var objCreationExp = (IObjectCreationExpression)operation;
-                            _nodes.AddRange(objCreationExp.ConstructorArguments);
-                            _nodes.AddRange(objCreationExp.MemberInitializers);
-                            break;
-                        case OperationKind.SwitchStatement:
-                            _nodes.AddRange(((ISwitchStatement)operation).Cases);
-                            break;
-                    }
-                }
-                return base.Visit(node);
-            }
-
-            // We skip visiting all `BoundLocalDeclaration` nodes in `BoundMultipleLocalDeclarations` 
-            // (but not their children), since they are not statements in this case.
-            public override BoundNode VisitMultipleLocalDeclarations(BoundMultipleLocalDeclarations node)
-            {
-                foreach (var declaration in node.LocalDeclarations)
-                {
-                    this.Visit(declaration.DeclaredType);
-                    this.Visit(declaration.InitializerOpt);
-                    this.VisitList(declaration.ArgumentsOpt);
-                }
-                return null;
-            }
-
-            // Skip visiting `BoundAssignmentOperator` nodes (but not their children) if they are used for initializing members in object creation.
-            // The corresponding operations are covered by `IMemberInitializer`.
-            public override BoundNode VisitObjectInitializerExpression(BoundObjectInitializerExpression node)
-            {
-                foreach (var expression in node.Initializers)
-                {
-                    if (expression.HasErrors)
-                    {
-                        continue;
-                    }
-                    var assignment = (BoundAssignmentOperator) expression;
-                    this.Visit(assignment.Left);
-                    this.Visit(assignment.Right);
-                }
-                return null;
-            }
-        }
+        public abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
     }
 
     partial class BoundCall : IInvocationExpression
@@ -159,12 +72,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.InvocationExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInvocationExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitInvocationExpression(this, argument);
         }
@@ -335,12 +248,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public abstract ArgumentKind ArgumentKind { get; }
 
-            void IOperation.Accept(IOperationVisitor visitor)
+            void IOperation.Accept(OperationVisitor visitor)
             {
                 visitor.VisitArgument(this);
             }
 
-            TResult IOperation.Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+            TResult IOperation.Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
             {
                 return visitor.VisitArgument(this, argument);
             }
@@ -373,12 +286,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         
         protected override OperationKind ExpressionKind => OperationKind.LocalReferenceExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitLocalReferenceExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitLocalReferenceExpression(this, argument);
         }
@@ -394,12 +307,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.FieldReferenceExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitFieldReferenceExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitFieldReferenceExpression(this, argument);
         }
@@ -415,12 +328,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.PropertyReferenceExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitPropertyReferenceExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitPropertyReferenceExpression(this, argument);
         }
@@ -436,12 +349,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.EventReferenceExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitEventReferenceExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitEventReferenceExpression(this, argument);
         }
@@ -459,12 +372,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.EventAssignmentExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitEventAssignmentExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitEventAssignmentExpression(this, argument);
         }
@@ -494,12 +407,15 @@ namespace Microsoft.CodeAnalysis.CSharp
        
         protected override OperationKind ExpressionKind => OperationKind.MethodBindingExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        // SyntaxNode for MethodBindingExpression is the argument of DelegateCreationExpression 
+        SyntaxNode IOperation.Syntax => this.Argument.Syntax;
+
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitMethodBindingExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitMethodBindingExpression(this, argument);
         }
@@ -511,12 +427,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.ParameterReferenceExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitParameterReferenceExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitParameterReferenceExpression(this, argument);
         }
@@ -528,12 +444,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.LiteralExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitLiteralExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitLiteralExpression(this, argument);
         }
@@ -593,12 +509,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.ObjectCreationExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitObjectCreationExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitObjectCreationExpression(this, argument);
         }
@@ -624,12 +540,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool IOperation.IsInvalid => this.Value.IsInvalid || this.InitializedField == null;
 
-            void IOperation.Accept(IOperationVisitor visitor)
+            void IOperation.Accept(OperationVisitor visitor)
             {
                 visitor.VisitFieldInitializer(this);
             }
 
-            TResult IOperation.Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+            TResult IOperation.Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
             {
                 return visitor.VisitFieldInitializer(this, argument);
             }
@@ -654,12 +570,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool IOperation.IsInvalid => this.Value.IsInvalid || this.InitializedProperty == null;
 
-            void IOperation.Accept(IOperationVisitor visitor)
+            void IOperation.Accept(OperationVisitor visitor)
             {
                 visitor.VisitPropertyInitializer(this);
             }
 
-            TResult IOperation.Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+            TResult IOperation.Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
             {
                 return visitor.VisitPropertyInitializer(this, argument);
             }
@@ -670,12 +586,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.UnboundLambdaExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitUnboundLambdaExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitUnboundLambdaExpression(this, argument);
         }
@@ -689,12 +605,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.LambdaExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitLambdaExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitLambdaExpression(this, argument);
         }
@@ -785,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ISymbol IMemberReferenceExpression.Member => ((IMethodBindingExpression)this).Method;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             if (this.ExpressionKind == OperationKind.MethodBindingExpression)
             {
@@ -797,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return this.ExpressionKind == OperationKind.MethodBindingExpression
                     ? visitor.VisitMethodBindingExpression(this, argument)
@@ -819,12 +735,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.ConversionExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitConversionExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitConversionExpression(this, argument);
         }
@@ -838,12 +754,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.IsExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitIsExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitIsExpression(this, argument);
         }
@@ -857,12 +773,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.TypeOperationExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitTypeOperationExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitTypeOperationExpression(this, argument);
         }
@@ -876,12 +792,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.TypeOperationExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitTypeOperationExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitTypeOperationExpression(this, argument);
         }
@@ -909,12 +825,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.ArrayCreationExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitArrayCreationExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitArrayCreationExpression(this, argument);
         }
@@ -926,12 +842,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.ArrayInitializer;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitArrayInitializer(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitArrayInitializer(this, argument);
         }
@@ -941,12 +857,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.DefaultValueExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitDefaultValueExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitDefaultValueExpression(this, argument);
         }
@@ -956,12 +872,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -975,12 +891,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         
         protected override OperationKind ExpressionKind => OperationKind.BaseClassInstanceReferenceExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInstanceReferenceExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitInstanceReferenceExpression(this, argument);
         }
@@ -994,12 +910,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.InstanceReferenceExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInstanceReferenceExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitInstanceReferenceExpression(this, argument);
         }
@@ -1013,12 +929,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.AssignmentExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitAssignmentExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitAssignmentExpression(this, argument);
         }
@@ -1038,12 +954,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.CompoundAssignmentExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitCompoundAssignmentExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitCompoundAssignmentExpression(this, argument);
         }
@@ -1067,12 +983,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.IncrementExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitIncrementExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitIncrementExpression(this, argument);
         }
@@ -1082,12 +998,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.InvalidExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInvalidExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitInvalidExpression(this, argument);
         }
@@ -1097,12 +1013,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.TypeParameterObjectCreationExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitTypeParameterObjectCreationExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitTypeParameterObjectCreationExpression(this, argument);
         }
@@ -1120,12 +1036,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.UnaryOperatorExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitUnaryOperatorExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitUnaryOperatorExpression(this, argument);
         }
@@ -1173,12 +1089,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitBinaryOperatorExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitBinaryOperatorExpression(this, argument);
         }
@@ -1194,12 +1110,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.ConditionalChoiceExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitConditionalChoiceExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitConditionalChoiceExpression(this, argument);
         }
@@ -1213,12 +1129,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.NullCoalescingExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitNullCoalescingExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitNullCoalescingExpression(this, argument);
         }
@@ -1230,12 +1146,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.AwaitExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitAwaitExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitAwaitExpression(this, argument);
         }
@@ -1249,12 +1165,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         
         protected override OperationKind ExpressionKind => OperationKind.ArrayElementReferenceExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitArrayElementReferenceExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitArrayElementReferenceExpression(this, argument);
         }
@@ -1266,12 +1182,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         
         protected override OperationKind ExpressionKind => OperationKind.PointerIndirectionReferenceExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitPointerIndirectionReferenceExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitPointerIndirectionReferenceExpression(this, argument);
         }
@@ -1283,12 +1199,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.AddressOfExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitAddressOfExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitAddressOfExpression(this, argument);
         }
@@ -1302,12 +1218,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.InstanceReferenceExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInstanceReferenceExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitInstanceReferenceExpression(this, argument);
         }
@@ -1319,12 +1235,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.ConditionalAccessExpression;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitConditionalAccessExpression(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitConditionalAccessExpression(this, argument);
         }
@@ -1342,9 +1258,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract OperationKind OperationKind { get; }
 
-        public abstract void Accept(IOperationVisitor visitor);
+        public abstract void Accept(OperationVisitor visitor);
 
-        public abstract TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument);
+        public abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
     }
 
     partial class BoundFieldEqualsValue : IFieldInitializer
@@ -1353,12 +1269,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         
         protected override OperationKind OperationKind => OperationKind.FieldInitializerAtDeclaration;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitFieldInitializer(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitFieldInitializer(this, argument);
         }
@@ -1370,12 +1286,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind OperationKind => OperationKind.PropertyInitializerAtDeclaration;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitPropertyInitializer(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitPropertyInitializer(this, argument);
         }
@@ -1387,12 +1303,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind OperationKind => OperationKind.ParameterInitializerAtDeclaration;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitParameterInitializer(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitParameterInitializer(this, argument);
         }
@@ -1402,12 +1318,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1417,12 +1333,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1432,12 +1348,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1447,12 +1363,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1462,12 +1378,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1477,12 +1393,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1492,12 +1408,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1507,12 +1423,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1522,12 +1438,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1537,12 +1453,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1552,12 +1468,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1567,12 +1483,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1582,12 +1498,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1597,12 +1513,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1612,12 +1528,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1627,12 +1543,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1642,12 +1558,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1657,12 +1573,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1672,12 +1588,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1687,12 +1603,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1702,12 +1618,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1717,12 +1633,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1732,12 +1648,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1747,12 +1663,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1762,12 +1678,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1777,12 +1693,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1792,12 +1708,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1807,12 +1723,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1822,12 +1738,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1837,12 +1753,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1852,12 +1768,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1867,12 +1783,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1882,12 +1798,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1897,12 +1813,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1912,12 +1828,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1927,12 +1843,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1942,12 +1858,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1957,12 +1873,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1972,12 +1888,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1987,12 +1903,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -2002,12 +1918,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -2017,12 +1933,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -2032,12 +1948,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -2047,12 +1963,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -2062,12 +1978,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -2077,12 +1993,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -2092,12 +2008,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             throw ExceptionUtilities.Unreachable;
         }

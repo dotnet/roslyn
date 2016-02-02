@@ -123,18 +123,12 @@ End Class
             comp.VerifyAnalyzerDiagnostics({New BadStuffTestAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Framitz()").WithLocation(3, 9),
                                            Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Framitz()").WithLocation(3, 9),
-                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Framitz").WithLocation(3, 9),
-                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Framitz").WithLocation(3, 9),
                                            Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Bexley()").WithLocation(4, 28),
                                            Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Bexley()").WithLocation(4, 28),
-                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Bexley").WithLocation(4, 28),
-                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Bexley").WithLocation(4, 28),
                                            Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "M1(d)").WithLocation(7, 9),
                                            Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "M1(d)").WithLocation(7, 9),
                                            Diagnostic(BadStuffTestAnalyzer.InvalidStatementDescriptor.Id, "Goto").WithLocation(8, 9),
-                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Goto").WithLocation(8, 9),
-                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "").WithLocation(8, 13),
-                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "").WithLocation(8, 13))
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Goto").WithLocation(8, 9))
         End Sub
 
         <Fact>
@@ -1145,6 +1139,10 @@ Class C
 
     Public Sub OnMumble(args As System.EventArgs)
         AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)
+        AddHandler Mumble, New MumbleEventHandler(Sub(s As Object, a As System.EventArgs)
+                                                  End Sub)
+        AddHandler Mumble, Sub(s As Object, a As System.EventArgs)
+                           End Sub
         RaiseEvent Mumble(Me, args)
         ' Dim o As object = AddressOf Mumble
         Dim d As MumbleEventHandler = AddressOf Mumbler
@@ -1162,16 +1160,16 @@ End Class
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New MemberReferenceAnalyzer}, Nothing, Nothing, False,
-                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)").WithLocation(7, 9),
-                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)").WithLocation(7, 9),
-                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(7, 20),
+                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)").WithLocation(7, 9),  ' Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
                  Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(7, 51),
-                 Diagnostic(MemberReferenceAnalyzer.FieldReferenceDescriptor.Id, "Mumble").WithLocation(8, 20),
-                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(10, 39),
-                 Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "RemoveHandler Mumble, AddressOf Mumbler").WithLocation(12, 9),
-                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "RemoveHandler Mumble, AddressOf Mumbler").WithLocation(12, 9),
-                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(12, 23),
-                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(12, 31))
+                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(Sub(s As Object, a As System.EventArgs)
+                                                  End Sub)").WithLocation(8, 9),                                                                                    ' Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
+                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, Sub(s As Object, a As System.EventArgs)
+                           End Sub").WithLocation(10, 9),                                                                                                           ' Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
+                 Diagnostic(MemberReferenceAnalyzer.FieldReferenceDescriptor.Id, "Mumble").WithLocation(12, 20),   ' Bug: This should be an event reference. https://github.com/dotnet/roslyn/issues/8345
+                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(14, 39),
+                 Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "RemoveHandler Mumble, AddressOf Mumbler").WithLocation(16, 9),                    ' Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
+                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(16, 31))
         End Sub
 
         <Fact>
@@ -1242,7 +1240,6 @@ End Class
                                            Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 20").WithLocation(10, 84))
         End Sub
 
-
         <Fact>
         Public Sub NoneOperationVisualBasic()
             ' BoundCaseStatement is OperationKind.None
@@ -1268,6 +1265,86 @@ End Class
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New NoneOperationTestAnalyzer}, Nothing, Nothing, False)
+        End Sub
+
+        <Fact>
+        Public Sub LambdaExpressionVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Imports System
+
+Class B
+    Public Sub M1(x As Integer)
+        Dim action1 As Action = Sub()
+                                End Sub
+        Dim action2 As Action = Sub()
+                                    Console.WriteLine(1)
+                                End Sub
+        Dim func1 As Func(Of Integer, Integer) = Function(value As Integer)
+                                                     value = value + 1
+                                                     value = value + 1
+                                                     value = value + 1
+                                                     Return value + 1
+                                                 End Function
+    End Sub
+End Class
+
+Delegate Sub MumbleEventHandler(sender As Object, args As EventArgs)
+
+Class C
+    Public Event Mumble As MumbleEventHandler
+
+    Public Sub OnMumble(args As EventArgs)
+        AddHandler Mumble, New MumbleEventHandler(Sub(s As Object, a As EventArgs)
+                                                  End Sub)
+        AddHandler Mumble, Sub(s As Object, a As EventArgs)
+                               Dim value = 1
+                               value = value + 1
+                               value = value + 1
+                               value = value + 1
+                           End Sub
+        RaiseEvent Mumble(Me, args)
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New LambdaTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "Sub()
+                                End Sub").WithLocation(5, 33),
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "Sub(s As Object, a As EventArgs)
+                                                  End Sub").WithLocation(25, 51),
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "Sub()
+                                    Console.WriteLine(1)
+                                End Sub").WithLocation(7, 33),
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "Sub(s As Object, a As EventArgs)
+                               Dim value = 1
+                               value = value + 1
+                               value = value + 1
+                               value = value + 1
+                           End Sub").WithLocation(27, 28),
+                Diagnostic(LambdaTestAnalyzer.TooManyStatementsInLambdaExpressionDescriptor.Id, "Sub(s As Object, a As EventArgs)
+                               Dim value = 1
+                               value = value + 1
+                               value = value + 1
+                               value = value + 1
+                           End Sub").WithLocation(27, 28),
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "Function(value As Integer)
+                                                     value = value + 1
+                                                     value = value + 1
+                                                     value = value + 1
+                                                     Return value + 1
+                                                 End Function").WithLocation(10, 50),
+                Diagnostic(LambdaTestAnalyzer.TooManyStatementsInLambdaExpressionDescriptor.Id, "Function(value As Integer)
+                                                     value = value + 1
+                                                     value = value + 1
+                                                     value = value + 1
+                                                     Return value + 1
+                                                 End Function").WithLocation(10, 50))
         End Sub
     End Class
 End Namespace
