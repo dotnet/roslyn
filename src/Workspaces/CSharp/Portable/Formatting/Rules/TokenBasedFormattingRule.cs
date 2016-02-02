@@ -4,6 +4,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 
@@ -80,6 +81,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     if (previousToken.IsInterpolation())
                     {
                         return null;
+                    }
+
+                    // case: type PropertyName { get;
+                    //  in auto properties that are single line and incomplete, 
+                    //  do not move accessors onto new lines.
+                    if (previousToken.IsOpenBraceOfAccessorList() &&
+                        previousToken.Parent?.Parent is PropertyDeclarationSyntax)
+                    {
+                        var propertyDeclaration = (PropertyDeclarationSyntax)previousToken.Parent.Parent;
+                        var isSingleLine = FormattingRangeHelper.AreTwoTokensOnSameLine(
+                                                propertyDeclaration.GetFirstToken(), 
+                                                propertyDeclaration.GetLastToken());
+                        var closeBraceToken = propertyDeclaration.AccessorList.CloseBraceToken;
+
+                        if (isSingleLine && closeBraceToken.IsMissing)
+                        {
+                                return null;
+                        }
                     }
 
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);

@@ -7160,5 +7160,87 @@ class Program
     public int SomeProperty {    [SomeAttribute] get;    [SomeAttribute] private set; }
 }");
         }
+
+        [WorkItem(7768, "https://github.com/dotnet/roslyn/issues/7768")]
+        [WorkItem(8228, "https://github.com/dotnet/roslyn/issues/8228")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task KeepGetAccessorOfIncompleteAutoPropertyOnSameLine()
+        {
+            // This is a test to ensure that get accessor in an autoproperty that
+            // is missing a close curly is not moved a new line. 
+
+            // set option to not add new line for property's braces.
+            var option = new Dictionary<OptionKey, object>();
+            option.Add(CSharpFormattingOptions.NewLinesForBracesInProperties, false);
+
+            var code = @"class Program
+{
+    public int P {get;
+
+    static void Main(string[] args)
+    {
+        // this block is crucial for the repro, ensures close brace 
+        // of the class is not associated with above property.
+    }
+}";
+            var expected = @"class Program
+{
+    public int P { get;
+
+    static void Main(string[] args)
+    {
+        // this block is crucial for the repro, ensures close brace 
+        // of the class is not associated with above property.
+    }
+}";
+            await AssertFormatAsync(expected, code, debugMode:false, changedOptionSet: option);
+        }
+
+        [WorkItem(7768, "https://github.com/dotnet/roslyn/issues/7768")]
+        [WorkItem(8228, "https://github.com/dotnet/roslyn/issues/8228")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task KeepBothAccessorsOfIncompleteAutoPropertyOnSameLine()
+        {
+            var option = new Dictionary<OptionKey, object>();
+            option.Add(CSharpFormattingOptions.NewLinesForBracesInProperties, false);
+
+            var code = @"class Program
+{
+    public int P {get;set;
+    private int i;
+}";
+            var expected = @"class Program
+{
+    public int P { get; set;
+    private int i;
+}";
+            await AssertFormatAsync(expected, code, debugMode: false, changedOptionSet: option);
+        }
+
+        [WorkItem(7768, "https://github.com/dotnet/roslyn/issues/7768")]
+        [WorkItem(8228, "https://github.com/dotnet/roslyn/issues/8228")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task MoveAccessorOfIncompleteIndexerToNextLine()
+        {
+            // This is a test to ensure that the fix for 7668 does not
+            // regress indexers. 
+
+            var options = new Dictionary<OptionKey, object>();
+            options.Add(CSharpFormattingOptions.NewLinesForBracesInProperties, false);
+            options.Add(CSharpFormattingOptions.NewLinesForBracesInAccessors, false);
+
+            var code = @"class Program
+{
+    public int this[int index] { get {
+    private int i;
+}";
+            var expected = @"class Program
+{
+    public int this[int index] {
+        get {
+    private int i;
+}";
+            await AssertFormatAsync(expected, code, debugMode: false, changedOptionSet: options);
+        }
     }
 }
