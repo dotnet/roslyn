@@ -99,7 +99,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                         ' If they specified a fully qualified file, use it
                         If File.Exists(options.wszSpecifiedVBRuntime) Then
                             runtimes.Add(options.wszSpecifiedVBRuntime)
-                        ElseIf sdkPath IsNot Nothing
+                        ElseIf sdkPath IsNot Nothing Then
                             ' If it's just a filename, try to find it in the SDK path.
                             If options.wszSpecifiedVBRuntime = PathUtilities.GetFileName(options.wszSpecifiedVBRuntime) Then
                                 Dim runtimePath = PathUtilities.CombinePathsUnchecked(sdkPath, options.wszSpecifiedVBRuntime)
@@ -235,7 +235,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                         diagnosticOptions(pair.Key) = ReportDiagnostic.Error
                     End If
                 Next
-            ElseIf options.WarningLevel = WarningLevel.WARN_None
+            ElseIf options.WarningLevel = WarningLevel.WARN_None Then
+
                 For Each pair In ruleSetSpecificDiagnosticOptions
                     If pair.Value <> ReportDiagnostic.Error Then
                         diagnosticOptions(pair.Key) = ReportDiagnostic.Suppress
