@@ -6,12 +6,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
-    internal interface IOperationSearchable
-    {
-        IEnumerable<IOperation> Descendants();
-        IEnumerable<IOperation> DescendantsAndSelf();
-    }
-
     public static class OperationExtensions
     {
         public static IEnumerable<IOperation> Descendants(this IOperation operation)
