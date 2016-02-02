@@ -381,7 +381,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         End Sub
 
         Protected Overrides Sub UpdateOptions()
-            Dim newOptions = New ConvertedVisualBasicProjectOptions(_rawOptions, _compilerHost, _imports, GetStrongNameKeyPaths(), ContainingDirectoryPathOpt, Me.ruleSet)
+            Dim newOptions = New ConvertedVisualBasicProjectOptions(_rawOptions, _compilerHost, _imports, GetStrongNameKeyPaths(), ContainingDirectoryPathOpt, Me.ruleSet, GetParsedCommandLineArguments())
 
             UpdateRuleSetError(Me.ruleSet)
 
@@ -422,6 +422,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
             _lastOptions = newOptions
         End Sub
+
+        Protected Overrides Function ParseCommandLineArguments(arguments As IEnumerable(Of String)) As CommandLineArguments
+            Return VisualBasicCommandLineParser.Default.Parse(arguments, ContainingDirectoryPathOpt, sdkDirectory:=Nothing)
+        End Function
 
         Public Sub SetModuleAssemblyName(wszName As String) Implements IVbCompilerProject.SetModuleAssemblyName
             Throw New NotImplementedException()

@@ -1019,9 +1019,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Implemented by derived types to provide a way for <see cref="AbstractProject"/> to indicate that options will need to be refreshed.
         /// It is expected that derived types will read in shared option state stored in this class, create new Compilation and Parse options,
-        /// and call <see cref="SetOptions"/> in response.
+        /// and call <see cref="SetOptions"/> in response. The default implementation does nothing.
         /// </summary>
-        protected abstract void UpdateOptions();
+        protected virtual void UpdateOptions()
+        {
+        }
 
         private readonly Dictionary<uint, IReadOnlyList<string>> _folderNameMap = new Dictionary<uint, IReadOnlyList<string>>();
 

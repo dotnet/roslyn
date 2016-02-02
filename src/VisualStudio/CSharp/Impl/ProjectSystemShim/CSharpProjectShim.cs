@@ -222,7 +222,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 sourceReferenceResolver: new SourceFileResolver(sourceSearchPaths, projectDirectory),
                 metadataReferenceResolver: referenceResolver,
                 assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
-                strongNameProvider: new DesktopStrongNameProvider(GetStrongNameKeyPaths()));
+                strongNameProvider: new DesktopStrongNameProvider(GetStrongNameKeyPaths()),
+                deterministic: GetParsedCommandLineArguments().CompilationOptions.Deterministic,
+                publicSign: GetParsedCommandLineArguments().CompilationOptions.PublicSign);
+        }
+
+        protected override CommandLineArguments ParseCommandLineArguments(IEnumerable<string> arguments)
+        {
+            return CSharpCommandLineParser.Default.Parse(arguments, this.ContainingDirectoryPathOpt, sdkDirectory: null);
         }
 
         private IEnumerable<string> ParseWarningCodes(CompilerOptions compilerOptions)
@@ -298,9 +305,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                                   ?? CSharpParseOptions.Default.LanguageVersion;
 
             return new CSharpParseOptions(
+                kind: SourceCodeKind.Regular,
                 languageVersion: languageVersion,
                 preprocessorSymbols: symbols.AsImmutable(),
-                documentationMode: documentationMode);
+                documentationMode: documentationMode)
+                .WithFeatures(GetParsedCommandLineArguments().ParseOptions.Features);
         }
 
         ~CSharpProjectShim()
