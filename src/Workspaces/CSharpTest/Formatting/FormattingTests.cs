@@ -7249,6 +7249,28 @@ class Program
         [WorkItem(7768, "https://github.com/dotnet/roslyn/issues/7768")]
         [WorkItem(8228, "https://github.com/dotnet/roslyn/issues/8228")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task MoveAccessorOfIncompleteFullPropToNextLine()
+        {
+            var code = @"class Program
+{
+    public int P {get {return P;
+    private int f;
+}";
+            var expected = @"class Program
+{
+    public int P
+    {
+        get
+        {
+            return P;
+    private int f;
+}";
+            await AssertFormatAsync(expected, code);
+        }
+
+        [WorkItem(7768, "https://github.com/dotnet/roslyn/issues/7768")]
+        [WorkItem(8228, "https://github.com/dotnet/roslyn/issues/8228")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task MoveAccessorOfIncompleteIndexerToNextLine()
         {
             // This is a test to ensure that the fix for 7668 does not

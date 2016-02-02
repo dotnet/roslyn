@@ -86,18 +86,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     // case: type PropertyName { get;
                     //  in auto properties that are single line and incomplete, 
                     //  do not move accessors onto new lines.
-                    if (previousToken.IsOpenBraceOfAccessorList() &&
-                        previousToken.Parent?.Parent is PropertyDeclarationSyntax)
+                    if (previousToken.IsOpenBraceOfAutoPropertyAccessorList())
                     {
                         var propertyDeclaration = (PropertyDeclarationSyntax)previousToken.Parent.Parent;
                         var isSingleLine = FormattingRangeHelper.AreTwoTokensOnSameLine(
-                                                propertyDeclaration.GetFirstToken(), 
+                                                propertyDeclaration.GetFirstToken(),
                                                 propertyDeclaration.GetLastToken());
                         var closeBraceToken = propertyDeclaration.AccessorList.CloseBraceToken;
 
                         if (isSingleLine && closeBraceToken.IsMissing)
                         {
-                                return null;
+                            return null;
                         }
                     }
 

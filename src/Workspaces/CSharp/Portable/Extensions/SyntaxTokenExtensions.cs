@@ -354,5 +354,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return token.IsKind(SyntaxKind.OpenBraceToken) && token.Parent.IsKind(SyntaxKind.AccessorList);
         }
+
+        public static bool IsOpenBraceOfPropertyAccessorList(this SyntaxToken token)
+        {
+            return token.IsOpenBraceOfAccessorList() && (token.Parent?.IsParentKind(SyntaxKind.PropertyDeclaration) ?? false);
+        }
+
+        public static bool IsOpenBraceOfAutoPropertyAccessorList(this SyntaxToken token)
+        {
+            return token.IsOpenBraceOfPropertyAccessorList()
+                ? ((AccessorListSyntax)token.Parent).Accessors.FirstOrDefault()?.Body == null
+                : false;
+        }
     }
 }
