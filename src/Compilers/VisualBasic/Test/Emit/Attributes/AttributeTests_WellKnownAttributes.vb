@@ -817,12 +817,12 @@ End Class
                     Assert.Equal(True, info.ThrowOnUnmappableCharacter)
 
                     Assert.Equal(
-                        Cci.PInvokeAttributes.NoMangle Or
-                        Cci.PInvokeAttributes.CharSetUnicode Or
-                        Cci.PInvokeAttributes.SupportsLastError Or
-                        Cci.PInvokeAttributes.CallConvCdecl Or
-                        Cci.PInvokeAttributes.BestFitEnabled Or
-                        Cci.PInvokeAttributes.ThrowOnUnmappableCharEnabled, DirectCast(info, Cci.IPlatformInvokeInformation).Flags)
+                        MethodImportAttributes.ExactSpelling Or
+                        MethodImportAttributes.CharSetUnicode Or
+                        MethodImportAttributes.SetLastError Or
+                        MethodImportAttributes.CallingConventionCDecl Or
+                        MethodImportAttributes.BestFitMappingEnable Or
+                        MethodImportAttributes.ThrowOnUnmappableCharEnable, DirectCast(info, Cci.IPlatformInvokeInformation).Flags)
                 End Sub
 
             CompileAndVerify(source, validator:=validator, symbolValidator:=symValidator)

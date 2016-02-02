@@ -1,22 +1,32 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
-using Microsoft.CodeAnalysis;
+
+#if SRM
+using System.Reflection.Internal;
+using BitArithmeticUtilities = System.Reflection.Internal.BitArithmetic;
+#else
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
+#endif
 
-namespace Microsoft.Cci
+#if SRM
+namespace System.Reflection
+#else
+namespace Roslyn.Reflection
+#endif
 {
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal unsafe partial class BlobBuilder
+#if SRM
+    public
+#endif
+    unsafe partial class BlobBuilder
     {
         // The implementation is akin to StringBuilder. 
         // The differences:
@@ -316,7 +326,7 @@ namespace Microsoft.Cci
         public ImmutableArray<byte> ToImmutableArray(int start, int byteCount)
         {
             var array = ToArray(start, byteCount);
-            return ImmutableArrayInterop.DangerousToImmutableArray(ref array);
+            return ImmutableByteArrayInterop.DangerousCreateFromUnderlyingArray(ref array);
         }
 
         /// <exception cref="ArgumentNullException"><paramref name="destination"/> is null.</exception>
@@ -557,7 +567,7 @@ namespace Microsoft.Cci
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="byteCount"/> is negative.</exception>
         /// <exception cref="InvalidOperationException">Builder is not writable, it has been linked with another one.</exception>
-        public BlobWriter ReserveBytes(int byteCount)
+        public Blob ReserveBytes(int byteCount)
         {
             if (byteCount < 0)
             {
@@ -565,7 +575,7 @@ namespace Microsoft.Cci
             }
 
             int start = ReserveBytesImpl(byteCount);
-            return new BlobWriter(_buffer, start, byteCount);
+            return new Blob(_buffer, start, byteCount);
         }
 
         private int ReserveBytesImpl(int byteCount)
@@ -721,7 +731,7 @@ namespace Microsoft.Cci
         /// <exception cref="InvalidOperationException">Builder is not writable, it has been linked with another one.</exception>
         public void WriteBytes(ImmutableArray<byte> buffer, int start, int byteCount)
         {
-            WriteBytes(ImmutableArrayInterop.DangerousGetUnderlyingArray(buffer), start, byteCount);
+            WriteBytes(ImmutableByteArrayInterop.DangerousGetUnderlyingArray(buffer), start, byteCount);
         }
 
         /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
@@ -820,14 +830,26 @@ namespace Microsoft.Cci
         }
 
         /// <exception cref="InvalidOperationException">Builder is not writable, it has been linked with another one.</exception>
-        internal void WriteUInt16BE(ushort value)
+        public void WriteInt16BE(short value)
+        {
+            WriteUInt16BE(unchecked((ushort)value));
+        }
+
+        /// <exception cref="InvalidOperationException">Builder is not writable, it has been linked with another one.</exception>
+        public void WriteUInt16BE(ushort value)
         {
             int start = ReserveBytesPrimitive(sizeof(ushort));
             _buffer.WriteUInt16BE(start, value);
         }
 
         /// <exception cref="InvalidOperationException">Builder is not writable, it has been linked with another one.</exception>
-        internal void WriteUInt32BE(uint value)
+        public void WriteInt32BE(int value)
+        {
+            WriteUInt32BE(unchecked((uint)value));
+        }
+
+        /// <exception cref="InvalidOperationException">Builder is not writable, it has been linked with another one.</exception>
+        public void WriteUInt32BE(uint value)
         {
             int start = ReserveBytesPrimitive(sizeof(uint));
             _buffer.WriteUInt32BE(start, value);
@@ -999,7 +1021,7 @@ namespace Microsoft.Cci
 
                 if (prependSize)
                 {
-                    WriteCompressedInteger((uint)(bytesToCurrent + bytesToNext));
+                    WriteCompressedInteger(bytesToCurrent + bytesToNext);
                 }
 
                 _buffer.WriteUTF8(Length, currentPtr, charsToCurrent, bytesToCurrent, allowUnpairedSurrogates);
@@ -1030,7 +1052,7 @@ namespace Microsoft.Cci
         /// </remarks>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> can't be represented as a compressed signed integer.</exception>
         /// <exception cref="InvalidOperationException">Builder is not writable, it has been linked with another one.</exception>
-        internal void WriteCompressedSignedInteger(int value)
+        public void WriteCompressedSignedInteger(int value)
         {
             BlobWriterImpl.WriteCompressedSignedInteger(this, value);
         }
@@ -1043,13 +1065,13 @@ namespace Microsoft.Cci
         /// encode as a one-byte integer (bit 7 is clear, value held in bits 6 through 0).
         /// 
         /// If the value lies between 28 (0x80) and 214 – 1 (0x3FFF), inclusive, 
-        /// encode as a 2-byte integer with bit 15 set, bit 14 clear(value held in bits 13 through 0).
+        /// encode as a 2-byte integer with bit 15 set, bit 14 clear (value held in bits 13 through 0).
         /// 
         /// Otherwise, encode as a 4-byte integer, with bit 31 set, bit 30 set, bit 29 clear (value held in bits 28 through 0).
         /// </remarks>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> can't be represented as a compressed integer.</exception>
         /// <exception cref="InvalidOperationException">Builder is not writable, it has been linked with another one.</exception>
-        internal void WriteCompressedInteger(uint value)
+        public void WriteCompressedInteger(int value)
         {
             BlobWriterImpl.WriteCompressedInteger(this, value);
         }

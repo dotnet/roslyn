@@ -2,9 +2,18 @@
 
 using System;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
-namespace Microsoft.Cci
+#if SRM
+using System.Reflection.Internal;
+#else
+using Roslyn.Utilities;
+#endif
+
+#if SRM
+namespace System.Reflection
+#else
+namespace Roslyn.Reflection
+#endif
 {
     internal unsafe static class BlobUtilities
     {

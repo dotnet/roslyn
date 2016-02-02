@@ -2560,6 +2560,7 @@ public interface ITestPlatform
             var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics(emitOptions);
+
             var imageRef = refCompilation.EmitToImageReference();
 
             string useSource = @"
@@ -2700,10 +2701,7 @@ class C
 
             var output = new BrokenStream();
             Assert.Throws<IOException>(() => compilation.Emit(output));
-
-            output.BreakHow = 1;
-            Assert.Throws<NotSupportedException>(() => compilation.Emit(output));
-
+            
             // disposed stream is not writable
             var outReal = new MemoryStream();
             outReal.Dispose();

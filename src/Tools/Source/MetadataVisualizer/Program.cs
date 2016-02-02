@@ -83,20 +83,21 @@ internal class Program : IDisposable
         {
             var peStream = File.OpenRead(_arguments.Path);
             var peReader = new PEReader(peStream);
+
+            PEMemoryBlock metadata;
             try
             {
                 // first try if we have a full PE image:
-                generation.MetadataReader = peReader.GetMetadataReader();
+                metadata = peReader.GetMetadata();
                 generation.PEReaderOpt = peReader;
             }
             catch (Exception e) when (e is InvalidOperationException || e is BadImageFormatException)
             {
                 // try metadata only:
-
-                var data = peReader.GetEntireImage();
-                generation.MetadataReader = new MetadataReader(data.Pointer, data.Length);
+                metadata = peReader.GetEntireImage();
             }
 
+            generation.MetadataReader = new MetadataReader(metadata.Pointer, metadata.Length);
             generation.memoryOwner = peReader;
         }
         catch (Exception e)
