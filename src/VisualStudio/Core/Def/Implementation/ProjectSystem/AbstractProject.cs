@@ -540,7 +540,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AddAnalyzerAssembly(analyzer.FullPath);
         }
 
-        protected void AddProjectReference(ProjectReference projectReference)
+        // Internal for unit testing
+        internal void AddProjectReference(ProjectReference projectReference)
         {
             // dev11 is sometimes calling us multiple times for the same data
             if (!CanAddProjectReference(projectReference))
