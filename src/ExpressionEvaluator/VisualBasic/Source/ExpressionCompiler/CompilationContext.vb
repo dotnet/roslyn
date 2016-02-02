@@ -232,8 +232,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                             ' Pseudo-variables: $exception, $ReturnValue, etc.
                             Dim typeNameDecoder = New EETypeNameDecoder(Me.Compilation, DirectCast(_currentFrame.ContainingModule, PEModuleSymbol))
                             For Each [alias] As [Alias] In aliases
-                                If [alias].IsReturnValue0() Then
-                                    Debug.Assert(aliases.Where(Function(a) a.Kind = DkmClrAliasKind.ReturnValue).Count() > 1)
+                                If [alias].IsReturnValueWithoutIndex() Then
+                                    Debug.Assert(aliases.Count(Function(a) a.Kind = DkmClrAliasKind.ReturnValue) > 1)
                                     Continue For
                                 End If
 

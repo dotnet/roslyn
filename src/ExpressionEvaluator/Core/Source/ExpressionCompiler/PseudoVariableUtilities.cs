@@ -55,13 +55,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        internal static bool IsReturnValue0(this Alias alias)
+        internal static bool IsReturnValueWithoutIndex(this Alias alias)
         {
-            int index;
+            Debug.Assert(alias.Kind != DkmClrAliasKind.ReturnValue || 
+                alias.FullName.StartsWith("$ReturnValue", StringComparison.OrdinalIgnoreCase));
             return
                 alias.Kind == DkmClrAliasKind.ReturnValue &&
-                TryParseReturnValueIndex(alias.FullName, out index) &&
-                index == 0;
+                alias.FullName.Length == 12; // "$ReturnValue"
         }
     }
 }

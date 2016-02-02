@@ -253,6 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0005:  castclass  ""System.IO.IOException""
   IL_000a:  ret
 }");
+                // $ReturnValue is suppressed since it always matches the last $ReturnValueN
                 VerifyLocal(testData, typeName, locals[1], "<>m1", "$ReturnValue2", "Method M2 returned", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
 @"{
   // Code size       12 (0xc)
@@ -262,15 +263,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0006:  castclass  ""string""
   IL_000b:  ret
 }");
-                // $ReturnValue is suppressed since it always matches the last $ReturnValueN
-//                VerifyLocal(testData, typeName, locals[2], "<>m2", "$ReturnValue", "Method M returned", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
-//@"{
-//  // Code size        7 (0x7)
-//  .maxstack  1
-//  IL_0000:  ldc.i4.0
-//  IL_0001:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(int)""
-//  IL_0006:  ret
-//}");
                 VerifyLocal(testData, typeName, locals[2], "<>m2", "$2", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
 @"{
   // Code size       16 (0x10)
