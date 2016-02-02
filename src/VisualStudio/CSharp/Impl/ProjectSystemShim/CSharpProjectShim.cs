@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     /// effectively methods that just QI from one interface to another), are implemented here.
     /// </remarks>
     [ExcludeFromCodeCoverage]
-    internal abstract partial class CSharpProjectShim : CSharpProject
+    internal abstract partial class CSharpProjectShim : AbstractEncProject
     {
         /// <summary>
         /// This member is used to store a raw array of warning numbers, which is needed to properly implement
@@ -56,6 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                    reportExternalErrorCreatorOpt,
                    projectSystemName,
                    hierarchy,
+                   LanguageNames.CSharp,
                    serviceProvider,
                    miscellaneousFilesWorkspaceOpt,
                    visualStudioWorkspaceOpt,
@@ -63,14 +64,25 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         {
             _projectRoot = projectRoot;
             _warningNumberArrayPointer = Marshal.AllocHGlobal(0);
+
+            InitializeOptions();
+
+            projectTracker.AddProject(this);
         }
 
-        protected override void InitializeOptions()
+        private void InitializeOptions()
         {
             // Ensure the default options are set up
             ResetAllOptions();
 
-            base.InitializeOptions();
+            this.SetOptions(this.CreateCompilationOptions(), this.CreateParseOptions());
+        }
+
+        protected override void UpdateAnalyzerRules()
+        {
+            base.UpdateAnalyzerRules();
+
+            this.SetOptions(this.CreateCompilationOptions(), this.CreateParseOptions());
         }
 
         public override void Disconnect()
@@ -85,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             return "CS" + errorCode.ToString("0000");
         }
 
-        protected override CSharpCompilationOptions CreateCompilationOptions()
+        protected CSharpCompilationOptions CreateCompilationOptions()
         {
             IDictionary<string, ReportDiagnostic> ruleSetSpecificDiagnosticOptions = null;
 
@@ -275,7 +287,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             }
         }
 
-        protected override CSharpParseOptions CreateParseOptions()
+        protected CSharpParseOptions CreateParseOptions()
         {
             var symbols = GetStringOption(CompilerOptions.OPTID_CCSYMBOLS, defaultValue: "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
