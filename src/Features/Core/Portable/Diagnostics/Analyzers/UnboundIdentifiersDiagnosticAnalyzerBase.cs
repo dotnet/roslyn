@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
         where TIncompleteMemberSyntax : SyntaxNode
         where TLambdaExpressionSyntax : SyntaxNode
     {
+        protected abstract bool AnalyzeIncompleteMembers { get; }
         protected abstract DiagnosticDescriptor DiagnosticDescriptor { get; }
         protected abstract DiagnosticDescriptor DiagnosticDescriptor2 { get; }
         protected abstract ImmutableArray<TLanguageKindEnum> SyntaxKindsOfInterest { get; }
@@ -45,7 +46,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            if (IsBrokenLambda(context) || context.Node is TIncompleteMemberSyntax)
+            if (IsBrokenLambda(context))
+            {
+                ReportUnboundIdentifierNames(context, context.Node);
+            }
+            else if (context.Node is TIncompleteMemberSyntax && this.AnalyzeIncompleteMembers)
             {
                 ReportUnboundIdentifierNames(context, context.Node);
             }

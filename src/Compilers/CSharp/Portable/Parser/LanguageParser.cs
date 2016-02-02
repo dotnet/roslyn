@@ -2452,7 +2452,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         ErrorCode.ERR_BadModifierLocation,
                         misplacedModifier.Text);
 
-                    return _syntaxFactory.IncompleteMember(attributes, modifiers.ToTokenList(), type);
+                    // We have a complete type, but it's followed by a modifier.  This is likely 
+                    // something like:
+                    //
+                    //      WebClient
+                    //      public SomethingElse...
+                    //
+                    // In a case like this, just parse out a field with a missing variable declarator.
+                    // By doing this, all the rest of our features will light up properly (analyzers/etc.)
+                    return this.ParseNormalFieldDeclaration(attributes, modifiers, type, parentKind);
                 }
 
                 parse_member_name:;
