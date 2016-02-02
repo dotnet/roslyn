@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
                 return null;
             }
 
-            var currentLineStartsWithBlockCommentStartString = currentLine.StartsWith(firstNonWhitespacePosition, "/*", false);
-            var currentLineStartsWithBlockCommentEndString = currentLine.StartsWith(firstNonWhitespacePosition, "*/", false);
-            var currentLineStartsWithBlockCommentMiddleString = currentLine.StartsWith(firstNonWhitespacePosition, "*", false);
+            var currentLineStartsWithBlockCommentStartString = currentLine.StartsWith(firstNonWhitespacePosition, "/*", ignoreCase: false);
+            var currentLineStartsWithBlockCommentEndString = currentLine.StartsWith(firstNonWhitespacePosition, "*/", ignoreCase: false);
+            var currentLineStartsWithBlockCommentMiddleString = currentLine.StartsWith(firstNonWhitespacePosition, "*", ignoreCase: false);
 
             if (!currentLineStartsWithBlockCommentStartString && !currentLineStartsWithBlockCommentMiddleString)
             {
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             var syntaxTree = document.GetSyntaxTreeAsync().WaitAndGetResult(CancellationToken.None);
             var trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(caretPosition, CancellationToken.None);
 
-            return trivia.RawKind == (int)SyntaxKind.MultiLineCommentTrivia || trivia.RawKind == (int)SyntaxKind.MultiLineDocumentationCommentTrivia;
+            return trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
         }
     }
 }
