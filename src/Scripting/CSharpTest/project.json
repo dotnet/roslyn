@@ -1,7 +1,5 @@
 ﻿{
-  "dependencies": {
-    "xunit.runner.console": "2.1.0"
-  },
+  "dependencies": { },
   "frameworks": {
     "dotnet": {
       "imports": "portable-net452"

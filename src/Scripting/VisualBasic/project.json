@@ -1,7 +1,5 @@
 {
-  "dependencies": {
-    "Microsoft.VisualBasic": "10.0.0"
-  },
+  "dependencies": { },
   "frameworks": {
     "dotnet": {
       "imports": "portable-net452"
