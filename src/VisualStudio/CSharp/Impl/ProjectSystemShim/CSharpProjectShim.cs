@@ -74,14 +74,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         {
             // Ensure the default options are set up
             ResetAllOptions();
-
-            this.SetOptions(this.CreateCompilationOptions(), this.CreateParseOptions());
+            UpdateOptions();
         }
 
-        protected override void UpdateAnalyzerRules()
+        protected override void UpdateOptions()
         {
-            base.UpdateAnalyzerRules();
-
             this.SetOptions(this.CreateCompilationOptions(), this.CreateParseOptions());
         }
 

@@ -1016,9 +1016,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
         }
 
-        protected virtual void UpdateAnalyzerRules()
-        {
-        }
+        /// <summary>
+        /// Implemented by derived types to provide a way for <see cref="AbstractProject"/> to indicate that options will need to be refreshed.
+        /// It is expected that derived types will read in shared option state stored in this class, create new Compilation and Parse options,
+        /// and call <see cref="SetOptions"/> in response.
+        /// </summary>
+        protected abstract void UpdateOptions();
 
         private readonly Dictionary<uint, IReadOnlyList<string>> _folderNameMap = new Dictionary<uint, IReadOnlyList<string>>();
 

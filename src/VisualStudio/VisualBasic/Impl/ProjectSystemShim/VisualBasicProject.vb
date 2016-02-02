@@ -381,7 +381,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             End Try
         End Sub
 
-        Private Sub UpdateOptions()
+        Protected Overrides Sub UpdateOptions()
             Dim newOptions = New ConvertedVisualBasicProjectOptions(_rawOptions, _compilerHost, _imports, GetStrongNameKeyPaths(), ContainingDirectoryPathOpt, Me.ruleSet)
 
             UpdateRuleSetError(Me.ruleSet)
@@ -481,12 +481,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             If _lastOptions IsNot ConvertedVisualBasicProjectOptions.EmptyOptions Then
                 SetOptions(_lastOptions.CompilationOptions.WithGlobalImports(_imports), _lastOptions.ParseOptions)
             End If
-        End Sub
-
-        Protected Overrides Sub UpdateAnalyzerRules()
-            MyBase.UpdateAnalyzerRules()
-
-            UpdateOptions()
         End Sub
 
 #If DEBUG Then
