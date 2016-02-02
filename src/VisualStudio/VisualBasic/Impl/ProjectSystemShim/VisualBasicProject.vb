@@ -15,7 +15,7 @@ Imports Microsoft.VisualStudio.TextManager.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     Partial Friend MustInherit Class VisualBasicProject
-        Inherits AbstractEncProject
+        Inherits AbstractRoslynProject
         Implements IVbCompilerProject
         Implements IVisualStudioHostProject
 

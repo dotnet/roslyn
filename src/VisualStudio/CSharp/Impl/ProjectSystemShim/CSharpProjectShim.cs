@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     /// effectively methods that just QI from one interface to another), are implemented here.
     /// </remarks>
     [ExcludeFromCodeCoverage]
-    internal abstract partial class CSharpProjectShim : AbstractEncProject
+    internal abstract partial class CSharpProjectShim : AbstractRoslynProject
     {
         /// <summary>
         /// This member is used to store a raw array of warning numbers, which is needed to properly implement

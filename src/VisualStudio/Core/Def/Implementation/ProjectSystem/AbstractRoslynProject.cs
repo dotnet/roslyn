@@ -9,11 +9,11 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal abstract partial class AbstractEncProject : AbstractProject
+    internal abstract partial class AbstractRoslynProject : AbstractProject
     {
         internal VsENCRebuildableProjectImpl EditAndContinueImplOpt;
 
-        public AbstractEncProject(
+        public AbstractRoslynProject(
             VisualStudioProjectTracker projectTracker,
             Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
             string projectSystemName,
