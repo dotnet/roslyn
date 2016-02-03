@@ -189,46 +189,53 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Debug.Assert(currentFrame IsNot Nothing)
             Dim symbolProvider = New VisualBasicEESymbolProvider(DirectCast(currentFrame.ContainingModule, PEModuleSymbol), currentFrame)
 
-            Dim typedSymReader = DirectCast(symReader, ISymUnmanagedReader)
-            Dim allScopes = ArrayBuilder(Of ISymUnmanagedScope).GetInstance()
-            Dim containingScopes = ArrayBuilder(Of ISymUnmanagedScope).GetInstance()
-            If typedSymReader IsNot Nothing Then
-                MethodDebugInfo.GetScopes(typedSymReader, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, allScopes, containingScopes)
-            End If
-            Dim reuseConstraints = MethodDebugInfo.GetReuseConstraints(allScopes, moduleVersionId, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive)
-            allScopes.Free()
-
             Dim metadataDecoder = New MetadataDecoder(DirectCast(currentFrame.ContainingModule, PEModuleSymbol), currentFrame)
-            Dim inScopeHoistedLocalNames As ImmutableHashSet(Of String) = Nothing
-            Dim localNames = GetActualLocalNames(containingScopes.GetLocalNames(), inScopeHoistedLocalNames)
             Dim localInfo = metadataDecoder.GetLocalInfo(localSignatureHandle)
-            Dim localsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
-            MethodDebugInfo.GetLocals(localsBuilder, symbolProvider, localNames, localInfo, Nothing)
-            GetStaticLocals(localsBuilder, currentFrame, methodHandle, metadataDecoder)
-            MethodDebugInfo.GetConstants(localsBuilder, symbolProvider, containingScopes, Nothing)
 
-            containingScopes.Free()
-            Dim locals = localsBuilder.ToImmutableAndFree()
-
+            Dim typedSymReader = DirectCast(symReader, ISymUnmanagedReader)
+            Dim constantsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
+            Dim inScopeHoistedLocals As InScopeHoistedLocals = InScopeHoistedLocals.Empty
             Dim debugInfo As MethodDebugInfo = Nothing
-            Dim inScopeHoistedLocals As InScopeHoistedLocals
+            Dim reuseConstraints As MethodContextReuseConstraints
+            Dim rawLocalNames As ImmutableArray(Of String)
+
             If IsDteeEntryPoint(currentFrame) Then
                 debugInfo = SynthesizeMethodDebugInfoForDtee(lazyAssemblyReaders.Value)
-                Debug.Assert(inScopeHoistedLocalNames.Count = 0)
-                inScopeHoistedLocals = InScopeHoistedLocals.Empty
-            ElseIf typedSymReader IsNot Nothing AndAlso
-                   MethodDebugInfo.TryReadMethodDebugInfo(typedSymReader, symbolProvider, methodToken, methodVersion, allScopes, isVisualBasicMethod:=True, info:=debugInfo) Then
-                inScopeHoistedLocals = New VisualBasicInScopeHoistedLocalsByName(inScopeHoistedLocalNames)
+                rawLocalNames = ImmutableArray(Of String).Empty
+            ElseIf typedSymReader IsNot Nothing Then
+                Dim allScopes = ArrayBuilder(Of ISymUnmanagedScope).GetInstance()
+                Dim containingScopes = ArrayBuilder(Of ISymUnmanagedScope).GetInstance()
+
+                MethodDebugInfo.GetScopes(typedSymReader, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, allScopes, containingScopes)
+                reuseConstraints = MethodDebugInfo.GetReuseConstraints(allScopes, moduleVersionId, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive)
+
+                rawLocalNames = containingScopes.GetLocalNames()
+                MethodDebugInfo.GetConstants(constantsBuilder, symbolProvider, containingScopes, Nothing)
+                MethodDebugInfo.TryReadMethodDebugInfo(typedSymReader, symbolProvider, methodToken, methodVersion, allScopes, isVisualBasicMethod:=True, info:=debugInfo)
+
+                allScopes.Free()
+                containingScopes.Free()
             Else
-                debugInfo = Nothing
-                inScopeHoistedLocals = InScopeHoistedLocals.Empty
+                reuseConstraints = New MethodContextReuseConstraints(moduleVersionId, methodToken, methodVersion)
+                rawLocalNames = ImmutableArray(Of String).Empty
             End If
+
+            Dim localsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
+            Dim inScopeHoistedLocalNames As ImmutableHashSet(Of String) = Nothing
+            Dim localNames = GetActualLocalNames(rawLocalNames, inScopeHoistedLocalNames)
+            MethodDebugInfo.GetLocals(localsBuilder, symbolProvider, localNames, localInfo, Nothing)
+            inScopeHoistedLocals = New VisualBasicInScopeHoistedLocalsByName(inScopeHoistedLocalNames)
+
+            GetStaticLocals(localsBuilder, currentFrame, methodHandle, metadataDecoder)
+            localsBuilder.AddRange(constantsBuilder)
+
+            constantsBuilder.Free()
 
             Return New EvaluationContext(
                 reuseConstraints,
                 compilation,
                 currentFrame,
-                locals,
+                localsBuilder.ToImmutableAndFree(),
                 inScopeHoistedLocals,
                 debugInfo)
         End Function

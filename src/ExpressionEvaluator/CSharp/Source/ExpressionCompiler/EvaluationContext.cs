@@ -184,42 +184,52 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var sourceAssembly = compilation.SourceAssembly;
             var symbolProvider = new CSharpEESymbolProvider(sourceAssembly, (PEModuleSymbol)currentFrame.ContainingModule, currentFrame);
 
-            var typedSymReader = (ISymUnmanagedReader)symReader;
-            var allScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
-            var containingScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
-            if (typedSymReader != null)
-            {
-                MethodDebugInfo.GetScopes(typedSymReader, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, allScopes, containingScopes);
-            }
-            var methodContextReuseConstraints = MethodDebugInfo.GetReuseConstraints(allScopes, moduleVersionId, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive);
-
-            var inScopeHoistedLocals = InScopeHoistedLocals.Empty;
-            var methodDebugInfo = default(MethodDebugInfo);
-
-            if (typedSymReader != null && MethodDebugInfo.TryReadMethodDebugInfo(typedSymReader, symbolProvider, methodToken, methodVersion, allScopes, isVisualBasicMethod: false, info: out methodDebugInfo))
-            {
-                var inScopeHoistedLocalIndices = methodDebugInfo.GetInScopeHoistedLocalIndices(ilOffset, ref methodContextReuseConstraints);
-                inScopeHoistedLocals = new CSharpInScopeHoistedLocals(inScopeHoistedLocalIndices);
-            }
-
-            allScopes.Free();
-
             var metadataDecoder = new MetadataDecoder((PEModuleSymbol)currentFrame.ContainingModule, currentFrame);
             var localInfo = metadataDecoder.GetLocalInfo(localSignatureHandle);
-            var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
-            MethodDebugInfo.GetLocals(localsBuilder, symbolProvider, containingScopes.GetLocalNames(), localInfo, methodDebugInfo.DynamicLocalMap);
-            MethodDebugInfo.GetConstants(localsBuilder, symbolProvider, containingScopes, methodDebugInfo.DynamicLocalConstantMap);
-            containingScopes.Free();
 
-            var locals = localsBuilder.ToImmutableAndFree();
+            var typedSymReader = (ISymUnmanagedReader)symReader;
+            var constantsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+            var inScopeHoistedLocals = InScopeHoistedLocals.Empty;
+            var debugInfo = default(MethodDebugInfo);
+            MethodContextReuseConstraints reuseConstraints;
+            ImmutableArray<string> localNames;
+
+            if (typedSymReader != null)
+            {
+                var allScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
+                var containingScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
+
+                MethodDebugInfo.GetScopes(typedSymReader, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, allScopes, containingScopes);
+                reuseConstraints = MethodDebugInfo.GetReuseConstraints(allScopes, moduleVersionId, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive);
+
+                MethodDebugInfo.TryReadMethodDebugInfo(typedSymReader, symbolProvider, methodToken, methodVersion, allScopes, isVisualBasicMethod: false, info: out debugInfo);
+                localNames = containingScopes.GetLocalNames();
+                MethodDebugInfo.GetConstants(constantsBuilder, symbolProvider, containingScopes, debugInfo.DynamicLocalConstantMap);
+                allScopes.Free();
+                containingScopes.Free();
+            }
+            else
+            {
+                reuseConstraints = new MethodContextReuseConstraints(moduleVersionId, methodToken, methodVersion);
+                localNames = ImmutableArray<string>.Empty;
+            }
+
+            var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+            MethodDebugInfo.GetLocals(localsBuilder, symbolProvider, localNames, localInfo, debugInfo.DynamicLocalMap);
+            if (!debugInfo.HoistedLocalScopeRecords.IsDefaultOrEmpty)
+            {
+                inScopeHoistedLocals = new CSharpInScopeHoistedLocals(debugInfo.GetInScopeHoistedLocalIndices(ilOffset, ref reuseConstraints));
+            }
+
+            localsBuilder.AddRange(constantsBuilder);
 
             return new EvaluationContext(
-                methodContextReuseConstraints,
+                reuseConstraints,
                 compilation,
                 currentFrame,
-                locals,
+                localsBuilder.ToImmutableAndFree(),
                 inScopeHoistedLocals,
-                methodDebugInfo);
+                debugInfo);
         }
 
         internal CompilationContext CreateCompilationContext(CSharpSyntaxNode syntax)
