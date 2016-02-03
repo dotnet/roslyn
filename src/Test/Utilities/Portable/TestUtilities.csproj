@@ -113,6 +113,12 @@
     <None Include="..\app.config" />
     <None Include="project.json" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CommonTestBase.cs" />
+    <Compile Include="ICompilationVerifier.cs" />
+    <Compile Include="MetadataSignatureUnitTestHelper.cs" />
+    <Compile Include="ModuleData.cs" />
+  </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
