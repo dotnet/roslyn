@@ -41,5 +41,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Public Overrides Function DecodeLocalVariableType(signature As ImmutableArray(Of Byte)) As TypeSymbol
             Return _metadataDecoder.DecodeLocalVariableTypeOrThrow(signature)
         End Function
+
+        Public Overrides Function GetTypeSymbolForSerializedType(typeName As String) As TypeSymbol
+            Return _metadataDecoder.GetTypeSymbolForSerializedType(typeName)
+        End Function
     End Class
 End Namespace

@@ -34,7 +34,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend ReadOnly MethodContextReuseConstraints As MethodContextReuseConstraints?
         Friend ReadOnly Compilation As VisualBasicCompilation
 
-        Private ReadOnly _metadataDecoder As MetadataDecoder
         Private ReadOnly _currentFrame As MethodSymbol
         Private ReadOnly _locals As ImmutableArray(Of LocalSymbol)
         Private ReadOnly _inScopeHoistedLocals As InScopeHoistedLocals
@@ -43,7 +42,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Sub New(
             methodContextReuseConstraints As MethodContextReuseConstraints?,
             compilation As VisualBasicCompilation,
-            metadataDecoder As MetadataDecoder,
             currentFrame As MethodSymbol,
             locals As ImmutableArray(Of LocalSymbol),
             inScopeHoistedLocals As InScopeHoistedLocals,
@@ -51,7 +49,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Me.MethodContextReuseConstraints = methodContextReuseConstraints
             Me.Compilation = compilation
-            _metadataDecoder = metadataDecoder
             _currentFrame = currentFrame
             _locals = locals
             _inScopeHoistedLocals = inScopeHoistedLocals
@@ -90,15 +87,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Debug.Assert(MetadataTokens.Handle(typeToken).Kind = HandleKind.TypeDefinition)
 
-            Dim metadataDecoder As MetadataDecoder = Nothing
-            Dim currentType = compilation.GetType(moduleVersionId, typeToken, metadataDecoder)
+            Dim currentType = compilation.GetType(moduleVersionId, typeToken)
             Debug.Assert(currentType IsNot Nothing)
 
             Dim currentFrame = New SynthesizedContextMethodSymbol(currentType)
             Return New EvaluationContext(
                 Nothing,
                 compilation,
-                metadataDecoder,
                 currentFrame,
                 locals:=Nothing,
                 inScopeHoistedLocals:=Nothing,
@@ -220,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Debug.Assert(inScopeHoistedLocalNames.Count = 0)
                 inScopeHoistedLocals = InScopeHoistedLocals.Empty
             ElseIf typedSymReader IsNot Nothing AndAlso
-                   MethodDebugInfo.TryReadMethodDebugInfo(typedSymReader, methodToken, methodVersion, allScopes, isVisualBasicMethod:=True, info:=debugInfo) Then
+                   MethodDebugInfo.TryReadMethodDebugInfo(typedSymReader, symbolProvider, methodToken, methodVersion, allScopes, isVisualBasicMethod:=True, info:=debugInfo) Then
                 inScopeHoistedLocals = New VisualBasicInScopeHoistedLocalsByName(inScopeHoistedLocalNames)
             Else
                 debugInfo = Nothing
@@ -230,7 +225,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return New EvaluationContext(
                 reuseConstraints,
                 compilation,
-                metadataDecoder,
                 currentFrame,
                 locals,
                 inScopeHoistedLocals,
@@ -321,7 +315,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         Dim debugInfo As MethodDebugInfo = Nothing
 
                         ' Some methods aren't decorated with import custom debug info.
-                        If MethodDebugInfo.TryReadMethodDebugInfo(symReader, metadataReader.GetToken(methodDefHandle), methodVersion:=1, allScopesOpt:=Nothing, isVisualBasicMethod:=True, info:=debugInfo) AndAlso
+                        If MethodDebugInfo.TryReadMethodDebugInfo(Of TypeSymbol, LocalSymbol)(symReader, Nothing, metadataReader.GetToken(methodDefHandle), methodVersion:=1, allScopesOpt:=Nothing, isVisualBasicMethod:=True, info:=debugInfo) AndAlso
                            Not String.IsNullOrEmpty(debugInfo.DefaultNamespaceName) Then
 
                             ' NOTE: We're adding it as a project-level import, not as the default namespace
@@ -339,7 +333,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 End Try
             Next
 
-            Dim projectLevelImportRecords = ImmutableArray.CreateRange([imports].Select(AddressOf NativeImportRecord.CreateFromVisualBasicDteeNamespace))
+            Dim projectLevelImportRecords = ImmutableArray.CreateRange([imports].Select(
+                Function(namespaceName) New ImportRecord(ImportTargetKind.Namespace,
+                                                         alias:=Nothing,
+                                                         targetType:=Nothing,
+                                                         targetString:=namespaceName,
+                                                         targetAssembly:=Nothing,
+                                                         targetAssemblyAlias:=Nothing)))
+
             [imports].Free()
             Dim fileLevelImportRecords = ImmutableArray(Of ImportRecord).Empty
 
@@ -357,7 +358,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Function CreateCompilationContext(syntax As ExecutableStatementSyntax) As CompilationContext
             Return New CompilationContext(
                 Compilation,
-                _metadataDecoder,
                 _currentFrame,
                 _locals,
                 _inScopeHoistedLocals,

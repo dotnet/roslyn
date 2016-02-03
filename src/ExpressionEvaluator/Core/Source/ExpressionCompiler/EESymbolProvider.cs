@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         // Windows PDB constant type
         public abstract TTypeSymbol DecodeLocalVariableType(ImmutableArray<byte> signature);
 
+        public abstract TTypeSymbol GetTypeSymbolForSerializedType(string typeName);
+
         // Portable PDB constant signature
         // public abstract void DecodeLocalConstantSignature(BlobReader signatureReader, out ImmutableArray<ModifierInfo<TTypeSymbol>> customModifiers, out TTypeSymbol type, out ConstantValue value);
 

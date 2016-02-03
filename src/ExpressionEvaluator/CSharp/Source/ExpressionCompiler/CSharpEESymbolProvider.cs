@@ -75,5 +75,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             return _metadataDecoder.DecodeLocalVariableTypeOrThrow(signature);
         }
+
+        public override TypeSymbol GetTypeSymbolForSerializedType(string typeName)
+        {
+            return _metadataDecoder.GetTypeSymbolForSerializedType(typeName);
+        }
     }
 }

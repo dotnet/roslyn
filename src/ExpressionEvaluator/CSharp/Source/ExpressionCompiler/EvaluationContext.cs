@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal readonly MethodContextReuseConstraints? MethodContextReuseConstraints;
         internal readonly CSharpCompilation Compilation;
 
-        private readonly MetadataDecoder _metadataDecoder;
         private readonly MethodSymbol _currentFrame;
         private readonly ImmutableArray<LocalSymbol> _locals;
         private readonly InScopeHoistedLocals _inScopeHoistedLocals;
@@ -37,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private EvaluationContext(
             MethodContextReuseConstraints? methodContextReuseConstraints,
             CSharpCompilation compilation,
-            MetadataDecoder metadataDecoder,
             MethodSymbol currentFrame,
             ImmutableArray<LocalSymbol> locals,
             InScopeHoistedLocals inScopeHoistedLocals,
@@ -47,7 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             this.MethodContextReuseConstraints = methodContextReuseConstraints;
             this.Compilation = compilation;
-            _metadataDecoder = metadataDecoder;
             _currentFrame = currentFrame;
             _locals = locals;
             _inScopeHoistedLocals = inScopeHoistedLocals;
@@ -86,15 +83,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             Debug.Assert(MetadataTokens.Handle(typeToken).Kind == HandleKind.TypeDefinition);
 
-            MetadataDecoder metadataDecoder;
-            var currentType = compilation.GetType(moduleVersionId, typeToken, out metadataDecoder);
+            var currentType = compilation.GetType(moduleVersionId, typeToken);
             Debug.Assert((object)currentType != null);
-            Debug.Assert(metadataDecoder != null);
             var currentFrame = new SynthesizedContextMethodSymbol(currentType);
             return new EvaluationContext(
                 null,
                 compilation,
-                metadataDecoder,
                 currentFrame,
                 default(ImmutableArray<LocalSymbol>),
                 InScopeHoistedLocals.Empty,
@@ -199,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var inScopeHoistedLocals = InScopeHoistedLocals.Empty;
             var methodDebugInfo = default(MethodDebugInfo);
 
-            if (typedSymReader != null && MethodDebugInfo.TryReadMethodDebugInfo(typedSymReader, methodToken, methodVersion, allScopes, isVisualBasicMethod: false, info: out methodDebugInfo))
+            if (typedSymReader != null && MethodDebugInfo.TryReadMethodDebugInfo(typedSymReader, symbolProvider, methodToken, methodVersion, allScopes, isVisualBasicMethod: false, info: out methodDebugInfo))
             {
                 var inScopeHoistedLocalIndices = methodDebugInfo.GetInScopeHoistedLocalIndices(ilOffset, ref methodContextReuseConstraints);
                 inScopeHoistedLocals = new CSharpInScopeHoistedLocals(inScopeHoistedLocalIndices);
@@ -219,7 +213,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new EvaluationContext(
                 methodContextReuseConstraints,
                 compilation,
-                metadataDecoder,
                 currentFrame,
                 locals,
                 inScopeHoistedLocals,
@@ -230,7 +223,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             return new CompilationContext(
                 this.Compilation,
-                _metadataDecoder,
                 _currentFrame,
                 _locals,
                 _inScopeHoistedLocals,

@@ -11,13 +11,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     partial struct MethodDebugInfo
     {
-        public unsafe static bool TryReadMethodDebugInfo(
-            ISymUnmanagedReader symReader, 
+        public unsafe static bool TryReadMethodDebugInfo<TTypeSymbol, TLocalSymbol>(
+            ISymUnmanagedReader symReader,
+            EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider,
             int methodToken, 
             int methodVersion,
             IEnumerable<ISymUnmanagedScope> allScopesOpt, // TODO: only needed for C# dynamic
             bool isVisualBasicMethod,
             out MethodDebugInfo info)
+            where TTypeSymbol : class, ITypeSymbol
+            where TLocalSymbol : class
         {
             var symReader4 = symReader as ISymUnmanagedReader4;
             if (symReader4 != null && !isVisualBasicMethod) // TODO: VB Portable PDBs
@@ -54,7 +57,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
                 else
                 {
-                    info = ReadCSharpNativeDebugInfo(symReader, methodToken, methodVersion, allScopesOpt);
+                    info = ReadCSharpNativeDebugInfo(symReader, symbolProvider, methodToken, methodVersion, allScopesOpt);
                 }
 
                 return true;
@@ -67,11 +70,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        private static MethodDebugInfo ReadCSharpNativeDebugInfo(
+        private static MethodDebugInfo ReadCSharpNativeDebugInfo<TTypeSymbol, TLocalSymbol>(
             ISymUnmanagedReader reader,
+            EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider,
             int methodToken,
             int methodVersion,
             IEnumerable<ISymUnmanagedScope> scopes)
+            where TTypeSymbol : class, ITypeSymbol
+            where TLocalSymbol : class
         {
             ImmutableArray<string> externAliasStrings;
             var importStringGroups = reader.GetCSharpGroupedImportStrings(methodToken, methodVersion, out externAliasStrings);
@@ -88,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     foreach (var importString in importStringGroup)
                     {
                         ImportRecord record;
-                        if (NativeImportRecord.TryCreateFromCSharpImportString(importString, out record))
+                        if (TryCreateImportRecordFromCSharpImportString(symbolProvider, importString, out record))
                         {
                             groupBuilder.Add(record);
                         }
@@ -165,6 +171,38 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 defaultNamespaceName: ""); // Unused in C#.
         }
 
+        private static bool TryCreateImportRecordFromCSharpImportString<TTypeSymbol, TLocalSymbol>(EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider, string importString, out ImportRecord record)
+            where TTypeSymbol : class, ITypeSymbol
+            where TLocalSymbol : class
+        {
+            ImportTargetKind targetKind;
+            string externAlias;
+            string alias;
+            string targetString;
+            if (CustomDebugInfoReader.TryParseCSharpImportString(importString, out alias, out externAlias, out targetString, out targetKind))
+            {
+                ITypeSymbol type = null;
+                if (targetKind == ImportTargetKind.Type)
+                {
+                    type = symbolProvider.GetTypeSymbolForSerializedType(targetString);
+                    targetString = null;
+                }
+
+                record = new ImportRecord(
+                    targetKind: targetKind,
+                    alias: alias,
+                    targetType: type,
+                    targetString: targetString,
+                    targetAssembly: null,
+                    targetAssemblyAlias: externAlias);
+
+                return true;
+            }
+
+            record = default(ImportRecord);
+            return false;
+        }
+
         private static MethodDebugInfo ReadVisualBasicNativeDebugInfo(
             ISymUnmanagedReader reader,
             int methodToken,
@@ -216,7 +254,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     ImportRecord importRecord = null;
                     ImportScope scope = 0;
 
-                    if (NativeImportRecord.TryCreateFromVisualBasicImportString(importString, out importRecord, out scope))
+                    if (TryCreateImportRecordFromVisualBasicImportString(importString, out importRecord, out scope))
                     {
                         if (scope == ImportScope.Project)
                         {
@@ -246,6 +284,28 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 externAliasRecords: ImmutableArray<ExternAliasRecord>.Empty,
                 dynamicLocalMap: ImmutableDictionary<int, ImmutableArray<bool>>.Empty,
                 dynamicLocalConstantMap: ImmutableDictionary<string, ImmutableArray<bool>>.Empty);
+        }
+
+        private static bool TryCreateImportRecordFromVisualBasicImportString(string importString, out ImportRecord record, out ImportScope scope)
+        {
+            ImportTargetKind targetKind;
+            string alias;
+            string targetString;
+            if (CustomDebugInfoReader.TryParseVisualBasicImportString(importString, out alias, out targetString, out targetKind, out scope))
+            {
+                record = new ImportRecord(
+                    targetKind: targetKind,
+                    alias: alias,
+                    targetType: null,
+                    targetString: targetString,
+                    targetAssembly: null,
+                    targetAssemblyAlias: null);
+
+                return true;
+            }
+
+            record = default(ImportRecord);
+            return false;
         }
 
         public static void GetConstants<TTypeSymbol, TLocalSymbol>(

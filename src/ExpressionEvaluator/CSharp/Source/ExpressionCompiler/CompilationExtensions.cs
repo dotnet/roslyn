@@ -18,14 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return (PENamedTypeSymbol)metadataDecoder.GetTypeOfToken(typeHandle);
         }
 
-        internal static PENamedTypeSymbol GetType(this CSharpCompilation compilation, Guid moduleVersionId, int typeToken, out MetadataDecoder metadataDecoder)
+        internal static PENamedTypeSymbol GetType(this CSharpCompilation compilation, Guid moduleVersionId, int typeToken)
         {
-            var module = compilation.GetModule(moduleVersionId);
-            var reader = module.Module.MetadataReader;
-            var typeHandle = (TypeDefinitionHandle)MetadataTokens.Handle(typeToken);
-            var type = GetType(module, typeHandle);
-            metadataDecoder = new MetadataDecoder(module, type);
-            return type;
+            return GetType(compilation.GetModule(moduleVersionId), (TypeDefinitionHandle)MetadataTokens.Handle(typeToken));
         }
 
         internal static PEMethodSymbol GetSourceMethod(this CSharpCompilation compilation, Guid moduleVersionId, int methodToken)

@@ -18,13 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         <Extension>
-        Friend Function [GetType](compilation As VisualBasicCompilation, moduleVersionId As Guid, typeToken As Integer, <Out> ByRef metadataDecoder As MetadataDecoder) As PENamedTypeSymbol
-            Dim [module] = compilation.GetModule(moduleVersionId)
-            Dim reader = [module].Module.MetadataReader
-            Dim typeHandle = CType(MetadataTokens.Handle(typeToken), TypeDefinitionHandle)
-            Dim type = [GetType]([module], typeHandle)
-            metadataDecoder = New MetadataDecoder([module], type)
-            Return type
+        Friend Function [GetType](compilation As VisualBasicCompilation, moduleVersionId As Guid, typeToken As Integer) As PENamedTypeSymbol
+            Return [GetType](compilation.GetModule(moduleVersionId), CType(MetadataTokens.Handle(typeToken), TypeDefinitionHandle))
         End Function
 
         <Extension>
