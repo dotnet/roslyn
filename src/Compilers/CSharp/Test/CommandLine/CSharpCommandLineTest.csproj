@@ -17,6 +17,10 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj">
+      <Project>{4371944a-d3ba-4b5b-8285-82e5ffc6d1f9}</Project>
+      <Name>CSharpCompilerTestUtilities.Desktop</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\csc\csc.csproj">
       <Project>{4B45CA0C-03A0-400F-B454-3D4BCB16AF38}</Project>
       <Name>csc</Name>
