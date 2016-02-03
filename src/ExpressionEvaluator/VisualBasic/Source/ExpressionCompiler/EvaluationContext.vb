@@ -192,8 +192,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim typedSymReader = DirectCast(symReader, ISymUnmanagedReader)
             Dim allScopes = ArrayBuilder(Of ISymUnmanagedScope).GetInstance()
             Dim containingScopes = ArrayBuilder(Of ISymUnmanagedScope).GetInstance()
-            typedSymReader.GetScopes(methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, allScopes, containingScopes)
-            Dim reuseConstraints = allScopes.GetReuseConstraints(moduleVersionId, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive)
+            If typedSymReader IsNot Nothing Then
+                MethodDebugInfo.GetScopes(typedSymReader, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, allScopes, containingScopes)
+            End If
+            Dim reuseConstraints = MethodDebugInfo.GetReuseConstraints(allScopes, moduleVersionId, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive)
             allScopes.Free()
 
             Dim metadataDecoder = New MetadataDecoder(DirectCast(currentFrame.ContainingModule, PEModuleSymbol), currentFrame)

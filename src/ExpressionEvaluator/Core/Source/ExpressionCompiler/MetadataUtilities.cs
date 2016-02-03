@@ -360,44 +360,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 assemblyIdentity.ContentType == System.Reflection.AssemblyContentType.WindowsRuntime;
         }
 
-        /// <summary>
-        /// Get the set of nested scopes containing the
-        /// IL offset from outermost scope to innermost.
-        /// </summary>
-        internal static void GetScopes(
-            this ISymUnmanagedReader symReader,
-            int methodToken,
-            int methodVersion,
-            int ilOffset,
-            bool isScopeEndInclusive,
-            ArrayBuilder<ISymUnmanagedScope> allScopes,
-            ArrayBuilder<ISymUnmanagedScope> containingScopes)
-        {
-            if (symReader == null)
-            {
-                return;
-            }
-
-            var symMethod = symReader.GetMethodByVersion(methodToken, methodVersion);
-            if (symMethod == null)
-            {
-                return;
-            }
-
-            symMethod.GetAllScopes(allScopes, containingScopes, ilOffset, isScopeEndInclusive);
-        }
-
-        internal static MethodContextReuseConstraints GetReuseConstraints(this ArrayBuilder<ISymUnmanagedScope> scopes, Guid moduleVersionId, int methodToken, int methodVersion, int ilOffset, bool isEndInclusive)
-        {
-            var builder = new MethodContextReuseConstraints.Builder(moduleVersionId, methodToken, methodVersion, ilOffset);
-            foreach (ISymUnmanagedScope scope in scopes)
-            {
-                builder.AddRange((uint)scope.GetStartOffset(), (uint)(scope.GetEndOffset() + (isEndInclusive ? 1 : 0)));
-            }
-
-            return builder.Build();
-        }
-
         internal static ImmutableArray<string> GetLocalNames(this ArrayBuilder<ISymUnmanagedScope> scopes)
         {
             var builder = ArrayBuilder<string>.GetInstance();

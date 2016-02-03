@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private readonly uint _startOffset;
         private readonly uint _endOffsetExclusive;
 
+        internal MethodContextReuseConstraints(Guid moduleVersionId, int methodToken, int methodVersion)
+            : this(moduleVersionId, methodToken, methodVersion, 0, uint.MaxValue)
+        {
+        }
+
         internal MethodContextReuseConstraints(Guid moduleVersionId, int methodToken, int methodVersion, uint startOffset, uint endOffsetExclusive)
         {
             Debug.Assert(moduleVersionId != default(Guid));
