@@ -63,7 +63,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End If
 
             Dim defaultNamespaceName As String = methodDebugInfo.DefaultNamespaceName
-            If defaultNamespaceName IsNot Nothing Then
+
+            ' Note We don't need to try to bind this string because this is analogous to passing
+            ' a command-line argument - as long as the syntax is valid, an appropriate symbol will
+            ' be created for us.
+            If defaultNamespaceName IsNot Nothing AndAlso TryParseDottedName(defaultNamespaceName, Nothing) Then
                 compilation = compilation.WithOptions(compilation.Options.WithRootNamespace(defaultNamespaceName))
             End If
 

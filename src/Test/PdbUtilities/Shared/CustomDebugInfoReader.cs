@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis
             byte[] customDebugInfo,
             int methodToken,
             int methodVersion,
-            ArrayBuilder<ISymUnmanagedScope> scopes,
+            IEnumerable<ISymUnmanagedScope> scopes,
             out ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap,
             out ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap)
         {
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private static ImmutableArray<DynamicLocalBucket> RemoveAmbiguousLocals(
             ImmutableArray<DynamicLocalBucket> locals,
-            ArrayBuilder<ISymUnmanagedScope> scopes)
+            IEnumerable<ISymUnmanagedScope> scopes)
         {
             var localsAndConstants = PooledDictionary<string, object>.GetInstance();
             var firstLocal = GetFirstLocal(scopes);
@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        private static ISymUnmanagedVariable GetFirstLocal(ArrayBuilder<ISymUnmanagedScope> scopes)
+        private static ISymUnmanagedVariable GetFirstLocal(IEnumerable<ISymUnmanagedScope> scopes)
         {
             foreach (var scope in scopes)
             {

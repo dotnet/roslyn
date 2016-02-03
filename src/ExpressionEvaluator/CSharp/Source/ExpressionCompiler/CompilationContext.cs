@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             MethodDebugInfo methodDebugInfo,
             CSharpSyntaxNode syntax)
         {
-            Debug.Assert(string.IsNullOrEmpty(methodDebugInfo.DefaultNamespaceName));
             Debug.Assert((syntax == null) || (syntax is ExpressionSyntax) || (syntax is LocalDeclarationStatementSyntax));
 
             // TODO: syntax.SyntaxTree should probably be added to the compilation,

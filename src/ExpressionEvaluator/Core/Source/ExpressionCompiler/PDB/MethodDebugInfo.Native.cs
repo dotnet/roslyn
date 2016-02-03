@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -10,10 +11,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     partial struct MethodDebugInfo
     {
-        public unsafe static bool TryReadMethodDebugInfo(ISymUnmanagedReader symReader, int methodToken, int methodVersion, ArrayBuilder<ISymUnmanagedScope> allScopes, out MethodDebugInfo info)
+        public unsafe static bool TryReadMethodDebugInfo(
+            ISymUnmanagedReader symReader, 
+            int methodToken, 
+            int methodVersion,
+            IEnumerable<ISymUnmanagedScope> allScopesOpt, // TODO: only needed for C# dynamic
+            bool isVisualBasicMethod,
+            out MethodDebugInfo info)
         {
             var symReader4 = symReader as ISymUnmanagedReader4;
-            if (symReader4 != null)
+            if (symReader4 != null && !isVisualBasicMethod) // TODO: VB Portable PDBs
             {
                 byte* metadata;
                 int size;
@@ -41,7 +48,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             try
             {
-                info = ReadFromNative(symReader, methodToken, methodVersion, allScopes);
+                if (isVisualBasicMethod)
+                {
+                    info = ReadVisualBasicNativeDebugInfo(symReader, methodToken, methodVersion);
+                }
+                else
+                {
+                    info = ReadCSharpNativeDebugInfo(symReader, methodToken, methodVersion, allScopesOpt);
+                }
+
                 return true;
             }
             catch (InvalidOperationException)
@@ -52,11 +67,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        private static MethodDebugInfo ReadFromNative(
+        private static MethodDebugInfo ReadCSharpNativeDebugInfo(
             ISymUnmanagedReader reader,
             int methodToken,
             int methodVersion,
-            ArrayBuilder<ISymUnmanagedScope> scopes)
+            IEnumerable<ISymUnmanagedScope> scopes)
         {
             ImmutableArray<string> externAliasStrings;
             var importStringGroups = reader.GetCSharpGroupedImportStrings(methodToken, methodVersion, out externAliasStrings);
@@ -148,6 +163,89 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 dynamicLocalMap,
                 dynamicLocalConstantMap,
                 defaultNamespaceName: ""); // Unused in C#.
+        }
+
+        private static MethodDebugInfo ReadVisualBasicNativeDebugInfo(
+            ISymUnmanagedReader reader,
+            int methodToken,
+            int methodVersion)
+        {
+            var importStrings = reader.GetVisualBasicImportStrings(methodToken, methodVersion);
+            if (importStrings.IsDefault)
+            {
+                return default(MethodDebugInfo);
+            }
+
+            var projectLevelImportRecords = ArrayBuilder<ImportRecord>.GetInstance();
+            var fileLevelImportRecords = ArrayBuilder<ImportRecord>.GetInstance();
+            string defaultNamespaceName = null;
+
+            foreach (string importString in importStrings)
+            {
+                Debug.Assert(importString != null);
+
+                if (importString.Length > 0 && importString[0] == '*')
+                {
+                    string alias = null;
+                    string target = null;
+                    ImportTargetKind kind = 0;
+                    ImportScope scope = 0;
+
+                    if (!CustomDebugInfoReader.TryParseVisualBasicImportString(importString, out alias, out target, out kind, out scope))
+                    {
+                        Debug.WriteLine($"Unable to parse import string '{importString}'");
+                        continue;
+                    }
+                    else if (kind == ImportTargetKind.Defunct)
+                    {
+                        continue;
+                    }
+
+                    Debug.Assert(alias == null); // The default namespace is never aliased.
+                    Debug.Assert(target != null);
+                    Debug.Assert(kind == ImportTargetKind.DefaultNamespace);
+
+                    // We only expect to see one of these, but it looks like ProcedureContext::LoadImportsAndDefaultNamespaceNormal
+                    // implicitly uses the last one if there are multiple.
+                    Debug.Assert(defaultNamespaceName == null);
+
+                    defaultNamespaceName = target;
+                }
+                else
+                {
+                    ImportRecord importRecord = null;
+                    ImportScope scope = 0;
+
+                    if (NativeImportRecord.TryCreateFromVisualBasicImportString(importString, out importRecord, out scope))
+                    {
+                        if (scope == ImportScope.Project)
+                        {
+                            projectLevelImportRecords.Add(importRecord);
+                        }
+                        else
+                        {
+                            Debug.Assert(scope == ImportScope.File || scope == ImportScope.Unspecified);
+                            fileLevelImportRecords.Add(importRecord);
+                        }
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"Failed to parse import string {importString}");
+                    }
+                }
+            }
+
+            var importRecordGroups = ImmutableArray.Create(
+                projectLevelImportRecords.ToImmutableAndFree(),
+                fileLevelImportRecords.ToImmutableAndFree());
+            
+            return new MethodDebugInfo(
+                ImmutableArray<HoistedLocalScopeRecord>.Empty,
+                importRecordGroups,
+                defaultNamespaceName: defaultNamespaceName ?? "",
+                externAliasRecords: ImmutableArray<ExternAliasRecord>.Empty,
+                dynamicLocalMap: ImmutableDictionary<int, ImmutableArray<bool>>.Empty,
+                dynamicLocalConstantMap: ImmutableDictionary<string, ImmutableArray<bool>>.Empty);
         }
 
         public static void GetConstants<TTypeSymbol, TLocalSymbol>(

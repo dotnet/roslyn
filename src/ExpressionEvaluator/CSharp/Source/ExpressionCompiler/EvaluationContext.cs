@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var inScopeHoistedLocals = InScopeHoistedLocals.Empty;
             var methodDebugInfo = default(MethodDebugInfo);
 
-            if (typedSymReader != null && MethodDebugInfo.TryReadMethodDebugInfo(typedSymReader, methodToken, methodVersion, allScopes, out methodDebugInfo))
+            if (typedSymReader != null && MethodDebugInfo.TryReadMethodDebugInfo(typedSymReader, methodToken, methodVersion, allScopes, isVisualBasicMethod: false, info: out methodDebugInfo))
             {
                 var inScopeHoistedLocalIndices = methodDebugInfo.GetInScopeHoistedLocalIndices(ilOffset, ref methodContextReuseConstraints);
                 inScopeHoistedLocals = new CSharpInScopeHoistedLocals(inScopeHoistedLocalIndices);

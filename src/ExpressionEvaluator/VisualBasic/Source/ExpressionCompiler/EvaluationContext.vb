@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim metadataDecoder = New MetadataDecoder(DirectCast(currentFrame.ContainingModule, PEModuleSymbol), currentFrame)
             Dim inScopeHoistedLocalNames As ImmutableHashSet(Of String) = Nothing
-            Dim localNames = GetLocalNames(containingScopes, inScopeHoistedLocalNames)
+            Dim localNames = GetActualLocalNames(containingScopes.GetLocalNames(), inScopeHoistedLocalNames)
             Dim localInfo = metadataDecoder.GetLocalInfo(localSignatureHandle)
             Dim localsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
             MethodDebugInfo.GetLocals(localsBuilder, symbolProvider, localNames, localInfo, Nothing)
@@ -213,15 +213,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             containingScopes.Free()
             Dim locals = localsBuilder.ToImmutableAndFree()
 
-            Dim debugInfo As MethodDebugInfo
+            Dim debugInfo As MethodDebugInfo = Nothing
             Dim inScopeHoistedLocals As InScopeHoistedLocals
             If IsDteeEntryPoint(currentFrame) Then
                 debugInfo = SynthesizeMethodDebugInfoForDtee(lazyAssemblyReaders.Value)
                 Debug.Assert(inScopeHoistedLocalNames.Count = 0)
                 inScopeHoistedLocals = InScopeHoistedLocals.Empty
-            ElseIf typedSymReader IsNot Nothing Then
-                ' TODO (https://github.com/dotnet/roslyn/issues/702): Switch on the type of typedSymReader and call the appropriate helper.
-                debugInfo = typedSymReader.GetMethodDebugInfo(methodToken, methodVersion)
+            ElseIf typedSymReader IsNot Nothing AndAlso
+                   MethodDebugInfo.TryReadMethodDebugInfo(typedSymReader, methodToken, methodVersion, allScopes, isVisualBasicMethod:=True, info:=debugInfo) Then
                 inScopeHoistedLocals = New VisualBasicInScopeHoistedLocalsByName(inScopeHoistedLocalNames)
             Else
                 debugInfo = Nothing
@@ -238,10 +237,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 debugInfo)
         End Function
 
-        Private Shared Function GetLocalNames(scopes As ArrayBuilder(Of ISymUnmanagedScope), <Out> ByRef inScopeHoistedLocalNames As ImmutableHashSet(Of String)) As ImmutableArray(Of String)
+        Private Shared Function GetActualLocalNames(allLocalNames As ImmutableArray(Of String), <Out> ByRef inScopeHoistedLocalNames As ImmutableHashSet(Of String)) As ImmutableArray(Of String)
             Dim localNames = ArrayBuilder(Of String).GetInstance()
             Dim inScopeHoistedLocalsBuilder As ImmutableHashSet(Of String).Builder = Nothing
-            For Each localName In scopes.GetLocalNames()
+            For Each localName In allLocalNames
                 If localName IsNot Nothing AndAlso localName.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal) Then
                     If inScopeHoistedLocalsBuilder Is Nothing Then
                         inScopeHoistedLocalsBuilder = ImmutableHashSet.CreateBuilder(Of String)()
@@ -319,14 +318,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
                     For Each methodDefHandle In metadataReader.MethodDefinitions
                         ' EnC can't change the default namespace of the assembly, so version 1 will suffice.
-                        Dim methodDefaultNamespaceName = symReader.GetMethodDebugInfo(metadataReader.GetToken(methodDefHandle), methodVersion:=1).DefaultNamespaceName
+                        Dim debugInfo As MethodDebugInfo = Nothing
 
                         ' Some methods aren't decorated with import custom debug info.
-                        If Not String.IsNullOrEmpty(methodDefaultNamespaceName) Then
+                        If MethodDebugInfo.TryReadMethodDebugInfo(symReader, metadataReader.GetToken(methodDefHandle), methodVersion:=1, allScopesOpt:=Nothing, isVisualBasicMethod:=True, info:=debugInfo) AndAlso
+                           Not String.IsNullOrEmpty(debugInfo.DefaultNamespaceName) Then
 
                             ' NOTE: We're adding it as a project-level import, not as the default namespace
                             ' (because there's one for each assembly and they can't all be the default).
-                            [imports].Add(methodDefaultNamespaceName)
+                            [imports].Add(debugInfo.DefaultNamespaceName)
 
                             ' The default namespace should be the same for all methods, so we only need to check one.
                             Exit For
