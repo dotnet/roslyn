@@ -187,7 +187,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             ilOffset As Integer,
             localSignatureToken As Integer) As EvaluationContext
 
-            Debug.Assert(MetadataTokens.Handle(methodToken).Kind = HandleKind.MethodDefinition)
+            Dim methodHandle = CType(MetadataTokens.Handle(methodToken), MethodDefinitionHandle)
+            Dim localSignatureHandle = If(localSignatureToken <> 0, CType(MetadataTokens.Handle(localSignatureToken), StandaloneSignatureHandle), Nothing)
+
+            Dim currentFrame = compilation.GetMethod(moduleVersionId, methodHandle)
+            Debug.Assert(currentFrame IsNot Nothing)
+            Dim symbolProvider = New VisualBasicEESymbolProvider(DirectCast(currentFrame.ContainingModule, PEModuleSymbol), currentFrame)
 
             Dim typedSymReader = DirectCast(symReader, ISymUnmanagedReader)
             Dim allScopes = ArrayBuilder(Of ISymUnmanagedScope).GetInstance()
@@ -196,32 +201,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim reuseConstraints = allScopes.GetReuseConstraints(moduleVersionId, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive)
             allScopes.Free()
 
-            Dim methodHandle = CType(MetadataTokens.Handle(methodToken), MethodDefinitionHandle)
-            Dim currentFrame = compilation.GetMethod(moduleVersionId, methodHandle)
-            Debug.Assert(currentFrame IsNot Nothing)
             Dim metadataDecoder = New MetadataDecoder(DirectCast(currentFrame.ContainingModule, PEModuleSymbol), currentFrame)
             Dim inScopeHoistedLocalNames As ImmutableHashSet(Of String) = Nothing
             Dim localNames = GetLocalNames(containingScopes, inScopeHoistedLocalNames)
-            Dim localInfo = metadataDecoder.GetLocalInfo(localSignatureToken)
+            Dim localInfo = metadataDecoder.GetLocalInfo(localSignatureHandle)
             Dim localsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
-            GetLocals(localsBuilder, currentFrame, localNames, localInfo)
+            MethodDebugInfo.GetLocals(localsBuilder, symbolProvider, localNames, localInfo, Nothing)
             GetStaticLocals(localsBuilder, currentFrame, methodHandle, metadataDecoder)
-            GetConstants(localsBuilder, currentFrame, containingScopes, metadataDecoder)
+            MethodDebugInfo.GetConstants(localsBuilder, symbolProvider, containingScopes, Nothing)
+
             containingScopes.Free()
             Dim locals = localsBuilder.ToImmutableAndFree()
 
-            Dim methodDebugInfo As MethodDebugInfo
+            Dim debugInfo As MethodDebugInfo
             Dim inScopeHoistedLocals As InScopeHoistedLocals
             If IsDteeEntryPoint(currentFrame) Then
-                methodDebugInfo = SynthesizeMethodDebugInfoForDtee(lazyAssemblyReaders.Value)
+                debugInfo = SynthesizeMethodDebugInfoForDtee(lazyAssemblyReaders.Value)
                 Debug.Assert(inScopeHoistedLocalNames.Count = 0)
                 inScopeHoistedLocals = InScopeHoistedLocals.Empty
             ElseIf typedSymReader IsNot Nothing Then
                 ' TODO (https://github.com/dotnet/roslyn/issues/702): Switch on the type of typedSymReader and call the appropriate helper.
-                methodDebugInfo = typedSymReader.GetMethodDebugInfo(methodToken, methodVersion)
+                debugInfo = typedSymReader.GetMethodDebugInfo(methodToken, methodVersion)
                 inScopeHoistedLocals = New VisualBasicInScopeHoistedLocalsByName(inScopeHoistedLocalNames)
             Else
-                methodDebugInfo = Nothing
+                debugInfo = Nothing
                 inScopeHoistedLocals = InScopeHoistedLocals.Empty
             End If
 
@@ -232,7 +235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 currentFrame,
                 locals,
                 inScopeHoistedLocals,
-                methodDebugInfo)
+                debugInfo)
         End Function
 
         Private Shared Function GetLocalNames(scopes As ArrayBuilder(Of ISymUnmanagedScope), <Out> ByRef inScopeHoistedLocalNames As ImmutableHashSet(Of String)) As ImmutableArray(Of String)
@@ -509,46 +512,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         ''' <summary>
-        ''' Returns symbols for the locals emitted in the original method,
-        ''' based on the local signatures from the IL and the names and
-        ''' slots from the PDB. The actual locals are needed to ensure the
-        ''' local slots in the generated method match the original.
-        ''' </summary>
-        Private Shared Sub GetLocals(
-            builder As ArrayBuilder(Of LocalSymbol),
-            method As MethodSymbol,
-            names As ImmutableArray(Of String),
-            localInfo As ImmutableArray(Of LocalInfo(Of TypeSymbol)))
-
-            Dim locations = EELocalSymbol.NoLocations
-            Dim n = localInfo.Length
-
-            If n = 0 Then
-                ' When debugging a .dmp without a heap, localInfo will be empty although
-                ' names may be non-empty if there is a PDB. Since there's no type info, the
-                ' locals are dropped. Note this means the local signature of any generated
-                ' method will not match the original signature, so new locals will overlap
-                ' original locals. That is ok since there is no live process for the debugger
-                ' to update (any modified values exist in the debugger only).
-                Return
-            End If
-
-            Dim m = names.Length
-            Debug.Assert(n >= m)
-
-            For i = 0 To n - 1
-                Dim name = If(i < m, names(i), Nothing)
-                Dim info = localInfo(i)
-
-                ' Custom modifiers can be dropped since binding ignores custom
-                ' modifiers from locals and since we only need to preserve
-                ' the type of the original local in the generated method.
-                Dim kind = If(name = method.Name, LocalDeclarationKind.FunctionValue, LocalDeclarationKind.Variable)
-                builder.Add(New EELocalSymbol(method, locations, name, i, kind, info.Type, info.IsByRef, info.IsPinned, canScheduleToStack:=False))
-            Next
-        End Sub
-
-        ''' <summary>
         ''' Include static locals for the given method. Static locals
         ''' are represented as fields on the containing class named
         ''' "$STATIC$[methodname]$[methodsignature]$[localname]".
@@ -586,38 +549,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim signature = signatureReader.ReadBytes(signatureReader.Length)
             Return GeneratedNames.MakeSignatureString(signature)
         End Function
-
-        Private Shared Sub GetConstants(
-            builder As ArrayBuilder(Of LocalSymbol),
-            method As MethodSymbol,
-            scopes As ArrayBuilder(Of ISymUnmanagedScope),
-            metadataDecoder As MetadataDecoder)
-
-            For Each scope In scopes
-                For Each constant In scope.GetConstants()
-                    Dim name = constant.GetName()
-                    Dim rawValue = constant.GetValue()
-                    Dim signature = constant.GetSignature()
-
-                    Dim info = metadataDecoder.GetLocalInfo(signature)
-                    Debug.Assert(Not info.IsByRef)
-                    Debug.Assert(Not info.IsPinned)
-                    Dim type As TypeSymbol = info.Type
-                    If type.IsErrorType() Then
-                        Continue For
-                    End If
-
-                    Dim constantValue = PdbHelpers.GetConstantValue(type.GetEnumUnderlyingTypeOrSelf(), rawValue)
-
-                    ' TODO (https://github.com/dotnet/roslyn/issues/1815): report error properly when the symbol is used
-                    If constantValue.IsBad Then
-                        Throw New InvalidDataException("Bad constant value")
-                    End If
-
-                    builder.Add(New EELocalConstantSymbol(method, name, type, constantValue))
-                Next
-            Next
-        End Sub
 
         Friend Overrides Function HasDuplicateTypesOrAssemblies(diagnostic As Diagnostic) As Boolean
             Select Case CType(diagnostic.Code, ERRID)

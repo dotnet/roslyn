@@ -150,6 +150,91 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 defaultNamespaceName: ""); // Unused in C#.
         }
 
-        // TODO (https://github.com/dotnet/roslyn/issues/702): overload for portable format
+        public static void GetConstants<TTypeSymbol, TLocalSymbol>(
+            ArrayBuilder<TLocalSymbol> builder,
+            EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider,
+            ArrayBuilder<ISymUnmanagedScope> scopes,
+            ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMapOpt)
+            where TTypeSymbol : class, ITypeSymbol
+            where TLocalSymbol : class
+        {
+            foreach (var scope in scopes)
+            {
+                foreach (var constant in scope.GetConstants())
+                {
+                    string name = constant.GetName();
+                    object rawValue = constant.GetValue();
+                    var signature = constant.GetSignature();
+
+                    TTypeSymbol type;
+                    try
+                    {
+                        type = symbolProvider.DecodeLocalVariableType(signature);
+                    }
+                    catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
+                    {
+                        // ignore 
+                        continue;
+                    }
+
+                    if (type.Kind == SymbolKind.ErrorType)
+                    {
+                        continue;
+                    }
+
+                    ConstantValue constantValue = PdbHelpers.GetSymConstantValue(type, rawValue);
+
+                    // TODO (https://github.com/dotnet/roslyn/issues/1815): report error properly when the symbol is used
+                    if (constantValue.IsBad)
+                    {
+                        continue;
+                    }
+
+                    var dynamicFlags = default(ImmutableArray<bool>);
+                    dynamicLocalConstantMapOpt?.TryGetValue(name, out dynamicFlags);
+
+                    builder.Add(symbolProvider.GetLocalConstant(name, type, constantValue, dynamicFlags));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns symbols for the locals emitted in the original method,
+        /// based on the local signatures from the IL and the names and
+        /// slots from the PDB. The actual locals are needed to ensure the
+        /// local slots in the generated method match the original.
+        /// </summary>
+        public static void GetLocals<TLocalSymbol, TTypeSymbol>(
+            ArrayBuilder<TLocalSymbol> builder,
+            EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider,
+            ImmutableArray<string> names,
+            ImmutableArray<LocalInfo<TTypeSymbol>> localInfo,
+            ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMapOpt)
+            where TTypeSymbol : class, ITypeSymbol
+            where TLocalSymbol : class
+        {
+            if (localInfo.Length == 0)
+            {
+                // When debugging a .dmp without a heap, localInfo will be empty although
+                // names may be non-empty if there is a PDB. Since there's no type info, the
+                // locals are dropped. Note this means the local signature of any generated
+                // method will not match the original signature, so new locals will overlap
+                // original locals. That is ok since there is no live process for the debugger
+                // to update (any modified values exist in the debugger only).
+                return;
+            }
+
+            Debug.Assert(localInfo.Length >= names.Length);
+
+            for (int i = 0; i < localInfo.Length; i++)
+            {
+                string name = (i < names.Length) ? names[i] : null;
+
+                var dynamicFlags = default(ImmutableArray<bool>);
+                dynamicLocalMapOpt?.TryGetValue(i, out dynamicFlags);
+
+                builder.Add(symbolProvider.GetLocalVariable(name, i, localInfo[i], dynamicFlags));
+            }
+        }
     }
 }

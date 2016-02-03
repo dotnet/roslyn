@@ -360,48 +360,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 assemblyIdentity.ContentType == System.Reflection.AssemblyContentType.WindowsRuntime;
         }
 
-        internal static LocalInfo<TTypeSymbol> GetLocalInfo<TModuleSymbol, TTypeSymbol, TMethodSymbol, TFieldSymbol, TSymbol>(
-            this MetadataDecoder<TModuleSymbol, TTypeSymbol, TMethodSymbol, TFieldSymbol, TSymbol> metadataDecoder,
-                ImmutableArray<byte> signature)
-            where TModuleSymbol : class
-            where TTypeSymbol : class, TSymbol, ITypeSymbol
-            where TMethodSymbol : class, TSymbol, IMethodSymbol
-            where TFieldSymbol : class, TSymbol, IFieldSymbol
-            where TSymbol : class, ISymbol
-        {
-            unsafe
-            {
-                fixed (byte* ptr = signature.ToArray())
-                {
-                    var blobReader = new BlobReader(ptr, signature.Length);
-                    return metadataDecoder.DecodeLocalVariableOrThrow(ref blobReader);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Returns the local info for all locals indexed by slot.
-        /// </summary>
-        internal static ImmutableArray<LocalInfo<TTypeSymbol>> GetLocalInfo<TModuleSymbol, TTypeSymbol, TMethodSymbol, TFieldSymbol, TSymbol>(
-            this MetadataDecoder<TModuleSymbol, TTypeSymbol, TMethodSymbol, TFieldSymbol, TSymbol> metadataDecoder,
-            int localSignatureToken)
-            where TModuleSymbol : class
-            where TTypeSymbol : class, TSymbol, ITypeSymbol
-            where TMethodSymbol : class, TSymbol, IMethodSymbol
-            where TFieldSymbol : class, TSymbol, IFieldSymbol
-            where TSymbol : class, ISymbol
-        {
-            var handle = MetadataTokens.Handle(localSignatureToken);
-            if (handle.IsNil)
-            {
-                return ImmutableArray<LocalInfo<TTypeSymbol>>.Empty;
-            }
-            var reader = metadataDecoder.Module.MetadataReader;
-            var signature = reader.GetStandaloneSignature((StandaloneSignatureHandle)handle).Signature;
-            var blobReader = reader.GetBlobReader(signature);
-            return metadataDecoder.DecodeLocalSignatureOrThrow(ref blobReader);
-        }
-
         /// <summary>
         /// Get the set of nested scopes containing the
         /// IL offset from outermost scope to innermost.

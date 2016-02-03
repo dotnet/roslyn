@@ -182,15 +182,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             int ilOffset,
             int localSignatureToken)
         {
-            Debug.Assert(MetadataTokens.Handle(methodToken).Kind == HandleKind.MethodDefinition);
+            var methodHandle = (MethodDefinitionHandle)MetadataTokens.Handle(methodToken);
+            var localSignatureHandle = (localSignatureToken != 0) ? (StandaloneSignatureHandle)MetadataTokens.Handle(localSignatureToken) : default(StandaloneSignatureHandle);
+
+            var currentFrame = compilation.GetMethod(moduleVersionId, methodHandle);
+            Debug.Assert((object)currentFrame != null);
+            var sourceAssembly = compilation.SourceAssembly;
+            var symbolProvider = new CSharpEESymbolProvider(sourceAssembly, (PEModuleSymbol)currentFrame.ContainingModule, currentFrame);
 
             var typedSymReader = (ISymUnmanagedReader)symReader;
             var allScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
             var containingScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
             typedSymReader.GetScopes(methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, allScopes, containingScopes);
             var methodContextReuseConstraints = allScopes.GetReuseConstraints(moduleVersionId, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive);
-
-            var localNames = containingScopes.GetLocalNames();
 
             var inScopeHoistedLocals = InScopeHoistedLocals.Empty;
             var methodDebugInfo = default(MethodDebugInfo);
@@ -203,15 +207,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             allScopes.Free();
 
-            var methodHandle = (MethodDefinitionHandle)MetadataTokens.Handle(methodToken);
-            var currentFrame = compilation.GetMethod(moduleVersionId, methodHandle);
-            Debug.Assert((object)currentFrame != null);
             var metadataDecoder = new MetadataDecoder((PEModuleSymbol)currentFrame.ContainingModule, currentFrame);
-            var localInfo = metadataDecoder.GetLocalInfo(localSignatureToken);
+            var localInfo = metadataDecoder.GetLocalInfo(localSignatureHandle);
             var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
-            var sourceAssembly = compilation.SourceAssembly;
-            GetLocals(localsBuilder, currentFrame, localNames, localInfo, methodDebugInfo.DynamicLocalMap, sourceAssembly);
-            GetConstants(localsBuilder, currentFrame, containingScopes, metadataDecoder, methodDebugInfo.DynamicLocalConstantMap, sourceAssembly);
+            MethodDebugInfo.GetLocals(localsBuilder, symbolProvider, containingScopes.GetLocalNames(), localInfo, methodDebugInfo.DynamicLocalMap);
+            MethodDebugInfo.GetConstants(localsBuilder, symbolProvider, containingScopes, methodDebugInfo.DynamicLocalConstantMap);
             containingScopes.Free();
 
             var locals = localsBuilder.ToImmutableAndFree();
@@ -423,114 +423,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             typeName = TypeName;
             return assembly;
-        }
-
-        /// <summary>
-        /// Returns symbols for the locals emitted in the original method,
-        /// based on the local signatures from the IL and the names and
-        /// slots from the PDB. The actual locals are needed to ensure the
-        /// local slots in the generated method match the original.
-        /// </summary>
-        private static void GetLocals(
-            ArrayBuilder<LocalSymbol> builder,
-            MethodSymbol method,
-            ImmutableArray<string> names,
-            ImmutableArray<LocalInfo<TypeSymbol>> localInfo,
-            ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap,
-            SourceAssemblySymbol containingAssembly)
-        {
-            if (localInfo.Length == 0)
-            {
-                // When debugging a .dmp without a heap, localInfo will be empty although
-                // names may be non-empty if there is a PDB. Since there's no type info, the
-                // locals are dropped. Note this means the local signature of any generated
-                // method will not match the original signature, so new locals will overlap
-                // original locals. That is ok since there is no live process for the debugger
-                // to update (any modified values exist in the debugger only).
-                return;
-            }
-
-            Debug.Assert(localInfo.Length >= names.Length);
-
-            for (int i = 0; i < localInfo.Length; i++)
-            {
-                var name = (i < names.Length) ? names[i] : null;
-                var info = localInfo[i];
-                var isPinned = info.IsPinned;
-
-                LocalDeclarationKind kind;
-                RefKind refKind;
-                TypeSymbol type;
-                if (info.IsByRef && isPinned)
-                {
-                    kind = LocalDeclarationKind.FixedVariable;
-                    refKind = RefKind.None;
-                    type = new PointerTypeSymbol(info.Type);
-                }
-                else
-                {
-                    kind = LocalDeclarationKind.RegularVariable;
-                    refKind = info.IsByRef ? RefKind.Ref : RefKind.None;
-                    type = info.Type;
-                }
-
-                ImmutableArray<bool> dynamicFlags;
-                if (dynamicLocalMap != null && dynamicLocalMap.TryGetValue(i, out dynamicFlags))
-                {
-                    type = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(
-                        type,
-                        containingAssembly,
-                        refKind,
-                        dynamicFlags);
-                }
-
-                // Custom modifiers can be dropped since binding ignores custom
-                // modifiers from locals and since we only need to preserve
-                // the type of the original local in the generated method.
-                builder.Add(new EELocalSymbol(method, EELocalSymbol.NoLocations, name, i, kind, type, refKind, isPinned, isCompilerGenerated: false, canScheduleToStack: false));
-            }
-        }
-
-        private static void GetConstants(
-            ArrayBuilder<LocalSymbol> builder,
-            MethodSymbol method,
-            ArrayBuilder<ISymUnmanagedScope> scopes,
-            MetadataDecoder metadataDecoder,
-            ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap,
-            SourceAssemblySymbol containingAssembly)
-        {
-            foreach (var scope in scopes)
-            {
-                foreach (var constant in scope.GetConstants())
-                {
-                    string name = constant.GetName();
-                    object rawValue = constant.GetValue();
-                    var signature = constant.GetSignature();
-
-                    var info = metadataDecoder.GetLocalInfo(signature);
-                    Debug.Assert(!info.IsByRef);
-                    Debug.Assert(!info.IsPinned);
-                    var type = info.Type;
-                    if (type.IsErrorType())
-                    {
-                        continue;
-                    }
-
-                    var constantValue = PdbHelpers.GetConstantValue(type.EnumUnderlyingType(), rawValue);
-
-                    ImmutableArray<bool> dynamicFlags;
-                    if (dynamicLocalConstantMap != null && dynamicLocalConstantMap.TryGetValue(name, out dynamicFlags))
-                    {
-                        type = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(
-                            type,
-                            containingAssembly,
-                            RefKind.None,
-                            dynamicFlags);
-                    }
-
-                    builder.Add(new EELocalConstantSymbol(method, name, type, constantValue));
-                }
-            }
         }
 
         internal override bool HasDuplicateTypesOrAssemblies(Diagnostic diagnostic)

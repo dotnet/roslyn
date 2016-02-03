@@ -903,6 +903,46 @@ tryAgain:
             return true;
         }
 
+        /// <summary>
+        /// Used to decode signatures of local constants returned by SymReader.
+        /// </summary>
+        internal unsafe TypeSymbol DecodeLocalVariableTypeOrThrow(ImmutableArray<byte> signature)
+        {
+            if (signature.IsDefaultOrEmpty)
+            {
+                throw new UnsupportedSignatureContent();
+            }
+
+            fixed (byte* ptr = ImmutableArrayInterop.DangerousGetUnderlyingArray(signature))
+            {
+                var blobReader = new BlobReader(ptr, signature.Length);
+                var info = DecodeLocalVariableOrThrow(ref blobReader);
+
+                if (info.IsByRef || info.IsPinned)
+                {
+                    throw new UnsupportedSignatureContent();
+                }
+
+                return info.Type;
+            }
+        }
+
+        /// <summary>
+        /// Returns the local info for all locals indexed by slot.
+        /// </summary>
+        internal ImmutableArray<LocalInfo<TypeSymbol>> GetLocalInfo(StandaloneSignatureHandle localSignatureHandle)
+        {
+            if (localSignatureHandle.IsNil)
+            {
+                return ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
+            }
+
+            var reader = Module.MetadataReader;
+            var signature = reader.GetStandaloneSignature(localSignatureHandle).Signature;
+            var blobReader = reader.GetBlobReader(signature);
+            return DecodeLocalSignatureOrThrow(ref blobReader);
+        }
+
         /// <exception cref="UnsupportedSignatureContent">If the encoded parameter type is invalid.</exception>
         private void DecodeParameterOrThrow(ref BlobReader signatureReader, /*out*/ ref ParamInfo<TypeSymbol> info)
         {

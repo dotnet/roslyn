@@ -50,6 +50,7 @@
     <Compile Include="Binders\WithTypeArgumentsBinder.cs" />
     <Compile Include="Binders\PlaceholderLocalBinder.cs" />
     <Compile Include="CSharpCompileResult.cs" />
+    <Compile Include="CSharpEESymbolProvider.cs" />
     <Compile Include="CSharpInScopeHoistedLocals.cs" />
     <Compile Include="CSharpLocalAndMethod.cs" />
     <Compile Include="CompilationContext.cs" />

@@ -36,6 +36,7 @@
     <Compile Include="DebuggerDiagnosticFormatter.cs" />
     <Compile Include="DynamicFlagsCustomTypeInfo.cs" />
     <Compile Include="DynamicFlagsCustomTypeInfo_Factory.cs" />
+    <Compile Include="EESymbolProvider.cs" />
     <Compile Include="PDB\MethodDebugInfo.Native.cs" />
     <Compile Include="PDB\MethodDebugInfo.Portable.cs" />
     <Compile Include="Placeholders.cs" />
