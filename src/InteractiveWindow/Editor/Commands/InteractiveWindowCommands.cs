@@ -39,6 +39,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             CommandPrefix = prefix;
             _window = window;
 
+            _shortcutDescriptions = GenerateShortcutDescriptions();
             Dictionary<string, IInteractiveWindowCommand> commandsDict = new Dictionary<string, IInteractiveWindowCommand>();
             foreach (var command in commands)
             {
@@ -237,25 +238,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         private const string HelpIndent = "  ";
 
-        private static readonly string[] s_shortcutDescriptions = new[]
-        {
-"Enter                " + InteractiveWindowResources.EnterHelp,
-"Ctrl-Enter           " + InteractiveWindowResources.CtrlEnterHelp1,
-"                     " + InteractiveWindowResources.CtrlEnterHelp1,
-"Shift-Enter          " + InteractiveWindowResources.ShiftEnterHelp,
-"Escape               " + InteractiveWindowResources.EscapeHelp,
-"Alt-UpArrow          " + InteractiveWindowResources.AltUpArrowHelp,
-"Alt-DownArrow        " + InteractiveWindowResources.AltDownArrowHelp,
-"Ctrl-Alt-UpArrow     " + InteractiveWindowResources.CtrlAltUpArrowHelp,
-"Ctrl-Alt-DownArrow   " + InteractiveWindowResources.CtrlAltDownArrowHelp,
-"UpArrow              " + InteractiveWindowResources.UpArrowHelp1,
-"                     " + InteractiveWindowResources.UpArrowHelp2,
-"DownArrow            " + InteractiveWindowResources.DownArrowHelp1,
-"                     " + InteractiveWindowResources.DownArrowHelp2,
-"Ctrl-K, Ctrl-Enter   " + InteractiveWindowResources.CtrlKCtrlEnterHelp,
-"Ctrl-E, Ctrl-Enter   " + InteractiveWindowResources.CtrlECtrlEnterHelp,
-"Ctrl-A               " + InteractiveWindowResources.CtrlAHelp,
-        };
+        private readonly List<string> _shortcutDescriptions;
 
         private static readonly string[] s_CSVBScriptDirectives = new[]
         {
@@ -263,10 +246,35 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 "#load                " + InteractiveWindowResources.LoadHelp
         };
 
+        internal List<string> GenerateShortcutDescriptions()
+        {
+            var list = new List<string>();
+            list.Add("Enter                " + InteractiveWindowResources.EnterHelp);
+            list.Add("Ctrl-Enter           " + InteractiveWindowResources.CtrlEnterHelp1);
+            list.Add("                     " + InteractiveWindowResources.CtrlEnterHelp2);
+            list.Add("Shift-Enter          " + InteractiveWindowResources.ShiftEnterHelp);
+            list.Add("Escape               " + InteractiveWindowResources.EscapeHelp);
+            list.Add("Alt-UpArrow          " + InteractiveWindowResources.AltUpArrowHelp);
+            list.Add("Alt-DownArrow        " + InteractiveWindowResources.AltDownArrowHelp);
+            list.Add("Ctrl-Alt-UpArrow     " + InteractiveWindowResources.CtrlAltUpArrowHelp);
+            list.Add("Ctrl-Alt-DownArrow   " + InteractiveWindowResources.CtrlAltDownArrowHelp);
+            if (UseSmartUpDown)
+            {
+                list.Add("UpArrow              " + InteractiveWindowResources.UpArrowHelp1);
+                list.Add("                     " + InteractiveWindowResources.UpArrowHelp2);
+                list.Add("DownArrow            " + InteractiveWindowResources.DownArrowHelp1);
+                list.Add("                     " + InteractiveWindowResources.DownArrowHelp2);
+            }
+            list.Add("Ctrl-K, Ctrl-Enter   " + InteractiveWindowResources.CtrlKCtrlEnterHelp);
+            list.Add("Ctrl-E, Ctrl-Enter   " + InteractiveWindowResources.CtrlECtrlEnterHelp);
+            list.Add("Ctrl-A               " + InteractiveWindowResources.CtrlAHelp);
+            return list;
+        }
+
         public void DisplayHelp()
         {
             _window.WriteLine(InteractiveWindowResources.KeyboardShortcuts);
-            foreach (var line in s_shortcutDescriptions)
+            foreach (var line in _shortcutDescriptions)
             {
                 _window.Write(HelpIndent);
                 _window.WriteLine(line);
@@ -349,5 +357,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
         {
             DisplayCommandUsage(command, _window.OutputWriter, displayDetails: true);
         }
+
+        private bool UseSmartUpDown =>_window.TextView.Options.GetOptionValue(InteractiveWindowOptions.SmartUpDown);
     }
 }
