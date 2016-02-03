@@ -358,7 +358,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 node.Kind() == SyntaxKind.TryStatement ||
                 node.Kind() == SyntaxKind.CatchClause ||
                 node.Kind() == SyntaxKind.FinallyClause ||
-                node.Kind() == SyntaxKind.LabeledStatement;
+                node.Kind() == SyntaxKind.LabeledStatement ||
+                node.Kind() == SyntaxKind.LockStatement;
         }
 
         private static SyntaxNode GetTopContainingNode(SyntaxNode node)
