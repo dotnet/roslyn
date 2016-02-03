@@ -45,9 +45,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
         <WorkItem(4946, "http://github.com/dotnet/roslyn/issues/4946")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotInForLoop() As Task
-            Await VerifyRecommendationsAreExactlyAsync(
+            Await VerifyNoRecommendationsAsync(
 <MethodBody>For | = 1 To 100
-Next</MethodBody>, {})
+Next</MethodBody>)
         End Function
     End Class
 End Namespace
