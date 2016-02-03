@@ -808,7 +808,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Insert space within empty argument list parentheses.
+        ///   Looks up a localized string similar to Insert space within empty parameter list parentheses.
         /// </summary>
         internal static string SpaceBetweenEmptyMethodDeclarationParentheses {
             get {
@@ -862,7 +862,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Insert space within argument list parentheses.
+        ///   Looks up a localized string similar to Insert space within parameter list parentheses.
         /// </summary>
         internal static string SpaceWithinMethodDeclarationParenthesis {
             get {
