@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private ReadOnly _currentFrame As MethodSymbol
         Private ReadOnly _locals As ImmutableArray(Of LocalSymbol)
         Private ReadOnly _inScopeHoistedLocals As InScopeHoistedLocals
-        Private ReadOnly _methodDebugInfo As MethodDebugInfo
+        Private ReadOnly _methodDebugInfo As MethodDebugInfo(Of TypeSymbol, LocalSymbol)
 
         Private Sub New(
             methodContextReuseConstraints As MethodContextReuseConstraints?,
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             currentFrame As MethodSymbol,
             locals As ImmutableArray(Of LocalSymbol),
             inScopeHoistedLocals As InScopeHoistedLocals,
-            methodDebugInfo As MethodDebugInfo)
+            methodDebugInfo As MethodDebugInfo(Of TypeSymbol, LocalSymbol))
 
             Me.MethodContextReuseConstraints = methodContextReuseConstraints
             Me.Compilation = compilation
@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim typedSymReader = DirectCast(symReader, ISymUnmanagedReader)
             Dim constantsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
             Dim inScopeHoistedLocals As InScopeHoistedLocals = InScopeHoistedLocals.Empty
-            Dim debugInfo As MethodDebugInfo = Nothing
+            Dim debugInfo As MethodDebugInfo(Of TypeSymbol, LocalSymbol) = Nothing
             Dim reuseConstraints As MethodContextReuseConstraints
             Dim rawLocalNames As ImmutableArray(Of String)
 
@@ -206,12 +206,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Dim allScopes = ArrayBuilder(Of ISymUnmanagedScope).GetInstance()
                 Dim containingScopes = ArrayBuilder(Of ISymUnmanagedScope).GetInstance()
 
-                MethodDebugInfo.GetScopes(typedSymReader, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, allScopes, containingScopes)
-                reuseConstraints = MethodDebugInfo.GetReuseConstraints(allScopes, moduleVersionId, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive)
+                MethodDebugInfo(Of TypeSymbol, LocalSymbol).GetScopes(typedSymReader, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, allScopes, containingScopes)
+                reuseConstraints = MethodDebugInfo(Of TypeSymbol, LocalSymbol).GetReuseConstraints(allScopes, moduleVersionId, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive)
 
                 rawLocalNames = containingScopes.GetLocalNames()
-                MethodDebugInfo.GetConstants(constantsBuilder, symbolProvider, containingScopes, Nothing)
-                MethodDebugInfo.TryReadMethodDebugInfo(typedSymReader, symbolProvider, methodToken, methodVersion, allScopes, isVisualBasicMethod:=True, info:=debugInfo)
+                MethodDebugInfo(Of TypeSymbol, LocalSymbol).GetConstants(constantsBuilder, symbolProvider, containingScopes, Nothing)
+                MethodDebugInfo(Of TypeSymbol, LocalSymbol).TryReadMethodDebugInfo(typedSymReader, symbolProvider, methodToken, methodVersion, allScopes, isVisualBasicMethod:=True, info:=debugInfo)
 
                 allScopes.Free()
                 containingScopes.Free()
@@ -223,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim localsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
             Dim inScopeHoistedLocalNames As ImmutableHashSet(Of String) = Nothing
             Dim localNames = GetActualLocalNames(rawLocalNames, inScopeHoistedLocalNames)
-            MethodDebugInfo.GetLocals(localsBuilder, symbolProvider, localNames, localInfo, Nothing)
+            MethodDebugInfo(Of TypeSymbol, LocalSymbol).GetLocals(localsBuilder, symbolProvider, localNames, localInfo, Nothing)
             inScopeHoistedLocals = New VisualBasicInScopeHoistedLocalsByName(inScopeHoistedLocalNames)
 
             GetStaticLocals(localsBuilder, currentFrame, methodHandle, metadataDecoder)
@@ -293,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' </remarks>
         ''' <seealso cref="IsDteeEntryPoint"/>
         ''' <seealso cref="PENamedTypeSymbol.TypeKind"/>
-        Friend Shared Function SynthesizeMethodDebugInfoForDtee(assemblyReaders As ImmutableArray(Of AssemblyReaders)) As MethodDebugInfo
+        Friend Shared Function SynthesizeMethodDebugInfoForDtee(assemblyReaders As ImmutableArray(Of AssemblyReaders)) As MethodDebugInfo(Of TypeSymbol, LocalSymbol)
             Dim [imports] = PooledHashSet(Of String).GetInstance()
 
             For Each readers In assemblyReaders
@@ -321,10 +321,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
                     For Each methodDefHandle In metadataReader.MethodDefinitions
                         ' EnC can't change the default namespace of the assembly, so version 1 will suffice.
-                        Dim debugInfo As MethodDebugInfo = Nothing
+                        Dim debugInfo As MethodDebugInfo(Of TypeSymbol, LocalSymbol) = Nothing
 
                         ' Some methods aren't decorated with import custom debug info.
-                        If MethodDebugInfo.TryReadMethodDebugInfo(Of TypeSymbol, LocalSymbol)(symReader, Nothing, metadataReader.GetToken(methodDefHandle), methodVersion:=1, allScopesOpt:=Nothing, isVisualBasicMethod:=True, info:=debugInfo) AndAlso
+                        If MethodDebugInfo(Of TypeSymbol, LocalSymbol).TryReadMethodDebugInfo(symReader, Nothing, metadataReader.GetToken(methodDefHandle), methodVersion:=1, allScopesOpt:=Nothing, isVisualBasicMethod:=True, info:=debugInfo) AndAlso
                            Not String.IsNullOrEmpty(debugInfo.DefaultNamespaceName) Then
 
                             ' NOTE: We're adding it as a project-level import, not as the default namespace
@@ -355,7 +355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim importRecordGroups = ImmutableArray.Create(projectLevelImportRecords, fileLevelImportRecords)
 
-            Return New MethodDebugInfo(
+            Return New MethodDebugInfo(Of TypeSymbol, LocalSymbol)(
                 hoistedLocalScopeRecords:=ImmutableArray(Of HoistedLocalScopeRecord).Empty,
                 importRecordGroups:=importRecordGroups,
                 defaultNamespaceName:="",

@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             MethodSymbol currentFrame,
             ImmutableArray<LocalSymbol> locals,
             InScopeHoistedLocals inScopeHoistedLocals,
-            MethodDebugInfo methodDebugInfo,
+            MethodDebugInfo<TypeSymbol, LocalSymbol> methodDebugInfo,
             CSharpSyntaxNode syntax)
         {
             Debug.Assert((syntax == null) || (syntax is ExpressionSyntax) || (syntax is LocalDeclarationStatementSyntax));

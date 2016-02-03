@@ -5,7 +5,9 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal partial struct MethodDebugInfo
+    internal partial struct MethodDebugInfo<TTypeSymbol, TLocalSymbol>
+        where TTypeSymbol : class, ITypeSymbol
+        where TLocalSymbol : class
     {
         public readonly ImmutableArray<HoistedLocalScopeRecord> HoistedLocalScopeRecords;
         public readonly ImmutableArray<ImmutableArray<ImportRecord>> ImportRecordGroups;

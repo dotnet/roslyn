@@ -8,10 +8,10 @@ using System.Reflection.Metadata.Ecma335;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    partial struct MethodDebugInfo
+    partial struct MethodDebugInfo<TTypeSymbol, TLocalSymbol>
     {
         /// <exception cref="BadImageFormatException">Invalid data format.</exception>
-        public static MethodDebugInfo ReadFromPortable(MetadataReader reader, int methodToken)
+        public static MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadFromPortable(MetadataReader reader, int methodToken)
         {
             string defaultNamespace;
             ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopes;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ReadImportScopes(reader, methodHandle, out importGroups, out externAliases);
             ReadMethodCustomDebugInformation(reader, methodHandle, out hoistedLocalScopes, out dynamicLocals, out dynamicConstants, out defaultNamespace);
 
-            return new MethodDebugInfo(hoistedLocalScopes, importGroups, externAliases, dynamicLocals, dynamicConstants, defaultNamespace);
+            return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(hoistedLocalScopes, importGroups, externAliases, dynamicLocals, dynamicConstants, defaultNamespace);
         }
 
         /// <exception cref="BadImageFormatException">Invalid data format.</exception>

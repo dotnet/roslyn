@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             currentFrame As MethodSymbol,
             locals As ImmutableArray(Of LocalSymbol),
             inScopeHoistedLocals As InScopeHoistedLocals,
-            methodDebugInfo As MethodDebugInfo,
+            methodDebugInfo As MethodDebugInfo(Of TypeSymbol, LocalSymbol),
             syntax As ExecutableStatementSyntax)
 
             _syntax = syntax

@@ -9,18 +9,16 @@ using Microsoft.DiaSymReader;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    partial struct MethodDebugInfo
+    partial struct MethodDebugInfo<TTypeSymbol, TLocalSymbol>
     {
-        public unsafe static bool TryReadMethodDebugInfo<TTypeSymbol, TLocalSymbol>(
+        public unsafe static bool TryReadMethodDebugInfo(
             ISymUnmanagedReader symReader,
             EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider,
             int methodToken, 
             int methodVersion,
             IEnumerable<ISymUnmanagedScope> allScopesOpt, // TODO: only needed for C# dynamic
             bool isVisualBasicMethod,
-            out MethodDebugInfo info)
-            where TTypeSymbol : class, ITypeSymbol
-            where TLocalSymbol : class
+            out MethodDebugInfo<TTypeSymbol, TLocalSymbol> info)
         {
             var symReader4 = symReader as ISymUnmanagedReader4;
             if (symReader4 != null && !isVisualBasicMethod) // TODO: VB Portable PDBs
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     catch (BadImageFormatException)
                     {
                         // bad CDI, ignore
-                        info = default(MethodDebugInfo);
+                        info = default(MethodDebugInfo<TTypeSymbol, TLocalSymbol>);
                         return false;
                     }
                 }
@@ -65,19 +63,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             catch (InvalidOperationException)
             {
                 // bad CDI, ignore
-                info = default(MethodDebugInfo);
+                info = default(MethodDebugInfo<TTypeSymbol, TLocalSymbol>);
                 return false;
             }
         }
 
-        private static MethodDebugInfo ReadCSharpNativeDebugInfo<TTypeSymbol, TLocalSymbol>(
+        private static MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadCSharpNativeDebugInfo(
             ISymUnmanagedReader reader,
             EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider,
             int methodToken,
             int methodVersion,
             IEnumerable<ISymUnmanagedScope> scopes)
-            where TTypeSymbol : class, ITypeSymbol
-            where TLocalSymbol : class
         {
             ImmutableArray<string> externAliasStrings;
             var importStringGroups = reader.GetCSharpGroupedImportStrings(methodToken, methodVersion, out externAliasStrings);
@@ -162,7 +158,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     out dynamicLocalConstantMap);
             }
 
-            return new MethodDebugInfo(
+            return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                 hoistedLocalScopeRecords,
                 importRecordGroupBuilder?.ToImmutableAndFree() ?? ImmutableArray<ImmutableArray<ImportRecord>>.Empty,
                 externAliasRecordBuilder?.ToImmutableAndFree() ?? ImmutableArray<ExternAliasRecord>.Empty,
@@ -171,9 +167,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 defaultNamespaceName: ""); // Unused in C#.
         }
 
-        private static bool TryCreateImportRecordFromCSharpImportString<TTypeSymbol, TLocalSymbol>(EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider, string importString, out ImportRecord record)
-            where TTypeSymbol : class, ITypeSymbol
-            where TLocalSymbol : class
+        private static bool TryCreateImportRecordFromCSharpImportString(EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider, string importString, out ImportRecord record)
         {
             ImportTargetKind targetKind;
             string externAlias;
@@ -203,7 +197,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return false;
         }
 
-        private static MethodDebugInfo ReadVisualBasicNativeDebugInfo(
+        private static MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadVisualBasicNativeDebugInfo(
             ISymUnmanagedReader reader,
             int methodToken,
             int methodVersion)
@@ -211,7 +205,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var importStrings = reader.GetVisualBasicImportStrings(methodToken, methodVersion);
             if (importStrings.IsDefault)
             {
-                return default(MethodDebugInfo);
+                return default(MethodDebugInfo<TTypeSymbol, TLocalSymbol>);
             }
 
             var projectLevelImportRecords = ArrayBuilder<ImportRecord>.GetInstance();
@@ -277,7 +271,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 projectLevelImportRecords.ToImmutableAndFree(),
                 fileLevelImportRecords.ToImmutableAndFree());
             
-            return new MethodDebugInfo(
+            return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                 ImmutableArray<HoistedLocalScopeRecord>.Empty,
                 importRecordGroups,
                 defaultNamespaceName: defaultNamespaceName ?? "",
@@ -341,13 +335,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return builder.Build();
         }
 
-        public static void GetConstants<TTypeSymbol, TLocalSymbol>(
+        public static void GetConstants(
             ArrayBuilder<TLocalSymbol> builder,
             EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider,
             ArrayBuilder<ISymUnmanagedScope> scopes,
             ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMapOpt)
-            where TTypeSymbol : class, ITypeSymbol
-            where TLocalSymbol : class
         {
             foreach (var scope in scopes)
             {
@@ -395,14 +387,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// slots from the PDB. The actual locals are needed to ensure the
         /// local slots in the generated method match the original.
         /// </summary>
-        public static void GetLocals<TLocalSymbol, TTypeSymbol>(
+        public static void GetLocals(
             ArrayBuilder<TLocalSymbol> builder,
             EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider,
             ImmutableArray<string> names,
             ImmutableArray<LocalInfo<TTypeSymbol>> localInfo,
             ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMapOpt)
-            where TTypeSymbol : class, ITypeSymbol
-            where TLocalSymbol : class
         {
             if (localInfo.Length == 0)
             {

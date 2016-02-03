@@ -414,7 +414,7 @@ End Namespace
                 Select(Function(instance) New AssemblyReaders(instance.GetMetadataReader(), instance.SymReader)))
         End Function
 
-        Private Shared Sub CheckDteeMethodDebugInfo(methodDebugInfo As MethodDebugInfo, ParamArray namespaceNames As String())
+        Private Shared Sub CheckDteeMethodDebugInfo(methodDebugInfo As MethodDebugInfo(Of TypeSymbol, LocalSymbol), ParamArray namespaceNames As String())
             Assert.Equal("", methodDebugInfo.DefaultNamespaceName)
 
             Dim importRecordGroups = methodDebugInfo.ImportRecordGroups
