@@ -288,6 +288,21 @@ $$*
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public async Task InsertOnMiddleLine9()
+        {
+            var code = @"
+    /**
+      *$$
+";
+            var expected = @"
+    /**
+      *
+      * $$
+";
+            await VerifyAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
         public async Task InsertOnEndLine0()
         {
             var code = @"
@@ -321,6 +336,23 @@ $$*
         public async Task InsertOnEndLine2()
         {
             var code = @"
+    /**
+      *
+      *$$/
+";
+            var expected = @"
+    /**
+      *
+      *
+      *$$/
+";
+            await VerifyAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public async Task InsertOnEndLine3()
+        {
+            var code = @"
     /*
   $$   */
 ";
@@ -333,7 +365,7 @@ $$*
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-        public async Task InsertOnEndLine3()
+        public async Task InsertOnEndLine4()
         {
             var code = @"
     /*

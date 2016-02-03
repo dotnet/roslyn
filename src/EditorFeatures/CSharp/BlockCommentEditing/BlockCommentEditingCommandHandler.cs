@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 
         protected override string GetExteriorTextForNextLine(SnapshotPoint caretPosition)
         {
-            var currentLine = caretPosition.Snapshot.GetLineFromPosition(caretPosition);
+            var currentLine = caretPosition.GetContainingLine();
 
             var firstNonWhitespacePosition = currentLine.GetFirstNonWhitespacePosition() ?? -1;
             if (firstNonWhitespacePosition == -1)
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
         private static bool BlockCommentEndsRightAfterCaret(SnapshotPoint caretPosition)
         {
             var snapshot = caretPosition.Snapshot;
-            return (caretPosition.Position + 2 > snapshot.Length) ? false : snapshot.GetText(caretPosition, 2) == "*/";
+            return ((int)caretPosition + 2 <= snapshot.Length) ? snapshot.GetText(caretPosition, 2) == "*/" : false;
         }
 
         private static string GetPaddingOrIndentation(ITextSnapshotLine currentLine, int caretPosition, int firstNonWhitespacePosition, string exteriorText)
