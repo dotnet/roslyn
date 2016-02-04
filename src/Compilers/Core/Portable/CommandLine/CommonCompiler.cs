@@ -60,10 +60,9 @@ namespace Microsoft.CodeAnalysis
             this.AnalyzerLoader = analyzerLoader;
 
 #if DEBUG
-            string value;
-            if (Arguments.ParseOptions.Features.TryGetValue("debug-determinism", out value))
+            if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
             {
-                EmitDeterminismKey(Arguments, args, baseDirectory, parser, value);
+                EmitDeterminismKey(Arguments, args, baseDirectory, parser);
             }
 #endif
         }
@@ -856,10 +855,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static void EmitDeterminismKey(CommandLineArguments args, string[] rawArgs, string baseDirectory, CommandLineParser parser, string outputDirectory)
+        private static void EmitDeterminismKey(CommandLineArguments args, string[] rawArgs, string baseDirectory, CommandLineParser parser)
         {
             var key = CreateDeterminismKey(args, rawArgs, baseDirectory, parser);
-            var filePath = Path.Combine(outputDirectory, args.OutputFileName + ".key");
+            var filePath = Path.Combine(args.OutputDirectory, args.OutputFileName + ".key");
             using (var stream = PortableShim.File.Create(filePath))
             {
                 var bytes = Encoding.UTF8.GetBytes(key);

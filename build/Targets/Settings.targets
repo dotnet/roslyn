@@ -304,4 +304,16 @@
     <AuthenticodeCertificateName>MicrosoftSHA1</AuthenticodeCertificateName>
     <FakeSignToolPath>$(NuGetPackageRoot)\FakeSign\0.9.2\tools\FakeSign.exe</FakeSignToolPath>
   </PropertyGroup>
+
+  <!-- 
+    When running our determinism tests we need to copy the diagnostic file from the intermediate directory 
+    to the location of the binary.  This ensures .dll and .dll.key are next to each other to be picked up
+    by our test scripts
+  -->
+  <Target Name="CopyDeterministicBuildDiagnosticFile" Condition="'$(DebugDeterminism)' != ''" AfterTargets="CoreCompile">
+    <Copy
+        Condition="Exists(@(IntermediateAssembly -> '%(fullpath).key'))"
+        SourceFiles="@(IntermediateAssembly -> '%(fullpath).key')"
+        DestinationFolder="$(OutDir)" />
+  </Target>
  </Project>

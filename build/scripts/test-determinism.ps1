@@ -39,7 +39,7 @@ while ($i -lt 3 -and $allGood) {
     & msbuild /nologo /v:m /t:clean $sln
 
     write-host "Building the Solution"
-    & msbuild /nologo /v:m /m /p:BootstrapBuildPath=$buildDir /p:Features="debug-determinism=$debugDir" /p:UseRoslynAnalyzers=false $sln
+    & msbuild /nologo /v:m /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$buildDir /p:Features=debug-determinism /p:UseRoslynAnalyzers=false $sln
 
     pushd $debugDir
 
