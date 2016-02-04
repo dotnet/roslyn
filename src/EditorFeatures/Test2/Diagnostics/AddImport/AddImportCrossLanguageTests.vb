@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(1083419)>
+        <WorkItem(1083419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083419")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestExtensionMethods1() As Task
             Dim input =
@@ -168,7 +168,7 @@ namespace CSAssembly1
             Await TestAsync(input, expected, codeActionIndex:=1)
         End Function
 
-        <WorkItem(1083419)>
+        <WorkItem(1083419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083419")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestExtensionMethods2() As Task
             Dim input =

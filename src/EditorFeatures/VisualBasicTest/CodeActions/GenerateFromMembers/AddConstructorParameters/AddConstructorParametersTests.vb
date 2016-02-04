@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.G
             Return New AddConstructorParametersCodeRefactoringProvider()
         End Function
 
-        <WorkItem(530592)>
+        <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
         Public Async Function TestAdd1() As Task
             Await TestAsync(
@@ -25,7 +25,7 @@ NewLines("Class Program \n [|Private i As Integer \n Private s As String|] \n Pu
 NewLines("Class Program \n Private i As Integer \n Private s As String \n Public Sub New(i As Integer, s As String) \n Me.i = i \n Me.s = s \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(530592)>
+        <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
         Public Async Function TestAddOptional1() As Task
             Await TestAsync(
@@ -34,7 +34,7 @@ NewLines("Class Program \n Private i As Integer \n Private s As String \n Public
 index:=1)
         End Function
 
-        <WorkItem(530592)>
+        <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
         Public Async Function TestAddToConstructorWithMostMatchingParameters1() As Task
             Await TestAsync(
@@ -42,7 +42,7 @@ NewLines("Class Program \n [|Private i As Integer \n Private s As String \n Priv
 NewLines("Class Program \n Private i As Integer \n Private s As String \n Private b As Boolean \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n Public Sub New(i As Integer, s As String, b As Boolean) \n Me.New(i) \n Me.s = s \n Me.b = b \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(530592)>
+        <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
         Public Async Function TestAddOptionalToConstructorWithMostMatchingParameters1() As Task
             Await TestAsync(

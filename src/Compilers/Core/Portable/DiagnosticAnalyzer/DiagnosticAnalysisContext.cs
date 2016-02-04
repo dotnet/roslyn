@@ -133,14 +133,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// but cannot itself report any <see cref="Diagnostic"/>s.
         /// </summary>
         /// <param name="action">Action to be executed at the start of semantic analysis of an operation block.</param>
-        public abstract void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action);
+        public virtual void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary> 
         /// Register an action to be executed after semantic analysis of a method body or an expression appearing outside a method body. 
         /// An operation block action reports <see cref="Diagnostic"/>s about operation blocks. 
         /// </summary> 
         /// <param name="action">Action to be executed for an operation block.</param> 
-        public abstract void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action);
+        public virtual void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Register an action to be executed at completion of semantic analysis of an <see cref="IOperation"/> with an appropriate Kind.
@@ -161,7 +167,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
-        public abstract void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds);
+        public virtual void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Enable concurrent execution of analyzer actions registered by this analyzer.
@@ -173,14 +182,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// For example, end actions registered on any analysis unit (compilation, code block, operation block, etc.) are by definition semantically dependent on analysis from non-end actions registered on the same analysis unit.
         /// Hence, end actions are never executed concurrently with non-end actions operating on the same analysis unit.
         /// </remarks>
-        public abstract void EnableConcurrentExecution();
+        public virtual void EnableConcurrentExecution()
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Configure analysis mode of generated code for this analyzer.
         /// Non-configured analyzers will default to <see cref="GeneratedCodeAnalysisFlags.Default"/> mode for generated code.
         /// It is recommended for the analyzer to always invoke this API with the required <see cref="GeneratedCodeAnalysisFlags"/> setting.
         /// </summary>
-        public abstract void ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags analysisMode);
+        public virtual void ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags analysisMode)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     /// <summary>
@@ -325,14 +340,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// but cannot itself report any <see cref="Diagnostic"/>s.
         /// </summary>
         /// <param name="action">Action to be executed at the start of semantic analysis of an operation block.</param>
-        public abstract void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action);
+        public virtual void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary> 
         /// Register an action to be executed after semantic analysis of a method body or an expression appearing outside a method body. 
         /// An operation block action reports <see cref="Diagnostic"/>s about operation blocks. 
         /// </summary> 
         /// <param name="action">Action to be executed for an operation block.</param> 
-        public abstract void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action);
+        public virtual void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Register an action to be executed at completion of parsing of a code document.
@@ -383,7 +404,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
-        public abstract void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds);
+        public virtual void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     /// <summary>

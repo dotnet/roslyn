@@ -48,8 +48,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             var remoteService = Host.TryGetService();
             Assert.NotNull(remoteService);
 
-            remoteService.SetTestObjectFormattingOptions();
-
             Host.SetPathsAsync(new[] { s_fxDir }, new[] { s_homeDir }, s_homeDir).Wait();
 
             // assert and remove logo:
@@ -1150,7 +1148,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
 
             Assert.Equal("", output);
             Assert.DoesNotContain("Unexpected", error, StringComparison.OrdinalIgnoreCase);
-            Assert.True(error.StartsWith("System.Exception: Exception of type 'System.Exception' was thrown."));
+            Assert.True(error.StartsWith(new Exception().Message));
         }
 
         #region Submission result printing - null/void/value.
@@ -1183,6 +1181,14 @@ foo()
 
             output = ReadOutputToEnd();
             Assert.Equal("", output);
+        }
+
+        // TODO (https://github.com/dotnet/roslyn/issues/7976): delete this
+        [WorkItem(7976, "https://github.com/dotnet/roslyn/issues/7976")]
+        [Fact]
+        public void Workaround7976()
+        {
+            Thread.Sleep(TimeSpan.FromSeconds(10));
         }
 
         #endregion

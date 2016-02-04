@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestOverloadedConditionalLogicalOperatorsInferBool()
         {
             await TestAsync(@"using System;
@@ -188,7 +188,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestConditionalLogicalOrOperatorAlwaysInfersBool()
         {
             var text = @"using System;
@@ -203,7 +203,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestConditionalLogicalAndOperatorAlwaysInfersBool()
         {
             var text = @"using System;
@@ -218,7 +218,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrOperatorInference1()
         {
             var text = @"using System;
@@ -233,7 +233,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrOperatorInference2()
         {
             var text = @"using System;
@@ -248,7 +248,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrOperatorInference3()
         {
             var text = @"using System;
@@ -263,7 +263,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrOperatorInference4()
         {
             var text = @"using System;
@@ -282,7 +282,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrOperatorInference5()
         {
             var text = @"using System;
@@ -301,7 +301,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrOperatorInference6()
         {
             var text = @"using System;
@@ -316,7 +316,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrOperatorInference7()
         {
             var text = @"using System;
@@ -331,7 +331,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndOperatorInference1()
         {
             var text = @"using System;
@@ -346,7 +346,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndOperatorInference2()
         {
             var text = @"using System;
@@ -361,7 +361,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndOperatorInference3()
         {
             var text = @"using System;
@@ -376,7 +376,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndOperatorInference4()
         {
             var text = @"using System;
@@ -395,7 +395,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndOperatorInference5()
         {
             var text = @"using System;
@@ -414,7 +414,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndOperatorInference6()
         {
             var text = @"using System;
@@ -429,7 +429,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndOperatorInference7()
         {
             var text = @"using System;
@@ -444,7 +444,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorOperatorInference1()
         {
             var text = @"using System;
@@ -459,7 +459,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorOperatorInference2()
         {
             var text = @"using System;
@@ -474,7 +474,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorOperatorInference3()
         {
             var text = @"using System;
@@ -489,7 +489,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorOperatorInference4()
         {
             var text = @"using System;
@@ -508,7 +508,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorOperatorInference5()
         {
             var text = @"using System;
@@ -527,7 +527,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorOperatorInference6()
         {
             var text = @"using System;
@@ -542,7 +542,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorOperatorInference7()
         {
             var text = @"using System;
@@ -557,7 +557,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrEqualsOperatorInference1()
         {
             var text = @"using System;
@@ -572,7 +572,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalOrEqualsOperatorInference2()
         {
             var text = @"using System;
@@ -587,7 +587,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndEqualsOperatorInference1()
         {
             var text = @"using System;
@@ -602,7 +602,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalAndEqualsOperatorInference2()
         {
             var text = @"using System;
@@ -617,7 +617,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorEqualsOperatorInference1()
         {
             var text = @"using System;
@@ -632,7 +632,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617633)]
+        [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestLogicalXorEqualsOperatorInference2()
         {
             var text = @"using System;
@@ -665,7 +665,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(827897)]
+        [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         public async Task TestYieldReturn()
         {
             var markup =
@@ -873,21 +873,21 @@ class Program
             await TestInClassAsync(@"void M() { new C(s: [|Foo()|]); } C(int i, string s) { }", "System.String");
         }
 
-        [WorkItem(858112)]
+        [WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestThisConstructorInitializer1()
         {
             await TestAsync(@"class MyClass { public MyClass(int x) : this([|test|]) { } }", "System.Int32");
         }
 
-        [WorkItem(858112)]
+        [WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestThisConstructorInitializer2()
         {
             await TestAsync(@"class MyClass { public MyClass(int x, string y) : this(5, [|test|]) { } }", "System.String");
         }
 
-        [WorkItem(858112)]
+        [WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestBaseConstructorInitializer()
         {
@@ -1036,7 +1036,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(529480)]
+        [WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
         [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestCollectionInitializer1()
         {
@@ -1055,7 +1055,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(529480)]
+        [WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
         [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestCollectionInitializer2()
         {
@@ -1075,7 +1075,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(529480)]
+        [WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
         [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestCollectionInitializer3()
         {
@@ -1095,7 +1095,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(529480)]
+        [WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
         [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestCustomCollectionInitializerAddMethod1()
         {
@@ -1120,7 +1120,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(529480)]
+        [WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
         [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestCustomCollectionInitializerAddMethod2()
         {
@@ -1145,7 +1145,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(529480)]
+        [WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
         [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestCustomCollectionInitializerAddMethod3()
         {
@@ -1282,7 +1282,7 @@ class A
             await TestAsync(text, "global::System.Func<System.Int32,System.Int32>");
         }
 
-        [WorkItem(538993)]
+        [WorkItem(538993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538993")]
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestInsideLambda2()
         {
@@ -1299,7 +1299,7 @@ class C
             await TestAsync(text, "System.Int32");
         }
 
-        [WorkItem(539813)]
+        [WorkItem(539813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539813")]
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestPointer1()
         {
@@ -1315,7 +1315,7 @@ class C
             await TestAsync(text, "System.Int32");
         }
 
-        [WorkItem(539813)]
+        [WorkItem(539813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539813")]
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestDynamic1()
         {
@@ -1347,7 +1347,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(553584)]
+        [WorkItem(553584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")]
         public async Task TestAwaitTaskOfT()
         {
             var text =
@@ -1364,7 +1364,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(553584)]
+        [WorkItem(553584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")]
         public async Task TestAwaitTaskOfTaskOfT()
         {
             var text =
@@ -1381,7 +1381,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(553584)]
+        [WorkItem(553584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")]
         public async Task TestAwaitTask()
         {
             var text =
@@ -1398,7 +1398,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617622)]
+        [WorkItem(617622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617622")]
         public async Task TestLockStatement()
         {
             var text =
@@ -1416,7 +1416,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(617622)]
+        [WorkItem(617622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617622")]
         public async Task TestAwaitExpressionInLockStatement()
         {
             var text =
@@ -1434,7 +1434,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(827897)]
+        [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         public async Task TestReturnFromAsyncTaskOfT()
         {
             var markup =
@@ -1451,7 +1451,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(853840)]
+        [WorkItem(853840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")]
         public async Task TestAttributeArguments1()
         {
             var markup =
@@ -1470,7 +1470,7 @@ class AAttribute : System.Attribute
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(853840)]
+        [WorkItem(853840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")]
         public async Task TestAttributeArguments2()
         {
             var markup =
@@ -1489,7 +1489,7 @@ class AAttribute : System.Attribute
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(853840)]
+        [WorkItem(853840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")]
         public async Task TestAttributeArguments3()
         {
             var markup =
@@ -1508,7 +1508,7 @@ class AAttribute : System.Attribute
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(757111)]
+        [WorkItem(757111, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/757111")]
         public async Task TestReturnStatementWithinDelegateWithinAMethodCall()
         {
             var text =
@@ -1532,7 +1532,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(994388)]
+        [WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")]
         public async Task TestCatchFilterClause()
         {
             var text =
@@ -1545,7 +1545,7 @@ catch (Exception) if ([|M()|])
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(994388)]
+        [WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")]
         public async Task TestCatchFilterClause1()
         {
             var text =
@@ -1558,7 +1558,7 @@ catch (Exception) if ([|M|])
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        [WorkItem(994388)]
+        [WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")]
         public async Task TestCatchFilterClause2()
         {
             var text =

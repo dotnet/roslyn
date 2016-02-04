@@ -129,5 +129,61 @@ End Class
                 AssertEx.SetEqual(references.Select(Function(r) r.Definition.ContainingAssembly.Name), {"VBProj1"})
             End Using
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Function TestLinkedFiles_LinkedFilesWithSameAssemblyNameNoReferences() As Task
+            Dim definition =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="LinkedProj" Name="CSProj.1">
+        <Document FilePath="C.cs"><![CDATA[
+class {|Definition:$$C|}
+{
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="LinkedProj" Name="CSProj.2">
+        <Document IsLinkFile="true" LinkProjectName="CSProj.1" LinkFilePath="C.cs"/>
+    </Project>
+</Workspace>
+
+            Return TestAsync(definition)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Function TestLinkedFiles_LinkedFilesWithSameAssemblyNameWithReferences() As Task
+            Dim definition =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="LinkedProj" Name="CSProj.1">
+        <Document FilePath="C.cs"><![CDATA[
+public class {|Definition:$$C|}
+{
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="LinkedProj" Name="CSProj.2">
+        <Document IsLinkFile="true" LinkProjectName="CSProj.1" LinkFilePath="C.cs"/>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="ReferencingProject1">
+        <ProjectReference>CSProj.1</ProjectReference>
+        <Document FilePath="D.cs"><![CDATA[
+public class D : [|$$C|]
+{
+}]]>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="ReferencingProject2">
+        <ProjectReference>CSProj.2</ProjectReference>
+        <Document FilePath="E.cs"><![CDATA[
+public class D : [|$$C|]
+{
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Return TestAsync(definition)
+        End Function
     End Class
 End Namespace

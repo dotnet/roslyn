@@ -413,7 +413,7 @@ class C
             }
         }
 
-        [WorkItem(609912, "DevDiv")]
+        [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
         [Fact]
         public void IncompleteAsyncMember01()
         {
@@ -453,7 +453,7 @@ class C
             }
         }
 
-        [WorkItem(609912, "DevDiv")]
+        [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
         [Fact]
         public void IncompleteAsyncMember02()
         {
@@ -501,7 +501,7 @@ class C
             }
         }
 
-        [WorkItem(609912, "DevDiv")]
+        [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
         [Fact]
         public void IncompleteAsyncMember03()
         {
@@ -550,7 +550,7 @@ class C
             }
         }
 
-        [WorkItem(609912, "DevDiv")]
+        [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
         [Fact]
         public void IncompleteAsyncMember04()
         {
@@ -589,7 +589,7 @@ class C
             }
         }
 
-        [WorkItem(609912, "DevDiv")]
+        [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
         [Fact]
         public void IncompleteAsyncMember05()
         {
@@ -630,7 +630,7 @@ class C
             }
         }
 
-        [WorkItem(609912, "DevDiv")]
+        [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
         [Fact]
         public void IncompleteAsyncMember06()
         {

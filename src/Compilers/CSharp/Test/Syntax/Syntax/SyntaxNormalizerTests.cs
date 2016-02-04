@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("class c{void M([a]int x,[b] [c,d]int y){}}", "class c\r\n{\r\n  void M([a] int x, [b][c, d] int y)\r\n  {\r\n  }\r\n}");
         }
 
-        [WorkItem(541684, "DevDiv")]
+        [WorkItem(541684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541684")]
         [Fact]
         public void TestNormalizeRegion1()
         {
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeExpression(@"$""Message is {a}""", @"$""Message is {a}""");
         }
 
-        [WorkItem(528584, "DevDiv")]
+        [WorkItem(528584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528584")]
         [Fact]
         public void TestNormalizeRegion2()
         {
@@ -356,7 +356,7 @@ namespace foo
         }
 
         [ClrOnlyFact]
-        [WorkItem(531607, "DevDiv")]
+        [WorkItem(531607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531607")]
         public void TestNormalizeLineDirectiveTrivia()
         {
             TestNormalize(
@@ -381,7 +381,7 @@ namespace foo
             // Note: the literal was formatted as a C# string literal, not as a directive string literal.
         }
 
-        [WorkItem(538115, "DevDiv")]
+        [WorkItem(538115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538115")]
         [Fact]
         public void TestNormalizeWithinDirectives()
         {
@@ -390,7 +390,7 @@ namespace foo
 "class C\r\n{\r\n#if true\r\n  void Foo(A x)\r\n  {\r\n  }\r\n#else\r\n#endif\r\n}");
         }
 
-        [WorkItem(542887, "DevDiv")]
+        [WorkItem(542887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542887")]
         [ClrOnlyFact]
         public void TestFormattingForBlockSyntax()
         {
@@ -417,7 +417,7 @@ int i = 1;
 }");
         }
 
-        [WorkItem(1079042, "DevDiv")]
+        [WorkItem(1079042, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079042")]
         [ClrOnlyFact]
         public void TestNormalizeDocumentationComments()
         {

@@ -28,13 +28,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Qu
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        <WorkItem(542930)>
+        <WorkItem(542930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542930")>
         Public Async Function AscendingDescendingAfterNestedQueryTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = From y In z Order By From w In z |</MethodBody>, "Ascending", "Descending")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        <WorkItem(543173)>
+        <WorkItem(543173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543173")>
         Public Async Function AscendingDescendingAfterMultiLineFunctionLambdaExprTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>Dim q2 = From i1 In arr Order By Function()
                                              Return 5
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Qu
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        <WorkItem(543174)>
+        <WorkItem(543174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543174")>
         Public Async Function AscendingDescendingAfterAnonymousObjectCreationExprTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>Dim q2 = From i1 In arr Order By New With {.Key = 10} |</MethodBody>, "Ascending", "Descending")
         End Function

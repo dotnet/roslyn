@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return New PartialTypeCompletionProvider()
         End Function
 
-        <WorkItem(578224)>
+        <WorkItem(578224, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578224")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestRecommendTypesWithoutPartial() As Task
             Dim text = <text>Class C
@@ -205,7 +205,7 @@ Partial Class $$</text>
             Await VerifyItemExistsAsync(text.Value, "C1(Of T As Exception)")
         End Function
 
-        <WorkItem(578122)>
+        <WorkItem(578122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578122")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestDoNotSuggestCurrentMember() As Task
             Dim text = <text>

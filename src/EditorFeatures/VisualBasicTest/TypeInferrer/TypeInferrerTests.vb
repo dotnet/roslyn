@@ -88,27 +88,27 @@ End Class</text>.Value.Replace("$", text)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(542834)>
+        <WorkItem(542834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542834")>
         Public Async Function TestCoalesce1() As Task
             Await TestInMethodAsync("Dim q = If([|Foo()|], 1)", "System.Int32?")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(542834)>
+        <WorkItem(542834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542834")>
         Public Async Function TestCoalesce2() As Task
             Await TestInMethodAsync(<text>Dim b as Boolean?
     Dim q = If(b, [|Foo()|])</text>.Value, "System.Boolean")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(542834)>
+        <WorkItem(542834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542834")>
         Public Async Function TestCoalesce3() As Task
             Await TestInMethodAsync(<text>Dim s As String
     Dim q = If(s, [|Foo()|])</text>.Value, "System.String")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(542834)>
+        <WorkItem(542834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542834")>
         Public Async Function TestCoalesce4() As Task
             Await TestInMethodAsync("Dim q = If([|Foo()|], String.Empty)", "System.String")
         End Function
@@ -141,32 +141,32 @@ End Class</text>.Value.Replace("$", text)
             Await TestInMethodAsync("Dim q = x >> [|Foo()|]", "System.Int32")
         End Function
 
-        <Fact, WorkItem(817192), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <Fact, WorkItem(817192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestBinaryOperator3() As Task
             Await TestInMethodAsync("Dim q : q <<= [|Foo()|]", "System.Int32")
         End Function
 
-        <Fact, WorkItem(817192), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <Fact, WorkItem(817192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestBinaryOperator4() As Task
             Await TestInMethodAsync("Dim q : q >>= [|Foo()|]", "System.Int32")
         End Function
 
-        <Fact, WorkItem(817192), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <Fact, WorkItem(817192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestBinaryOperator5() As Task
             Await TestInMethodAsync("Dim q : [|somefield|] <<= q", "System.Int32", testPosition:=False)
         End Function
 
-        <Fact, WorkItem(817192), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <Fact, WorkItem(817192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestBinaryOperator6() As Task
             Await TestInMethodAsync("Dim q : [|somefield|] >>= q", "System.Int32", testPosition:=False)
         End Function
 
-        <Fact, WorkItem(817192), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <Fact, WorkItem(817192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestBinaryOperator7() As Task
             Await TestInMethodAsync("Dim q As String : q >>= [|Foo()|]", "System.Int32")
         End Function
 
-        <Fact, WorkItem(817192), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <Fact, WorkItem(817192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestBinaryOperator8() As Task
             Await TestInMethodAsync("Dim q As String : [|somefield|] >>= q", "System.Int32", testPosition:=False)
         End Function
@@ -187,13 +187,13 @@ End Class</text>.Value.Replace("$", text)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(827897)>
+        <WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")>
         Public Async Function TestYieldReturn() As Task
             Await TestInClassAsync("Iterator Function M() As System.Collections.Generic.IEnumerable(Of Integer) : Yield [|abc|] : End Function", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(529479)>
+        <WorkItem(529479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529479")>
         Public Async Function TestReturnInLambda() As Task
             Await TestInMethodAsync(<Code>Dim F As System.Func(Of String, Integer) = Function (s)
                                                                        Return [|Foo()|]
@@ -201,7 +201,7 @@ End Class</text>.Value.Replace("$", text)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(529479)>
+        <WorkItem(529479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529479")>
         Public Async Function TestInsideLambda2() As Task
             Dim text = <text>Imports System
 Class A
@@ -213,7 +213,7 @@ End Class</text>.Value
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(529479)>
+        <WorkItem(529479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529479")>
         Public Async Function TestLambda() As Task
             Await TestInMethodAsync("Dim f As System.Func(Of String, Integer) = Function (s) [|Foo()|]", "System.Int32")
         End Function
@@ -244,7 +244,7 @@ End Class</text>.Value
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(542835)>
+        <WorkItem(542835, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542835")>
         Public Async Function TestFor2() As Task
             Await TestInMethodAsync("For i As Integer = 1 To 2 Step [|Foo|]", "System.Int32")
         End Function
@@ -260,13 +260,13 @@ End Class</text>.Value
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(544611)>
+        <WorkItem(544611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544611")>
         Public Async Function TestUsing3() As Task
             Await TestInMethodAsync("Using v = [|Foo()|] : End Using", "Global.System.IDisposable")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(542838)>
+        <WorkItem(542838, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542838")>
         Public Async Function TestForEach() As Task
             Await TestInMethodAsync("For Each v As Integer in [|Foo()|] : Next", "Global.System.Collections.Generic.IEnumerable(Of System.Int32)")
         End Function
@@ -282,7 +282,7 @@ End Class</text>.Value
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(542839)>
+        <WorkItem(542839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542839")>
         Public Async Function TestPrefixExpression3() As Task
             Await TestInMethodAsync("Dim q = Not [|Foo()|] And 5", "System.Int32")
         End Function
@@ -293,13 +293,13 @@ End Class</text>.Value
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(542837)>
+        <WorkItem(542837, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542837")>
         Public Async Function TestArrayRankSpecifier1() As Task
             Await TestInMethodAsync("Dim q As String() = New String([|Foo()|])", "System.Char()")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(542837)>
+        <WorkItem(542837, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542837")>
         Public Async Function TestArrayRankSpecifier2() As Task
             Await TestInMethodAsync("Dim q As String() = New String([|Foo()|]) { }", "System.Int32")
         End Function
@@ -370,13 +370,13 @@ End Class</text>.Value
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(542837)>
+        <WorkItem(542837, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542837")>
         Public Async Function TestIndexAccess1() As Task
             Await TestInMethodAsync("Dim i As String() : Dim j = i([|Foo()|])", "System.Int32")
         End Function
 
         <Fact>
-        <WorkItem(529480)>
+        <WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestCollectionInitializer1() As Task
             Dim text = <text>Imports System.Collections.Generic
@@ -390,7 +390,7 @@ End Class</text>.Value
         End Function
 
         <Fact>
-        <WorkItem(529480)>
+        <WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestCollectionInitializer2() As Task
             Dim text = <text>
@@ -405,7 +405,7 @@ End Class</text>.Value
         End Function
 
         <Fact>
-        <WorkItem(529480)>
+        <WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestCollectionInitializer3() As Task
             Dim text = <text>
@@ -420,7 +420,7 @@ End Class</text>.Value
         End Function
 
         <Fact>
-        <WorkItem(529480)>
+        <WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestCustomCollectionInitializerAddMethod1() As Task
             Dim text = <text>
@@ -446,7 +446,7 @@ End Class
         End Function
 
         <Fact>
-        <WorkItem(529480)>
+        <WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestCustomCollectionInitializerAddMethod2() As Task
             Dim text = <text>
@@ -471,7 +471,7 @@ End Class</text>.Value
         End Function
 
         <Fact>
-        <WorkItem(529480)>
+        <WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestCustomCollectionInitializerAddMethod3() As Task
             Dim text = <text>
@@ -543,7 +543,7 @@ End Class</text>.Value
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(553584)>
+        <WorkItem(553584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")>
         Public Async Function TestAwaitTaskOfT() As Task
             Dim text = <text>
 Imports System.Threading.Tasks
@@ -557,7 +557,7 @@ End Class</text>.Value
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(553584)>
+        <WorkItem(553584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")>
         Public Async Function TestAwaitTaskOfTaskOfT() As Task
             Dim text = <text>
 Imports System.Threading.Tasks
@@ -571,7 +571,7 @@ End Class</text>.Value
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(553584)>
+        <WorkItem(553584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")>
         Public Async Function TestAwaitTask() As Task
             Dim text = <text>
 Imports System.Threading.Tasks
@@ -585,13 +585,13 @@ End Class</text>.Value
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(827897)>
+        <WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")>
         Public Async Function TestReturnFromAsyncTaskOfT() As Task
             Await TestInClassAsync("Async Function M() As System.Threading.Tasks.Task(Of Integer) : Return [|abc|] : End Function", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(530816)>
+        <WorkItem(530816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530816")>
         Public Async Function TestNamedFieldInitializer() As Task
             Dim text = <text>
 Imports System.Linq
@@ -613,7 +613,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(853840)>
+        <WorkItem(853840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")>
         Public Async Function TestAttributeArguments1() As Task
             Dim text = <text>
 &lt;AAttribute([|dd|], ee, Y:=ff)&gt;
@@ -631,7 +631,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(853840)>
+        <WorkItem(853840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")>
         Public Async Function TestAttributeArguments2() As Task
             Dim text = <text>
 &lt;AAttribute(dd, [|ee|], Y:=ff)&gt;
@@ -649,7 +649,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(853840)>
+        <WorkItem(853840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")>
         Public Async Function TestAttributeArguments3() As Task
             Dim text = <text>
 &lt;AAttribute(dd, ee, Y:=[|ff|])&gt;
@@ -667,28 +667,28 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(994388)>
+        <WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")>
         Public Async Function TestCatchFilterClause() As Task
             Dim text = "Try : Catch ex As Exception When [|foo()|]"
             Await TestInMethodAsync(text, "System.Boolean")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(994388)>
+        <WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")>
         Public Async Function TestCatchFilterClause1() As Task
             Dim text = "Try : Catch ex As Exception When [|foo|]"
             Await TestInMethodAsync(text, "System.Boolean")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(994388)>
+        <WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")>
         Public Async Function TestCatchFilterClause2() As Task
             Dim text = "Try : Catch ex As Exception When [|foo|].N"
             Await TestInMethodAsync(text, "System.Object", testPosition:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
-        <WorkItem(1041260)>
+        <WorkItem(1041260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041260")>
         Public Async Function ConditionalInvocation() As Task
             Dim text = "Dim args As String() : args?([|foo|])"
             Await TestInMethodAsync(text, "System.Int32", testPosition:=True)

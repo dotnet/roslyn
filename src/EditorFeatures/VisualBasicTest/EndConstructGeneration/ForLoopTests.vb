@@ -50,7 +50,7 @@ End Class",
                 afterCaret:={3, -1})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(527481)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(527481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527481")>
         Public Async Function VerifyIndexMatchedInner1() As Task
             Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class c1
@@ -63,7 +63,7 @@ End Class",
                  caret:={3, -1})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(527481)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(527481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527481")>
         Public Async Function TestVerifyIndexMatchedInner2() As Task
             Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
@@ -86,7 +86,7 @@ End Class",
                 afterCaret:={3, -1})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(527481)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(527481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527481")>
         Public Async Function VerifyIndexSharedNext() As Task
             Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class c1

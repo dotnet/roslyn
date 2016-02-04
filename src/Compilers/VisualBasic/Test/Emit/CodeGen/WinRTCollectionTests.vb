@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CodeGen
             End Get
         End Property
 
-        <Fact, WorkItem(762316, "DevDiv")>
+        <Fact, WorkItem(762316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762316")>
         Public Sub InheritFromTypeWithProjections()
             Dim source =
             <compilation>
@@ -6342,7 +6342,7 @@ End Namespace
             verifier.Diagnostics.AsEnumerable().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
         End Sub
 
-        <Fact, WorkItem(1034461, "DevDiv")>
+        <Fact, WorkItem(1034461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034461")>
         Public Sub Bug1034461()
             Dim source =
             <compilation>

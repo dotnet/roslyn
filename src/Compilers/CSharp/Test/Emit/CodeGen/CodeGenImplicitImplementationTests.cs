@@ -744,7 +744,7 @@ Derived2.P.set";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(540410, "DevDiv")]
+        [WorkItem(540410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540410")]
         [Fact]
         public void ImplementMultipleInterfaceWithCommonBase()
         {
@@ -821,7 +821,7 @@ class C1 : IInterface
                     Diagnostic(ErrorCode.ERR_AmbigCall, "BaseFoo").WithArguments("IBase1.BaseFoo()", "IBase2.BaseFoo()"));
         }
 
-        [WorkItem(540410, "DevDiv")]
+        [WorkItem(540410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540410")]
         [Fact]
         public void InterfaceDiamondInheritenceWithNewMember()
         {

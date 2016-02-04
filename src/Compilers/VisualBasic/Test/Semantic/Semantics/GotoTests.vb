@@ -208,7 +208,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543378, "DevDiv")>
+        <WorkItem(543378, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543378")>
         <Fact()>
         Public Sub DuplicatedLabel()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(

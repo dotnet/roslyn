@@ -118,7 +118,7 @@ namespace Acme
             Assert.Null(DynamicTypeSymbol.Instance.GetDocumentationCommentId());
         }
 
-        [WorkItem(536957, "DevDiv")]
+        [WorkItem(536957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536957")]
         [Fact]
         public void TestCommentsWithQuestionMarks()
         {

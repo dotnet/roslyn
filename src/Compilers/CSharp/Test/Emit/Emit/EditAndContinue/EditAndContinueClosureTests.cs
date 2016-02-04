@@ -2087,7 +2087,7 @@ class C
 ");
         }
 
-        [Fact(Skip = "2504"), WorkItem(2504)]
+        [Fact(Skip = "2504"), WorkItem(2504, "https://github.com/dotnet/roslyn/issues/2504")]
         public void InsertConstructorInPresenceOfFieldInitializersWithLambdas()
         {
             var source0 = MarkedSource(@"
@@ -2624,7 +2624,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(1170899, "DevDiv")]
+        [Fact, WorkItem(1170899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")]
         public void CapturedAnonymousTypes1()
         {
             var source0 = MarkedSource(@"
@@ -2767,7 +2767,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1170899, "DevDiv")]
+        [Fact, WorkItem(1170899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")]
         public void CapturedAnonymousTypes2()
         {
             var template = @"

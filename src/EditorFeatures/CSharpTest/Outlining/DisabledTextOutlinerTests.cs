@@ -59,7 +59,7 @@ Blah|}
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WorkItem(531360)]
+        [WorkItem(531360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531360")]
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task DisabledCodeWithEmbeddedPreprocessorDirectivesShouldCollapseEntireDisabledRegion()
         {
@@ -80,7 +80,7 @@ class P {
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WorkItem(531360)]
+        [WorkItem(531360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531360")]
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task DisabledCodeShouldNotCollapseUnlessItFollowsADirective()
         {
@@ -100,7 +100,7 @@ class P {
             await VerifyNoRegionsAsync(code);
         }
 
-        [WorkItem(1070677)]
+        [WorkItem(1070677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion()
         {
@@ -121,7 +121,7 @@ class P {
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WorkItem(1070677)]
+        [WorkItem(1070677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion2()
         {
@@ -143,7 +143,7 @@ class P {
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WorkItem(1070677)]
+        [WorkItem(1070677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion3()
         {
@@ -164,7 +164,7 @@ class P {
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WorkItem(1070677)]
+        [WorkItem(1070677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion4()
         {
@@ -194,7 +194,7 @@ class P {
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WorkItem(1100600)]
+        [WorkItem(1100600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100600")]
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task PreprocessorDirectivesInTrailingTrivia()
         {

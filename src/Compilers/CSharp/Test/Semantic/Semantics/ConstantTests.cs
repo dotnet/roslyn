@@ -895,7 +895,7 @@ class C
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "U64.Min - 2").WithLocation(89, 11));
         }
 
-        [Fact, WorkItem(528727, "DevDiv")]
+        [Fact, WorkItem(528727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528727")]
         public void TestConstantNumericConversionsNotOverflow()
         {
             var source = @"
@@ -1470,7 +1470,7 @@ ulong.MinValue --> 0";
         /// Breaking change from the native compiler for
         /// certain constant expressions involving +0m and -0m.
         /// </summary>
-        [WorkItem(529730, "DevDiv")]
+        [WorkItem(529730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529730")]
         [WorkItem(1043494, "DevDiv")]
         [Fact(Skip = "1043494")]
         public void TestConstantFoldingDecimalOperations01()
@@ -1530,7 +1530,7 @@ class C
         /// Breaking change from the native compiler for
         /// certain constant expressions involving +0m and -0m.
         /// </summary>
-        [WorkItem(529730, "DevDiv")]
+        [WorkItem(529730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529730")]
         [Fact]
         public void TestConstantFoldingDecimalOperations02()
         {
@@ -1656,7 +1656,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(538179, "DevDiv")]
+        [WorkItem(538179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538179")]
         [Fact]
         public void TestConstantErrors()
         {
@@ -2483,7 +2483,7 @@ class c1
             Assert.Equal(constantValue.Value, 6);
         }
 
-        [WorkItem(544620, "DevDiv")]
+        [WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")]
         [Fact]
         public void NoConstantValueForOverflows()
         {
@@ -2511,7 +2511,7 @@ class c1
             Assert.False(((FieldSymbol)symbol).HasConstantValue);
         }
 
-        [WorkItem(545965, "DevDiv")]
+        [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
         [Fact]
         public void CircularConstantReportingRace()
         {
@@ -2541,7 +2541,7 @@ class C{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "X").WithArguments("C0.X"));
         }
 
-        [WorkItem(545965, "DevDiv")]
+        [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
         [Fact]
         public void MultiCircularConstantReportingRace()
         {
@@ -2598,7 +2598,7 @@ class C{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "X").WithArguments("C8.X"));
         }
 
-        [WorkItem(545965, "DevDiv")]
+        [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
         [Fact]
         public void CircularEnumReportingRace()
         {
@@ -2628,7 +2628,7 @@ enum E{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "X").WithArguments("E0.X"));
         }
 
-        [WorkItem(545965, "DevDiv")]
+        [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
         [Fact]
         public void MultiCircularEnumReportingRace()
         {
@@ -2685,7 +2685,7 @@ enum E{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "X").WithArguments("E8.X").WithLocation(44, 5));
         }
 
-        [WorkItem(545965, "DevDiv")]
+        [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
         [Fact]
         public void CircularImplicitEnumReportingRace()
         {
@@ -2718,7 +2718,7 @@ enum E{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "A").WithArguments("E0.A"));
         }
 
-        [WorkItem(545965, "DevDiv")]
+        [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
         [Fact]
         public void MultiCircularImplicitEnumReportingRace()
         {
@@ -2778,7 +2778,7 @@ enum E{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "A").WithArguments("E8.A"));
         }
 
-        [Fact, WorkItem(544941, "DevDiv")]
+        [Fact, WorkItem(544941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544941")]
         public static void ConstantNullNotObject()
         {
             var source =
@@ -2804,7 +2804,7 @@ class MyClass
         // would resulted from a runtime conversion with normal CLR overflow behavior.
         // To avoid breaking programs that might accidentally rely on that unspecified behavior
         // we now match the native compiler behavior, and we are going to keep this behavior for compatibility.
-        [Fact, WorkItem(1020273, "DevDiv")]
+        [Fact, WorkItem(1020273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020273")]
         public void Bug1020273()
         {
             string source = @"
@@ -2825,7 +2825,7 @@ Inline  : -1";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(1098197, "DevDiv")]
+        [Fact, WorkItem(1098197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098197")]
         public static void Bug1098197_01()
         {
             var source =
@@ -2906,7 +2906,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(1098197, "DevDiv")]
+        [Fact, WorkItem(1098197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098197")]
         public static void Bug1098197_02()
         {
             var source =
@@ -2923,7 +2923,7 @@ void f() { if () const int i = 0; }
                 );
         }
 
-        [Fact, WorkItem(1098605, "DevDiv")]
+        [Fact, WorkItem(1098605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098605")]
         public static void Bug1098605_01()
         {
             var source =

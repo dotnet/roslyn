@@ -42,7 +42,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(544088)]
+        [WorkItem(544088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544088")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task DeclaringGenericTypeWith1ParameterUnterminated()
         {
@@ -272,7 +272,7 @@ class Program
             await TestAsync(markup, expectedOrderedItems, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WorkItem(544088)]
+        [WorkItem(544088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544088")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InvokingGenericMethodWith1ParameterUnterminated()
         {
@@ -338,7 +338,7 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [WorkItem(1067933)]
+        [WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InvokedWithNoToken()
         {

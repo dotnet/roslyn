@@ -43,7 +43,7 @@ End Class
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename), WorkItem(545164)>
+        <Trait(Traits.Feature, Traits.Features.Rename), WorkItem(545164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545164")>
         Public Sub RenamingToUnderscoreAttribute()
             Using result = RenameEngineResult.Create(
                 <Workspace>

@@ -405,7 +405,7 @@ class C
             }
         }
 
-        [WorkItem(1070773)]
+        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Collection_Initializer_OpenBraceOnSameLine_Enter()
         {
@@ -443,7 +443,7 @@ class C
             }
         }
 
-        [WorkItem(1070773)]
+        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Collection_Initializer_OpenBraceOnDifferentLine_Enter()
         {
@@ -478,7 +478,7 @@ class C
             }
         }
 
-        [WorkItem(1070773)]
+        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Object_Initializer_OpenBraceOnSameLine_Enter()
         {
@@ -522,7 +522,7 @@ class Foo
             }
         }
 
-        [WorkItem(1070773)]
+        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Object_Initializer_OpenBraceOnDifferentLine_Enter()
         {
@@ -563,7 +563,7 @@ class Foo
             }
         }
 
-        [WorkItem(1070773)]
+        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task ArrayImplicit_Initializer_OpenBraceOnSameLine_Enter()
         {
@@ -597,7 +597,7 @@ class Foo
             }
         }
 
-        [WorkItem(1070773)]
+        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task ArrayImplicit_Initializer_OpenBraceOnDifferentLine_Enter()
         {
@@ -628,7 +628,7 @@ class Foo
             }
         }
 
-        [WorkItem(1070773)]
+        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task ArrayExplicit1_Initializer_OpenBraceOnSameLine_Enter()
         {
@@ -662,7 +662,7 @@ class Foo
             }
         }
 
-        [WorkItem(1070773)]
+        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task ArrayExplicit1_Initializer_OpenBraceOnDifferentLine_Enter()
         {
@@ -693,7 +693,7 @@ class Foo
             }
         }
 
-        [WorkItem(1070773)]
+        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task ArrayExplicit2_Initializer_OpenBraceOnSameLine_Enter()
         {
@@ -727,7 +727,7 @@ class Foo
             }
         }
 
-        [WorkItem(1070773)]
+        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task ArrayExplicit2_Initializer_OpenBraceOnDifferentLine_Enter()
         {
@@ -759,7 +759,7 @@ class Foo
         }
 
         [WorkItem(3447, "https://github.com/dotnet/roslyn/issues/3447")]
-        [WorkItem(850540)]
+        [WorkItem(850540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850540")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task BlockIndentationWithAutomaticBraceFormattingDisabled()
         {

@@ -376,8 +376,8 @@ End Class
 
         End Sub
 
-        <WorkItem(537281, "DevDiv")>
-        <WorkItem(537300, "DevDiv")>
+        <WorkItem(537281, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537281")>
+        <WorkItem(537300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537300")>
         <WorkItem(932303, "DevDiv/Personal")>
         <Fact>
         Public Sub ArrayTypeInterfaces()
@@ -419,8 +419,8 @@ End Class
             Assert.Throws(Of ArgumentNullException)(Sub() compilation.CreateArrayTypeSymbol(Nothing))
         End Sub
 
-        <WorkItem(537420, "DevDiv")>
-        <WorkItem(537515, "DevDiv")>
+        <WorkItem(537420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537420")>
+        <WorkItem(537515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537515")>
         <Fact>
         Public Sub ArrayTypeGetFullNameAndHashCode()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -525,7 +525,7 @@ End Class
             Assert.Equal("A.Cbc As System.Object()()", sym73.ToTestDisplayString())
         End Sub
 
-        <Fact(), WorkItem(537187, "DevDiv"), WorkItem(529941, "DevDiv")>
+        <Fact(), WorkItem(537187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537187"), WorkItem(529941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529941")>
         Public Sub EnumFields()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation name="EnumFields">
@@ -667,7 +667,7 @@ End Namespace
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(537199, "DevDiv")>
+        <WorkItem(537199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537199")>
         <Fact>
         Public Sub UseTypeInNetModule()
             Dim mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib
@@ -757,7 +757,7 @@ End Namespace
             Assert.Equal("System.DateTime", ary.ElementType.ToTestDisplayString())
         End Sub
 
-        <WorkItem(537461, "DevDiv")>
+        <WorkItem(537461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537461")>
         <Fact>
         Public Sub SourceTypeUndefinedBaseType()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -772,7 +772,7 @@ End Class
             Assert.Equal(SymbolKind.ErrorType, baseType.Kind)
         End Sub
 
-        <WorkItem(537467, "DevDiv")>
+        <WorkItem(537467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537467")>
         <Fact>
         Public Sub TopLevelPrivateTypes()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -825,7 +825,7 @@ BC31047: Protected types can only be declared inside of a class.
 
         End Sub
 
-        <WorkItem(527185, "DevDiv")>
+        <WorkItem(527185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527185")>
         <Fact>
         Public Sub InheritTypeFromMetadata01()
 
@@ -880,7 +880,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem(537753, "DevDiv")>
+        <WorkItem(537753, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537753")>
         <Fact>
         Public Sub ImplementTypeCrossComps()
 
@@ -928,7 +928,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem(537492, "DevDiv")>
+        <WorkItem(537492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537492")>
         <Fact>
         Public Sub PartialClassImplInterface()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2372,7 +2372,7 @@ BC30270: 'Public' is not valid on an interface method declaration.
 
         ' Constructor initializers don't bind yet
         <WorkItem(7926, "DevDiv_Projects/Roslyn")>
-        <WorkItem(541123, "DevDiv")>
+        <WorkItem(541123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541123")>
         <Fact>
         Public Sub StructDefaultConstructorInitializer()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2503,7 +2503,7 @@ End Structure
 )
         End Sub
 
-        <Fact, WorkItem(530171, "DevDiv")>
+        <Fact, WorkItem(530171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530171")>
         Public Sub ErrorTypeTest01()
             Dim compilation = CreateCompilationWithMscorlib(
     <compilation name="Err">

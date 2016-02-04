@@ -6,8 +6,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
     Public Class CallSiteConflictResolutionTests
         <WpfFact(skip:="535068")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(542103)>
-        <WorkItem(535068)>
+        <WorkItem(542103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542103")>
+        <WorkItem(535068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535068")>
         Public Sub RewriteConflictingExtensionMethodCallSite()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -39,8 +39,8 @@ End Module
 
         <WpfFact(Skip:="535068")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(542821)>
-        <WorkItem(535068)>
+        <WorkItem(542821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542821")>
+        <WorkItem(535068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535068")>
         Public Sub RewriteConflictingExtensionMethodCallSiteRequiringTypeArguments()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -72,8 +72,8 @@ End Module
 
         <WpfFact(Skip:="535068")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(542821)>
-        <WorkItem(535068)>
+        <WorkItem(542821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542821")>
+        <WorkItem(535068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535068")>
         Public Sub RewriteConflictingExtensionMethodCallSiteInferredTypeArguments()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -104,7 +104,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(539636)>
+        <WorkItem(539636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539636")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub QualifyConflictingMethodInvocation()
             Using result = RenameEngineResult.Create(

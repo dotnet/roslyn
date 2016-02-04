@@ -1450,7 +1450,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Punctuation.CloseParen)
         End Function
 
-        <WorkItem(542387)>
+        <WorkItem(542387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542387")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestFromInQuery() As Task
             Dim text = StringFromLines(
@@ -3485,7 +3485,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        <WorkItem(538647)>
+        <WorkItem(538647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538647")>
         Public Async Function TestRegression4315_VariableNamesClassifiedAsType() As Task
             Dim text = StringFromLines(
                 "Module M",
@@ -3509,7 +3509,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        <WorkItem(539203)>
+        <WorkItem(539203, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539203")>
         Public Async Function TestColonTrivia() As Task
             Await TestInMethodAsync("    : Console.WriteLine()",
                          Punctuation.Colon,
@@ -3521,7 +3521,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        <WorkItem(539642)>
+        <WorkItem(539642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539642")>
         Public Async Function TestFromInCollectionInitializer1() As Task
             Await TestInMethodAsync("Dim y = New Foo() From",
                          Keyword("Dim"),
@@ -3535,7 +3535,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        <WorkItem(539642)>
+        <WorkItem(539642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539642")>
         Public Async Function TestFromInCollectionInitializer2() As Task
             Await TestInMethodAsync("Dim y As New Foo() From",
                          Keyword("Dim"),
@@ -3549,7 +3549,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        <WorkItem(539779)>
+        <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport1() As Task
             Await TestAsync("Imports <x",
                  Keyword("Imports"),
@@ -3558,7 +3558,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        <WorkItem(539779)>
+        <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport2() As Task
             Await TestAsync("Imports <xml",
                  Keyword("Imports"),
@@ -3567,7 +3567,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        <WorkItem(539779)>
+        <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport3() As Task
             Await TestAsync("Imports <xmlns",
                  Keyword("Imports"),
@@ -3576,7 +3576,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        <WorkItem(539779)>
+        <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport4() As Task
             Await TestAsync("Imports <xmlns:",
                  Keyword("Imports"),
@@ -3586,7 +3586,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        <WorkItem(539779)>
+        <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport5() As Task
             Await TestAsync("Imports <xmlns:ns",
                  Keyword("Imports"),
@@ -3597,7 +3597,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        <WorkItem(539779)>
+        <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport6() As Task
             Await TestAsync("Imports <xmlns:ns=",
                  Keyword("Imports"),
@@ -3609,7 +3609,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        <WorkItem(539779)>
+        <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport7() As Task
             Await TestAsync("Imports <xmlns:ns=""http://foo""",
                  Keyword("Imports"),
@@ -3624,7 +3624,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        <WorkItem(539779)>
+        <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestFullyTypedXmlNamespaceImport() As Task
             Await TestAsync("Imports <xmlns:ns=""http://foo"">",
                  Keyword("Imports"),

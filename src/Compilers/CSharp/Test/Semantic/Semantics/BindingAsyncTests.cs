@@ -1075,7 +1075,7 @@ class Driver
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
 
-        [WorkItem(611150, "DevDiv")]
+        [WorkItem(611150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611150")]
         [Fact]
         public void AwaitInLambdaInLock()
         {
@@ -2389,7 +2389,7 @@ partial class Test
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Foo"));
         }
 
-        [WorkItem(611150, "DevDiv")]
+        [WorkItem(611150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611150")]
         [Fact]
         public void UnobservedAwaitableExpression_ForgetAwait12()
         {
@@ -2444,7 +2444,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth((int?)null)"));
         }
 
-        [WorkItem(611150, "DevDiv")]
+        [WorkItem(611150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611150")]
         [Fact]
         public void UnobservedAwaitableExpression_ForgetAwait12_breaking()
         {
@@ -3443,7 +3443,7 @@ public class D
                 Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecuritySafeCritical").WithArguments("SecuritySafeCritical"));
         }
 
-        [Fact, WorkItem(547077, "DevDiv")]
+        [Fact, WorkItem(547077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547077")]
         public void Repro_17880()
         {
             var source = @"
@@ -3459,7 +3459,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Meth"));
         }
 
-        [Fact, WorkItem(547079, "DevDiv")]
+        [Fact, WorkItem(547079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547079")]
         public void Repro_17883()
         {
             var source = @"
@@ -3481,7 +3481,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M1"));
         }
 
-        [Fact, WorkItem(547081, "DevDiv")]
+        [Fact, WorkItem(547081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547081")]
         public void Repro_17885()
         {
             var source = @"
@@ -3500,7 +3500,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_MainCantBeAsync, "Main").WithArguments("Test.Main()"));
         }
 
-        [Fact, WorkItem(547088, "DevDiv")]
+        [Fact, WorkItem(547088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547088")]
         public void Repro_17914()
         {
             var source = @"
@@ -3575,7 +3575,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(552382, "DevDiv")]
+        [WorkItem(552382, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552382")]
         public void GetAwaiterIsExtension()
         {
             var source =
@@ -3617,7 +3617,7 @@ namespace B
         }
 
         [Fact]
-        [WorkItem(576311, "DevDiv")]
+        [WorkItem(576311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576311")]
         public void BadDelegateTypeForAsync()
         {
             var source =
@@ -3639,7 +3639,7 @@ class C
            );
         }
 
-        [WorkItem(588706, "DevDiv")]
+        [WorkItem(588706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/588706")]
         [Fact]
         public void AsyncAsLambdaParameter()
         {
@@ -3663,7 +3663,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(629368, "DevDiv")]
+        [WorkItem(629368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
         public void GetAwaiterFieldUsedLikeMethod()
         {
             string source = @"
@@ -3687,7 +3687,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(629368, "DevDiv")]
+        [WorkItem(629368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
         public void GetAwaiterPropertyUsedLikeMethod()
         {
             string source = @"
@@ -3711,7 +3711,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(628619, "DevDiv")]
+        [WorkItem(628619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628619")]
         public void ReturnExpressionNotConvertible()
         {
             string source = @"
@@ -3733,7 +3733,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(632824, "DevDiv")]
+        [WorkItem(632824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632824")]
         public void RefParameterOnAsyncLambda()
         {
             string source = @"
@@ -3765,7 +3765,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(858059, "DevDiv")]
+        [WorkItem(858059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858059")]
         public void UnawaitedVersusLambda()
         {
             string source =

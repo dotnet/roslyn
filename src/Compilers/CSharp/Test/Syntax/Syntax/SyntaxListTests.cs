@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<ArgumentNullException>(() => list.InsertRange(0, (IEnumerable<SyntaxNode>)null));
         }
 
-        [Fact, WorkItem(127)]
+        [Fact, WorkItem(127, "https://github.com/dotnet/roslyn/issues/127")]
         public void AddEmptySyntaxList()
         {
             var attributes = new AttributeListSyntax[0];

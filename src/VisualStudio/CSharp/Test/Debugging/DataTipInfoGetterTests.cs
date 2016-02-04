@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WorkItem(539910)]
+        [WorkItem(539910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539910")]
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task TestLiterals()
         {
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WorkItem(942699)]
+        [WorkItem(942699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942699")]
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task TestCatchIdentifier()
         {
@@ -316,7 +316,7 @@ static class Static
 }");
         }
 
-        [WorkItem(540921)]
+        [WorkItem(540921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540921")]
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task TestForEachIdentifier()
         {
@@ -332,7 +332,7 @@ static class Static
 }");
         }
 
-        [WorkItem(546328)]
+        [WorkItem(546328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546328")]
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task TestProperty()
         {
@@ -407,7 +407,7 @@ static class Static
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")]
         public async Task TestConditionalAccessExpression()
         {
             var sourceTemplate = @"
@@ -479,7 +479,7 @@ class D
             await TestAsync(string.Format(sourceTemplate, "[|Me?.B?.C?.$$D|]"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")]
         public async Task TestConditionalAccessExpression_Trivia()
         {
             var sourceTemplate = @"

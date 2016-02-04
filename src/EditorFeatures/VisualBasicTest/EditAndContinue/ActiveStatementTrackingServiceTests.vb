@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class ActiveStatementTrackingServiceTests
         Inherits RudeEditTestBase
 
-        <Fact, WorkItem(846042)>
+        <Fact, WorkItem(846042, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846042")>
         Public Sub MovedOutsideOfMethod1()
             Dim src1 = "
 Class C

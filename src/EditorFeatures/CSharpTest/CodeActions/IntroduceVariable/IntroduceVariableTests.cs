@@ -338,7 +338,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
 options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
         }
 
-        [WorkItem(540078)]
+        [WorkItem(540078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540078")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestConstantField1()
         {
@@ -348,7 +348,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        [WorkItem(540079)]
+        [WorkItem(540079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540079")]
         public async Task TestFormattingOfReplacedExpression1()
         {
             await TestAsync(
@@ -371,7 +371,7 @@ index: 2,
 compareTokens: false);
         }
 
-        [WorkItem(540468)]
+        [WorkItem(540468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540468")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestCantExtractMethodTypeParameterToField()
         {
@@ -380,7 +380,7 @@ compareTokens: false);
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main < T > ( string [ ] args ) { var {|Rename:t|} = ( T ) 2 . ToString ( ) ; Foo ( t ) ; } } ");
         }
 
-        [WorkItem(540468)]
+        [WorkItem(540468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540468")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestCantExtractMethodTypeParameterToFieldCount()
         {
@@ -389,8 +389,8 @@ compareTokens: false);
 count: 2);
         }
 
-        [WorkItem(552389)]
-        [WorkItem(540482)]
+        [WorkItem(552389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552389")]
+        [WorkItem(540482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540482")]
         [WpfFact(Skip = "552389"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestConstantForFixedBufferInitializer()
         {
@@ -400,7 +400,7 @@ count: 2);
 index: 0);
         }
 
-        [WorkItem(540486)]
+        [WorkItem(540486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540486")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestFormattingOfIntroduceLocal()
         {
@@ -433,7 +433,7 @@ compareTokens: false);
 index: 2);
         }
 
-        [WorkItem(542699)]
+        [WorkItem(542699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542699")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestFieldConstant()
         {
@@ -443,7 +443,7 @@ index: 2);
 index: 1);
         }
 
-        [WorkItem(542781)]
+        [WorkItem(542781, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542781")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnExpressionStatement()
         {
@@ -458,7 +458,7 @@ index: 1);
 ");
         }
 
-        [WorkItem(542780)]
+        [WorkItem(542780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542780")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestSingleQueryClause()
         {
@@ -468,7 +468,7 @@ index: 1);
 index: 0);
         }
 
-        [WorkItem(542780)]
+        [WorkItem(542780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542780")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestSingleQuerySelectOrGroupByClause()
         {
@@ -548,7 +548,7 @@ index: 1);
 @"class C { void M ( ) { var a = new [|{ A = 0 }|] ; } } ");
         }
 
-        [WorkItem(543477)]
+        [WorkItem(543477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543477")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestImplicitlyTypedArraysUsedInCheckedExpression()
         {
@@ -557,7 +557,7 @@ index: 1);
 @"class Program { static void Main ( string [ ] args ) { int [ ] a = null ; var {|Rename:v|} = a = new [ ] { 1 , 2 , 3 } ; int [ ] temp = checked ( v ) ; } } ");
         }
 
-        [WorkItem(543832)]
+        [WorkItem(543832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543832")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnGenericTypeParameter()
         {
@@ -565,7 +565,7 @@ index: 1);
 @"class C { void M() { F<[|int?|], int?>(3); } R F<T, R>(T arg1) { return default(R); } }");
         }
 
-        [WorkItem(543941)]
+        [WorkItem(543941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543941")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestAnonymousType1()
         {
@@ -574,7 +574,7 @@ index: 1);
 @"class Program { void Main ( ) { var {|Rename:p|} = new { X = 1 }; WriteLine(p); } } ");
         }
 
-        [WorkItem(544099)]
+        [WorkItem(544099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544099")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnAttributeNameEquals()
         {
@@ -589,7 +589,7 @@ class M
 }");
         }
 
-        [WorkItem(544162)]
+        [WorkItem(544162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544162")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnRightOfDot()
         {
@@ -597,7 +597,7 @@ class M
 @"using System ; using System . Runtime . InteropServices ; class M { [ DllImport ( ""user32.dll"" , CharSet = CharSet . [|Auto|] ) ] public static extern IntPtr FindWindow ( string className , string windowTitle ) ; } ");
         }
 
-        [WorkItem(544209)]
+        [WorkItem(544209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544209")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnAttributeNamedParameter()
         {
@@ -605,7 +605,7 @@ class M
 @"using System ; class TestAttribute : Attribute { public TestAttribute ( int a = 42 ) { } } [ Test ( [|a|] : 1 ) ] class Foo { } ");
         }
 
-        [WorkItem(544264)]
+        [WorkItem(544264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544264")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnVariableWrite()
         {
@@ -613,8 +613,8 @@ class M
 @"class Program { void Main ( ) { var x = new int [ 3 ] ; [|x [ 1 ]|] = 2 ; } } ");
         }
 
-        [WorkItem(544577)]
-        [WorkItem(909152)]
+        [WorkItem(544577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544577")]
+        [WorkItem(909152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909152")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestExpressionTLambda()
         {
@@ -622,7 +622,7 @@ class M
 @"using System ; using System . Linq . Expressions ; class Program { static Expression < Func < int ? , char ? > > e1 = c => [|null|] ; } ");
         }
 
-        [WorkItem(544915)]
+        [WorkItem(544915, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544915")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnTypeSyntax()
         {
@@ -630,7 +630,7 @@ class M
 @"using System ; class Program { void Main ( ) { int [ , ] array2Da = new [|int [ 1 , 2 ]|] { { 1 , 2 } } ; } } ");
         }
 
-        [WorkItem(544610)]
+        [WorkItem(544610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544610")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task ParenthesizeIfParseChanges()
         {
@@ -919,7 +919,7 @@ class Program
                 new[] { string.Format(FeaturesResources.IntroduceLocalConstantFor, "5"), string.Format(FeaturesResources.IntroduceLocalConstantForAll, "5") });
         }
 
-        [WorkItem(529795)]
+        [WorkItem(529795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529795")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnNegatedLiteral()
         {
@@ -927,7 +927,7 @@ class Program
 @"class A { void Main ( ) { long x = - [|9223372036854775808|] ; } } ");
         }
 
-        [WorkItem(546091)]
+        [WorkItem(546091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546091")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNotOnInterfaceAttribute()
         {
@@ -935,7 +935,7 @@ class Program
 @"[ GuidAttribute ( [|""1A585C4D-3371-48dc-AF8A-AFFECC1B0967""|] ) ] public interface I { } ");
         }
 
-        [WorkItem(546095)]
+        [WorkItem(546095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546095")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNotOnTypeOfInAttribute()
         {
@@ -943,7 +943,7 @@ class Program
 @"using System . Runtime . InteropServices ; [ ComSourceInterfaces ( [|typeof ( GuidAttribute )|] ) ] public class Button { } ");
         }
 
-        [WorkItem(530109)]
+        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestPreferGenerateConstantField1()
         {
@@ -952,7 +952,7 @@ class Program
 @"class C { private const string {|Rename:V|} = ""Hello"" ; void foo ( string s = ""Hello"" ) { var s2 = V + ""World"" ; } } ");
         }
 
-        [WorkItem(530109)]
+        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestPreferGenerateConstantField2()
         {
@@ -962,7 +962,7 @@ class Program
 index: 1);
         }
 
-        [WorkItem(530109)]
+        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestPreferGenerateConstantField3()
         {
@@ -972,7 +972,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(530109)]
+        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestPreferGenerateConstantField4()
         {
@@ -982,7 +982,7 @@ index: 2);
 index: 3);
         }
 
-        [WorkItem(530109)]
+        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNoGenerateConstantFieldIfAccessingLocal1()
         {
@@ -992,7 +992,7 @@ index: 3);
 index: 0);
         }
 
-        [WorkItem(530109)]
+        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNoGenerateConstantFieldIfAccessingLocal2()
         {
@@ -1002,7 +1002,7 @@ index: 0);
 index: 1);
         }
 
-        [WorkItem(530109)]
+        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNoGenerateConstantFieldIfNotAccessingLocal1()
         {
@@ -1011,7 +1011,7 @@ index: 1);
 @"class C { const string s1 = ""World"" ; private const string {|Rename:V|} = ""Hello"" + s1 ; void foo ( string s = ""Hello"" ) { var s2 = V ; } } ");
         }
 
-        [WorkItem(530109)]
+        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNoGenerateConstantFieldIfNotAccessingLocal2()
         {
@@ -1021,7 +1021,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(530109)]
+        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNoGenerateConstantFieldIfNotAccessingLocal3()
         {
@@ -1031,7 +1031,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(530109)]
+        [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNoGenerateConstantFieldIfNotAccessingLocal4()
         {
@@ -1041,7 +1041,7 @@ index: 2);
 index: 3);
         }
 
-        [WorkItem(606347)]
+        [WorkItem(606347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606347")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task InsertNeededCast1()
         {
@@ -1087,7 +1087,7 @@ static class C
 compareTokens: false);
         }
 
-        [WorkItem(606347)]
+        [WorkItem(606347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606347")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task InsertNeededCast1NotVar()
         {
@@ -1133,7 +1133,7 @@ compareTokens: false,
 options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
         }
 
-        [WorkItem(606347), WorkItem(714632)]
+        [WorkItem(606347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606347"), WorkItem(714632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task InsertNeededCast2()
         {
@@ -1170,7 +1170,7 @@ class Program
 compareTokens: false);
         }
 
-        [WorkItem(546512)]
+        [WorkItem(546512, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546512")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestInSwitchSection()
         {
@@ -1180,7 +1180,7 @@ compareTokens: false);
 index: 2);
         }
 
-        [WorkItem(530480)]
+        [WorkItem(530480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestLambdaParameter1()
         {
@@ -1189,7 +1189,7 @@ index: 2);
 @"using System ; class Program { static void Main ( string [ ] args ) { Func < int , int > f = x => { var {|Rename:v|} = x + 1 ; return v; }; } } ");
         }
 
-        [WorkItem(530480)]
+        [WorkItem(530480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestLambdaParameter2()
         {
@@ -1198,7 +1198,7 @@ index: 2);
 @"using System ; class Program { static void Main ( string [ ] args ) { Func < int , Func < int , int > > f = x => { var {|Rename:v|} = x + 1 ; return y => v; }; } } ");
         }
 
-        [WorkItem(530480)]
+        [WorkItem(530480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestLambdaParameter3()
         {
@@ -1207,7 +1207,7 @@ index: 2);
 @"using System ; class Program { static void Main ( string [ ] args ) { Func < int , Func < int , int > > f = x => y =>{ var {|Rename:v|} =  y + 1 ; return v; }; } } ");
         }
 
-        [WorkItem(530480)]
+        [WorkItem(530480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestLambdaParameter4()
         {
@@ -1216,7 +1216,7 @@ index: 2);
             @"using System ; class Program { static void Main ( string [ ] args ) { Func < int , int > {|Rename:p|} = y => y + 1; Func < int , Func < int , int > > f = x => p ; } } ");
         }
 
-        [WorkItem(530480)]
+        [WorkItem(530480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestLambdaParameter5()
         {
@@ -1225,7 +1225,7 @@ index: 2);
 @"using System ; class Program { static void Main ( string [ ] args ) { Func < int , Func < int , int > > f = x => { Func<int,int> {|Rename:p|} = y => x + 1 ; return p; }; } } ");
         }
 
-        [WorkItem(530721)]
+        [WorkItem(530721, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530721")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroVarInAction1()
         {
@@ -1234,7 +1234,7 @@ index: 2);
 @"using System ; class Program { void M ( ) { Action < int > foo = x => { object {|Rename:foo1|} = x . Foo ; } ; } } ");
         }
 
-        [WorkItem(530919)]
+        [WorkItem(530919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530919")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNullableOfPointerType()
         {
@@ -1243,7 +1243,7 @@ index: 2);
 @"using System ; class Program { static void Main ( ) { var {|Rename:v|} = new Nullable < int * > ( ) ; v . GetValueOrDefault ( ) ; } } ");
         }
 
-        [WorkItem(530919)]
+        [WorkItem(530919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530919")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNullableOfPointerTypeNotVar()
         {
@@ -1253,7 +1253,7 @@ index: 2);
 options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
         }
 
-        [WorkItem(830885)]
+        [WorkItem(830885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830885")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalRemovesUnnecessaryCast()
         {
@@ -1262,7 +1262,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
 @"using System.Collections.Generic; class C { static void Main(string[] args) { var set = new HashSet<string>(); var {|Rename:v|} = set.ToString(); set.Add(v); } } ");
         }
 
-        [WorkItem(655498)]
+        [WorkItem(655498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/655498")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task HandleParenthesizedExpression()
         {
@@ -1295,7 +1295,7 @@ class C
 compareTokens: false);
         }
 
-        [WorkItem(682683)]
+        [WorkItem(682683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682683")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task DontRemoveParenthesesIfOperatorPrecedenceWouldBeBroken()
         {
@@ -1324,7 +1324,7 @@ index: 2,
 compareTokens: false);
         }
 
-        [WorkItem(828108)]
+        [WorkItem(828108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828108")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task UseNewSemanticModelForSimplification()
         {
@@ -1360,7 +1360,7 @@ class Program
 compareTokens: false);
         }
 
-        [WorkItem(884961)]
+        [WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestInCollectionInitializer()
         {
@@ -1387,7 +1387,7 @@ class C
 compareTokens: false);
         }
 
-        [WorkItem(884961)]
+        [WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestInCollectionInitializerNoVar()
         {
@@ -1415,7 +1415,7 @@ compareTokens: false,
 options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
         }
 
-        [WorkItem(854662)]
+        [WorkItem(854662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854662")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestInNestedCollectionInitializers()
         {
@@ -1446,7 +1446,7 @@ class C
 compareTokens: false);
         }
 
-        [WorkItem(884961)]
+        [WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestInArrayInitializer()
         {
@@ -1473,7 +1473,7 @@ class C
 compareTokens: false);
         }
 
-        [WorkItem(884961)]
+        [WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestInArrayInitializerWithoutVar()
         {
@@ -1501,7 +1501,7 @@ compareTokens: false,
 options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
         }
 
-        [WorkItem(1022447)]
+        [WorkItem(1022447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022447")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestFormattingOfIntroduceLocal2()
         {
@@ -1537,7 +1537,7 @@ index: 1,
 compareTokens: false);
         }
 
-        [WorkItem(939259)]
+        [WorkItem(939259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939259")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalWithTriviaInMultiLineStatements()
         {
@@ -1567,7 +1567,7 @@ compareTokens: false);
             await TestAsync(code, expected, index: 3, compareTokens: false);
         }
 
-        [WorkItem(939259)]
+        [WorkItem(939259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939259")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalWithTriviaInMultiLineStatements2()
         {
@@ -1597,7 +1597,7 @@ compareTokens: false);
             await TestAsync(code, expected, index: 3, compareTokens: false);
         }
 
-        [WorkItem(1064803)]
+        [WorkItem(1064803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064803")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInStringInterpolation()
         {
@@ -1623,7 +1623,7 @@ compareTokens: false);
             await TestAsync(code, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(1037057)]
+        [WorkItem(1037057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1037057")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalWithBlankLine()
         {
@@ -1653,7 +1653,7 @@ class C
 ", index: 0, compareTokens: false);
         }
 
-        [WorkItem(1065661)]
+        [WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceVariableTextDoesntSpanLines()
         {
@@ -1672,7 +1672,7 @@ string.Format(FeaturesResources.IntroduceLocalConstantFor, @"@""a b c"""),
 index: 2);
         }
 
-        [WorkItem(1097147)]
+        [WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestSmartNameForNullablesInConditionalAccessExpressionContext()
         {
@@ -1700,7 +1700,7 @@ class C
             await TestAsync(code, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(1097147)]
+        [WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestSmartNameForNullablesInConditionalAccessExpressionContext2()
         {
@@ -1728,7 +1728,7 @@ class C
             await TestAsync(code, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(1097147)]
+        [WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestSmartNameForNullablesInConditionalAccessExpressionContext3()
         {
@@ -1774,7 +1774,7 @@ class B
             await TestAsync(code, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(1097147)]
+        [WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestSmartNameForNullablesInConditionalAccessExpressionContext4()
         {
@@ -2418,7 +2418,7 @@ class TestClass
             await TestAsync(code, expected, index: 1, compareTokens: false);
         }
 
-        [WorkItem(909152)]
+        [WorkItem(909152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909152")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnNullLiteral()
         {
@@ -2436,7 +2436,7 @@ class Test
 ");
         }
 
-        [WorkItem(1130990)]
+        [WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task InParentConditionalAccessExpressions()
         {
@@ -2466,7 +2466,7 @@ class C
             await TestAsync(code, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(1130990)]
+        [WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task InParentConditionalAccessExpression2()
         {
@@ -2496,7 +2496,7 @@ class C
             await TestAsync(code, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(1130990)]
+        [WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
         [WorkItem(3110, "https://github.com/dotnet/roslyn/issues/3110")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task MissingAcrossMultipleParentConditionalAccessExpressions()
@@ -2513,7 +2513,7 @@ class C
 }");
         }
 
-        [WorkItem(1130990)]
+        [WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task MissingOnInvocationExpressionInParentConditionalAccessExpressions()
         {
@@ -2529,7 +2529,7 @@ class C
 }");
         }
 
-        [WorkItem(1130990)]
+        [WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task MissingOnMemberBindingExpressionInParentConditionalAccessExpressions()
         {

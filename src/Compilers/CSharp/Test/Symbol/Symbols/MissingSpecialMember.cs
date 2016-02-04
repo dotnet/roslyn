@@ -127,7 +127,7 @@ public static class Program
                 );
         }
 
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         [Fact]
         public void NonPublicSpecialType()
         {
@@ -163,7 +163,7 @@ namespace System
             ValidateSourceAndMetadata(source, validate);
         }
 
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         [Fact]
         public void NonPublicSpecialTypeMember()
         {
@@ -205,7 +205,7 @@ namespace System
         }
 
         // Document the fact that we don't reject type parameters with constraints (yet?).
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         [Fact]
         public void GenericConstraintsOnSpecialType()
         {
@@ -241,7 +241,7 @@ namespace System
 
         // No special type members have type parameters that could (incorrectly) be constrained.
 
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         [Fact]
         public void NonPublicWellKnownType()
         {
@@ -272,7 +272,7 @@ namespace System
             Assert.Equal(Accessibility.Internal, lookupType.DeclaredAccessibility);
         }
 
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         [Fact]
         public void NonPublicWellKnownType_Nested()
         {
@@ -309,7 +309,7 @@ namespace System
             ValidateSourceAndMetadata(string.Format(sourceTemplate, "public", "private"), validate);
         }
 
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         [Fact]
         public void NonPublicWellKnownTypeMember()
         {
@@ -348,7 +348,7 @@ namespace System
         }
 
         // Document the fact that we don't reject type parameters with constraints (yet?).
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         [Fact]
         public void GenericConstraintsOnWellKnownType()
         {
@@ -384,7 +384,7 @@ namespace System
         }
 
         // Document the fact that we don't reject type parameters with constraints (yet?).
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         [Fact]
         public void GenericConstraintsOnWellKnownTypeMember()
         {
@@ -421,7 +421,7 @@ namespace System
             ValidateSourceAndMetadata(string.Format(sourceTemplate, " where T : new()"), validate);
         }
 
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         [Fact]
         public void PublicVersusInternalWellKnownType()
         {
@@ -502,7 +502,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllSpecialTypes()
         {
             var comp = CreateCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
@@ -516,7 +516,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllSpecialTypeMembers()
         {
             var comp = CreateCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
@@ -531,7 +531,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllWellKnownTypes()
         {
             var refs = new[]
@@ -568,7 +568,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllWellKnownTypeMembers()
         {
             var refs = new[]

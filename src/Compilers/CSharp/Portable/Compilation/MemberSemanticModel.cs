@@ -793,13 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = lowestBoundNode;
                     break;
             }
-
-            // Screen out bound nodes that aren't appropriate as IOperations.
-            if (result != null && result.Kind == BoundKind.EqualsValue)
-            {
-                result = ((BoundEqualsValue)result).Value;
-            }
-
+            
             return result as IOperation;
         }
 

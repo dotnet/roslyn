@@ -854,7 +854,7 @@ End Class
                 End Function)
         End Function
 
-        <WorkItem(1172038)>
+        <WorkItem(1172038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1172038")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddFunction_AfterIncompleteMember() As Task
             Dim code =
@@ -1469,7 +1469,7 @@ End Class
             Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessPrivate})
         End Function
 
-        <WorkItem(546556)>
+        <WorkItem(546556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546556")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddVariable21() As Task
             Dim code =
@@ -1489,7 +1489,7 @@ End Class
             Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessProject})
         End Function
 
-        <WorkItem(546556)>
+        <WorkItem(546556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546556")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddVariable22() As Task
             Dim code =
@@ -1509,7 +1509,7 @@ End Class
             Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected})
         End Function
 
-        <WorkItem(546556)>
+        <WorkItem(546556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546556")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddVariable23() As Task
             Dim code =
@@ -1529,7 +1529,7 @@ End Class
             Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessProtected})
         End Function
 
-        <WorkItem(529865)>
+        <WorkItem(529865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529865")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddVariableAfterComment() As Task
             Dim code =

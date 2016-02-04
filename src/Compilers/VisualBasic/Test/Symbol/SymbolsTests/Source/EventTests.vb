@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class EventSymbolTests
         Inherits BasicTestBase
 
-        <WorkItem(542806, "DevDiv")>
+        <WorkItem(542806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542806")>
         <Fact()>
         Public Sub EmptyCustomEvent()
             Dim source = <compilation name="F">
@@ -46,7 +46,7 @@ BC31122: 'Custom' modifier is not valid on events declared without explicit dele
 </expected>)
         End Sub
 
-        <WorkItem(542891, "DevDiv")>
+        <WorkItem(542891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542891")>
         <Fact()>
         Public Sub InterfaceImplements()
             Dim source = <compilation name="F">
@@ -166,7 +166,7 @@ End Module
         End Sub
 
 
-        <WorkItem(543309, "DevDiv")>
+        <WorkItem(543309, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543309")>
         <Fact()>
         Public Sub EventSyntheticDelegateShadows()
             Dim source = <compilation name="F">
@@ -573,7 +573,7 @@ End Class
 
         End Sub
 
-        <WorkItem(543321, "DevDiv")>
+        <WorkItem(543321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543321")>
         <Fact()>
         Public Sub DeclareEventWithArgument()
             CompileAndVerify(
@@ -588,7 +588,7 @@ End Class
     </compilation>)
         End Sub
 
-        <WorkItem(543366, "DevDiv")>
+        <WorkItem(543366, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543366")>
         <Fact()>
         Public Sub UseEventDelegateType()
             CompileAndVerify(
@@ -610,7 +610,7 @@ End Module
     </compilation>)
         End Sub
 
-        <WorkItem(543372, "DevDiv")>
+        <WorkItem(543372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543372")>
         <Fact()>
         Public Sub AddHandlerWithoutAddressOf()
             Dim source = <compilation name="F">
@@ -913,7 +913,7 @@ End Class
         End Sub
 
         ' Check that both errors are reported
-        <WorkItem(543504, "DevDiv")>
+        <WorkItem(543504, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543504")>
         <Fact()>
         Public Sub TestEventWithParamArray()
             Dim source =
@@ -1006,7 +1006,7 @@ BC40004: event 'E' conflicts with event 'E' in the base class 'AbsEvent' and sho
 </expected>)
         End Sub
 
-        <WorkItem(529772, "DevDiv")>
+        <WorkItem(529772, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529772")>
         <Fact>
         Public Sub Bug529772_ReproSteps()
             Dim csCompilation = CreateCSharpCompilation("
@@ -1128,7 +1128,7 @@ BC31404: 'Public AnEvent As Integer' cannot shadow a method declared 'MustOverri
 
         End Sub
 
-        <WorkItem(529772, "DevDiv")>
+        <WorkItem(529772, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529772")>
         <Fact>
         Public Sub Bug529772_ReproStepsWithILSource()
 
@@ -1493,7 +1493,7 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem(543447, "DevDiv")>
+        <WorkItem(543447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543447")>
         <Fact()>
         Public Sub BindOnFieldOfRegularEventHandlerType()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -1530,7 +1530,7 @@ End Class
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem(543725, "DevDiv")>
+        <WorkItem(543725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543725")>
         <Fact()>
         Public Sub SynthesizedEventDelegateSymbolImplicit()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -1571,7 +1571,7 @@ End Class
 
         End Sub
 
-        <WorkItem(545200, "DevDiv")>
+        <WorkItem(545200, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545200")>
         <Fact()>
         Public Sub TestBadlyFormattedEventCode()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1597,7 +1597,7 @@ Imports System<Serializable>Class c11    <NonSerialized()>
             Assert.Equal("StartEventHandler", eventDelegate.Name)
         End Sub
 
-        <WorkItem(545221, "DevDiv")>
+        <WorkItem(545221, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545221")>
         <Fact()>
         Public Sub TestBadlyFormattedCustomEvent()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1642,7 +1642,7 @@ End Class
         ''' Avoid redundant errors from handlers when
         ''' a custom event type has errors.
         ''' </summary>
-        <WorkItem(530406, "DevDiv")>
+        <WorkItem(530406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530406")>
         <Fact(Skip:="530406")>
         Public Sub CustomEventTypeDuplicateErrors()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1720,7 +1720,7 @@ BC30002: Type 'System.Object' is not defined.
      ]]></errors>)
         End Sub
 
-        <WorkItem(780993, "DevDiv")>
+        <WorkItem(780993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780993")>
         <Fact()>
         Public Sub EventInMemberNames()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1743,7 +1743,7 @@ End Class
             Assert.Equal("X", classMembers(0))
         End Sub
 
-        <Fact, WorkItem(1027568, "DevDiv"), WorkItem(528573, "DevDiv")>
+        <Fact, WorkItem(1027568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1027568"), WorkItem(528573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528573")>
         Public Sub MissingCompareExchange_01()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1769,7 +1769,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </expected>)
         End Sub
 
-        <Fact, WorkItem(1027568, "DevDiv"), WorkItem(528573, "DevDiv")>
+        <Fact, WorkItem(1027568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1027568"), WorkItem(528573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528573")>
         Public Sub MissingCompareExchange_02()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1866,7 +1866,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact, WorkItem(1027568, "DevDiv"), WorkItem(528573, "DevDiv")>
+        <Fact, WorkItem(1027568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1027568"), WorkItem(528573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528573")>
         Public Sub MissingCompareExchange_03()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1963,7 +1963,7 @@ End Structure
 ]]>)
         End Sub
 
-        <Fact, WorkItem(1027568, "DevDiv"), WorkItem(528573, "DevDiv")>
+        <Fact, WorkItem(1027568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1027568"), WorkItem(528573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528573")>
         Public Sub MissingCompareExchange_04()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -2032,7 +2032,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact, WorkItem(1027568, "DevDiv"), WorkItem(528573, "DevDiv")>
+        <Fact, WorkItem(1027568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1027568"), WorkItem(528573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528573")>
         Public Sub MissingCompareExchange_05()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>

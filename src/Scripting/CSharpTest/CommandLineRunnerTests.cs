@@ -82,7 +82,7 @@ Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
         }
 
         [Fact]
-        [WorkItem(7133)]
+        [WorkItem(7133, "http://github.com/dotnet/roslyn/issues/7133")]
         public void TestDisplayResultsWithCurrentUICulture()
         {
             var runner = CreateRunner(input:
@@ -181,9 +181,34 @@ Type ""#help"" for more information.
 5
 > div(10, 0)
 «Red»
-Attempted to divide by zero.
-«DarkRed»
-  + Submission#0.div(Int32 a, Int32 b)
+{new System.DivideByZeroException().Message}
+  + Submission#0.div(int, int)
+«Gray»
+> ", runner.Console.Out.ToString());
+        }
+
+        [Fact]
+        public void ExceptionInGeneric()
+        {
+            var runner = CreateRunner(input:
+@"static class C<T> { public static int div<U>(int a, int b) => a/b; }
+C<string>.div<bool>(10, 2)
+C<string>.div<bool>(10, 0)
+");
+            Assert.Equal(0, runner.RunInteractive());
+
+            Assert.Equal(
+$@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> static class C<T> {{ public static int div<U>(int a, int b) => a/b; }}
+> C<string>.div<bool>(10, 2)
+5
+> C<string>.div<bool>(10, 0)
+«Red»
+{new System.DivideByZeroException().Message}
+  + Submission#0.C<T>.div<U>(int, int)
 «Gray»
 > ", runner.Console.Out.ToString());
         }
@@ -430,7 +455,6 @@ Type ""#help"" for more information.
 > ", runner.Console.Out.ToString());
         }
 
-        [WorkItem(5748)]
         [Fact]
         public void RelativePath()
         {

@@ -197,7 +197,7 @@ class Foo
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(544292)]
+        [WorkItem(544292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544292")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInCollectionInitializers()
         {
@@ -215,7 +215,7 @@ class Foo
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(544191)]
+        [WorkItem(544191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544191")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FilteringOverloadsByCallSite()
         {
@@ -262,7 +262,7 @@ class Class1
             await VerifyItemExistsAsync(markup, "character:");
         }
 
-        [WorkItem(544191)]
+        [WorkItem(544191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544191")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FilteringOverloadsByCallSiteComplex()
         {
@@ -356,7 +356,7 @@ class Foo
             await VerifyItemIsAbsentAsync(markup, "str:");
         }
 
-        [WorkItem(529369)]
+        [WorkItem(529369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529369")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task VerbatimIdentifierNotAKeyword()
         {
@@ -372,7 +372,7 @@ class Program
             await VerifyItemExistsAsync(markup, "integer:");
         }
 
-        [WorkItem(544209)]
+        [WorkItem(544209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544209")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DescriptionStringInMethodOverloads()
         {

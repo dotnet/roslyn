@@ -83,7 +83,26 @@ namespace GitMergeBot
             }
 
             var newBranchName = await MakePrBranch(_options.SourceUser, _options.RepoName, remoteIntoBranch, newBranchPrefix);
-            await SubmitPullRequest(newBranchName);
+            var pullRequest = await SubmitPullRequest(newBranchName);
+
+            // pullRequest could be null if we are running in debug mode.
+            // Only write the comment if the pull request can be automatically merged.
+            if ((pullRequest?.Mergeable).HasValue && pullRequest.Mergeable.Value)
+            {
+                // The reason for this delay is twofold:
+                //
+                // * Github has a bug in which it can "create" a pull request without that pull request
+                //   being able to be commented on for a short period of time.
+                // * The Jenkins "comment watcher" has a bug whereby any comment posted shortly after
+                //   pull-request creation is ignored.
+                //
+                // Thus, this delay sidesteps both of those bugs by asking for a VSI test 30 seconds after 
+                // the creation of the PR.  Ugly, yes; but the only *real* way to sidestep this would be to 
+                // 1) Fix github, 2) Fix jenkins, and while those might be lofty goals, they are not in the 
+                // scope of this PR.
+                await Task.Delay(TimeSpan.FromSeconds(30.0));
+                await _client.Issue.Comment.Create(_options.DestinationUser, _options.RepoName, pullRequest.Number, "@dotnet-bot test vsi please");
+            }
             return;
         }
 
@@ -131,7 +150,7 @@ namespace GitMergeBot
             {
                 var resp = await _client.Connection.Post<string>(
                     uri: new Uri($"https://api.github.com/repos/{user}/{repo}/git/refs"),
-                    body: $"{{\"ref\": \"refs/heads/{branchName}\", \"sha\": \"{sha}\"",
+                    body: $"{{\"ref\": \"refs/heads/{branchName}\", \"sha\": \"{sha}\"}}",
                     accepts: "*/*",
                     contentType: "application/json");
                 var statusCode = resp.HttpResponse.StatusCode;
@@ -147,7 +166,7 @@ namespace GitMergeBot
         /// <summary>
         /// Creates a pull request 
         /// </summary>
-        private async Task SubmitPullRequest(string newBranchName)
+        private async Task<PullRequest> SubmitPullRequest(string newBranchName)
         {
             var remoteName = $"{_options.SourceUser}-{_options.RepoName}";
             var prTitle = $"Merge {_options.SourceBranch} into {_options.DestinationBranch}";
@@ -169,18 +188,17 @@ git push {remoteName} {newBranchName} --force
 ```
 
 Once the merge can be made and all the tests pass, you are free to merge the pull request.
-
-@dotnet-bot test vsi please
 ".Trim();
 
             if (_options.Debug)
             {
                 WriteDebugLine($"Create PR with title: {prTitle}.");
                 WriteDebugLine($"Create PR with body:\r\n{prMessage}");
+                return null;
             }
             else
             {
-                await _client.PullRequest.Create(
+                return await _client.PullRequest.Create(
                     owner: _options.DestinationUser,
                     name: _options.RepoName,
                     newPullRequest: new NewPullRequest(

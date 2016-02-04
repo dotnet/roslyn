@@ -166,7 +166,7 @@ End Class",
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        <WorkItem(536441)>
+        <WorkItem(536441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536441")>
         Public Async Function TestVerifyNestedSingleLineIf() As Task
             Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
@@ -256,7 +256,7 @@ End Class",
                 caret:={2, -1})
         End Function
 
-        <WpfFact, WorkItem(539576), Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, WorkItem(539576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539576"), Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestVerifyWithSkippedTokens() As Task
             Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
@@ -315,7 +315,7 @@ End Class",
                 afterCaret:={3, 12})
         End Function
 
-        <WorkItem(540204)>
+        <WorkItem(540204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540204")>
         <WpfFact(Skip:="528838"), Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestBugFix6380() As Task
             Await VerifyStatementEndConstructAppliedAsync(
@@ -346,7 +346,7 @@ End Module",
                 afterCaret:={8, 12})
         End Function
 
-        <WpfFact(Skip:="890307"), Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544523)>
+        <WpfFact(Skip:="890307"), Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544523")>
         Public Async Function TestVerifyRewriteOfIfWithColons() As Task
             Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
@@ -365,7 +365,7 @@ End Class",
                 afterCaret:={3, 12})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530648)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530648")>
         Public Async Function TestVerifyRewriteOfIfWithEmptyStatement() As Task
             ' Verify the caret is at the beginning of line 3 here.  In VS, it will be moved to the
             ' correct virtual offset as part of the edit.  This is an edge case that we really just

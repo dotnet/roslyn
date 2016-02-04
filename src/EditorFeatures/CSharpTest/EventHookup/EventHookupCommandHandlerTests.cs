@@ -850,7 +850,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        [WorkItem(553660)]
+        [WorkItem(553660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553660")]
         public async Task PlusEqualsInsideComment()
         {
             var markup = @"
@@ -871,7 +871,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        [WorkItem(951664)]
+        [WorkItem(951664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951664")]
         public async Task UseInvocationLocationTypeNameWhenEventIsMemberOfBaseType()
         {
             var markup = @"

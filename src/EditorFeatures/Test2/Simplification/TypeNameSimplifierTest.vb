@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyNestedType() As Task
             Dim input =
         <Workspace>
@@ -167,7 +167,7 @@ static class M
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyNestedType2() As Task
             ' Simplified type is in a different namespace.
 
@@ -238,7 +238,7 @@ static class M
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyNestedType3() As Task
             ' Simplified type is in a different namespace, whose names have been imported with a usings statement.
 
@@ -319,7 +319,7 @@ namespace R
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyNestedType4() As Task
             ' Highly nested type simplified to another highly nested type.
 
@@ -447,7 +447,7 @@ namespace R
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyNestedType5() As Task
             ' Name requiring multiple iterations of nested type simplification.
 
@@ -585,7 +585,7 @@ namespace R
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyStaticMemberAccess() As Task
             Dim input =
         <Workspace>
@@ -639,7 +639,7 @@ static class M
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyQualifiedName() As Task
             Dim input =
         <Workspace>
@@ -699,7 +699,7 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyAliasStaticMemberAccess() As Task
             Dim input =
         <Workspace>
@@ -900,7 +900,7 @@ namespace N1
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
-        <WorkItem(552722)>
+        <WorkItem(552722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552722")>
         Public Async Function TestSimplifyNot_Action() As Task
             Dim input =
         <Workspace>
@@ -944,7 +944,7 @@ namespace N1
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
-        <WorkItem(552722)>
+        <WorkItem(552722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552722")>
         Public Async Function TestSimplifyNot_Func() As Task
             Dim input =
         <Workspace>
@@ -1061,7 +1061,7 @@ class A
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(609496)>
+        <WorkItem(609496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609496")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpDoNotSimplifyNameInNamespaceDeclaration() As Task
             Dim input =
@@ -1085,7 +1085,7 @@ namespace System.Foo
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(608197)>
+        <WorkItem(608197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608197")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCS_EscapeAliasReplacementIfNeeded() As Task
             Dim input =
@@ -1119,7 +1119,7 @@ namespace System.Foo
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(529989)>
+        <WorkItem(529989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529989")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCS_AliasReplacementKeepsUnicodeEscaping() As Task
             Dim input =
@@ -1236,7 +1236,7 @@ class Program
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        <WorkItem(554010)>
+        <WorkItem(554010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554010")>
         Public Async Function TestSimplificationForDelegateCreation() As Task
             Dim input =
 <Workspace>
@@ -1270,7 +1270,7 @@ class Test
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        <WorkItem(554010)>
+        <WorkItem(554010, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554010")>
         Public Async Function TestSimplificationForDelegateCreation2() As Task
             Dim input =
 <Workspace>
@@ -1298,7 +1298,7 @@ class Test
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        <WorkItem(576970)>
+        <WorkItem(576970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576970")>
         Public Async Function TestCSRemoveThisWouldBeConsideredACast_1() As Task
             Dim input =
 <Workspace>
@@ -1338,7 +1338,7 @@ class C
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        <WorkItem(576970)>
+        <WorkItem(576970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576970")>
         Public Async Function TestCSRemoveThisWouldBeConsideredACast_2() As Task
             Dim input =
 <Workspace>
@@ -1378,7 +1378,7 @@ class C
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        <WorkItem(576970)>
+        <WorkItem(576970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576970")>
         Public Async Function TestCSRemoveThisWouldBeConsideredACast_3() As Task
             Dim input =
 <Workspace>
@@ -1463,7 +1463,7 @@ class C1
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(649385)>
+        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarCorrect() As Task
 
@@ -1529,8 +1529,8 @@ class Program
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <WorkItem(734445)>
-        <WorkItem(649385)>
+        <WorkItem(734445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734445")>
+        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarCorrect_QualifiedTypeNames() As Task
 
@@ -1576,7 +1576,7 @@ class Program
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <WorkItem(649385)>
+        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarDontSimplify() As Task
 
@@ -1805,7 +1805,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification), WorkItem(864735)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification), WorkItem(864735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864735")>
         Public Async Function TestBugFix864735_CSharp_SimplifyNameInIncompleteIsExpression() As Task
             Dim input =
         <Workspace>
@@ -1840,7 +1840,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(813566)>
+        <WorkItem(813566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813566")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyQualifiedCref() As Task
             Dim input =
@@ -1874,7 +1874,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(838109)>
+        <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontSimplifyToGenericNameCSharp() As Task
             Dim input =
@@ -1934,7 +1934,7 @@ class E
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(838109)>
+        <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDoSimplifyToGenericName() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToGenericType, True}}
@@ -1996,7 +1996,7 @@ class E
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <Fact, WorkItem(838109), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontSimplifyAllNodes_SimplifyNestedType() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToBaseType, False}}
 
@@ -2058,7 +2058,7 @@ static class M
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <Fact, WorkItem(838109), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontSimplifyAwayThisExpression() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, LanguageNames.CSharp), True}}
 
@@ -2151,7 +2151,7 @@ class C
 
             Await TestAsync(input, expected)
         End Function
-        <Fact, WorkItem(653601), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(653601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/653601"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCrefSimplification_1() As Task
             Dim input =
         <Workspace>
@@ -2195,7 +2195,7 @@ namespace A
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(653601), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(653601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/653601"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCrefSimplification_2() As Task
             Dim input =
         <Workspace>
@@ -2239,7 +2239,7 @@ namespace A
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(966633), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(966633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/966633"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_DontSimplifyNullableQualifiedName() As Task
             Dim input =
         <Workspace>
@@ -2269,7 +2269,7 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(965240), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(965240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965240"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_DontSimplifyOpenGenericNullable() As Task
             Dim input =
         <Workspace>
@@ -2307,7 +2307,7 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(1067214), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(1067214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067214"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyTypeNameInExpressionBody_Property() As Task
             Dim input =
         <Workspace>
@@ -2341,7 +2341,7 @@ namespace N
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(1067214), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(1067214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067214"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyTypeNameInExpressionBody_Method() As Task
             Dim input =
         <Workspace>
@@ -2484,7 +2484,7 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(547117)>
+        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Array_1() As Task
             Dim input =
@@ -2516,7 +2516,7 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(547117)>
+        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Array_2() As Task
             Dim input =
@@ -2548,7 +2548,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(547117)>
+        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Receiver1() As Task
             Dim input =
@@ -2577,7 +2577,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(547117)>
+        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Receiver2() As Task
             Dim input =
@@ -2605,7 +2605,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(547117)>
+        <WorkItem(547117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547117")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Receiver3() As Task
             Dim input =
@@ -2637,7 +2637,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyNestedType() As Task
             Dim input =
         <Workspace>
@@ -2685,7 +2685,7 @@ End Class]]></text>
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyNestedType2() As Task
             ' Simplified type is in a different namespace.
 
@@ -2741,7 +2741,7 @@ End Class</text>
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyNestedType3() As Task
             ' Simplified type is in a different namespace, whose names have been imported with an Imports statement.
 
@@ -2805,7 +2805,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyNestedType4() As Task
             ' Highly nested type simplified to another highly nested type.
 
@@ -2899,7 +2899,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyNestedType5() As Task
             ' Name requiring multiple iterations of nested type simplification.
 
@@ -3001,7 +3001,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyStaticMemberAccess() As Task
             Dim input =
         <Workspace>
@@ -3043,7 +3043,7 @@ End Class</text>
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyQualifiedName() As Task
             Dim input =
         <Workspace>
@@ -3091,7 +3091,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyAliasStaticMemberAccess() As Task
             Dim input =
         <Workspace>
@@ -3220,8 +3220,8 @@ End Namespace</text>
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        <WorkItem(570986)>
-        <WorkItem(552722)>
+        <WorkItem(570986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570986")>
+        <WorkItem(552722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552722")>
         Public Async Function TestSimplifyNot_Action_VB() As Task
             Dim input =
         <Workspace>
@@ -3298,7 +3298,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(588099)>
+        <WorkItem(588099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/588099")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_EscapeReservedNamesInAttributes() As Task
             Dim input =
@@ -3448,7 +3448,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(601160)>
+        <WorkItem(601160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601160")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestExpandMultilineLambdaWithImports() As Task
             Dim input =
@@ -3485,7 +3485,7 @@ End Module
             End Using
         End Function
 
-        <WorkItem(609496)>
+        <WorkItem(609496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609496")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVB_DoNotReduceNamesInNamespaceDeclarations() As Task
             Dim input =
@@ -3509,7 +3509,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(608197)>
+        <WorkItem(608197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608197")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVB_EscapeAliasReplacementIfNeeded() As Task
             Dim input =
@@ -3535,7 +3535,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(608197)>
+        <WorkItem(608197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608197")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVB_NoNREForOmittedReceiverInWithBlock() As Task
             Dim input =
@@ -3575,7 +3575,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(639971)>
+        <WorkItem(639971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639971")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestBugFix639971_VisualBasic_FalseUnnecessaryBaseQualifier() As Task
             Dim input =
@@ -3625,7 +3625,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(639971)>
+        <WorkItem(639971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/639971")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestBugFix639971_CSharp_FalseUnnecessaryBaseQualifier() As Task
             Dim input =
@@ -3833,7 +3833,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(769354)>
+        <WorkItem(769354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769354")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyTypeNameInCrefCausesConflict() As Task
             Dim input =
@@ -3885,7 +3885,7 @@ End Class]]>
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification), WorkItem(864735)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification), WorkItem(864735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864735")>
         Public Async Function TestBugFix864735_VisualBasic_SimplifyNameInIncompleteIsExpression() As Task
             Dim input =
         <Workspace>
@@ -3916,7 +3916,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(813566)>
+        <WorkItem(813566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813566")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyQualifiedCref() As Task
             Dim input =
@@ -3948,7 +3948,7 @@ End Class]]>
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(838109)>
+        <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontSimplifyToGenericName() As Task
             Dim input =
@@ -4000,7 +4000,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(838109)>
+        <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DoSimplifyToGenericName() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToGenericType, True}}
@@ -4054,7 +4054,7 @@ End Class
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <Fact, WorkItem(838109), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestDontSimplifyAllNodes_SimplifyNestedType() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToBaseType, False}}
 
@@ -4104,7 +4104,7 @@ End Class]]></text>
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <Fact, WorkItem(838109), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestDontSimplifyAwayMeExpression() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, LanguageNames.VisualBasic), True}}
 
@@ -4142,7 +4142,7 @@ End Class]]></text>
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <Fact, WorkItem(881746), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(881746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/881746"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_SimplyToAlias() As Task
 
             Dim input =
@@ -4179,7 +4179,7 @@ End Class]]></text>
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(881746), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(881746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/881746"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontSimplifyAlias() As Task
 
             Dim input =
@@ -4216,7 +4216,7 @@ End Class]]></text>
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(966633), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(966633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/966633"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontSimplifyNullableQualifiedName() As Task
             Dim input =
         <Workspace>
@@ -4250,7 +4250,7 @@ End Module]]></text>
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(965240), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(965240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965240"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontSimplifyOpenGenericNullable() As Task
             Dim input =
         <Workspace>
@@ -4284,7 +4284,7 @@ End Module]]></text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact(Skip:="1019361"), WorkItem(1019361), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact(Skip:="1019361"), WorkItem(1019361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019361"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_Bug1019361() As Task
             Dim input =
         <Workspace>

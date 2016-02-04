@@ -308,8 +308,8 @@ End Class
             Await VerifyItemExistsAsync(text, "bar")
         End Function
 
-        <WorkItem(623219)>
-        <WorkItem(746919)>
+        <WorkItem(623219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623219")>
+        <WorkItem(746919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746919")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitParam() As Task
             Dim text = <File>
@@ -331,7 +331,7 @@ End Class
             Await VerifyCustomCommitProviderAsync(text, "param name=""bar""", expected)
         End Function
 
-        <WorkItem(623158)>
+        <WorkItem(623158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623158")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCloseTag() As Task
             Dim text = <File>
@@ -345,7 +345,7 @@ End Class
             Await VerifyItemExistsAsync(text, "foo", usePreviousCharAsTrigger:=True)
         End Function
 
-        <WorkItem(638805)>
+        <WorkItem(638805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638805")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoParentElement() As Task
             Dim text = <File><![CDATA[
@@ -383,7 +383,7 @@ End Module]]></File>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <WorkItem(638653)>
+        <WorkItem(638653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAllowTypingDoubleQuote() As Task
             Dim text = <File>
@@ -405,7 +405,7 @@ End Class
             Await VerifyCustomCommitProviderAsync(text, "param name=""bar""", expected, Microsoft.CodeAnalysis.SourceCodeKind.Regular, commitChar:=""""c)
         End Function
 
-        <WorkItem(638653)>
+        <WorkItem(638653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAllowTypingSpace() As Task
             Dim text = <File>
