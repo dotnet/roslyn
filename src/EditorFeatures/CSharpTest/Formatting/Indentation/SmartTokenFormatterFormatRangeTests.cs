@@ -1869,6 +1869,37 @@ class Class
         }
 
         [WpfFact]
+        [WorkItem(6645, "https://github.com/dotnet/roslyn/issues/6645")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task TryStatement5()
+        {
+            var code = @"using System;
+
+class Class
+{
+    void Method()
+    {
+        try {
+        }$$
+    }
+}";
+
+            var expected = @"using System;
+
+class Class
+{
+    void Method()
+    {
+        try
+        {
+        }
+    }
+}";
+
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
+        }
+
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         [WorkItem(537555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537555")]
         public async Task SingleLine()
