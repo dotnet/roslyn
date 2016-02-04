@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var allScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
             var containingScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
 
-            GetScopes(symReader, methodToken, methodVersion, ilOffset, isVisualBasicMethod, allScopes, containingScopes);
-
             MethodDebugInfo<TTypeSymbol, TLocalSymbol> info = null;
 
             var symReader4 = symReader as ISymUnmanagedReader4;
@@ -45,6 +43,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 if (metadata != null)
                 {
+                    // TODO:
+                    var symMethod = symReader.GetMethodByVersion(methodToken, methodVersion);
+                    if (symMethod != null)
+                    {
+                        symMethod.GetAllScopes(allScopes, containingScopes, ilOffset, isScopeEndInclusive: isVisualBasicMethod);
+                    }
+
                     var mdReader = new MetadataReader(metadata, size);
                     try
                     {
@@ -53,53 +58,114 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     catch (BadImageFormatException)
                     {
                         // bad CDI, ignore
+                        info = None;
                     }
+
+                    // TODO:
+                    info.LocalVariableNames = containingScopes.GetLocalNames();
+
+                    var constantsBuilder = ArrayBuilder<TLocalSymbol>.GetInstance();
+                    GetConstants(constantsBuilder, symbolProviderOpt, containingScopes, null); // TODO: dynamic info
+                    info.LocalConstants = constantsBuilder.ToImmutableAndFree();
+                    info.ReuseSpan = GetReuseSpan(allScopes, ilOffset, isVisualBasicMethod);
+                    
+                    allScopes.Free();
+                    containingScopes.Free();
+
+                    return info;
                 }
             }
 
-            if (info == null)
+            try
             {
-                try
-                {
-                    if (isVisualBasicMethod)
-                    {
-                        info = ReadVisualBasicNativeDebugInfo(symReader, methodToken, methodVersion);
-                    }
-                    else
-                    {
-                        Debug.Assert(symbolProviderOpt != null);
-                        info = ReadCSharpNativeDebugInfo(symReader, symbolProviderOpt, methodToken, methodVersion, allScopes);
-                    }
-                }
-                catch (InvalidOperationException)
-                {
-                    // bad CDI, ignore
-                    info = None;
-                }
-            }
+                ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopeRecords;
+                ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups;
+                ImmutableArray<ExternAliasRecord> externAliasRecords;
+                ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap;
+                ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap;
+                string defaultNamespaceName;
 
-            if (symbolProviderOpt != null)
-            {
-                info.LocalVariableNames = containingScopes.GetLocalNames();
+                var symMethod = symReader.GetMethodByVersion(methodToken, methodVersion);
+                if (symMethod != null)
+                {
+                    symMethod.GetAllScopes(allScopes, containingScopes, ilOffset, isScopeEndInclusive: isVisualBasicMethod);
+                }
+
+                if (isVisualBasicMethod)
+                {
+                    ReadVisualBasicImportsDebugInfo(
+                        symReader,
+                        methodToken,
+                        methodVersion,
+                        out importRecordGroups,
+                        out defaultNamespaceName);
+
+                    hoistedLocalScopeRecords = ImmutableArray<HoistedLocalScopeRecord>.Empty;
+                    externAliasRecords = ImmutableArray<ExternAliasRecord>.Empty;
+                    dynamicLocalMap = null;
+                    dynamicLocalConstantMap = null;
+                }
+                else
+                {
+                    Debug.Assert(symbolProviderOpt != null);
+
+                    ReadCSharpNativeImportsInfo(
+                        symReader,
+                        symbolProviderOpt,
+                        methodToken,
+                        methodVersion,
+                        out importRecordGroups,
+                        out externAliasRecords);
+
+                    ReadCSharpNativeCustomDebugInfo(
+                        symReader,
+                        methodToken,
+                        methodVersion,
+                        allScopes,
+                        out hoistedLocalScopeRecords,
+                        out dynamicLocalMap,
+                        out dynamicLocalConstantMap);
+
+                    defaultNamespaceName = "";
+                }
 
                 var constantsBuilder = ArrayBuilder<TLocalSymbol>.GetInstance();
-                GetConstants(constantsBuilder, symbolProviderOpt, containingScopes, info.DynamicLocalConstantMap);
-                info.LocalConstants = constantsBuilder.ToImmutableAndFree();
-                info.ReuseSpan = GetReuseSpan(allScopes, ilOffset, isVisualBasicMethod);
+                if (symbolProviderOpt != null) // TODO
+                {
+                    GetConstants(constantsBuilder, symbolProviderOpt, containingScopes, dynamicLocalConstantMap);
+                }
+
+                var reuseSpan = GetReuseSpan(allScopes, ilOffset, isVisualBasicMethod);
+
+                return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
+                    hoistedLocalScopeRecords,
+                    importRecordGroups,
+                    externAliasRecords,
+                    dynamicLocalMap,
+                    defaultNamespaceName,
+                    containingScopes.GetLocalNames(),
+                    constantsBuilder.ToImmutableAndFree(),
+                    reuseSpan);
             }
-
-            allScopes.Free();
-            containingScopes.Free();
-
-            return info;
+            catch (InvalidOperationException)
+            {
+                // bad CDI, ignore
+                return None;
+            }
+            finally
+            {
+                allScopes.Free();
+                containingScopes.Free();
+            }
         }
 
-        private static MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadCSharpNativeDebugInfo(
+        private static void ReadCSharpNativeImportsInfo(
             ISymUnmanagedReader reader,
             EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider,
             int methodToken,
             int methodVersion,
-            IEnumerable<ISymUnmanagedScope> scopes)
+            out ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups,
+            out ImmutableArray<ExternAliasRecord> externAliasRecords)
         {
             ImmutableArray<string> externAliasStrings;
             var importStringGroups = reader.GetCSharpGroupedImportStrings(methodToken, methodVersion, out externAliasStrings);
@@ -160,40 +226,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
             }
 
-            var hoistedLocalScopeRecords = ImmutableArray<HoistedLocalScopeRecord>.Empty;
-            var dynamicLocalMap = ImmutableDictionary<int, ImmutableArray<bool>>.Empty;
-            var dynamicLocalConstantMap = ImmutableDictionary<string, ImmutableArray<bool>>.Empty;
-
-            byte[] customDebugInfoBytes = reader.GetCustomDebugInfoBytes(methodToken, methodVersion);
-
-            if (customDebugInfoBytes != null)
-            {
-                var customDebugInfoRecord = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(customDebugInfoBytes, CustomDebugInfoKind.StateMachineHoistedLocalScopes);
-                if (!customDebugInfoRecord.IsDefault)
-                {
-                    hoistedLocalScopeRecords = CustomDebugInfoReader.DecodeStateMachineHoistedLocalScopesRecord(customDebugInfoRecord)
-                        .SelectAsArray(s => new HoistedLocalScopeRecord(s.StartOffset, s.EndOffset - s.StartOffset + 1));
-                }
-
-                CustomDebugInfoReader.GetCSharpDynamicLocalInfo(
-                    customDebugInfoBytes,
-                    methodToken,
-                    methodVersion,
-                    scopes,
-                    out dynamicLocalMap,
-                    out dynamicLocalConstantMap);
-            }
-
-            return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
-                hoistedLocalScopeRecords,
-                importRecordGroupBuilder?.ToImmutableAndFree() ?? ImmutableArray<ImmutableArray<ImportRecord>>.Empty,
-                externAliasRecordBuilder?.ToImmutableAndFree() ?? ImmutableArray<ExternAliasRecord>.Empty,
-                dynamicLocalMap,
-                dynamicLocalConstantMap,
-                "", //defaultNamespaceName: 
-                ImmutableArray<string>.Empty, // TODO
-                ImmutableArray<TLocalSymbol>.Empty,
-                ILSpan.MaxValue);
+            importRecordGroups = importRecordGroupBuilder?.ToImmutableAndFree() ?? ImmutableArray<ImmutableArray<ImportRecord>>.Empty;
+            externAliasRecords = externAliasRecordBuilder?.ToImmutableAndFree() ?? ImmutableArray<ExternAliasRecord>.Empty;
         }
 
         private static bool TryCreateImportRecordFromCSharpImportString(EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider, string importString, out ImportRecord record)
@@ -226,20 +260,60 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return false;
         }
 
-        private static MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadVisualBasicNativeDebugInfo(
+        private static void ReadCSharpNativeCustomDebugInfo(
             ISymUnmanagedReader reader,
             int methodToken,
-            int methodVersion)
+            int methodVersion,
+            IEnumerable<ISymUnmanagedScope> scopes,
+            out ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopeRecords,
+            out ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap,
+            out ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap)
         {
+            hoistedLocalScopeRecords = ImmutableArray<HoistedLocalScopeRecord>.Empty;
+            dynamicLocalMap = ImmutableDictionary<int, ImmutableArray<bool>>.Empty;
+            dynamicLocalConstantMap = ImmutableDictionary<string, ImmutableArray<bool>>.Empty;
+
+            byte[] customDebugInfoBytes = reader.GetCustomDebugInfoBytes(methodToken, methodVersion);
+            if (customDebugInfoBytes == null)
+            {
+                return;
+            }
+
+            var customDebugInfoRecord = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(customDebugInfoBytes, CustomDebugInfoKind.StateMachineHoistedLocalScopes);
+            if (!customDebugInfoRecord.IsDefault)
+            {
+                hoistedLocalScopeRecords = CustomDebugInfoReader.DecodeStateMachineHoistedLocalScopesRecord(customDebugInfoRecord)
+                    .SelectAsArray(s => new HoistedLocalScopeRecord(s.StartOffset, s.EndOffset - s.StartOffset + 1));
+            }
+
+            CustomDebugInfoReader.GetCSharpDynamicLocalInfo(
+                customDebugInfoBytes,
+                methodToken,
+                methodVersion,
+                scopes,
+                out dynamicLocalMap,
+                out dynamicLocalConstantMap);
+        }
+
+        private static void ReadVisualBasicImportsDebugInfo(
+            ISymUnmanagedReader reader,
+            int methodToken,
+            int methodVersion,
+            out ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups,
+            out string defaultNamespaceName)
+        {
+            importRecordGroups = ImmutableArray<ImmutableArray<ImportRecord>>.Empty;
+
             var importStrings = reader.GetVisualBasicImportStrings(methodToken, methodVersion);
             if (importStrings.IsDefault)
             {
-                return default(MethodDebugInfo<TTypeSymbol, TLocalSymbol>);
+                defaultNamespaceName = "";
+                return;
             }
 
+            defaultNamespaceName = null;
             var projectLevelImportRecords = ArrayBuilder<ImportRecord>.GetInstance();
             var fileLevelImportRecords = ArrayBuilder<ImportRecord>.GetInstance();
-            string defaultNamespaceName = null;
 
             foreach (string importString in importStrings)
             {
@@ -296,20 +370,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
             }
 
-            var importRecordGroups = ImmutableArray.Create(
+            importRecordGroups = ImmutableArray.Create(
                 projectLevelImportRecords.ToImmutableAndFree(),
                 fileLevelImportRecords.ToImmutableAndFree());
-            
-            return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
-                ImmutableArray<HoistedLocalScopeRecord>.Empty,
-                importRecordGroups,
-                externAliasRecords: ImmutableArray<ExternAliasRecord>.Empty,
-                dynamicLocalMap: ImmutableDictionary<int, ImmutableArray<bool>>.Empty,
-                dynamicLocalConstantMap: ImmutableDictionary<string, ImmutableArray<bool>>.Empty,
-                defaultNamespaceName: defaultNamespaceName ?? "",
-                localVariableNames: ImmutableArray<string>.Empty, // TODO
-                localConstants: ImmutableArray<TLocalSymbol>.Empty,
-                reuseSpan: ILSpan.MaxValue);
+
+            defaultNamespaceName = defaultNamespaceName ?? "";
         }
 
         private static bool TryCreateImportRecordFromVisualBasicImportString(string importString, out ImportRecord record, out ImportScope scope)
@@ -332,28 +397,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             record = default(ImportRecord);
             return false;
-        }
-
-        /// <summary>
-        /// Get the set of nested scopes containing the
-        /// IL offset from outermost scope to innermost.
-        /// </summary>
-        internal static void GetScopes(
-            ISymUnmanagedReader symReader,
-            int methodToken,
-            int methodVersion,
-            int ilOffset,
-            bool isScopeEndInclusive,
-            ArrayBuilder<ISymUnmanagedScope> allScopes,
-            ArrayBuilder<ISymUnmanagedScope> containingScopes)
-        {
-            var symMethod = symReader.GetMethodByVersion(methodToken, methodVersion);
-            if (symMethod == null)
-            {
-                return;
-            }
-
-            symMethod.GetAllScopes(allScopes, containingScopes, ilOffset, isScopeEndInclusive);
         }
 
         internal static ILSpan GetReuseSpan(ArrayBuilder<ISymUnmanagedScope> scopes, int ilOffset, bool isEndInclusive)

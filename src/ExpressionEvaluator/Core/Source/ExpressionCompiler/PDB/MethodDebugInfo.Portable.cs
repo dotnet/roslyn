@@ -16,21 +16,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             string defaultNamespace;
             ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopes;
             ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocals;
-            ImmutableDictionary<string, ImmutableArray<bool>> dynamicConstants;
             ImmutableArray<ImmutableArray<ImportRecord>> importGroups;
             ImmutableArray<ExternAliasRecord> externAliases;
 
             var methodHandle = (MethodDefinitionHandle)MetadataTokens.EntityHandle(methodToken);
 
             ReadImportScopes(reader, methodHandle, out importGroups, out externAliases);
-            ReadMethodCustomDebugInformation(reader, methodHandle, out hoistedLocalScopes, out dynamicLocals, out dynamicConstants, out defaultNamespace);
+            ReadMethodCustomDebugInformation(reader, methodHandle, out hoistedLocalScopes, out dynamicLocals, out defaultNamespace);
 
             return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                 hoistedLocalScopes,
                 importGroups, 
                 externAliases,
                 dynamicLocals, 
-                dynamicConstants,
                 defaultNamespace,
                 // TODO
                 ImmutableArray<string>.Empty,
@@ -56,13 +54,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             MethodDefinitionHandle methodHandle,
             out ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopes,
             out ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocals,
-            out ImmutableDictionary<string, ImmutableArray<bool>> dynamicConstants,
             out string defaultNamespace)
         {
             hoistedLocalScopes = ImmutableArray<HoistedLocalScopeRecord>.Empty;
             defaultNamespace = "";
             dynamicLocals = ImmutableDictionary<int, ImmutableArray<bool>>.Empty;
-            dynamicConstants = ImmutableDictionary<string, ImmutableArray<bool>>.Empty;
                 
             foreach (var infoHandle in reader.GetCustomDebugInformation(methodHandle))
             {

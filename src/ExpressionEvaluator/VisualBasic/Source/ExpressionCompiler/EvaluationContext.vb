@@ -344,7 +344,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 defaultNamespaceName:="",
                 externAliasRecords:=ImmutableArray(Of ExternAliasRecord).Empty,
                 dynamicLocalMap:=ImmutableDictionary(Of Integer, ImmutableArray(Of Boolean)).Empty,
-                dynamicLocalConstantMap:=ImmutableDictionary(Of String, ImmutableArray(Of Boolean)).Empty,
                 localVariableNames:=ImmutableArray(Of String).Empty,
                 localConstants:=ImmutableArray(Of LocalSymbol).Empty,
                 reuseSpan:=Nothing)

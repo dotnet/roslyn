@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public readonly ImmutableArray<ExternAliasRecord> ExternAliasRecords; // C# only.
         public readonly ImmutableDictionary<int, ImmutableArray<bool>> DynamicLocalMap; // C# only.
-        public readonly ImmutableDictionary<string, ImmutableArray<bool>> DynamicLocalConstantMap; // C# only.
 
         public readonly string DefaultNamespaceName; // VB only.
 
@@ -31,7 +30,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                    ImmutableArray<ImmutableArray<ImportRecord>>.Empty,
                    ImmutableArray<ExternAliasRecord>.Empty,
                    null,
-                   null,
                    "",
                    ImmutableArray<string>.Empty,
                    ImmutableArray<TLocalSymbol>.Empty,
@@ -44,7 +42,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups,
             ImmutableArray<ExternAliasRecord> externAliasRecords,
             ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap,
-            ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap,
             string defaultNamespaceName,
             ImmutableArray<string> localVariableNames,
             ImmutableArray<TLocalSymbol> localConstants,
@@ -60,7 +57,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             ExternAliasRecords = externAliasRecords;
             DynamicLocalMap = dynamicLocalMap;
-            DynamicLocalConstantMap = dynamicLocalConstantMap;
 
             DefaultNamespaceName = defaultNamespaceName;
 
