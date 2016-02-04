@@ -941,7 +941,7 @@ End Class
             Public NotOverridable Overrides Sub Initialize(context As AnalysisContext)
                 context.RegisterSyntaxNodeAction(
                      Sub(nodeContext)
-                         If nodeContext.OwningSymbol.Name.StartsWith("Funky") AndAlso nodeContext.Compilation.Language = "Visual Basic" Then
+                         If nodeContext.ContainingSymbol.Name.StartsWith("Funky") AndAlso nodeContext.Compilation.Language = "Visual Basic" Then
                              nodeContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(ExpressionDescriptor, nodeContext.Node.GetLocation()))
                          End If
                      End Sub,

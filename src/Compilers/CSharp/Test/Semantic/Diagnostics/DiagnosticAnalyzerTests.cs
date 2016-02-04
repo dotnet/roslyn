@@ -1376,7 +1376,7 @@ partial class PartialType
                 context.RegisterSyntaxNodeAction(
                      (nodeContext) =>
                      {
-                         if (nodeContext.OwningSymbol.Name.StartsWith("Funky") && nodeContext.Compilation.Language == "C#")
+                         if (nodeContext.ContainingSymbol.Name.StartsWith("Funky") && nodeContext.Compilation.Language == "C#")
                          {
                              nodeContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(ExpressionDescriptor, nodeContext.Node.GetLocation()));
                          }

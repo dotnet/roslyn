@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void ExecuteSyntaxNodeAction<TLanguageKindEnum>(
             SyntaxNodeAnalyzerAction<TLanguageKindEnum> syntaxNodeAction,
             SyntaxNode node,
-            ISymbol owningSymbol,
+            ISymbol containingSymbol,
             SemanticModel semanticModel,
             Action<Diagnostic> addDiagnostic,
             SyntaxNodeAnalyzerStateData analyzerStateOpt)
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (ShouldExecuteAction(analyzerStateOpt, syntaxNodeAction))
             {
-                var syntaxNodeContext = new SyntaxNodeAnalysisContext(node, owningSymbol, semanticModel, _analyzerOptions, addDiagnostic,
+                var syntaxNodeContext = new SyntaxNodeAnalysisContext(node, containingSymbol, semanticModel, _analyzerOptions, addDiagnostic,
                     d => IsSupportedDiagnostic(syntaxNodeAction.Analyzer, d), _cancellationToken);
                 ExecuteAndCatchIfThrows(syntaxNodeAction.Analyzer,
                     () => syntaxNodeAction.Action(syntaxNodeContext),
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void ExecuteOperationAction(
             OperationAnalyzerAction operationAction,
             IOperation operation,
-            ISymbol owningSymbol,
+            ISymbol containingSymbol,
             SemanticModel semanticModel,
             Action<Diagnostic> addDiagnostic,
             OperationAnalyzerStateData analyzerStateOpt)
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (ShouldExecuteAction(analyzerStateOpt, operationAction))
             {
-                var operationContext = new OperationAnalysisContext(operation, owningSymbol, semanticModel.Compilation, _analyzerOptions, addDiagnostic, d => IsSupportedDiagnostic(operationAction.Analyzer, d), semanticModel, _cancellationToken);
+                var operationContext = new OperationAnalysisContext(operation, containingSymbol, semanticModel.Compilation, _analyzerOptions, addDiagnostic, d => IsSupportedDiagnostic(operationAction.Analyzer, d), _cancellationToken);
                 ExecuteAndCatchIfThrows(operationAction.Analyzer,
                     () => operationAction.Action(operationContext),
                     new AnalysisContextInfo(_compilation, operation));
@@ -840,7 +840,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IEnumerable<SyntaxNode> nodesToAnalyze,
             IDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
             DiagnosticAnalyzer analyzer,
-            ISymbol owningSymbol,
+            ISymbol containingSymbol,
             SemanticModel model,
             Func<SyntaxNode, TLanguageKindEnum> getKind,
             TextSpan filterSpan,
@@ -849,13 +849,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             where TLanguageKindEnum : struct
         {
             var addDiagnostic = GetAddDiagnostic(model.SyntaxTree, filterSpan, analyzer, isSyntaxDiagnostic: false, isGeneratedCode: isGeneratedCode);
-            ExecuteSyntaxNodeActions(nodesToAnalyze, nodeActionsByKind, owningSymbol, model, getKind, addDiagnostic, analyzerStateOpt);
+            ExecuteSyntaxNodeActions(nodesToAnalyze, nodeActionsByKind, containingSymbol, model, getKind, addDiagnostic, analyzerStateOpt);
         }
 
         private void ExecuteSyntaxNodeActions<TLanguageKindEnum>(
             IEnumerable<SyntaxNode> nodesToAnalyze,
             IDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
-            ISymbol owningSymbol,
+            ISymbol containingSymbol,
             SemanticModel model,
             Func<SyntaxNode, TLanguageKindEnum> getKind,
             Action<Diagnostic> addDiagnostic,
@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SyntaxNode partiallyProcessedNode = analyzerStateOpt?.CurrentNode;
             if (partiallyProcessedNode != null)
             {
-                ExecuteSyntaxNodeActions(partiallyProcessedNode, nodeActionsByKind, owningSymbol, model, getKind, addDiagnostic, analyzerStateOpt);
+                ExecuteSyntaxNodeActions(partiallyProcessedNode, nodeActionsByKind, containingSymbol, model, getKind, addDiagnostic, analyzerStateOpt);
             }
 
             foreach (var child in nodesToAnalyze)
@@ -877,7 +877,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     SetCurrentNode(analyzerStateOpt, child);
 
-                    ExecuteSyntaxNodeActions(child, nodeActionsByKind, owningSymbol, model, getKind, addDiagnostic, analyzerStateOpt);
+                    ExecuteSyntaxNodeActions(child, nodeActionsByKind, containingSymbol, model, getKind, addDiagnostic, analyzerStateOpt);
                 }
             }
         }
@@ -885,7 +885,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void ExecuteSyntaxNodeActions<TLanguageKindEnum>(
             SyntaxNode node,
             IDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
-            ISymbol owningSymbol,
+            ISymbol containingSymbol,
             SemanticModel model,
             Func<SyntaxNode, TLanguageKindEnum> getKind,
             Action<Diagnostic> addDiagnostic,
@@ -897,7 +897,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 foreach (var action in actionsForKind)
                 {
-                    ExecuteSyntaxNodeAction(action, node, owningSymbol, model, addDiagnostic, analyzerStateOpt);
+                    ExecuteSyntaxNodeAction(action, node, containingSymbol, model, addDiagnostic, analyzerStateOpt);
                 }
             }
 
@@ -966,20 +966,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IEnumerable<IOperation> operationsToAnalyze,
             IDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
             DiagnosticAnalyzer analyzer,
-            ISymbol owningSymbol,
+            ISymbol containingSymbol,
             SemanticModel model,
             TextSpan filterSpan,
             OperationAnalyzerStateData analyzerStateOpt,
             bool isGeneratedCode)
         {
             var addDiagnostic = GetAddDiagnostic(model.SyntaxTree, filterSpan, analyzer, isSyntaxDiagnostic: false, isGeneratedCode: isGeneratedCode);
-            ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, owningSymbol, model, addDiagnostic, analyzerStateOpt);
+            ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, containingSymbol, model, addDiagnostic, analyzerStateOpt);
         }
 
         private void ExecuteOperationActions(
             IEnumerable<IOperation> operationsToAnalyze,
             IDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
-            ISymbol owningSymbol,
+            ISymbol containingSymbol,
             SemanticModel model,
             Action<Diagnostic> addDiagnostic,
             OperationAnalyzerStateData analyzerStateOpt)
@@ -990,7 +990,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IOperation partiallyProcessedNode = analyzerStateOpt?.CurrentOperation;
             if (partiallyProcessedNode != null)
             {
-                ExecuteOperationActions(partiallyProcessedNode, operationActionsByKind, owningSymbol, model, addDiagnostic, analyzerStateOpt);
+                ExecuteOperationActions(partiallyProcessedNode, operationActionsByKind, containingSymbol, model, addDiagnostic, analyzerStateOpt);
             }
 
             foreach (var child in operationsToAnalyze)
@@ -999,7 +999,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     SetCurrentOperation(analyzerStateOpt, child);
 
-                    ExecuteOperationActions(child, operationActionsByKind, owningSymbol, model, addDiagnostic, analyzerStateOpt);
+                    ExecuteOperationActions(child, operationActionsByKind, containingSymbol, model, addDiagnostic, analyzerStateOpt);
                 }
             }
         }
@@ -1007,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void ExecuteOperationActions(
             IOperation operation,
             IDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
-            ISymbol owningSymbol,
+            ISymbol containingSymbol,
             SemanticModel model,
             Action<Diagnostic> addDiagnostic,
             OperationAnalyzerStateData analyzerStateOpt)
@@ -1017,7 +1017,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 foreach (var action in actionsForKind)
                 {
-                    ExecuteOperationAction(action, operation, owningSymbol, model, addDiagnostic, analyzerStateOpt);
+                    ExecuteOperationAction(action, operation, containingSymbol, model, addDiagnostic, analyzerStateOpt);
                 }
             }
 

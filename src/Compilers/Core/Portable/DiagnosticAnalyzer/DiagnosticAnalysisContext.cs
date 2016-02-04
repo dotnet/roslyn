@@ -929,7 +929,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public struct SyntaxNodeAnalysisContext
     {
         private readonly SyntaxNode _node;
-        private readonly ISymbol _owningSymbol;
+        private readonly ISymbol _containingSymbol;
         private readonly SemanticModel _semanticModel;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
@@ -944,7 +944,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// <see cref="ISymbol"/> for the declaration containing the syntax node.
         /// </summary>
-        public ISymbol OwningSymbol => _owningSymbol;
+        public ISymbol ContainingSymbol => _containingSymbol;
 
         /// <summary>
         /// <see cref="CodeAnalysis.SemanticModel"/> that can provide semantic information about the <see cref="SyntaxNode"/>.
@@ -966,10 +966,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        public SyntaxNodeAnalysisContext(SyntaxNode node, ISymbol owningSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+        public SyntaxNodeAnalysisContext(SyntaxNode node, ISymbol containingSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _node = node;
-            _owningSymbol = owningSymbol;
+            _containingSymbol = containingSymbol;
             _semanticModel = semanticModel;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
@@ -1003,8 +1003,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public struct OperationAnalysisContext
     {
         private readonly IOperation _operation;
-        private readonly ISymbol _owningSymbol;
-        private readonly SemanticModel _semanticModelOpt;
+        private readonly ISymbol _containingSymbol;
         private readonly Compilation _compilation;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
@@ -1019,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// <see cref="ISymbol"/> for the declaration containing the operation.
         /// </summary>
-        public ISymbol OwningSymbol => _owningSymbol;
+        public ISymbol ContainingSymbol => _containingSymbol;
 
         /// <summary>
         /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="IOperation"/>.
@@ -1036,16 +1035,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        public OperationAnalysisContext(IOperation operation, ISymbol owningSymbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
-            : this(operation, owningSymbol, compilation, options, reportDiagnostic, isSupportedDiagnostic, semanticModel: null, cancellationToken: cancellationToken)
-        {
-        }
-
-        internal OperationAnalysisContext(IOperation operation, ISymbol owningSymbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public OperationAnalysisContext(IOperation operation, ISymbol containingSymbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _operation = operation;
-            _owningSymbol = owningSymbol;
-            _semanticModelOpt = semanticModel;
+            _containingSymbol = containingSymbol;
             _compilation = compilation;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
@@ -1059,7 +1052,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _semanticModelOpt?.Compilation, _isSupportedDiagnostic);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _compilation, _isSupportedDiagnostic);
             lock (_reportDiagnostic)
             {
                 _reportDiagnostic(diagnostic);
