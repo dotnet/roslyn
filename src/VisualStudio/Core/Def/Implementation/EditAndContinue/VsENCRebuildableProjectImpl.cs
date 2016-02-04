@@ -590,10 +590,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                 var flags = (ActiveStatementFlags)vsActiveStatement.ASINFO;
 
-                IVisualStudioHostDocument vsDocument = _vsProject.GetCurrentDocumentFromPath(vsActiveStatement.filename);
-                if (vsDocument != null)
+                // Finds a document id in the solution with the specified file path.
+                DocumentId documentId = solution.GetDocumentIdsWithFilePath(vsActiveStatement.filename)
+                    .Where(dId => dId.ProjectId == _vsProject.Id).SingleOrDefault();
+
+                if (documentId != null)
                 {
-                    var document = solution.GetDocument(vsDocument.Id);
+                    var document = solution.GetDocument(documentId);
                     Debug.Assert(document != null);
 
                     SourceText source = document.GetTextAsync(default(CancellationToken)).Result;
