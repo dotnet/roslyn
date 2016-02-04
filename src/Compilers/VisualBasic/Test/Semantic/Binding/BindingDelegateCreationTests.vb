@@ -1243,7 +1243,7 @@ End Class
             CompileAndVerify(source, "all working here")
         End Sub
 
-        <Fact, WorkItem(17302)>
+        <Fact>
         Public Sub InvalidDelegateRelaxationForSharednessMismatch()
             Dim compilationDef = <compilation>
                                      <file name="a.vb"><![CDATA[
@@ -1272,7 +1272,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="2")
         End Sub
 
-        <Fact, WorkItem(17302)>
+        <Fact>
         Public Sub InvalidDelegateRelaxationForSharednessMismatch_2()
             Dim compilationDef = <compilation>
                                      <file name="a.vb"><![CDATA[
@@ -1314,7 +1314,7 @@ BC30518: Overload resolution failed because no accessible 'Foo' can be called wi
                                            </expected>)
         End Sub
 
-        <Fact, WorkItem(17302)>
+        <Fact>
         Public Sub InvalidDelegateRelaxationForMyClassMismatch()
             Dim compilationDef = <compilation>
                                      <file name="a.vb"><![CDATA[

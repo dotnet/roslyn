@@ -45,6 +45,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             _runtimeInstances.Free()
         End Sub
 
+        ' TODO: remove -- workaround for bugs in Portable PDB handling in EE
+        Friend Shared Sub WithRuntimeInstancePortableBug(compilation As Compilation, validator As Action(Of RuntimeInstance))
+            WithRuntimeInstancePortableBug(compilation, Nothing, validator)
+        End Sub
+
+        ' TODO: remove -- workaround for bugs in Portable PDB handling in EE
+        Friend Shared Sub WithRuntimeInstancePortableBug(compilation As Compilation, references As IEnumerable(Of MetadataReference), validator As Action(Of RuntimeInstance))
+            Using instance = RuntimeInstance.Create(compilation, references, DebugInformationFormat.Pdb, True)
+                validator(instance)
+            End Using
+        End Sub
+
+        Friend Shared Sub WithRuntimeInstance(compilation As Compilation, validator As Action(Of RuntimeInstance))
+            WithRuntimeInstance(compilation, Nothing, True, validator)
+        End Sub
+
+        Friend Shared Sub WithRuntimeInstance(compilation As Compilation, references As IEnumerable(Of MetadataReference), validator As Action(Of RuntimeInstance))
+            WithRuntimeInstance(compilation, references, True, validator)
+        End Sub
+
+        Friend Shared Sub WithRuntimeInstance(compilation As Compilation, references As IEnumerable(Of MetadataReference), includeLocalSignatures As Boolean, validator As Action(Of RuntimeInstance))
+            For Each debugFormat In {DebugInformationFormat.Pdb, DebugInformationFormat.PortablePdb}
+                Using instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures)
+                    validator(instance)
+                End Using
+            Next
+        End Sub
+
         Friend Function CreateRuntimeInstance(modules As IEnumerable(Of ModuleInstance)) As RuntimeInstance
             Dim instance = RuntimeInstance.Create(modules)
             _runtimeInstances.Add(instance)

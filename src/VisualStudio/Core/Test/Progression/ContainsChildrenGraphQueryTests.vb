@@ -107,7 +107,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WorkItem(165369, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems#_a=edit&id=165369")>
+        <WorkItem(165369, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/165369")>
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function ContainsChildrenForNodeWithRelativeUriPath() As Task
             Using testState = Await ProgressionTestState.CreateAsync(

@@ -58,12 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override OperationKind ExpressionKind => OperationKind.None;
 
-            public override void Accept(IOperationVisitor visitor)
+            public override void Accept(OperationVisitor visitor)
             {
                 throw ExceptionUtilities.Unreachable;
             }
 
-            public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+            public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
             {
                 throw ExceptionUtilities.Unreachable;
             }

@@ -1391,5 +1391,35 @@ namespace ConsoleApplication21
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AllocateNativeOverlapped").WithArguments("context", "ConsoleApplication21.FooBar.AllocateNativeOverlapped(System.Threading.IOCompletionCallback, object, byte[])").WithLocation(12, 44)
 );
         }
+        
+        [Fact, WorkItem(8152, "https://github.com/dotnet/roslyn/issues/8152")]
+        public void DuplicateDeclaration()
+        {
+            var source =
+@"
+public class SpecialCases
+{
+    public void ArgListMethod(__arglist)
+    {
+        ArgListMethod(__arglist(""""));
+    }
+    public void ArgListMethod(__arglist)
+    {
+        ArgListMethod(__arglist(""""));
+    }
+}
+";
+            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+    // (8,17): error CS0111: Type 'SpecialCases' already defines a member called 'ArgListMethod' with the same parameter types
+    //     public void ArgListMethod(__arglist)
+    Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "ArgListMethod").WithArguments("ArgListMethod", "SpecialCases").WithLocation(8, 17),
+    // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'SpecialCases.ArgListMethod(__arglist)' and 'SpecialCases.ArgListMethod(__arglist)'
+    //         ArgListMethod(__arglist(""));
+    Diagnostic(ErrorCode.ERR_AmbigCall, "ArgListMethod").WithArguments("SpecialCases.ArgListMethod(__arglist)", "SpecialCases.ArgListMethod(__arglist)").WithLocation(6, 9),
+    // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'SpecialCases.ArgListMethod(__arglist)' and 'SpecialCases.ArgListMethod(__arglist)'
+    //         ArgListMethod(__arglist(""));
+    Diagnostic(ErrorCode.ERR_AmbigCall, "ArgListMethod").WithArguments("SpecialCases.ArgListMethod(__arglist)", "SpecialCases.ArgListMethod(__arglist)").WithLocation(10, 9)
+                );
+        }
     }
 }

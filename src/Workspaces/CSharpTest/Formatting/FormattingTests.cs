@@ -7160,5 +7160,53 @@ class Program
     public int SomeProperty {    [SomeAttribute] get;    [SomeAttribute] private set; }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(7900, "https://github.com/dotnet/roslyn/issues/7900")]
+        public async Task FormatEmbeddedStatementInsideLockStatement()
+        {
+            await AssertFormatAsync(@"
+class C
+{
+    private object _l = new object();
+    public void M()
+    {
+        lock (_l) Console.WriteLine(""d"");
+    }
+}", @"
+class C
+{
+    private object _l = new object();
+    public void M()
+    {
+        lock (_l)     Console.WriteLine(""d"");
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(7900, "https://github.com/dotnet/roslyn/issues/7900")]
+        public async Task FormatEmbeddedStatementInsideLockStatementDifferentLine()
+        {
+            await AssertFormatAsync(@"
+class C
+{
+    private object _l = new object();
+    public void M()
+    {
+        lock (_l)
+            Console.WriteLine(""d"");
+    }
+}",@"
+class C
+{
+    private object _l = new object();
+    public void M()
+    {
+        lock (_l)
+    Console.WriteLine(""d"");
+    }
+}");
+        }
     }
 }
