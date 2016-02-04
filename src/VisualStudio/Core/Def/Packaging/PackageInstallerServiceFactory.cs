@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using NuGet.VisualStudio;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Nuget
+namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
     [ExportWorkspaceServiceFactory(typeof(IPackageInstallerService)), Shared]
     internal class PackageInstallerServiceFactory : IWorkspaceServiceFactory

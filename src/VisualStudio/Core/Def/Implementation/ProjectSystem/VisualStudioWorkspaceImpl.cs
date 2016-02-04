@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Feedback.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Nuget;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -30,6 +29,7 @@ using Roslyn.VisualStudio.ProjectSystem;
 using VSLangProj;
 using VSLangProj140;
 using OLEServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+using Microsoft.VisualStudio.LanguageServices.Packaging;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -53,7 +53,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
 
-        private PackageInstallerService _nugetInstallerService;
+        private PackageInstallerService _packageInstallerService;
+        private PackageSearchService _packageSearchService;
 
         public VisualStudioWorkspaceImpl(
             SVsServiceProvider serviceProvider,
@@ -108,9 +109,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Ensure the options factory services are initialized on the UI thread
             this.Services.GetService<IOptionService>();
 
-            // Ensure the nuget services are initialized on the UI thread.
-            this._nugetInstallerService = (PackageInstallerService)this.Services.GetService<IPackageInstallerService>();
-            _nugetInstallerService.Connect(this);
+            // Ensure the nuget package services are initialized on the UI thread.
+            _packageSearchService = this.Services.GetService<IPackageSearchService>() as PackageSearchService;
+            _packageInstallerService = (PackageInstallerService)this.Services.GetService<IPackageInstallerService>();
+            _packageInstallerService.Connect(this);
         }
 
         /// <summary>NOTE: Call only from derived class constructor</summary>
@@ -1004,7 +1006,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected override void Dispose(bool finalize)
         {
-            _nugetInstallerService.Disconnect(this);
+            _packageInstallerService?.Disconnect(this);
+            _packageSearchService?.Dispose();
 
             // workspace is going away. unregister this workspace from work coordinator
             StopSolutionCrawler();
