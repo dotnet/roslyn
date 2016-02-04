@@ -23,7 +23,7 @@ echo "=           Clearing nuget caches"
 echo "==============================================="
 echo ""
 
- & $ScriptDir\..\..\..\nuget.exe locals all -clear
+& $ScriptDir\..\..\..\nuget.exe locals all -clear
 
 echo ""
 echo "==============================================="
@@ -31,7 +31,7 @@ echo "=       Restoring nuget to fill cache"
 echo "==============================================="
 echo ""
 
- & $ScriptDir\..\..\..\Restore.cmd
+& $ScriptDir\..\..\..\Restore.cmd
 
 echo ""
 echo "==============================================="
@@ -39,8 +39,8 @@ echo "=       Zipping $HOME/.nuget into $ScriptDir/$NugetZipName "
 echo "==============================================="
 echo ""
 
- Add-Type -Assembly "System.IO.Compression.FileSystem";
- [System.IO.Compression.ZipFile]::CreateFromDirectory("$HOME/.nuget", "$ScriptDir/$NugetZipName");
+Add-Type -Assembly "System.IO.Compression.FileSystem";
+[System.IO.Compression.ZipFile]::CreateFromDirectory("$HOME/.nuget", "$ScriptDir/$NugetZipName", "Fastest", $true);
 
 echo "Done"
 
