@@ -8745,6 +8745,107 @@ operator IntHolder(int i)
 'y' is 5");
         }
 
+        [Fact, WorkItem(8190, "https://github.com/dotnet/roslyn/issues/8190")]
+        public void Issue8190_1()
+        {
+            string source = @"
+using System;
+
+namespace RoslynNullableStringRepro
+{
+  public class Program
+  {
+    public static void Main(string[] args)
+    {
+      NonNullableString? irony = ""abc"";
+      irony += ""def"";
+      string ynori = ""abc"";
+      ynori += (NonNullableString?)""def"";
+
+      Console.WriteLine(irony);
+      Console.WriteLine(ynori);
+
+      ynori += (NonNullableString?) null;
+      Console.WriteLine(ynori);
+    }
+  }
+
+  struct NonNullableString
+  {
+    NonNullableString(string value)
+    {
+      if (value == null)
+      {
+        throw new ArgumentNullException(nameof(value));
+      }
+
+      this.value = value;
+    }
+
+    readonly string value;
+
+    public override string ToString() => value;
+
+    public static implicit operator string(NonNullableString self) => self.value;
+
+    public static implicit operator NonNullableString(string value) => new NonNullableString(value);
+
+    public static string operator +(NonNullableString lhs, NonNullableString rhs) => lhs.value + rhs.value;
+  }
+}";
+            CompileAndVerify(source: source, expectedOutput: "abcdef" + Environment.NewLine + "abcdef" + Environment.NewLine + "abcdef");
+        }
+
+        [Fact, WorkItem(8190, "https://github.com/dotnet/roslyn/issues/8190")]
+        public void Issue8190_2()
+        {
+            string source = @"
+using System;
+
+namespace RoslynNullableIntRepro
+{
+  public class Program
+  {
+    public static void Main(string[] args)
+    {
+      NonNullableInt? irony = 1;
+      irony += 2;
+      int? ynori = 1;
+      ynori += (NonNullableInt?) 2;
+
+      Console.WriteLine(irony);
+      Console.WriteLine(ynori);
+
+      ynori += (NonNullableInt?) null;
+      Console.WriteLine(ynori);
+    }
+  }
+
+  struct NonNullableInt
+  {
+    NonNullableInt(int? value)
+    {
+      if (value == null)
+      {
+        throw new ArgumentNullException();
+      }
+
+      this.value = value;
+    }
+
+    readonly int? value;
+
+    public override string ToString() {return value.ToString();}
+
+    public static implicit operator int? (NonNullableInt self) {return self.value;}
+
+    public static implicit operator NonNullableInt(int? value) {return new NonNullableInt(value);}
+
+    public static int? operator +(NonNullableInt lhs, NonNullableInt rhs) { return lhs.value + rhs.value; }
+  }
+}";
+            CompileAndVerify(source: source, expectedOutput: "3" + Environment.NewLine + "3" + Environment.NewLine);
+        }
         [Fact, WorkItem(4027, "https://github.com/dotnet/roslyn/issues/4027")]
         public void NotSignExtendedOperand()
         {
