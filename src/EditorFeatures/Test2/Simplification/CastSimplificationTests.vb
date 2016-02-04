@@ -8434,6 +8434,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
+        <WorkItem(2560, "https://github.com/dotnet/roslyn/issues/2560")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_Remove_IntegerToByte_OptionStrictOff() As Task
             Dim input =
@@ -8465,6 +8466,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
+        <WorkItem(2560, "https://github.com/dotnet/roslyn/issues/2560")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontRemove_IntegerToByte_OptionStrictOn1() As Task
             Dim input =
@@ -8496,6 +8498,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
+        <WorkItem(2560, "https://github.com/dotnet/roslyn/issues/2560")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontRemove_IntegerToByte_OptionStrictOn2() As Task
             Dim input =
@@ -8529,6 +8532,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
+        <WorkItem(2560, "https://github.com/dotnet/roslyn/issues/2560")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontRemove_IntegerToByte_OptionStrictOn3() As Task
             Dim input =
@@ -8562,6 +8566,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
+        <WorkItem(2560, "https://github.com/dotnet/roslyn/issues/2560")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontRemove_IntegerToByte_OptionStrictOn4() As Task
             Dim input =
@@ -8592,6 +8597,7 @@ End Class
 
             Await TestAsync(input, expected)
         End Function
+
 #End Region
 
     End Class
