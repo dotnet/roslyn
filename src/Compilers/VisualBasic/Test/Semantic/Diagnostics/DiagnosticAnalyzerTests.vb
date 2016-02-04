@@ -927,6 +927,60 @@ End Class
             VerifyGeneratedCodeAnalyzerDiagnostics(compilation, expected, GeneratedCodeAnalysisFlags.Analyze Or GeneratedCodeAnalysisFlags.ReportDiagnostics)
         End Sub
 
+        Friend Class OwningSymbolTestAnalyzer
+            Inherits DiagnosticAnalyzer
+
+            Public Shared ReadOnly ExpressionDescriptor As New DiagnosticDescriptor("Expression", "Expression", "Expression found.", "Testing", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+
+            Public NotOverridable Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(ExpressionDescriptor)
+                End Get
+            End Property
+
+            Public NotOverridable Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterSyntaxNodeAction(
+                     Sub(nodeContext)
+                         If nodeContext.OwningSymbol.Name.StartsWith("Funky") AndAlso nodeContext.Compilation.Language = "Visual Basic" Then
+                             nodeContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(ExpressionDescriptor, nodeContext.Node.GetLocation()))
+                         End If
+                     End Sub,
+                     SyntaxKind.IdentifierName,
+                     SyntaxKind.NumericLiteralExpression)
+            End Sub
+        End Class
+
+        <Fact>
+        Public Sub OwningSymbolVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub UnFunkyMethod()
+        Dim x As Integer = 0
+        Dim y As Integer = x
+    End Sub
+
+    Public Sub FunkyMethod()
+        Dim x As Integer = 0
+        Dim y As Integer = x
+    End Sub
+
+    Public FunkyField As Integer = 12
+    Public UnFunkyField As Integer = 12
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New OwningSymbolTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "0").WithLocation(8, 28),
+                                           Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "x").WithLocation(9, 28),
+                                           Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "12").WithLocation(12, 36))
+        End Sub
+
         Private Shared Sub VerifyGeneratedCodeAnalyzerDiagnostics(compilation As Compilation, isGeneratedFileName As Func(Of String, Boolean), generatedCodeAnalysisFlagsOpt As GeneratedCodeAnalysisFlags?)
             Dim expected = GetExpectedGeneratedCodeAnalyzerDiagnostics(compilation, isGeneratedFileName, generatedCodeAnalysisFlagsOpt)
             VerifyGeneratedCodeAnalyzerDiagnostics(compilation, expected, generatedCodeAnalysisFlagsOpt)
@@ -955,71 +1009,71 @@ End Class
                 Dim isGeneratedCode = True
                 AddExpectedLocalDiagnostics(builder, isGeneratedCode, squiggledText, line, column, generatedCodeAnalysisFlagsOpt, diagnosticArgument)
 
-                ' Type "Nested{0}"
-                squiggledText = String.Format("Nested{0}", i)
-                diagnosticArgument = squiggledText
-                line = 4
-                column = 16
-                isGeneratedCode = True
-                AddExpectedLocalDiagnostics(builder, isGeneratedCode, squiggledText, line, column, generatedCodeAnalysisFlagsOpt, diagnosticArgument)
+                    ' Type "Nested{0}"
+                    squiggledText = String.Format("Nested{0}", i)
+                    diagnosticArgument = squiggledText
+                    line = 4
+                    column = 16
+                    isGeneratedCode = True
+                    AddExpectedLocalDiagnostics(builder, isGeneratedCode, squiggledText, line, column, generatedCodeAnalysisFlagsOpt, diagnosticArgument)
 
-                ' Type "NonGeneratedCode{0}"
-                squiggledText = String.Format("NonGeneratedCode{0}", i)
-                diagnosticArgument = squiggledText
-                line = 8
-                column = 7
-                isGeneratedCode = isGeneratedFile
-                AddExpectedLocalDiagnostics(builder, isGeneratedCode, squiggledText, line, column, generatedCodeAnalysisFlagsOpt, diagnosticArgument)
+                    ' Type "NonGeneratedCode{0}"
+                    squiggledText = String.Format("NonGeneratedCode{0}", i)
+                    diagnosticArgument = squiggledText
+                    line = 8
+                    column = 7
+                    isGeneratedCode = isGeneratedFile
+                    AddExpectedLocalDiagnostics(builder, isGeneratedCode, squiggledText, line, column, generatedCodeAnalysisFlagsOpt, diagnosticArgument)
 
-                ' Type "NestedGeneratedCode{0}"
-                squiggledText = String.Format("NestedGeneratedCode{0}", i)
-                diagnosticArgument = squiggledText
-                line = 10
-                column = 16
-                isGeneratedCode = True
-                AddExpectedLocalDiagnostics(builder, isGeneratedCode, squiggledText, line, column, generatedCodeAnalysisFlagsOpt, diagnosticArgument)
+                    ' Type "NestedGeneratedCode{0}"
+                    squiggledText = String.Format("NestedGeneratedCode{0}", i)
+                    diagnosticArgument = squiggledText
+                    line = 10
+                    column = 16
+                    isGeneratedCode = True
+                    AddExpectedLocalDiagnostics(builder, isGeneratedCode, squiggledText, line, column, generatedCodeAnalysisFlagsOpt, diagnosticArgument)
 
-                ' File diagnostic
-                squiggledText = "Class" ' last token in file.
-                diagnosticArgument = file
-                line = 12
-                column = 5
-                isGeneratedCode = isGeneratedFile
-                AddExpectedLocalDiagnostics(builder, isGeneratedCode, squiggledText, line, column, generatedCodeAnalysisFlagsOpt, diagnosticArgument)
+                    ' File diagnostic
+                    squiggledText = "Class" ' last token in file.
+                    diagnosticArgument = file
+                    line = 12
+                    column = 5
+                    isGeneratedCode = isGeneratedFile
+                    AddExpectedLocalDiagnostics(builder, isGeneratedCode, squiggledText, line, column, generatedCodeAnalysisFlagsOpt, diagnosticArgument)
 
-                ' Compilation end summary diagnostic (verify callbacks into analyzer)
-                ' Analyzer always called for generated code, unless generated code analysis is explicitly disabled.
-                If generatedCodeAnalysisFlagsOpt Is Nothing OrElse (generatedCodeAnalysisFlagsOpt And GeneratedCodeAnalysisFlags.Analyze) <> 0 Then
-                    sortedCallbackSymbolNames.Add(String.Format("GeneratedCode{0}", i))
-                    sortedCallbackSymbolNames.Add(String.Format("Nested{0}", i))
-                    sortedCallbackSymbolNames.Add(String.Format("NonGeneratedCode{0}", i))
-                    sortedCallbackSymbolNames.Add(String.Format("NestedGeneratedCode{0}", i))
+                    ' Compilation end summary diagnostic (verify callbacks into analyzer)
+                    ' Analyzer always called for generated code, unless generated code analysis is explicitly disabled.
+                    If generatedCodeAnalysisFlagsOpt Is Nothing OrElse (generatedCodeAnalysisFlagsOpt And GeneratedCodeAnalysisFlags.Analyze) <> 0 Then
+                        sortedCallbackSymbolNames.Add(String.Format("GeneratedCode{0}", i))
+                        sortedCallbackSymbolNames.Add(String.Format("Nested{0}", i))
+                        sortedCallbackSymbolNames.Add(String.Format("NonGeneratedCode{0}", i))
+                        sortedCallbackSymbolNames.Add(String.Format("NestedGeneratedCode{0}", i))
 
-                    sortedCallbackTreePaths.Add(file)
-                ElseIf Not isGeneratedFile Then
-                    ' Analyzer always called for non-generated code.
-                    sortedCallbackSymbolNames.Add(String.Format("NonGeneratedCode{0}", i))
-                    sortedCallbackTreePaths.Add(file)
-                End If
-            Next
-
-            ' Compilation end summary diagnostic (verify callbacks into analyzer)
-            Dim arg1 = sortedCallbackSymbolNames.Join(",")
-            Dim arg2 = sortedCallbackTreePaths.Join(",")
-            AddExpectedNonLocalDiagnostic(builder, {arg1, arg2})
-
-            If compilation.Options.GeneralDiagnosticOption = ReportDiagnostic.Error Then
-                For i As Integer = 0 To builder.Count - 1
-                    If DirectCast(builder(i).Code, String) <> GeneratedCodeAnalyzer.Error.Id Then
-                        builder(i) = builder(i).WithWarningAsError(True)
+                        sortedCallbackTreePaths.Add(file)
+                    ElseIf Not isGeneratedFile Then
+                        ' Analyzer always called for non-generated code.
+                        sortedCallbackSymbolNames.Add(String.Format("NonGeneratedCode{0}", i))
+                        sortedCallbackTreePaths.Add(file)
                     End If
                 Next
-            End If
 
-            Return builder.ToArrayAndFree()
-        End Function
+                ' Compilation end summary diagnostic (verify callbacks into analyzer)
+                Dim arg1 = sortedCallbackSymbolNames.Join(",")
+                Dim arg2 = sortedCallbackTreePaths.Join(",")
+                AddExpectedNonLocalDiagnostic(builder, {arg1, arg2})
 
-        Private Shared Sub AddExpectedLocalDiagnostics(
+                If compilation.Options.GeneralDiagnosticOption = ReportDiagnostic.Error Then
+                    For i As Integer = 0 To builder.Count - 1
+                        If DirectCast(builder(i).Code, String) <> GeneratedCodeAnalyzer.Error.Id Then
+                            builder(i) = builder(i).WithWarningAsError(True)
+                        End If
+                    Next
+                End If
+
+                Return builder.ToArrayAndFree()
+            End Function
+
+            Private Shared Sub AddExpectedLocalDiagnostics(
             builder As ArrayBuilder(Of DiagnosticDescription),
             isGeneratedCode As Boolean,
             squiggledText As String,
@@ -1028,27 +1082,27 @@ End Class
             generatedCodeAnalysisFlagsOpt As GeneratedCodeAnalysisFlags?,
             ParamArray arguments As String())
 
-            ' Always report diagnostics in generated code, unless explicitly suppressed or we are not even analyzing generated code.
-            Dim reportInGeneratedCode = generatedCodeAnalysisFlagsOpt Is Nothing OrElse
+                ' Always report diagnostics in generated code, unless explicitly suppressed or we are not even analyzing generated code.
+                Dim reportInGeneratedCode = generatedCodeAnalysisFlagsOpt Is Nothing OrElse
                 ((generatedCodeAnalysisFlagsOpt And GeneratedCodeAnalysisFlags.ReportDiagnostics) <> 0 AndAlso
                  (generatedCodeAnalysisFlagsOpt And GeneratedCodeAnalysisFlags.Analyze) <> 0)
 
-            If Not isGeneratedCode OrElse reportInGeneratedCode Then
-                Dim diag = Diagnostic(GeneratedCodeAnalyzer.Warning.Id, squiggledText).WithArguments(arguments).WithLocation(line, column)
+                If Not isGeneratedCode OrElse reportInGeneratedCode Then
+                    Dim diag = Diagnostic(GeneratedCodeAnalyzer.Warning.Id, squiggledText).WithArguments(arguments).WithLocation(line, column)
+                    builder.Add(diag)
+
+                    diag = Diagnostic(GeneratedCodeAnalyzer.Error.Id, squiggledText).WithArguments(arguments).WithLocation(line, column)
+                    builder.Add(diag)
+                End If
+            End Sub
+
+            Private Shared Sub AddExpectedNonLocalDiagnostic(builder As ArrayBuilder(Of DiagnosticDescription), ParamArray arguments As String())
+                AddExpectedDiagnostic(builder, GeneratedCodeAnalyzer.Summary.Id, Nothing, 1, 1, arguments)
+            End Sub
+
+            Private Shared Sub AddExpectedDiagnostic(builder As ArrayBuilder(Of DiagnosticDescription), diagnosticId As String, squiggledText As String, line As Integer, column As Integer, ParamArray arguments As String())
+                Dim diag = Diagnostic(diagnosticId, squiggledText).WithArguments(arguments).WithLocation(line, column)
                 builder.Add(diag)
-
-                diag = Diagnostic(GeneratedCodeAnalyzer.Error.Id, squiggledText).WithArguments(arguments).WithLocation(line, column)
-                builder.Add(diag)
-            End If
-        End Sub
-
-        Private Shared Sub AddExpectedNonLocalDiagnostic(builder As ArrayBuilder(Of DiagnosticDescription), ParamArray arguments As String())
-            AddExpectedDiagnostic(builder, GeneratedCodeAnalyzer.Summary.Id, Nothing, 1, 1, arguments)
-        End Sub
-
-        Private Shared Sub AddExpectedDiagnostic(builder As ArrayBuilder(Of DiagnosticDescription), diagnosticId As String, squiggledText As String, line As Integer, column As Integer, ParamArray arguments As String())
-            Dim diag = Diagnostic(diagnosticId, squiggledText).WithArguments(arguments).WithLocation(line, column)
-            builder.Add(diag)
-        End Sub
-    End Class
+            End Sub
+        End Class
 End Namespace

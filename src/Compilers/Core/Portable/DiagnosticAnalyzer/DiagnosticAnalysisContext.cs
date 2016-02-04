@@ -929,6 +929,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public struct SyntaxNodeAnalysisContext
     {
         private readonly SyntaxNode _node;
+        private readonly ISymbol _owningSymbol;
         private readonly SemanticModel _semanticModel;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
@@ -938,31 +939,47 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// <see cref="SyntaxNode"/> that is the subject of the analysis.
         /// </summary>
-        public SyntaxNode Node { get { return _node; } }
+        public SyntaxNode Node => _node;
+
+        /// <summary>
+        /// <see cref="ISymbol"/> for the declaration containing the syntax node.
+        /// </summary>
+        public ISymbol OwningSymbol => _owningSymbol;
 
         /// <summary>
         /// <see cref="CodeAnalysis.SemanticModel"/> that can provide semantic information about the <see cref="SyntaxNode"/>.
         /// </summary>
-        public SemanticModel SemanticModel { get { return _semanticModel; } }
+        public SemanticModel SemanticModel => _semanticModel;
+
+        /// <summary>
+        /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="SyntaxNode"/>.
+        /// </summary>
+        public Compilation Compilation => _semanticModel?.Compilation;
 
         /// <summary>
         /// Options specified for the analysis.
         /// </summary>
-        public AnalyzerOptions Options { get { return _options; } }
+        public AnalyzerOptions Options => _options;
 
         /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
-        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+        public CancellationToken CancellationToken => _cancellationToken;
 
-        public SyntaxNodeAnalysisContext(SyntaxNode node, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+        public SyntaxNodeAnalysisContext(SyntaxNode node, ISymbol owningSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _node = node;
+            _owningSymbol = owningSymbol;
             _semanticModel = semanticModel;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _cancellationToken = cancellationToken;
+        }
+
+        public SyntaxNodeAnalysisContext(SyntaxNode node, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+           : this(node, null, semanticModel, options, reportDiagnostic, isSupportedDiagnostic, cancellationToken)
+        {
         }
 
         /// <summary>
@@ -986,7 +1003,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public struct OperationAnalysisContext
     {
         private readonly IOperation _operation;
+        private readonly ISymbol _owningSymbol;
         private readonly SemanticModel _semanticModelOpt;
+        private readonly Compilation _compilation;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
@@ -998,6 +1017,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public IOperation Operation => _operation;
 
         /// <summary>
+        /// <see cref="ISymbol"/> for the declaration containing the operation.
+        /// </summary>
+        public ISymbol OwningSymbol => _owningSymbol;
+
+        /// <summary>
+        /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="IOperation"/>.
+        /// </summary>
+        public Compilation Compilation => _compilation;
+
+        /// <summary>
         /// Options specified for the analysis.
         /// </summary>
         public AnalyzerOptions Options => _options;
@@ -1007,17 +1036,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        internal Compilation Compilation => _semanticModelOpt?.Compilation;
-
-        public OperationAnalysisContext(IOperation operation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
-            : this(operation, options, reportDiagnostic, isSupportedDiagnostic, semanticModel: null, cancellationToken: cancellationToken)
+        public OperationAnalysisContext(IOperation operation, ISymbol owningSymbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+            : this(operation, owningSymbol, compilation, options, reportDiagnostic, isSupportedDiagnostic, semanticModel: null, cancellationToken: cancellationToken)
         {
         }
 
-        internal OperationAnalysisContext(IOperation operation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, SemanticModel semanticModel, CancellationToken cancellationToken)
+        internal OperationAnalysisContext(IOperation operation, ISymbol owningSymbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             _operation = operation;
+            _owningSymbol = owningSymbol;
             _semanticModelOpt = semanticModel;
+            _compilation = compilation;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;

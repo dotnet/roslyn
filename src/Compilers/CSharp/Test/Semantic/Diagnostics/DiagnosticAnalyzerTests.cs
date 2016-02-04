@@ -1356,6 +1356,67 @@ partial class PartialType
             VerifyGeneratedCodeAnalyzerDiagnostics(compilation, expected, GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
         }
 
+        internal class OwningSymbolTestAnalyzer : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor ExpressionDescriptor = new DiagnosticDescriptor(
+                "Expression",
+                "Expression",
+                "Expression found.",
+                "Testing",
+                DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            {
+                get { return ImmutableArray.Create(ExpressionDescriptor); }
+            }
+
+            public sealed override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(
+                     (nodeContext) =>
+                     {
+                         if (nodeContext.OwningSymbol.Name.StartsWith("Funky") && nodeContext.Compilation.Language == "C#")
+                         {
+                             nodeContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(ExpressionDescriptor, nodeContext.Node.GetLocation()));
+                         }
+                     },
+                     SyntaxKind.IdentifierName,
+                     SyntaxKind.NumericLiteralExpression);
+            }
+        }
+
+        [Fact]
+        public void OwningSymbolTest()
+        {
+            const string source = @"
+class C
+{
+    public void UnFunkyMethod()
+    {
+        int x = 0;
+        int y = x;
+    }
+
+    public void FunkyMethod()
+    {
+        int x = 0;
+        int y = x;
+    }
+
+    public int FunkyField = 12;
+    public int UnFunkyField = 12;
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new OwningSymbolTestAnalyzer() }, null, null, false,
+                Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "0").WithLocation(12, 17),
+                Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "x").WithLocation(13, 17),
+                Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "12").WithLocation(16, 29)
+                );
+        }
+
         private static void VerifyGeneratedCodeAnalyzerDiagnostics(Compilation compilation, Func<string, bool> isGeneratedFileName, GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt)
         {
             var expected = GetExpectedGeneratedCodeAnalyzerDiagnostics(compilation, isGeneratedFileName, generatedCodeAnalysisFlagsOpt);
