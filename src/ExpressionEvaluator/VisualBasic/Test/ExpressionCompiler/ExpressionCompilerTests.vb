@@ -283,7 +283,7 @@ End Class"
             GetContextState(runtime, "C.F", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
 
             ' Get non-empty scopes.
-            Dim scopes = symReader.GetScopes(methodToken, methodVersion, EvaluationContext.IsLocalScopeEndInclusive).WhereAsArray(Function(s) s.Locals.Length > 0)
+            Dim scopes = symReader.GetScopes(methodToken, methodVersion, isEndInclusive:=True).WhereAsArray(Function(s) s.Locals.Length > 0)
             Assert.True(scopes.Length >= 3)
             Dim outerScope = scopes.First(Function(s) s.Locals.Contains("x"))
 

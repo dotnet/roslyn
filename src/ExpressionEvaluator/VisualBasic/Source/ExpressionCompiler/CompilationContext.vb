@@ -538,7 +538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             binder = New IgnoreAccessibilityBinder(binder)
             binder = New SourceModuleBinder(binder, DirectCast(compilation.Assembly.Modules(0), SourceModuleSymbol))
 
-            If Not importRecordGroups.IsDefault Then
+            If Not importRecordGroups.IsEmpty Then
                 binder = BuildImportedSymbolsBinder(binder, New NamespaceBinder(binder, compilation.GlobalNamespace), importRecordGroups)
             End If
 

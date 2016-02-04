@@ -6,10 +6,12 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal partial struct MethodDebugInfo<TTypeSymbol, TLocalSymbol>
+    internal partial class MethodDebugInfo<TTypeSymbol, TLocalSymbol>
         where TTypeSymbol : class, ITypeSymbol
         where TLocalSymbol : class
     {
+        public static readonly MethodDebugInfo<TTypeSymbol, TLocalSymbol> None = new MethodDebugInfo<TTypeSymbol, TLocalSymbol>();
+
         public readonly ImmutableArray<HoistedLocalScopeRecord> HoistedLocalScopeRecords;
         public readonly ImmutableArray<ImmutableArray<ImportRecord>> ImportRecordGroups;
 
@@ -19,13 +21,34 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public readonly string DefaultNamespaceName; // VB only.
 
+        // TODO: readonly
+        public ImmutableArray<string> LocalVariableNames { get; private set; }
+        public ImmutableArray<TLocalSymbol> LocalConstants { get; private set; }
+        public ILSpan ReuseSpan;
+
+        private MethodDebugInfo()
+            : this(ImmutableArray<HoistedLocalScopeRecord>.Empty,
+                   ImmutableArray<ImmutableArray<ImportRecord>>.Empty,
+                   ImmutableArray<ExternAliasRecord>.Empty,
+                   null,
+                   null,
+                   "",
+                   ImmutableArray<string>.Empty,
+                   ImmutableArray<TLocalSymbol>.Empty,
+                   ILSpan.MaxValue)
+        {
+        }
+
         public MethodDebugInfo(
             ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopeRecords,
             ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups,
             ImmutableArray<ExternAliasRecord> externAliasRecords,
             ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap,
             ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap,
-            string defaultNamespaceName)
+            string defaultNamespaceName,
+            ImmutableArray<string> localVariableNames,
+            ImmutableArray<TLocalSymbol> localConstants,
+            ILSpan reuseSpan)
         {
             Debug.Assert(!importRecordGroups.IsDefault);
             Debug.Assert(!externAliasRecords.IsDefault);
@@ -40,6 +63,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DynamicLocalConstantMap = dynamicLocalConstantMap;
 
             DefaultNamespaceName = defaultNamespaceName;
+
+            LocalVariableNames = localVariableNames;
+            LocalConstants = localConstants;
+            ReuseSpan = reuseSpan;
         }
 
         public ImmutableSortedSet<int> GetInScopeHoistedLocalIndices(int ilOffset, ref ILSpan methodContextReuseSpan)

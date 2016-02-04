@@ -10,17 +10,29 @@ using Microsoft.DiaSymReader;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    partial struct MethodDebugInfo<TTypeSymbol, TLocalSymbol>
+    partial class MethodDebugInfo<TTypeSymbol, TLocalSymbol>
     {
-        public unsafe static bool TryReadMethodDebugInfo(
+        public unsafe static MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadMethodDebugInfo(
             ISymUnmanagedReader symReader,
-            EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider,
+            EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProviderOpt, // TODO: only null in DTEE case where we looking for default namesapace
             int methodToken, 
             int methodVersion,
-            IEnumerable<ISymUnmanagedScope> allScopesOpt, // TODO: only needed for C# dynamic
-            bool isVisualBasicMethod,
-            out MethodDebugInfo<TTypeSymbol, TLocalSymbol> info)
+            int ilOffset,
+            bool isVisualBasicMethod)
         {
+            // no symbols
+            if (symReader == null)
+            {
+                return None;
+            }
+
+            var allScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
+            var containingScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
+
+            GetScopes(symReader, methodToken, methodVersion, ilOffset, isVisualBasicMethod, allScopes, containingScopes);
+
+            MethodDebugInfo<TTypeSymbol, TLocalSymbol> info = null;
+
             var symReader4 = symReader as ISymUnmanagedReader4;
             if (symReader4 != null && !isVisualBasicMethod) // TODO: VB Portable PDBs
             {
@@ -37,36 +49,49 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     try
                     {
                         info = ReadFromPortable(mdReader, methodToken);
-                        return true;
                     }
                     catch (BadImageFormatException)
                     {
                         // bad CDI, ignore
-                        info = default(MethodDebugInfo<TTypeSymbol, TLocalSymbol>);
-                        return false;
                     }
                 }
             }
 
-            try
+            if (info == null)
             {
-                if (isVisualBasicMethod)
+                try
                 {
-                    info = ReadVisualBasicNativeDebugInfo(symReader, methodToken, methodVersion);
+                    if (isVisualBasicMethod)
+                    {
+                        info = ReadVisualBasicNativeDebugInfo(symReader, methodToken, methodVersion);
+                    }
+                    else
+                    {
+                        Debug.Assert(symbolProviderOpt != null);
+                        info = ReadCSharpNativeDebugInfo(symReader, symbolProviderOpt, methodToken, methodVersion, allScopes);
+                    }
                 }
-                else
+                catch (InvalidOperationException)
                 {
-                    info = ReadCSharpNativeDebugInfo(symReader, symbolProvider, methodToken, methodVersion, allScopesOpt);
+                    // bad CDI, ignore
+                    info = None;
                 }
+            }
 
-                return true;
-            }
-            catch (InvalidOperationException)
+            if (symbolProviderOpt != null)
             {
-                // bad CDI, ignore
-                info = default(MethodDebugInfo<TTypeSymbol, TLocalSymbol>);
-                return false;
+                info.LocalVariableNames = containingScopes.GetLocalNames();
+
+                var constantsBuilder = ArrayBuilder<TLocalSymbol>.GetInstance();
+                GetConstants(constantsBuilder, symbolProviderOpt, containingScopes, info.DynamicLocalConstantMap);
+                info.LocalConstants = constantsBuilder.ToImmutableAndFree();
+                info.ReuseSpan = GetReuseSpan(allScopes, ilOffset, isVisualBasicMethod);
             }
+
+            allScopes.Free();
+            containingScopes.Free();
+
+            return info;
         }
 
         private static MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadCSharpNativeDebugInfo(
@@ -165,7 +190,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 externAliasRecordBuilder?.ToImmutableAndFree() ?? ImmutableArray<ExternAliasRecord>.Empty,
                 dynamicLocalMap,
                 dynamicLocalConstantMap,
-                defaultNamespaceName: ""); // Unused in C#.
+                "", //defaultNamespaceName: 
+                ImmutableArray<string>.Empty, // TODO
+                ImmutableArray<TLocalSymbol>.Empty,
+                ILSpan.MaxValue);
         }
 
         private static bool TryCreateImportRecordFromCSharpImportString(EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider, string importString, out ImportRecord record)
@@ -275,10 +303,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                 ImmutableArray<HoistedLocalScopeRecord>.Empty,
                 importRecordGroups,
-                defaultNamespaceName: defaultNamespaceName ?? "",
                 externAliasRecords: ImmutableArray<ExternAliasRecord>.Empty,
                 dynamicLocalMap: ImmutableDictionary<int, ImmutableArray<bool>>.Empty,
-                dynamicLocalConstantMap: ImmutableDictionary<string, ImmutableArray<bool>>.Empty);
+                dynamicLocalConstantMap: ImmutableDictionary<string, ImmutableArray<bool>>.Empty,
+                defaultNamespaceName: defaultNamespaceName ?? "",
+                localVariableNames: ImmutableArray<string>.Empty, // TODO
+                localConstants: ImmutableArray<TLocalSymbol>.Empty,
+                reuseSpan: ILSpan.MaxValue);
         }
 
         private static bool TryCreateImportRecordFromVisualBasicImportString(string importString, out ImportRecord record, out ImportScope scope)
