@@ -167,7 +167,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         internal IEnumerable<string> Help()
         {
-            string format = "{0,-" + _maxCommandNameLength + "}  {1}";
+            // The magic number `19` here is calculated based on how the description is dispayed for other help entries to keep the texts aligned
+            // (As of now other help entries include REPL commands and script derectives, both have manually formatted help description strings.
+            string format = "{0,-" + Math.Max(19, _maxCommandNameLength) + "}  {1}";
             return _commands.GroupBy(entry => entry.Value).
                 Select(group => string.Format(format, string.Join(_commandSeparator, group.Key.Names.Select(s => CommandPrefix + s)), group.Key.Description)).
                 OrderBy(line => line);
@@ -358,6 +360,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             DisplayCommandUsage(command, _window.OutputWriter, displayDetails: true);
         }
 
-        private bool UseSmartUpDown =>_window.TextView.Options.GetOptionValue(InteractiveWindowOptions.SmartUpDown);
+        private bool UseSmartUpDown => _window.TextView.Options.GetOptionValue(InteractiveWindowOptions.SmartUpDown);
     }
 }
