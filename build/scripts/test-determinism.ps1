@@ -1,10 +1,24 @@
 param ([string]$buildDir = $(throw "Need a directory containing a compiler build to test with"))
 
-$rootDir = split-path -parent (split-path -parent $PSScriptRoot)
-$debugDir = resolve-path (join-path $rootDir "Binaries\Debug")
+if (-not ([IO.Path]::IsPathRooted($buildDir))) {
+    write-error "The build path must be absolute"
+    exit 1
+}
+
+$rootDir = resolve-path (split-path -parent (split-path -parent $PSScriptRoot))
 $sln = join-path $rootDir "Compilers.sln"
+$debugDir = join-path $rootDir "Binaries\Debug"
+
+# Create directories that may or may not exist to make the script execution below 
+# clean in either case.
+mkdir $debugDir -errorAction SilentlyContinue | out-null
+mkdir (join-path $rootDir "Binaries\Obj") -errorAction SilentlyContinue | out-null
 
 pushd $rootDir
+
+$skipList = @(
+    "Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll"
+)
 
 $allGood = $true
 $map = @{}
@@ -13,25 +27,32 @@ while ($i -lt 3 -and $allGood) {
 
     # Clean out the previous run
     write-host "Cleaning the Binaries"
-    rm -re -fo "Binaries\Debug"
+    rm -re -fo "Binaries\Debug" 
     rm -re -fo "Binaries\Obj"
-    msbuild /nologo /v:m /t:clean $sln
+    & msbuild /nologo /v:m /t:clean $sln
 
     write-host "Building the Solution"
-    msbuild /nologo /v:m /m $sln
+    & msbuild /nologo /v:m /m /p:BootstrapBuildPath=$buildDir /p:Features="debug-determinism=$debugDir" /p:UseRoslynAnalyzers=false $sln
 
     pushd $debugDir
 
     write-host "Testing the binaries"
-    foreach ($dll in gci -re -in Microsoft.CodeAnalysis.*dll,Roslyn.*dll,cs*exe,vb*exe) {
+    foreach ($dll in gci Microsoft.CodeAnalysis.*dll,Roslyn.*dll,cs*exe,vb*exe) {
         $dllFullName = $dll.FullName
         $dllName = split-path -leaf $dllFullName
         $dllHash = get-md5 $dll
+        $dllKeyName = $dllFullName + ".key"
+
+        if ($skipList.Contains($dllName)) {
+            continue;
+        }
+
         if ($i -eq 0) {
             write-host "`tRecording $dllName = $dllHash"
             $data = @{}
             $data["Hash"] = $dllHash
             $data["Content"] = [IO.File]::ReadAllBytes($dllFullName)
+            $data["Key"] = [IO.File]::ReadAllBytes($dllFullName + ".key")
             $map[$dllFullName] = $data
         }
         else {
@@ -43,6 +64,7 @@ while ($i -lt 3 -and $allGood) {
             else {
                 write-host "`tERROR! $dllName changed ($dllFullName)"
                 [IO.File]::WriteAllBytes($dllFullName + ".baseline", $data.Content)
+                [IO.File]::WriteAllBytes($dllFullName + ".baseline.key", $data.Key)
                 $allGood = $false
             }
         }
@@ -61,6 +83,8 @@ while ($i -lt 3 -and $allGood) {
 }
 
 popd
+
+& $buildDir\VBCSCompiler.exe -shutdown
 
 if (-not $allGood) {
     exit 1

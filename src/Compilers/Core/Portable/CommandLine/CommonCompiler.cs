@@ -58,6 +58,14 @@ namespace Microsoft.CodeAnalysis
             this.Arguments = parser.Parse(allArgs, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories);
             this.MessageProvider = parser.MessageProvider;
             this.AnalyzerLoader = analyzerLoader;
+
+#if DEBUG
+            string value;
+            if (Arguments.ParseOptions.Features.TryGetValue("debug-determinism", out value))
+            {
+                EmitDeterminismKey(Arguments, args, baseDirectory, parser, value);
+            }
+#endif
         }
 
         internal abstract bool SuppressDefaultResponseFile(IEnumerable<string> args);
@@ -846,6 +854,59 @@ namespace Microsoft.CodeAnalysis
             {
                 return Arguments.PreferredUILang ?? CultureInfo.CurrentUICulture;
             }
+        }
+
+        private static void EmitDeterminismKey(CommandLineArguments args, string[] rawArgs, string baseDirectory, CommandLineParser parser, string outputDirectory)
+        {
+            var key = CreateDeterminismKey(args, rawArgs, baseDirectory, parser);
+            var filePath = Path.Combine(outputDirectory, args.OutputFileName + ".key");
+            using (var stream = PortableShim.File.Create(filePath))
+            {
+                var bytes = Encoding.UTF8.GetBytes(key);
+                stream.Write(bytes, 0, bytes.Length);
+            }
+        }
+
+        private static string CreateDeterminismKey(CommandLineArguments args, string[] rawArgs, string baseDirectory, CommandLineParser parser)
+        {
+            List<Diagnostic> diagnostics = new List<Diagnostic>();
+            List<string> flattenedArgs = new List<string>();
+            parser.FlattenArgs(rawArgs, diagnostics, flattenedArgs, null, baseDirectory);
+
+            var builder = new StringBuilder();
+            var name = !string.IsNullOrEmpty(args.OutputFileName)
+                ? Path.GetFileNameWithoutExtension(Path.GetFileName(args.OutputFileName))
+                : $"no-output-name-{Guid.NewGuid().ToString()}";
+
+            builder.AppendLine($"{name}");
+            builder.AppendLine($"Command Line:");
+            foreach (var current in flattenedArgs)
+            {
+                builder.AppendLine($"\t{current}");
+            }
+
+            builder.AppendLine("Source Files:");
+            var hash = new MD5CryptoServiceProvider();
+            foreach (var sourceFile in args.SourceFiles)
+            {
+                var sourceFileName = Path.GetFileName(sourceFile.Path);
+
+                string hashValue;
+                try
+                {
+                    var bytes = PortableShim.File.ReadAllBytes(sourceFile.Path);
+                    var hashBytes = hash.ComputeHash(bytes);
+                    var data = BitConverter.ToString(hashBytes);
+                    hashValue = data.Replace("-", "");
+                }
+                catch (Exception ex)
+                {
+                    hashValue = $"Could not compute {ex.Message}";
+                }
+                builder.AppendLine($"\t{sourceFileName} - {hashValue}");
+            }
+
+            return builder.ToString();
         }
     }
 }
