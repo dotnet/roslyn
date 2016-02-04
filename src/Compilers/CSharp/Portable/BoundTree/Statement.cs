@@ -779,12 +779,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind StatementKind => OperationKind.LocalFunctionStatement;
 
-        public override void Accept(IOperationVisitor visitor)
+        public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitLocalFunctionStatement(this);
         }
 
-        public override TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitLocalFunctionStatement(this, argument);
         }
