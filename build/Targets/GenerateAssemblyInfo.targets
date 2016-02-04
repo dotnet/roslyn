@@ -66,11 +66,12 @@
           DependsOnTargets="PrepareForBuild"
           Condition="('$(Language)' == 'C#' or '$(Language)' == 'VB')">
 
-    <WriteCodeFragment AssemblyAttributes="@(AssemblyVersionAttribute)"
-                       Language="$(Language)"
-                       OutputFile="$(GeneratedAssemblyInfoFile)">
+    <WriteCodeFragmentEx 
+        AssemblyAttributes="@(AssemblyVersionAttribute)"
+        Language="$(Language)"
+        OutputFile="$(GeneratedAssemblyInfoFile)">
       <Output TaskParameter="OutputFile" ItemName="Compile" />
       <Output TaskParameter="OutputFile" ItemName="FileWrites" />
-    </WriteCodeFragment>
+    </WriteCodeFragmentEx>
   </Target>
 </Project>

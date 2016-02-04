@@ -72,11 +72,12 @@
       <Output TaskParameter="Include" ItemName="InternalsVisibleToAttribute" />
     </CreateItem>
     
-    <WriteCodeFragment AssemblyAttributes="@(InternalsVisibleToAttribute)"
-                       Language="$(Language)"
-                       OutputFile="$(GeneratedInternalsVisibleToFile)">
+    <WriteCodeFragmentEx 
+        AssemblyAttributes="@(InternalsVisibleToAttribute)"
+        Language="$(Language)"
+        OutputFile="$(GeneratedInternalsVisibleToFile)">
       <Output TaskParameter="OutputFile" ItemName="Compile" />
       <Output TaskParameter="OutputFile" ItemName="FileWrites" />
-    </WriteCodeFragment>
+    </WriteCodeFragmentEx>
   </Target>
 </Project>

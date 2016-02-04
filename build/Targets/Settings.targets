@@ -29,6 +29,9 @@
     <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
   </PropertyGroup>
 
+  <UsingTask TaskName="Roslyn.MSBuild.Util.WriteCodeFragmentEx"
+             AssemblyFile="C:\Users\jaredpar\code\roslyn\src\Tools\BuildUtil\BuildUtil\bin\Debug\Roslyn.MSBuild.Util.dll" />
+
   <Target Name="RestoreToolsetCheck"
       Condition="'$(BuildingProject)' == 'true'">
       <Error Text="Toolset packages have not been restored, run Restore.cmd before building"
