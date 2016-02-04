@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
@@ -14,13 +13,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
     Friend NotInheritable Class VisualBasicSimplifyTypeNamesDiagnosticAnalyzer
         Inherits SimplifyTypeNamesDiagnosticAnalyzerBase(Of SyntaxKind)
 
-        Private Shared ReadOnly s_kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(SyntaxKind.QualifiedName,
-                                                                                                          SyntaxKind.SimpleMemberAccessExpression,
-                                                                                                          SyntaxKind.IdentifierName,
-                                                                                                          SyntaxKind.GenericName)
+        Private Shared ReadOnly s_kindsOfInterest As SyntaxKind() =
+            {SyntaxKind.QualifiedName, SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.IdentifierName, SyntaxKind.GenericName}
 
         Public Overrides Sub Initialize(context As AnalysisContext)
-            context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, s_kindsOfInterest.ToArray())
+            context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, s_kindsOfInterest)
         End Sub
 
         Protected Overrides Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
@@ -48,8 +45,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         End Sub
 
         Private Shared Function IsNodeKindInteresting(node As SyntaxNode) As Boolean
-            ' PERF: Use dedicated EqualityComparer to avoid boxing of enums.
-            Return s_kindsOfInterest.IndexOf(node.Kind, startIndex:=0, equalityComparer:=SyntaxFacts.EqualityComparer) >= 0
+            ' PERF: We use Array.IndexOf(Of T) below to avoid boxing of enums.
+            Return Array.IndexOf(s_kindsOfInterest, node.Kind) >= 0
         End Function
 
         Friend Shared Function IsCandidate(node As SyntaxNode) As Boolean
