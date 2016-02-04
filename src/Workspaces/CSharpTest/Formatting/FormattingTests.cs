@@ -7270,5 +7270,35 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(6628, "https://github.com/dotnet/roslyn/issues/6628")]
+        public async Task RemoveUnnecessarySuppressOperationAroundElseStatement()
+        {
+            await AssertFormatAsync(@"
+class C
+{
+    public void M()
+    {
+        if (true)
+        {
+        }
+        else
+        {
+        }
+    }
+}", @"
+class C
+{
+    public void M()
+    {
+        if (true)
+        {
+        }
+        else {
+        }
+    }
+}");
+        }
     }
 }
