@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
@@ -39,7 +40,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             CommandPrefix = prefix;
             _window = window;
 
-            _shortcutDescriptions = GenerateShortcutDescriptions();
             Dictionary<string, IInteractiveWindowCommand> commandsDict = new Dictionary<string, IInteractiveWindowCommand>();
             foreach (var command in commands)
             {
@@ -240,47 +240,61 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         private const string HelpIndent = "  ";
 
-        private readonly List<string> _shortcutDescriptions;
-
         private static readonly string[] s_CSVBScriptDirectives = new[]
         {
-"#r                   " + InteractiveWindowResources.RefHelp,
-"#load                " + InteractiveWindowResources.LoadHelp
+            "#r                   " + InteractiveWindowResources.RefHelp,
+            "#load                " + InteractiveWindowResources.LoadHelp
         };
 
-        internal List<string> GenerateShortcutDescriptions()
+        private static readonly string[] s_shortcutDescriptions = new[]
         {
-            var list = new List<string>();
-            list.Add("Enter                " + InteractiveWindowResources.EnterHelp);
-            list.Add("Ctrl-Enter           " + InteractiveWindowResources.CtrlEnterHelp1);
-            list.Add("                     " + InteractiveWindowResources.CtrlEnterHelp2);
-            list.Add("Shift-Enter          " + InteractiveWindowResources.ShiftEnterHelp);
-            list.Add("Escape               " + InteractiveWindowResources.EscapeHelp);
-            list.Add("Alt-UpArrow          " + InteractiveWindowResources.AltUpArrowHelp);
-            list.Add("Alt-DownArrow        " + InteractiveWindowResources.AltDownArrowHelp);
-            list.Add("Ctrl-Alt-UpArrow     " + InteractiveWindowResources.CtrlAltUpArrowHelp);
-            list.Add("Ctrl-Alt-DownArrow   " + InteractiveWindowResources.CtrlAltDownArrowHelp);
-            if (UseSmartUpDown)
+            "Enter                " + InteractiveWindowResources.EnterHelp,
+            "Ctrl-Enter           " + InteractiveWindowResources.CtrlEnterHelp1,
+            "                     " + InteractiveWindowResources.CtrlEnterHelp2,
+            "Shift-Enter          " + InteractiveWindowResources.ShiftEnterHelp,
+            "Escape               " + InteractiveWindowResources.EscapeHelp,
+            "Alt-UpArrow          " + InteractiveWindowResources.AltUpArrowHelp,
+            "Alt-DownArrow        " + InteractiveWindowResources.AltDownArrowHelp,
+            "Ctrl-Alt-UpArrow     " + InteractiveWindowResources.CtrlAltUpArrowHelp,
+            "Ctrl-Alt-DownArrow   " + InteractiveWindowResources.CtrlAltDownArrowHelp,
+            "Ctrl-K, Ctrl-Enter   " + InteractiveWindowResources.CtrlKCtrlEnterHelp,
+            "Ctrl-E, Ctrl-Enter   " + InteractiveWindowResources.CtrlECtrlEnterHelp,
+            "Ctrl-A               " + InteractiveWindowResources.CtrlAHelp
+        };
+
+        private static readonly string[] s_shortcutDescriptionsSmartUpDown = new[]
+        {
+            "UpArrow              " + InteractiveWindowResources.UpArrowHelp1,
+            "                     " + InteractiveWindowResources.UpArrowHelp2,
+            "DownArrow            " + InteractiveWindowResources.DownArrowHelp1,
+            "                     " + InteractiveWindowResources.DownArrowHelp2
+        };
+
+
+        internal string ShortcutDescriptions
+        {
+            get
             {
-                list.Add("UpArrow              " + InteractiveWindowResources.UpArrowHelp1);
-                list.Add("                     " + InteractiveWindowResources.UpArrowHelp2);
-                list.Add("DownArrow            " + InteractiveWindowResources.DownArrowHelp1);
-                list.Add("                     " + InteractiveWindowResources.DownArrowHelp2);
+                var sb = new StringBuilder();
+                foreach (var line in s_shortcutDescriptions)
+                {
+                    sb.Append(HelpIndent + line + "\r\n");
+                }
+                if (UseSmartUpDown)
+                {
+                    foreach (var line in s_shortcutDescriptionsSmartUpDown)
+                    {
+                        sb.Append(HelpIndent + line + "\r\n");
+                    }
+                }
+                return sb.ToString();
             }
-            list.Add("Ctrl-K, Ctrl-Enter   " + InteractiveWindowResources.CtrlKCtrlEnterHelp);
-            list.Add("Ctrl-E, Ctrl-Enter   " + InteractiveWindowResources.CtrlECtrlEnterHelp);
-            list.Add("Ctrl-A               " + InteractiveWindowResources.CtrlAHelp);
-            return list;
         }
 
         public void DisplayHelp()
         {
             _window.WriteLine(InteractiveWindowResources.KeyboardShortcuts);
-            foreach (var line in _shortcutDescriptions)
-            {
-                _window.Write(HelpIndent);
-                _window.WriteLine(line);
-            }
+            _window.Write(ShortcutDescriptions);
 
             _window.WriteLine(InteractiveWindowResources.ReplCommands);
             foreach (var line in Help())
