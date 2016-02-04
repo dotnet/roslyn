@@ -29,15 +29,20 @@ while ($i -lt 3 -and $allGood) {
         $dllHash = get-md5 $dll
         if ($i -eq 0) {
             write-host "`tRecording $dllName = $dllHash"
-            $map[$dllFullName] = $dllHash
+            $data = @{}
+            $data["Hash"] = $dllHash
+            $data["Content"] = [IO.File]::ReadAllBytes($dllFullName)
+            $map[$dllFullName] = $data
         }
         else {
-            $oldHash = $map[$dllFullName]
+            $data = $map[$dllFullName]
+            $oldHash = $data.Hash
             if ($oldHash -eq $dllHash) {
                 write-host "`tVerified $dllName"
             }
             else {
                 write-host "`tERROR! $dllName changed ($dllFullName)"
+                [IO.File]::WriteAllBytes($dllFullName + ".baseline", $data.Content)
                 $allGood = $false
             }
         }
