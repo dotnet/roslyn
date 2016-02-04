@@ -42,6 +42,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
+            var constructorInitializerNode = node as ConstructorInitializerSyntax;
+            if (constructorInitializerNode != null)
+            {
+                var constructorDeclarationNode = constructorInitializerNode.Parent as ConstructorDeclarationSyntax;
+                if (constructorDeclarationNode != null && constructorDeclarationNode.Body != null)
+                {
+                    AddSuppressWrappingIfOnSingleLineOperation(list, constructorInitializerNode.ColonToken, constructorDeclarationNode.Body.CloseBraceToken);
+                }
+
+                return;
+            }
+
             var whileStatementNode = node as DoStatementSyntax;
             if (whileStatementNode != null)
             {
@@ -59,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 {
                     AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, propertyDeclNode.AccessorList.GetLastToken());
                 }
+
                 return;
             }
 
