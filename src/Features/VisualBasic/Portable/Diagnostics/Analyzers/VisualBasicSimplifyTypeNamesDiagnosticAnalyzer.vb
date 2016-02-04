@@ -14,14 +14,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         Inherits SimplifyTypeNamesDiagnosticAnalyzerBase(Of SyntaxKind)
 
         Private Shared ReadOnly s_kindsOfInterest As SyntaxKind() =
-            {SyntaxKind.QualifiedName, SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.IdentifierName, SyntaxKind.GenericName}
+        {
+            SyntaxKind.QualifiedName,
+            SyntaxKind.SimpleMemberAccessExpression,
+            SyntaxKind.IdentifierName,
+            SyntaxKind.GenericName
+        }
 
         Public Overrides Sub Initialize(context As AnalysisContext)
             context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, s_kindsOfInterest)
         End Sub
 
         Protected Overrides Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
-            If context.Node.Ancestors(ascendOutOfTrivia:=False).Any(Function(n) IsNodeKindInteresting(n)) Then
+            If context.Node.Ancestors(ascendOutOfTrivia:=False).Any(AddressOf IsNodeKindInteresting) Then
                 ' Already simplified an ancestor of this node.
                 Return
             End If
@@ -45,8 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         End Sub
 
         Private Shared Function IsNodeKindInteresting(node As SyntaxNode) As Boolean
-            ' PERF: We use Array.IndexOf(Of T) below to avoid boxing of enums.
-            Return Array.IndexOf(s_kindsOfInterest, node.Kind) >= 0
+            Return s_kindsOfInterest.Contains(node.Kind)
         End Function
 
         Friend Shared Function IsCandidate(node As SyntaxNode) As Boolean
