@@ -601,7 +601,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     // If the PDB is out of sync with the source we might get bad spans.
                     var sourceLines = source.Lines;
-                    if (lineSpan.End.Line >= sourceLines.Count || lineSpan.End.Character > sourceLines[sourceLines.Count - 1].EndIncludingLineBreak)
+                    if (lineSpan.End.Line >= sourceLines.Count || sourceLines.GetPosition(lineSpan.End) > sourceLines[sourceLines.Count - 1].EndIncludingLineBreak)
                     {
                         log.Write("AS out of bounds (line count is {0})", source.Lines.Count);
                         continue;
