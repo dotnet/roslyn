@@ -17,7 +17,14 @@ mkdir (join-path $rootDir "Binaries\Obj") -errorAction SilentlyContinue | out-nu
 pushd $rootDir
 
 $skipList = @(
-    "Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll"
+    "Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll",
+
+    # https://github.com/dotnet/roslyn/issues/7595
+    "Roslyn.Compilers.CSharp.Emit.UnitTests.dll",
+    "Roslyn.Compilers.CSharp.Symbol.UnitTests.dll",
+
+    # TODO: file a bug for this
+    "Roslyn.Compilers.CSharp.WinRT.UnitTests.dll"
 )
 
 $allGood = $true
