@@ -491,6 +491,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ERRID.ERR_EncReferenceToAddedMember
             End Get
         End Property
+
+        Public Overrides ReadOnly Property ERR_TooManyUserStrings As Integer
+            Get
+                Return ERRID.ERR_TooManyUserStrings
+            End Get
+        End Property
     End Class
 
 End Namespace

@@ -679,7 +679,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "E").WithArguments("E"));
         }
 
-        [WorkItem(9142, "unknown")]
+        [WorkItem(9145, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/9145")]
         [Fact]
         public void Bug9145()
         {

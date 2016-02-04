@@ -574,6 +574,35 @@ BC35000: Requested operation is not available because the runtime library functi
 ]]></expected>)
         End Sub
 
+        <Fact, WorkItem(8287, "https://github.com/dotnet/roslyn/issues/8287")>
+        Public Sub ToManyUserStrings()
+
+            Dim source As New System.Text.StringBuilder()
+            source.Append("
+Module C
+    Sub Main()
+")
+
+            For i As Integer = 1 To 11
+                source.Append(
+"       System.Console.WriteLine(""")
+                source.Append(ChrW(AscW("A"c) + i), 1000000)
+                source.Append(""")
+")
+            Next
+
+            source.Append("
+    End Sub
+End Module")
+
+            Dim compilation = CreateCompilationWithReferences(VisualBasicSyntaxTree.ParseText(source.ToString()), {MscorlibRef, SystemRef, MsvbRef})
+
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC37255: Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string or XML literals.
+</expected>)
+        End Sub
+
 #End Region
 
     End Class

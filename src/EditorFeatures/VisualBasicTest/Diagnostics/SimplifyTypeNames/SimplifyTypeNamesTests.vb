@@ -1695,5 +1695,13 @@ Module Program
     End Sub
 End Module")
         End Function
+
+        <WorkItem(6682, "https://github.com/dotnet/roslyn/issues/6682")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Async Function TestMeWithNoType() As Task
+            Await TestAsync(
+NewLines("Class C \n Dim x = 7 \n Sub M() \n [|Me|].x = Nothing \n End Sub \n End Class"),
+NewLines("Class C \n Dim x = 7 \n Sub M() \n x = Nothing \n End Sub \n End Class"))
+        End Function
     End Class
 End Namespace

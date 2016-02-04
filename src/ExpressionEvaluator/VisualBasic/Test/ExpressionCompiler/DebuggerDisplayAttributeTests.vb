@@ -31,13 +31,14 @@ Public Class Derived
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateTypeContext(runtime, "Derived")
-            Dim errorMessage As String = Nothing
-            Dim testData As New CompilationTestData()
-            Dim result = context.CompileExpression("GetDebuggerDisplay()", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateTypeContext(runtime, "Derived")
+                    Dim errorMessage As String = Nothing
+                    Dim testData As New CompilationTestData()
+                    Dim result = context.CompileExpression("GetDebuggerDisplay()", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -45,6 +46,7 @@ End Class
   IL_0001:  callvirt   ""Function Derived.GetDebuggerDisplay() As String""
   IL_0006:  ret
 }")
+                End Sub)
         End Sub
     End Class
 End Namespace

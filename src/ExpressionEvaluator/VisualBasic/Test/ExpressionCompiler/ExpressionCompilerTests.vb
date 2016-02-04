@@ -36,63 +36,67 @@ End Class
         <Fact>
         Public Sub UniqueModuleVersionId()
             Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
+            WithRuntimeInstance(comp,
+                Sub(runtime)
 
-            Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
-            Dim moduleVersionId As Guid = Nothing
-            Dim symReader As ISymUnmanagedReader = Nothing
-            Dim methodToken = 0
-            Dim localSignatureToken = 0
-            GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
-            Const methodVersion = 1
+                    Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
+                    Dim moduleVersionId As Guid = Nothing
+                    Dim symReader As ISymUnmanagedReader = Nothing
+                    Dim methodToken = 0
+                    Dim localSignatureToken = 0
+                    GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+                    Const methodVersion = 1
 
-            Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader)
-            Dim context = EvaluationContext.CreateMethodContext(
-                Nothing,
-                blocks,
-                MakeDummyLazyAssemblyReaders(),
-                symReader,
-                moduleVersionId,
-                methodToken,
-                methodVersion,
-                ilOffset,
-                localSignatureToken)
+                    Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader)
+                    Dim context = EvaluationContext.CreateMethodContext(
+                        Nothing,
+                        blocks,
+                        MakeDummyLazyAssemblyReaders(),
+                        symReader,
+                        moduleVersionId,
+                        methodToken,
+                        methodVersion,
+                        ilOffset,
+                        localSignatureToken)
 
-            Dim errorMessage As String = Nothing
-            Dim result = context.CompileExpression("1", errorMessage)
-            Dim mvid1 = result.Assembly.GetModuleVersionId()
-            Dim name1 = result.Assembly.GetAssemblyName()
-            Assert.NotEqual(mvid1, Guid.Empty)
+                    Dim errorMessage As String = Nothing
+                    Dim result = context.CompileExpression("1", errorMessage)
+                    Dim mvid1 = result.Assembly.GetModuleVersionId()
+                    Dim name1 = result.Assembly.GetAssemblyName()
+                    Assert.NotEqual(mvid1, Guid.Empty)
 
-            context = EvaluationContext.CreateMethodContext(
-                New VisualBasicMetadataContext(blocks, context),
-                blocks,
-                MakeDummyLazyAssemblyReaders(),
-                symReader,
-                moduleVersionId,
-                methodToken,
-                methodVersion,
-                ilOffset,
-                localSignatureToken)
+                    context = EvaluationContext.CreateMethodContext(
+                        New VisualBasicMetadataContext(blocks, context),
+                        blocks,
+                        MakeDummyLazyAssemblyReaders(),
+                        symReader,
+                        moduleVersionId,
+                        methodToken,
+                        methodVersion,
+                        ilOffset,
+                        localSignatureToken)
 
-            result = context.CompileExpression("2", errorMessage)
-            Dim mvid2 = result.Assembly.GetModuleVersionId()
-            Dim name2 = result.Assembly.GetAssemblyName()
-            Assert.NotEqual(mvid2, Guid.Empty)
-            Assert.NotEqual(mvid2, mvid1)
-            Assert.NotEqual(name2.FullName, name1.FullName)
+                    result = context.CompileExpression("2", errorMessage)
+                    Dim mvid2 = result.Assembly.GetModuleVersionId()
+                    Dim name2 = result.Assembly.GetAssemblyName()
+                    Assert.NotEqual(mvid2, Guid.Empty)
+                    Assert.NotEqual(mvid2, mvid1)
+                    Assert.NotEqual(name2.FullName, name1.FullName)
+                End Sub)
         End Sub
 
         <Fact>
         Public Sub ParseError()
             Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.M")
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
 
-            Dim errorMessage As String = Nothing
-            Dim result = context.CompileExpression("M(", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
-            Assert.Null(result)
-            Assert.Equal("error BC30201: Expression expected.", errorMessage)
+                    Dim errorMessage As String = Nothing
+                    Dim result = context.CompileExpression("M(", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+                    Assert.Null(result)
+                    Assert.Equal("error BC30201: Expression expected.", errorMessage)
+                End Sub)
         End Sub
 
         ''' <summary>
@@ -107,26 +111,26 @@ End Class
             Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("de-DE")
             Try
                 Dim comp = CreateCompilationWithMscorlib({s_simpleSource}, options:=TestOptions.DebugDll)
-                Dim runtime = CreateRuntimeInstance(comp)
-                Dim context = CreateMethodContext(
-                    runtime,
-                    "C.M")
-                Dim resultProperties As ResultProperties = Nothing
-                Dim errorMessage As String = Nothing
-                Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
-                Dim result = context.CompileExpression(
-                    "M(",
-                    DkmEvaluationFlags.TreatAsExpression,
-                    NoAliases,
-                    CustomDiagnosticFormatter.Instance,
-                    resultProperties,
-                    errorMessage,
-                    missingAssemblyIdentities,
-                    preferredUICulture:=Nothing,
-                    testData:=Nothing)
-                Assert.Empty(missingAssemblyIdentities)
-                Assert.Null(result)
-                Assert.Equal("LCID=1031, Code=30201", errorMessage)
+                WithRuntimeInstance(comp,
+                    Sub(runtime)
+                        Dim context = CreateMethodContext(runtime, "C.M")
+                        Dim resultProperties As ResultProperties = Nothing
+                        Dim errorMessage As String = Nothing
+                        Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
+                        Dim result = context.CompileExpression(
+                        "M(",
+                        DkmEvaluationFlags.TreatAsExpression,
+                        NoAliases,
+                        CustomDiagnosticFormatter.Instance,
+                        resultProperties,
+                        errorMessage,
+                        missingAssemblyIdentities,
+                        preferredUICulture:=Nothing,
+                        testData:=Nothing)
+                        Assert.Empty(missingAssemblyIdentities)
+                        Assert.Null(result)
+                        Assert.Equal("LCID=1031, Code=30201", errorMessage)
+                    End Sub)
             Finally
                 Thread.CurrentThread.CurrentUICulture = previousUICulture
                 Thread.CurrentThread.CurrentCulture = previousCulture
@@ -408,50 +412,52 @@ Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, methodName:="C.F")
-            Dim errorMessage As String = Nothing
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, methodName:="C.F")
+                    Dim errorMessage As String = Nothing
 
-            ' No format specifiers.
-            Dim result = context.CompileExpression("x", errorMessage)
-            CheckFormatSpecifiers(result)
+                    ' No format specifiers.
+                    Dim result = context.CompileExpression("x", errorMessage)
+                    CheckFormatSpecifiers(result)
 
-            ' Format specifiers on expression.
-            result = context.CompileExpression("x,", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
-            Assert.Equal("error BC37237: ',' is not a valid format specifier", errorMessage)
-            result = context.CompileExpression("x,,", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
-            Assert.Equal("error BC37237: ',' is not a valid format specifier", errorMessage)
-            result = context.CompileExpression("x y", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
-            Assert.Equal("error BC37237: 'y' is not a valid format specifier", errorMessage)
-            result = context.CompileExpression("x yy zz", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
-            Assert.Equal("error BC37237: 'yy' is not a valid format specifier", errorMessage)
-            result = context.CompileExpression("x,,y", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
-            Assert.Equal("error BC37237: ',' is not a valid format specifier", errorMessage)
-            result = context.CompileExpression("x,yy,zz,ww", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
-            CheckFormatSpecifiers(result, "yy", "zz", "ww")
-            result = context.CompileExpression("x, y z", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
-            Assert.Equal("error BC37237: 'z' is not a valid format specifier", errorMessage)
-            result = context.CompileExpression("x, y  ,  z  ", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
-            CheckFormatSpecifiers(result, "y", "z")
-            result = context.CompileExpression("x, y, z,", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
-            Assert.Equal("error BC37237: ',' is not a valid format specifier", errorMessage)
-            result = context.CompileExpression("x,y,z;w", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
-            Assert.Equal("error BC37237: 'z;w' is not a valid format specifier", errorMessage)
-            result = context.CompileExpression("x, y;, z", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
-            Assert.Equal("error BC37237: 'y;' is not a valid format specifier", errorMessage)
+                    ' Format specifiers on expression.
+                    result = context.CompileExpression("x,", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+                    Assert.Equal("error BC37237: ',' is not a valid format specifier", errorMessage)
+                    result = context.CompileExpression("x,,", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+                    Assert.Equal("error BC37237: ',' is not a valid format specifier", errorMessage)
+                    result = context.CompileExpression("x y", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+                    Assert.Equal("error BC37237: 'y' is not a valid format specifier", errorMessage)
+                    result = context.CompileExpression("x yy zz", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+                    Assert.Equal("error BC37237: 'yy' is not a valid format specifier", errorMessage)
+                    result = context.CompileExpression("x,,y", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+                    Assert.Equal("error BC37237: ',' is not a valid format specifier", errorMessage)
+                    result = context.CompileExpression("x,yy,zz,ww", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+                    CheckFormatSpecifiers(result, "yy", "zz", "ww")
+                    result = context.CompileExpression("x, y z", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+                    Assert.Equal("error BC37237: 'z' is not a valid format specifier", errorMessage)
+                    result = context.CompileExpression("x, y  ,  z  ", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+                    CheckFormatSpecifiers(result, "y", "z")
+                    result = context.CompileExpression("x, y, z,", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+                    Assert.Equal("error BC37237: ',' is not a valid format specifier", errorMessage)
+                    result = context.CompileExpression("x,y,z;w", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+                    Assert.Equal("error BC37237: 'z;w' is not a valid format specifier", errorMessage)
+                    result = context.CompileExpression("x, y;, z", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+                    Assert.Equal("error BC37237: 'y;' is not a valid format specifier", errorMessage)
 
-            ' Format specifiers after comment (ignored).
-            result = context.CompileExpression("x ' ,f", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
-            CheckFormatSpecifiers(result)
+                    ' Format specifiers after comment (ignored).
+                    result = context.CompileExpression("x ' ,f", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+                    CheckFormatSpecifiers(result)
 
-            ' Format specifiers on assignment value.
-            result = context.CompileAssignment("x", "Nothing, y", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
-            Assert.Null(result)
-            Assert.Equal("error BC30035: Syntax error.", errorMessage)
+                    ' Format specifiers on assignment value.
+                    result = context.CompileAssignment("x", "Nothing, y", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+                    Assert.Null(result)
+                    Assert.Equal("error BC30035: Syntax error.", errorMessage)
 
-            ' Format specifiers, no expression.
-            result = context.CompileExpression(",f", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
-            Assert.Equal("error BC30201: Expression expected.", errorMessage)
+                    ' Format specifiers, no expression.
+                    result = context.CompileExpression(",f", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+                    Assert.Equal("error BC30201: Expression expected.", errorMessage)
+                End Sub)
         End Sub
 
         Private Shared Sub CheckFormatSpecifiers(result As CompileResult, ParamArray formatSpecifiers As String())
@@ -484,12 +490,13 @@ End Class
 "
 
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.F", atLineNumber:=999)
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("a(0)", errorMessage, testData)
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.F", atLineNumber:=999)
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("a(0)", errorMessage, testData)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size        4 (0x4)
   .maxstack  2
@@ -502,6 +509,7 @@ End Class
   IL_0002:  ldelem.i4
   IL_0003:  ret
 }")
+                End Sub)
         End Sub
 
         <Fact>
@@ -545,13 +553,14 @@ Class B
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "B.M")
-            Dim errorMessage As String = Nothing
-            Dim testData As New CompilationTestData()
-            Dim result = context.CompileExpression("If(Me.F(), If(Me.G, Me.P))", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "B.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData As New CompilationTestData()
+                    Dim result = context.CompileExpression("If(Me.F(), If(Me.G, Me.P))", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size       27 (0x1b)
   .maxstack  2
@@ -571,10 +580,10 @@ End Class
 }
 ")
 
-            testData = New CompilationTestData()
-            result = context.CompileExpression("F(AddressOf Me.F)", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+                    testData = New CompilationTestData()
+                    result = context.CompileExpression("F(AddressOf Me.F)", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size       19 (0x13)
   .maxstack  2
@@ -587,10 +596,10 @@ End Class
 }
 ")
 
-            testData = New CompilationTestData()
-            result = context.CompileExpression("F(new System.Func(Of String)(AddressOf Me.F))", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+                    testData = New CompilationTestData()
+                    result = context.CompileExpression("F(new System.Func(Of String)(AddressOf Me.F))", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size       19 (0x13)
   .maxstack  2
@@ -602,6 +611,7 @@ End Class
   IL_0012:  ret
 }
 ")
+                End Sub)
         End Sub
 
         <Fact>
@@ -645,13 +655,14 @@ Class B
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "B.M")
-            Dim errorMessage As String = Nothing
-            Dim testData As New CompilationTestData()
-            Dim result = context.CompileExpression("If(MyClass.F(), If(MyClass.G, MyClass.P))", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "B.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData As New CompilationTestData()
+                    Dim result = context.CompileExpression("If(MyClass.F(), If(MyClass.G, MyClass.P))", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size       27 (0x1b)
   .maxstack  2
@@ -671,10 +682,10 @@ End Class
 }
 ")
 
-            testData = New CompilationTestData()
-            result = context.CompileExpression("F(AddressOf MyClass.F)", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+                    testData = New CompilationTestData()
+                    result = context.CompileExpression("F(AddressOf MyClass.F)", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size       18 (0x12)
   .maxstack  2
@@ -686,10 +697,10 @@ End Class
 }
 ")
 
-            testData = New CompilationTestData()
-            result = context.CompileExpression("F(new System.Func(Of String)(AddressOf MyClass.F))", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+                    testData = New CompilationTestData()
+                    result = context.CompileExpression("F(new System.Func(Of String)(AddressOf MyClass.F))", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size       18 (0x12)
   .maxstack  2
@@ -700,6 +711,7 @@ End Class
   IL_0011:  ret
 }
 ")
+                End Sub)
         End Sub
 
         <Fact>
@@ -743,13 +755,14 @@ Class B
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "B.M")
-            Dim errorMessage As String = Nothing
-            Dim testData As New CompilationTestData()
-            Dim result = context.CompileExpression("If(MyBase.F(), If(MyBase.G, MyBase.P))", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "B.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData As New CompilationTestData()
+                    Dim result = context.CompileExpression("If(MyBase.F(), If(MyBase.G, MyBase.P))", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size       27 (0x1b)
   .maxstack  2
@@ -769,10 +782,10 @@ End Class
 }
 ")
 
-            testData = New CompilationTestData()
-            result = context.CompileExpression("F(AddressOf MyBase.F)", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+                    testData = New CompilationTestData()
+                    result = context.CompileExpression("F(AddressOf MyBase.F)", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size       18 (0x12)
   .maxstack  2
@@ -784,10 +797,10 @@ End Class
 }
 ")
 
-            testData = New CompilationTestData()
-            result = context.CompileExpression("F(new System.Func(Of String)(AddressOf MyBase.F))", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+                    testData = New CompilationTestData()
+                    result = context.CompileExpression("F(new System.Func(Of String)(AddressOf MyBase.F))", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size       18 (0x12)
   .maxstack  2
@@ -798,6 +811,7 @@ End Class
   IL_0011:  ret
 }
 ")
+                End Sub)
         End Sub
 
         <Fact>
@@ -1285,12 +1299,13 @@ End Class
     End Sub
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.M")
-            Dim errorMessage As String = Nothing
-            Dim testData As New CompilationTestData()
-            context.CompileAssignment("x", "1", errorMessage, testData)
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData As New CompilationTestData()
+                    context.CompileAssignment("x", "1", errorMessage, testData)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size        3 (0x3)
   .maxstack  1
@@ -1299,6 +1314,7 @@ End Class"
   IL_0001:  stloc.0
   IL_0002:  ret
 }")
+                End Sub)
         End Sub
 
         <Fact>
@@ -1318,12 +1334,13 @@ End Class
 "
 
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.M")
-            Dim errorMessage As String = Nothing
-            Dim testData As New CompilationTestData()
-            context.CompileAssignment("Me.a(F(x))", "Me.a(y)", errorMessage, testData)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData As New CompilationTestData()
+                    context.CompileAssignment("Me.a(F(x))", "Me.a(y)", errorMessage, testData)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size       27 (0x1b)
   .maxstack  4
@@ -1341,6 +1358,7 @@ End Class
   IL_001a:  ret
 }
 ")
+                End Sub)
         End Sub
 
         <Fact>
@@ -1395,23 +1413,23 @@ Class C
     End Sub
 End Class"
             Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(compilation0)
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C.M")
-            CheckResultProperties(context, "o.F()", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
-            ' Calls to methods are reported as having side effects, even if
-            ' the method is marked <Pure>. This matches the native EE.
-            CheckResultProperties(context, "o.G()", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
-            CheckResultProperties(context, "o.P", DkmClrCompilationResultFlags.None)
-            CheckResultProperties(context, "If(a, Sub() i = 1)", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
-            CheckResultProperties(context, "If(a, Sub() i += 2)", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
-            CheckResultProperties(context, "If(a, Sub() i *= 3)", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
-            CheckResultProperties(context, "If(a, Sub() i -= 4)", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
-            CheckResultProperties(context, "New C() With {.P = 1}", DkmClrCompilationResultFlags.ReadOnlyResult)
-            CheckResultProperties(context, "New C() With {.P = H()}", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
-            CheckResultProperties(context, "obj(""Test"")", DkmClrCompilationResultFlags.PotentialSideEffect)
-            CheckResultProperties(context, "obj.Item(""Test"")", DkmClrCompilationResultFlags.PotentialSideEffect)
+            WithRuntimeInstance(compilation0,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, methodName:="C.M")
+                    CheckResultProperties(context, "o.F()", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
+                    ' Calls to methods are reported as having side effects, even if
+                    ' the method is marked <Pure>. This matches the native EE.
+                    CheckResultProperties(context, "o.G()", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
+                    CheckResultProperties(context, "o.P", DkmClrCompilationResultFlags.None)
+                    CheckResultProperties(context, "If(a, Sub() i = 1)", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
+                    CheckResultProperties(context, "If(a, Sub() i += 2)", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
+                    CheckResultProperties(context, "If(a, Sub() i *= 3)", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
+                    CheckResultProperties(context, "If(a, Sub() i -= 4)", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
+                    CheckResultProperties(context, "New C() With {.P = 1}", DkmClrCompilationResultFlags.ReadOnlyResult)
+                    CheckResultProperties(context, "New C() With {.P = H()}", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
+                    CheckResultProperties(context, "obj(""Test"")", DkmClrCompilationResultFlags.PotentialSideEffect)
+                    CheckResultProperties(context, "obj.Item(""Test"")", DkmClrCompilationResultFlags.PotentialSideEffect)
+                End Sub)
         End Sub
 
         <Fact>
@@ -1469,35 +1487,35 @@ Class C
 End Class
 "
             Dim compilation0 = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(compilation0)
-            Dim context = CreateMethodContext(
-                    runtime,
-                    methodName:="C.M")
+            WithRuntimeInstance(compilation0,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, methodName:="C.M")
 
-            CheckResultProperties(context, "F", DkmClrCompilationResultFlags.None)
-            CheckResultProperties(context, "RF", DkmClrCompilationResultFlags.ReadOnlyResult)
-            CheckResultProperties(context, "CF", DkmClrCompilationResultFlags.ReadOnlyResult)
+                    CheckResultProperties(context, "F", DkmClrCompilationResultFlags.None)
+                    CheckResultProperties(context, "RF", DkmClrCompilationResultFlags.ReadOnlyResult)
+                    CheckResultProperties(context, "CF", DkmClrCompilationResultFlags.ReadOnlyResult)
 
-            ' Note: flags are always None in error cases.
+                    ' Note: flags are always None in error cases.
 
-            CheckResultProperties(context, "E", DkmClrCompilationResultFlags.None, "error BC32022: 'Public Event E As C.EEventHandler' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.")
-            CheckResultProperties(context, "CE", DkmClrCompilationResultFlags.None, "error BC32022: 'Public Event CE As Action' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.")
+                    CheckResultProperties(context, "E", DkmClrCompilationResultFlags.None, "error BC32022: 'Public Event E As C.EEventHandler' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.")
+                    CheckResultProperties(context, "CE", DkmClrCompilationResultFlags.None, "error BC32022: 'Public Event CE As Action' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.")
 
-            CheckResultProperties(context, "RP", DkmClrCompilationResultFlags.ReadOnlyResult)
-            CheckResultProperties(context, "WP", DkmClrCompilationResultFlags.None, "error BC30524: Property 'WP' is 'WriteOnly'.")
-            CheckResultProperties(context, "RWP", DkmClrCompilationResultFlags.None)
+                    CheckResultProperties(context, "RP", DkmClrCompilationResultFlags.ReadOnlyResult)
+                    CheckResultProperties(context, "WP", DkmClrCompilationResultFlags.None, "error BC30524: Property 'WP' is 'WriteOnly'.")
+                    CheckResultProperties(context, "RWP", DkmClrCompilationResultFlags.None)
 
-            CheckResultProperties(context, "RP(1)", DkmClrCompilationResultFlags.ReadOnlyResult)
-            CheckResultProperties(context, "WP(1)", DkmClrCompilationResultFlags.None, "error BC30524: Property 'WP' is 'WriteOnly'.")
-            CheckResultProperties(context, "RWP(1)", DkmClrCompilationResultFlags.None)
+                    CheckResultProperties(context, "RP(1)", DkmClrCompilationResultFlags.ReadOnlyResult)
+                    CheckResultProperties(context, "WP(1)", DkmClrCompilationResultFlags.None, "error BC30524: Property 'WP' is 'WriteOnly'.")
+                    CheckResultProperties(context, "RWP(1)", DkmClrCompilationResultFlags.None)
 
-            CheckResultProperties(context, "M()", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
+                    CheckResultProperties(context, "M()", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
 
-            CheckResultProperties(context, "Nothing", DkmClrCompilationResultFlags.ReadOnlyResult)
-            CheckResultProperties(context, "1", DkmClrCompilationResultFlags.ReadOnlyResult)
-            CheckResultProperties(context, "AddressOf M", DkmClrCompilationResultFlags.None, "error BC30491: Expression does not produce a value.")
-            CheckResultProperties(context, "GetType(C)", DkmClrCompilationResultFlags.ReadOnlyResult)
-            CheckResultProperties(context, "New C()", DkmClrCompilationResultFlags.ReadOnlyResult)
+                    CheckResultProperties(context, "Nothing", DkmClrCompilationResultFlags.ReadOnlyResult)
+                    CheckResultProperties(context, "1", DkmClrCompilationResultFlags.ReadOnlyResult)
+                    CheckResultProperties(context, "AddressOf M", DkmClrCompilationResultFlags.None, "error BC30491: Expression does not produce a value.")
+                    CheckResultProperties(context, "GetType(C)", DkmClrCompilationResultFlags.ReadOnlyResult)
+                    CheckResultProperties(context, "New C()", DkmClrCompilationResultFlags.ReadOnlyResult)
+                End Sub)
         End Sub
 
         <Fact>
@@ -1522,19 +1540,19 @@ Class C
 End Class
 "
             Dim compilation0 = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(compilation0)
-            Dim context = CreateMethodContext(
-                    runtime,
-                    methodName:="C.M")
+            WithRuntimeInstance(compilation0,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
 
-            CheckResultProperties(context, "RF", DkmClrCompilationResultFlags.ReadOnlyResult)
-            CheckResultProperties(context, "RF(0)", DkmClrCompilationResultFlags.None)
+                    CheckResultProperties(context, "RF", DkmClrCompilationResultFlags.ReadOnlyResult)
+                    CheckResultProperties(context, "RF(0)", DkmClrCompilationResultFlags.None)
 
-            CheckResultProperties(context, "RP", DkmClrCompilationResultFlags.ReadOnlyResult)
-            CheckResultProperties(context, "RP(0)", DkmClrCompilationResultFlags.None)
+                    CheckResultProperties(context, "RP", DkmClrCompilationResultFlags.ReadOnlyResult)
+                    CheckResultProperties(context, "RP(0)", DkmClrCompilationResultFlags.None)
 
-            CheckResultProperties(context, "M()", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
-            CheckResultProperties(context, "M()(0)", DkmClrCompilationResultFlags.PotentialSideEffect)
+                    CheckResultProperties(context, "M()", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
+                    CheckResultProperties(context, "M()(0)", DkmClrCompilationResultFlags.PotentialSideEffect)
+                End Sub)
         End Sub
 
         Private Shared Sub CheckResultProperties(context As EvaluationContext, expr As String, expectedFlags As DkmClrCompilationResultFlags, Optional expectedErrorMessage As String = Nothing)
@@ -1564,22 +1582,25 @@ End Class"
                 {source},
                 options:=TestOptions.DebugDll,
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
-            Dim runtime = CreateRuntimeInstance(compilation0)
-            Dim context = CreateMethodContext(runtime, methodName:="C.M")
-            Dim resultProperties As ResultProperties = Nothing
-            Dim errorMessage As String = Nothing
-            context.CompileExpression("x", resultProperties, errorMessage)
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult)
-            context.CompileExpression("y", resultProperties, errorMessage)
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.None)
-            context.CompileExpression("y.Value", resultProperties, errorMessage)
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult Or DkmClrCompilationResultFlags.ReadOnlyResult)
-            context.CompileExpression("Not y", resultProperties, errorMessage)
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.ReadOnlyResult)
-            context.CompileExpression("False", resultProperties, errorMessage)
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult Or DkmClrCompilationResultFlags.ReadOnlyResult)
-            context.CompileExpression("F()", resultProperties, errorMessage)
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult Or DkmClrCompilationResultFlags.ReadOnlyResult Or DkmClrCompilationResultFlags.PotentialSideEffect)
+
+            WithRuntimeInstance(compilation0,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, methodName:="C.M")
+                    Dim resultProperties As ResultProperties = Nothing
+                    Dim errorMessage As String = Nothing
+                    context.CompileExpression("x", resultProperties, errorMessage)
+                    Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult)
+                    context.CompileExpression("y", resultProperties, errorMessage)
+                    Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.None)
+                    context.CompileExpression("y.Value", resultProperties, errorMessage)
+                    Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult Or DkmClrCompilationResultFlags.ReadOnlyResult)
+                    context.CompileExpression("Not y", resultProperties, errorMessage)
+                    Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.ReadOnlyResult)
+                    context.CompileExpression("False", resultProperties, errorMessage)
+                    Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult Or DkmClrCompilationResultFlags.ReadOnlyResult)
+                    context.CompileExpression("F()", resultProperties, errorMessage)
+                    Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.BoolResult Or DkmClrCompilationResultFlags.ReadOnlyResult Or DkmClrCompilationResultFlags.PotentialSideEffect)
+                End Sub)
         End Sub
 
         <Fact>
@@ -1722,13 +1743,14 @@ End Class"
                 options:=TestOptions.DebugDll,
                 references:=allReferences)
 
-            Dim runtime = CreateRuntimeInstance(comp, allReferences)
-            Dim context = CreateMethodContext(runtime, "C.M")
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            Dim result = context.CompileExpression("x.@a", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            WithRuntimeInstance(comp, allReferences,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    Dim result = context.CompileExpression("x.@a", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       22 (0x16)
   .maxstack  3
@@ -1740,6 +1762,7 @@ End Class"
   IL_0010:  call       ""Function My.InternalXmlHelper.get_AttributeValue(System.Xml.Linq.XElement, System.Xml.Linq.XName) As String""
   IL_0015:  ret
 }")
+                End Sub)
         End Sub
 
         <WorkItem(964, "https://github.com/dotnet/roslyn/issues/964")>
@@ -1757,13 +1780,14 @@ End Class"
                 options:=TestOptions.DebugDll.WithRootNamespace("Root"),
                 references:=allReferences)
 
-            Dim runtime = CreateRuntimeInstance(comp, allReferences)
-            Dim context = CreateMethodContext(runtime, "Root.C.M")
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            Dim result = context.CompileExpression("x.@a", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            WithRuntimeInstancePortableBug(comp, allReferences,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "Root.C.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    Dim result = context.CompileExpression("x.@a", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       22 (0x16)
   .maxstack  3
@@ -1775,6 +1799,7 @@ End Class"
   IL_0010:  call       ""Function Root.My.InternalXmlHelper.get_AttributeValue(System.Xml.Linq.XElement, System.Xml.Linq.XName) As String""
   IL_0015:  ret
 }")
+                End Sub)
         End Sub
 
         <WorkItem(964, "https://github.com/dotnet/roslyn/issues/964")>
@@ -1798,14 +1823,15 @@ End Class"
             Dim compReferences = xmlReferences.Concat(ImmutableArray.Create(ref1, ref2))
             Dim comp = CreateCompilationWithReferences(tree, compReferences, TestOptions.DebugDll, assemblyName:="Test")
 
-            Dim runtime = CreateRuntimeInstance(comp, compReferences)
-            Dim context = CreateMethodContext(runtime, "C1.M") ' In Module1
+            WithRuntimeInstance(comp, compReferences,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C1.M") ' In Module1
 
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            Dim result = context.CompileExpression("x.@a", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    Dim result = context.CompileExpression("x.@a", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       22 (0x16)
   .maxstack  3
@@ -1816,6 +1842,7 @@ End Class"
   IL_0010:  call       ""Function My.InternalXmlHelper.get_AttributeValue(System.Xml.Linq.XElement, System.Xml.Linq.XName) As String""
   IL_0015:  ret
 }")
+                End Sub)
         End Sub
 
         <Fact>
@@ -1834,14 +1861,14 @@ End Class"
                 references:={SystemCoreRef},
                 options:=TestOptions.DebugDll,
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
-            Dim runtime = CreateRuntimeInstance(compilation0)
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C.M1")
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileAssignment("x", "2", errorMessage, testData)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+
+            WithRuntimeInstance(compilation0,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M1")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileAssignment("x", "2", errorMessage, testData)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1851,12 +1878,10 @@ End Class"
   IL_0003:  ret
 }
 ")
-            context = CreateMethodContext(
-                runtime,
-                methodName:="C.M2")
-            testData = New CompilationTestData()
-            context.CompileAssignment("y", "Nothing", errorMessage, testData)
-            testData.GetMethodData("<>x.<>m0(Of T)").VerifyIL("
+                    context = CreateMethodContext(runtime, "C.M2")
+                    testData = New CompilationTestData()
+                    context.CompileAssignment("y", "Nothing", errorMessage, testData)
+                    testData.GetMethodData("<>x.<>m0(Of T)").VerifyIL("
 {
   // Code size        8 (0x8)
   .maxstack  1
@@ -1865,6 +1890,7 @@ End Class"
   IL_0007:  ret
 }
 ")
+                End Sub)
         End Sub
 
         <Fact>
@@ -2029,16 +2055,15 @@ End Class"
                 options:=TestOptions.DebugDll,
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
 
-            Dim runtime = CreateRuntimeInstance(compilation0)
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="A.B.M1")
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("If(GetType(V), GetType(X))", errorMessage, testData)
-            Dim methodData = testData.GetMethodData("<>x(Of T, U, V).<>m0(Of W, X)")
-            Dim actualIL = methodData.GetMethodIL()
-            Dim expectedIL = "
+            WithRuntimeInstance(compilation0,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "A.B.M1")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("If(GetType(V), GetType(X))", errorMessage, testData)
+                    Dim methodData = testData.GetMethodData("<>x(Of T, U, V).<>m0(Of W, X)")
+                    Dim actualIL = methodData.GetMethodIL()
+                    Dim expectedIL = "
 {
   // Code size       25 (0x19)
   .maxstack  2
@@ -2052,16 +2077,15 @@ End Class"
   IL_0018:  ret
 }
 "
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL)
-            Assert.Equal(Cci.CallingConvention.Generic, (DirectCast(methodData.Method, Cci.IMethodDefinition)).CallingConvention)
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL)
+                    Assert.Equal(Cci.CallingConvention.Generic, (DirectCast(methodData.Method, Cci.IMethodDefinition)).CallingConvention)
 
-            context = CreateMethodContext(
-                runtime,
-                methodName:="A.B.M2")
-            testData = New CompilationTestData()
-            context.CompileExpression("If(GetType(T), GetType(U))", errorMessage, testData)
-            methodData = testData.GetMethodData("<>x(Of T, U, V).<>m0")
-            Assert.Equal(Cci.CallingConvention.Default, (DirectCast(methodData.Method, Cci.IMethodDefinition)).CallingConvention)
+                    context = CreateMethodContext(runtime, "A.B.M2")
+                    testData = New CompilationTestData()
+                    context.CompileExpression("If(GetType(T), GetType(U))", errorMessage, testData)
+                    methodData = testData.GetMethodData("<>x(Of T, U, V).<>m0")
+                    Assert.Equal(Cci.CallingConvention.Default, (DirectCast(methodData.Method, Cci.IMethodDefinition)).CallingConvention)
+                End Sub)
         End Sub
 
         <Fact>
@@ -2098,15 +2122,14 @@ End Class"
                 {source},
                 options:=TestOptions.DebugDll,
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
-            Dim runtime = CreateRuntimeInstance(compilation0)
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="B.M",
-                atLineNumber:=999)
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("Me.F(y)", errorMessage, testData)
-            testData.GetMethodData("<>x.<>m0(Of T)").VerifyIL(
+
+            WithRuntimeInstance(compilation0,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "B.M", atLineNumber:=999)
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("Me.F(y)", errorMessage, testData)
+                    testData.GetMethodData("<>x.<>m0(Of T)").VerifyIL(
 "{
   // Code size       23 (0x17)
   .maxstack  2
@@ -2123,9 +2146,9 @@ End Class"
   IL_0011:  callvirt   ""Function B.F(Object) As Object""
   IL_0016:  ret
 }")
-            testData = New CompilationTestData()
-            context.CompileExpression("MyClass.F(y)", errorMessage, testData)
-            testData.GetMethodData("<>x.<>m0(Of T)").VerifyIL(
+                    testData = New CompilationTestData()
+                    context.CompileExpression("MyClass.F(y)", errorMessage, testData)
+                    testData.GetMethodData("<>x.<>m0(Of T)").VerifyIL(
 "{
   // Code size       23 (0x17)
   .maxstack  2
@@ -2142,9 +2165,9 @@ End Class"
   IL_0011:  call       ""Function B.F(Object) As Object""
   IL_0016:  ret
 }")
-            testData = New CompilationTestData()
-            context.CompileExpression("MyBase.F(x)", errorMessage, testData)
-            testData.GetMethodData("<>x.<>m0(Of T)").VerifyIL(
+                    testData = New CompilationTestData()
+                    context.CompileExpression("MyBase.F(x)", errorMessage, testData)
+                    testData.GetMethodData("<>x.<>m0(Of T)").VerifyIL(
 "{
   // Code size       23 (0x17)
   .maxstack  2
@@ -2161,6 +2184,7 @@ End Class"
   IL_0011:  call       ""Function A.F(Object) As Object""
   IL_0016:  ret
 }")
+                End Sub)
         End Sub
 
         ''' <summary>
@@ -2179,16 +2203,16 @@ End Class"
                 references:={SystemCoreRef},
                 options:=TestOptions.DebugDll.WithModuleName("MODULE"),
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
-            Dim runtime = CreateRuntimeInstance(compilation0)
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C.M")
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("{ 1, 2, 3, 4, 5 }", errorMessage, testData)
-            Dim methodData = testData.GetMethodData("<>x.<>m0")
-            Assert.Equal(methodData.Method.ReturnType.ToDisplayString(), "Integer()")
-            methodData.VerifyIL(
+
+            WithRuntimeInstance(compilation0,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("{ 1, 2, 3, 4, 5 }", errorMessage, testData)
+                    Dim methodData = testData.GetMethodData("<>x.<>m0")
+                    Assert.Equal(methodData.Method.ReturnType.ToDisplayString(), "Integer()")
+                    methodData.VerifyIL(
 "{
   // Code size       18 (0x12)
   .maxstack  3
@@ -2199,6 +2223,7 @@ End Class"
   IL_000c:  call       ""Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  ret
 }")
+                End Sub)
         End Sub
 
         <Fact>
@@ -2218,14 +2243,14 @@ End Class"
                 references:={SystemCoreRef},
                 options:=TestOptions.DebugDll,
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
-            Dim runtime = CreateRuntimeInstance(compilation0)
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C.M")
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("F(Function() o + 1)", errorMessage, testData)
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+
+            WithRuntimeInstance(compilation0,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("F(Function() o + 1)", errorMessage, testData)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size      100 (0x64)
   .maxstack  3
@@ -2254,6 +2279,7 @@ End Class"
   IL_005e:  call       ""Function C.F(System.Linq.Expressions.Expression(Of System.Func(Of Object))) As Object""
   IL_0063:  ret
 }")
+                End Sub)
         End Sub
 
         ''' <summary>
@@ -2276,16 +2302,17 @@ End Class"
                 references:={SystemCoreRef},
                 options:=TestOptions.DebugDll,
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
-            Dim runtime = CreateRuntimeInstance(compilation0)
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C.M")
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("F(Function()
+
+            WithRuntimeInstance(compilation0,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("F(Function()
                         Return Nothing
                     End Function)", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
-            Assert.Equal(errorMessage, "error BC36675: Statement lambdas cannot be converted to expression trees.")
+                    Assert.Equal(errorMessage, "error BC36675: Statement lambdas cannot be converted to expression trees.")
+                End Sub)
         End Sub
 
         <WorkItem(1096605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1096605")>
@@ -2304,12 +2331,13 @@ Class C
     End Sub
 End Class"
             Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime(MakeSources(source), options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(compilation0)
-            Dim context = CreateMethodContext(runtime, methodName:="C.M")
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("G(Async Function() Await F())", errorMessage, testData)
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            WithRuntimeInstance(compilation0,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, methodName:="C.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("G(Async Function() Await F())", errorMessage, testData)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       37 (0x25)
   .maxstack  3
@@ -2327,6 +2355,7 @@ End Class"
   IL_001f:  callvirt   ""Sub C.G(System.Func(Of System.Threading.Tasks.Task(Of Object)))""
   IL_0024:  ret
 }")
+                End Sub)
         End Sub
 
         ''' <summary>
@@ -2461,17 +2490,15 @@ End Class
 "
 
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C.M")
-
-            Dim errorMessage As String = Nothing
-            Dim testData As New CompilationTestData()
-            context.CompileExpression("e.HasValue", errorMessage, testData)
-            Dim methodData = testData.GetMethodData("<>x.<>m0")
-            Assert.Equal(DirectCast(methodData.Method, MethodSymbol).ReturnType.SpecialType, SpecialType.System_Boolean)
-            methodData.VerifyIL(
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData As New CompilationTestData()
+                    context.CompileExpression("e.HasValue", errorMessage, testData)
+                    Dim methodData = testData.GetMethodData("<>x.<>m0")
+                    Assert.Equal(DirectCast(methodData.Method, MethodSymbol).ReturnType.SpecialType, SpecialType.System_Boolean)
+                    methodData.VerifyIL(
 "{
   // Code size       12 (0xc)
   .maxstack  1
@@ -2484,6 +2511,7 @@ End Class
   IL_0006:  call       ""Function E?.get_HasValue() As Boolean""
   IL_000b:  ret
 }")
+                End Sub)
         End Sub
 
         <Fact>
@@ -2875,22 +2903,26 @@ End Class
 "
 
             Dim checkedComp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(checkedComp)
-            Dim context = CreateMethodContext(runtime, methodName:="C.M")
+            WithRuntimeInstance(checkedComp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, methodName:="C.M")
 
-            Dim errorMessage As String = Nothing
-            Dim testData As New CompilationTestData()
-            context.CompileExpression("2147483647 + 1", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
-            Assert.Equal("error BC30439: Constant expression not representable in type 'Integer'.", errorMessage)
+                    Dim errorMessage As String = Nothing
+                    Dim testData As New CompilationTestData()
+                    context.CompileExpression("2147483647 + 1", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
+                    Assert.Equal("error BC30439: Constant expression not representable in type 'Integer'.", errorMessage)
+                End Sub)
 
             ' As in dev12, the global "unchecked" option is not respected at debug time.
             Dim uncheckedComp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll.WithOverflowChecks(False))
-            runtime = CreateRuntimeInstance(uncheckedComp)
-            context = CreateMethodContext(runtime, methodName:="C.M")
+            WithRuntimeInstance(checkedComp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, methodName:="C.M")
 
-            errorMessage = Nothing
-            context.CompileExpression("2147483647 + 1", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
-            Assert.Equal("error BC30439: Constant expression not representable in type 'Integer'.", errorMessage)
+                    Dim errorMessage As String = Nothing
+                    context.CompileExpression("2147483647 + 1", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+                    Assert.Equal("error BC30439: Constant expression not representable in type 'Integer'.", errorMessage)
+                End Sub)
         End Sub
 
         <WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")>
@@ -2904,12 +2936,14 @@ End Class
 "
 
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, methodName:="C.M")
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, methodName:="C.M")
 
-            Dim errorMessage As String = Nothing
-            context.CompileAssignment("u", "2147483647 + 1", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
-            Assert.Equal("error BC30439: Constant expression not representable in type 'Integer'.", errorMessage)
+                    Dim errorMessage As String = Nothing
+                    context.CompileAssignment("u", "2147483647 + 1", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+                    Assert.Equal("error BC30439: Constant expression not representable in type 'Integer'.", errorMessage)
+                End Sub)
         End Sub
 
         <WorkItem(1016530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016530")>
@@ -3253,15 +3287,16 @@ End Class"
                 options:=TestOptions.DebugDll,
                 references:=allReferences)
 
-            Dim runtime = CreateRuntimeInstance(comp, allReferences)
-            Dim context = CreateMethodContext(runtime, "C.M")
+            WithRuntimeInstance(comp, allReferences,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
 
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            Dim result = context.CompileExpression("Me?.F()", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
-            Dim methodData = testData.GetMethodData("<>x.<>m0")
-            Assert.Equal(DirectCast(methodData.Method, MethodSymbol).ReturnType.ToDisplayString(), "Integer?")
-            methodData.VerifyIL(
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    Dim result = context.CompileExpression("Me?.F()", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
+                    Dim methodData = testData.GetMethodData("<>x.<>m0")
+                    Assert.Equal(DirectCast(methodData.Method, MethodSymbol).ReturnType.ToDisplayString(), "Integer?")
+                    methodData.VerifyIL(
 "{
   // Code size       25 (0x19)
   .maxstack  1
@@ -3279,17 +3314,17 @@ End Class"
   IL_0018:  ret
 }")
 
-            testData = New CompilationTestData()
-            result = context.CompileExpression("(Me?.F())", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
-            methodData = testData.GetMethodData("<>x.<>m0")
-            Assert.Equal(DirectCast(methodData.Method, MethodSymbol).ReturnType.ToDisplayString(), "Integer?")
+                    testData = New CompilationTestData()
+                    result = context.CompileExpression("(Me?.F())", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
+                    methodData = testData.GetMethodData("<>x.<>m0")
+                    Assert.Equal(DirectCast(methodData.Method, MethodSymbol).ReturnType.ToDisplayString(), "Integer?")
 
-            testData = New CompilationTestData()
-            result = context.CompileExpression("Me?.X.@a", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
-            Assert.Null(errorMessage)
-            methodData = testData.GetMethodData("<>x.<>m0")
-            Assert.Equal(DirectCast(methodData.Method, MethodSymbol).ReturnType.SpecialType, SpecialType.System_String)
-            methodData.VerifyIL(
+                    testData = New CompilationTestData()
+                    result = context.CompileExpression("Me?.X.@a", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
+                    Assert.Null(errorMessage)
+                    methodData = testData.GetMethodData("<>x.<>m0")
+                    Assert.Equal(DirectCast(methodData.Method, MethodSymbol).ReturnType.SpecialType, SpecialType.System_String)
+                    methodData.VerifyIL(
 "{
   // Code size       32 (0x20)
   .maxstack  3
@@ -3307,21 +3342,21 @@ End Class"
   IL_001f:  ret
 }")
 
-            testData = New CompilationTestData()
-            result = context.CompileExpression("(New C())?.G()?.F()", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
-            methodData = testData.GetMethodData("<>x.<>m0")
-            Assert.Equal(DirectCast(methodData.Method, MethodSymbol).ReturnType.ToDisplayString(), "Integer?")
+                    testData = New CompilationTestData()
+                    result = context.CompileExpression("(New C())?.G()?.F()", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
+                    methodData = testData.GetMethodData("<>x.<>m0")
+                    Assert.Equal(DirectCast(methodData.Method, MethodSymbol).ReturnType.ToDisplayString(), "Integer?")
 
-            testData = New CompilationTestData()
-            result = context.CompileExpression("(New C())?.G().F()", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
-            methodData = testData.GetMethodData("<>x.<>m0")
-            Assert.Equal(DirectCast(methodData.Method, MethodSymbol).ReturnType.ToDisplayString(), "Integer?")
+                    testData = New CompilationTestData()
+                    result = context.CompileExpression("(New C())?.G().F()", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
+                    methodData = testData.GetMethodData("<>x.<>m0")
+                    Assert.Equal(DirectCast(methodData.Method, MethodSymbol).ReturnType.ToDisplayString(), "Integer?")
 
-            testData = New CompilationTestData()
-            result = context.CompileExpression("G()?.M()", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
-            methodData = testData.GetMethodData("<>x.<>m0")
-            Assert.True(DirectCast(methodData.Method, MethodSymbol).IsSub)
-            methodData.VerifyIL(
+                    testData = New CompilationTestData()
+                    result = context.CompileExpression("G()?.M()", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
+                    methodData = testData.GetMethodData("<>x.<>m0")
+                    Assert.True(DirectCast(methodData.Method, MethodSymbol).IsSub)
+                    methodData.VerifyIL(
 "{
   // Code size       17 (0x11)
   .maxstack  2
@@ -3336,9 +3371,10 @@ End Class"
   IL_0010:  ret
 }")
 
-            testData = New CompilationTestData()
-            result = context.CompileExpression("(G()?.M())", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
-            Assert.Equal(errorMessage, "error BC30491: Expression does not produce a value.")
+                    testData = New CompilationTestData()
+                    result = context.CompileExpression("(G()?.M())", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
+                    Assert.Equal(errorMessage, "error BC30491: Expression does not produce a value.")
+                End Sub)
         End Sub
 
         <WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
@@ -3353,14 +3389,15 @@ Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.VB$StateMachine_1_F.MoveNext")
-            Dim errorMessage As String = Nothing
-            Dim testData As New CompilationTestData()
-            context.CompileExpression("x", errorMessage, testData)
-            Dim methodData = testData.GetMethodData("<>x.<>m0")
-            Assert.Equal(SpecialType.System_Int32, methodData.Method.ReturnType.SpecialType)
-            methodData.VerifyIL("
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.VB$StateMachine_1_F.MoveNext")
+                    Dim errorMessage As String = Nothing
+                    Dim testData As New CompilationTestData()
+                    context.CompileExpression("x", errorMessage, testData)
+                    Dim methodData = testData.GetMethodData("<>x.<>m0")
+                    Assert.Equal(SpecialType.System_Int32, methodData.Method.ReturnType.SpecialType)
+                    methodData.VerifyIL("
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -3371,6 +3408,7 @@ End Class
   IL_0006:  ret
 }
 ")
+                End Sub)
         End Sub
 
         <WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")>
@@ -3387,14 +3425,15 @@ Class C(Of T)
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.VB$StateMachine_1_F.MoveNext")
-            Dim errorMessage As String = Nothing
-            Dim testData As New CompilationTestData()
-            context.CompileExpression("x", errorMessage, testData)
-            Dim methodData = testData.GetMethodData("<>x(Of T).<>m0")
-            Assert.Equal(SpecialType.System_Int32, methodData.Method.ReturnType.SpecialType)
-            methodData.VerifyIL("
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.VB$StateMachine_1_F.MoveNext")
+                    Dim errorMessage As String = Nothing
+                    Dim testData As New CompilationTestData()
+                    context.CompileExpression("x", errorMessage, testData)
+                    Dim methodData = testData.GetMethodData("<>x(Of T).<>m0")
+                    Assert.Equal(SpecialType.System_Int32, methodData.Method.ReturnType.SpecialType)
+                    methodData.VerifyIL("
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -3405,6 +3444,7 @@ End Class
   IL_0006:  ret
 }
 ")
+                End Sub)
         End Sub
 
         <Fact>
@@ -3512,13 +3552,14 @@ Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C._Closure$__2-0._Lambda$__0")
-            Dim errorMessage As String = Nothing
-            Dim testData As New CompilationTestData()
-            context.CompileExpression("z", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C._Closure$__2-0._Lambda$__0")
+                    Dim errorMessage As String = Nothing
+                    Dim testData As New CompilationTestData()
+                    context.CompileExpression("z", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -3527,9 +3568,10 @@ End Class
   IL_0001:  ret
 }
 ")
-            testData = New CompilationTestData()
-            context.CompileExpression("y", errorMessage, testData)
-            Assert.Equal("error BC30451: 'y' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+                    testData = New CompilationTestData()
+                    context.CompileExpression("y", errorMessage, testData)
+                    Assert.Equal("error BC30451: 'y' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+                End Sub)
         End Sub
 
         <WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")>
@@ -3545,13 +3587,14 @@ Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.I")
-            Dim errorMessage As String = Nothing
-            Dim testData As New CompilationTestData()
-            context.CompileExpression("GetType(T)", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.I")
+                    Dim errorMessage As String = Nothing
+                    Dim testData As New CompilationTestData()
+                    context.CompileExpression("GetType(T)", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -3561,6 +3604,7 @@ End Class
   IL_000a:  ret
 }
 ")
+                End Sub)
         End Sub
 
         <WorkItem(1014763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")>
@@ -3578,13 +3622,14 @@ Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.VB$StateMachine_1_I.MoveNext")
-            Dim errorMessage As String = Nothing
-            Dim testData As New CompilationTestData()
-            context.CompileExpression("GetType(T)", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x(Of T).<>m0").VerifyIL("
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.VB$StateMachine_1_I.MoveNext")
+                    Dim errorMessage As String = Nothing
+                    Dim testData As New CompilationTestData()
+                    context.CompileExpression("GetType(T)", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x(Of T).<>m0").VerifyIL("
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -3596,6 +3641,7 @@ End Class
   IL_000a:  ret
 }
 ")
+                End Sub)
         End Sub
 
         <WorkItem(1085642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085642")>
@@ -3652,44 +3698,46 @@ End Class
             Dim libRef = CreateCompilationWithMscorlib({libSource}, assemblyName:="Lib", options:=TestOptions.DebugDll).EmitToImageReference()
             Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef, libRef}, TestOptions.DebugDll)
 
-            Dim runtime = CreateRuntimeInstance(comp, {MscorlibRef})
-            Dim context = CreateMethodContext(runtime, "C.M")
+            WithRuntimeInstance(comp, {MscorlibRef},
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
 
-            Const expectedError1 = "error BC30652: Reference required to assembly 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Missing'. Add one to your project."
-            Const expectedError2 = "error BC30652: Reference required to assembly 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Missing'. Add one to your project."
-            Dim expectedMissingAssemblyIdentity As New AssemblyIdentity("Lib")
+                    Const expectedError1 = "error BC30652: Reference required to assembly 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Missing'. Add one to your project."
+                    Const expectedError2 = "error BC30652: Reference required to assembly 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Missing'. Add one to your project."
+                    Dim expectedMissingAssemblyIdentity As New AssemblyIdentity("Lib")
 
-            Dim resultProperties As ResultProperties = Nothing
-            Dim actualError As String = Nothing
-            Dim actualMissingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
+                    Dim resultProperties As ResultProperties = Nothing
+                    Dim actualError As String = Nothing
+                    Dim actualMissingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
 
-            Dim verify As Action(Of String, String) =
-                Sub(expr, expectedError)
-                    context.CompileExpression(
-                        expr,
-                        DkmEvaluationFlags.TreatAsExpression,
-                        NoAliases,
-                        DebuggerDiagnosticFormatter.Instance,
-                        resultProperties,
-                        actualError,
-                        actualMissingAssemblyIdentities,
-                        EnsureEnglishUICulture.PreferredOrNull,
-                        testData:=Nothing)
-                    Assert.Equal(expectedError, actualError)
-                    Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single())
-                End Sub
+                    Dim verify As Action(Of String, String) =
+                        Sub(expr, expectedError)
+                            context.CompileExpression(
+                                expr,
+                                DkmEvaluationFlags.TreatAsExpression,
+                                NoAliases,
+                                DebuggerDiagnosticFormatter.Instance,
+                                resultProperties,
+                                actualError,
+                                actualMissingAssemblyIdentities,
+                                EnsureEnglishUICulture.PreferredOrNull,
+                                testData:=Nothing)
+                            Assert.Equal(expectedError, actualError)
+                            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single())
+                        End Sub
 
-            verify("M(Nothing)", expectedError2)
-            verify("field", expectedError2)
-            verify("field.Method", expectedError2)
-            verify("parameter", expectedError1)
-            verify("parameter.Method", expectedError1)
-            verify("local", expectedError1)
-            verify("local.Method", expectedError1)
+                    verify("M(Nothing)", expectedError2)
+                    verify("field", expectedError2)
+                    verify("field.Method", expectedError2)
+                    verify("parameter", expectedError1)
+                    verify("parameter.Method", expectedError1)
+                    verify("local", expectedError1)
+                    verify("local.Method", expectedError1)
 
-            ' Note that even expressions that don't required the missing type will fail because
-            ' the method we synthesize refers to the original locals and parameters.
-            verify("0", expectedError1)
+                    ' Note that even expressions that don't required the missing type will fail because
+                    ' the method we synthesize refers to the original locals and parameters.
+                    verify("0", expectedError1)
+                End Sub)
         End Sub
 
         <WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")>
@@ -3709,11 +3757,13 @@ Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.Main")
-            Dim errorMessage As String = Nothing
-            context.CompileExpression("c.P", errorMessage)
-            Assert.Null(errorMessage)
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.Main")
+                    Dim errorMessage As String = Nothing
+                    context.CompileExpression("c.P", errorMessage)
+                    Assert.Null(errorMessage)
+                End Sub)
         End Sub
 
         <WorkItem(1090458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090458")>
@@ -3759,11 +3809,13 @@ Namespace Windows.Foundation.Metadata
 End Namespace
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.Main")
-            Dim errorMessage As String = Nothing
-            context.CompileExpression("c.P", errorMessage)
-            Assert.Null(errorMessage)
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.Main")
+                    Dim errorMessage As String = Nothing
+                    context.CompileExpression("c.P", errorMessage)
+                    Assert.Null(errorMessage)
+                End Sub)
         End Sub
 
         <WorkItem(1089591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089591")>
@@ -3842,13 +3894,14 @@ Class C
     End Sub
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.M")
-            Dim resultProperties As ResultProperties = Nothing
-            Dim errorMessage As String = Nothing
-            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression(
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim resultProperties As ResultProperties = Nothing
+                    Dim errorMessage As String = Nothing
+                    Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression(
 "F(Sub()
     Dim o = New S()
     With o
@@ -3857,19 +3910,21 @@ End Class"
         End With
     End With
 End Sub)",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                DebuggerDiagnosticFormatter.Instance,
-                resultProperties,
-                errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData)
-            Assert.Empty(missingAssemblyIdentities)
-            testData.GetMethodData("<>x._Closure$__._Lambda$__0-1").VerifyIL(
+                        DkmEvaluationFlags.None,
+                        NoAliases,
+                        DebuggerDiagnosticFormatter.Instance,
+                        resultProperties,
+                        errorMessage,
+                        missingAssemblyIdentities,
+                        EnsureEnglishUICulture.PreferredOrNull,
+                        testData)
+
+                    Assert.Empty(missingAssemblyIdentities)
+                    testData.GetMethodData("<>x._Closure$__._Lambda$__0-1").VerifyIL(
 "{
 ...
 }")
+                End Sub)
         End Sub
 
         <WorkItem(1115543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115543")>
@@ -3886,13 +3941,14 @@ Class C(Of T)
     End Sub
 End Class"
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(MakeSources(source), options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(compilation)
-            Dim context = CreateMethodContext(runtime, "C._Closure$__1._Lambda$__1-0")
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            Dim result = context.CompileExpression("GetType(T)", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x(Of T, $CLS0).<>m0").VerifyIL("
+            WithRuntimeInstance(compilation,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C._Closure$__1._Lambda$__1-0")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    Dim result = context.CompileExpression("GetType(T)", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x(Of T, $CLS0).<>m0").VerifyIL("
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -3902,20 +3958,20 @@ End Class"
   IL_000a:  ret
 }")
 
-            ' As in dev12, there is no way to bind "U" to the method type parameter.
-            ' In particular, there is no way to map back from the lambda to the method
-            ' that declares it to determine the source name of the type parameter
-            ' (which is also not deducible from the mangled form).
-            testData = New CompilationTestData()
-            result = context.CompileExpression("GetType(U)", errorMessage, testData)
-            Assert.Equal("error BC30002: Type 'U' is not defined.", errorMessage)
+                    ' As in dev12, there is no way to bind "U" to the method type parameter.
+                    ' In particular, there is no way to map back from the lambda to the method
+                    ' that declares it to determine the source name of the type parameter
+                    ' (which is also not deducible from the mangled form).
+                    testData = New CompilationTestData()
+                    result = context.CompileExpression("GetType(U)", errorMessage, testData)
+                    Assert.Equal("error BC30002: Type 'U' is not defined.", errorMessage)
 
-            ' Sufficiently well-informed users can reference the type parameter using
-            ' its mangled name.
-            testData = New CompilationTestData()
-            result = context.CompileExpression("GetType($CLS0)", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x(Of T, $CLS0).<>m0").VerifyIL("
+                    ' Sufficiently well-informed users can reference the type parameter using
+                    ' its mangled name.
+                    testData = New CompilationTestData()
+                    result = context.CompileExpression("GetType($CLS0)", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x(Of T, $CLS0).<>m0").VerifyIL("
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -3924,6 +3980,7 @@ End Class"
   IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
   IL_000a:  ret
 }")
+                End Sub)
         End Sub
 
         <WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")>
@@ -3942,13 +3999,14 @@ Module Module1
     End Sub
 End Module"
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(MakeSources(source), options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(compilation)
-            Dim context = CreateMethodContext(runtime, "Module1._Closure$__.VB$StateMachine___Lambda$__0-0.MoveNext")
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            Dim result = context.CompileExpression("i", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+            WithRuntimeInstance(compilation,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "Module1._Closure$__.VB$StateMachine___Lambda$__0-0.MoveNext")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    Dim result = context.CompileExpression("i", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -3960,6 +4018,7 @@ End Module"
   IL_0001:  ldfld      ""Module1._Closure$__.VB$StateMachine___Lambda$__0-0.$VB$ResumableLocal_i$0 As Integer""
   IL_0006:  ret
 }")
+                End Sub)
         End Sub
 
         <Fact>
@@ -3972,14 +4031,15 @@ Class C
     End Sub
 End Class"
             Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(compilation)
-            Dim context = CreateMethodContext(runtime, "C.M")
+            WithRuntimeInstancePortableBug(compilation,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
 
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("GetType(Action(Of ))", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("GetType(Action(Of ))", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -3987,6 +4047,7 @@ End Class"
   IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
   IL_000a:  ret
 }")
+                End Sub)
         End Sub
 
         <WorkItem(1068138, "DevDiv")>
@@ -4101,12 +4162,14 @@ End Class"
                 references:={SystemCoreRef},
                 options:=TestOptions.DebugDll,
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
-            Dim runtime = CreateRuntimeInstance(compilation0)
-            Dim context = CreateMethodContext(runtime, "C.M")
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("q.Where(Function(c) True)", errorMessage, testData)
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+
+            WithRuntimeInstancePortableBug(compilation0,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("q.Where(Function(c) True)", errorMessage, testData)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       64 (0x40)
   .maxstack  6
@@ -4133,6 +4196,7 @@ End Class"
   IL_003a:  call       ""Function System.Linq.Queryable.Where(Of C)(System.Linq.IQueryable(Of C), System.Linq.Expressions.Expression(Of System.Func(Of C, Boolean))) As System.Linq.IQueryable(Of C)""
   IL_003f:  ret
 }")
+                End Sub)
         End Sub
 
         ''' <summary>
@@ -4153,12 +4217,13 @@ Module M
     End Sub
 End Module"
             Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime(MakeSources(source), options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(compilation0)
-            Dim context = CreateMethodContext(runtime, methodName:="M.M")
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("F(Async Function() New C())", errorMessage, testData)
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            WithRuntimeInstance(compilation0,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, methodName:="M.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("F(Async Function() New C())", errorMessage, testData)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       42 (0x2a)
   .maxstack  2
@@ -4174,6 +4239,7 @@ End Module"
   IL_0024:  call       ""Sub M.F(Of C)(System.Func(Of System.Threading.Tasks.Task(Of C)))""
   IL_0029:  ret
 }")
+                End Sub)
         End Sub
 
         <WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")>
@@ -4188,14 +4254,15 @@ Class C
 End Class"
 
             Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(MakeSources(source), options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.M")
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
 
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("M(Function() x)", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("M(Function() x)", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size       32 (0x20)
   .maxstack  3
@@ -4213,6 +4280,7 @@ End Class"
   IL_001a:  callvirt   ""Sub C.M(System.Func(Of Integer))""
   IL_001f:  ret
 }")
+                End Sub)
         End Sub
 
         <WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")>
@@ -4228,14 +4296,15 @@ Class C
 End Class"
 
             Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(MakeSources(source))
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.M")
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
 
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("M(Function() x)", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("M(Function() x)", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size       32 (0x20)
   .maxstack  3
@@ -4253,6 +4322,7 @@ End Class"
   IL_001a:  callvirt   ""Sub C.M(System.Func(Of Integer))""
   IL_001f:  ret
 }")
+                End Sub)
         End Sub
 
         <WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")>
@@ -4274,14 +4344,15 @@ Class C
 End Class"
 
             Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(MakeSources(source))
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.M", atLineNumber:=6)
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M", atLineNumber:=6)
 
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("F(Function() x + y)", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("F(Function() x + y)", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size       39 (0x27)
   .maxstack  3
@@ -4303,7 +4374,7 @@ End Class"
   IL_0021:  callvirt   ""Function C.F(System.Func(Of Integer)) As Integer""
   IL_0026:  ret
 }")
-            testData.GetMethodData("<>x._Closure$__0-0._Lambda$__0").VerifyIL("
+                    testData.GetMethodData("<>x._Closure$__0-0._Lambda$__0").VerifyIL("
 {
   // Code size       31 (0x1f)
   .maxstack  2
@@ -4319,6 +4390,7 @@ End Class"
   IL_001d:  conv.ovf.i4
   IL_001e:  ret
 }")
+                End Sub)
         End Sub
 
         <WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")>
@@ -4343,14 +4415,15 @@ Class C
 End Class"
 
             Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(MakeSources(source))
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C._Closure$__1-2._Lambda$__2")
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C._Closure$__1-2._Lambda$__2")
 
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("F(Function() x + y + z)", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL("
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("F(Function() x + y + z)", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
   // Code size       52 (0x34)
   .maxstack  3
@@ -4371,7 +4444,7 @@ End Class"
   IL_002e:  callvirt   ""Function C.F(System.Func(Of Integer)) As Integer""
   IL_0033:  ret
 }")
-            testData.GetMethodData("<>x._Closure$__0-0._Lambda$__0").VerifyIL("
+                    testData.GetMethodData("<>x._Closure$__0-0._Lambda$__0").VerifyIL("
 {
   // Code size       59 (0x3b)
   .maxstack  2
@@ -4395,6 +4468,7 @@ End Class"
   IL_0039:  conv.ovf.i4
   IL_003a:  ret
 }")
+                End Sub)
         End Sub
 
         <Fact>
@@ -4431,31 +4505,32 @@ End Class"
     End Sub
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
+            WithRuntimeInstance(comp,
+                Sub(runtime)
 
-            Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
-            Dim moduleVersionId As Guid = Nothing
-            Dim symReader As ISymUnmanagedReader = Nothing
-            Dim methodToken = 0
-            Dim localSignatureToken = 0
-            GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+                    Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
+                    Dim moduleVersionId As Guid = Nothing
+                    Dim symReader As ISymUnmanagedReader = Nothing
+                    Dim methodToken = 0
+                    Dim localSignatureToken = 0
+                    GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
 
-            Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader)
-            Dim context = EvaluationContext.CreateMethodContext(
-                Nothing,
-                blocks,
-                MakeDummyLazyAssemblyReaders(),
-                symReader,
-                moduleVersionId,
-                methodToken,
-                methodVersion:=1,
-                ilOffset:=ExpressionCompilerTestHelpers.NoILOffset,
-                localSignatureToken:=localSignatureToken)
+                    Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader)
+                    Dim context = EvaluationContext.CreateMethodContext(
+                        Nothing,
+                        blocks,
+                        MakeDummyLazyAssemblyReaders(),
+                        symReader,
+                        moduleVersionId,
+                        methodToken,
+                        methodVersion:=1,
+                        ilOffset:=ExpressionCompilerTestHelpers.NoILOffset,
+                        localSignatureToken:=localSignatureToken)
 
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            Dim result = context.CompileExpression("x + y", errorMessage, testData)
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    Dim result = context.CompileExpression("x + y", errorMessage, testData)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size        4 (0x4)
   .maxstack  2
@@ -4466,33 +4541,34 @@ End Class"
   IL_0003:  ret
 }")
 
-            ' Verify the context is re-used for ILOffset == 0.
-            Dim previous = context
-            context = EvaluationContext.CreateMethodContext(
-                New VisualBasicMetadataContext(blocks, previous),
-                blocks,
-                MakeDummyLazyAssemblyReaders(),
-                symReader,
-                moduleVersionId,
-                methodToken,
-                methodVersion:=1,
-                ilOffset:=0,
-                localSignatureToken:=localSignatureToken)
-            Assert.Same(previous, context)
+                    ' Verify the context is re-used for ILOffset == 0.
+                    Dim previous = context
+                    context = EvaluationContext.CreateMethodContext(
+                        New VisualBasicMetadataContext(blocks, previous),
+                        blocks,
+                        MakeDummyLazyAssemblyReaders(),
+                        symReader,
+                        moduleVersionId,
+                        methodToken,
+                        methodVersion:=1,
+                        ilOffset:=0,
+                        localSignatureToken:=localSignatureToken)
+                    Assert.Same(previous, context)
 
-            ' Verify the context is re-used for NoILOffset.
-            previous = context
-            context = EvaluationContext.CreateMethodContext(
-                New VisualBasicMetadataContext(blocks, previous),
-                blocks,
-                MakeDummyLazyAssemblyReaders(),
-                symReader,
-                moduleVersionId,
-                methodToken,
-                methodVersion:=1,
-                ilOffset:=ExpressionCompilerTestHelpers.NoILOffset,
-                localSignatureToken:=localSignatureToken)
-            Assert.Same(previous, context)
+                    ' Verify the context is re-used for NoILOffset.
+                    previous = context
+                    context = EvaluationContext.CreateMethodContext(
+                        New VisualBasicMetadataContext(blocks, previous),
+                        blocks,
+                        MakeDummyLazyAssemblyReaders(),
+                        symReader,
+                        moduleVersionId,
+                        methodToken,
+                        methodVersion:=1,
+                        ilOffset:=ExpressionCompilerTestHelpers.NoILOffset,
+                        localSignatureToken:=localSignatureToken)
+                    Assert.Same(previous, context)
+                End Sub)
         End Sub
 
         <WorkItem(3939, "https://github.com/dotnet/roslyn/issues/3939")>
@@ -4564,13 +4640,14 @@ Class C
     End Sub
 End Class"
             Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
-            Dim runtime = CreateRuntimeInstance(compilation0)
-            Dim context = CreateMethodContext(runtime, "C._Closure$__.VB$StateMachine___Lambda$__1-0.MoveNext")
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("c.Where(Function(n) n > 0)", errorMessage, testData)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            WithRuntimeInstancePortableBug(compilation0,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C._Closure$__.VB$StateMachine___Lambda$__1-0.MoveNext")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("c.Where(Function(n) n > 0)", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       48 (0x30)
   .maxstack  3
@@ -4590,8 +4667,7 @@ End Class"
   IL_002a:  call       ""Function System.Linq.Enumerable.Where(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)""
   IL_002f:  ret
 }")
+                End Sub)
         End Sub
-
     End Class
-
 End Namespace

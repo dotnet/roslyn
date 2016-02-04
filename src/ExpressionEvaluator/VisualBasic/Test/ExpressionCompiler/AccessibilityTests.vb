@@ -33,23 +33,26 @@ End Class
 "
 
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.M")
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
 
-            Dim resultProperties As ResultProperties = Nothing
-            Dim errorMessage As String = Nothing
-            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
-            context.CompileExpression(
-                "Me.get_P()",
-                DkmEvaluationFlags.TreatAsExpression,
-                NoAliases,
-                DebuggerDiagnosticFormatter.Instance,
-                resultProperties,
-                errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData:=Nothing)
-            Assert.Equal("error BC30456: 'get_P' is not a member of 'C'.", errorMessage)
+                    Dim resultProperties As ResultProperties = Nothing
+                    Dim errorMessage As String = Nothing
+                    Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
+                    context.CompileExpression(
+                        "Me.get_P()",
+                        DkmEvaluationFlags.TreatAsExpression,
+                        NoAliases,
+                        DebuggerDiagnosticFormatter.Instance,
+                        resultProperties,
+                        errorMessage,
+                        missingAssemblyIdentities,
+                        EnsureEnglishUICulture.PreferredOrNull,
+                        testData:=Nothing)
+
+                    Assert.Equal("error BC30456: 'get_P' is not a member of 'C'.", errorMessage)
+                End Sub)
         End Sub
 
         <Fact>
@@ -166,14 +169,13 @@ End Class
 "
 
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C.Test")
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("Me.M(Me.P)", errorMessage, testData)
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.Test")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("Me.M(Me.P)", errorMessage, testData)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       13 (0xd)
   .maxstack  2
@@ -184,6 +186,7 @@ End Class
   IL_0007:  callvirt   ""Function B.M(Integer) As Integer""
   IL_000c:  ret
 }")
+                End Sub)
         End Sub
 
         <Fact>
