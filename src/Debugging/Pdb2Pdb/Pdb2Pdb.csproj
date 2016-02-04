@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C4C4BEEA-6E4C-4C03-841A-BB085AF9E097}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Microsoft.DiaSymReader.Tools</RootNamespace>
+    <AssemblyName>Pdb2Pdb</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <Prefer32Bit>false</Prefer32Bit>
+    <LargeAddressAware>true</LargeAddressAware>
+    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
+      <Link>Utilities\PooledStringBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ComStreamWrapper.cs">
+      <Link>Utilities\ComStreamWrapper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs">
+      <Link>Utilities\Hash.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\StreamExtensions.cs">
+      <Link>Utilities\StreamExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\PEWriter\CustomDebugInfoConstants.cs">
+      <Link>Utilities\CustomDebugInfoConstants.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\SharedCollections\ArrayBuilder.cs">
+      <Link>Utilities\ArrayBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\SharedCollections\ArrayBuilder.Enumerator.cs">
+      <Link>Utilities\ArrayBuilder.Enumerator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\SharedCollections\ObjectPool`1.cs">
+      <Link>Utilities\ObjectPool`1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\SharedCollections\PooledDictionary.cs">
+      <Link>Utilities\PooledDictionary.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\SharedCollections\PooledHashSet.cs">
+      <Link>Utilities\PooledHashSet.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Test\PdbUtilities\Pdb\SymReaderFactory.cs">
+      <Link>Utilities\SymReaderFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Test\PdbUtilities\Shared\CustomDebugInfoReader.cs">
+      <Link>Utilities\CustomDebugInfoReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">
+      <Link>Utilities\DateTimeUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Test\PdbUtilities\Shared\DummyMetadataImport.cs">
+      <Link>Utilities\DummyMetadataImport.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Test\PdbUtilities\Shared\StringUtilities.cs">
+      <Link>Utilities\StringUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderExtensions.cs">
+      <Link>Utilities\SymUnmanagedReaderExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderTestExtensions.cs">
+      <Link>Utilities\SymUnmanagedReaderTestExtensions.cs</Link>
+    </Compile>
+    <Compile Include="PdbToPdb.cs" />
+    <Compile Include="Program.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ImportGroup Label="Targets">
+    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  </ImportGroup>
+</Project>

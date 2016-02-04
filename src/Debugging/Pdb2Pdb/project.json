@@ -1,0 +1,13 @@
+﻿{
+  "dependencies": {
+    "System.Reflection.Metadata": "1.2.0-rc3-23721",
+    "Microsoft.DiaSymReader": "1.0.7-beta1-51221"
+  },
+  "frameworks": {
+    "net45": {}
+  },
+  "runtimes": {
+    "win7": { },
+    "win7-anycpu": {}
+  }
+}
