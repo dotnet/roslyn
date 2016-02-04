@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (constructorInitializerNode != null)
             {
                 var constructorDeclarationNode = constructorInitializerNode.Parent as ConstructorDeclarationSyntax;
-                if (constructorDeclarationNode != null && constructorDeclarationNode.Body != null)
+                if (constructorDeclarationNode?.Body != null)
                 {
                     AddSuppressWrappingIfOnSingleLineOperation(list, constructorInitializerNode.ColonToken, constructorDeclarationNode.Body.CloseBraceToken);
                 }
