@@ -1,9 +1,8 @@
 param ([string]$buildDir = $(throw "Need a directory containing a compiler build to test with"))
 
-# TODO: Use the Roslyn.sln instead of Compilers.sln
 $rootDir = split-path -parent (split-path -parent $PSScriptRoot)
-$debugDir = join-path $rootDir "Binaries\Debug"
-$sln = join-path $rootDir "build\Toolset.sln"
+$debugDir = resolve-path (join-path $rootDir "Binaries\Debug")
+$sln = join-path $rootDir "Compilers.sln"
 
 pushd $rootDir
 
@@ -25,19 +24,20 @@ while ($i -lt 3 -and $allGood) {
 
     write-host "Testing the binaries"
     foreach ($dll in gci -re -in Microsoft.CodeAnalysis.*dll,Roslyn.*dll,cs*exe,vb*exe) {
-        $dllName = split-path -leaf $dll
+        $dllFullName = $dll.FullName
+        $dllName = split-path -leaf $dllFullName
         $dllHash = get-md5 $dll
         if ($i -eq 0) {
             write-host "`tRecording $dllName = $dllHash"
-            $map[$dllName] = $dllHash
+            $map[$dllFullName] = $dllHash
         }
         else {
-            $oldHash = $map[$dllName]
+            $oldHash = $map[$dllFullName]
             if ($oldHash -eq $dllHash) {
                 write-host "`tVerified $dllName"
             }
             else {
-                write-host "`tERROR! $dllName changed"
+                write-host "`tERROR! $dllName changed ($dllFullName)"
                 $allGood = $false
             }
         }
