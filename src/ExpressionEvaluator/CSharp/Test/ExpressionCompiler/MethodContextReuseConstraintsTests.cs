@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Xunit;
 
@@ -21,8 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 moduleVersionId,
                 methodToken,
                 methodVersion,
-                startOffset,
-                endOffsetExclusive);
+                new ILSpan(startOffset, endOffsetExclusive));
 
             Assert.True(constraints.AreSatisfied(moduleVersionId, methodToken, methodVersion, (int)startOffset));
             Assert.True(constraints.AreSatisfied(moduleVersionId, methodToken, methodVersion, (int)endOffsetExclusive - 1));
@@ -37,50 +37,41 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         [Fact]
         public void EndExclusive()
         {
-            var moduleVersionId = Guid.NewGuid();
-            const int methodToken = 0x06000001;
-            const int methodVersion = 1;
+            var spans = new[] 
+            {
+                new ILSpan(0u, uint.MaxValue),
+                new ILSpan(1, 9),
+                new ILSpan(2, 8),
+                new ILSpan(1, 3),
+                new ILSpan(7, 9),
+            };
 
-            var builder = new MethodContextReuseConstraints.Builder(moduleVersionId, methodToken, methodVersion, ilOffset: 5);
-            Assert.True(builder.Build().HasExpectedSpan(0u, uint.MaxValue));
-
-            builder.AddRange(1, 9);
-            Assert.True(builder.Build().HasExpectedSpan(1, 9));
-
-            builder.AddRange(2, 8);
-            Assert.True(builder.Build().HasExpectedSpan(2, 8));
-
-            builder.AddRange(1, 3);
-            Assert.True(builder.Build().HasExpectedSpan(3, 8));
-
-            builder.AddRange(7, 9);
-            Assert.True(builder.Build().HasExpectedSpan(3, 7));
+            Assert.Equal(new ILSpan(0u, uint.MaxValue), MethodContextReuseConstraints.CalculateReuseSpan(5, ILSpan.MaxValue, spans.Take(1)));
+            Assert.Equal(new ILSpan(1, 9), MethodContextReuseConstraints.CalculateReuseSpan(5, ILSpan.MaxValue, spans.Take(2)));
+            Assert.Equal(new ILSpan(2, 8), MethodContextReuseConstraints.CalculateReuseSpan(5, ILSpan.MaxValue, spans.Take(3)));
+            Assert.Equal(new ILSpan(3, 8), MethodContextReuseConstraints.CalculateReuseSpan(5, ILSpan.MaxValue, spans.Take(4)));
+            Assert.Equal(new ILSpan(3, 7), MethodContextReuseConstraints.CalculateReuseSpan(5, ILSpan.MaxValue, spans.Take(5)));
         }
 
         [Fact]
         public void Cumulative()
         {
-            var moduleVersionId = Guid.NewGuid();
-            const int methodToken = 0x06000001;
-            const int methodVersion = 1;
+            var span = ILSpan.MaxValue;
 
-            var builder = new MethodContextReuseConstraints.Builder(moduleVersionId, methodToken, methodVersion, ilOffset: 5);
-            Assert.True(builder.Build().HasExpectedSpan(0u, uint.MaxValue));
+            span = MethodContextReuseConstraints.CalculateReuseSpan(5, span, new ILSpan[0]);
+            Assert.Equal(new ILSpan(0u, uint.MaxValue), span);
 
-            builder.AddRange(1, 10);
-            Assert.True(builder.Build().HasExpectedSpan(1, 10));
-            builder = new MethodContextReuseConstraints.Builder(builder.Build(), ilOffset: 5);
+            span = MethodContextReuseConstraints.CalculateReuseSpan(5, span, new[] { new ILSpan(1, 10) });
+            Assert.Equal(new ILSpan(1, 10), span);
 
-            builder.AddRange(2, 9);
-            Assert.True(builder.Build().HasExpectedSpan(2, 9));
-            builder = new MethodContextReuseConstraints.Builder(builder.Build(), ilOffset: 5);
+            span = MethodContextReuseConstraints.CalculateReuseSpan(5, span, new[] { new ILSpan(2, 9) });
+            Assert.Equal(new ILSpan(2, 9), span);
 
-            builder.AddRange(1, 3);
-            Assert.True(builder.Build().HasExpectedSpan(3, 9));
-            builder = new MethodContextReuseConstraints.Builder(builder.Build(), ilOffset: 5);
+            span = MethodContextReuseConstraints.CalculateReuseSpan(5, span, new[] { new ILSpan(1, 3) });
+            Assert.Equal(new ILSpan(3, 9), span);
 
-            builder.AddRange(7, 9);
-            Assert.True(builder.Build().HasExpectedSpan(3, 7));
+            span = MethodContextReuseConstraints.CalculateReuseSpan(5, span, new[] { new ILSpan(7, 9) });
+            Assert.Equal(new ILSpan(3, 7), span);
         }
     }
 }

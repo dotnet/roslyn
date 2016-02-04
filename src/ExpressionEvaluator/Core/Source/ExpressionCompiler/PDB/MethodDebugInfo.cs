@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -41,22 +42,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DefaultNamespaceName = defaultNamespaceName;
         }
 
-        public ImmutableSortedSet<int> GetInScopeHoistedLocalIndices(int ilOffset, ref MethodContextReuseConstraints methodContextReuseConstraints)
+        public ImmutableSortedSet<int> GetInScopeHoistedLocalIndices(int ilOffset, ref ILSpan methodContextReuseSpan)
         {
             if (this.HoistedLocalScopeRecords.IsDefault)
             {
                 return ImmutableSortedSet<int>.Empty;
             }
 
-            var constraintsBuilder =
-                new MethodContextReuseConstraints.Builder(methodContextReuseConstraints, ilOffset);
+            methodContextReuseSpan = MethodContextReuseConstraints.CalculateReuseSpan(
+                ilOffset,
+                methodContextReuseSpan, 
+                HoistedLocalScopeRecords.Select(record => new ILSpan((uint)record.StartOffset, (uint)(record.StartOffset + record.Length))));
 
             var scopesBuilder = ArrayBuilder<int>.GetInstance();
             int i = 0;
             foreach (var record in this.HoistedLocalScopeRecords)
             {
-                constraintsBuilder.AddRange((uint)record.StartOffset, (uint)(record.StartOffset + record.Length));
-
                 var delta = ilOffset - record.StartOffset;
                 if (0 <= delta && delta < record.Length)
                 {
@@ -65,8 +66,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 i++;
             }
-
-            methodContextReuseConstraints = constraintsBuilder.Build();
 
             var result = scopesBuilder.ToImmutableSortedSet();
             scopesBuilder.Free();

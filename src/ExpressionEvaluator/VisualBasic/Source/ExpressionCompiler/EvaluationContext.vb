@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim constantsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
             Dim inScopeHoistedLocals As InScopeHoistedLocals = InScopeHoistedLocals.Empty
             Dim debugInfo As MethodDebugInfo(Of TypeSymbol, LocalSymbol) = Nothing
-            Dim reuseConstraints As MethodContextReuseConstraints
+            Dim reuseSpan As ILSpan
             Dim rawLocalNames As ImmutableArray(Of String)
 
             If IsDteeEntryPoint(currentFrame) Then
@@ -207,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Dim containingScopes = ArrayBuilder(Of ISymUnmanagedScope).GetInstance()
 
                 MethodDebugInfo(Of TypeSymbol, LocalSymbol).GetScopes(typedSymReader, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, allScopes, containingScopes)
-                reuseConstraints = MethodDebugInfo(Of TypeSymbol, LocalSymbol).GetReuseConstraints(allScopes, moduleVersionId, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive)
+                reuseSpan = MethodDebugInfo(Of TypeSymbol, LocalSymbol).GetReuseSpan(allScopes, ilOffset, IsLocalScopeEndInclusive)
 
                 rawLocalNames = containingScopes.GetLocalNames()
                 MethodDebugInfo(Of TypeSymbol, LocalSymbol).GetConstants(constantsBuilder, symbolProvider, containingScopes, Nothing)
@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 allScopes.Free()
                 containingScopes.Free()
             Else
-                reuseConstraints = New MethodContextReuseConstraints(moduleVersionId, methodToken, methodVersion)
+                reuseSpan = ILSpan.MaxValue
                 rawLocalNames = ImmutableArray(Of String).Empty
             End If
 
@@ -232,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             constantsBuilder.Free()
 
             Return New EvaluationContext(
-                reuseConstraints,
+                New MethodContextReuseConstraints(moduleVersionId, methodToken, methodVersion, reuseSpan),
                 compilation,
                 currentFrame,
                 localsBuilder.ToImmutableAndFree(),

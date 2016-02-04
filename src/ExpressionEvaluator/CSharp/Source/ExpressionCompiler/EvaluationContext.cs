@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var constantsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
             var inScopeHoistedLocals = InScopeHoistedLocals.Empty;
             var debugInfo = default(MethodDebugInfo<TypeSymbol, LocalSymbol>);
-            MethodContextReuseConstraints reuseConstraints;
+            ILSpan reuseSpan;
             ImmutableArray<string> localNames;
 
             if (typedSymReader != null)
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var containingScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
 
                 MethodDebugInfo<TypeSymbol, LocalSymbol>.GetScopes(typedSymReader, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, allScopes, containingScopes);
-                reuseConstraints = MethodDebugInfo<TypeSymbol, LocalSymbol>.GetReuseConstraints(allScopes, moduleVersionId, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive);
+                reuseSpan = MethodDebugInfo<TypeSymbol, LocalSymbol>.GetReuseSpan(allScopes, ilOffset, IsLocalScopeEndInclusive);
 
                 MethodDebugInfo<TypeSymbol, LocalSymbol>.TryReadMethodDebugInfo(typedSymReader, symbolProvider, methodToken, methodVersion, allScopes, isVisualBasicMethod: false, info: out debugInfo);
                 localNames = containingScopes.GetLocalNames();
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
             else
             {
-                reuseConstraints = new MethodContextReuseConstraints(moduleVersionId, methodToken, methodVersion);
+                reuseSpan = ILSpan.MaxValue;
                 localNames = ImmutableArray<string>.Empty;
             }
 
@@ -218,13 +218,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             MethodDebugInfo<TypeSymbol, LocalSymbol>.GetLocals(localsBuilder, symbolProvider, localNames, localInfo, debugInfo.DynamicLocalMap);
             if (!debugInfo.HoistedLocalScopeRecords.IsDefaultOrEmpty)
             {
-                inScopeHoistedLocals = new CSharpInScopeHoistedLocals(debugInfo.GetInScopeHoistedLocalIndices(ilOffset, ref reuseConstraints));
+                inScopeHoistedLocals = new CSharpInScopeHoistedLocals(debugInfo.GetInScopeHoistedLocalIndices(ilOffset, ref reuseSpan));
             }
 
             localsBuilder.AddRange(constantsBuilder);
 
             return new EvaluationContext(
-                reuseConstraints,
+                new MethodContextReuseConstraints(moduleVersionId, methodToken, methodVersion, reuseSpan),
                 compilation,
                 currentFrame,
                 localsBuilder.ToImmutableAndFree(),

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.DiaSymReader;
 
@@ -324,15 +325,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             symMethod.GetAllScopes(allScopes, containingScopes, ilOffset, isScopeEndInclusive);
         }
 
-        internal static MethodContextReuseConstraints GetReuseConstraints(ArrayBuilder<ISymUnmanagedScope> scopes, Guid moduleVersionId, int methodToken, int methodVersion, int ilOffset, bool isEndInclusive)
+        internal static ILSpan GetReuseSpan(ArrayBuilder<ISymUnmanagedScope> scopes, int ilOffset, bool isEndInclusive)
         {
-            var builder = new MethodContextReuseConstraints.Builder(moduleVersionId, methodToken, methodVersion, ilOffset);
-            foreach (ISymUnmanagedScope scope in scopes)
-            {
-                builder.AddRange((uint)scope.GetStartOffset(), (uint)(scope.GetEndOffset() + (isEndInclusive ? 1 : 0)));
-            }
-
-            return builder.Build();
+            return MethodContextReuseConstraints.CalculateReuseSpan(
+                ilOffset, 
+                ILSpan.MaxValue,
+                scopes.Select(scope => new ILSpan((uint)scope.GetStartOffset(), (uint)(scope.GetEndOffset() + (isEndInclusive ? 1 : 0)))));
         }
 
         public static void GetConstants(
