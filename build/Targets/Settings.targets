@@ -26,11 +26,20 @@
     <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
     <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.Compilers\1.2.0-beta1-20160202-02\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
     <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\1.1.1-beta1-20150818-01\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
+    <RoslynBuildUtilFilePath>$(NuGetPackageRoot)\Roslyn.MSBuild.Util\0.9.1\lib\net45\Roslyn.MSBuild.Util.dll</RoslynBuildUtilFilePath>
     <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
   </PropertyGroup>
 
+  <!-- 
+    Roslyn uses the WriteCodeFragment task to output generated assembly attributes.  In MSBuild 14.0 update 1 this task 
+    produces non-deterministic output.  This is fixed in update 2 but until that is released we use a hand patched
+    version of the Task that is deterministic.  
+
+    https://github.com/Microsoft/msbuild/issues/408
+  -->
   <UsingTask TaskName="Roslyn.MSBuild.Util.WriteCodeFragmentEx"
-             AssemblyFile="C:\Users\jaredpar\code\roslyn\src\Tools\BuildUtil\BuildUtil\bin\Debug\Roslyn.MSBuild.Util.dll" />
+             AssemblyFile="$(RoslynBuildUtilFilePath)"
+             Condition="'$(OS)' == 'Windows_NT'" />
 
   <Target Name="RestoreToolsetCheck"
       Condition="'$(BuildingProject)' == 'true'">

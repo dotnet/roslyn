@@ -73,11 +73,21 @@
     </CreateItem>
     
     <WriteCodeFragmentEx 
+        Condition="'$(OS)' == 'Windows_NT'"
         AssemblyAttributes="@(InternalsVisibleToAttribute)"
         Language="$(Language)"
         OutputFile="$(GeneratedInternalsVisibleToFile)">
       <Output TaskParameter="OutputFile" ItemName="Compile" />
       <Output TaskParameter="OutputFile" ItemName="FileWrites" />
     </WriteCodeFragmentEx>
+
+    <WriteCodeFragment
+        Condition="'$(OS)' != 'Windows_NT'"
+        AssemblyAttributes="@(InternalsVisibleToAttribute)"
+        Language="$(Language)"
+        OutputFile="$(GeneratedInternalsVisibleToFile)">
+      <Output TaskParameter="OutputFile" ItemName="Compile" />
+      <Output TaskParameter="OutputFile" ItemName="FileWrites" />
+    </WriteCodeFragment>
   </Target>
 </Project>

@@ -67,11 +67,21 @@
           Condition="('$(Language)' == 'C#' or '$(Language)' == 'VB')">
 
     <WriteCodeFragmentEx 
+        Condition="'$(OS)' == 'Windows_NT'"
         AssemblyAttributes="@(AssemblyVersionAttribute)"
         Language="$(Language)"
         OutputFile="$(GeneratedAssemblyInfoFile)">
       <Output TaskParameter="OutputFile" ItemName="Compile" />
       <Output TaskParameter="OutputFile" ItemName="FileWrites" />
     </WriteCodeFragmentEx>
+
+    <WriteCodeFragment 
+        Condition="'$(OS)' != 'Windows_NT'"
+        AssemblyAttributes="@(AssemblyVersionAttribute)"
+        Language="$(Language)"
+        OutputFile="$(GeneratedAssemblyInfoFile)">
+      <Output TaskParameter="OutputFile" ItemName="Compile" />
+      <Output TaskParameter="OutputFile" ItemName="FileWrites" />
+    </WriteCodeFragment>
   </Target>
 </Project>
