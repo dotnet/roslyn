@@ -2,22 +2,24 @@
 using System.Collections.Generic;
 using System.Composition;
 using System.IO;
+using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using System.Xml.Linq;
 using Elfie.Model;
 using Elfie.Model.Structures;
 using Elfie.Model.Tree;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Settings;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Settings;
 using Roslyn.Utilities;
 using VSShell = Microsoft.VisualStudio.Shell;
@@ -52,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
     }
 
-    internal class PackageSearchService : IPackageSearchService, IDisposable
+    internal class PackageSearchService : ForegroundThreadAffinitizedObject, IPackageSearchService, IDisposable
     {
         private const string HostId = "RoslynNuGetSearch";
         private const string BackupExtension = ".bak";
@@ -71,11 +73,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly FileInfo _databaseFileInfo;
 
         private readonly VSShell.SVsServiceProvider _serviceProvider;
-        private readonly IVsRemoteControlService _remoteControlService;
+        private readonly object _remoteControlService;
+        private readonly IVsActivityLog _activityLog;
+
+        private static readonly LinkedList<string> _log = new LinkedList<string>();
 
         public PackageSearchService(VSShell.SVsServiceProvider serviceProvider)
         {
-            _remoteControlService = (IVsRemoteControlService)serviceProvider.GetService(typeof(SVsRemoteControlService));
+            _remoteControlService = serviceProvider.GetService(typeof(SVsRemoteControlService));
             if (_remoteControlService == null)
             {
                 // If we can't access the file update service, then there's nothing we can do.
@@ -83,6 +88,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             _serviceProvider = serviceProvider;
+            _activityLog = (IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog));
+
             var settingsManager = new ShellSettingsManager(serviceProvider);
 
             var localSettingsDirectory = settingsManager.GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
@@ -119,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 {
                     // If we don't have an existing database, or the database version has changed
                     // then update the database we're currently pointing at.
-                    if (memberDatabase_doNotAccessDirectly == null || 
+                    if (memberDatabase_doNotAccessDirectly == null ||
                         GetDatabaseVersion(memberDatabase_doNotAccessDirectly) != GetDatabaseVersion(value))
                     {
                         memberDatabase_doNotAccessDirectly = value;
@@ -128,11 +135,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
         }
 
-        public string DataFormatVersion { get { throw new NotImplementedException(); } }
+        public string DataFormatVersion => "1";
 
-        private string GetDatabaseVersion(IMemberDatabase database)
+        private string GetDatabaseVersion(IMemberDatabase database) => "1";
+
+        private void LogInfo(string text)
         {
-            throw new NotImplementedException();
+            Log(text, __ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION);
+        }
+        
+        private void LogException(Exception e, string text)
+        {
+            Log(text + ". " + e.ToString(), __ACTIVITYLOG_ENTRYTYPE.ALE_ERROR);
+        }
+
+        private void Log(string text, __ACTIVITYLOG_ENTRYTYPE type)
+        {
+            if (!this.IsForeground())
+            {
+                this.InvokeBelowInputPriority(() => Log(text, type));
+                return;
+            }
+
+            AssertIsForeground();
+            _activityLog?.LogEntry((uint)type, HostId, text);
+
+            // Keep a running in memory log as well for debugging purposes.
+            _log.AddLast(text);
+            while (_log.Count > 100)
+            {
+                _log.RemoveFirst();
+            }
         }
 
         private async Task UpdateDatabaseInBackgroundAsync()
@@ -140,14 +173,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // Keep on looping until we're told to shut down.
             while (!_cancellationToken.IsCancellationRequested)
             {
+                LogInfo("Starting update");
                 try
                 {
-                    var delayUntilNextCheck = await UpdateDatabaseInBackgroundWorkerAsync().ConfigureAwait(false);
-                    await Task.Delay(delayUntilNextCheck, _cancellationToken).ConfigureAwait(false);
+                    var delayUntilNextUpdate = await UpdateDatabaseInBackgroundWorkerAsync().ConfigureAwait(false);
+
+                    LogInfo($"Waiting {delayUntilNextUpdate} until next update");
+                    await Task.Delay(delayUntilNextUpdate, _cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
-                    // We got canceled/disposed.  Just stop what we're doing.
+                    LogInfo("Update canceled. Ending update loop");
                     return;
                 }
             }
@@ -156,6 +192,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         /// <returns>The timespan the caller should wait until calling this method again.</returns>
         private async Task<TimeSpan> UpdateDatabaseInBackgroundWorkerAsync()
         {
+            // Attempt to update the local db if we have one, or download a full db
+            // if we don't.  In the event of any error back off a minute and try 
+            // again.  Lot of errors are possible here as IO/network/other-libraries
+            // are involved.  For example, we might get errors trying to write to 
+            // disk.
             try
             {
                 CleanCacheDirectory();
@@ -164,15 +205,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 // Otherwise download the full database.
                 if (_databaseFileInfo.Exists)
                 {
-                    await PatchLocalDatabaseAsync().ConfigureAwait(false);
+                    LogInfo("Local database file exists. Patching local database");
+                    return await PatchLocalDatabaseAsync().ConfigureAwait(false);
                 }
                 else
                 {
-                    await DownloadFullDatabaseAsync().ConfigureAwait(false);
+                    LogInfo("Local database file does not exist. Downloading full database");
+                    return await DownloadFullDatabaseAsync().ConfigureAwait(false);
                 }
-
-                // Everything succeeded.  Ask our caller to update one day from now.
-                return OneDay;
             }
             catch (Exception e) when (!(e is OperationCanceledException))
             {
@@ -182,16 +222,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 // Note: we skip OperationCanceledException because it's not 'bad'.
                 // It's the standard way to indicate that we've been asked to shut
                 // down.
+                LogException(e, "Error occurred updating. Retrying update in one minute");
                 return OneMinute;
             }
         }
 
         private void CleanCacheDirectory()
         {
-            // Make sure we've got the directory to place our cache file.
+            LogInfo("Cleaning cache directory");
+
             if (!_cacheDirectoryInfo.Exists)
             {
+                LogInfo("Creating cache directory");
                 _cacheDirectoryInfo.Create();
+                LogInfo("Cache directory created");
             }
 
             // Now remove any stale .bak files we might have.
@@ -201,6 +245,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 {
                     IOUtilities.PerformIO(() =>
                     {
+                        LogInfo($"Deleting backup file: {file.FullName}");
                         file.Delete();
                         return true;
                     });
@@ -208,75 +253,117 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
         }
 
-        private async Task DownloadFullDatabaseAsync()
+        private async Task<TimeSpan> DownloadFullDatabaseAsync()
         {
             var serverPath = $"{DataFormatVersion}/LatestDatabase.xml";
-            await DownloadAndProcessFileAsync(
+
+            LogInfo($"Downloading and processing full database: {serverPath}");
+
+            var delayUntilNextUpdate = await DownloadAndProcessFileAsync(
                 serverPath,
-                callback: HandleFullDatabaseXElementAsync).ConfigureAwait(false);
+                callback: ProcessFullDatabaseXElementAsync).ConfigureAwait(false);
+
+            LogInfo("Downloading and processing full database completed");
+            return delayUntilNextUpdate;
         }
 
-        private async Task HandleFullDatabaseXElementAsync(XElement element)
+        private async Task<TimeSpan> ProcessFullDatabaseXElementAsync(XElement element)
         {
+            LogInfo("Processing full database element");
+
             // Convert the database contents in the xml to a byte[].
             var bytes = ParseDatabaseElement(element);
 
-            // Create a DB out of those bytes.
-            var database = CreateDatabaseFromBytes(bytes);
-
-            // we successfully created a database instance.  Set it as our current in-memory database
-            // that searches will run against.
-            this.MemberDatabase = database;
+            // Make a database out of that and set it to our in memory database that we'll be 
+            // searching.
+            CreateAndSetInMemoryDatabase(bytes);
 
             // Write the file out to disk so we'll have it the next time we launch VS.  Do this
             // after we set the in-memory instance so we at least have something to search while
             // we're waiting to write.
             await WriteDatabaseFile(bytes).ConfigureAwait(false);
+
+            LogInfo("Processing full database element completed. Update again in one day");
+
+            return OneDay;
         }
 
         private async Task WriteDatabaseFile(byte[] bytes)
         {
+            LogInfo("Writing database file");
+
             var guidString = new Guid().ToString();
             var tempFilePath = Path.Combine(_cacheDirectoryInfo.FullName, guidString + ".tmp");
             var backupFilePath = Path.Combine(_cacheDirectoryInfo.FullName, guidString + ".bak");
+
+            LogInfo($"Temp file path  : {tempFilePath}");
+            LogInfo($"Backup file path: {backupFilePath}");
 
             // First, write to a temporary file next to the actual database file.
             // Note that we explicitly use FileStream so that we can call .Flush to ensure the
             // file has been completely written to disk (at least as well as the OS can guarantee
             // things).
+
+            LogInfo("Writing temp file");
             using (var fileStream = new FileStream(tempFilePath, FileMode.Create))
             {
-                // Write out all the bytes.
                 fileStream.Write(bytes, 0, bytes.Length);
-
-                // Actually flush them (to the best of the OS' ability) so they're on disk.
                 fileStream.Flush(flushToDisk: true);
             }
+            LogInfo("Writing temp file completed");
 
-            // Now try to replace hte existing DB file with the temp file.
-            // Try up to a minute just in case the file is locked.
+            // Now try to replace the existing DB file with the temp file. Try up to a minute just 
+            // in case the file is locked.  The .bak file will be deleted in the future the next 
+            // time we do an update.
+
             await RepeatAsync(
-                () => File.Replace(tempFilePath, _databaseFileInfo.FullName, backupFilePath, ignoreMetadataErrors: true),
+                () =>
+                {
+                    LogInfo("Replacing database file");
+                    File.Replace(tempFilePath, _databaseFileInfo.FullName, backupFilePath, ignoreMetadataErrors: true);
+                    LogInfo("Replace database file completed");
+                },
                 repeat: 6, delay: TenSeconds).ConfigureAwait(false);
         }
 
-        private async Task PatchLocalDatabaseAsync()
+        private async Task<TimeSpan> PatchLocalDatabaseAsync()
         {
-            // Read in the current database from the bytes we have on disk.
-            var bytes = File.ReadAllBytes(_databaseFileInfo.FullName);
+            LogInfo("Patching local database");
 
-            // Make a database instance out of those bytes and set is as the ccurrent in memory database
+            LogInfo("Reading in local database");
+            var databaseBytes = File.ReadAllBytes(_databaseFileInfo.FullName);
+            LogInfo($"Reading in local database completed. databaseBytes.Length={databaseBytes.Length}");
+
+            // Make a database instance out of those bytes and set is as the current in memory database
             // that searches will run against.  If we can't make a database instance from these bytes
             // then our local database is corrupt and we need to download the full database to get back
             // into a good state.
-            var database = await CreateAndSetDatabase_RedownloadFullDatabaseOnFailureAsync(bytes).ConfigureAwait(false);
+            IMemberDatabase database;
+            try
+            {
+                database = CreateAndSetInMemoryDatabase(databaseBytes);
+            }
+            catch (Exception e)
+            {
+                LogException(e, "Error creating database from local copy. Downloading full database");
+                return await DownloadFullDatabaseAsync().ConfigureAwait(false);
+            }
+
             var databaseVersion = GetDatabaseVersion(database);
 
             // Now attempt to download and apply patch file.
             var serverPath = $"{DataFormatVersion}/{databaseVersion}/Patch.xml";
-            await DownloadAndProcessFileAsync(
+
+            LogInfo("Downloading and processing patch file: " + serverPath);
+
+            var delayUntilUpdate = await DownloadAndProcessFileAsync(
                 serverPath,
-                callback: x => HandlePatchXElementAsync(x, bytes)).ConfigureAwait(false);
+                callback: x => ProcessPatchXElementAsync(x, databaseBytes)).ConfigureAwait(false);
+
+            LogInfo("Downloading and processing patch file completed");
+            LogInfo("Patching local database completed");
+
+            return delayUntilUpdate;
         }
 
         /// <summary>
@@ -285,39 +372,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         /// indicates that our data is corrupt), the local database will be deleted so that we will 
         /// end up downloading the full database again.
         /// </summary>
-        private async Task<IMemberDatabase> CreateAndSetDatabase_RedownloadFullDatabaseOnFailureAsync(byte[] bytes)
+        private IMemberDatabase CreateAndSetInMemoryDatabase(byte[] bytes)
         {
-            IMemberDatabase database;
-            try
-            {
-                database = CreateDatabaseFromBytes(bytes);
-            }
-            catch
-            {
-                // Failure parsing the DB.  This means our local data is just busted.
-                // Just delete what we have locally and start all over again.  This will
-                // At least get us to download the latest version.
-                await DeleteLocalDatabaseFile().ConfigureAwait(false);
-                throw;
-            }
-
-            // we successfully loaded a database.  Set it as our current database for now.
+            var database = CreateDatabaseFromBytes(bytes);
             this.MemberDatabase = database;
             return database;
         }
 
-        private async Task DeleteLocalDatabaseFile()
+        private async Task<TimeSpan> ProcessPatchXElementAsync(XElement patchElement, byte[] databaseBytes)
         {
-            await RepeatAsync(() =>
+            try
             {
-                if (_databaseFileInfo.Exists)
+                LogInfo("Processing patch element");
+                var delayUntilUpdate = await TryProcessPatchXElementAsync(patchElement, databaseBytes).ConfigureAwait(false);
+                if (delayUntilUpdate != null)
                 {
-                    _databaseFileInfo.Delete();
+                    LogInfo($"Processing patch element completed. Update again in {delayUntilUpdate.Value}");
+                    return delayUntilUpdate.Value;
                 }
-            }, repeat: 6, delay: TenSeconds).ConfigureAwait(false);
+
+                // Fall through and download full database.
+            }
+            catch (Exception e)
+            {
+                LogException(e, "Error occurred while processing patch element. Downloading full database");
+                // Fall through and download full database.
+            }
+
+            return await DownloadFullDatabaseAsync().ConfigureAwait(false);
         }
 
-        private async Task HandlePatchXElementAsync(XElement patchElement, byte[] databaseBytes)
+        private async Task<TimeSpan?> TryProcessPatchXElementAsync(XElement patchElement, byte[] databaseBytes)
         {
             bool isUpToDate, isTooOld;
             byte[] patchBytes;
@@ -325,64 +410,78 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             if (isUpToDate)
             {
-                // Our local version is up to date.  We don't need to do anything.  Try again in a day.
-                return;
+                LogInfo("Local version is up to date");
+                return OneDay;
             }
 
             if (isTooOld)
             {
-                // Our local version is so out of date that we have no choice but to download the full
-                // database.
-                await DownloadFullDatabaseAsync().ConfigureAwait(false);
-                return;
+                LogInfo("Local version too old");
+                return null;
             }
+
+            LogInfo($"Got patch. databaseBytes.Length={databaseBytes.Length} patchBytes.Length={patchBytes.Length}.");
 
             // We have patch data.  Apply it to our current database bytes to produce the new
             // database.
-            byte[] finalDatabaseBytes;
-            try
-            {
-                finalDatabaseBytes = Patching.Delta.ApplyPatch(databaseBytes, patchBytes);
-            }
-            catch
-            {
-                // An error occurred while applying the patch.  At this point we have to assume
-                // either the local data is bad, or the patch is bad.  Downloading the patch 
-                // again likely won't help (and we'll just be stuck in the state where the local
-                // data is just getting staler).  So it's probably best if we download the latest
-                // version.
-                await DownloadFullDatabaseAsync().ConfigureAwait(false);
-                return;
-            }
+            LogInfo("Applying patch");
+            var finalBytes = Patching.Delta.ApplyPatch(databaseBytes, patchBytes);
+            LogInfo($"Applying patch completed. finalBytes.Length={finalBytes.Length}");
 
-            // We've patched the file successfully.  Now try to make a database out of it and set
-            // it as the current in memory version.  If this fails then that means there's something
-            // wrong with the patch.  Just download the full database in this event so we can get
-            // into a good state.
-            await CreateAndSetDatabase_RedownloadFullDatabaseOnFailureAsync(finalDatabaseBytes).ConfigureAwait(false);
+            CreateAndSetInMemoryDatabase(finalBytes);
 
-            // Finally write out the patched database file to disk.  
-            await WriteDatabaseFile(finalDatabaseBytes).ConfigureAwait(false);
+            await WriteDatabaseFile(finalBytes).ConfigureAwait(false);
+
+            return OneDay;
         }
 
         private void ParsePatchElement(XElement patchElement, out bool isUpToDate, out bool isTooOld, out byte[] patchBytes)
         {
-            throw new NotImplementedException();
+            patchBytes = null;
+
+            var isUpToDateAttribute = patchElement.Attribute("isUpToDate");
+            isUpToDate = isUpToDateAttribute != null && (bool)isUpToDateAttribute;
+
+            var isTooOldAttribute = patchElement.Attribute("isTooOld");
+            isTooOld = isTooOldAttribute != null && (bool)isTooOldAttribute;
+
+            var contentsAttribute = patchElement.Attribute("contents");
+            if (contentsAttribute != null)
+            {
+                var contents = contentsAttribute.Value;
+                patchBytes = Convert.FromBase64String(contents);
+            }
+
+            var hasPatchBytes = patchBytes != null;
+
+            var value = (isUpToDate ? 1 : 0) +
+                        (isTooOld ? 1 : 0) +
+                        (hasPatchBytes ? 1 : 0);
+            if (value != 1)
+            {
+                throw new FormatException($"Patch format invalid. isUpToDate={isUpToDate} isTooOld={isTooOld} hasPatchBytes={hasPatchBytes}");
+            }
         }
 
         private IMemberDatabase CreateDatabaseFromBytes(byte[] bytes)
         {
+            LogInfo("Creating database from bytes");
             using (var memoryStream = new MemoryStream(bytes))
             using (var streamReader = new StreamReader(memoryStream))
             {
                 var database = new AddReferenceDatabase();
                 database.ReadText(streamReader);
+
+                LogInfo("Creating database from bytes completed");
                 return database;
             }
         }
 
-        private async Task DownloadAndProcessFileAsync(string serverPath, Func<XElement, Task> callback)
+        private async Task<TimeSpan> DownloadAndProcessFileAsync(
+            string serverPath, Func<XElement, Task<TimeSpan>> callback)
         {
+            LogInfo("Creating download client: " + serverPath);
+
             // Create a client that will attempt to download the specified file.  The client works
             // in the following manner:
             //
@@ -394,8 +493,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             //      3) If the file is cached locally and was downloaded more than (24 * 60) 
             //         minutes ago, then the client will attempt to download the file.
             //         In the interim period null will be returned from client.ReadFile.
-            var client = _remoteControlService.CreateClient(
-                szHostId: HostId, szRelativeFilePath: serverPath, pollingIntervalMinutes: 24 * 60);
+            Type serviceType = _remoteControlService.GetType();
+            var createClientMethod = serviceType.GetMethod(
+                "Microsoft.Internal.VisualStudio.Shell.Interop.IVsRemoteControlService.CreateClient",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+
+            var closeMethod = serviceType.GetMethod(
+                "Microsoft.Internal.VisualStudio.Shell.Interop.IVsRemoteControlClient.Close",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            
+            var client = createClientMethod.Invoke(_remoteControlService, new object[] { HostId, serverPath, 24 * 60 });
+            LogInfo("Creating download client completed");
 
             // Poll the client every minute until we get the file.
             try
@@ -404,39 +512,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    var success = await TryDownloadAndProcessFileAsync(client, callback).ConfigureAwait(false);
-                    if (success)
+                    var resultOpt = await TryDownloadAndProcessFileAsync(client, callback).ConfigureAwait(false);
+                    if (resultOpt != null)
                     {
                         // We handled the file.  Our work here is done.
-                        return;
+                        return resultOpt.Value;
                     }
 
-                    // Client hasn't downloaded the file.  Wait a minute and try again.
+                    LogInfo("File not downloaded. Trying again in one minute");
                     await Task.Delay(OneMinute, _cancellationToken).ConfigureAwait(false);
                 }
             }
             finally
             {
-                client.Close();
+                LogInfo("Closing download client");
+                closeMethod.Invoke(client, null);
+                LogInfo("Closing download client completed");
             }
         }
 
-        private async Task<bool> TryDownloadAndProcessFileAsync(
-            IVsRemoteControlClient client, Func<XElement, Task> callback)
+        /// Returns 'null' if download is not available and caller should keep polling.
+        private async Task<TimeSpan?> TryDownloadAndProcessFileAsync(
+            object client, Func<XElement, Task<TimeSpan>> callback)
         {
-            // Only return a file if we have it locally *and* it's not older than our polling time (1 day).
-            var stream = client.ReadFile((int)__VsRemoteControlBehaviorOnStale.ReturnsNull);
+            LogInfo("Read file from client");
+
+            var readFileMethod = client.GetType().GetMethod(
+                "Microsoft.Internal.VisualStudio.Shell.Interop.IVsRemoteControlClient.ReadFile",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+
+            // "ReturnsNull": Only return a file if we have it locally *and* it's not older than our polling time (1 day).
+            var stream = (ISequentialStream)readFileMethod.Invoke(client, new object[] { (int)__VsRemoteControlBehaviorOnStale.ReturnsNull });
             if (stream == null)
             {
-                // No local data for this yet. Keep polling.
-                return false;
+                LogInfo("Read file completed. Client returned no data");
+                return null;
             }
 
-            var element = DownloadXElement(stream);
-            await callback(element).ConfigureAwait(false);
-
-            // We're done.  
-            return true;
+            LogInfo("Read file completed. Client returned data");
+            var element = ConvertToXElement(stream);
+            return await callback(element).ConfigureAwait(false);
         }
 
         private async Task RepeatAsync(Action action, int repeat, TimeSpan delay)
@@ -450,9 +565,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     action();
                     return;
                 }
-                catch
+                catch (Exception e)
                 {
-                    // Failed for some reason.  try again after the delay has passed.
+                    LogException(e, $"Operation failed. Trying again after {delay}");
                     await Task.Delay(delay, _cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -460,11 +575,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private byte[] ParseDatabaseElement(XElement element)
         {
-            throw new NotImplementedException();
+            LogInfo("Parsing database element");
+            var contentsAttribute = element.Attribute("contents");
+            if (contentsAttribute == null)
+            {
+                throw new FormatException("Database element invalid. Missing 'contents' attribute");
+            }
+
+            var text = contentsAttribute.Value;
+            var bytes = Encoding.UTF8.GetBytes(text);
+            LogInfo($"Parsing complete. bytes.length = {bytes.Length}");
+            return bytes;
         }
 
-        private static XElement DownloadXElement(ISequentialStream stream)
+        private XElement ConvertToXElement(ISequentialStream stream)
         {
+            LogInfo("Converting data to XElement");
             using (var memoryStream = new MemoryStream())
             {
                 byte[] temp = new byte[1 << 16];
@@ -479,7 +605,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 // Reset the stream to the beginning so we can parse out the xml from it.
                 memoryStream.Position = 0;
-                return XElement.Load(memoryStream);
+
+                LogInfo("Loading XElement");
+                var result = XElement.Load(memoryStream);
+                LogInfo("Loading XElement completed");
+
+                LogInfo("Converting data to XElement completed");
+                return result;
             }
         }
 
@@ -522,5 +654,4 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
         }
     }
-
 }
