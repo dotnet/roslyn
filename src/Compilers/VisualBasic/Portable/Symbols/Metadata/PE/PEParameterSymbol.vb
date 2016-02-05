@@ -28,14 +28,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private ReadOnly _ordinal As UShort
 
         ' Layout
-        ' |.....|c|h|r|
+        ' |.....|c|n|r|
         '
         ' r = isByRef - 1 bit (bool)
-        ' h = hasByRefBeforeCustomModifiers - 1 bit (bool)
+        ' n = hasNameInMetadata - 1 bit (bool)
         ' c = hasOptionCompare - 1 bit (bool)
         Private ReadOnly _packed As Byte
         Private Const s_isByRefMask As Integer = &H1
-        ' Available &H2
+        Private Const s_hasNameInMetadataMask As Integer = &H2
         Private Const s_hasOptionCompareMask As Integer = &H4
 
         Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
@@ -105,7 +105,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Debug.Assert(type IsNot Nothing)
 
             _containingSymbol = containingSymbol
-            _name = EnsureParameterNameNotEmpty(name)
+            Dim hasNameInMetadata As Boolean
+            _name = EnsureParameterNameNotEmpty(name, hasNameInMetadata)
             _type = type
             _handle = handle
             _ordinal = CType(ordinal, UShort)
@@ -113,10 +114,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             _lazyIsParamArray = isParamArray.ToThreeState()
             _lazyDefaultValue = defaultValue
 
-            _packed = Pack(isByRef, hasOptionCompare)
+            _packed = Pack(isByRef, hasNameInMetadata, hasOptionCompare)
             Debug.Assert(ordinal = Me.Ordinal)
             Debug.Assert(isByRef = Me.IsByRef)
             Debug.Assert(hasOptionCompare = Me.HasOptionCompare)
+            Debug.Assert(hasNameInMetadata = Me.HasNameInMetadata)
         End Sub
 
         Private Shared Function Create(
@@ -180,11 +182,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 hasOptionCompare = moduleSymbol.Module.HasAttribute(handle, AttributeDescription.OptionCompareAttribute)
             End If
 
-            _name = EnsureParameterNameNotEmpty(_name)
+            Dim hasNameInMetadata As Boolean
+            _name = EnsureParameterNameNotEmpty(_name, hasNameInMetadata)
 
-            _packed = Pack(isByRef, hasOptionCompare)
+            _packed = Pack(isByRef, hasNameInMetadata, hasOptionCompare)
             Debug.Assert(isByRef = Me.IsByRef)
             Debug.Assert(hasOptionCompare = Me.HasOptionCompare)
+            Debug.Assert(hasNameInMetadata = Me.HasNameInMetadata)
         End Sub
 
         Private NotInheritable Class PEParameterSymbolWithCustomModifiers
@@ -249,15 +253,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Property
         End Class
 
-        Private Shared Function Pack(isByRef As Boolean, hasOptionCompare As Boolean) As Byte
+        Private Shared Function Pack(isByRef As Boolean, hasNameInMetadata As Boolean, hasOptionCompare As Boolean) As Byte
             Dim isByRefBits As Integer = If(isByRef, s_isByRefMask, 0)
+            Dim hasNoNameInMetadataBits As Integer = If(hasNameInMetadata, s_hasNameInMetadataMask, 0)
             Dim hasOptionCompareBits As Integer = If(hasOptionCompare, s_hasOptionCompareMask, 0)
-            Return CType(isByRefBits Or hasOptionCompareBits, Byte)
+            Return CType(isByRefBits Or hasNoNameInMetadataBits Or hasOptionCompareBits, Byte)
         End Function
 
-        Private Shared Function EnsureParameterNameNotEmpty(name As String) As String
-            Return If(String.IsNullOrEmpty(name), "Param", name)
+        Private Shared Function EnsureParameterNameNotEmpty(name As String, <Out> ByRef hasNameInMetadata As Boolean) As String
+            hasNameInMetadata = Not String.IsNullOrEmpty(name)
+            Return If(hasNameInMetadata, name, "Param")
         End Function
+
+        Private ReadOnly Property HasNameInMetadata As Boolean
+            Get
+                Return (_packed And s_hasNameInMetadataMask) <> 0
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property MetadataName As String
+            Get
+                Return If(HasNameInMetadata, _name, String.Empty)
+            End Get
+        End Property
 
         Public Overrides ReadOnly Property Name As String
             Get

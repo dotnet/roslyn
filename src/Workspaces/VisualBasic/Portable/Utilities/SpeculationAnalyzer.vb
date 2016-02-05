@@ -538,7 +538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
             If Me.OriginalSemanticModel.OptionStrict() <> OptionStrict.Off AndAlso
                Me.SpeculativeSemanticModel.GetConstantValue(newExpression).HasValue Then
-                Dim newExpressionType = Me.SpeculativeSemanticModel.GetTypeInfo(newExpression).Type
+                Dim newExpressionType = Me.SpeculativeSemanticModel.GetTypeInfo(newExpression).ConvertedType
                 newConversion = Me.OriginalSemanticModel.Compilation.ClassifyConversion(newExpressionType, newTargetType)
             End If
 
