@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public ImportRecord(
             ImportTargetKind targetKind,
-            string alias,
-            ITypeSymbol targetType,
-            string targetString,
-            IAssemblySymbol targetAssembly,
-            string targetAssemblyAlias)
+            string alias = null,
+            ITypeSymbol targetType = null,
+            string targetString = null,
+            IAssemblySymbol targetAssembly = null,
+            string targetAssemblyAlias = null)
         {
             TargetKind = targetKind;
             Alias = alias;

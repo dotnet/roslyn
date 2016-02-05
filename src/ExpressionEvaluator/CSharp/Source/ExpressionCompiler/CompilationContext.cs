@@ -711,7 +711,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             foreach (var externAliasRecord in externAliasRecords)
             {
-                int index = externAliasRecord.GetIndexOfTargetAssembly(assembliesAndModules, compilation.Options.AssemblyIdentityComparer);
+                var targetAssembly = externAliasRecord.TargetAssembly as AssemblySymbol;
+                int index;
+                if (targetAssembly != null)
+                {
+                    index = assembliesAndModules.IndexOf(targetAssembly);
+                }
+                else
+                {
+                    index = IndexOfMatchingAssembly((AssemblyIdentity)externAliasRecord.TargetAssembly, assembliesAndModules, compilation.Options.AssemblyIdentityComparer);
+                }
+
                 if (index < 0)
                 {
                     Debug.WriteLine($"Unable to find corresponding assembly reference for extern alias '{externAliasRecord}'");
@@ -745,6 +755,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             updatedReferences.Free();
 
             return compilation;
+        }
+
+        private static int IndexOfMatchingAssembly(AssemblyIdentity referenceIdentity, ImmutableArray<Symbol> assembliesAndModules, AssemblyIdentityComparer assemblyIdentityComparer)
+        {
+            for (int i = 0; i < assembliesAndModules.Length; i++)
+            {
+                var assembly = assembliesAndModules[i] as AssemblySymbol;
+                if (assembly != null && assemblyIdentityComparer.ReferenceMatchesDefinition(referenceIdentity, assembly.Identity))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
 
         private static Binder ExtendBinderChain(

@@ -374,15 +374,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         continue;
                     }
-                    var slot = local.GetSlot();
-                    // Local slot may be less than the current count
-                    // if the array was padded with nulls earlier.
-                    while (builder.Count <= slot)
-                    {
-                        builder.Add(null);
-                    }
-                    Debug.Assert(builder[slot] == null);
-                    builder[slot] = local.GetName();
+
+                    builder.SetItem(local.GetSlot(), local.GetName());
                 }
             }
             return builder.ToImmutableAndFree();

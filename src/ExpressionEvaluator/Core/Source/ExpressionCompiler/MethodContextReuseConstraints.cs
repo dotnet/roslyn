@@ -46,6 +46,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return $"0x{_methodToken:x8}v{_methodVersion} from {_moduleVersionId} {_span}";
         }
 
+        /// <summary>
+        /// Finds a span of IL containing the specified offset where local variables and imports are guaranteed to be the same.
+        /// Examples:
+        /// scopes: [   [   ) x [  )  )
+        /// result:         [   )
+        /// 
+        /// scopes: [ x [   )   [  )  )
+        /// result: [   )     
+        /// 
+        /// scopes: [   [ x )   [  )  )
+        /// result:     [   )     
+        /// </summary>
         public static ILSpan CalculateReuseSpan(int ilOffset, ILSpan initialSpan, IEnumerable<ILSpan> scopes)
         {
             Debug.Assert(ilOffset >= 0);

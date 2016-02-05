@@ -80,5 +80,26 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             return _metadataDecoder.GetTypeSymbolForSerializedType(typeName);
         }
+
+        /// <exception cref="BadImageFormatException"></exception>
+        /// <exception cref="UnsupportedSignatureContent"></exception>
+        public override void DecodeLocalConstant(ref BlobReader reader, out TypeSymbol type, out ConstantValue value)
+        {
+            _metadataDecoder.DecodeLocalConstantBlobOrThrow(ref reader, out type, out value);
+        }
+
+        /// <exception cref="BadImageFormatException"></exception>
+        public override IAssemblySymbol GetReferencedAssembly(AssemblyReferenceHandle handle)
+        {
+            int index = _metadataDecoder.Module.GetAssemblyReferenceIndexOrThrow(handle);
+            return _metadataDecoder.ModuleSymbol.GetReferencedAssemblySymbols()[index];
+        }
+
+        /// <exception cref="UnsupportedSignatureContent"></exception>
+        public override TypeSymbol GetType(EntityHandle handle)
+        {
+            bool isNoPiaLocalType;
+            return _metadataDecoder.GetSymbolForTypeHandle(handle, out isNoPiaLocalType, allowTypeSpec: true);
+        }
     }
 }

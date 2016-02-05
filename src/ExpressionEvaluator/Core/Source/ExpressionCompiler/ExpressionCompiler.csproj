@@ -52,8 +52,6 @@
     <Compile Include="PDB\MethodDebugInfo.cs" />
     <Compile Include="PDB\ImportRecord.cs" />
     <Compile Include="PDB\PdbHelpers.cs" />
-    <Compile Include="PDB\PortableExternAliasRecord.cs" />
-    <Compile Include="PDB\NativeExternAliasRecord.cs" />
     <Compile Include="ResultProperties.cs" />
     <Compile Include="ExpressionCompilerUtilities.cs" />
     <Compile Include="ExpressionEvaluatorFatalError.cs" />

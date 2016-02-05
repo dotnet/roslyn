@@ -45,5 +45,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Public Overrides Function GetTypeSymbolForSerializedType(typeName As String) As TypeSymbol
             Return _metadataDecoder.GetTypeSymbolForSerializedType(typeName)
         End Function
+
+        ''' <exception cref="BadImageFormatException"></exception>
+        ''' <exception cref="UnsupportedSignatureContent"></exception>
+        Public Overrides Sub DecodeLocalConstant(ByRef reader As BlobReader, ByRef type As TypeSymbol, ByRef value As ConstantValue)
+            _metadataDecoder.DecodeLocalConstantBlobOrThrow(reader, type, value)
+        End Sub
+
+        ''' <exception cref="BadImageFormatException"></exception>
+        Public Overrides Function GetReferencedAssembly(handle As AssemblyReferenceHandle) As IAssemblySymbol
+            Dim index As Integer = _metadataDecoder.Module.GetAssemblyReferenceIndexOrThrow(handle)
+            Return _metadataDecoder.ModuleSymbol.GetReferencedAssemblySymbols()(index)
+        End Function
+
+        ''' <exception cref="UnsupportedSignatureContent"></exception>
+        Public Overrides Function [GetType](handle As EntityHandle) As TypeSymbol
+            Dim isNoPiaLocalType As Boolean
+            Return _metadataDecoder.GetSymbolForTypeHandle(handle, isNoPiaLocalType, allowTypeSpec:=True)
+        End Function
+
     End Class
 End Namespace

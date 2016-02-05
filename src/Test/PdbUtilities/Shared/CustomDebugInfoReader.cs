@@ -504,12 +504,12 @@ namespace Microsoft.CodeAnalysis
                 if (slot < 0)
                 {
                     constantBuilder = constantBuilder ?? ImmutableDictionary.CreateBuilder<string, ImmutableArray<bool>>();
-                    constantBuilder.Add(bucket.Name, flags);
+                    constantBuilder[bucket.Name] = flags;
                 }
                 else
                 {
                     localBuilder = localBuilder ?? ImmutableDictionary.CreateBuilder<int, ImmutableArray<bool>>();
-                    localBuilder.Add(slot, flags);
+                    localBuilder[slot] = flags;
                 }
             }
 

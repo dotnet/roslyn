@@ -26,11 +26,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return None;
             }
 
-            var allScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
-            var containingScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
-
-            MethodDebugInfo<TTypeSymbol, TLocalSymbol> info = null;
-
             var symReader4 = symReader as ISymUnmanagedReader4;
             if (symReader4 != null && !isVisualBasicMethod) // TODO: VB Portable PDBs
             {
@@ -43,38 +38,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 if (metadata != null)
                 {
-                    // TODO:
-                    var symMethod = symReader.GetMethodByVersion(methodToken, methodVersion);
-                    if (symMethod != null)
-                    {
-                        symMethod.GetAllScopes(allScopes, containingScopes, ilOffset, isScopeEndInclusive: isVisualBasicMethod);
-                    }
-
                     var mdReader = new MetadataReader(metadata, size);
                     try
                     {
-                        info = ReadFromPortable(mdReader, methodToken);
+                        return ReadFromPortable(mdReader, methodToken, ilOffset, symbolProviderOpt);
                     }
                     catch (BadImageFormatException)
                     {
                         // bad CDI, ignore
-                        info = None;
+                        return None;
                     }
-
-                    // TODO:
-                    info.LocalVariableNames = containingScopes.GetLocalNames();
-
-                    var constantsBuilder = ArrayBuilder<TLocalSymbol>.GetInstance();
-                    GetConstants(constantsBuilder, symbolProviderOpt, containingScopes, null); // TODO: dynamic info
-                    info.LocalConstants = constantsBuilder.ToImmutableAndFree();
-                    info.ReuseSpan = GetReuseSpan(allScopes, ilOffset, isVisualBasicMethod);
-                    
-                    allScopes.Free();
-                    containingScopes.Free();
-
-                    return info;
                 }
             }
+
+            var allScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
+            var containingScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
 
             try
             {
@@ -221,7 +199,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             continue;
                         }
 
-                        externAliasRecordBuilder.Add(new NativeExternAliasRecord(alias, targetIdentity));
+                        externAliasRecordBuilder.Add(new ExternAliasRecord(alias, targetIdentity));
                     }
                 }
             }
@@ -399,7 +377,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return false;
         }
 
-        internal static ILSpan GetReuseSpan(ArrayBuilder<ISymUnmanagedScope> scopes, int ilOffset, bool isEndInclusive)
+        private static ILSpan GetReuseSpan(ArrayBuilder<ISymUnmanagedScope> scopes, int ilOffset, bool isEndInclusive)
         {
             return MethodContextReuseConstraints.CalculateReuseSpan(
                 ilOffset, 
