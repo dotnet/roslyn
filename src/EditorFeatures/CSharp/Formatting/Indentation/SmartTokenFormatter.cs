@@ -50,9 +50,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             var common = startToken.GetCommonRoot(endToken);
 
             // if there are errors, do not touch lines
-            // Exception: In the case of try-catch-finally block, a try block without a catch/finally block is considered incomplete
+            // Exception 1: In the case of try-catch-finally block, a try block without a catch/finally block is considered incomplete
             //            but we would like to apply line operation in a completed try block even if there is no catch/finally block
-            if (common.ContainsDiagnostics && !CloseBraceOfTryBlock(endToken))
+            // Exception 2: Similar behavior for do-while
+            if (common.ContainsDiagnostics && !CloseBraceOfTryOrDoBlock(endToken))
             {
                 smartTokenformattingRules = (new NoLineChangeFormattingRule()).Concat(_formattingRules);
             }
@@ -60,11 +61,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             return Formatter.GetFormattedTextChanges(_root, new TextSpan[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, workspace, _optionSet, smartTokenformattingRules, cancellationToken);
         }
 
-        private bool CloseBraceOfTryBlock(SyntaxToken endToken)
+        private bool CloseBraceOfTryOrDoBlock(SyntaxToken endToken)
         {
             return endToken.IsKind(SyntaxKind.CloseBraceToken) &&
                 endToken.Parent.IsKind(SyntaxKind.Block) &&
-                endToken.Parent.IsParentKind(SyntaxKind.TryStatement);
+                (endToken.Parent.IsParentKind(SyntaxKind.TryStatement) || endToken.Parent.IsParentKind(SyntaxKind.DoStatement));
         }
 
         public Task<IList<TextChange>> FormatTokenAsync(Workspace workspace, SyntaxToken token, CancellationToken cancellationToken)
