@@ -75,6 +75,7 @@
     <Compile Include="DiagnosticAnalyzer\AnalysisValueProvider.cs" />
     <Compile Include="DiagnosticAnalyzer\SuppressMessageInfo.cs" />
     <Compile Include="Diagnostic\SuppressionInfo.cs" />
+    <Compile Include="InternalUtilities\JsonWriter.cs" />
     <Compile Include="InternalUtilities\SetWithInsertionOrder.cs" />
     <Compile Include="InternalUtilities\StackGuard.cs" />
     <Compile Include="InternalUtilities\StreamExtensions.cs" />
@@ -165,9 +166,6 @@
     <Compile Include="CommandLine\CommonCompiler.LoggingStrongNameProvider.cs" />
     <Compile Include="CommandLine\CommonCompiler.LoggingXmlFileResolver.cs" />
     <Compile Include="CommandLine\ErrorLogger.cs" />
-    <Compile Include="CommandLine\ErrorLogger.Issue.cs" />
-    <Compile Include="CommandLine\ErrorLogger.Value.cs" />
-    <Compile Include="CommandLine\ErrorLogger.WellKnownStrings.cs" />
     <Compile Include="CommandLine\TouchedFileLogger.cs" />
     <Compile Include="Compilation.EmitStreamProvider.cs" />
     <Compile Include="Compilation\LoadDirective.cs" />
