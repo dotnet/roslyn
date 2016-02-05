@@ -49,22 +49,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         internal override SyntaxNode LookupNode()
         {
+            SyntaxNode node;
+            if (!TryLookupNode(out node))
+            {
+                throw Exceptions.ThrowEFail();
+            }
+
+            return node;
+        }
+
+        internal override bool TryLookupNode(out SyntaxNode node)
+        {
+            node = null;
+
             var parentNode = _parent != null
                 ? _parent.LookupNode()
                 : FileCodeModel.GetSyntaxRoot();
 
             if (parentNode == null)
             {
-                throw Exceptions.ThrowEFail();
+                return false;
             }
 
             SyntaxNode attributeNode;
             if (!CodeModelService.TryGetAttributeNode(parentNode, _name, _ordinal, out attributeNode))
             {
-                throw Exceptions.ThrowEFail();
+                return false;
             }
 
-            return attributeNode;
+            node = attributeNode;
+            return node != null;
         }
 
         public override EnvDTE.vsCMElement Kind

@@ -47,19 +47,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         internal override SyntaxNode LookupNode()
         {
+            SyntaxNode node;
+            if (!TryLookupNode(out node))
+            {
+                throw Exceptions.ThrowEFail();
+            }
+
+            return node;
+        }
+
+        internal override bool TryLookupNode(out SyntaxNode node)
+        {
+            node = null;
+
             var parentNode = _parentHandle.Value.LookupNode();
             if (parentNode == null)
             {
-                throw Exceptions.ThrowEFail();
+                return false;
             }
 
             SyntaxNode accessorNode;
             if (!CodeModelService.TryGetAccessorNode(parentNode, _kind, out accessorNode))
             {
-                throw Exceptions.ThrowEFail();
+                return false;
             }
 
-            return accessorNode;
+            node = accessorNode;
+            return node != null;
         }
 
         public override EnvDTE.vsCMElement Kind
