@@ -35,7 +35,8 @@
     produces non-deterministic output.  This is fixed in update 2 but until that is released we use a hand patched
     version of the Task that is deterministic.  
 
-    https://github.com/Microsoft/msbuild/issues/408
+    MSBuild bug: https://github.com/Microsoft/msbuild/issues/408
+    Bug tracking removing this: https://github.com/dotnet/roslyn/issues/8421
   -->
   <UsingTask TaskName="Roslyn.MSBuild.Util.WriteCodeFragmentEx"
              AssemblyFile="$(RoslynBuildUtilFilePath)"

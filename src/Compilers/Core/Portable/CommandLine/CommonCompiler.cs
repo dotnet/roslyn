@@ -866,6 +866,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// The string returned from this function represents the inputs to the compiler which impact determinism.  It is 
+        /// meant to be inline with the specification here:
+        /// 
+        ///     - https://github.com/dotnet/roslyn/blob/master/docs/compilers/Deterministic%20Inputs.md
+        /// 
+        /// </summary>
         private static string CreateDeterminismKey(CommandLineArguments args, string[] rawArgs, string baseDirectory, CommandLineParser parser)
         {
             List<Diagnostic> diagnostics = new List<Diagnostic>();

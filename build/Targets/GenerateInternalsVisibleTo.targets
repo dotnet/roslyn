@@ -72,6 +72,7 @@
       <Output TaskParameter="Include" ItemName="InternalsVisibleToAttribute" />
     </CreateItem>
     
+    <!-- The necessity of this Task is tracked by https://github.com/dotnet/roslyn/issues/8421 -->
     <WriteCodeFragmentEx 
         Condition="'$(OS)' == 'Windows_NT'"
         AssemblyAttributes="@(InternalsVisibleToAttribute)"
