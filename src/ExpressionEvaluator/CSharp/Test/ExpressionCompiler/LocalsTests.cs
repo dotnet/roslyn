@@ -597,7 +597,7 @@ class P
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
 

@@ -182,22 +182,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                         case ImportDefinitionKind.ImportType:
                             importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.Namespace,
-                                targetType: symbolProvider.GetType(import.TargetType),
-                                targetAssembly: symbolProvider.GetReferencedAssembly(import.TargetAssembly)));
+                                ImportTargetKind.Type,
+                                targetType: symbolProvider.GetType(import.TargetType)));
                             break;
 
                         case ImportDefinitionKind.ImportXmlNamespace:
                             importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.Namespace,
+                                ImportTargetKind.XmlNamespace,
                                 alias: ReadUtf8String(reader, import.Alias),
                                 targetString: ReadUtf8String(reader, import.TargetNamespace)));
                             break;
 
                         case ImportDefinitionKind.ImportAssemblyReferenceAlias:
                             importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.Namespace,
-                                targetAssemblyAlias: ReadUtf8String(reader, import.Alias)));
+                                ImportTargetKind.Assembly,
+                                alias: ReadUtf8String(reader, import.Alias)));
                             break;
 
                         case ImportDefinitionKind.AliasAssemblyReference:
@@ -223,7 +222,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                         case ImportDefinitionKind.AliasType:
                             importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.Namespace,
+                                ImportTargetKind.Type,
                                 alias: ReadUtf8String(reader, import.Alias),
                                 targetType: symbolProvider.GetType(import.TargetType)));
                             break;

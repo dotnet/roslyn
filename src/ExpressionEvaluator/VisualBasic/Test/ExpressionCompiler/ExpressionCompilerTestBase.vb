@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             [module] As ModuleInstance,
             Optional references As IEnumerable(Of MetadataReference) = Nothing) As RuntimeInstance
 
-            Dim instance = RuntimeInstance.Create([module], references)
+            Dim instance = RuntimeInstance.Create([module], references, DebugInformationFormat.Pdb)
             _runtimeInstances.Add(instance)
             Return instance
         End Function

@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis
                     // Spec (6th edition): In II.23.2.12 and II.23.2.14, it is implied that the token in (CLASS | VALUETYPE) TypeDefOrRefOrSpecEncoded 
                     // can be a TypeSpec, when in fact it must be a TypeDef or TypeRef.
                     // See https://github.com/dotnet/roslyn/issues/7970
-                    typeSymbol = GetSymbolForTypeHandle(ppSig.ReadTypeHandle(), out refersToNoPiaLocalType, allowTypeSpec: false);
+                    typeSymbol = GetSymbolForTypeHandle(ppSig.ReadTypeHandle(), out refersToNoPiaLocalType, allowTypeSpec: false, requireShortForm: true);
                     break;
 
                 case SignatureTypeCode.Array:
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded type is invalid.</exception>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        internal TypeSymbol GetSymbolForTypeHandle(EntityHandle handle, out bool isNoPiaLocalType, bool allowTypeSpec)
+        internal TypeSymbol GetSymbolForTypeHandle(EntityHandle handle, out bool isNoPiaLocalType, bool allowTypeSpec, bool requireShortForm)
         {
             if (handle.IsNil)
             {
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis
             // 
             // Rather then producing broken code we report an error at compile time.
 
-            if (typeSymbol.SpecialType.HasShortFormSignatureEncoding())
+            if (requireShortForm && typeSymbol.SpecialType.HasShortFormSignatureEncoding())
             {
                 throw new UnsupportedSignatureContent();
             }
@@ -878,7 +878,7 @@ tryAgain:
             {
                 // TypeDefOrRefOrSpec encoded
                 bool refersToNoPiaLocalType;
-                type = GetSymbolForTypeHandle(sigReader.ReadTypeHandle(), out refersToNoPiaLocalType, allowTypeSpec: true);
+                type = GetSymbolForTypeHandle(sigReader.ReadTypeHandle(), out refersToNoPiaLocalType, allowTypeSpec: true, requireShortForm: true);
 
                 if (type.SpecialType == SpecialType.System_Decimal)
                 {
@@ -907,9 +907,9 @@ tryAgain:
                 if (isEnumTypeCode && sigReader.RemainingBytes > 0)
                 {
                     bool refersToNoPiaLocalType;
-                    type = GetSymbolForTypeHandle(sigReader.ReadTypeHandle(), out refersToNoPiaLocalType, allowTypeSpec: true);
+                    type = GetSymbolForTypeHandle(sigReader.ReadTypeHandle(), out refersToNoPiaLocalType, allowTypeSpec: true, requireShortForm: true);
 
-                    if (GetEnumUnderlyingType(type).SpecialType != specialType)
+                    if (GetEnumUnderlyingType(type)?.SpecialType != specialType)
                     {
                         throw new UnsupportedSignatureContent();
                     }
@@ -1280,7 +1280,7 @@ tryAgain:
                 case SignatureTypeCode.TypeHandle:
                     // The type of the parameter can either be an enum type or System.Type.
                     bool isNoPiaLocalType;
-                    type = GetSymbolForTypeHandle(sigReader.ReadTypeHandle(), out isNoPiaLocalType, allowTypeSpec: true);
+                    type = GetSymbolForTypeHandle(sigReader.ReadTypeHandle(), out isNoPiaLocalType, allowTypeSpec: true, requireShortForm: true);
 
                     var underlyingEnumType = GetEnumUnderlyingType(type);
 

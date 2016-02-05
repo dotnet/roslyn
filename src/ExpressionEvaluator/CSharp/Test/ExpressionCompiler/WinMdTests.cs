@@ -89,7 +89,7 @@ class C
             Assert.True(runtimeAssemblies.Length >= 1);
 
             // no reference to Windows.winmd
-            WithRuntimeInstancePortableBug(compilation0, new[] { MscorlibRef }.Concat(runtimeAssemblies), runtime =>
+            WithRuntimeInstance(compilation0, new[] { MscorlibRef }.Concat(runtimeAssemblies), runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
                 string error;

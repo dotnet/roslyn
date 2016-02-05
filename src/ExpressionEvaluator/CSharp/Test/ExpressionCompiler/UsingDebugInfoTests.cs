@@ -523,7 +523,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
@@ -558,7 +558,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
@@ -603,7 +603,7 @@ namespace A
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var importsList = GetImports(runtime, "A.C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single()).AsEnumerable().ToArray();
                 Assert.Equal(2, importsList.Length);
@@ -641,7 +641,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
@@ -683,7 +683,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
@@ -715,7 +715,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
@@ -771,7 +771,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
@@ -822,7 +822,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
@@ -863,7 +863,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("X")) });
             comp.VerifyDiagnostics();
 
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
@@ -907,7 +907,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("X")) });
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 
@@ -955,7 +955,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("global", "X")) });
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
 

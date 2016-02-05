@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' <exception cref="UnsupportedSignatureContent"></exception>
         Public Overrides Function [GetType](handle As EntityHandle) As TypeSymbol
             Dim isNoPiaLocalType As Boolean
-            Return _metadataDecoder.GetSymbolForTypeHandle(handle, isNoPiaLocalType, allowTypeSpec:=True)
+            Return _metadataDecoder.GetSymbolForTypeHandle(handle, isNoPiaLocalType, allowTypeSpec:=True, requireShortForm:=False)
         End Function
 
     End Class

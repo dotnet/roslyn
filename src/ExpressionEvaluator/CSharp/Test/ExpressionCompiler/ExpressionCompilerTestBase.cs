@@ -47,21 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             _runtimeInstances.Free();
         }
 
-        // TODO: remove -- workaround for bugs in Portable PDB handling in EE
-        internal static void WithRuntimeInstancePortableBug(Compilation compilation, Action<RuntimeInstance> validator)
-        {
-            WithRuntimeInstancePortableBug(compilation, null, validator);
-        }
-
-        // TODO: remove -- workaround for bugs in Portable PDB handling in EE
-        internal static void WithRuntimeInstancePortableBug(Compilation compilation, IEnumerable<MetadataReference> references, Action<RuntimeInstance> validator)
-        {
-            using (var instance = RuntimeInstance.Create(compilation, references, DebugInformationFormat.Pdb, true))
-            {
-                validator(instance);
-            }
-        }
-
         internal static void WithRuntimeInstance(Compilation compilation, Action<RuntimeInstance> validator)
         {
             WithRuntimeInstance(compilation, null, true, validator);
@@ -105,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             ModuleInstance module,
             IEnumerable<MetadataReference> references)
         {
-            var instance = RuntimeInstance.Create(module, references);
+            var instance = RuntimeInstance.Create(module, references, DebugInformationFormat.Pdb);
             _runtimeInstances.Add(instance);
             return instance;
         }
