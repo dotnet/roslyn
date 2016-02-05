@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -1186,6 +1187,89 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      }
                  },
                  OperationKind.LambdaExpression);
+        }
+    }
+    
+    public class StaticMemberTestAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+        
+        public static readonly DiagnosticDescriptor StaticMemberDescriptor = new DiagnosticDescriptor(
+            "StaticMember",
+            "Static member found",
+            "A static member reference expression is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        // We should not see this warning triggered by any code
+        public static readonly DiagnosticDescriptor StaticMemberWithInstanceDescriptor = new DiagnosticDescriptor(
+            "StaticMemberWithInstance",
+            "Static member with non null Instance found",
+            "A static member reference with non null Instance is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(StaticMemberDescriptor,
+                                               StaticMemberWithInstanceDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     var operation = operationContext.Operation;
+                     ISymbol memberSymbol;
+                     IExpression receiver;
+                     switch (operation.Kind)
+                     {
+                         case OperationKind.FieldReferenceExpression:
+                             memberSymbol = ((IFieldReferenceExpression)operation).Field;
+                             receiver = ((IFieldReferenceExpression)operation).Instance;
+                             break;
+                         case OperationKind.PropertyReferenceExpression:
+                             memberSymbol = ((IPropertyReferenceExpression)operation).Property;
+                             receiver = ((IPropertyReferenceExpression)operation).Instance;
+                             break;
+                         case OperationKind.EventReferenceExpression:
+                             memberSymbol = ((IEventReferenceExpression)operation).Event;
+                             receiver = ((IEventReferenceExpression)operation).Instance;
+                             break;
+                         case OperationKind.MethodBindingExpression:
+                             memberSymbol = ((IMethodBindingExpression)operation).Method;
+                             receiver = ((IMethodBindingExpression)operation).Instance;
+                             break;
+                         case OperationKind.InvocationExpression:
+                             memberSymbol = ((IInvocationExpression)operation).TargetMethod;
+                             receiver = ((IInvocationExpression)operation).Instance;
+                             break;
+                         case OperationKind.EventAssignmentExpression:
+                             memberSymbol = ((IEventAssignmentExpression)operation).Event;
+                             receiver = ((IEventAssignmentExpression)operation).EventInstance;
+                             break;
+                         default:
+                             throw new ArgumentException();
+                     }
+                     if (memberSymbol.IsStatic)
+                     {
+                         operationContext.ReportDiagnostic(Diagnostic.Create(StaticMemberDescriptor, operation.Syntax.GetLocation()));
+
+                         if (receiver != null)
+                         {
+                             operationContext.ReportDiagnostic(Diagnostic.Create(StaticMemberWithInstanceDescriptor, operation.Syntax.GetLocation()));
+                         }
+                     }
+                 },
+                 OperationKind.FieldReferenceExpression,
+                 OperationKind.PropertyReferenceExpression,
+                 OperationKind.EventReferenceExpression,
+                 OperationKind.MethodBindingExpression,
+                 OperationKind.InvocationExpression,
+                 OperationKind.EventAssignmentExpression);
         }
     }
 }

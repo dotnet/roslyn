@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -1245,6 +1246,57 @@ class C
                 //Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "(s, e) => { }").WithLocation(22, 42),
                 Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "(s, e) => { int i = 0; i++; i++; i++; }").WithLocation(23, 19),
                 Diagnostic(LambdaTestAnalyzer.TooManyStatementsInLambdaExpressionDescriptor.Id, "(s, e) => { int i = 0; i++; i++; i++; }").WithLocation(23, 19));
+        }
+
+        [WorkItem(8385, "https://github.com/dotnet/roslyn/issues/8385")]
+        [Fact]
+        public void StaticMemberReferenceCSharp()
+        {
+            const string source = @"
+using System;
+
+public class D
+{
+    public static event Action E;
+
+    public static int Field;
+
+    public static int Property => 0;
+
+    public static void Method() { }
+}
+
+class C
+{
+    public static event Action E;
+
+    public static void Bar() { }
+
+    void Foo()
+    {
+        C.E += D.Method;
+        C.E();
+        C.Bar();
+
+        D.E += () => { };
+        D.Field = 1;
+        var x = D.Property;
+        D.Method();
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("D.E").WithLocation(6, 32))
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new StaticMemberTestAnalyzer() }, null, null, false,
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.E += D.Method").WithLocation(23, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Method").WithLocation(23, 16),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.E").WithLocation(24, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.Bar()").WithLocation(25, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.E += () => { }").WithLocation(27, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Field").WithLocation(28, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Property").WithLocation(29, 17),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Method()").WithLocation(30, 9)
+                );
         }
     }
 }
