@@ -874,12 +874,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1320,12 +1320,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1335,12 +1335,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1350,12 +1350,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1365,12 +1365,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1380,12 +1380,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1395,12 +1395,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1410,12 +1410,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1425,12 +1425,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1440,12 +1440,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1455,12 +1455,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1470,12 +1470,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1485,12 +1485,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1500,12 +1500,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1515,12 +1515,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1530,12 +1530,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1545,12 +1545,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1560,12 +1560,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1575,12 +1575,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1590,12 +1590,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1605,12 +1605,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1620,12 +1620,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1635,12 +1635,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1650,12 +1650,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1665,12 +1665,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1680,12 +1680,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1695,12 +1695,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1710,12 +1710,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1725,12 +1725,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1740,12 +1740,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1755,12 +1755,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1770,12 +1770,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1785,12 +1785,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1800,12 +1800,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1815,12 +1815,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1830,12 +1830,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1845,12 +1845,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1860,12 +1860,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1875,12 +1875,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1890,12 +1890,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1905,12 +1905,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1920,12 +1920,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1935,12 +1935,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1950,12 +1950,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1965,12 +1965,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1980,12 +1980,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -1995,12 +1995,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -2010,12 +2010,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void Accept(OperationVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
