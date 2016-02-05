@@ -4878,6 +4878,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
         }
 
+        [WorkItem(176345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/176345")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task TestSpacingOptionAfterControlFlowKeyword()
         {
@@ -4913,6 +4914,9 @@ class Program
 
         using (somevar)
         { }
+
+        lock (somevar)
+        { }
     }
 }";
             var expected = @"
@@ -4946,6 +4950,9 @@ class Program
         { }
 
         using(somevar)
+        { }
+
+        lock(somevar)
         { }
     }
 }";
