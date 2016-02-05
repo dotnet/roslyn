@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Composition;
 using System.IO;
+using System.IO.Compression;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Settings;
@@ -143,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             Log(text, __ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION);
         }
-        
+
         private void LogException(Exception e, string text)
         {
             Log(text + ". " + e.ToString(), __ACTIVITYLOG_ENTRYTYPE.ALE_ERROR);
@@ -493,21 +492,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             //      3) If the file is cached locally and was downloaded more than (24 * 60) 
             //         minutes ago, then the client will attempt to download the file.
             //         In the interim period null will be returned from client.ReadFile.
-            Type serviceType = _remoteControlService.GetType();
-            var createClientMethod = serviceType.GetMethod(
-                "Microsoft.Internal.VisualStudio.Shell.Interop.IVsRemoteControlService.CreateClient",
-                BindingFlags.Instance | BindingFlags.NonPublic);
+            var serviceType = _remoteControlService.GetType();
+            var serviceAssembly = serviceType.Assembly;
+            var clientType = serviceAssembly.GetType("Microsoft.VisualStudio.Services.RemoteControl.VSRemoteControlClient");
+            var pollingMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
 
-            var closeMethod = serviceType.GetMethod(
-                "Microsoft.Internal.VisualStudio.Shell.Interop.IVsRemoteControlClient.Close",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-            
-            var client = createClientMethod.Invoke(_remoteControlService, new object[] { HostId, serverPath, 24 * 60 });
-            LogInfo("Creating download client completed");
-
-            // Poll the client every minute until we get the file.
-            try
+            var vsClient = Activator.CreateInstance(clientType, args: new object[]
             {
+                HostId,
+                serverPath,
+                pollingMinutes,
+                null
+            });
+
+            var clientField = vsClient.GetType().GetField("client", BindingFlags.Instance | BindingFlags.NonPublic);
+            using (var client = clientField.GetValue(vsClient) as IDisposable)
+            {
+                LogInfo("Creating download client completed");
+
+                // Poll the client every minute until we get the file.
                 while (true)
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
@@ -523,12 +526,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     await Task.Delay(OneMinute, _cancellationToken).ConfigureAwait(false);
                 }
             }
-            finally
-            {
-                LogInfo("Closing download client");
-                closeMethod.Invoke(client, null);
-                LogInfo("Closing download client completed");
-            }
         }
 
         /// Returns 'null' if download is not available and caller should keep polling.
@@ -537,20 +534,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             LogInfo("Read file from client");
 
-            var readFileMethod = client.GetType().GetMethod(
-                "Microsoft.Internal.VisualStudio.Shell.Interop.IVsRemoteControlClient.ReadFile",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-
             // "ReturnsNull": Only return a file if we have it locally *and* it's not older than our polling time (1 day).
-            var stream = (ISequentialStream)readFileMethod.Invoke(client, new object[] { (int)__VsRemoteControlBehaviorOnStale.ReturnsNull });
-            if (stream == null)
+            var clientType = client.GetType();
+            var readFileAsyncMethod = clientType.GetMethod("ReadFileAsync");
+            var streamTask = (Task<Stream>)readFileAsyncMethod.Invoke(client, new object[] { (int)__VsRemoteControlBehaviorOnStale.ReturnsNull });
+
+            XElement element;
+            using (var stream = await streamTask.ConfigureAwait(false))
             {
-                LogInfo("Read file completed. Client returned no data");
-                return null;
+                if (stream == null)
+                {
+                    LogInfo("Read file completed. Client returned no data");
+                    return null;
+                }
+
+                LogInfo("Read file completed. Client returned data");
+                LogInfo("Converting data to XElement");
+                element = XElement.Load(stream);
+                LogInfo("Converting data to XElement completed");
             }
 
-            LogInfo("Read file completed. Client returned data");
-            var element = ConvertToXElement(stream);
             return await callback(element).ConfigureAwait(false);
         }
 
@@ -583,35 +586,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             var text = contentsAttribute.Value;
-            var bytes = Encoding.UTF8.GetBytes(text);
-            LogInfo($"Parsing complete. bytes.length = {bytes.Length}");
-            return bytes;
-        }
+            var compressedBytes = Convert.FromBase64String(text);
 
-        private XElement ConvertToXElement(ISequentialStream stream)
-        {
-            LogInfo("Converting data to XElement");
-            using (var memoryStream = new MemoryStream())
+            using (var inStream = new MemoryStream(compressedBytes))
+            using (var gzipStream = new GZipStream(inStream, CompressionMode.Decompress))
+            using (var outStream = new MemoryStream())
             {
-                byte[] temp = new byte[1 << 16];
+                gzipStream.CopyTo(outStream);
+                var bytes = outStream.ToArray();
 
-                uint amountRead;
-                do
-                {
-                    stream.Read(temp, (uint)temp.Length, out amountRead);
-                    memoryStream.Write(temp, 0, (int)amountRead);
-                }
-                while (amountRead > 0);
-
-                // Reset the stream to the beginning so we can parse out the xml from it.
-                memoryStream.Position = 0;
-
-                LogInfo("Loading XElement");
-                var result = XElement.Load(memoryStream);
-                LogInfo("Loading XElement completed");
-
-                LogInfo("Converting data to XElement completed");
-                return result;
+                LogInfo($"Parsing complete. bytes.length = {bytes.Length}");
+                return bytes;
             }
         }
 
