@@ -47,7 +47,7 @@ while ($i -lt 3 -and $allGood) {
     foreach ($dll in gci Microsoft.CodeAnalysis.*dll,Roslyn.*dll,cs*exe,vb*exe) {
         $dllFullName = $dll.FullName
         $dllName = split-path -leaf $dllFullName
-        $dllHash = get-md5 $dll
+        $dllHash = (get-filehash $dll -algorithm MD5).Hash
         $dllKeyName = $dllFullName + ".key"
 
         if ($skipList.Contains($dllName)) {
