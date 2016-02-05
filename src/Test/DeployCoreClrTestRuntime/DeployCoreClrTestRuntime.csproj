@@ -33,9 +33,17 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Compilers\CSharp\Test\Syntax\CSharpCompilerSyntaxTest.csproj">
+      <Project>{50d26304-0961-4a51-abf6-6cad1a56d202}</Project>
+      <Name>CSharpCompilerSyntaxTest</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Scripting\CoreTest\ScriptingTest.csproj">
       <Project>{2dae4406-7a89-4b5f-95c3-bc5472ce47ce}</Project>
       <Name>ScriptingTest</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Tools\CommonNetCoreReferences\CommonNetCoreReferences.csproj">
+      <Project>{b5a6057a-eb4c-49fb-987d-943137e72e47}</Project>
+      <Name>CommonNetCoreReferences</Name>
     </ProjectReference>
   </ItemGroup>
   <ImportGroup Label="Targets">
