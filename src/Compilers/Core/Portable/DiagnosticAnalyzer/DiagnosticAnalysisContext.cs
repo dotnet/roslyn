@@ -199,17 +199,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="key"/>.
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="text"/>.
+        /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="text"/>} acts as the key.
         /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
         /// </summary>
         /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
-        /// <param name="key"><see cref="SourceText"/> for which the value is queried.</param>
-        /// <param name="valueProvider">Provider that computes the underlying value associated with the key.</param>
+        /// <param name="text"><see cref="SourceText"/> for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SourceText key, SourceTextValueProvider<TValue> valueProvider, out TValue value)
+        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, out TValue value)
         {
-            return TryGetValue(key, valueProvider.CoreValueProvider, out value);
+            return TryGetValue(text, valueProvider.CoreValueProvider, out value);
         }
 
         private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)
@@ -432,31 +433,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="key"/>.
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="text"/>.
+        /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="text"/>} acts as the key.
         /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
         /// </summary>
         /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
-        /// <param name="key"><see cref="SourceText"/> for which the value is queried.</param>
-        /// <param name="valueProvider">Provider that computes the underlying value associated with the key.</param>
+        /// <param name="text"><see cref="SourceText"/> for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SourceText key, SourceTextValueProvider<TValue> valueProvider, out TValue value)
+        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, out TValue value)
         {
-            return TryGetValue(key, valueProvider.CoreValueProvider, out value);
+            return TryGetValue(text, valueProvider.CoreValueProvider, out value);
         }
 
         /// <summary>
-        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="key"/>.
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="tree"/>.
+        /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="tree"/>} acts as the key.
         /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
         /// </summary>
         /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
-        /// <param name="key"><see cref="SyntaxTree"/> instance for which the value is queried.</param>
-        /// <param name="valueProvider">Provider that computes the underlying value associated with the key.</param>
+        /// <param name="tree"><see cref="SyntaxTree"/> instance for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SyntaxTree key, SyntaxTreeValueProvider<TValue> valueProvider, out TValue value)
+        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, out TValue value)
         {
-            return TryGetValue(key, valueProvider.CoreValueProvider, out value);
+            return TryGetValue(tree, valueProvider.CoreValueProvider, out value);
         }
 
         private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)
@@ -536,31 +539,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="key"/>.
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="text"/>.
+        /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="text"/>} acts as the key.
         /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
         /// </summary>
         /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
-        /// <param name="key"><see cref="SourceText"/> for which the value is queried.</param>
-        /// <param name="valueProvider">Provider that computes the underlying value associated with the key.</param>
+        /// <param name="text"><see cref="SourceText"/> for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SourceText key, SourceTextValueProvider<TValue> valueProvider, out TValue value)
+        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, out TValue value)
         {
-            return TryGetValue(key, valueProvider.CoreValueProvider, out value);
+            return TryGetValue(text, valueProvider.CoreValueProvider, out value);
         }
 
         /// <summary>
-        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="key"/>.
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="tree"/>.
+        /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="tree"/>} acts as the key.
         /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
         /// </summary>
         /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
-        /// <param name="key"><see cref="SyntaxTree"/> for which the value is queried.</param>
-        /// <param name="valueProvider">Provider that computes the underlying value associated with the key.</param>
+        /// <param name="tree"><see cref="SyntaxTree"/> for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SyntaxTree key, SyntaxTreeValueProvider<TValue> valueProvider, out TValue value)
+        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, out TValue value)
         {
-            return TryGetValue(key, valueProvider.CoreValueProvider, out value);
+            return TryGetValue(tree, valueProvider.CoreValueProvider, out value);
         }
 
         private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)

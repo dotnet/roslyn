@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Ask the core analysis value provider for the value.
+            // We do it outside the lock statement as this may call into user code which can be a long running operation.
             if (!_analysisValueProvider.TryGetValue(key, out value))
             {
                 value = default(TValue);
