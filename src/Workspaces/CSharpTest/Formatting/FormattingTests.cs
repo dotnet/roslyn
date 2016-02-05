@@ -7300,5 +7300,42 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(6628, "https://github.com/dotnet/roslyn/issues/6628")]
+        public async Task SuppressOperationAroundSingleLineElseStatement()
+        {
+            var code = @"
+class C
+{
+    public void M()
+    {
+        if (true)
+        {
+        }
+        else { }
+    }
+}";
+            await AssertFormatAsync(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(6628, "https://github.com/dotnet/roslyn/issues/6628")]
+        public async Task SuppressOperationAroundSingleLineElseBoby()
+        {
+            var code = @"
+class C
+{
+    public void M()
+    {
+        if (true)
+        {
+        }
+        else
+        { }
+    }
+}";
+            await AssertFormatAsync(code, code);
+        }
     }
 }
