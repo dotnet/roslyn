@@ -13,8 +13,10 @@ Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.None = 0 -> Micros
 Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.ReportDiagnostics = 16 -> Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
+Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.ContainingSymbol.get -> Microsoft.CodeAnalysis.ISymbol
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.Operation.get -> Microsoft.CodeAnalysis.Semantics.IOperation
-Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.OperationAnalysisContext(Microsoft.CodeAnalysis.Semantics.IOperation operation, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<Microsoft.CodeAnalysis.Diagnostic> reportDiagnostic, System.Func<Microsoft.CodeAnalysis.Diagnostic, bool> isSupportedDiagnostic, System.Threading.CancellationToken cancellationToken) -> void
+Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.OperationAnalysisContext(Microsoft.CodeAnalysis.Semantics.IOperation operation, Microsoft.CodeAnalysis.ISymbol containingSymbol, Microsoft.CodeAnalysis.Compilation compilation, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<Microsoft.CodeAnalysis.Diagnostic> reportDiagnostic, System.Func<Microsoft.CodeAnalysis.Diagnostic, bool> isSupportedDiagnostic, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext
@@ -31,6 +33,9 @@ Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.OperationB
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.OwningSymbol.get -> Microsoft.CodeAnalysis.ISymbol
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.Semantics.OperationKind[] operationKinds) -> void
+Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
+Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.ContainingSymbol.get -> Microsoft.CodeAnalysis.ISymbol
+Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.SyntaxNodeAnalysisContext(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.ISymbol containingSymbol, Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<Microsoft.CodeAnalysis.Diagnostic> reportDiagnostic, System.Func<Microsoft.CodeAnalysis.Diagnostic, bool> isSupportedDiagnostic, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockEndActionsCount.get -> int
