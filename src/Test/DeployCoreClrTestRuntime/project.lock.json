@@ -529,13 +529,13 @@
           "lib/DNXCore50/System.Reflection.Primitives.dll": {}
         }
       },
-      "System.Reflection.TypeExtensions/4.1.0-beta-23423": {
+      "System.Reflection.TypeExtensions/4.1.0-beta-23504": {
         "dependencies": {
           "System.Reflection": "[4.0.0, )",
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.1/System.Reflection.TypeExtensions.dll": {}
+          "ref/dotnet5.4/System.Reflection.TypeExtensions.dll": {}
         },
         "runtime": {
           "lib/DNXCore50/System.Reflection.TypeExtensions.dll": {}
@@ -598,6 +598,20 @@
           "lib/DNXCore50/System.Runtime.InteropServices.dll": {}
         }
       },
+      "System.Runtime.Numerics/4.0.1-beta-23504": {
+        "dependencies": {
+          "System.Globalization": "[4.0.10, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet5.2/System.Runtime.Numerics.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet5.4/System.Runtime.Numerics.dll": {}
+        }
+      },
       "System.Text.Encoding/4.0.11-beta-23504": {
         "dependencies": {
           "System.Runtime": "[4.0.0, )"
@@ -655,6 +669,24 @@
         },
         "runtime": {
           "lib/DNXCore50/System.Threading.Tasks.dll": {}
+        }
+      },
+      "System.Threading.Tasks.Parallel/4.0.1-beta-23504": {
+        "dependencies": {
+          "System.Collections.Concurrent": "[4.0.10, )",
+          "System.Diagnostics.Debug": "[4.0.10, )",
+          "System.Diagnostics.Tracing": "[4.0.20, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )",
+          "System.Threading": "[4.0.10, )",
+          "System.Threading.Tasks": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet5.2/System.Threading.Tasks.Parallel.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet5.4/System.Threading.Tasks.Parallel.dll": {}
         }
       },
       "System.Threading.Thread/4.0.0-beta-23504": {
@@ -1718,6 +1750,20 @@
           "lib/DNXCore50/System.Runtime.InteropServices.dll": {}
         }
       },
+      "System.Runtime.Numerics/4.0.1-beta-23504": {
+        "dependencies": {
+          "System.Globalization": "[4.0.10, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet5.2/System.Runtime.Numerics.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet5.4/System.Runtime.Numerics.dll": {}
+        }
+      },
       "System.Text.Encoding/4.0.11-beta-23504": {
         "dependencies": {
           "System.Runtime": "[4.0.0, )"
@@ -1787,6 +1833,24 @@
         },
         "runtime": {
           "lib/DNXCore50/System.Threading.Tasks.dll": {}
+        }
+      },
+      "System.Threading.Tasks.Parallel/4.0.1-beta-23504": {
+        "dependencies": {
+          "System.Collections.Concurrent": "[4.0.10, )",
+          "System.Diagnostics.Debug": "[4.0.10, )",
+          "System.Diagnostics.Tracing": "[4.0.20, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )",
+          "System.Threading": "[4.0.10, )",
+          "System.Threading.Tasks": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet5.2/System.Threading.Tasks.Parallel.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet5.4/System.Threading.Tasks.Parallel.dll": {}
         }
       },
       "System.Threading.Thread/4.0.0-beta-23504": {
@@ -3865,40 +3929,6 @@
         "System.Reflection.Primitives.nuspec"
       ]
     },
-    "System.Reflection.TypeExtensions/4.1.0-beta-23423": {
-      "sha512": "AukqJ19lwCqxaYlgSJg5Nu7fIu1uqxWonFFfNP2/BIm7DERNOYztrHd/njW5Z9dX0XguvOWwkDTzjUrp8FeGAQ==",
-      "type": "Package",
-      "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "lib/DNXCore50/System.Reflection.TypeExtensions.dll",
-        "lib/MonoAndroid10/_._",
-        "lib/MonoTouch10/_._",
-        "lib/net46/System.Reflection.TypeExtensions.dll",
-        "lib/netcore50/System.Reflection.TypeExtensions.dll",
-        "lib/xamarinios10/_._",
-        "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/ef5edd9a8697479899968869a1897f10.psmdcp",
-        "ref/dotnet5.1/de/System.Reflection.TypeExtensions.xml",
-        "ref/dotnet5.1/es/System.Reflection.TypeExtensions.xml",
-        "ref/dotnet5.1/fr/System.Reflection.TypeExtensions.xml",
-        "ref/dotnet5.1/it/System.Reflection.TypeExtensions.xml",
-        "ref/dotnet5.1/ja/System.Reflection.TypeExtensions.xml",
-        "ref/dotnet5.1/ko/System.Reflection.TypeExtensions.xml",
-        "ref/dotnet5.1/ru/System.Reflection.TypeExtensions.xml",
-        "ref/dotnet5.1/System.Reflection.TypeExtensions.dll",
-        "ref/dotnet5.1/System.Reflection.TypeExtensions.xml",
-        "ref/dotnet5.1/zh-hans/System.Reflection.TypeExtensions.xml",
-        "ref/dotnet5.1/zh-hant/System.Reflection.TypeExtensions.xml",
-        "ref/MonoAndroid10/_._",
-        "ref/MonoTouch10/_._",
-        "ref/net46/System.Reflection.TypeExtensions.dll",
-        "ref/xamarinios10/_._",
-        "ref/xamarinmac20/_._",
-        "runtimes/win8-aot/lib/netcore50/System.Reflection.TypeExtensions.dll",
-        "System.Reflection.TypeExtensions.nuspec"
-      ]
-    },
     "System.Reflection.TypeExtensions/4.1.0-beta-23504": {
       "sha512": "/c1o5S0I896j0lTj2TgkIBXnF25fK41kmHYeAaSIgHZusFN6bHU50BpvFQP7Ki2Kkga8z/dv9PfGgG7MvmG+8A==",
       "type": "Package",
@@ -4212,6 +4242,46 @@
         "ref/xamarinmac20/_._",
         "runtimes/win8-aot/lib/netcore50/System.Runtime.InteropServices.dll",
         "System.Runtime.InteropServices.nuspec"
+      ]
+    },
+    "System.Runtime.Numerics/4.0.1-beta-23504": {
+      "sha512": "pxIPbRDjhlBqZI2QXLJAQuVj3p2CmYyzUwcD6K74H0hNxLmCeBasgR81mO3X/OaFhlpBI11QVM5eCWAv3WEifg==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dotnet5.4/System.Runtime.Numerics.dll",
+        "lib/net45/_._",
+        "lib/netcore50/System.Runtime.Numerics.dll",
+        "lib/win8/_._",
+        "lib/wpa81/_._",
+        "package/services/metadata/core-properties/79f0cfb216ba40fc9ed315a5b535a4ae.psmdcp",
+        "ref/dotnet5.2/de/System.Runtime.Numerics.xml",
+        "ref/dotnet5.2/es/System.Runtime.Numerics.xml",
+        "ref/dotnet5.2/fr/System.Runtime.Numerics.xml",
+        "ref/dotnet5.2/it/System.Runtime.Numerics.xml",
+        "ref/dotnet5.2/ja/System.Runtime.Numerics.xml",
+        "ref/dotnet5.2/ko/System.Runtime.Numerics.xml",
+        "ref/dotnet5.2/ru/System.Runtime.Numerics.xml",
+        "ref/dotnet5.2/System.Runtime.Numerics.dll",
+        "ref/dotnet5.2/System.Runtime.Numerics.xml",
+        "ref/dotnet5.2/zh-hans/System.Runtime.Numerics.xml",
+        "ref/dotnet5.2/zh-hant/System.Runtime.Numerics.xml",
+        "ref/net45/_._",
+        "ref/netcore50/de/System.Runtime.Numerics.xml",
+        "ref/netcore50/es/System.Runtime.Numerics.xml",
+        "ref/netcore50/fr/System.Runtime.Numerics.xml",
+        "ref/netcore50/it/System.Runtime.Numerics.xml",
+        "ref/netcore50/ja/System.Runtime.Numerics.xml",
+        "ref/netcore50/ko/System.Runtime.Numerics.xml",
+        "ref/netcore50/ru/System.Runtime.Numerics.xml",
+        "ref/netcore50/System.Runtime.Numerics.dll",
+        "ref/netcore50/System.Runtime.Numerics.xml",
+        "ref/netcore50/zh-hans/System.Runtime.Numerics.xml",
+        "ref/netcore50/zh-hant/System.Runtime.Numerics.xml",
+        "ref/win8/_._",
+        "ref/wpa81/_._",
+        "System.Runtime.Numerics.nuspec"
       ]
     },
     "System.Text.Encoding/4.0.11-beta-23504": {
@@ -4576,6 +4646,46 @@
         "ref/xamarinmac20/_._",
         "runtimes/win8-aot/lib/netcore50/System.Threading.Tasks.dll",
         "System.Threading.Tasks.nuspec"
+      ]
+    },
+    "System.Threading.Tasks.Parallel/4.0.1-beta-23504": {
+      "sha512": "QiFGqCNgeQll8ua1mGVdAiMyEj2WIr9T54ERZXyk8xduy4/lRneMgBgqDuc4W0gSmLj9pdrYfplD9MMZnc5ZXw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dotnet5.4/System.Threading.Tasks.Parallel.dll",
+        "lib/net45/_._",
+        "lib/netcore50/System.Threading.Tasks.Parallel.dll",
+        "lib/win8/_._",
+        "lib/wpa81/_._",
+        "package/services/metadata/core-properties/e7ed8dcaeaea4a81b6833355b39612c5.psmdcp",
+        "ref/dotnet5.2/de/System.Threading.Tasks.Parallel.xml",
+        "ref/dotnet5.2/es/System.Threading.Tasks.Parallel.xml",
+        "ref/dotnet5.2/fr/System.Threading.Tasks.Parallel.xml",
+        "ref/dotnet5.2/it/System.Threading.Tasks.Parallel.xml",
+        "ref/dotnet5.2/ja/System.Threading.Tasks.Parallel.xml",
+        "ref/dotnet5.2/ko/System.Threading.Tasks.Parallel.xml",
+        "ref/dotnet5.2/ru/System.Threading.Tasks.Parallel.xml",
+        "ref/dotnet5.2/System.Threading.Tasks.Parallel.dll",
+        "ref/dotnet5.2/System.Threading.Tasks.Parallel.xml",
+        "ref/dotnet5.2/zh-hans/System.Threading.Tasks.Parallel.xml",
+        "ref/dotnet5.2/zh-hant/System.Threading.Tasks.Parallel.xml",
+        "ref/net45/_._",
+        "ref/netcore50/de/System.Threading.Tasks.Parallel.xml",
+        "ref/netcore50/es/System.Threading.Tasks.Parallel.xml",
+        "ref/netcore50/fr/System.Threading.Tasks.Parallel.xml",
+        "ref/netcore50/it/System.Threading.Tasks.Parallel.xml",
+        "ref/netcore50/ja/System.Threading.Tasks.Parallel.xml",
+        "ref/netcore50/ko/System.Threading.Tasks.Parallel.xml",
+        "ref/netcore50/ru/System.Threading.Tasks.Parallel.xml",
+        "ref/netcore50/System.Threading.Tasks.Parallel.dll",
+        "ref/netcore50/System.Threading.Tasks.Parallel.xml",
+        "ref/netcore50/zh-hans/System.Threading.Tasks.Parallel.xml",
+        "ref/netcore50/zh-hant/System.Threading.Tasks.Parallel.xml",
+        "ref/win8/_._",
+        "ref/wpa81/_._",
+        "System.Threading.Tasks.Parallel.nuspec"
       ]
     },
     "System.Threading.Thread/4.0.0-beta-23504": {
@@ -5003,6 +5113,8 @@
       "Microsoft.NETCore.Runtime.CoreCLR >= 1.0.1-beta-23504",
       "Microsoft.NETCore.TestHost >= 1.0.0-beta-23504",
       "System.Runtime >= 4.0.21-beta-23504",
+      "System.Runtime.Numerics >= 4.0.1-beta-23504",
+      "System.Threading.Tasks.Parallel >= 4.0.1-beta-23504",
       "xunit.console.netcore >= 1.0.2-prerelease-00104"
     ],
     "DNXCore,Version=v5.0": []

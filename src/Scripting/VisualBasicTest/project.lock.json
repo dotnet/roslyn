@@ -321,13 +321,13 @@
           "ref/dotnet/System.Reflection.Primitives.dll": {}
         }
       },
-      "System.Reflection.TypeExtensions/4.1.0-beta-23423": {
+      "System.Reflection.TypeExtensions/4.1.0-beta-23504": {
         "dependencies": {
           "System.Reflection": "[4.0.0, )",
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.1/System.Reflection.TypeExtensions.dll": {}
+          "ref/dotnet5.4/System.Reflection.TypeExtensions.dll": {}
         }
       },
       "System.Resources.ResourceManager/4.0.0": {
@@ -1638,8 +1638,8 @@
         "System.Reflection.Primitives.nuspec"
       ]
     },
-    "System.Reflection.TypeExtensions/4.1.0-beta-23423": {
-      "sha512": "AukqJ19lwCqxaYlgSJg5Nu7fIu1uqxWonFFfNP2/BIm7DERNOYztrHd/njW5Z9dX0XguvOWwkDTzjUrp8FeGAQ==",
+    "System.Reflection.TypeExtensions/4.1.0-beta-23504": {
+      "sha512": "/c1o5S0I896j0lTj2TgkIBXnF25fK41kmHYeAaSIgHZusFN6bHU50BpvFQP7Ki2Kkga8z/dv9PfGgG7MvmG+8A==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -1651,18 +1651,18 @@
         "lib/netcore50/System.Reflection.TypeExtensions.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/ef5edd9a8697479899968869a1897f10.psmdcp",
-        "ref/dotnet5.1/de/System.Reflection.TypeExtensions.xml",
-        "ref/dotnet5.1/es/System.Reflection.TypeExtensions.xml",
-        "ref/dotnet5.1/fr/System.Reflection.TypeExtensions.xml",
-        "ref/dotnet5.1/it/System.Reflection.TypeExtensions.xml",
-        "ref/dotnet5.1/ja/System.Reflection.TypeExtensions.xml",
-        "ref/dotnet5.1/ko/System.Reflection.TypeExtensions.xml",
-        "ref/dotnet5.1/ru/System.Reflection.TypeExtensions.xml",
-        "ref/dotnet5.1/System.Reflection.TypeExtensions.dll",
-        "ref/dotnet5.1/System.Reflection.TypeExtensions.xml",
-        "ref/dotnet5.1/zh-hans/System.Reflection.TypeExtensions.xml",
-        "ref/dotnet5.1/zh-hant/System.Reflection.TypeExtensions.xml",
+        "package/services/metadata/core-properties/d98200d981c54ffbb7659fbdb8e03658.psmdcp",
+        "ref/dotnet5.4/de/System.Reflection.TypeExtensions.xml",
+        "ref/dotnet5.4/es/System.Reflection.TypeExtensions.xml",
+        "ref/dotnet5.4/fr/System.Reflection.TypeExtensions.xml",
+        "ref/dotnet5.4/it/System.Reflection.TypeExtensions.xml",
+        "ref/dotnet5.4/ja/System.Reflection.TypeExtensions.xml",
+        "ref/dotnet5.4/ko/System.Reflection.TypeExtensions.xml",
+        "ref/dotnet5.4/ru/System.Reflection.TypeExtensions.xml",
+        "ref/dotnet5.4/System.Reflection.TypeExtensions.dll",
+        "ref/dotnet5.4/System.Reflection.TypeExtensions.xml",
+        "ref/dotnet5.4/zh-hans/System.Reflection.TypeExtensions.xml",
+        "ref/dotnet5.4/zh-hant/System.Reflection.TypeExtensions.xml",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/net46/System.Reflection.TypeExtensions.dll",
