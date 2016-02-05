@@ -67,7 +67,7 @@ msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configu
 call :TerminateBuildProcesses
 
 if defined TestDeterminism (
-    powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\test-determinism.ps1 %RoslynRoot%\%bindir%\Bootstrap" || goto :BuildFailed
+    powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\test-determinism.ps1 %bindir%\Bootstrap" || goto :BuildFailed
     exit /b 0
 )
 
