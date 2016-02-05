@@ -275,16 +275,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 var semanticModel = await document.GetSemanticModelAsync();
                 return semanticModel.GetSymbolInfo(syntaxRoot.FindNode(testDocument.SelectedSpans.Single())).Symbol;
             }
-
-            private class GenerationResult
-            {
-                public readonly MetadataAsSourceFile File;
-
-                public GenerationResult(MetadataAsSourceFile file)
-                {
-                    this.File = file;
-                }
-            }
         }
     }
 }

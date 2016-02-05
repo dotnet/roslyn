@@ -63,6 +63,7 @@
     <Compile Include="CommandLineRunnerTests.cs" />
     <Compile Include="InteractiveSessionFixtures.cs" />
     <Compile Include="InteractiveSessionTests.cs" />
+    <Compile Include="PrintOptionsTests.cs" />
     <Compile Include="ObjectFormatterTests.cs" />
     <Compile Include="ScriptTests.cs" />
   </ItemGroup>

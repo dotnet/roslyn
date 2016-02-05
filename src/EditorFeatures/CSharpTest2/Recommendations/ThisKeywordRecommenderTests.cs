@@ -367,7 +367,7 @@ $$");
     void $$");
         }
 
-        [WorkItem(542636)]
+        [WorkItem(542636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542636")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterType()
         {
@@ -376,7 +376,7 @@ $$");
     int $$");
         }
 
-        [WorkItem(542636)]
+        [WorkItem(542636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542636")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterTypeArray()
         {
@@ -385,7 +385,7 @@ $$");
     internal byte[] $$");
         }
 
-        [WorkItem(542636)]
+        [WorkItem(542636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542636")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterTypeArrayBeforeArguments()
         {
@@ -394,7 +394,7 @@ $$");
     internal byte[] $$[int i] { get; }");
         }
 
-        [WorkItem(542636)]
+        [WorkItem(542636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542636")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterTypeBeforeArguments()
         {
@@ -416,7 +416,7 @@ $$");
         int rowOffset = (int)(rowId - 1) * $$");
         }
 
-        [WorkItem(538264)]
+        [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInStaticMethod()
         {
@@ -426,7 +426,7 @@ $$");
 }");
         }
 
-        [WorkItem(538264)]
+        [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInStaticProperty()
         {
@@ -436,7 +436,7 @@ $$");
 }");
         }
 
-        [WorkItem(538264)]
+        [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInInstanceProperty()
         {
@@ -446,7 +446,7 @@ $$");
 }");
         }
 
-        [WorkItem(538264)]
+        [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInStaticConstructor()
         {
@@ -456,7 +456,7 @@ $$");
 }");
         }
 
-        [WorkItem(538264)]
+        [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInInstanceConstructor()
         {
@@ -466,7 +466,7 @@ $$");
 }");
         }
 
-        [WorkItem(538264)]
+        [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInEnumMemberInitializer1()
         {
@@ -476,7 +476,7 @@ $$");
 }");
         }
 
-        [WorkItem(539334)]
+        [WorkItem(539334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539334")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPartialInType()
         {
@@ -487,7 +487,7 @@ $$");
 }");
         }
 
-        [WorkItem(540476)]
+        [WorkItem(540476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540476")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterIncompleteTypeName()
         {
@@ -498,7 +498,7 @@ $$");
 }");
         }
 
-        [WorkItem(541712)]
+        [WorkItem(541712, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541712")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInStaticMethodContext()
         {
@@ -512,7 +512,7 @@ $$");
 }");
         }
 
-        [WorkItem(544219)]
+        [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInObjectInitializerMemberContext()
         {
@@ -526,7 +526,7 @@ class C
         }
 
         [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
-        [WorkItem(1107414)]
+        [WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInExpressionBodiedMembersProperty()
         {
@@ -540,7 +540,7 @@ class C
         }
 
         [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
-        [WorkItem(1107414)]
+        [WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInExpressionBodiedMembersMethod()
         {
@@ -552,7 +552,7 @@ class C
         }
 
         [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
-        [WorkItem(1107414)]
+        [WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInExpressionBodiedMembersIndexer()
         {
@@ -564,7 +564,7 @@ class C
         }
 
         [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
-        [WorkItem(1107414)]
+        [WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInExpressionBodiedMembers_Static()
         {
@@ -576,7 +576,7 @@ class C
         }
 
         [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
-        [WorkItem(1107414)]
+        [WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInExpressionBodiedMembersOperator()
         {
@@ -588,7 +588,7 @@ class C
         }
 
         [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
-        [WorkItem(1107414)]
+        [WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInExpressionBodiedMembersConversionOperator()
         {
@@ -604,7 +604,7 @@ class C
         }
 
         [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
-        [WorkItem(1107414)]
+        [WorkItem(1107414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107414")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestOutsideExpressionBodiedMember()
         {

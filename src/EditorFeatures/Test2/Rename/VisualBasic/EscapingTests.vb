@@ -179,7 +179,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(542104)>
+        <WorkItem(542104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542104")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeWhenRenamingPropertyToMid()
             Using result = RenameEngineResult.Create(
@@ -206,7 +206,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(542104)>
+        <WorkItem(542104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542104")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeWhenRenamingPropertyToStrangelyCasedMid()
             Using result = RenameEngineResult.Create(
@@ -233,7 +233,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(542166)>
+        <WorkItem(542166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542166")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeWhenRenamingToMidWithTypeCharacters1()
             Using result = RenameEngineResult.Create(
@@ -260,7 +260,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(542166)>
+        <WorkItem(542166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542166")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeWhenRenamingToMidWithTypeCharacters2()
             Using result = RenameEngineResult.Create(
@@ -310,7 +310,7 @@ End Module
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(542322)>
+        <WorkItem(542322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542322")>
         Public Sub EscapeRemKeywordWhenDoingTypeNameQualification()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -336,7 +336,7 @@ End Module
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(542322)>
+        <WorkItem(542322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542322")>
         Public Sub EscapeNewKeywordWhenDoingTypeNameQualification()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -362,7 +362,7 @@ End Module
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(542322)>
+        <WorkItem(542322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542322")>
         Public Sub EscapeRemKeywordWhenDoingMeQualification()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -388,7 +388,7 @@ End Class
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(542322)>
+        <WorkItem(542322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542322")>
         Public Sub DoNotEscapeIfKeywordWhenDoingMeQualification()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -412,7 +412,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem(529935)>
+        <WorkItem(529935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529935")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeIdentifierWhenRenamingToRemKeyword()
@@ -434,7 +434,7 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(529935)>
+        <WorkItem(529935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529935")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeIdentifierWhenRenamingToRemKeyword2()
@@ -457,7 +457,7 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(529938)>
+        <WorkItem(529938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529938")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamingToEscapedIdentifierWithFullwidthSquareBracket()
@@ -478,7 +478,7 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(529932)>
+        <WorkItem(529932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529932")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeContextualKeywordsInQuery1()
@@ -518,7 +518,7 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(530805)>
+        <WorkItem(530805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530805")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeMidIfNeeded()
@@ -542,7 +542,7 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(607067)>
+        <WorkItem(607067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607067")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamingToRemAndUsingTypeCharactersIsNotAllowed()

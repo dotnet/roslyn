@@ -230,7 +230,7 @@ $$
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(968256)]
+        [WorkItem(968256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task UnionOfItemsFromBothContexts()
         {

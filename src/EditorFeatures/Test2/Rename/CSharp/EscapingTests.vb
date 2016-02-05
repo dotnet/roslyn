@@ -93,7 +93,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
             End Using
         End Sub
 
-        <WorkItem(527603)>
+        <WorkItem(527603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527603")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub DoNotStickTokensTogetherForRefParameter_1()
@@ -113,7 +113,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
             End Using
         End Sub
 
-        <WorkItem(527603)>
+        <WorkItem(527603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527603")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub DoNotStickTokensTogetherForRefParameter_2()

@@ -255,7 +255,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        [WorkItem(1029928, "DevDiv")]
+        [WorkItem(1029928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029928")]
         public void BadAnalyzerReference_DisplayName()
         {
             var directory = Temp.CreateDirectory();
@@ -303,7 +303,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        [WorkItem(1032909)]
+        [WorkItem(1032909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032909")]
         public void TestFailedLoadDoesntCauseNoAnalyzersWarning()
         {
             var directory = Temp.CreateDirectory();

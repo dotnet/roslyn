@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 using Microsoft.DiaSymReader;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
     internal sealed class MethodDebugInfoBytes
     {

@@ -177,7 +177,7 @@ object.ReferenceEquals(a.GetType(), c.GetType()).ToString() + "" "" +
             Assert.Equal("True False True", script.EvaluateAsync().Result.ToString());
         }
 
-        [WorkItem(543863)]
+        [WorkItem(543863, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543863")]
         [Fact]
         public void AnonymousTypes_Redefinition()
         {
@@ -394,7 +394,7 @@ pi = i + j + k + l;
             Assert.Equal(16, script.ContinueWith<int>("pi").EvaluateAsync().Result);
         }
 
-        [WorkItem(100639)]
+        [WorkItem(100639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/100639")]
         [Fact]
         public void ExternDestructor()
         {
@@ -683,7 +683,7 @@ public override string ToString() { return null; }
 
         #region Generics
 
-        [Fact, WorkItem(201759)]
+        [Fact, WorkItem(201759, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/201759")]
         public void CompilationChain_GenericTypes()
         {
             var script = CSharpScript.Create(@"
@@ -700,7 +700,7 @@ iC.method(iC.field)
             Assert.Equal(3, script.EvaluateAsync().Result);
         }
 
-        [WorkItem(529243)]
+        [WorkItem(529243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529243")]
         [Fact]
         public void RecursiveBaseType()
         {
@@ -1009,8 +1009,8 @@ new object[] { x, y, z }
         /// Name of PrivateImplementationDetails type needs to be unique across submissions.
         /// The compiler should suffix it with a MVID of the current submission module so we should be fine.
         /// </summary>
-        [WorkItem(949559)]
-        [WorkItem(540237)]
+        [WorkItem(949559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949559")]
+        [WorkItem(540237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540237")]
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
         [WorkItem(2721, "https://github.com/dotnet/roslyn/issues/2721")]
         [Fact]

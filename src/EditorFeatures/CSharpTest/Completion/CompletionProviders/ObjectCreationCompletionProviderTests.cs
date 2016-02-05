@@ -49,7 +49,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "<anonymous type: string Foo, int Bar>");
         }
 
-        [WorkItem(854497)]
+        [WorkItem(854497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854497")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotVoid()
         {
@@ -65,7 +65,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "void");
         }
 
-        [WorkItem(827897)]
+        [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InYieldReturn()
         {
@@ -83,7 +83,7 @@ class Program
             await VerifyItemExistsAsync(markup, "FieldAccessException");
         }
 
-        [WorkItem(827897)]
+        [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InAsyncMethodReturnStatement()
         {
@@ -147,7 +147,7 @@ class Program
             await VerifySendEnterThroughToEnterAsync(markup, "D", sendThroughEnterEnabled: true, expected: true);
         }
 
-        [WorkItem(828196)]
+        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SuggestAlias()
         {
@@ -163,7 +163,7 @@ class Program
             await VerifyItemExistsAsync(markup, "D");
         }
 
-        [WorkItem(828196)]
+        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SuggestAlias2()
         {
@@ -184,7 +184,7 @@ class Program
             await VerifyItemExistsAsync(markup, "D");
         }
 
-        [WorkItem(1075275)]
+        [WorkItem(1075275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075275")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitAlias()
         {
@@ -210,7 +210,7 @@ class Program
             await VerifyProviderCommitAsync(markup, "D", expected, '(', "");
         }
 
-        [WorkItem(1090377)]
+        [WorkItem(1090377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090377")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterNewFollowedByAssignment()
         {
@@ -236,7 +236,7 @@ class Foo
             await VerifyItemExistsAsync(markup, "Location");
         }
 
-        [WorkItem(1090377)]
+        [WorkItem(1090377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090377")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterNewFollowedByAssignment_GrandParentIsSimpleAssignment()
         {

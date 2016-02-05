@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class DebuggerDisplayAttributeTests : CSharpResultProviderTestBase
     {
@@ -551,7 +551,7 @@ class B : A<int> { }
                 EvalResult("b", "Type={B}", "B", "b", DkmEvaluationResultFlags.None));
         }
 
-        [WorkItem(1016895)]
+        [WorkItem(1016895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016895")]
         [Fact]
         public void RootVersusInternal()
         {

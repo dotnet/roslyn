@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WorkItem(542475)>
+        <WorkItem(542475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542475")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestPartialParameter1() As Task
             Dim input =
@@ -130,7 +130,7 @@ partial class program
             Await TestAsync(input)
         End Function
 
-        <WorkItem(542475)>
+        <WorkItem(542475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542475")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestPartialParameter2() As Task
             Dim input =
@@ -195,7 +195,7 @@ partial class program
 
 #End Region
 
-        <WorkItem(543276)>
+        <WorkItem(543276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543276")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAnonymousFunctionParameter1() As Task
             Dim input =
@@ -218,7 +218,7 @@ End Module
             Await TestAsync(input)
         End Function
 
-        <WorkItem(624310)>
+        <WorkItem(624310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624310")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAnonymousFunctionParameter3() As Task
             Dim input =
@@ -238,7 +238,7 @@ End Module
             Await TestAsync(input)
         End Function
 
-        <WorkItem(624310)>
+        <WorkItem(624310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624310")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAnonymousFunctionParameter4() As Task
             Dim input =
@@ -257,7 +257,7 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WorkItem(543276)>
+        <WorkItem(543276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543276")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAnonymousFunctionParameter2() As Task
             Dim input =
@@ -280,7 +280,7 @@ End Module
             Await TestAsync(input)
         End Function
 
-        <WorkItem(529688)>
+        <WorkItem(529688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529688")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAnonymousFunctionParameter5() As Task
             Dim input =
@@ -300,7 +300,7 @@ End Module
             Await TestAsync(input)
         End Function
 
-        <WorkItem(545654)>
+        <WorkItem(545654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545654")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestReducedExtensionNamedParameter1() As Task
             Dim input =
@@ -329,7 +329,7 @@ End Module
             Await TestAsync(input)
         End Function
 
-        <WorkItem(545654)>
+        <WorkItem(545654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545654")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestReducedExtensionNamedParameter2() As Task
             Dim input =
@@ -358,7 +358,7 @@ End Module
             Await TestAsync(input)
         End Function
 
-        <WorkItem(545618)>
+        <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_TestAnonymousMethodParameter1() As Task
             Dim input =
@@ -381,7 +381,7 @@ class X
             Await TestAsync(input)
         End Function
 
-        <WorkItem(545618)>
+        <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_TestAnonymousMethodParameter2() As Task
             Dim input =
@@ -404,7 +404,7 @@ class X
             Await TestAsync(input)
         End Function
 
-        <WorkItem(545618)>
+        <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_TestAnonymousMethodParameter3() As Task
             Dim input =
@@ -427,7 +427,7 @@ class X
             Await TestAsync(input)
         End Function
 
-        <WorkItem(545618)>
+        <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_TestAnonymousMethodParameter4() As Task
             Dim input =
@@ -450,7 +450,7 @@ class X
             Await TestAsync(input)
         End Function
 
-        <WorkItem(545618)>
+        <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVB_TestAnonymousMethodParameter1() As Task
             Dim input =
@@ -471,7 +471,7 @@ end class
             Await TestAsync(input)
         End Function
 
-        <WorkItem(545618)>
+        <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVB_TestAnonymousMethodParameter2() As Task
             Dim input =
@@ -492,7 +492,7 @@ end class
             Await TestAsync(input)
         End Function
 
-        <WorkItem(545618)>
+        <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVB_TestAnonymousMethodParameter3() As Task
             Dim input =
@@ -513,7 +513,7 @@ end class
             Await TestAsync(input)
         End Function
 
-        <WorkItem(545618)>
+        <WorkItem(545618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545618")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVB_TestAnonymousMethodParameter4() As Task
             Dim input =

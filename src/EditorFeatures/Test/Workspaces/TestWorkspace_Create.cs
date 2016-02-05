@@ -47,11 +47,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string IncludeXmlDocCommentsAttributeName = "IncludeXmlDocComments";
         private const string IsLinkFileAttributeName = "IsLinkFile";
         private const string LinkAssemblyNameAttributeName = "LinkAssemblyName";
+        private const string LinkProjectNameAttributeName = "LinkProjectName";
         private const string LinkFilePathAttributeName = "LinkFilePath";
         private const string PreprocessorSymbolsAttributeName = "PreprocessorSymbols";
         private const string AnalyzerDisplayAttributeName = "Name";
         private const string AnalyzerFullPathAttributeName = "FullPath";
         private const string AliasAttributeName = "Alias";
+        private const string ProjectNameAttribute = "Name";
 
         /// <summary>
         /// Creates a single buffer in a workspace.

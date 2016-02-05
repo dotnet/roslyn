@@ -590,7 +590,7 @@ end class</element>
 
 
 
-        <WorkItem(537614)>
+        <WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")>
         <Fact>
         Public Async Function TestWhitespaceBetweenMethods1() As Task
             Dim initial =
@@ -613,7 +613,7 @@ end class</element>
             Await CheckAsync(initial, final)
         End Function
 
-        <WorkItem(537614)>
+        <WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")>
         <Fact>
         Public Async Function TestWhitespaceBetweenMethods2() As Task
             Dim initial =
@@ -638,7 +638,7 @@ end class</element>
             Await CheckAsync(initial, final)
         End Function
 
-        <WorkItem(537614)>
+        <WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")>
         <Fact>
         Public Async Function TestWhitespaceBetweenMethods3() As Task
             Dim initial =
@@ -663,7 +663,7 @@ end class</element>
             Await CheckAsync(initial, final)
         End Function
 
-        <WorkItem(537614)>
+        <WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")>
         <Fact>
         Public Async Function TestWhitespaceBetweenMethods4() As Task
             Dim initial =
@@ -690,7 +690,7 @@ end class</element>
             Await CheckAsync(initial, final)
         End Function
 
-        <WorkItem(537614)>
+        <WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")>
         <Fact>
         Public Async Function TestWhitespaceBetweenMethods5() As Task
             Dim initial =
@@ -719,7 +719,7 @@ end class</element>
             Await CheckAsync(initial, final)
         End Function
 
-        <WorkItem(537614)>
+        <WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")>
         <Fact>
         Public Async Function TestWhitespaceBetweenMethods6() As Task
             Dim initial =
@@ -750,7 +750,7 @@ end class</element>
             Await CheckAsync(initial, final)
         End Function
 
-        <WorkItem(537614)>
+        <WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")>
         <Fact>
         Public Async Function TestMoveComments1() As Task
             Dim initial =
@@ -775,7 +775,7 @@ end class</element>
             Await CheckAsync(initial, final)
         End Function
 
-        <WorkItem(537614)>
+        <WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")>
         <Fact>
         Public Async Function TestMoveComments2() As Task
             Dim initial =
@@ -802,7 +802,7 @@ end class</element>
             Await CheckAsync(initial, final)
         End Function
 
-        <WorkItem(537614)>
+        <WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")>
         <Fact>
         Public Async Function TestMoveDocComments1() As Task
             Dim initial =
@@ -827,7 +827,7 @@ end class</element>
             Await CheckAsync(initial, final)
         End Function
 
-        <WorkItem(537614)>
+        <WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")>
         <Fact>
         Public Async Function TestMoveDocComments2() As Task
             Dim initial =
@@ -854,7 +854,7 @@ end class</element>
             Await CheckAsync(initial, final)
         End Function
 
-        <WorkItem(537614)>
+        <WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")>
         <Fact>
         Public Async Function TestDontMoveBanner() As Task
             Dim initial =
@@ -881,7 +881,7 @@ end class</element>
             Await CheckAsync(initial, final)
         End Function
 
-        <WorkItem(537614)>
+        <WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")>
         <Fact>
         Public Async Function TestDontMoveBanner2() As Task
             Dim initial =
@@ -914,7 +914,7 @@ end class</element>
             Await CheckAsync(initial, final)
         End Function
 
-        <WorkItem(537614)>
+        <WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")>
         <Fact>
         Public Async Function TestBug2592() As Task
             Dim initial =

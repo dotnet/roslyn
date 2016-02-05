@@ -20,7 +20,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
     {
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        [WorkItem(530980)]
+        [WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")]
         public void DocumentationModeSetToDiagnoseIfProducingDocFile()
         {
             using (var environment = new TestEnvironment())
@@ -38,7 +38,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        [WorkItem(530980)]
+        [WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")]
         public void DocumentationModeSetToParseIfNotProducingDocFile()
         {
             using (var environment = new TestEnvironment())
@@ -90,9 +90,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        [WorkItem(1092636)]
-        [WorkItem(1040247)]
-        [WorkItem(1048368)]
+        [WorkItem(1092636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092636")]
+        [WorkItem(1040247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040247")]
+        [WorkItem(1048368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1048368")]
         public void ProjectSettingsOptionAddAndRemove()
         {
             using (var environment = new TestEnvironment())

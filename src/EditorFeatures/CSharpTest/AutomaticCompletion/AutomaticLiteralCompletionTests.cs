@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [WorkItem(546047)]
+        [WorkItem(546047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546047")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task VerbatimStringDoubleQuote()
         {

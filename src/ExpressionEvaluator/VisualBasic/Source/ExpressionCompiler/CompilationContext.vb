@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.VisualStudio.Debugger.Clr
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 Imports Roslyn.Utilities
 
@@ -231,6 +232,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                             ' Pseudo-variables: $exception, $ReturnValue, etc.
                             Dim typeNameDecoder = New EETypeNameDecoder(Me.Compilation, DirectCast(_currentFrame.ContainingModule, PEModuleSymbol))
                             For Each [alias] As [Alias] In aliases
+                                If [alias].IsReturnValueWithoutIndex() Then
+                                    Debug.Assert(aliases.Count(Function(a) a.Kind = DkmClrAliasKind.ReturnValue) > 1)
+                                    Continue For
+                                End If
+
                                 Dim methodName = GetNextMethodName(methodBuilder)
                                 Dim syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken))
                                 Dim local = PlaceholderLocalSymbol.Create(typeNameDecoder, _currentFrame, [alias])

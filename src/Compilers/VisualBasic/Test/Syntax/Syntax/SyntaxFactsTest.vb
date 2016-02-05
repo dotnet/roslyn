@@ -1158,7 +1158,7 @@ End Namespace
 
     End Sub
 
-    <WorkItem(531480, "DevDiv")>
+    <WorkItem(531480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531480")>
     <Fact>
     Public Sub ImplicitLineContinuationAfterQuery()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -1186,7 +1186,7 @@ End Module
         Next
     End Sub
 
-    <WorkItem(530665, "DevDiv")>
+    <WorkItem(530665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530665")>
     <Fact>
     Public Sub ImplicitLineContinuationAfterDictionaryAccessOperator()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -1208,7 +1208,7 @@ End Module
 
     End Sub
 
-    <WorkItem(990618, "DevDiv")>
+    <WorkItem(990618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/990618")>
     <Fact>
     Public Sub Bug990618()
         Dim text = SyntaxFacts.GetText(SyntaxKind.BeginCDataToken)

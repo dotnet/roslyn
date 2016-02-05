@@ -209,7 +209,7 @@ class yield {
         /// Partial is only valid in a type declaration
         /// </summary>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        [WorkItem(536313)]
+        [WorkItem(536313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536313")]
         public async Task PartialAsLocalVariableType()
         {
             await TestInMethodAsync("partial p1 = 42;",
@@ -1208,7 +1208,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(531155)]
+        [WorkItem(531155, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531155")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task XmlDocComment_ExteriorTriviaInsideCRef()
         {
@@ -1536,7 +1536,7 @@ public class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        [WorkItem(536321)]
+        [WorkItem(536321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536321")]
         public async Task KeywordTypeParameters()
         {
             var code = @"class C<int> { }";
@@ -1551,7 +1551,7 @@ public class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        [WorkItem(536853)]
+        [WorkItem(536853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536853")]
         public async Task TypeParametersWithAttribute()
         {
             var code = @"class C<[Attr] T> { }";
@@ -3166,7 +3166,7 @@ public class Foo<T>
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(538680)]
+        [WorkItem(538680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538680")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestValueInLabel()
         {
@@ -3194,7 +3194,7 @@ public class Foo<T>
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(541150)]
+        [WorkItem(541150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestGenericVar()
         {
@@ -3239,7 +3239,7 @@ class var<T> { }
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(541154)]
+        [WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestInaccessibleVar()
         {
@@ -3290,7 +3290,7 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(541613)]
+        [WorkItem(541613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541613")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestEscapedVar()
         {
@@ -3323,7 +3323,7 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(542432)]
+        [WorkItem(542432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542432")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVar()
         {
@@ -3388,7 +3388,7 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(543123)]
+        [WorkItem(543123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVar2()
         {

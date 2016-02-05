@@ -1694,7 +1694,7 @@ End Class
 #End Region
 
 #Region "Method Body Statements"
-        <WorkItem(538820)>
+        <WorkItem(538820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538820")>
         <Fact>
         Public Sub TestEndOfStatement()
             TestSpan(<text>
@@ -2317,7 +2317,7 @@ Class C
 End Class</text>)
         End Sub
 
-        <WorkItem(544959)>
+        <WorkItem(544959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544959")>
         <Fact>
         Public Sub TestBeforeFromInQueryContinuation1()
             TestSpan(<text>
@@ -2332,7 +2332,7 @@ Class C
 End Class</text>)
         End Sub
 
-        <WorkItem(544959)>
+        <WorkItem(544959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544959")>
         <Fact>
         Public Sub TestBeforeFromInQueryContinuation2()
             TestSpan(<text>
@@ -2347,7 +2347,7 @@ Class C
 End Class</text>)
         End Sub
 
-        <WorkItem(544959)>
+        <WorkItem(544959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544959")>
         <Fact>
         Public Sub TestBeforeFromInQueryContinuation3()
             TestSpan(<text>
@@ -2518,7 +2518,7 @@ class C
 end class</text>)
         End Sub
 
-        <WorkItem(544960)>
+        <WorkItem(544960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544960")>
         <Fact>
         Public Sub TestSelect4()
             TestSpan(<text>
@@ -2531,7 +2531,7 @@ Class A
 End Class</text>)
         End Sub
 
-        <WorkItem(544963)>
+        <WorkItem(544963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544963")>
         <Fact>
         Public Sub TestSelect5()
             TestSpan(<text>
@@ -2559,7 +2559,7 @@ class C
 end class</text>)
         End Sub
 
-        <WorkItem(544964)>
+        <WorkItem(544964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544964")>
         <Fact>
         Public Sub TestBeforeSelectClause()
             TestSpan(<text>
@@ -2584,7 +2584,7 @@ class C
 end class</text>)
         End Sub
 
-        <WorkItem(544965)>
+        <WorkItem(544965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544965")>
         <Fact>
         Public Sub TestBeforeWhereClause()
             TestSpan(<text>
@@ -2609,7 +2609,7 @@ class C
 end class</text>)
         End Sub
 
-        <WorkItem(544966)>
+        <WorkItem(544966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544966")>
         <Fact>
         Public Sub TestBeforeTakeWhile()
             TestSpan(<text>
@@ -2634,7 +2634,7 @@ class C
 end class</text>)
         End Sub
 
-        <WorkItem(544966)>
+        <WorkItem(544966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544966")>
         <Fact>
         Public Sub TestBeforeSkipWhile()
             TestSpan(<text>
@@ -2683,7 +2683,7 @@ class C
 end class</text>)
         End Sub
 
-        <WorkItem(544967)>
+        <WorkItem(544967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544967")>
         <Fact>
         Public Sub TestBeforeOrderBy()
             TestSpan(<text>
@@ -2738,7 +2738,7 @@ class C
 end class</text>)
         End Sub
 
-        <WorkItem(544968)>
+        <WorkItem(544968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544968")>
         <Fact>
         Public Sub TestThenBy4()
             TestSpan(<text>
@@ -2753,7 +2753,7 @@ class C
 end class</text>)
         End Sub
 
-        <WorkItem(544967)>
+        <WorkItem(544967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544967")>
         <Fact>
         Public Sub TestBeforeOrderByAndThenBy()
             TestSpan(<text>

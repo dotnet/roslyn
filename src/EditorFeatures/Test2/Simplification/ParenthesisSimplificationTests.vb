@@ -159,7 +159,7 @@ End Class
 #End Region
 
 #Region "VB Binary Expressions"
-        <WorkItem(633582)>
+        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_SimplifyOnLeftSideOfBinaryExpression() As Task
             Dim input =
@@ -192,7 +192,7 @@ End Module
 
         End Function
 
-        <WorkItem(633582)>
+        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_SimplifyOnRightSideOfBinaryExpressionIfOperatorsAreCommutative() As Task
             Dim input =
@@ -225,7 +225,7 @@ End Module
 
         End Function
 
-        <WorkItem(633582)>
+        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontSimplifyOnRightSideOfBinaryExpressionIfOperatorsAreNotCommutative() As Task
             Dim input =
@@ -259,7 +259,7 @@ End Module
         End Function
 
 
-        <WorkItem(738826)>
+        <WorkItem(738826, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/738826")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyParenthesisedGetTypeOperator() As Task
             Dim input =
@@ -372,7 +372,7 @@ class Foo{
 
         End Function
 
-        <WorkItem(619292)>
+        <WorkItem(619292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619292")>
         <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_RemoveParensInJaggedArrayLiteral() As Task
             Dim input =
@@ -415,7 +415,7 @@ class C
 
         End Function
 
-        <WorkItem(619294)>
+        <WorkItem(619294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619294")>
         <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_RemoveParensInCollectionInitializer() As Task
             Dim input =
@@ -520,7 +520,7 @@ class C
 
         End Function
 
-        <WorkItem(633582)>
+        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyParenthesesAroundExpressionInQueryClause() As Task
             Dim input =
@@ -815,7 +815,7 @@ class C
 
 #Region "C# Binary Expressions"
 
-        <WorkItem(633582)>
+        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyOnLeftSideOfBinaryExpression() As Task
             Dim input =
@@ -852,7 +852,7 @@ class Program
 
         End Function
 
-        <WorkItem(633582)>
+        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyOnRightSideOfBinaryExpressionIfOperatorsAreCommutative() As Task
             Dim input =
@@ -889,7 +889,7 @@ class Program
 
         End Function
 
-        <WorkItem(633582)>
+        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyOnRightSideOfBinaryExpressionForAssignment() As Task
             Dim input =
@@ -928,7 +928,7 @@ class Program
 
         End Function
 
-        <WorkItem(633582)>
+        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyOnRightSideOfBinaryExpressionForNullCoalescing() As Task
             Dim input =
@@ -969,7 +969,7 @@ class Program
 
         End Function
 
-        <WorkItem(633582)>
+        <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_DontSimplifyOnRightSideOfBinaryExpressionIfOperatorsAreNotCommutative() As Task
             Dim input =

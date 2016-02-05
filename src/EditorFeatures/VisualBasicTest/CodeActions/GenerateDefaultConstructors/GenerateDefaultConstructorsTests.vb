@@ -54,7 +54,7 @@ index:=3)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        <WorkItem(539676)>
+        <WorkItem(539676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539676")>
         Public Async Function TestNotOfferedOnResolvedBaseClassName() As Task
             Await TestMissingAsync(
 NewLines("Class Base \n End Class \n Class Derived \n Inherits B[||]ase \n End Class"))
@@ -102,7 +102,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=2)
         End Function
 
-        <WorkItem(540712)>
+        <WorkItem(540712, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540712")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestEndOfToken() As Task
             Await TestAsync(
@@ -143,7 +143,7 @@ index:=0,
 compareTokens:=False)
         End Function
 
-        <WorkItem(889349)>
+        <WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestDefaultConstructorGeneration() As Task
             Await TestAsync(

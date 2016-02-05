@@ -809,8 +809,8 @@ public struct C
             Assert.Equal("TypedReference", info.Symbol.Name);
         }
 
-        [WorkItem(545055, "DevDiv")]
-        [WorkItem(545056, "DevDiv")]
+        [WorkItem(545055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545055")]
+        [WorkItem(545056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545056")]
         [Fact]
         public void MethodArgListParameterCount()
         {
@@ -844,8 +844,8 @@ class A
             Assert.Equal(1, m4.Parameters.Length);
         }
 
-        [WorkItem(545055, "DevDiv")]
-        [WorkItem(545056, "DevDiv")]
+        [WorkItem(545055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545055")]
+        [WorkItem(545056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545056")]
         [Fact]
         public void ILMethodArgListParameterCount()
         {
@@ -895,8 +895,8 @@ class Unused
             Assert.Equal(1, m2.Parameters.Length);
         }
 
-        [WorkItem(545055, "DevDiv")]
-        [WorkItem(545056, "DevDiv")]
+        [WorkItem(545055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545055")]
+        [WorkItem(545056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545056")]
         [Fact]
         public void OperatorArgListParameterCount()
         {
@@ -930,8 +930,8 @@ class A
             Assert.Equal(1, m4.Parameters.Length);
         }
 
-        [WorkItem(545055, "DevDiv")]
-        [WorkItem(545056, "DevDiv")]
+        [WorkItem(545055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545055")]
+        [WorkItem(545056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545056")]
         [Fact]
         public void ConversionArgListParameterCount1()
         {
@@ -950,8 +950,8 @@ class A
             Assert.Equal(0, conversion.Parameters.Length);
         }
 
-        [WorkItem(545055, "DevDiv")]
-        [WorkItem(545056, "DevDiv")]
+        [WorkItem(545055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545055")]
+        [WorkItem(545056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545056")]
         [Fact]
         public void ConversionArgListParameterCount2()
         {
@@ -970,8 +970,8 @@ class A
             Assert.Equal(1, conversion.Parameters.Length);
         }
 
-        [WorkItem(545055, "DevDiv")]
-        [WorkItem(545056, "DevDiv")]
+        [WorkItem(545055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545055")]
+        [WorkItem(545056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545056")]
         [Fact]
         public void ConversionArgListParameterCount3()
         {
@@ -990,8 +990,8 @@ class A
             Assert.Equal(1, conversion.Parameters.Length);
         }
 
-        [WorkItem(545055, "DevDiv")]
-        [WorkItem(545056, "DevDiv")]
+        [WorkItem(545055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545055")]
+        [WorkItem(545056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545056")]
         [Fact]
         public void ConversionArgListParameterCount4()
         {
@@ -1010,8 +1010,8 @@ class A
             Assert.Equal(1, conversion.Parameters.Length);
         }
 
-        [WorkItem(545055, "DevDiv")]
-        [WorkItem(545056, "DevDiv")]
+        [WorkItem(545055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545055")]
+        [WorkItem(545056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545056")]
         [Fact]
         public void ConstructorArgListParameterCount1()
         {
@@ -1028,8 +1028,8 @@ class A
             Assert.Equal(0, constructor.Parameters.Length);
         }
 
-        [WorkItem(545055, "DevDiv")]
-        [WorkItem(545056, "DevDiv")]
+        [WorkItem(545055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545055")]
+        [WorkItem(545056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545056")]
         [Fact]
         public void ConstructorArgListParameterCount2()
         {
@@ -1047,8 +1047,8 @@ class A
         }
 
 
-        [WorkItem(545055, "DevDiv")]
-        [WorkItem(545056, "DevDiv")]
+        [WorkItem(545055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545055")]
+        [WorkItem(545056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545056")]
         [Fact]
         public void ConstructorArgListParameterCount3()
         {
@@ -1065,8 +1065,8 @@ class A
             Assert.Equal(1, constructor.Parameters.Length);
         }
 
-        [WorkItem(545055, "DevDiv")]
-        [WorkItem(545056, "DevDiv")]
+        [WorkItem(545055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545055")]
+        [WorkItem(545056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545056")]
         [Fact]
         public void ConstructorArgListParameterCount4()
         {
@@ -1083,8 +1083,8 @@ class A
             Assert.Equal(1, constructor.Parameters.Length);
         }
 
-        [WorkItem(545055, "DevDiv")]
-        [WorkItem(545056, "DevDiv")]
+        [WorkItem(545055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545055")]
+        [WorkItem(545056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545056")]
         [Fact]
         public void IndexerArgListParameterCount1()
         {
@@ -1109,8 +1109,8 @@ class A
             Assert.Equal(1, setter.Parameters.Length);
         }
 
-        [WorkItem(545055, "DevDiv")]
-        [WorkItem(545056, "DevDiv")]
+        [WorkItem(545055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545055")]
+        [WorkItem(545056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545056")]
         [Fact]
         public void IndexerArgListParameterCount2()
         {
@@ -1135,8 +1135,8 @@ class A
             Assert.Equal(2, setter.Parameters.Length);
         }
 
-        [WorkItem(545055, "DevDiv")]
-        [WorkItem(545056, "DevDiv")]
+        [WorkItem(545055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545055")]
+        [WorkItem(545056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545056")]
         [Fact]
         public void IndexerArgListParameterCount3()
         {
@@ -1161,8 +1161,8 @@ class A
             Assert.Equal(2, setter.Parameters.Length);
         }
 
-        [WorkItem(545055, "DevDiv")]
-        [WorkItem(545056, "DevDiv")]
+        [WorkItem(545055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545055")]
+        [WorkItem(545056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545056")]
         [Fact]
         public void IndexerArgListParameterCount4()
         {
@@ -1187,7 +1187,7 @@ class A
             Assert.Equal(2, setter.Parameters.Length);
         }
 
-        [WorkItem(545086, "DevDiv")]
+        [WorkItem(545086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545086")]
         [Fact]
         public void BoxReceiverTest()
         {
@@ -1238,7 +1238,7 @@ Diagnostic(ErrorCode.ERR_NoImplicitConv, "rah").WithArguments("System.RuntimeArg
                 );
         }
 
-        [WorkItem(649808, "DevDiv")]
+        [WorkItem(649808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649808")]
         [Fact]
         public void MissingArgumentsAndOptionalParameters_1()
         {
@@ -1332,7 +1332,7 @@ class E
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("__arglist", "D.M(object, object, __arglist)").WithLocation(47, 11));
         }
 
-        [WorkItem(649808, "DevDiv")]
+        [WorkItem(649808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649808")]
         [Fact]
         public void MissingArgumentsAndOptionalParameters_2()
         {
@@ -1390,6 +1390,36 @@ namespace ConsoleApplication21
     //             NativeOverlapped* overlapped = AllocateNativeOverlapped(() => { });
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AllocateNativeOverlapped").WithArguments("context", "ConsoleApplication21.FooBar.AllocateNativeOverlapped(System.Threading.IOCompletionCallback, object, byte[])").WithLocation(12, 44)
 );
+        }
+        
+        [Fact, WorkItem(8152, "https://github.com/dotnet/roslyn/issues/8152")]
+        public void DuplicateDeclaration()
+        {
+            var source =
+@"
+public class SpecialCases
+{
+    public void ArgListMethod(__arglist)
+    {
+        ArgListMethod(__arglist(""""));
+    }
+    public void ArgListMethod(__arglist)
+    {
+        ArgListMethod(__arglist(""""));
+    }
+}
+";
+            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+    // (8,17): error CS0111: Type 'SpecialCases' already defines a member called 'ArgListMethod' with the same parameter types
+    //     public void ArgListMethod(__arglist)
+    Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "ArgListMethod").WithArguments("ArgListMethod", "SpecialCases").WithLocation(8, 17),
+    // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'SpecialCases.ArgListMethod(__arglist)' and 'SpecialCases.ArgListMethod(__arglist)'
+    //         ArgListMethod(__arglist(""));
+    Diagnostic(ErrorCode.ERR_AmbigCall, "ArgListMethod").WithArguments("SpecialCases.ArgListMethod(__arglist)", "SpecialCases.ArgListMethod(__arglist)").WithLocation(6, 9),
+    // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'SpecialCases.ArgListMethod(__arglist)' and 'SpecialCases.ArgListMethod(__arglist)'
+    //         ArgListMethod(__arglist(""));
+    Diagnostic(ErrorCode.ERR_AmbigCall, "ArgListMethod").WithArguments("SpecialCases.ArgListMethod(__arglist)", "SpecialCases.ArgListMethod(__arglist)").WithLocation(10, 9)
+                );
         }
     }
 }

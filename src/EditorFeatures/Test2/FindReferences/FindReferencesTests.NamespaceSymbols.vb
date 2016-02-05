@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WorkItem(541162)>
+        <WorkItem(541162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541162")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNamespaceCalledVar1() As Task
             Dim input =
@@ -269,7 +269,7 @@ namespace {|Definition:$$[|var|]|} { }
             Await TestAsync(input)
         End Function
 
-        <WorkItem(541162)>
+        <WorkItem(541162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541162")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNamespaceCalledVar2() As Task
             Dim input =

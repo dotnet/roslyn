@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 @"class C { void M ( ) { int dim = ( int ) Math . [|Min|] ( ) ; } } ");
         }
 
-        [WorkItem(772321)]
+        [WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestExtensionWithThePresenceOfTheSameNameNonExtensionMethod()
         {
@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 @"using NS2; namespace NS1 { class Program { void Main() { new C().Foo(4); } } class C { public void Foo(string y) { } } } namespace NS2 { static class CExt { public static void Foo(this NS1.C c, int x) { } } } ");
         }
 
-        [WorkItem(772321)]
-        [WorkItem(920398)]
+        [WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")]
+        [WorkItem(920398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestExtensionWithThePresenceOfTheSameNameNonExtensionPrivateMethod()
         {
@@ -68,8 +68,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 @"using NS2; namespace NS1 { class Program { void Main() { new C().Foo(4); } } class C { private void Foo(int x) { } } } namespace NS2 { static class CExt { public static void Foo(this NS1.C c, int x) { } } } ");
         }
 
-        [WorkItem(772321)]
-        [WorkItem(920398)]
+        [WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")]
+        [WorkItem(920398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestExtensionWithThePresenceOfTheSameNameExtensionPrivateMethod()
         {
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 @"using NS2; using NS3; namespace NS1 { class Program { void Main() { new C().Foo(4); } } class C { } } namespace NS2 { static class CExt { private static void Foo(this NS1.C c, int x) { } } } namespace NS3 { static class CExt { public static void Foo(this NS1.C c, int x) { } } } ");
         }
 
-        [WorkItem(269)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod()
         {
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 parseOptions: null);
         }
 
-        [WorkItem(269)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod2()
         {
@@ -98,7 +98,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(269)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod3()
         {
@@ -108,7 +108,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(269)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod4()
         {
@@ -118,7 +118,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(269)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod5()
         {
@@ -128,7 +128,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(269)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod6()
         {
@@ -138,7 +138,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(269)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod7()
         {
@@ -148,7 +148,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(269)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod8()
         {
@@ -158,7 +158,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(269)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod9()
         {
@@ -168,7 +168,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(269)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod10()
         {
@@ -178,7 +178,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(269)]
+        [WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod11()
         {

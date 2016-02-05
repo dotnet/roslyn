@@ -1407,7 +1407,7 @@ End Class
                  Remove("j", "C"))
         End Function
 
-        <WorkItem(844611)>
+        <WorkItem(844611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestField_AddAttributeToField() As Task
             Dim code =
@@ -1429,7 +1429,7 @@ End Class
                  Add("System.CLSCompliant", "foo"))
         End Function
 
-        <WorkItem(844611)>
+        <WorkItem(844611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestField_AddAttributeToTwoFields() As Task
             Dim code =
@@ -1452,7 +1452,7 @@ End Class
                  Add("System.CLSCompliant", "bar"))
         End Function
 
-        <WorkItem(844611)>
+        <WorkItem(844611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestField_RemoveAttributeFromField() As Task
             Dim code =
@@ -1474,7 +1474,7 @@ End Class
                  Remove("System.CLSCompliant", "foo"))
         End Function
 
-        <WorkItem(844611)>
+        <WorkItem(844611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestField_RemoveAttributeFromTwoFields() As Task
             Dim code =
@@ -1497,7 +1497,7 @@ End Class
                  Remove("System.CLSCompliant", "bar"))
         End Function
 
-        <WorkItem(844611)>
+        <WorkItem(844611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestField_ChangeAttributeOnField() As Task
             Dim code =
@@ -1523,8 +1523,8 @@ End Class
                  ArgChange("System.CLSCompliant"))
         End Function
 
-        <WorkItem(1147865)>
-        <WorkItem(844611)>
+        <WorkItem(1147865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147865")>
+        <WorkItem(844611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestField_ChangeAttributeOnTwoFields() As Task
             Dim code =
@@ -1551,7 +1551,7 @@ End Class
                  ArgChange("System.CLSCompliant", "bar"))
         End Function
 
-        <WorkItem(1147865)>
+        <WorkItem(1147865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147865")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestField_AddOneMoreAttribute() As Task
             Dim code =
@@ -1574,7 +1574,7 @@ End Class
                  Add("System.NonSerialized", "bar"))
         End Function
 
-        <WorkItem(1147865)>
+        <WorkItem(1147865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147865")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestField_RemoveOneAttribute() As Task
             Dim code =
@@ -1970,7 +1970,7 @@ End Class
                  Rename("Baz"))
         End Function
 
-        <WorkItem(575666)>
+        <WorkItem(575666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575666")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestDontFireEventsForGarbage1() As Task
             Dim code =
@@ -1996,7 +1996,7 @@ End Class
             Await TestAsync(code, changedCode)
         End Function
 
-        <WorkItem(578249)>
+        <WorkItem(578249, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578249")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestDontFireEventsForGarbage2() As Task
             Dim code =
@@ -2030,7 +2030,7 @@ Partial C
             Await TestAsync(code, changedCode)
         End Function
 
-        <WorkItem(1101185)>
+        <WorkItem(1101185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101185")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestComparePropertyStatementBeforeMethodBase() As Task
             Dim code =
@@ -2069,7 +2069,7 @@ End Class
             Await TestAsync(code, changedCode, Unknown("C1"))
         End Function
 
-        <WorkItem(1101185)>
+        <WorkItem(1101185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101185")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestCompareEventStatementBeforeMethodBase() As Task
             Dim code =
@@ -2106,7 +2106,7 @@ End Class
             Await TestAsync(code, changedCode, Unknown("Program"))
         End Function
 
-        <WorkItem(1101185)>
+        <WorkItem(1101185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101185")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestCompareEventStatementBeforeMethodBase_WithMethods_1() As Task
             Dim code =
@@ -2148,7 +2148,7 @@ End Class
             Await TestAsync(code, changedCode, Unknown("Program"))
         End Function
 
-        <WorkItem(1101185)>
+        <WorkItem(1101185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101185")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestCompareEventStatementBeforeMethodBase_WithMethods_2() As Task
             Dim code =
@@ -2190,7 +2190,7 @@ End Class
             Await TestAsync(code, changedCode, Unknown("Program"))
         End Function
 
-        <WorkItem(1101185)>
+        <WorkItem(1101185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101185")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestCompareEventStatementBeforeMethodBase_WithMethods_3() As Task
             Dim code =
@@ -2232,7 +2232,7 @@ End Class
             Await TestAsync(code, changedCode, Unknown("Program"))
         End Function
 
-        <WorkItem(1101185)>
+        <WorkItem(1101185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101185")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestCompareMethodsOnly() As Task
             Dim code =
@@ -2260,7 +2260,7 @@ End Class
 
 #End Region
 
-        <WorkItem(150349)>
+        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function DontCrashOnDuplicatedMethodsInNamespace() As Task
             Dim code =
@@ -2285,7 +2285,7 @@ End Namespace
             Await TestAsync(code, changedCode)
         End Function
 
-        <WorkItem(150349)>
+        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function DontCrashOnDuplicatedPropertiesInNamespace() As Task
             Dim code =
@@ -2306,7 +2306,7 @@ End Namespace
             Await TestAsync(code, changedCode)
         End Function
 
-        <WorkItem(150349)>
+        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function DontCrashOnDuplicatedEventsInNamespace1() As Task
             Dim code =
@@ -2327,7 +2327,7 @@ End Namespace
             Await TestAsync(code, changedCode)
         End Function
 
-        <WorkItem(150349)>
+        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function DontCrashOnDuplicatedEventsInNamespace2() As Task
             Dim code =

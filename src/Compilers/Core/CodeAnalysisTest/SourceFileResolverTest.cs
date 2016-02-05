@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
             catch (ArgumentException argException)
             {
-                Assert.Equal(CodeAnalysisResources.NullValueInPathMap + "\r\nParameter name: pathMap", argException.Message);
+                Assert.Equal(new ArgumentException(CodeAnalysisResources.NullValueInPathMap, "pathMap").Message, argException.Message);
             }
 
             // Empty pathmap value doesn't throw
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
             catch (ArgumentException argExeption)
             {
-                Assert.Equal(CodeAnalysisResources.AbsolutePathExpected + "\r\nParameter name: baseDirectory", argExeption.Message);
+                Assert.Equal(new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, "baseDirectory").Message, argExeption.Message);
             }
         }
     }

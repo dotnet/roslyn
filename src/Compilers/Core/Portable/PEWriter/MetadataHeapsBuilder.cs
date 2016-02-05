@@ -261,7 +261,7 @@ namespace Microsoft.Cci
             return (index.HeapPosition == 0) ? 0 : _blobHeapStartOffset + index.HeapPosition;
         }
 
-        public int GetUserStringToken(string str)
+        public bool TryGetUserStringToken(string str, out int token)
         {
             int index;
             if (!_userStrings.TryGetValue(str, out index))
@@ -269,6 +269,14 @@ namespace Microsoft.Cci
                 Debug.Assert(!_streamsAreComplete);
 
                 index = _userStringWriter.Position + _userStringHeapStartOffset;
+
+                // User strings are referenced by metadata tokens (8 bits of which are used for the token type) leaving only 24 bits for the offset. 
+                if ((index & 0xFF000000) != 0)
+                {
+                    token = 0;
+                    return false;
+                }
+
                 _userStrings.Add(str, index);
                 _userStringWriter.WriteCompressedInteger((uint)str.Length * 2 + 1);
 
@@ -327,7 +335,8 @@ namespace Microsoft.Cci
                 _userStringWriter.WriteByte(stringKind);
             }
 
-            return 0x70000000 | index;
+            token = 0x70000000 | index;
+            return true;
         }
 
         public void Complete()

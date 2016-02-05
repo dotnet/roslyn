@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { private int v; public C(int v) { this.v = v; } void M() { new C(1); } }");
         }
 
-        [Fact, WorkItem(910589), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithNoArgs()
         {
             await TestAsync(
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { public C() { } public C(int v) { } void M() { new C(); } }");
         }
 
-        [Fact, WorkItem(910589), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithNamedArg()
         {
             await TestAsync(
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { private int foo; public C(int foo) { this.foo = foo; } void M() { new C(foo: 1); } }");
         }
 
-        [Fact, WorkItem(910589), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField1()
         {
             await TestAsync(
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { void M() { new D(1); } } class B { private int v; } class D : B { private int v; public D(int v) { this.v = v; } }");
         }
 
-        [WorkItem(539444)]
+        [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField5()
         {
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { void M(int X) { new D(X); } } class D { int X; public D(int x) { X = x; } }");
         }
 
-        [WorkItem(539444)]
+        [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField5WithQualification()
         {
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
                 options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
         }
 
-        [WorkItem(539444)]
+        [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField6()
         {
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { void M(int X) { new D(X); } } class B { private int X; } class D : B { private int x; public D(int x) { this.x = x; } }");
         }
 
-        [WorkItem(539444)]
+        [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField7()
         {
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { void M(int X) { new D(X); } } class B { protected int X; } class D : B { public D(int x) { X = x; } }");
         }
 
-        [WorkItem(539444)]
+        [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField7WithQualification()
         {
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
                 options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
         }
 
-        [WorkItem(539444)]
+        [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField8()
         {
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { void M(int X) { new D(X); } } class B { protected static int x; } class D : B { private int x1; public D(int x1) { this.x1 = x1; } }");
         }
 
-        [WorkItem(539444)]
+        [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField9()
         {
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { void M(int X) { new D(X); } } class B { protected int x; } class D : B { int X; public D(int x) { this.x = x; } }");
         }
 
-        [WorkItem(539444)]
+        [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty1()
         {
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { void M(int X) { new D(X); } } class D { public D(int x) { X = x; } public int X { get; private set; } }");
         }
 
-        [WorkItem(539444)]
+        [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty1WithQualification()
         {
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
                 options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
         }
 
-        [WorkItem(539444)]
+        [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty2()
         {
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { void M(int X) { new D(X); } } class B { public int X { get; private set; } } class D : B { private int x; public D(int x) { this.x = x; } }");
         }
 
-        [WorkItem(539444)]
+        [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty3()
         {
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { void M(int X) { new D(X); } } class B { public int X { get; protected set; } } class D : B { public D(int x) { X = x; } }");
         }
 
-        [WorkItem(539444)]
+        [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty3WithQualification()
         {
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
                 options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
         }
 
-        [WorkItem(539444)]
+        [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty4()
         {
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { void M(int X) { new D(X); } } class B { protected int X { get; set; } } class D : B { public D(int x) { X = x; } }");
         }
 
-        [WorkItem(539444)]
+        [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty4WithQualification()
         {
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
                 options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
         }
 
-        [WorkItem(539444)]
+        [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty5()
         {
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"using System; struct S { private DateTime now; public S(DateTime now) { this.now = now; } void M() { S s = new S(System.DateTime.Now); } }");
         }
 
-        [WorkItem(539489)]
+        [WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestEscapedName()
         {
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { private int v; public C(int v) { this.v = v; } void M() { new @C(1); } }");
         }
 
-        [WorkItem(539489)]
+        [WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestEscapedKeyword()
         {
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class Base { internal long field ; void Main ( ) { int field = 5 ; new Derived ( field ) ; } } class Derived : Base { public Derived ( int field ) { this . field = field ; } } ");
         }
 
-        [WorkItem(539548)]
+        [WorkItem(539548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539548")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestFormatting()
         {
@@ -313,7 +313,7 @@ compareTokens: false);
 @"struct Struct { void Main ( ) { Struct s = new [|Struct|] ( ) ; } } ");
         }
 
-        [WorkItem(539787)]
+        [WorkItem(539787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539787")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateIntoCorrectPart()
         {
@@ -362,7 +362,7 @@ compareTokens: false);
 @"class C { private int v ; public C ( ) : this ( 4 ) { } public C ( int v ) { this . v = v ; } } ");
         }
 
-        [Fact, WorkItem(910589), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateFromThisInitializer2()
         {
             await TestAsync(
@@ -386,7 +386,7 @@ compareTokens: false);
 @"class C : B { public C ( int i ) : base ( i ) { } } class B { int i ; public B ( int i ) { this . i = i ; } } ");
         }
 
-        [WorkItem(539969)]
+        [WorkItem(539969, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539969")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestNotOnExistingConstructor()
         {
@@ -394,7 +394,7 @@ compareTokens: false);
 @"class C { private class D { } } class A { void M ( ) { C . D d = new C . [|D|] ( ) ; } } ");
         }
 
-        [WorkItem(539972)]
+        [WorkItem(539972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539972")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestUnavailableTypeParameters()
         {
@@ -403,7 +403,7 @@ compareTokens: false);
 @"class C < T1 , T2 > { public void Foo ( T1 t1 , T2 t2 ) { A a = new A ( t1 , t2 ) ; } } internal class A { private object t1 ; private object t2 ; public A ( object t1 , object t2 ) { this . t1 = t1 ; this . t2 = t2 ; } } ");
         }
 
-        [WorkItem(541020)]
+        [WorkItem(541020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541020")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateCallToDefaultConstructorInStruct()
         {
@@ -412,7 +412,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { Apartment Metropolitan = new Apartment ( ""Pine"" ) ; } } struct Apartment { private string v ; private int v1 ; public Apartment ( string v ) : this ( ) { this . v = v ; } public Apartment ( int v1 ) { this . v1 = v1 ; } }");
         }
 
-        [WorkItem(541121)]
+        [WorkItem(541121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541121")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestReadonlyFieldDelegation()
         {
@@ -490,7 +490,7 @@ class D
 ");
         }
 
-        [WorkItem(530003)]
+        [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithArgument()
         {
@@ -499,7 +499,7 @@ class D
 @"using System; [AttributeUsage(AttributeTargets.Class)] class MyAttribute : Attribute { private int v; public MyAttribute(int v) { this.v = v; } } [MyAttribute(123)] class D {} ");
         }
 
-        [WorkItem(530003)]
+        [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithMultipleArguments()
         {
@@ -508,7 +508,7 @@ class D
 @"using System; [AttributeUsage(AttributeTargets.Class)] class MyAttribute : Attribute { private bool v1; private int v2; private string v3; public MyAttribute(bool v1, int v2, string v3) { this.v1 = v1; this.v2 = v2; this.v3 = v3; } } [MyAttribute(true, 1, ""hello"")] class D {} ");
         }
 
-        [WorkItem(530003)]
+        [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithNamedArguments()
         {
@@ -517,7 +517,7 @@ class D
 @"using System; [AttributeUsage(AttributeTargets.Class)] class MyAttribute : Attribute { private string topic; private bool v1; private int v2; public MyAttribute(bool v1, int v2, string topic) { this.v1 = v1; this.v2 = v2; this.topic = topic; } } [MyAttribute(true, 1, topic = ""hello"")] class D {} ");
         }
 
-        [WorkItem(530003)]
+        [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithAdditionalConstructors()
         {
@@ -526,7 +526,7 @@ class D
 @"using System; [AttributeUsage(AttributeTargets.Class)] class MyAttribute : Attribute { private int v; private bool v1; private int v2; public MyAttribute(int v) { this.v = v; } public MyAttribute(bool v1, int v2) { this.v1 = v1; this.v2 = v2; } } [MyAttribute(true, 1)] class D {} ");
         }
 
-        [WorkItem(530003)]
+        [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithOverloading()
         {
@@ -535,7 +535,7 @@ class D
 @"using System; [AttributeUsage(AttributeTargets.Class)] class MyAttribute : Attribute { private int v; private bool v1; public MyAttribute(bool v1) { this.v1 = v1; } public MyAttribute(int v) { this.v = v; } } [MyAttribute(true)] class D {} ");
         }
 
-        [WorkItem(530003)]
+        [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithOverloadingMultipleParameters()
         {
@@ -544,7 +544,7 @@ class D
 @"using System; [AttributeUsage(AttributeTargets.Class)] class MyAttrAttribute : Attribute { private int v; private bool v1; private int v2; private bool v3; public MyAttrAttribute(int v, bool v3) { this.v = v; this.v3 = v3; } public MyAttrAttribute(bool v1, int v2) { this.v1 = v1; this.v2 = v2; } } [MyAttrAttribute(1,true)] class D { } ");
         }
 
-        [WorkItem(530003)]
+        [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithAllValidParameters()
         {
@@ -553,7 +553,7 @@ class D
 @"using System; enum A { A1 } [AttributeUsage(AttributeTargets.Class)] class MyAttrAttribute : Attribute { private A a1; private int[] v1; private string v10; private bool v2; private byte v3; private char v4; private short v5; private int v6; private long v7; private double v8; private float v9; public MyAttrAttribute(int[] v1, A a1, bool v2, byte v3, char v4, short v5, int v6, long v7, double v8, float v9, string v10) { this.v1 = v1; this.a1 = a1; this.v2 = v2; this.v3 = v3; this.v4 = v4; this.v5 = v5; this.v6 = v6; this.v7 = v7; this.v8 = v8; this.v9 = v9; this.v10 = v10; } } [MyAttrAttribute(new int[] { 1, 2, 3 }, A.A1, true, (byte)1, 'a', (short)12, (int)1, (long)5L, 5D, 3.5F, ""hello"")] class D { } ");
         }
 
-        [WorkItem(530003)]
+        [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithDelegation()
         {
@@ -561,7 +561,7 @@ class D
 @"using System; [AttributeUsage(AttributeTargets.Class)] class MyAttrAttribute : Attribute { } [|[MyAttrAttribute(()=>{return;})]|] class D { } ");
         }
 
-        [WorkItem(530003)]
+        [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithLambda()
         {
@@ -569,7 +569,7 @@ class D
 @"using System; [AttributeUsage(AttributeTargets.Class)] class MyAttrAttribute : Attribute { } [|[MyAttrAttribute(()=>5)]|] class D { } ");
         }
 
-        [WorkItem(889349)]
+        [WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestConstructorGenerationForDifferentNamedParameter()
         {
@@ -611,7 +611,7 @@ class Program
 ", compareTokens: false);
         }
 
-        [WorkItem(528257)]
+        [WorkItem(528257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528257")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateInInaccessibleType()
         {

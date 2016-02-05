@@ -312,7 +312,7 @@ End Module
             End Sub
         End Class
 
-        <WorkItem(998724)>
+        <WorkItem(998724, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998724")>
         <Fact>
         Public Sub TestSymbolAnalyzerNotInvokedForMyTemplateSymbols()
             Dim analyzer = New MockSymbolAnalyzer()
@@ -408,7 +408,7 @@ End Namespace
             End Sub
         End Class
 
-        <Fact, WorkItem(1008059)>
+        <Fact, WorkItem(1008059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1008059")>
         Public Sub TestCodeBlockAnalyzersForNoExecutableCode()
             Dim analyzer = New CodeBlockAnalyzer()
             Dim sources = <compilation>
@@ -431,7 +431,7 @@ End Class
             compilation.VerifyAnalyzerDiagnostics({analyzer})
         End Sub
 
-        <Fact, WorkItem(1008059)>
+        <Fact, WorkItem(1008059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1008059")>
         Public Sub TestCodeBlockAnalyzersForEmptyMethodBody()
             Dim analyzer = New CodeBlockAnalyzer()
             Dim sources = <compilation>
@@ -453,7 +453,7 @@ End Class
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False, Diagnostic("CodeBlockDiagnostic", <![CDATA[Public Sub Method()]]>))
         End Sub
 
-        <Fact, WorkItem(1096600)>
+        <Fact, WorkItem(1096600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1096600")>
         Private Sub TestDescriptorForConfigurableCompilerDiagnostics()
             ' Verify that all configurable compiler diagnostics, i.e. all non-error diagnostics,
             ' have a non-null and non-empty Title and Category.
@@ -507,7 +507,7 @@ End Class
             End Sub
         End Class
 
-        <Fact, WorkItem(1109126)>
+        <Fact, WorkItem(1109126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109126")>
         Public Sub TestFieldSymbolAnalyzer_EnumField()
             Dim analyzer = New FieldSymbolAnalyzer()
             Dim sources = <compilation>
@@ -529,7 +529,7 @@ End Enum
                     Diagnostic("FieldSymbolDiagnostic", <![CDATA[X]]>))
         End Sub
 
-        <Fact, WorkItem(1111667)>
+        <Fact, WorkItem(1111667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1111667")>
         Public Sub TestFieldSymbolAnalyzer_FieldWithoutInitializer()
             Dim analyzer = New FieldSymbolAnalyzer()
             Dim sources = <compilation>
@@ -572,7 +572,7 @@ End Class
             End Sub
         End Class
 
-        <Fact, WorkItem(565)>
+        <Fact, WorkItem(565, "https://github.com/dotnet/roslyn/issues/565")>
         Public Sub TestFieldDeclarationAnalyzer()
             Dim analyzer = New FieldDeclarationAnalyzer()
             Dim sources = <compilation>
@@ -757,14 +757,14 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(1107500, "DevDiv")>
+        <WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
         <WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")>
         Public Sub EffectiveSeverity_DiagnosticDefault1()
             TestEffectiveSeverity(DiagnosticSeverity.Warning, ReportDiagnostic.Warn)
         End Sub
 
         <Fact>
-        <WorkItem(1107500, "DevDiv")>
+        <WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
         <WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")>
         Public Sub EffectiveSeverity_DiagnosticDefault2()
             Dim specificOptions = New Dictionary(Of String, ReportDiagnostic) From {{"Test0001", ReportDiagnostic.Default}}
@@ -774,7 +774,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(1107500, "DevDiv")>
+        <WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
         <WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")>
         Public Sub EffectiveSeverity_GeneralOption()
             Dim generalOption = ReportDiagnostic.Error
@@ -782,7 +782,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(1107500, "DevDiv")>
+        <WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
         <WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")>
         Public Sub EffectiveSeverity_SpecificOption()
             Dim specificOption = ReportDiagnostic.Suppress
@@ -793,7 +793,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(1107500, "DevDiv")>
+        <WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
         <WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")>
         Public Sub EffectiveSeverity_GeneralOptionDoesNotEnableDisabledDiagnostic()
             Dim generalOption = ReportDiagnostic.Error
@@ -803,7 +803,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(1107500, "DevDiv")>
+        <WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")>
         <WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")>
         Public Sub EffectiveSeverity_SpecificOptionEnablesDisabledDiagnostic()
             Dim specificOption = ReportDiagnostic.Warn

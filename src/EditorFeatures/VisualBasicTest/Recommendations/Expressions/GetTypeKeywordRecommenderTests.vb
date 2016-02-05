@@ -114,7 +114,7 @@ Loop Until |</MethodBody>, "GetType")
             Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {0, |</MethodBody>, "GetType")
         End Function
 
-        <WorkItem(543270)>
+        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotInDelegateCreationTest() As Task
             Dim code =

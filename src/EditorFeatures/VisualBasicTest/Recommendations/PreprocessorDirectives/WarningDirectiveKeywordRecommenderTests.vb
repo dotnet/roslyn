@@ -130,7 +130,7 @@ End Function</ClassDeclaration>, "#Enable Warning")
                                          </File>, "Warning")
         End Function
 
-        <WorkItem(1020079)>
+        <WorkItem(1020079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020079")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotInEnumTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>

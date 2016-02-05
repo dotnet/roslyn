@@ -67,7 +67,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        <WorkItem(860964)>
+        <WorkItem(860964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860964")>
         Public Sub AddingReferenceToMicrosoftVisualBasicBeforeSettingOptionsShouldNotCrash()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -115,7 +115,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        <WorkItem(860964)>
+        <WorkItem(860964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860964")>
         Public Sub AddingReferenceToMicrosoftVisualBasicAfterSettingOptionsShouldNotCrash()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")

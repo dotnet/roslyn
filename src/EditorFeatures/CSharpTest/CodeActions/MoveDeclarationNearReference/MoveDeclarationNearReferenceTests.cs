@@ -85,7 +85,7 @@ index: 0);
 @"class C { void M() { int [||]x; Console.WriteLine(x); } }");
         }
 
-        [WorkItem(538424)]
+        [WorkItem(538424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538424")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMissingWhenReferencedInDeclaration()
         {
@@ -101,7 +101,7 @@ index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        [WorkItem(541475)]
+        [WorkItem(541475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541475")]
         public async Task Regression8190()
         {
             await TestMissingAsync(
@@ -231,7 +231,7 @@ compareTokens: false);
 compareTokens: false);
         }
 
-        [WorkItem(545435)]
+        [WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestWarnOnChangingScopes1()
         {
@@ -240,7 +240,7 @@ compareTokens: false);
 @"using System . Linq ; class Program { void Main ( ) { new [ ] { 1 } . AsParallel ( ) . ForAll ( ( i ) => { {|Warning:var @lock = new object ( ) ;|} lock ( @lock ) { } } ) ; } } ");
         }
 
-        [WorkItem(545435)]
+        [WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestWarnOnChangingScopes2()
         {
@@ -249,7 +249,7 @@ compareTokens: false);
 @"using System ; using System . Linq ; class Program { void Main ( ) { foreach ( var v in new [ ] { 1 } ) { {|Warning:var i = 0 ;|} Console . Write ( i ) ; i ++ ; } } } ");
         }
 
-        [WorkItem(545840)]
+        [WorkItem(545840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545840")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task InsertCastIfNecessary1()
         {
@@ -296,7 +296,7 @@ static class C
 compareTokens: false);
         }
 
-        [WorkItem(545835)]
+        [WorkItem(545835, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545835")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task InsertCastIfNecessary2()
         {
@@ -339,7 +339,7 @@ class X
 compareTokens: false);
         }
 
-        [WorkItem(546267)]
+        [WorkItem(546267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546267")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task MissingIfNotInDeclarationSpan()
         {

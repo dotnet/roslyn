@@ -135,7 +135,7 @@ $${|hint1:using {|collapse1:System;|}|}
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        [WorkItem(539359)]
+        [WorkItem(539359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539359")]
         public async Task TestUsingKeywordWithSpace()
         {
             const string code = @"

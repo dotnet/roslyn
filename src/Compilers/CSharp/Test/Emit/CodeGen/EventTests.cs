@@ -676,7 +676,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(1027568, "DevDiv"), WorkItem(528573, "DevDiv")]
+        [Fact, WorkItem(1027568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1027568"), WorkItem(528573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528573")]
         public void MissingCompareExchange_02()
         {
             var source =
@@ -748,7 +748,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(1027568, "DevDiv"), WorkItem(528573, "DevDiv")]
+        [Fact, WorkItem(1027568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1027568"), WorkItem(528573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528573")]
         public void MissingCompareExchange_03()
         {
             var source =

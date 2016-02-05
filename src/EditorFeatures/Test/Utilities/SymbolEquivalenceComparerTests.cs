@@ -217,7 +217,7 @@ class Type2
             }
         }
 
-        [WorkItem(538124)]
+        [WorkItem(538124, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538124")]
         [Fact]
         public async Task TestFieldsAcrossLanguages()
         {

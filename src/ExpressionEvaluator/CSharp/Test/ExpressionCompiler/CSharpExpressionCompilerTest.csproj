@@ -16,6 +16,10 @@
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\Compilers\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj">
+      <Project>{7a4b2176-7bfd-4b75-a61a-e25a1fdd0a1e}</Project>
+      <Name>CSharpCompilerTestUtilities.Desktop</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
       <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
       <Name>TestUtilities.FX45</Name>
@@ -44,10 +48,6 @@
     <ProjectReference Include="..\..\Source\ExpressionCompiler\CSharpExpressionCompiler.csproj">
       <Project>{FD6BA96C-7905-4876-8BCC-E38E2CA64F31}</Project>
       <Name>CSharpExpressionCompiler</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Compilers\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj">
-      <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F9}</Project>
-      <Name>CSharpCompilerTestUtilities</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
       <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>

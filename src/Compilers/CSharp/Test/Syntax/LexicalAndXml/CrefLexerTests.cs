@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertTokens("\\u0066alse", Token(SyntaxKind.IdentifierToken, "\\u0066alse", "false"));
         }
 
-        [WorkItem(530519, "DevDiv")]
+        [WorkItem(530519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530519")]
         [Fact]
         public void TestLexUnicodeEscapeKeywordsWithEntities()
         {
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Token(SyntaxKind.CloseParenToken));
         }
 
-        [WorkItem(530523, "DevDiv")]
+        [WorkItem(530523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530523")]
         [Fact(Skip = "530523")]
         public void TestLexNewline()
         {
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Token(SyntaxKind.IdentifierToken, "B"));
         }
 
-        [WorkItem(530523, "DevDiv")]
+        [WorkItem(530523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530523")]
         [Fact(Skip = "530523")]
         public void TestLexEntityInTrivia()
         {
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Token(SyntaxKind.IdentifierToken, "B"));
         }
 
-        [WorkItem(530523, "DevDiv")]
+        [WorkItem(530523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530523")]
         [Fact(Skip = "530523")]
         public void TestLexCSharpTrivia()
         {

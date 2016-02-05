@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBIteratorTests : CSharpPDBTestBase
     {
-        [WorkItem(543376, "DevDiv")]
+        [WorkItem(543376, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543376")]
         [Fact]
         public void SimpleIterator1()
         {
@@ -52,7 +52,7 @@ class Program
 </symbols>");
         }
 
-        [WorkItem(543376, "DevDiv")]
+        [WorkItem(543376, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543376")]
         [Fact]
         public void SimpleIterator2()
         {
@@ -94,7 +94,7 @@ class Program
 </symbols>");
         }
 
-        [WorkItem(543490, "DevDiv")]
+        [WorkItem(543490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543490")]
         [Fact]
         public void SimpleIterator3()
         {
@@ -343,7 +343,7 @@ class Test<T>
 </symbols>");
         }
 
-        [WorkItem(542705, "DevDiv"), WorkItem(528790, "DevDiv"), WorkItem(543490, "DevDiv")]
+        [WorkItem(542705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542705"), WorkItem(528790, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528790"), WorkItem(543490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543490")]
         [Fact()]
         public void IteratorBackToNextStatementAfterYieldReturn()
         {
@@ -434,7 +434,7 @@ class C
             }
         }
 
-        [WorkItem(543490, "DevDiv")]
+        [WorkItem(543490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543490")]
         [Fact()]
         public void IteratorMultipleEnumerables()
         {
@@ -902,8 +902,8 @@ class C
 </symbols>");
         }
 
-        [WorkItem(836491, "DevDiv")]
-        [WorkItem(827337, "DevDiv")]
+        [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
+        [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
         [Fact]
         public void DisplayClass_AcrossSuspensionPoints_Debug()
         {
@@ -970,8 +970,8 @@ class C
 </symbols>");
         }
 
-        [WorkItem(836491, "DevDiv")]
-        [WorkItem(827337, "DevDiv")]
+        [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
+        [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
         [Fact]
         public void DisplayClass_InBetweenSuspensionPoints_Release()
         {
@@ -1240,8 +1240,8 @@ class C
 </symbols>");
         }
 
-        [WorkItem(836491, "DevDiv")]
-        [WorkItem(827337, "DevDiv")]
+        [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
+        [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
         [Fact]
         public void DynamicLocal_AcrossSuspensionPoints_Debug()
         {
@@ -1318,9 +1318,9 @@ class C
 ");
         }
 
-        [WorkItem(836491, "DevDiv")]
-        [WorkItem(827337, "DevDiv")]
-        [WorkItem(1070519, "DevDiv")]
+        [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
+        [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
+        [WorkItem(1070519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070519")]
         [Fact]
         public void DynamicLocal_InBetweenSuspensionPoints_Release()
         {
@@ -1376,7 +1376,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem(1070519, "DevDiv")]
+        [WorkItem(1070519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070519")]
         [Fact]
         public void DynamicLocal_InBetweenSuspensionPoints_Debug()
         {
@@ -1437,7 +1437,7 @@ class C
 </symbols>");
         }
 
-        [Fact, WorkItem(667579, "DevDiv")]
+        [Fact, WorkItem(667579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667579")]
         public void DebuggerHiddenIterator()
         {
             var text = @"

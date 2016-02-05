@@ -135,12 +135,6 @@
   <data name="FileNameMustHaveTheExtension" xml:space="preserve">
     <value>File name must have the "{0}" extension.</value>
   </data>
-  <data name="BuildingProject" xml:space="preserve">
-    <value>Building Project</value>
-  </data>
-  <data name="ResettingInteractive" xml:space="preserve">
-    <value>Resetting Interactive</value>
-  </data>
   <data name="Debugger" xml:space="preserve">
     <value>Debugger</value>
   </data>
