@@ -493,7 +493,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             var serviceType = _remoteControlService.GetType();
             var serviceAssembly = serviceType.Assembly;
             var clientType = serviceAssembly.GetType("Microsoft.VisualStudio.Services.RemoteControl.VSRemoteControlClient");
-            var pollingMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
+            var pollingMinutes = (int)OneDay.TotalMinutes;
 
             var vsClient = Activator.CreateInstance(clientType, args: new object[]
             {
