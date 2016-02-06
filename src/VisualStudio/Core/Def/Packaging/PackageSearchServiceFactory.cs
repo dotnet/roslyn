@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     {
         private const string HostId = "RoslynNuGetSearch";
         private const string BackupExtension = ".bak";
-        private const int DataFormatVersion = AddReferenceDatabase.TextFileFormatVersion;
+        private readonly int DataFormatVersion = AddReferenceDatabase.TextFileFormatVersion;
 
         private static readonly TimeSpan OneDay = TimeSpan.FromDays(1);
         private static readonly TimeSpan OneMinute = TimeSpan.FromMinutes(1);
