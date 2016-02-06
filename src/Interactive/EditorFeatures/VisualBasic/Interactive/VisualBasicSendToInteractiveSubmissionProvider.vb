@@ -8,14 +8,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
 
     <Export(GetType(ISendToInteractiveSubmissionProvider))>
     Friend NotInheritable Class VisualBasicSendToInteractiveSubmissionProvider
-        Inherits SendToInteractiveSubmissionProvider
+        Inherits AbstractSendToInteractiveSubmissionProvider
 
         Protected Overrides Function CanParseSubmission(code As String) As Boolean
             ' Return True to send the direct selection.
             Return True
         End Function
 
-        Protected Overrides Function GetExecutableSyntaxTreeNodeSelection(position As TextSpan, source As SourceText, node As SyntaxNode, model As SemanticModel) As IEnumerable(Of TextSpan)
+        Protected Overrides Function GetExecutableSyntaxTreeNodeSelection(position As TextSpan, node As SyntaxNode) As IEnumerable(Of TextSpan)
             Return Nothing
         End Function
     End Class

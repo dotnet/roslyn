@@ -16,79 +16,71 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
     /// <summary>
     /// Implementers of this interface are responsible for retrieving source code that
     /// should be sent to the REPL given the user's selection.
-    /// 
+    ///
     /// If the user does not make a selection then a line should be selected.
     /// If the user selects code that fails to be parsed then the selection gets expanded
     /// to a syntax node.
     /// </summary>
-    internal abstract class SendToInteractiveSubmissionProvider : ISendToInteractiveSubmissionProvider
+    internal abstract class AbstractSendToInteractiveSubmissionProvider : ISendToInteractiveSubmissionProvider
     {
         /// <summary>Expands the selection span of an invalid selection to a span that should be sent to REPL.</summary>
-        protected abstract IEnumerable<TextSpan> GetExecutableSyntaxTreeNodeSelection(TextSpan selectedSpan, SourceText source, SyntaxNode node, SemanticModel model);
+        protected abstract IEnumerable<TextSpan> GetExecutableSyntaxTreeNodeSelection(TextSpan selectedSpan, SyntaxNode node);
 
         /// <summary>Returns whether the submission can be parsed in interactive.</summary>
         protected abstract bool CanParseSubmission(string code);
 
-        public string GetSelectedText(IEditorOptions editorOptions, CommandArgs args, CancellationToken cancellationToken)
+        string ISendToInteractiveSubmissionProvider.GetSelectedText(IEditorOptions editorOptions, CommandArgs args, CancellationToken cancellationToken)
         {
+            IEnumerable<SnapshotSpan> selectedSpans = args.TextView.Selection.IsEmpty
+                ? GetExpandedLineAsync(editorOptions, args, cancellationToken).WaitAndGetResult(cancellationToken)
+                : args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer).Where(ss => ss.Length > 0);
 
-            IEnumerable<SnapshotSpan> selectedSpans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer).Where(ss => ss.Length > 0);
+            return GetSubmissionFromSelectedSpans(editorOptions, selectedSpans);
+        }
 
-            // If there is no selection select the current line.
-            if (!selectedSpans.Any())
-            {
-                selectedSpans = GetSelectedLine(args);
-            }
-
-            // Send the selection as is if it does not contain any parsing errors.
+        /// <summary>Returns the span for the selected line. Extends it if it is a part of a multi line statement or declaration.</summary>
+        private Task<IEnumerable<SnapshotSpan>> GetExpandedLineAsync(IEditorOptions editorOptions, CommandArgs args, CancellationToken cancellationToken)
+        {
+            IEnumerable<SnapshotSpan> selectedSpans = GetSelectedLine(args.TextView);
             var candidateSubmission = GetSubmissionFromSelectedSpans(editorOptions, selectedSpans);
-            if (CanParseSubmission(candidateSubmission))
-            {
-                return candidateSubmission;
-            }
-
-            // Otherwise heuristically try to expand it.
-            return GetSubmissionFromSelectedSpans(editorOptions, ExpandSelection(selectedSpans, args, cancellationToken));
+            return CanParseSubmission(candidateSubmission)
+                ? Task.FromResult(selectedSpans)
+                : ExpandSelectionAsync(selectedSpans, args, cancellationToken);
         }
 
         /// <summary>Returns the span for the currently selected line.</summary>
-        private static IEnumerable<SnapshotSpan> GetSelectedLine(CommandArgs args)
+        private static IEnumerable<SnapshotSpan> GetSelectedLine(ITextView textView)
         {
-            SnapshotPoint? caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
-            int caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
-            ITextSnapshotLine containingLine = caret.Value.GetContainingLine();
-            return new SnapshotSpan[] {
-                new SnapshotSpan(containingLine.Start, containingLine.End)
-            };
+            ITextSnapshotLine snapshotLine = textView.Caret.Position.VirtualBufferPosition.Position.GetContainingLine();
+            SnapshotSpan span = new SnapshotSpan(snapshotLine.Start, snapshotLine.LengthIncludingLineBreak);
+            return new NormalizedSnapshotSpanCollection(span);
         }
 
-        private async Task<IEnumerable<SnapshotSpan>> GetExecutableSyntaxTreeNodeSelection(
+        private async Task<IEnumerable<SnapshotSpan>> GetExecutableSyntaxTreeNodeSelectionAsync(
             TextSpan selectionSpan,
             CommandArgs args,
             ITextSnapshot snapshot,
             CancellationToken cancellationToken)
         {
-            Document doc = args.SubjectBuffer.GetRelatedDocuments().FirstOrDefault();
-            var semanticDocument = await SemanticDocument.CreateAsync(doc, cancellationToken).ConfigureAwait(false);
-            var text = semanticDocument.Text;
+            Document doc = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var semanticDocument = await SemanticDocument.CreateAsync(doc, cancellationToken).ConfigureAwait(true);
             var root = semanticDocument.Root;
-            var model = semanticDocument.SemanticModel;
 
-            return GetExecutableSyntaxTreeNodeSelection(selectionSpan, text, root, model)
+            return GetExecutableSyntaxTreeNodeSelection(selectionSpan, root)
                 .Select(span => new SnapshotSpan(snapshot, span.Start, span.Length));
         }
 
-        private IEnumerable<SnapshotSpan> ExpandSelection(IEnumerable<SnapshotSpan> selectedSpans, CommandArgs args, CancellationToken cancellationToken)
+        private async Task<IEnumerable<SnapshotSpan>> ExpandSelectionAsync(IEnumerable<SnapshotSpan> selectedSpans, CommandArgs args, CancellationToken cancellationToken)
         {
             var selectedSpansStart = selectedSpans.Min(span => span.Start);
             var selectedSpansEnd = selectedSpans.Max(span => span.End);
             ITextSnapshot snapshot = args.TextView.TextSnapshot;
 
-            IEnumerable<SnapshotSpan> newSpans = GetExecutableSyntaxTreeNodeSelection(
+            IEnumerable<SnapshotSpan> newSpans = await GetExecutableSyntaxTreeNodeSelectionAsync(
                 TextSpan.FromBounds(selectedSpansStart, selectedSpansEnd),
                 args,
                 snapshot,
-                cancellationToken).WaitAndGetResult(cancellationToken);
+                cancellationToken).ConfigureAwait(true);
 
             return newSpans.Any()
                 ? newSpans.Select(n => new SnapshotSpan(snapshot, n.Span.Start, n.Span.Length))

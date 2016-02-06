@@ -36,6 +36,10 @@ Task.Run(() => { return 1; });";
         public void TestExecuteInInteractiveWithoutSelection()
         {
             AssertExecuteInInteractive(Caret, new string[0]);
+            AssertExecuteInInteractive(
+@"var x = 1;
+$$
+var y = 2;", new string[0]);
             AssertExecuteInInteractive(ExampleCode1 + Caret, ExampleCode1);
             AssertExecuteInInteractive(ExampleCode1.Insert(3, Caret), ExampleCode1);
             AssertExecuteInInteractive(ExampleCode2 + Caret, ExampleCode2Line2);
@@ -46,6 +50,9 @@ Task.Run(() => { return 1; });";
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestExecuteInInteractiveWithEmptyBuffer()
         {
+            AssertExecuteInInteractive(
+@"{|Selection:|}var x = 1;
+{|Selection:$$|}var y = 2;", new string[0]);
             AssertExecuteInInteractive($@"{{|Selection:{ExampleCode1}$$|}}", ExampleCode1);
             AssertExecuteInInteractive($@"{{|Selection:{ExampleCode2}$$|}}", ExampleCode2);
             AssertExecuteInInteractive(
@@ -86,6 +93,29 @@ text some {{|Selection:int y;$$|}} here also", expectedBoxSubmissionResult);
                 @"{|Selection:var y = 2;$$|}",
                 "var y = 2;",
                 submissionBuffer: "var x = 1;");
+        }
+
+        [WpfFact]
+        public void TestExecuteInInteractiveWithDefines()
+        {
+            string exampleWithIfDirective =
+@"#if DEF
+public void $$Run()
+{
+}
+#endif";
+
+            AssertExecuteInInteractive(exampleWithIfDirective,
+@"public void Run()");
+
+            string exampleWithDefine =
+$@"#define DEF
+{exampleWithIfDirective}";
+
+            AssertExecuteInInteractive(exampleWithDefine,
+@"public void Run()
+{
+}");
         }
 
         [WpfFact]
@@ -156,12 +186,10 @@ text some {{|Selection:int y;$$|}} here also", expectedBoxSubmissionResult);
 
         private static void PrepareSubmissionBuffer(string submissionBuffer, InteractiveWindowCommandHandlerTestState workspace)
         {
-            if (string.IsNullOrEmpty(submissionBuffer))
+            if (!string.IsNullOrEmpty(submissionBuffer))
             {
-                return;
+                workspace.WindowCurrentLanguageBuffer.Insert(0, submissionBuffer);
             }
-
-            workspace.WindowCurrentLanguageBuffer.Insert(0, submissionBuffer);
         }
     }
 }

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Copying selection to interactive window..
+        ///   Looks up a localized string similar to Copying selection to Interactive Window..
         /// </summary>
         internal static string CopyToInteractiveDescription {
             get {
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Executing selection in interactive window..
+        ///   Looks up a localized string similar to Executing selection in Interactive Window..
         /// </summary>
         internal static string ExecuteInInteractiveDescription {
             get {

@@ -14,42 +14,50 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 {
     [Export(typeof(ISendToInteractiveSubmissionProvider))]
     internal sealed class CSharpSendToInteractiveSubmissionProvider
-        : SendToInteractiveSubmissionProvider
+        : AbstractSendToInteractiveSubmissionProvider
     {
         protected override bool CanParseSubmission(string code)
         {
-            SourceText sourceCode = SourceText.From(code);
             ParseOptions options = CSharpParseOptions.Default.WithKind(SourceCodeKind.Script);
-            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(sourceCode, options);
-            if (tree == null)
-            {
-                return false;
-            }
-
-            return tree.HasCompilationUnitRoot && !tree.GetDiagnostics().Any();
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(code, options);
+            return tree.HasCompilationUnitRoot &&
+                !tree.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
         }
 
-        protected override IEnumerable<TextSpan> GetExecutableSyntaxTreeNodeSelection(TextSpan selectionSpan, SourceText source, SyntaxNode root, SemanticModel model)
+        protected override IEnumerable<TextSpan> GetExecutableSyntaxTreeNodeSelection(TextSpan selectionSpan, SyntaxNode root)
         {
-            SyntaxNode expandedNode = GetExecutableSyntaxTreeNode(selectionSpan, source, root, model);
+            SyntaxNode expandedNode = GetSyntaxNodeForSubmission(selectionSpan, root);
             return expandedNode != null
                 ? new TextSpan[] { expandedNode.Span }
                 : Array.Empty<TextSpan>();
         }
 
-        private SyntaxNode GetExecutableSyntaxTreeNode(TextSpan selectionSpan, SourceText source, SyntaxNode root, SemanticModel model)
+        /// <summary>
+        /// Finds a <see cref="SyntaxNode"/> that should be submitted to REPL.
+        /// </summary>
+        /// <param name="selectionSpan">Selection that user has originally made.</param>
+        /// <param name="root">Root of the syntax tree.</param>
+        private SyntaxNode GetSyntaxNodeForSubmission(TextSpan selectionSpan, SyntaxNode root)
         {
-            Tuple<SyntaxToken, SyntaxToken> tokens = GetSelectedTokens(selectionSpan, root);
-            var startToken = tokens.Item1;
-            var endToken = tokens.Item2;
+            SyntaxToken startToken, endToken;
+            GetSelectedTokens(selectionSpan, root, out startToken, out endToken);
+
+            // Ensure that the first token comes before the last token.
+            // Otherwise selection did not contain any tokens.
             if (startToken != endToken && startToken.Span.End > endToken.SpanStart)
             {
                 return null;
             }
 
-            // If a selection falls within a single executable statement then execute that statement.
-            var startNode = GetGlobalExecutableStatement(startToken);
-            var endNode = GetGlobalExecutableStatement(endToken);
+            if (startToken == endToken)
+            {
+                return GetSyntaxNodeForSubmission(startToken.Parent);
+            }
+
+            var startNode = GetSyntaxNodeForSubmission(startToken.Parent);
+            var endNode = GetSyntaxNodeForSubmission(endToken.Parent);
+
+            // If there is no SyntaxNode worth sending to the REPL return null.
             if (startNode == null || endNode == null)
             {
                 return null;
@@ -67,16 +75,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 
             // Selection spans multiple statements.
             // In this case find common parent and find a span of statements within that parent.
-            var commonNode = root.FindNode(TextSpan.FromBounds(startNode.Span.Start, endNode.Span.End));
-            return commonNode;
+            return GetSyntaxNodeForSubmission(startNode.GetCommonRoot(endNode));
         }
 
-        private static SyntaxNode GetGlobalExecutableStatement(SyntaxToken token)
-        {
-            return GetGlobalExecutableStatement(token.Parent);
-        }
-
-        private static SyntaxNode GetGlobalExecutableStatement(SyntaxNode node)
+        /// <summary>
+        /// Finds a <see cref="SyntaxNode"/> that should be submitted to REPL.
+        /// </summary>
+        /// <param name="node">The currently selected node.</param>
+        private static SyntaxNode GetSyntaxNodeForSubmission(SyntaxNode node)
         {
             SyntaxNode candidate = node.GetAncestorOrThis<StatementSyntax>();
             if (candidate != null)
@@ -85,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
             }
 
             candidate = node.GetAncestorsOrThis<SyntaxNode>()
-                .Where(n => IsGlobalExecutableStatement(n)).FirstOrDefault();
+                .Where(IsSubmissionNode).FirstOrDefault();
             if (candidate != null)
             {
                 return candidate;
@@ -94,7 +100,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
             return null;
         }
 
-        private static bool IsGlobalExecutableStatement(SyntaxNode node)
+        /// <summary>Returns <c>true</c> if <c>node</c> could be treated as a REPL submission.</summary>
+        private static bool IsSubmissionNode(SyntaxNode node)
         {
             var kind = node.Kind();
             return SyntaxFacts.IsTypeDeclaration(kind)
@@ -102,23 +109,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
                 || node.IsKind(SyntaxKind.UsingDirective);
         }
 
-        private Tuple<SyntaxToken, SyntaxToken> GetSelectedTokens(TextSpan selectionSpan, SyntaxNode root)
+        private void GetSelectedTokens(
+            TextSpan selectionSpan,
+            SyntaxNode root,
+            out SyntaxToken startToken,
+            out SyntaxToken endToken)
         {
-            if (selectionSpan.Length == 0)
-            {
-                var selectedToken = root.FindTokenOnLeftOfPosition(selectionSpan.End);
-                return Tuple.Create(
-                    selectedToken,
-                    selectedToken);
-            }
-            else
-            {
-                // For a selection find the first and the last token of the selection.
-                // Ensure that the first token comes before the last token.
-                return Tuple.Create(
-                    root.FindTokenOnRightOfPosition(selectionSpan.Start),
-                    root.FindTokenOnLeftOfPosition(selectionSpan.End));
-            }
+            endToken = root.FindTokenOnLeftOfPosition(selectionSpan.End);
+            startToken = selectionSpan.Length == 0
+                ? endToken
+                : root.FindTokenOnRightOfPosition(selectionSpan.Start);
         }
     }
 }

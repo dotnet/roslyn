@@ -62,7 +62,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 allowCancel: true,
                 action: context =>
                 {
-                    window.SubmitAsync(new[] { GetSelectedText(args, context.CancellationToken) });
+                    string submission = GetSelectedText(args, context.CancellationToken);
+                    if (!String.IsNullOrWhiteSpace(submission))
+                    {
+                        window.SubmitAsync(new string[] { submission });
+                    }
                 });
         }
 

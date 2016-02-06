@@ -121,10 +121,10 @@
     <value>Building Project</value>
   </data>
   <data name="CopyToInteractiveDescription" xml:space="preserve">
-    <value>Copying selection to interactive window.</value>
+    <value>Copying selection to Interactive Window.</value>
   </data>
   <data name="ExecuteInInteractiveDescription" xml:space="preserve">
-    <value>Executing selection in interactive window.</value>
+    <value>Executing selection in Interactive Window.</value>
   </data>
   <data name="ReferencesCommandDescription" xml:space="preserve">
     <value>Print a list of referenced assemblies.</value>
