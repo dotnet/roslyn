@@ -57,6 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     {
         private const string HostId = "RoslynNuGetSearch";
         private const string BackupExtension = ".bak";
+        private const int DataFormatVersion = AddReferenceDatabase.TextFileFormatVersion;
 
         private static readonly TimeSpan OneDay = TimeSpan.FromDays(1);
         private static readonly TimeSpan OneMinute = TimeSpan.FromMinutes(1);
@@ -66,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly CancellationToken _cancellationToken;
 
-        private IMemberDatabase memberDatabase_doNotAccessDirectly;
+        private AddReferenceDatabase database_doNotAccessDirectly;
 
         private readonly DirectoryInfo _cacheDirectoryInfo;
         private readonly FileInfo _databaseFileInfo;
@@ -92,7 +93,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             var settingsManager = new ShellSettingsManager(serviceProvider);
 
             var localSettingsDirectory = settingsManager.GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
-            _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(localSettingsDirectory, "NuGetCache", DataFormatVersion));
+            _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
+                localSettingsDirectory, "NuGetCache", string.Format($"Format{DataFormatVersion}")));
             _databaseFileInfo = new FileInfo(Path.Combine(_cacheDirectoryInfo.FullName, "NuGetCache.txt"));
 
             _cancellationTokenSource = new CancellationTokenSource();
@@ -109,13 +111,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _cancellationTokenSource.Cancel();
         }
 
-        private IMemberDatabase MemberDatabase
+        private AddReferenceDatabase Database
         {
             get
             {
                 lock (gate)
                 {
-                    return memberDatabase_doNotAccessDirectly;
+                    return database_doNotAccessDirectly;
                 }
             }
 
@@ -125,18 +127,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 {
                     // If we don't have an existing database, or the database version has changed
                     // then update the database we're currently pointing at.
-                    if (memberDatabase_doNotAccessDirectly == null ||
-                        GetDatabaseVersion(memberDatabase_doNotAccessDirectly) != GetDatabaseVersion(value))
+                    if (database_doNotAccessDirectly == null ||
+                        database_doNotAccessDirectly.DatabaseVersion != value.DatabaseVersion)
                     {
-                        memberDatabase_doNotAccessDirectly = value;
+                        database_doNotAccessDirectly = value;
                     }
                 }
             }
         }
-
-        public string DataFormatVersion => "1";
-
-        private string GetDatabaseVersion(IMemberDatabase database) => "1";
 
         private void LogInfo(string text)
         {
@@ -337,7 +335,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // that searches will run against.  If we can't make a database instance from these bytes
             // then our local database is corrupt and we need to download the full database to get back
             // into a good state.
-            IMemberDatabase database;
+            AddReferenceDatabase database;
             try
             {
                 database = CreateAndSetInMemoryDatabase(databaseBytes);
@@ -348,10 +346,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return await DownloadFullDatabaseAsync().ConfigureAwait(false);
             }
 
-            var databaseVersion = GetDatabaseVersion(database);
+            var databaseVersion = database.DatabaseVersion;
 
             // Now attempt to download and apply patch file.
-            var serverPath = $"{DataFormatVersion}/{databaseVersion}/Patch.xml";
+            var serverPath = $"{DataFormatVersion}/{database.DatabaseVersion}/Patch.xml";
 
             LogInfo("Downloading and processing patch file: " + serverPath);
 
@@ -371,10 +369,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         /// indicates that our data is corrupt), the local database will be deleted so that we will 
         /// end up downloading the full database again.
         /// </summary>
-        private IMemberDatabase CreateAndSetInMemoryDatabase(byte[] bytes)
+        private AddReferenceDatabase CreateAndSetInMemoryDatabase(byte[] bytes)
         {
             var database = CreateDatabaseFromBytes(bytes);
-            this.MemberDatabase = database;
+            this.Database = database;
             return database;
         }
 
@@ -462,7 +460,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
         }
 
-        private IMemberDatabase CreateDatabaseFromBytes(byte[] bytes)
+        private AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes)
         {
             LogInfo("Creating database from bytes");
             using (var memoryStream = new MemoryStream(bytes))
@@ -603,7 +601,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         // TODO(cyrusn): remove arity.
         public IEnumerable<PackageSearchResult> Search(string name, int arity, CancellationToken cancellationToken)
         {
-            var database = this.MemberDatabase;
+            var database = this.Database;
             if (database == null)
             {
                 // Don't have a database to search.  

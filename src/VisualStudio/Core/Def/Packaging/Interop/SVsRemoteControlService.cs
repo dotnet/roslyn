@@ -7,4 +7,17 @@ namespace Microsoft.Internal.VisualStudio.Shell.Interop
     internal interface SVsRemoteControlService
     {
     }
+
+    enum __VsRemoteControlBehaviorOnStale
+    {
+        /// <summary>
+        /// Returns the last locally cached file for this URL or null if no locally cached file found.
+        /// </summary>
+        ReturnsStale = 0,
+
+        /// <summary>
+        /// If the locally cached file exists and it was checked against the server less than pollingIntervalMinutes (specified in CreateClient) ago, returns that. Otherwise null.
+        /// </summary>
+        ReturnsNull = 1
+    }
 }

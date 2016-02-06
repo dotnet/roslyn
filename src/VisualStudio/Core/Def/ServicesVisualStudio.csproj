@@ -258,8 +258,6 @@
     <Compile Include="Implementation\Workspace\VisualStudioNavigationOptionsProvider.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioProjectCacheHostServiceFactory.cs" />
     <Compile Include="IRoslynTelemetrySetup.cs" />
-    <Compile Include="Packaging\Interop\IVsRemoteControlClient.cs" />
-    <Compile Include="Packaging\Interop\IVsRemoteControlService.cs" />
     <Compile Include="Packaging\Interop\SVsRemoteControlService.cs" />
     <Compile Include="Packaging\PackageInstallerServiceFactory.cs" />
     <Compile Include="Packaging\PackageSearchServiceFactory.cs" />
