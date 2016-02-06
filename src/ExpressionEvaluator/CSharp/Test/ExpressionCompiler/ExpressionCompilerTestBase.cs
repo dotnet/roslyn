@@ -344,5 +344,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         {
             return new Alias(kind, name, fullName, type, customTypeInfo);
         }
+
+        internal static MethodDebugInfo<TypeSymbol, LocalSymbol> GetMethodDebugInfo(RuntimeInstance runtime, string qualifiedMethodName)
+        {
+            var peCompilation = runtime.Modules.SelectAsArray(m => m.MetadataBlock).ToCompilation();
+            var peMethod = peCompilation.GlobalNamespace.GetMember<PEMethodSymbol>(qualifiedMethodName);
+            var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+
+            var symReader = runtime.Modules.Single(mi => mi.ModuleVersionId == peModule.Module.GetModuleVersionIdOrThrow()).SymReader;
+            var symbolProvider = new CSharpEESymbolProvider((SourceAssemblySymbol)peCompilation.Assembly, peModule, peMethod);
+
+            return MethodDebugInfo<TypeSymbol, LocalSymbol>.ReadMethodDebugInfo((ISymUnmanagedReader)symReader, symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion: 1, ilOffset: 0, isVisualBasicMethod: false);
+        }
     }
 }

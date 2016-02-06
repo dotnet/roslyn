@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return references.ToCompilation();
         }
 
-        private static CSharpCompilation ToCompilation(this ImmutableArray<MetadataReference> references)
+        internal static CSharpCompilation ToCompilation(this ImmutableArray<MetadataReference> references)
         {
             return CSharpCompilation.Create(
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),

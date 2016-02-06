@@ -65,7 +65,8 @@
     </Compile>
     <Compile Include="CustomDiagnosticFormatter.cs" />
     <Compile Include="ExpressionCompilerTestHelpers.cs" />
-    <Compile Include="MethodDebugInfo.cs" />
+    <Compile Include="MethodDebugInfoBytes.cs" />
+    <Compile Include="MethodDebugInfoValidation.cs" />
     <Compile Include="NotImplementedSymUnmanaged.cs" />
     <Compile Include="ModuleInstance.cs" />
     <Compile Include="MockSymUnmanaged.cs" />
