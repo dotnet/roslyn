@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis
                 return expectedText;
             }
 
-            public static string GetExpectedErrorLogIssuesText(Compilation compilation)
+            public static string GetExpectedErrorLogResultsText(Compilation compilation)
             {
                 var tree = compilation.SyntaxTrees.First();
                 var root = tree.GetRoot();
@@ -85,9 +85,10 @@ namespace Microsoft.CodeAnalysis
                 var filePath = GetEscapedUriForPath(tree.FilePath);
 
                 return @"
-      ""issues"": [
+      ""results"": [
         {
           ""ruleId"": """ + Descriptor1.Id + @""",
+          ""kind"": """ + (Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
           ""locations"": [
             {
               ""analysisTarget"": [
@@ -105,6 +106,10 @@ namespace Microsoft.CodeAnalysis
           ],
           ""shortMessage"": """ + Descriptor1.MessageFormat + @""",
           ""fullMessage"": """ + Descriptor1.Description + @""",
+          ""isSuppressedInSource"": false,
+          ""tags"": [
+            " + String.Join("," + Environment.NewLine + "            ", Descriptor1.CustomTags.Select(s => $"\"{s}\"")) + @"
+          ],
           ""properties"": {
             ""severity"": """ + Descriptor1.DefaultSeverity + @""",
             ""warningLevel"": ""1"",
@@ -112,27 +117,28 @@ namespace Microsoft.CodeAnalysis
             ""title"": """ + Descriptor1.Title + @""",
             ""category"": """ + Descriptor1.Category + @""",
             ""helpLink"": """ + Descriptor1.HelpLinkUri + @""",
-            ""isEnabledByDefault"": """ + Descriptor1.IsEnabledByDefault + @""",
-            ""isSuppressedInSource"": ""False"",
-            ""customTags"": """ + Descriptor1.CustomTags.Join(";") + @"""" +
+            ""isEnabledByDefault"": """ + Descriptor1.IsEnabledByDefault + @"""" +
             GetExpectedPropertiesMapText() + @"
           }
         },
         {
           ""ruleId"": """ + Descriptor2.Id + @""",
+          ""kind"": """ + (Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
           ""locations"": [
           ],
           ""shortMessage"": """ + Descriptor2.MessageFormat + @""",
           ""fullMessage"": """ + Descriptor2.Description + @""",
+          ""isSuppressedInSource"": false,
+          ""tags"": [
+            " + String.Join("," + Environment.NewLine + "            ", Descriptor2.CustomTags.Select(s => $"\"{s}\"")) + @"
+          ],
           ""properties"": {
             ""severity"": """ + Descriptor2.DefaultSeverity + @""",
             ""defaultSeverity"": """ + Descriptor2.DefaultSeverity + @""",
             ""title"": """ + Descriptor2.Title + @""",
             ""category"": """ + Descriptor2.Category + @""",
             ""helpLink"": """ + Descriptor2.HelpLinkUri + @""",
-            ""isEnabledByDefault"": """ + Descriptor2.IsEnabledByDefault + @""",
-            ""isSuppressedInSource"": ""False"",
-            ""customTags"": """ + Descriptor2.CustomTags.Join(";") + @"""" +
+            ""isEnabledByDefault"": """ + Descriptor2.IsEnabledByDefault + @"""" +
             GetExpectedPropertiesMapText() + @"
           }
         }

@@ -1241,6 +1241,37 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub OwningSymbolVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub UnFunkyMethod()
+        Dim x As Integer = 0
+        Dim y As Integer = x
+    End Sub
+
+    Public Sub FunkyMethod()
+        Dim x As Integer = 0
+        Dim y As Integer = x
+    End Sub
+
+    Public FunkyField As Integer = 12
+    Public UnFunkyField As Integer = 12
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New OwningSymbolTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "0").WithLocation(8, 28),
+                                           Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "x").WithLocation(9, 28),
+                                           Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "12").WithLocation(12, 36))
+        End Sub
+
+        <Fact>
         Public Sub NoneOperationVisualBasic()
             ' BoundCaseStatement is OperationKind.None
             Dim source = <compilation>

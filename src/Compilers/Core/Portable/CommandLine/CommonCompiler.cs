@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         public abstract DiagnosticFormatter DiagnosticFormatter { get; }
         private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
 
-        public abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger);
+        public abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLoggerOpt);
         public abstract void PrintLogo(TextWriter consoleOutput);
         public abstract void PrintHelp(TextWriter consoleOutput);
         internal abstract string GetToolName();
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis
             return diagnosticInfo;
         }
 
-        public bool ReportErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput, ErrorLogger errorLogger)
+        public bool ReportErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
         {
             bool hasErrors = false;
             foreach (var diag in diagnostics)
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis
 
                 // We want to report diagnostics with source suppression in the error log file.
                 // However, these diagnostics should not be reported on the console output.
-                ErrorLogger.LogDiagnostic(diag, this.Culture, errorLogger);
+                errorLoggerOpt?.LogDiagnostic(diag, this.Culture);
                 if (diag.IsSuppressed)
                 {
                     continue;
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis
             return hasErrors;
         }
 
-        public bool ReportErrors(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput, ErrorLogger errorLogger)
+        public bool ReportErrors(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
         {
             bool hasErrors = false;
             if (diagnostics != null && diagnostics.Any())
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     PrintError(diagnostic, consoleOutput);
-                    ErrorLogger.LogDiagnostic(Diagnostic.Create(diagnostic), this.Culture, errorLogger);
+                    errorLoggerOpt?.LogDiagnostic(Diagnostic.Create(diagnostic), this.Culture);
 
                     if (diagnostic.Severity == DiagnosticSeverity.Error)
                     {
