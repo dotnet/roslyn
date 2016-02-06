@@ -108,12 +108,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly DiagnosticAnalyzer _analyzer;
         private readonly HostCompilationStartAnalysisScope _scope;
+        private readonly CompilationAnalysisValueProviderFactory _compilationAnalysisValueProviderFactory;
 
-        public AnalyzerCompilationStartAnalysisContext(DiagnosticAnalyzer analyzer, HostCompilationStartAnalysisScope scope, Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
+        public AnalyzerCompilationStartAnalysisContext(
+            DiagnosticAnalyzer analyzer,
+            HostCompilationStartAnalysisScope scope,
+            Compilation compilation,
+            AnalyzerOptions options,
+            CompilationAnalysisValueProviderFactory compilationAnalysisValueProviderFactory,
+            CancellationToken cancellationToken)
             : base(compilation, options, cancellationToken)
         {
             _analyzer = analyzer;
             _scope = scope;
+            _compilationAnalysisValueProviderFactory = compilationAnalysisValueProviderFactory;
         }
 
         public override void RegisterCompilationEndAction(Action<CompilationAnalysisContext> action)
@@ -165,6 +173,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             _scope.RegisterOperationAction(this._analyzer, action, operationKinds);
+        }
+
+        internal override bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)
+        {
+            var compilationAnalysisValueProvider = _compilationAnalysisValueProviderFactory.GetValueProvider(valueProvider);
+            return compilationAnalysisValueProvider.TryGetValue(key, out value);
         }
     }
 
