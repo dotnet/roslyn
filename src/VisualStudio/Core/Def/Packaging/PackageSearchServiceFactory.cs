@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly IPackageSearchLogService _logService;
         private readonly IPackageSearchRemoteControlService _remoteControlService;
         private readonly IPackageSearchPatchService _patchService;
-        private readonly IPackageSearchDatabaseService _databaseService;
+        private readonly IPackageSearchDatabaseFactoryService _databaseFactoryService;
 
         public PackageSearchService(VSShell.SVsServiceProvider serviceProvider)
             : this(CreateRemoteControlService(serviceProvider),
@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                    new DefaultPackageSearchDelayService(), 
                    new DefaultPackageSearchIOService(),
                    new DefaultPackageSearchPatchService(),
-                   new DefaultPackageSearchDatabaseService(),
+                   new DefaultPackageSearchDatabaseFactoryService(),
                    new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings))
         {
             // Kick off a database update.  Wait a few seconds before starting so we don't
@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             IPackageSearchDelayService delayService,
             IPackageSearchIOService ioService,
             IPackageSearchPatchService patchService,
-            IPackageSearchDatabaseService databaseService,
+            IPackageSearchDatabaseFactoryService databaseFactoryService,
             string localSettingsDirectory)
         {
             if (remoteControlService == null)
@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _logService = logService;
             _remoteControlService = remoteControlService;
             _patchService = patchService;
-            _databaseService = databaseService;
+            _databaseFactoryService = databaseFactoryService;
 
             _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
                 localSettingsDirectory, "NuGetCache", string.Format($"Format{DataFormatVersion}")));
@@ -465,7 +465,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes)
         {
             LogInfo("Creating database from bytes");
-            var result = _databaseService.CreateDatabaseFromBytes(bytes);
+            var result = _databaseFactoryService.CreateDatabaseFromBytes(bytes);
             LogInfo("Creating database from bytes completed");
             return result;
         }
@@ -748,7 +748,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
         }
 
-        private class DefaultPackageSearchDatabaseService : IPackageSearchDatabaseService
+        private class DefaultPackageSearchDatabaseFactoryService : IPackageSearchDatabaseFactoryService
         {
             public AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes)
             {
@@ -763,7 +763,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
     }
 
-    internal interface IPackageSearchDatabaseService
+    internal interface IPackageSearchDatabaseFactoryService
     {
         AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes);
     }
@@ -776,6 +776,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         IPackageSearchRemoteControlClient CreateClient(string hostId, string serverPath, int pollingMinutes);
     }
 
+    /// <summary>
+    /// Used so we can mock out the client in unit tests.
+    /// </summary>
     internal interface IPackageSearchRemoteControlClient : IDisposable
     {
         Task<Stream> ReadFileAsync(__VsRemoteControlBehaviorOnStale behavior);
@@ -801,7 +804,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     /// <summary>
     /// Used so we can mock out how the search service does IO for testing purposes.
     /// </summary>
-    interface IPackageSearchIOService
+    internal interface IPackageSearchIOService
     {
         void Create(DirectoryInfo directory);
         void Delete(FileInfo file);
