@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         public PackageSearchService(VSShell.SVsServiceProvider serviceProvider)
             : this(CreateRemoteControlService(serviceProvider),
                    new DefaultPackageSearchLogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog))),
-                   new DefaultPackageSearchDelayService(), 
+                   new DelayService(), 
                    new DefaultPackageSearchIOService(),
                    new DefaultPackageSearchPatchService(),
                    new DefaultPackageSearchDatabaseFactoryService(),
@@ -580,14 +580,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 GetFullName(nameParts, path.Parent);
                 nameParts.Add(path.Name.ToString());
             }
-        }
-
-        private class DefaultPackageSearchDelayService : IPackageSearchDelayService
-        {
-            public TimeSpan CachePollDelay { get; } = TimeSpan.FromMinutes(1);
-            public TimeSpan FileWriteDelay { get; } = TimeSpan.FromSeconds(10);
-            public TimeSpan UpdateFailedDelay { get; } = TimeSpan.FromMinutes(1);
-            public TimeSpan UpdateSucceededDelay { get; } = TimeSpan.FromDays(1);
         }
 
         private class DefaultPackageSearchIOService : IPackageSearchIOService
