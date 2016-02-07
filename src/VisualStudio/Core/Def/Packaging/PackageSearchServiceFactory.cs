@@ -79,13 +79,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly IPackageSearchDatabaseService _databaseService;
 
         public PackageSearchService(VSShell.SVsServiceProvider serviceProvider)
-            : this(serviceProvider,
-                   CreateRemoteControlService(serviceProvider),
+            : this(CreateRemoteControlService(serviceProvider),
                    new DefaultPackageSearchLogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog))),
                    new DefaultPackageSearchDelayService(), 
                    new DefaultPackageSearchIOService(),
                    new DefaultPackageSearchPatchService(),
-                   new DefaultPackageSearchDatabaseService())
+                   new DefaultPackageSearchDatabaseService(),
+                   new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings))
         {
             // Kick off a database update.  Wait a few seconds before starting so we don't
             // interfere too much with solution loading.
@@ -105,13 +105,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         public PackageSearchService(
-            VSShell.SVsServiceProvider serviceProvider,
             IPackageSearchRemoteControlService remoteControlService,
             IPackageSearchLogService logService,
             IPackageSearchDelayService delayService,
             IPackageSearchIOService ioService,
             IPackageSearchPatchService patchService,
-            IPackageSearchDatabaseService databaseService)
+            IPackageSearchDatabaseService databaseService,
+            string localSettingsDirectory)
         {
             if (remoteControlService == null)
             {
@@ -126,9 +126,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _patchService = patchService;
             _databaseService = databaseService;
 
-            var settingsManager = new ShellSettingsManager(serviceProvider);
-
-            var localSettingsDirectory = settingsManager.GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
             _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
                 localSettingsDirectory, "NuGetCache", string.Format($"Format{DataFormatVersion}")));
             _databaseFileInfo = new FileInfo(Path.Combine(_cacheDirectoryInfo.FullName, "NuGetCache.txt"));
