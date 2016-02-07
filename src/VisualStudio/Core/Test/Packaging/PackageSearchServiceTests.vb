@@ -10,7 +10,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
         Private Shared ReadOnly s_allButMoqExceptions As Func(Of Exception, Boolean) =
             Function(e) TypeOf e IsNot MockException
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
         Public Async Function TestCacheFolderCreatedIfMissing() As Task
             Dim cancellationTokenSource = New CancellationTokenSource()
 
@@ -38,7 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
             remoteControlService.Verify()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
         Public Async Function TestCacheFolderNotCreatedIfPresent() As Task
             Dim cancellationTokenSource = New CancellationTokenSource()
 
@@ -65,7 +65,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
             remoteControlService.Verify()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
         Public Async Function TestDownloadFullDatabaseWhenLocalFileMissing() As Task
             Dim cancellationTokenSource = New CancellationTokenSource()
 
@@ -77,6 +77,39 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
             Dim serviceMock = New Mock(Of IPackageSearchRemoteControlService)(MockBehavior.Strict)
             serviceMock.Setup(
                 Function(s) s.CreateClient(It.IsAny(Of String), It.IsRegex(".*Latest.*"), It.IsAny(Of Integer))).
+                Returns(clientMock.Object).
+                Callback(AddressOf cancellationTokenSource.Cancel)
+
+            Dim searchService = New PackageSearchService(
+                remoteControlService:=serviceMock.Object,
+                logService:=TestLogService.Instance,
+                delayService:=TestDelayService.Instance,
+                ioService:=ioServiceMock.Object,
+                patchService:=Nothing,
+                databaseFactoryService:=Nothing,
+                localSettingsDirectory:="TestDirectory",
+                swallowException:=s_allButMoqExceptions,
+                cancellationTokenSource:=cancellationTokenSource)
+
+            Await searchService.UpdateDatabaseInBackgroundAsync()
+            ioServiceMock.Verify()
+            serviceMock.Verify()
+            clientMock.Verify()
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        Public Async Function TestClientDisposedAfterUse() As Task
+            Dim cancellationTokenSource = New CancellationTokenSource()
+
+            Dim ioServiceMock = New Mock(Of IPackageSearchIOService)()
+            ioServiceMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+
+            Dim clientMock = New Mock(Of IPackageSearchRemoteControlClient)(MockBehavior.Strict)
+            clientMock.Setup(Sub(c) c.Dispose())
+
+            Dim serviceMock = New Mock(Of IPackageSearchRemoteControlService)(MockBehavior.Strict)
+            serviceMock.Setup(
+                Function(s) s.CreateClient(It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of Integer))).
                 Returns(clientMock.Object).
                 Callback(AddressOf cancellationTokenSource.Cancel)
 
