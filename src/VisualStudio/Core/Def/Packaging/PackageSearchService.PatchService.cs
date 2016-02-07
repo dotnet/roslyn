@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Microsoft.VisualStudio.LanguageServices.Packaging
+﻿namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
-    class PatchService
+    internal partial class PackageSearchService
     {
+        private class PatchService : IPackageSearchPatchService
+        {
+            public byte[] ApplyPatch(byte[] databaseBytes, byte[] patchBytes)
+            {
+                return Patching.Delta.ApplyPatch(databaseBytes, patchBytes);
+            }
+        }
     }
 }

@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                    new LogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog))),
                    new DelayService(), 
                    new IOService(),
-                   new DefaultPackageSearchPatchService(),
+                   new PatchService(),
                    new DefaultPackageSearchDatabaseFactoryService(),
                    new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings))
         {
@@ -579,14 +579,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 GetFullName(nameParts, path.Parent);
                 nameParts.Add(path.Name.ToString());
-            }
-        }
-
-        private class DefaultPackageSearchPatchService : IPackageSearchPatchService
-        {
-            public byte[] ApplyPatch(byte[] databaseBytes, byte[] patchBytes)
-            {
-                return Patching.Delta.ApplyPatch(databaseBytes, patchBytes);
             }
         }
 
