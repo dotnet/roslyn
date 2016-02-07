@@ -199,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         /// <returns>The timespan the caller should wait until calling this method again.</returns>
-        private async Task<TimeSpan> UpdateDatabaseInBackgroundWorkerAsync()
+        internal async Task<TimeSpan> UpdateDatabaseInBackgroundWorkerAsync()
         {
             // Attempt to update the local db if we have one, or download a full db
             // if we don't.  In the event of any error back off a minute and try 
