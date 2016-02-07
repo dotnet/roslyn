@@ -78,7 +78,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly IPackageSearchIOService _ioService;
 
         public PackageSearchService(VSShell.SVsServiceProvider serviceProvider)
-            : this(serviceProvider, 
+            : this(serviceProvider,
+                   (IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog)),
                    new DefaultPackageSearchDelayService(), 
                    new DefaultPackageSearchIOService())
         {
@@ -86,6 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         public PackageSearchService(
             VSShell.SVsServiceProvider serviceProvider, 
+            IVsActivityLog activityLog,
             IPackageSearchDelayService delayService,
             IPackageSearchIOService ioService)
         {
@@ -98,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             _delayService = delayService;
             _ioService = ioService;
-            _activityLog = (IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog));
+            _activityLog = activityLog;
 
             var settingsManager = new ShellSettingsManager(serviceProvider);
 
