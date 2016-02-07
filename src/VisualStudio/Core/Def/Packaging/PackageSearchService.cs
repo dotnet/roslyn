@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         public PackageSearchService(VSShell.SVsServiceProvider serviceProvider)
             : this(CreateRemoteControlService(serviceProvider),
-                   new DefaultPackageSearchLogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog))),
+                   new LogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog))),
                    new DelayService(), 
                    new IOService(),
                    new DefaultPackageSearchPatchService(),
@@ -579,45 +579,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 GetFullName(nameParts, path.Parent);
                 nameParts.Add(path.Name.ToString());
-            }
-        }
-
-        private class DefaultPackageSearchLogService : ForegroundThreadAffinitizedObject, IPackageSearchLogService
-        {
-            private readonly IVsActivityLog _activityLog;
-
-            public DefaultPackageSearchLogService(IVsActivityLog activityLog)
-            {
-                _activityLog = activityLog;
-            }
-
-            public void LogInfo(string text)
-            {
-                Log(text, __ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION);
-            }
-
-            public void LogException(Exception e, string text)
-            {
-                Log(text + ". " + e.ToString(), __ACTIVITYLOG_ENTRYTYPE.ALE_ERROR);
-            }
-
-            private void Log(string text, __ACTIVITYLOG_ENTRYTYPE type)
-            {
-                if (!this.IsForeground())
-                {
-                    this.InvokeBelowInputPriority(() => Log(text, type));
-                    return;
-                }
-
-                AssertIsForeground();
-                _activityLog?.LogEntry((uint)type, HostId, text);
-
-                // Keep a running in memory log as well for debugging purposes.
-                _log.AddLast(text);
-                while (_log.Count > 100)
-                {
-                    _log.RemoveFirst();
-                }
             }
         }
 
