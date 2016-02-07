@@ -913,7 +913,7 @@
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceManager.Factory.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Packaging\PatchService.PatchService.cs" />
+    <Compile Include="Packaging\PackageSearchService.PatchService.cs" />
     <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
