@@ -319,7 +319,7 @@ class C { }";
             var text =
 @"/** <foo 
   * />
-  */";
+  */".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -345,7 +345,7 @@ class C { }";
 @"/** <foo 
   * />
   */
-class C { }";
+class C { }".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -741,7 +741,7 @@ class C { }";
 @"/** <foo>
   * bar
   * </foo>
-  */";
+  */".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -774,7 +774,7 @@ class C { }";
             var text =
 @"/// <![CDATA[ this is a test
 /// of &some; cdata /// */ /**
-/// ""']]<>/></text]]>";
+/// ""']]<>/></text]]>".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -967,7 +967,7 @@ class C { }".NormalizeLineEndings(); // end of line/comment
 @"/** <!-- this is a test
   * of &some; comment
   * ""']]<>/></text-->
-  */";
+  */".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -1105,7 +1105,7 @@ class C { }"; // end of line/comment
 @"/** <?prefix:localname this is a test <!--
   * of &a; ProcessingInstruction
   * ""']]>/></text>]]>?>
-  */";
+  */".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -1595,7 +1595,7 @@ class C { }";
             var text =
 @"/**
 x
-*/";
+*/".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
