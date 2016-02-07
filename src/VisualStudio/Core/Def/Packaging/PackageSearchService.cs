@@ -21,9 +21,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
     internal partial class PackageSearchService : ForegroundThreadAffinitizedObject, IPackageSearchService, IDisposable
     {
+        public const string ContentsAttributeName = "contents";
+
         private const string HostId = "RoslynNuGetSearch";
         private const string BackupExtension = ".bak";
-
         private static readonly LinkedList<string> _log = new LinkedList<string>();
 
         private readonly int DataFormatVersion = AddReferenceDatabase.TextFileFormatVersion;
@@ -296,14 +297,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // in case the file is locked.  The .bak file will be deleted in the future the next 
             // time we do an update.
 
-            await RepeatAsync(
+            await RepeatIOAsync(
                 () =>
                 {
                     LogInfo("Replacing database file");
                     _ioService.Replace(tempFilePath, _databaseFileInfo.FullName, backupFilePath, ignoreMetadataErrors: true);
                     LogInfo("Replace database file completed");
-                },
-                repeat: 6, delay: _delayService.FileWriteDelay).ConfigureAwait(false);
+                }).ConfigureAwait(false);
         }
 
         private async Task<TimeSpan> PatchLocalDatabaseAsync()
@@ -323,7 +323,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 database = CreateAndSetInMemoryDatabase(databaseBytes);
             }
-            catch (Exception e)
+            catch (Exception e) when (_swallowException(e))
             {
                 LogException(e, "Error creating database from local copy. Downloading full database");
                 return await DownloadFullDatabaseAsync().ConfigureAwait(false);
@@ -372,7 +372,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 // Fall through and download full database.
             }
-            catch (Exception e)
+            catch (Exception e) when (_swallowException(e))
             {
                 LogException(e, "Error occurred while processing patch element. Downloading full database");
                 // Fall through and download full database.
@@ -424,7 +424,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             var isTooOldAttribute = patchElement.Attribute("isTooOld");
             isTooOld = isTooOldAttribute != null && (bool)isTooOldAttribute;
 
-            var contentsAttribute = patchElement.Attribute("contents");
+            var contentsAttribute = patchElement.Attribute(ContentsAttributeName);
             if (contentsAttribute != null)
             {
                 var contents = contentsAttribute.Value;
@@ -513,8 +513,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
         }
 
-        private async Task RepeatAsync(Action action, int repeat, TimeSpan delay)
+        private async Task RepeatIOAsync(Action action)
         {
+            const int repeat = 6;
             for (var i = 0; i < repeat; i++)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
@@ -524,8 +525,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     action();
                     return;
                 }
-                catch (Exception e)
+                catch (Exception e) when (_swallowException(e))
                 {
+                    var delay = _delayService.FileWriteDelay;
                     LogException(e, $"Operation failed. Trying again after {delay}");
                     await Task.Delay(delay, _cancellationToken).ConfigureAwait(false);
                 }
@@ -535,7 +537,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private byte[] ParseDatabaseElement(XElement element)
         {
             LogInfo("Parsing database element");
-            var contentsAttribute = element.Attribute("contents");
+            var contentsAttribute = element.Attribute(ContentsAttributeName);
             if (contentsAttribute == null)
             {
                 throw new FormatException("Database element invalid. Missing 'contents' attribute");

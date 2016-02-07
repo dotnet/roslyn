@@ -2,6 +2,7 @@
 Imports System.IO.Compression
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports Elfie.Model
 Imports Microsoft.Internal.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Packaging
 Imports Moq
@@ -214,14 +215,63 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
             factoryMock.Verify()
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        Public Async Function SuccessParseingDBWritesToDisk() As Task
+            Dim cancellationTokenSource = New CancellationTokenSource()
+
+            Dim ioServiceMock = New Mock(Of IPackageSearchIOService)()
+            ioServiceMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+
+            Dim clientMock = New Mock(Of IPackageSearchRemoteControlClient)(MockBehavior.Strict)
+            clientMock.Setup(Function(c) c.ReadFileAsync(It.IsAny(Of __VsRemoteControlBehaviorOnStale))).
+                Returns(Task.FromResult(CreateFullDownloadElementStream()))
+            clientMock.Setup(Sub(c) c.Dispose())
+
+            Dim remoteControlMock = New Mock(Of IPackageSearchRemoteControlService)(MockBehavior.Strict)
+            remoteControlMock.Setup(
+                Function(s) s.CreateClient(It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of Integer))).
+                Returns(clientMock.Object)
+
+            Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
+            delayMock.SetupGet(Function(s) s.UpdateSucceededDelay).Returns(TimeSpan.Zero)
+
+            Dim factoryMock = New Mock(Of IPackageSearchDatabaseFactoryService)(MockBehavior.Strict)
+            factoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
+                Returns(New AddReferenceDatabase())
+
+            ioServiceMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsAny(Of String), It.IsAny(Of Byte()))).
+                Callback(AddressOf cancellationTokenSource.Cancel)
+            ioServiceMock.Setup(Sub(s) s.Replace(It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of Boolean))).
+                Callback(AddressOf cancellationTokenSource.Cancel)
+
+            Dim searchService = New PackageSearchService(
+                remoteControlService:=remoteControlMock.Object,
+                logService:=TestLogService.Instance,
+                delayService:=delayMock.Object,
+                ioService:=ioServiceMock.Object,
+                patchService:=Nothing,
+                databaseFactoryService:=factoryMock.Object,
+                localSettingsDirectory:="TestDirectory",
+                swallowException:=s_allButMoqExceptions,
+                cancellationTokenSource:=cancellationTokenSource)
+
+            Await searchService.UpdateDatabaseInBackgroundAsync()
+            ioServiceMock.Verify()
+            remoteControlMock.Verify()
+            clientMock.Verify()
+            delayMock.Verify()
+            factoryMock.Verify()
+        End Function
+
         Private Function CreateFullDownloadElementStream() As Stream
             Dim saveStream = New MemoryStream()
             Dim zipStream = New DeflateStream(saveStream, CompressionMode.Compress)
             zipStream.Write(New Byte() {0}, 0, 1)
             zipStream.Flush()
-            Dim content = Convert.ToBase64String(saveStream.ToArray())
+            Dim contents = Convert.ToBase64String(saveStream.ToArray())
 
-            Dim element = New XElement("Database", New XAttribute("content", content))
+            Dim element = New XElement("Database",
+                New XAttribute(PackageSearchService.ContentsAttributeName, contents))
             Dim stream = New MemoryStream()
             element.Save(stream)
             stream.Position = 0
