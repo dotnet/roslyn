@@ -145,7 +145,7 @@ class C { }";
         {
             var text =
 @"/** <foo /> */
-class C { }";
+class C { }".NormalizeLineEndings();
 
             var tree = Parse(text);
             Assert.NotNull(tree);
@@ -270,7 +270,7 @@ class C { }";
         {
             var text =
 @"/// <foo 
-/// />";
+/// />".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -294,7 +294,7 @@ class C { }";
             var text =
 @"/// <foo 
 /// />
-class C { }";
+class C { }".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -1072,7 +1072,7 @@ class C { }"; // end of line/comment
             var text =
 @"/// <?ProcessingInstruction this is a test
 /// of &a; ProcessingInstruction /// */ /**
-/// ""']]>/>?</text?>";
+/// ""']]>/>?</text?>".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -2333,7 +2333,7 @@ class C{}";
         public void TestSingleLineXmlCommentWithMissingStartTag()
         {
             var text = @"///</Foo>
-class C{}";
+class C{}".NormalizeLineEndings();
             var tree = Parse(text);
 
             Assert.NotNull(tree);
