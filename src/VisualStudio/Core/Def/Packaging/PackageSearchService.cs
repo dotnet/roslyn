@@ -43,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly IPackageSearchRemoteControlService _remoteControlService;
         private readonly IPackageSearchPatchService _patchService;
         private readonly IPackageSearchDatabaseFactoryService _databaseFactoryService;
+        private readonly Func<Exception, bool> _swallowException;
 
         public PackageSearchService(VSShell.SVsServiceProvider serviceProvider)
             : this(CreateRemoteControlService(serviceProvider),
@@ -51,7 +52,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                    new IOService(),
                    new PatchService(),
                    new DatabaseFactoryService(),
-                   new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings))
+                   new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings),
+                   // swallow all exceptions
+                   e => true,
+                   new CancellationTokenSource())
         {
             // Kick off a database update.  Wait a few seconds before starting so we don't
             // interfere too much with solution loading.
@@ -77,7 +81,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             IPackageSearchIOService ioService,
             IPackageSearchPatchService patchService,
             IPackageSearchDatabaseFactoryService databaseFactoryService,
-            string localSettingsDirectory)
+            string localSettingsDirectory,
+            Func<Exception, bool> swallowException,
+            CancellationTokenSource cancellationTokenSource)
         {
             if (remoteControlService == null)
             {
@@ -91,12 +97,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _remoteControlService = remoteControlService;
             _patchService = patchService;
             _databaseFactoryService = databaseFactoryService;
+            _swallowException = swallowException;
 
             _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
                 localSettingsDirectory, "NuGetCache", string.Format($"Format{DataFormatVersion}")));
             _databaseFileInfo = new FileInfo(Path.Combine(_cacheDirectoryInfo.FullName, "NuGetCache.txt"));
 
-            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationTokenSource = cancellationTokenSource;
             _cancellationToken = _cancellationTokenSource.Token;
         }
 
@@ -184,7 +191,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     return await DownloadFullDatabaseAsync().ConfigureAwait(false);
                 }
             }
-            catch (Exception e) when (!(e is OperationCanceledException))
+            catch (OperationCanceledException)
+            {
+                // Just allow our caller to handle this (they will use this to stop their loop).
+                throw;
+            }
+            catch (Exception e) when (_swallowException(e))
             {
                 // Something bad happened (IO Exception, network exception etc.).
                 // ask our caller to try updating again a minute from now.
@@ -208,6 +220,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 _ioService.Create(_cacheDirectoryInfo);
                 LogInfo("Cache directory created");
             }
+
+            _cancellationToken.ThrowIfCancellationRequested();
 
             // Now remove any stale .bak files we might have.
             foreach (var file in _ioService.EnumerateFiles(_cacheDirectoryInfo))
