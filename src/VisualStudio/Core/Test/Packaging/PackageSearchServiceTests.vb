@@ -38,6 +38,33 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
             remoteControlService.Verify()
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        Public Async Function TestCacheFolderNotCreatedIfPresent() As Task
+            Dim cancellationTokenSource = New CancellationTokenSource()
+
+            Dim ioServiceMock = New Mock(Of IPackageSearchIOService)(MockBehavior.Strict)
+
+            ioServiceMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True).Callback(
+                AddressOf cancellationTokenSource.Cancel)
+
+            Dim remoteControlService = New Mock(Of IPackageSearchRemoteControlService)
+
+            Dim service = New PackageSearchService(
+                remoteControlService:=remoteControlService.Object,
+                logService:=TestLogService.Instance,
+                delayService:=TestDelayService.Instance,
+                ioService:=ioServiceMock.Object,
+                patchService:=Nothing,
+                databaseFactoryService:=Nothing,
+                localSettingsDirectory:="TestDirectory",
+                swallowException:=s_allButMoqExceptions,
+                cancellationTokenSource:=cancellationTokenSource)
+
+            Await service.UpdateDatabaseInBackgroundAsync()
+            ioServiceMock.Verify()
+            remoteControlService.Verify()
+        End Function
+
         Private Class TestDelayService
             Implements IPackageSearchDelayService
 
