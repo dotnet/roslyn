@@ -83,6 +83,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                    new DefaultPackageSearchDelayService(), 
                    new DefaultPackageSearchIOService())
         {
+            // Kick off a database update.  Wait a few seconds before starting so we don't
+            // interfere too much with solution loading.
+            Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ => UpdateDatabaseInBackgroundAsync(), TaskScheduler.Default);
         }
 
         public PackageSearchService(
@@ -111,10 +114,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
-
-            // Kick off a database update.  Wait a few seconds before starting so we don't
-            // interfere too much with solution loading.
-            Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ => UpdateDatabaseInBackgroundAsync(), TaskScheduler.Default);
         }
 
         public void Dispose()
