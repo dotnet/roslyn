@@ -209,7 +209,7 @@ class X {
             string sampleProgram = @"using System;
 class X {
 int x; 
-}";
+}".NormalizeLineEndings();
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\foo.cs");
 
             AssertMappedSpanEqual(syntaxTree, "ing Sy", "c:\\foo.cs", 0, 2, 0, 8, hasMappedPath: false);

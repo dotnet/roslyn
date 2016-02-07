@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text =
 @"/// <foo />
-class C { }";
+class C { }".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());

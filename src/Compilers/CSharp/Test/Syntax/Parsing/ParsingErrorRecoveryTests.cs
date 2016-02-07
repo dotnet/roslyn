@@ -6886,7 +6886,7 @@ static
     {
     }
 }
-";
+".NormalizeLineEndings();
             var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
 
             Assert.Equal(source, root.ToFullString());
