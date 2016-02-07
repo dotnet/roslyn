@@ -20,12 +20,7 @@ try
     pushd $rootDir
 
     $skipList = @(
-        "Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll",
-
-        # https://github.com/dotnet/roslyn/issues/7595
-        "Roslyn.Compilers.CSharp.Emit.UnitTests.dll",
-        "Roslyn.Compilers.CSharp.Symbol.UnitTests.dll",
-        "Roslyn.Compilers.CSharp.WinRT.UnitTests.dll"
+        "Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll"
     )
 
     $allGood = $true
