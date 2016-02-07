@@ -1483,7 +1483,7 @@ class A { }
             var tree = SyntaxFactory.ParseSyntaxTree(
 @"/*START*/namespace Microsoft.CSharp.Test
 {
-}/*END*/");
+}/*END*/".NormalizeLineEndings());
             var rootNode = tree.GetCompilationUnitRoot();
 
             Assert.Equal(53, rootNode.FullSpan.Length);
@@ -1503,7 +1503,7 @@ class A { }
 namespace Microsoft.CSharp.Test
 {
 }
-/*END*/");
+/*END*/".NormalizeLineEndings());
             var rootNode = tree.GetCompilationUnitRoot();
 
             Assert.Equal(57, rootNode.FullSpan.Length);
@@ -2339,7 +2339,7 @@ void M()
 {
 } // after
 #endregion
-}");
+}".NormalizeLineEndings());
 
             var expectedText = @"
 class C
@@ -2374,7 +2374,7 @@ void M()
 #endif
 } // after
 #endregion
-}");
+}".NormalizeLineEndings());
 
             var expectedText = @"
 class C

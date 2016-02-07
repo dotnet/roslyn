@@ -456,7 +456,7 @@ int i = 1;
     void foo()
     {
     }
-}";
+}".NormalizeLineEndings();
             var tree = SyntaxFactory.ParseSyntaxTree(code);
             TestNormalize(tree.GetCompilationUnitRoot(),
 @"class c1
@@ -502,8 +502,8 @@ int i = 1;
 
         private void TestNormalize(SyntaxTriviaList trivia, string expected)
         {
-            var actual = trivia.NormalizeWhitespace("    ").ToFullString();
-            Assert.Equal(expected, actual);
+            var actual = trivia.NormalizeWhitespace("    ").ToFullString().NormalizeLineEndings();
+            Assert.Equal(expected.NormalizeLineEndings(), actual);
         }
     }
 }
