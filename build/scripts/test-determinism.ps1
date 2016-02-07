@@ -9,7 +9,7 @@ try
     }
 
     $rootDir = resolve-path (split-path -parent (split-path -parent $PSScriptRoot))
-    $sln = join-path $rootDir "Compilers.sln"
+    $sln = join-path $rootDir "Roslyn.sln"
     $debugDir = join-path $rootDir "Binaries\Debug"
 
     # Create directories that may or may not exist to make the script execution below 
@@ -19,9 +19,9 @@ try
 
     pushd $rootDir
 
-    $skipList = @(
-        "Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll"
-    )
+    # List of binary names that should be skipped because they have a known issue that
+    # makes them non-deterministic.
+    $skipList = @()
 
     $allGood = $true
     $map = @{}
@@ -40,13 +40,17 @@ try
         pushd $debugDir
 
         write-host "Testing the binaries"
-        foreach ($dll in gci Microsoft.CodeAnalysis.*dll,Roslyn.*dll,cs*exe,vb*exe) {
+        foreach ($dll in gci -re -in *.dll,*.exe) {
             $dllFullName = $dll.FullName
             $dllName = split-path -leaf $dllFullName
             $dllHash = (get-filehash $dll -algorithm MD5).Hash
             $dllKeyName = $dllFullName + ".key"
 
-            if ($skipList.Contains($dllName)) {
+            # Do not process binaries that have been explicitly skipped or do not have a key
+            # file.  The lack of a key file means it's a binary that wasn't specifically 
+            # built for that directory (dependency).  Only need to check the binaries we are
+            # building. 
+            if ($skipList.Contains($dllName) -or -not (test-path $dllKeyName)) {
                 continue;
             }
 
