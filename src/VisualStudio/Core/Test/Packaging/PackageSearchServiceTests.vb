@@ -65,6 +65,38 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
             remoteControlService.Verify()
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        Public Async Function TestDownloadFullDatabaseWhenLocalFileMissing() As Task
+            Dim cancellationTokenSource = New CancellationTokenSource()
+
+            Dim ioServiceMock = New Mock(Of IPackageSearchIOService)()
+            ioServiceMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+
+            Dim clientMock = New Mock(Of IPackageSearchRemoteControlClient)
+
+            Dim serviceMock = New Mock(Of IPackageSearchRemoteControlService)(MockBehavior.Strict)
+            serviceMock.Setup(
+                Function(s) s.CreateClient(It.IsAny(Of String), It.IsRegex(".*Latest.*"), It.IsAny(Of Integer))).
+                Returns(clientMock.Object).
+                Callback(AddressOf cancellationTokenSource.Cancel)
+
+            Dim searchService = New PackageSearchService(
+                remoteControlService:=serviceMock.Object,
+                logService:=TestLogService.Instance,
+                delayService:=TestDelayService.Instance,
+                ioService:=ioServiceMock.Object,
+                patchService:=Nothing,
+                databaseFactoryService:=Nothing,
+                localSettingsDirectory:="TestDirectory",
+                swallowException:=s_allButMoqExceptions,
+                cancellationTokenSource:=cancellationTokenSource)
+
+            Await searchService.UpdateDatabaseInBackgroundAsync()
+            ioServiceMock.Verify()
+            serviceMock.Verify()
+            clientMock.Verify()
+        End Function
+
         Private Class TestDelayService
             Implements IPackageSearchDelayService
 
