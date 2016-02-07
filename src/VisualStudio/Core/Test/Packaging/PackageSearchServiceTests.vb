@@ -1,6 +1,7 @@
 ﻿Imports System.IO
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports Microsoft.Internal.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Packaging
 Imports Moq
 Imports Roslyn.Test.Utilities
@@ -128,6 +129,45 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
             ioServiceMock.Verify()
             serviceMock.Verify()
             clientMock.Verify()
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        Public Async Function CrashInClientRunsFailureLoopPath() As Task
+            Dim cancellationTokenSource = New CancellationTokenSource()
+
+            Dim ioServiceMock = New Mock(Of IPackageSearchIOService)()
+            ioServiceMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+
+            Dim clientMock = New Mock(Of IPackageSearchRemoteControlClient)(MockBehavior.Strict)
+            clientMock.Setup(Sub(c) c.ReadFileAsync(It.IsAny(Of __VsRemoteControlBehaviorOnStale))).
+                Throws(New NotImplementedException())
+            clientMock.Setup(Sub(c) c.Dispose())
+
+            Dim remoteControlMock = New Mock(Of IPackageSearchRemoteControlService)(MockBehavior.Strict)
+            remoteControlMock.Setup(
+                Function(s) s.CreateClient(It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of Integer))).
+                Returns(clientMock.Object)
+
+            Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
+            delayMock.SetupGet(Function(s) s.UpdateFailedDelay).Returns(TimeSpan.Zero).Callback(
+                AddressOf cancellationTokenSource.Cancel)
+
+            Dim searchService = New PackageSearchService(
+                remoteControlService:=remoteControlMock.Object,
+                logService:=TestLogService.Instance,
+                delayService:=delayMock.Object,
+                ioService:=ioServiceMock.Object,
+                patchService:=Nothing,
+                databaseFactoryService:=Nothing,
+                localSettingsDirectory:="TestDirectory",
+                swallowException:=s_allButMoqExceptions,
+                cancellationTokenSource:=cancellationTokenSource)
+
+            Await searchService.UpdateDatabaseInBackgroundAsync()
+            ioServiceMock.Verify()
+            remoteControlMock.Verify()
+            clientMock.Verify()
+            delayMock.Verify()
         End Function
 
         Private Class TestDelayService
