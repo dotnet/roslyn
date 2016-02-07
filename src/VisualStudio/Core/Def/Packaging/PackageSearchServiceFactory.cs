@@ -76,13 +76,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly IVsActivityLog _activityLog;
 
         private readonly IPackageSearchDelayService _delayService;
+        private readonly IPackageSearchIOService _ioService;
 
         public PackageSearchService(VSShell.SVsServiceProvider serviceProvider)
-            : this(serviceProvider, new DefaultPackageSearchDelayService())
+            : this(serviceProvider, 
+                   new DefaultPackageSearchDelayService(), 
+                   new DefaultPackageSearchIOService())
         {
         }
 
-        public PackageSearchService(VSShell.SVsServiceProvider serviceProvider, IPackageSearchDelayService delayService)
+        public PackageSearchService(
+            VSShell.SVsServiceProvider serviceProvider, 
+            IPackageSearchDelayService delayService,
+            IPackageSearchIOService ioService)
         {
             _remoteControlService = serviceProvider.GetService(typeof(SVsRemoteControlService));
             if (_remoteControlService == null)
@@ -93,6 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             _serviceProvider = serviceProvider;
             _delayService = delayService;
+            _ioService = ioService;
             _activityLog = (IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog));
 
             var settingsManager = new ShellSettingsManager(serviceProvider);
@@ -205,7 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 // If we have a local database, then see if it needs to be patched.
                 // Otherwise download the full database.
-                if (_databaseFileInfo.Exists)
+                if (_ioService.Exists(_databaseFileInfo))
                 {
                     LogInfo("Local database file exists. Patching local database");
                     return await PatchLocalDatabaseAsync().ConfigureAwait(false);
@@ -234,22 +241,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             LogInfo("Cleaning cache directory");
 
-            if (!_cacheDirectoryInfo.Exists)
+            if (!_ioService.Exists(_cacheDirectoryInfo))
             {
                 LogInfo("Creating cache directory");
-                _cacheDirectoryInfo.Create();
+                _ioService.Create(_cacheDirectoryInfo);
                 LogInfo("Cache directory created");
             }
 
             // Now remove any stale .bak files we might have.
-            foreach (var file in _cacheDirectoryInfo.EnumerateFiles())
+            foreach (var file in _ioService.EnumerateFiles(_cacheDirectoryInfo))
             {
                 if (file.Extension == BackupExtension)
                 {
                     IOUtilities.PerformIO(() =>
                     {
                         LogInfo($"Deleting backup file: {file.FullName}");
-                        file.Delete();
+                        _ioService.Delete(file);
                         return true;
                     });
                 }
@@ -308,11 +315,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // things).
 
             LogInfo("Writing temp file");
-            using (var fileStream = new FileStream(tempFilePath, FileMode.Create))
-            {
-                fileStream.Write(bytes, 0, bytes.Length);
-                fileStream.Flush(flushToDisk: true);
-            }
+            _ioService.WriteAndFlushAllBytes(tempFilePath, bytes);
             LogInfo("Writing temp file completed");
 
             // Now try to replace the existing DB file with the temp file. Try up to a minute just 
@@ -323,7 +326,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 () =>
                 {
                     LogInfo("Replacing database file");
-                    File.Replace(tempFilePath, _databaseFileInfo.FullName, backupFilePath, ignoreMetadataErrors: true);
+                    _ioService.Replace(tempFilePath, _databaseFileInfo.FullName, backupFilePath, ignoreMetadataErrors: true);
                     LogInfo("Replace database file completed");
                 },
                 repeat: 6, delay: _delayService.FileWriteDelay).ConfigureAwait(false);
@@ -334,7 +337,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             LogInfo("Patching local database");
 
             LogInfo("Reading in local database");
-            var databaseBytes = File.ReadAllBytes(_databaseFileInfo.FullName);
+            var databaseBytes = _ioService.ReadAllBytes(_databaseFileInfo.FullName);
             LogInfo($"Reading in local database completed. databaseBytes.Length={databaseBytes.Length}");
 
             // Make a database instance out of those bytes and set is as the current in memory database
@@ -650,8 +653,50 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             public TimeSpan UpdateFailedDelay { get; } = TimeSpan.FromMinutes(1);
             public TimeSpan UpdateSucceededDelay { get; } = TimeSpan.FromDays(1);
         }
+
+        private class DefaultPackageSearchIOService : IPackageSearchIOService
+        {
+            public void Create(DirectoryInfo directory) => directory.Create();
+
+            public void Delete(FileInfo file) => file.Delete();
+
+            public IEnumerable<FileInfo> EnumerateFiles(DirectoryInfo directory) => directory.EnumerateFiles();
+
+            public bool Exists(FileSystemInfo info) => info.Exists;
+
+            public byte[] ReadAllBytes(string path) => File.ReadAllBytes(path);
+
+            public void Replace(string sourceFileName, string destinationFileName, string destinationBackupFileName, bool ignoreMetadataErrors) =>
+                File.Replace(sourceFileName, destinationFileName, destinationBackupFileName, ignoreMetadataErrors);
+
+            public void WriteAndFlushAllBytes(string path, byte[] bytes)
+            {
+                using (var fileStream = new FileStream(path, FileMode.Create))
+                {
+                    fileStream.Write(bytes, 0, bytes.Length);
+                    fileStream.Flush(flushToDisk: true);
+                }
+            }
+        }
     }
 
+    /// <summary>
+    /// Used so we can mock out how the search service does IO for testing purposes.
+    /// </summary>
+    interface IPackageSearchIOService
+    {
+        void Create(DirectoryInfo directory);
+        void Delete(FileInfo file);
+        IEnumerable<FileInfo> EnumerateFiles(DirectoryInfo directory);
+        bool Exists(FileSystemInfo info);
+        byte[] ReadAllBytes(string path);
+        void Replace(string sourceFileName, string destinationFileName, string destinationBackupFileName, bool ignoreMetadataErrors);
+        void WriteAndFlushAllBytes(string path, byte[] bytes);
+    }
+
+    /// <summary>
+    /// Used so we can mock out how the search service delays work for testing purposes.
+    /// </summary>
     internal interface IPackageSearchDelayService
     {
         /// <summary>
