@@ -72,14 +72,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly FileInfo _databaseFileInfo;
 
         private readonly object _remoteControlService;
-        private readonly IVsActivityLog _activityLog;
 
         private readonly IPackageSearchDelayService _delayService;
         private readonly IPackageSearchIOService _ioService;
+        private readonly IPackageSearchLogService _logService;
 
         public PackageSearchService(VSShell.SVsServiceProvider serviceProvider)
             : this(serviceProvider,
-                   (IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog)),
+                   new DefaultPackageSearchLogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog))),
                    new DefaultPackageSearchDelayService(), 
                    new DefaultPackageSearchIOService())
         {
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         public PackageSearchService(
             VSShell.SVsServiceProvider serviceProvider, 
-            IVsActivityLog activityLog,
+            IPackageSearchLogService logService,
             IPackageSearchDelayService delayService,
             IPackageSearchIOService ioService)
         {
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             _delayService = delayService;
             _ioService = ioService;
-            _activityLog = activityLog;
+            _logService = logService;
 
             var settingsManager = new ShellSettingsManager(serviceProvider);
 
@@ -147,34 +147,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
         }
 
-        private void LogInfo(string text)
-        {
-            Log(text, __ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION);
-        }
+        private void LogInfo(string text) => _logService.LogInfo(text);
 
-        private void LogException(Exception e, string text)
-        {
-            Log(text + ". " + e.ToString(), __ACTIVITYLOG_ENTRYTYPE.ALE_ERROR);
-        }
-
-        private void Log(string text, __ACTIVITYLOG_ENTRYTYPE type)
-        {
-            if (!this.IsForeground())
-            {
-                this.InvokeBelowInputPriority(() => Log(text, type));
-                return;
-            }
-
-            AssertIsForeground();
-            _activityLog?.LogEntry((uint)type, HostId, text);
-
-            // Keep a running in memory log as well for debugging purposes.
-            _log.AddLast(text);
-            while (_log.Count > 100)
-            {
-                _log.RemoveFirst();
-            }
-        }
+        private void LogException(Exception e, string text) => _logService.LogException(e, text);
 
         /// <summary>
         /// Internal for testing purposes.
@@ -680,6 +655,54 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 }
             }
         }
+
+        private class DefaultPackageSearchLogService : ForegroundThreadAffinitizedObject, IPackageSearchLogService
+        {
+            private readonly IVsActivityLog _activityLog;
+
+            public DefaultPackageSearchLogService(IVsActivityLog activityLog)
+            {
+                _activityLog = activityLog;
+            }
+
+            public void LogInfo(string text)
+            {
+                Log(text, __ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION);
+            }
+
+            public void LogException(Exception e, string text)
+            {
+                Log(text + ". " + e.ToString(), __ACTIVITYLOG_ENTRYTYPE.ALE_ERROR);
+            }
+
+            private void Log(string text, __ACTIVITYLOG_ENTRYTYPE type)
+            {
+                if (!this.IsForeground())
+                {
+                    this.InvokeBelowInputPriority(() => Log(text, type));
+                    return;
+                }
+
+                AssertIsForeground();
+                _activityLog?.LogEntry((uint)type, HostId, text);
+
+                // Keep a running in memory log as well for debugging purposes.
+                _log.AddLast(text);
+                while (_log.Count > 100)
+                {
+                    _log.RemoveFirst();
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Used so we can mock out logging in unit tests.
+    /// </summary>
+    internal interface IPackageSearchLogService
+    {
+        void LogException(Exception e, string text);
+        void LogInfo(string text);
     }
 
     /// <summary>
