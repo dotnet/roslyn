@@ -267,6 +267,11 @@
     <Compile Include="Packaging\IPackageSearchRemoteControlService.cs" />
     <Compile Include="Packaging\PackageInstallerServiceFactory.cs" />
     <Compile Include="Packaging\PackageSearchService.cs" />
+    <Compile Include="Packaging\PackageSearchService.DatabaseFactoryService.cs" />
+    <Compile Include="Packaging\PackageSearchService.DelayService.cs" />
+    <Compile Include="Packaging\PackageSearchService.IOService.cs" />
+    <Compile Include="Packaging\PackageSearchService.LogService.cs" />
+    <Compile Include="Packaging\PackageSearchService.RemoteControlService.cs" />
     <Compile Include="Packaging\PackageSearchServiceFactory.cs" />
     <Compile Include="Packaging\Patching\Delta.cs" />
     <Compile Include="RoslynPackage.cs" />
@@ -908,6 +913,7 @@
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceManager.Factory.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Packaging\PatchService.PatchService.cs" />
     <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
