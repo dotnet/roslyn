@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 this.Target = target;
                 this.Value = value;
                 this.BinaryKind = binaryKind;
-                this.Operator = operatorMethod;
+                this.OperatorMethod = operatorMethod;
                 this.Syntax = syntax;
             }
 
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public BinaryOperationKind BinaryKind { get; }
 
-            public IMethodSymbol Operator { get; }
+            public IMethodSymbol OperatorMethod { get; }
 
             public SyntaxNode Syntax { get; }
 
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public Optional<object> ConstantValue => default(Optional<object>);
 
-            public bool UsesOperatorMethod => this.Operator != null;
+            public bool UsesOperatorMethod => this.OperatorMethod != null;
 
             public void Accept(OperationVisitor visitor)
             {
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public bool UsesOperatorMethod => false;
 
-        public IMethodSymbol Operator => null;
+        public IMethodSymbol OperatorMethod => null;
 
         public ITypeSymbol ResultType { get; }
 

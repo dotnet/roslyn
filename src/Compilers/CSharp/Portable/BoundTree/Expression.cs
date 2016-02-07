@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case CSharp.ConversionKind.ExplicitUserDefined:
                     case CSharp.ConversionKind.ImplicitUserDefined:
-                        return Semantics.ConversionKind.Operator;
+                        return Semantics.ConversionKind.OperatorMethod;
 
                     case CSharp.ConversionKind.ExplicitReference:
                     case CSharp.ConversionKind.ImplicitReference:
@@ -664,9 +664,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         bool IConversionExpression.IsExplicit => this.ExplicitCastInCode;
 
-        IMethodSymbol IHasOperatorExpression.Operator => this.SymbolOpt;
+        IMethodSymbol IHasOperatorMethodExpression.OperatorMethod => this.SymbolOpt;
 
-        bool IHasOperatorExpression.UsesOperatorMethod => this.ConversionKind == CSharp.ConversionKind.ExplicitUserDefined || this.ConversionKind == CSharp.ConversionKind.ImplicitUserDefined;
+        bool IHasOperatorMethodExpression.UsesOperatorMethod => this.ConversionKind == CSharp.ConversionKind.ExplicitUserDefined || this.ConversionKind == CSharp.ConversionKind.ImplicitUserDefined;
 
         // Consider introducing a different bound node type for method group conversions. These aren't truly conversions, but represent selection of a particular method.
         protected override OperationKind ExpressionKind => this.ConversionKind == ConversionKind.MethodGroup ? OperationKind.MethodBindingExpression : OperationKind.ConversionExpression;
@@ -729,9 +729,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         bool IConversionExpression.IsExplicit => true;
 
-        IMethodSymbol IHasOperatorExpression.Operator => null;
+        IMethodSymbol IHasOperatorMethodExpression.OperatorMethod => null;
 
-        bool IHasOperatorExpression.UsesOperatorMethod => false;
+        bool IHasOperatorMethodExpression.UsesOperatorMethod => false;
 
         protected override OperationKind ExpressionKind => OperationKind.ConversionExpression;
 
@@ -948,9 +948,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IExpression IAssignmentExpression.Value => this.Right;
 
-        bool IHasOperatorExpression.UsesOperatorMethod => (this.Operator.Kind & BinaryOperatorKind.TypeMask) == BinaryOperatorKind.UserDefined;
+        bool IHasOperatorMethodExpression.UsesOperatorMethod => (this.Operator.Kind & BinaryOperatorKind.TypeMask) == BinaryOperatorKind.UserDefined;
 
-        IMethodSymbol IHasOperatorExpression.Operator => this.Operator.Method;
+        IMethodSymbol IHasOperatorMethodExpression.OperatorMethod => this.Operator.Method;
 
         protected override OperationKind ExpressionKind => OperationKind.CompoundAssignmentExpression;
 
@@ -977,9 +977,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IExpression IAssignmentExpression.Value => s_incrementValueMappings.GetValue(this, (increment) => new BoundLiteral(this.Syntax, Semantics.Expression.SynthesizeNumeric(increment.Type, 1), increment.Type));
 
-        bool IHasOperatorExpression.UsesOperatorMethod => (this.OperatorKind & UnaryOperatorKind.TypeMask) == UnaryOperatorKind.UserDefined;
+        bool IHasOperatorMethodExpression.UsesOperatorMethod => (this.OperatorKind & UnaryOperatorKind.TypeMask) == UnaryOperatorKind.UserDefined;
 
-        IMethodSymbol IHasOperatorExpression.Operator => this.MethodOpt;
+        IMethodSymbol IHasOperatorMethodExpression.OperatorMethod => this.MethodOpt;
 
         protected override OperationKind ExpressionKind => OperationKind.IncrementExpression;
 
@@ -1030,9 +1030,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IExpression IUnaryOperatorExpression.Operand => this.Operand;
 
-        bool IHasOperatorExpression.UsesOperatorMethod => (this.OperatorKind & UnaryOperatorKind.TypeMask) == UnaryOperatorKind.UserDefined;
+        bool IHasOperatorMethodExpression.UsesOperatorMethod => (this.OperatorKind & UnaryOperatorKind.TypeMask) == UnaryOperatorKind.UserDefined;
 
-        IMethodSymbol IHasOperatorExpression.Operator => this.MethodOpt;
+        IMethodSymbol IHasOperatorMethodExpression.OperatorMethod => this.MethodOpt;
 
         protected override OperationKind ExpressionKind => OperationKind.UnaryOperatorExpression;
 
@@ -1055,9 +1055,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IExpression IBinaryOperatorExpression.Right => this.Right;
    
-        bool IHasOperatorExpression.UsesOperatorMethod => (this.OperatorKind & BinaryOperatorKind.TypeMask) == BinaryOperatorKind.UserDefined;
+        bool IHasOperatorMethodExpression.UsesOperatorMethod => (this.OperatorKind & BinaryOperatorKind.TypeMask) == BinaryOperatorKind.UserDefined;
 
-        IMethodSymbol IHasOperatorExpression.Operator => this.MethodOpt;
+        IMethodSymbol IHasOperatorMethodExpression.OperatorMethod => this.MethodOpt;
 
         protected override OperationKind ExpressionKind
         {
@@ -2025,12 +2025,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (incrementKind)
             {
-                case UnaryOperationKind.OperatorPostfixIncrement:
-                case UnaryOperationKind.OperatorPrefixIncrement:
-                    return BinaryOperationKind.OperatorAdd;
-                case UnaryOperationKind.OperatorPostfixDecrement:
-                case UnaryOperationKind.OperatorPrefixDecrement:
-                    return BinaryOperationKind.OperatorSubtract;
+                case UnaryOperationKind.OperatorMethodPostfixIncrement:
+                case UnaryOperationKind.OperatorMethodPrefixIncrement:
+                    return BinaryOperationKind.OperatorMethodAdd;
+                case UnaryOperationKind.OperatorMethodPostfixDecrement:
+                case UnaryOperationKind.OperatorMethodPrefixDecrement:
+                    return BinaryOperationKind.OperatorMethodSubtract;
                 case UnaryOperationKind.IntegerPostfixIncrement:
                 case UnaryOperationKind.IntegerPrefixIncrement:
                     return BinaryOperationKind.IntegerAdd;
@@ -2109,7 +2109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case UnaryOperatorKind.Dynamic:
                             return UnaryOperationKind.DynamicPostfixIncrement;
                         case UnaryOperatorKind.UserDefined:
-                            return UnaryOperationKind.OperatorPostfixIncrement;
+                            return UnaryOperationKind.OperatorMethodPostfixIncrement;
                     }
 
                     break;
@@ -2140,7 +2140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case UnaryOperatorKind.Dynamic:
                             return UnaryOperationKind.DynamicPostfixDecrement;
                         case UnaryOperatorKind.UserDefined:
-                            return UnaryOperationKind.OperatorPostfixDecrement;
+                            return UnaryOperationKind.OperatorMethodPostfixDecrement;
                     }
 
                     break;
@@ -2171,7 +2171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case UnaryOperatorKind.Dynamic:
                             return UnaryOperationKind.DynamicPrefixIncrement;
                         case UnaryOperatorKind.UserDefined:
-                            return UnaryOperationKind.OperatorPrefixIncrement;
+                            return UnaryOperationKind.OperatorMethodPrefixIncrement;
                     }
 
                     break;
@@ -2202,7 +2202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case UnaryOperatorKind.Dynamic:
                             return UnaryOperationKind.DynamicPrefixDecrement;
                         case UnaryOperatorKind.UserDefined:
-                            return UnaryOperationKind.OperatorPrefixDecrement;
+                            return UnaryOperationKind.OperatorMethodPrefixDecrement;
                     }
 
                     break;
@@ -2223,7 +2223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case UnaryOperatorKind.Dynamic:
                             return UnaryOperationKind.DynamicPlus;
                         case UnaryOperatorKind.UserDefined:
-                            return UnaryOperationKind.OperatorPlus;
+                            return UnaryOperationKind.OperatorMethodPlus;
                     }
 
                     break;
@@ -2244,7 +2244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case UnaryOperatorKind.Dynamic:
                             return UnaryOperationKind.DynamicMinus;
                         case UnaryOperatorKind.UserDefined:
-                            return UnaryOperationKind.OperatorMinus;
+                            return UnaryOperationKind.OperatorMethodMinus;
                     }
 
                     break;
@@ -2257,7 +2257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case UnaryOperatorKind.Dynamic:
                             return UnaryOperationKind.DynamicLogicalNot;
                         case UnaryOperatorKind.UserDefined:
-                            return UnaryOperationKind.OperatorLogicalNot;
+                            return UnaryOperationKind.OperatorMethodLogicalNot;
                     }
 
                     break;
@@ -2274,7 +2274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case UnaryOperatorKind.Dynamic:
                             return UnaryOperationKind.DynamicBitwiseNegation;
                         case UnaryOperatorKind.UserDefined:
-                            return UnaryOperationKind.OperatorBitwiseNegation;
+                            return UnaryOperationKind.OperatorMethodBitwiseNegation;
                     }
 
                     break;
@@ -2285,7 +2285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case UnaryOperatorKind.Dynamic:
                             return UnaryOperationKind.DynamicTrue;
                         case UnaryOperatorKind.UserDefined:
-                            return UnaryOperationKind.OperatorTrue;
+                            return UnaryOperationKind.OperatorMethodTrue;
                     }
 
                     break;
@@ -2296,7 +2296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case UnaryOperatorKind.Dynamic:
                             return UnaryOperationKind.DynamicFalse;
                         case UnaryOperatorKind.UserDefined:
-                            return UnaryOperationKind.OperatorFalse;
+                            return UnaryOperationKind.OperatorMethodFalse;
                     }
 
                     break;
@@ -2343,7 +2343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.ObjectAndString:
                             return BinaryOperationKind.StringConcatenation;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorAdd;
+                            return BinaryOperationKind.OperatorMethodAdd;
                     }
 
                     break;
@@ -2375,7 +2375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.Dynamic:
                             return BinaryOperationKind.DynamicSubtract;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorSubtract;
+                            return BinaryOperationKind.OperatorMethodSubtract;
                     }
 
                     break;
@@ -2397,7 +2397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.Dynamic:
                             return BinaryOperationKind.DynamicMultiply;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorMultiply;
+                            return BinaryOperationKind.OperatorMethodMultiply;
                     }
 
                     break;
@@ -2419,7 +2419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.Dynamic:
                             return BinaryOperationKind.DynamicDivide;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorDivide;
+                            return BinaryOperationKind.OperatorMethodDivide;
                     }
 
                     break;
@@ -2439,7 +2439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.Dynamic:
                             return BinaryOperationKind.DynamicRemainder;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorRemainder;
+                            return BinaryOperationKind.OperatorMethodRemainder;
                     }
 
                     break;
@@ -2456,7 +2456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.Dynamic:
                             return BinaryOperationKind.DynamicLeftShift;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorLeftShift;
+                            return BinaryOperationKind.OperatorMethodLeftShift;
                     }
 
                     break;
@@ -2473,7 +2473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.Dynamic:
                             return BinaryOperationKind.DynamicRightShift;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorRightShift;
+                            return BinaryOperationKind.OperatorMethodRightShift;
                     }
 
                     break;
@@ -2501,10 +2501,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.UserDefined:
                             if ((operatorKind & BinaryOperatorKind.Logical) != 0)
                             {
-                                return BinaryOperationKind.OperatorConditionalAnd;
+                                return BinaryOperationKind.OperatorMethodConditionalAnd;
                             }
 
-                            return BinaryOperationKind.OperatorAnd;
+                            return BinaryOperationKind.OperatorMethodAnd;
                     }
 
                     break;
@@ -2532,10 +2532,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.UserDefined:
                             if ((operatorKind & BinaryOperatorKind.Logical) != 0)
                             {
-                                return BinaryOperationKind.OperatorConditionalOr;
+                                return BinaryOperationKind.OperatorMethodConditionalOr;
                             }
 
-                            return BinaryOperationKind.OperatorOr;
+                            return BinaryOperationKind.OperatorMethodOr;
                     }
 
                     break;
@@ -2556,7 +2556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.Dynamic:
                             return BinaryOperationKind.DynamicExclusiveOr;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorExclusiveOr;
+                            return BinaryOperationKind.OperatorMethodExclusiveOr;
                     }
 
                     break;
@@ -2580,7 +2580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.Enum:
                             return BinaryOperationKind.EnumLessThan;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorLessThan;
+                            return BinaryOperationKind.OperatorMethodLessThan;
                     }
 
                     break;
@@ -2604,7 +2604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.Enum:
                             return BinaryOperationKind.EnumLessThanOrEqual;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorLessThanOrEqual;
+                            return BinaryOperationKind.OperatorMethodLessThanOrEqual;
                     }
 
                     break;
@@ -2637,7 +2637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.NullableNull:
                             return BinaryOperationKind.NullableEquals;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorEquals;
+                            return BinaryOperationKind.OperatorMethodEquals;
                     }
 
                     break;
@@ -2670,7 +2670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.NullableNull:
                             return BinaryOperationKind.NullableNotEquals;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorNotEquals;
+                            return BinaryOperationKind.OperatorMethodNotEquals;
                     }
 
                     break;
@@ -2694,7 +2694,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.Enum:
                             return BinaryOperationKind.EnumGreaterThanOrEqual;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorGreaterThanOrEqual;
+                            return BinaryOperationKind.OperatorMethodGreaterThanOrEqual;
                     }
 
                     break;
@@ -2718,7 +2718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.Enum:
                             return BinaryOperationKind.EnumGreaterThan;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorGreaterThan;
+                            return BinaryOperationKind.OperatorMethodGreaterThan;
                     }
 
                     break;

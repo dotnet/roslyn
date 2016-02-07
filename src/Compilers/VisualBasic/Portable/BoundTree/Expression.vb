@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorExpression.Operator
+        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 If Me.IUsesOperatorMethod Then
                     Return DirectCast(Me.Right, BoundUserDefinedBinaryOperator).Call.Method
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorExpression.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 If ExpressionKind() = OperationKind.CompoundAssignmentExpression Then
                     Return TypeOf Me.Right Is BoundUserDefinedBinaryOperator
@@ -577,13 +577,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundUnaryOperator
         Implements IUnaryOperatorExpression
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorExpression.Operator
+        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 Return Nothing
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorExpression.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 Return False
             End Get
@@ -617,13 +617,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundUserDefinedUnaryOperator
         Implements IUnaryOperatorExpression
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorExpression.Operator
+        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 Return Me.Call.Method
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorExpression.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 Return True
             End Get
@@ -639,11 +639,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 Select Case OperatorKind And UnaryOperatorKind.OpMask
                     Case UnaryOperatorKind.Plus
-                        Return UnaryOperationKind.OperatorPlus
+                        Return UnaryOperationKind.OperatorMethodPlus
                     Case UnaryOperatorKind.Minus
-                        Return UnaryOperationKind.OperatorMinus
+                        Return UnaryOperationKind.OperatorMethodMinus
                     Case UnaryOperatorKind.Not
-                        Return UnaryOperationKind.OperatorBitwiseNegation
+                        Return UnaryOperationKind.OperatorMethodBitwiseNegation
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(OperatorKind And UnaryOperatorKind.OpMask)
                 End Select
@@ -684,13 +684,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorExpression.Operator
+        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 Return Nothing
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorExpression.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 Return False
             End Get
@@ -722,41 +722,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 Select Case OperatorKind And BinaryOperatorKind.OpMask
                     Case BinaryOperatorKind.Add
-                        Return BinaryOperationKind.OperatorAdd
+                        Return BinaryOperationKind.OperatorMethodAdd
                     Case BinaryOperatorKind.Subtract
-                        Return BinaryOperationKind.OperatorSubtract
+                        Return BinaryOperationKind.OperatorMethodSubtract
                     Case BinaryOperatorKind.Multiply
-                        Return BinaryOperationKind.OperatorMultiply
+                        Return BinaryOperationKind.OperatorMethodMultiply
                     Case BinaryOperatorKind.Divide
-                        Return BinaryOperationKind.OperatorDivide
+                        Return BinaryOperationKind.OperatorMethodDivide
                     Case BinaryOperatorKind.Modulo
-                        Return BinaryOperationKind.OperatorRemainder
+                        Return BinaryOperationKind.OperatorMethodRemainder
                     Case BinaryOperatorKind.And
-                        Return BinaryOperationKind.OperatorAnd
+                        Return BinaryOperationKind.OperatorMethodAnd
                     Case BinaryOperatorKind.Or
-                        Return BinaryOperationKind.OperatorOr
+                        Return BinaryOperationKind.OperatorMethodOr
                     Case BinaryOperatorKind.Xor
-                        Return BinaryOperationKind.OperatorExclusiveOr
+                        Return BinaryOperationKind.OperatorMethodExclusiveOr
                     Case BinaryOperatorKind.AndAlso
-                        Return BinaryOperationKind.OperatorConditionalAnd
+                        Return BinaryOperationKind.OperatorMethodConditionalAnd
                     Case BinaryOperatorKind.OrElse
-                        Return BinaryOperationKind.OperatorConditionalOr
+                        Return BinaryOperationKind.OperatorMethodConditionalOr
                     Case BinaryOperatorKind.LeftShift
-                        Return BinaryOperationKind.OperatorLeftShift
+                        Return BinaryOperationKind.OperatorMethodLeftShift
                     Case BinaryOperatorKind.RightShift
-                        Return BinaryOperationKind.OperatorRightShift
+                        Return BinaryOperationKind.OperatorMethodRightShift
                     Case BinaryOperatorKind.LessThan
-                        Return BinaryOperationKind.OperatorLessThan
+                        Return BinaryOperationKind.OperatorMethodLessThan
                     Case BinaryOperatorKind.LessThanOrEqual
-                        Return BinaryOperationKind.OperatorLessThanOrEqual
+                        Return BinaryOperationKind.OperatorMethodLessThanOrEqual
                     Case BinaryOperatorKind.Equals
-                        Return BinaryOperationKind.OperatorEquals
+                        Return BinaryOperationKind.OperatorMethodEquals
                     Case BinaryOperatorKind.NotEquals
-                        Return BinaryOperationKind.OperatorNotEquals
+                        Return BinaryOperationKind.OperatorMethodNotEquals
                     Case BinaryOperatorKind.GreaterThanOrEqual
-                        Return BinaryOperationKind.OperatorGreaterThanOrEqual
+                        Return BinaryOperationKind.OperatorMethodGreaterThanOrEqual
                     Case BinaryOperatorKind.GreaterThan
-                        Return BinaryOperationKind.OperatorGreaterThan
+                        Return BinaryOperationKind.OperatorMethodGreaterThan
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(OperatorKind And BinaryOperatorKind.OpMask)
                 End Select
@@ -769,13 +769,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorExpression.Operator
+        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 Return Me.Call.Method
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorExpression.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 Return True
             End Get
@@ -843,7 +843,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryOperationKind
             Get
-                Return If((Me.BitwiseOperator.OperatorKind And BinaryOperatorKind.And) <> 0, BinaryOperationKind.OperatorConditionalAnd, BinaryOperationKind.OperatorConditionalOr)
+                Return If((Me.BitwiseOperator.OperatorKind And BinaryOperatorKind.And) <> 0, BinaryOperationKind.OperatorMethodConditionalAnd, BinaryOperationKind.OperatorMethodConditionalOr)
             End Get
         End Property
 
@@ -853,13 +853,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorExpression.Operator
+        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 Return Me.BitwiseOperator.Call.Method
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorExpression.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 Return True
             End Get
@@ -913,13 +913,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorExpression.Operator
+        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 Return Nothing
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorExpression.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 Return False
             End Get
@@ -959,13 +959,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorExpression.Operator
+        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 Return Nothing
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorExpression.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 Return False
             End Get
@@ -1005,13 +1005,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorExpression.Operator
+        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 Return Nothing
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorExpression.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 Return False
             End Get
@@ -1035,7 +1035,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
             Get
-                Return Semantics.ConversionKind.Operator
+                Return Semantics.ConversionKind.OperatorMethod
             End Get
         End Property
 
@@ -1051,13 +1051,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorExpression.Operator
+        Private ReadOnly Property IOperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 Return Me.Call.Method
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorExpression.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 Return True
             End Get

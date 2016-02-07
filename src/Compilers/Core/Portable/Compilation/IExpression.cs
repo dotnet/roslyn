@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a unary, binary, relational, or conversion operation that can use an operator method.
     /// </summary>
-    public interface IHasOperatorExpression : IExpression
+    public interface IHasOperatorMethodExpression : IExpression
     {
         /// <summary>
         /// True if and only if the operation is performed by an operator method.
@@ -318,13 +318,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Operation method used by the operation, null if the operation does not use an operator method.
         /// </summary>
-        IMethodSymbol Operator { get; }
+        IMethodSymbol OperatorMethod { get; }
     }
 
     /// <summary>
     /// Represents an operation with one operand.
     /// </summary>
-    public interface IUnaryOperatorExpression : IHasOperatorExpression
+    public interface IUnaryOperatorExpression : IHasOperatorMethodExpression
     {
         /// <summary>
         /// Kind of unary operation.
@@ -336,6 +336,36 @@ namespace Microsoft.CodeAnalysis.Semantics
         IExpression Operand { get; }
     }
 
+    enum SimpleUnaryOperationKind
+    {
+        None = 0x0,
+
+        BitwiseNegation = 0x1,
+        LogicalNot = 0x2,
+        PostfixIncrement = 0x3,
+        PostfixDecrement = 0x4,
+        PrefixIncrement = 0x5,
+        PrefixDecrement = 0x6,
+        Plus = 0x7,
+        Minus = 0x8,
+        True = 0x9,
+        False = 0xa
+    }
+
+    enum UnaryOperandKind
+    {
+        OperatorMethod = 0x1,
+        Integer = 0x2,
+        Unsigned = 0x3,
+        Floating = 0x4,
+        Decimal = 0x5,
+        Boolean = 0x6,
+        Enum = 0x7,
+        Dynamic = 0x8,
+        Object = 0x9,
+        Pointer = 0xa
+    }
+
     /// <summary>
     /// Kinds of unary operations.
     /// </summary>
@@ -343,16 +373,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         None,
 
-        OperatorBitwiseNegation,
-        OperatorLogicalNot,
-        OperatorPostfixIncrement,
-        OperatorPostfixDecrement,
-        OperatorPrefixIncrement,
-        OperatorPrefixDecrement,
-        OperatorPlus,
-        OperatorMinus,
-        OperatorTrue,
-        OperatorFalse,
+        OperatorMethodBitwiseNegation,
+        OperatorMethodLogicalNot,
+        OperatorMethodPostfixIncrement,
+        OperatorMethodPostfixDecrement,
+        OperatorMethodPrefixIncrement,
+        OperatorMethodPrefixDecrement,
+        OperatorMethodPlus,
+        OperatorMethodMinus,
+        OperatorMethodTrue,
+        OperatorMethodFalse,
 
         IntegerBitwiseNegation,
         IntegerPlus,
@@ -413,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
     /// </summary>
-    public interface IBinaryOperatorExpression : IHasOperatorExpression
+    public interface IBinaryOperatorExpression : IHasOperatorMethodExpression
     {
         /// <summary>
         /// Kind of binary operation.
@@ -429,6 +459,55 @@ namespace Microsoft.CodeAnalysis.Semantics
         IExpression Right { get; }
     }
 
+    enum SimpleBinaryOperationKind
+    {
+        None = 0x0,
+
+        Add = 0x1,
+        Subtract = 0x2,
+        Multiply = 0x3,
+        Divide = 0x4,
+        Remainder = 0x5,
+        Power = 0x6,
+        LeftShift = 0x7,
+        RightShift = 0x8,
+        And = 0x9,
+        Or = 0xa,
+        ExclusiveOr = 0xb,
+        ConditionalAnd = 0xc,
+        ConditionalOr = 0xd,
+        Concatenate = 0xe,
+
+        // Relational operations.
+
+        Equals = 0xf,
+        NotEquals = 0x10,
+        LessThan = 0x11,
+        LessThanOrEqual = 0x12,
+        GreaterThanOrEqual = 0x13,
+        GreaterThan = 0x14,
+
+        Like = 0x15
+    }
+
+    enum BinaryOperandsKind
+    {
+        OperatorMethod = 0x1001,
+        Integer = 0x1002,
+        Unsigned = 0x1003,
+        Floating = 0x1004,
+        Decimal = 0x1005,
+        Boolean = 0x1006,
+        Enum = 0x1007,
+        Dynamic = 0x1008,
+        Object = 0x1009,
+        PointerInteger = 0x100a,
+        IntegerPointer = 0x100b,
+        String = 0x100c,
+        Delegate = 0x100d,
+        Nullable = 0x100e
+    }
+
     /// <summary>
     /// Kinds of binary operations.
     /// </summary>
@@ -436,18 +515,18 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         None,
 
-        OperatorAdd,
-        OperatorSubtract,
-        OperatorMultiply,
-        OperatorDivide,
-        OperatorRemainder,
-        OperatorLeftShift,
-        OperatorRightShift,
-        OperatorAnd,
-        OperatorOr,
-        OperatorExclusiveOr,
-        OperatorConditionalAnd,
-        OperatorConditionalOr,
+        OperatorMethodAdd,
+        OperatorMethodSubtract,
+        OperatorMethodMultiply,
+        OperatorMethodDivide,
+        OperatorMethodRemainder,
+        OperatorMethodLeftShift,
+        OperatorMethodRightShift,
+        OperatorMethodAnd,
+        OperatorMethodOr,
+        OperatorMethodExclusiveOr,
+        OperatorMethodConditionalAnd,
+        OperatorMethodConditionalOr,
 
         IntegerAdd,
         IntegerSubtract,
@@ -531,12 +610,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         // Relational operations.
 
-        OperatorEquals,
-        OperatorNotEquals,
-        OperatorLessThan,
-        OperatorLessThanOrEqual,
-        OperatorGreaterThanOrEqual,
-        OperatorGreaterThan,
+        OperatorMethodEquals,
+        OperatorMethodNotEquals,
+        OperatorMethodLessThan,
+        OperatorMethodLessThanOrEqual,
+        OperatorMethodGreaterThanOrEqual,
+        OperatorMethodGreaterThan,
 
         IntegerEquals,
         IntegerNotEquals,
@@ -611,7 +690,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a conversion operation.
     /// </summary>
-    public interface IConversionExpression : IHasOperatorExpression
+    public interface IConversionExpression : IHasOperatorMethodExpression
     {
         /// <summary>
         /// Value to be converted.
@@ -652,7 +731,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Conversion is implemented by a conversion operator method.
         /// </summary>
-        Operator
+        OperatorMethod
     }
 
     /// <summary>
@@ -887,7 +966,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an assignment expression that includes a binary operation.
     /// </summary>
-    public interface ICompoundAssignmentExpression : IAssignmentExpression, IHasOperatorExpression
+    public interface ICompoundAssignmentExpression : IAssignmentExpression, IHasOperatorMethodExpression
     {
         /// <summary>
         /// Kind of binary operation.

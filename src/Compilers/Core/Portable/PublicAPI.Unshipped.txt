@@ -157,24 +157,24 @@ Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.ObjectRightShift = 75 -> Mi
 Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.ObjectSubtract = 68 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.ObjectVBEquals = 122 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.ObjectVBNotEquals = 123 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorAdd = 1 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorAnd = 8 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorConditionalAnd = 11 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorConditionalOr = 12 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorDivide = 4 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorEquals = 83 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorExclusiveOr = 10 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorGreaterThan = 88 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorGreaterThanOrEqual = 87 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorLeftShift = 6 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorLessThan = 85 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorLessThanOrEqual = 86 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMultiply = 3 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorNotEquals = 84 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorOr = 9 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorRemainder = 5 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorRightShift = 7 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorSubtract = 2 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodAdd = 1 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodAnd = 8 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodConditionalAnd = 11 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodConditionalOr = 12 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodDivide = 4 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodEquals = 83 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodExclusiveOr = 10 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodGreaterThan = 88 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodGreaterThanOrEqual = 87 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodLeftShift = 6 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodLessThan = 85 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodLessThanOrEqual = 86 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodMultiply = 3 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodNotEquals = 84 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodOr = 9 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodRemainder = 5 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodRightShift = 7 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorMethodSubtract = 2 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.PointerEquals = 135 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.PointerGreaterThan = 140 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.PointerGreaterThanOrEqual = 139 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
@@ -213,7 +213,7 @@ Microsoft.CodeAnalysis.Semantics.ConversionKind.Basic = 3 -> Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.Semantics.ConversionKind.CSharp = 4 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.ConversionKind.Cast = 1 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.ConversionKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
-Microsoft.CodeAnalysis.Semantics.ConversionKind.Operator = 5 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
+Microsoft.CodeAnalysis.Semantics.ConversionKind.OperatorMethod = 5 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.IAddressOfExpression
 Microsoft.CodeAnalysis.Semantics.IAddressOfExpression.Addressed.get -> Microsoft.CodeAnalysis.Semantics.IReferenceExpression
 Microsoft.CodeAnalysis.Semantics.IArgument
@@ -296,9 +296,9 @@ Microsoft.CodeAnalysis.Semantics.IForLoopStatement.Before.get -> System.Collecti
 Microsoft.CodeAnalysis.Semantics.IForLoopStatement.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Semantics.IForWhileUntilLoopStatement
 Microsoft.CodeAnalysis.Semantics.IForWhileUntilLoopStatement.Condition.get -> Microsoft.CodeAnalysis.Semantics.IExpression
-Microsoft.CodeAnalysis.Semantics.IHasOperatorExpression
-Microsoft.CodeAnalysis.Semantics.IHasOperatorExpression.Operator.get -> Microsoft.CodeAnalysis.IMethodSymbol
-Microsoft.CodeAnalysis.Semantics.IHasOperatorExpression.UsesOperatorMethod.get -> bool
+Microsoft.CodeAnalysis.Semantics.IHasOperatorMethodExpression
+Microsoft.CodeAnalysis.Semantics.IHasOperatorMethodExpression.OperatorMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol
+Microsoft.CodeAnalysis.Semantics.IHasOperatorMethodExpression.UsesOperatorMethod.get -> bool
 Microsoft.CodeAnalysis.Semantics.IIfStatement
 Microsoft.CodeAnalysis.Semantics.IIfStatement.Condition.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IIfStatement.IfFalse.get -> Microsoft.CodeAnalysis.Semantics.IStatement
@@ -554,16 +554,16 @@ Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.None = 0 -> Microsoft.CodeAn
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.ObjectMinus = 55 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.ObjectNot = 56 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.ObjectPlus = 54 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
-Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorBitwiseNegation = 1 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
-Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorFalse = 10 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
-Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorLogicalNot = 2 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
-Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorMinus = 8 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
-Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorPlus = 7 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
-Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorPostfixDecrement = 4 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
-Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorPostfixIncrement = 3 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
-Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorPrefixDecrement = 6 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
-Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorPrefixIncrement = 5 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
-Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorTrue = 9 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
+Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorMethodBitwiseNegation = 1 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
+Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorMethodFalse = 10 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
+Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorMethodLogicalNot = 2 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
+Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorMethodMinus = 8 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
+Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorMethodPlus = 7 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
+Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorMethodPostfixDecrement = 4 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
+Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorMethodPostfixIncrement = 3 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
+Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorMethodPrefixDecrement = 6 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
+Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorMethodPrefixIncrement = 5 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
+Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.OperatorMethodTrue = 9 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.PointerPostfixDecrement = 41 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.PointerPostfixIncrement = 40 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.PointerPrefixDecrement = 43 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
