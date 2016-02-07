@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             : this(CreateRemoteControlService(serviceProvider),
                    new DefaultPackageSearchLogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog))),
                    new DelayService(), 
-                   new DefaultPackageSearchIOService(),
+                   new IOService(),
                    new DefaultPackageSearchPatchService(),
                    new DefaultPackageSearchDatabaseFactoryService(),
                    new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings))
@@ -579,31 +579,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 GetFullName(nameParts, path.Parent);
                 nameParts.Add(path.Name.ToString());
-            }
-        }
-
-        private class DefaultPackageSearchIOService : IPackageSearchIOService
-        {
-            public void Create(DirectoryInfo directory) => directory.Create();
-
-            public void Delete(FileInfo file) => file.Delete();
-
-            public IEnumerable<FileInfo> EnumerateFiles(DirectoryInfo directory) => directory.EnumerateFiles();
-
-            public bool Exists(FileSystemInfo info) => info.Exists;
-
-            public byte[] ReadAllBytes(string path) => File.ReadAllBytes(path);
-
-            public void Replace(string sourceFileName, string destinationFileName, string destinationBackupFileName, bool ignoreMetadataErrors) =>
-                File.Replace(sourceFileName, destinationFileName, destinationBackupFileName, ignoreMetadataErrors);
-
-            public void WriteAndFlushAllBytes(string path, byte[] bytes)
-            {
-                using (var fileStream = new FileStream(path, FileMode.Create))
-                {
-                    fileStream.Write(bytes, 0, bytes.Length);
-                    fileStream.Flush(flushToDisk: true);
-                }
             }
         }
 
