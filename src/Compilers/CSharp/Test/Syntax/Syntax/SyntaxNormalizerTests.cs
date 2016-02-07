@@ -283,9 +283,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void TestNormalizeDeclaration(string text, string expected)
         {
             var node = SyntaxFactory.ParseCompilationUnit(text);
-            Assert.Equal(text, node.ToFullString());
+            Assert.Equal(text.NormalizeLineEndings(), node.ToFullString().NormalizeLineEndings());
             var actual = node.NormalizeWhitespace("  ").ToFullString();
-            Assert.Equal(expected, actual);
+            Assert.Equal(expected.NormalizeLineEndings(), actual.NormalizeLineEndings());
         }
 
         [Fact]
@@ -467,7 +467,7 @@ int i = 1;
   void foo()
   {
   }
-}");
+}".NormalizeLineEndings());
         }
 
         [Fact]
