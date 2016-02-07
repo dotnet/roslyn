@@ -114,6 +114,7 @@ namespace Roslyn.Test.Utilities
             public const string Options = "Options";
             public const string Organizing = "Organizing";
             public const string Outlining = "Outlining";
+            public const string Packaging = nameof(Packaging);
             public const string Peek = "Peek";
             public const string Progression = "Progression";
             public const string ProjectSystemShims = "ProjectSystemShims";
