@@ -20,7 +20,7 @@ using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
-    internal class PackageSearchService : ForegroundThreadAffinitizedObject, IPackageSearchService, IDisposable
+    internal partial class PackageSearchService : ForegroundThreadAffinitizedObject, IPackageSearchService, IDisposable
     {
         private const string HostId = "RoslynNuGetSearch";
         private const string BackupExtension = ".bak";
