@@ -71,31 +71,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly DirectoryInfo _cacheDirectoryInfo;
         private readonly FileInfo _databaseFileInfo;
 
-        private readonly object _remoteControlService;
-
         private readonly IPackageSearchDelayService _delayService;
         private readonly IPackageSearchIOService _ioService;
         private readonly IPackageSearchLogService _logService;
+        private readonly IPackageSearchRemoteControlService _remoteControlService;
+        private readonly IPackageSearchPatchService _patchService;
+        private readonly IPackageSearchDatabaseService _databaseService;
 
         public PackageSearchService(VSShell.SVsServiceProvider serviceProvider)
             : this(serviceProvider,
+                   CreateRemoteControlService(serviceProvider),
                    new DefaultPackageSearchLogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog))),
                    new DefaultPackageSearchDelayService(), 
-                   new DefaultPackageSearchIOService())
+                   new DefaultPackageSearchIOService(),
+                   new DefaultPackageSearchPatchService(),
+                   new DefaultPackageSearchDatabaseService())
         {
             // Kick off a database update.  Wait a few seconds before starting so we don't
             // interfere too much with solution loading.
             Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ => UpdateDatabaseInBackgroundAsync(), TaskScheduler.Default);
         }
 
+        private static IPackageSearchRemoteControlService CreateRemoteControlService(VSShell.SVsServiceProvider serviceProvider)
+        {
+            var vsService = serviceProvider.GetService(typeof(SVsRemoteControlService));
+            if (vsService == null)
+            {
+                // If we can't access the file update service, then there's nothing we can do.
+                return null;
+            }
+
+            return new DefaultPackageRemoteControlService(vsService);
+        }
+
         public PackageSearchService(
-            VSShell.SVsServiceProvider serviceProvider, 
+            VSShell.SVsServiceProvider serviceProvider,
+            IPackageSearchRemoteControlService remoteControlService,
             IPackageSearchLogService logService,
             IPackageSearchDelayService delayService,
-            IPackageSearchIOService ioService)
+            IPackageSearchIOService ioService,
+            IPackageSearchPatchService patchService,
+            IPackageSearchDatabaseService databaseService)
         {
-            _remoteControlService = serviceProvider.GetService(typeof(SVsRemoteControlService));
-            if (_remoteControlService == null)
+            if (remoteControlService == null)
             {
                 // If we can't access the file update service, then there's nothing we can do.
                 return;
@@ -104,6 +122,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _delayService = delayService;
             _ioService = ioService;
             _logService = logService;
+            _remoteControlService = remoteControlService;
+            _patchService = patchService;
+            _databaseService = databaseService;
 
             var settingsManager = new ShellSettingsManager(serviceProvider);
 
@@ -246,9 +267,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             LogInfo($"Downloading and processing full database: {serverPath}");
 
-            var delayUntilNextUpdate = await DownloadAndProcessFileAsync(
-                serverPath,
-                callback: ProcessFullDatabaseXElementAsync).ConfigureAwait(false);
+            var element = await DownloadFileAsync(serverPath).ConfigureAwait(false);
+            var delayUntilNextUpdate = await ProcessFullDatabaseXElementAsync(element).ConfigureAwait(false);
 
             LogInfo("Downloading and processing full database completed");
             return delayUntilNextUpdate;
@@ -339,9 +359,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             LogInfo("Downloading and processing patch file: " + serverPath);
 
-            var delayUntilUpdate = await DownloadAndProcessFileAsync(
-                serverPath,
-                callback: x => ProcessPatchXElementAsync(x, databaseBytes)).ConfigureAwait(false);
+            var element = await DownloadFileAsync(serverPath).ConfigureAwait(false);
+            var delayUntilUpdate = await ProcessPatchXElementAsync(element, databaseBytes).ConfigureAwait(false);
 
             LogInfo("Downloading and processing patch file completed");
             LogInfo("Patching local database completed");
@@ -408,7 +427,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // We have patch data.  Apply it to our current database bytes to produce the new
             // database.
             LogInfo("Applying patch");
-            var finalBytes = Patching.Delta.ApplyPatch(databaseBytes, patchBytes);
+            var finalBytes = _patchService.ApplyPatch(databaseBytes, patchBytes);
             LogInfo($"Applying patch completed. finalBytes.Length={finalBytes.Length}");
 
             CreateAndSetInMemoryDatabase(finalBytes);
@@ -449,19 +468,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes)
         {
             LogInfo("Creating database from bytes");
-            using (var memoryStream = new MemoryStream(bytes))
-            using (var streamReader = new StreamReader(memoryStream))
-            {
-                var database = new AddReferenceDatabase();
-                database.ReadText(streamReader);
-
-                LogInfo("Creating database from bytes completed");
-                return database;
-            }
+            var result = _databaseService.CreateDatabaseFromBytes(bytes);
+            LogInfo("Creating database from bytes completed");
+            return result;
         }
 
-        private async Task<TimeSpan> DownloadAndProcessFileAsync(
-            string serverPath, Func<XElement, Task<TimeSpan>> callback)
+        private async Task<XElement> DownloadFileAsync(string serverPath)
         {
             LogInfo("Creating download client: " + serverPath);
 
@@ -476,21 +488,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             //      3) If the file is cached locally and was downloaded more than (24 * 60) 
             //         minutes ago, then the client will attempt to download the file.
             //         In the interim period null will be returned from client.ReadFile.
-            var serviceType = _remoteControlService.GetType();
-            var serviceAssembly = serviceType.Assembly;
-            var clientType = serviceAssembly.GetType("Microsoft.VisualStudio.Services.RemoteControl.VSRemoteControlClient");
             var pollingMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
-
-            var vsClient = Activator.CreateInstance(clientType, args: new object[]
-            {
-                HostId,
-                serverPath,
-                pollingMinutes,
-                null
-            });
-
-            var clientField = vsClient.GetType().GetField("client", BindingFlags.Instance | BindingFlags.NonPublic);
-            using (var client = clientField.GetValue(vsClient) as IDisposable)
+            using (var client = _remoteControlService.CreateClient(HostId, serverPath, pollingMinutes))
             {
                 LogInfo("Creating download client completed");
 
@@ -499,32 +498,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    var resultOpt = await TryDownloadAndProcessFileAsync(client, callback).ConfigureAwait(false);
-                    if (resultOpt != null)
+                    var resultOpt = await TryDownloadFileAsync(client).ConfigureAwait(false);
+                    if (resultOpt == null)
                     {
-                        // We handled the file.  Our work here is done.
-                        return resultOpt.Value;
+                        LogInfo("File not downloaded. Trying again in one minute");
+                        await Task.Delay(_delayService.CachePollDelay, _cancellationToken).ConfigureAwait(false);
                     }
-
-                    LogInfo("File not downloaded. Trying again in one minute");
-                    await Task.Delay(_delayService.CachePollDelay, _cancellationToken).ConfigureAwait(false);
+                    else
+                    {
+                        // File was downloaded.  
+                        return resultOpt;
+                    }
                 }
             }
         }
 
         /// Returns 'null' if download is not available and caller should keep polling.
-        private async Task<TimeSpan?> TryDownloadAndProcessFileAsync(
-            object client, Func<XElement, Task<TimeSpan>> callback)
+        private async Task<XElement> TryDownloadFileAsync(IPackageSearchRemoteControlClient client)
         {
             LogInfo("Read file from client");
 
             // "ReturnsNull": Only return a file if we have it locally *and* it's not older than our polling time (1 day).
-            var clientType = client.GetType();
-            var readFileAsyncMethod = clientType.GetMethod("ReadFileAsync");
-            var streamTask = (Task<Stream>)readFileAsyncMethod.Invoke(client, new object[] { (int)__VsRemoteControlBehaviorOnStale.ReturnsNull });
 
-            XElement element;
-            using (var stream = await streamTask.ConfigureAwait(false))
+            using (var stream = await client.ReadFileAsync(__VsRemoteControlBehaviorOnStale.ReturnsNull).ConfigureAwait(false))
             {
                 if (stream == null)
                 {
@@ -534,11 +530,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 LogInfo("Read file completed. Client returned data");
                 LogInfo("Converting data to XElement");
-                element = XElement.Load(stream);
+                var result = XElement.Load(stream);
                 LogInfo("Converting data to XElement completed");
+                return result;
             }
-
-            return await callback(element).ConfigureAwait(false);
         }
 
         private async Task RepeatAsync(Action action, int repeat, TimeSpan delay)
@@ -694,6 +689,107 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 }
             }
         }
+
+        private class DefaultPackageSearchPatchService : IPackageSearchPatchService
+        {
+            public byte[] ApplyPatch(byte[] databaseBytes, byte[] patchBytes)
+            {
+                return Patching.Delta.ApplyPatch(databaseBytes, patchBytes);
+            }
+        }
+
+        private class DefaultPackageRemoteControlService : IPackageSearchRemoteControlService
+        {
+            private readonly object _remoteControlService;
+
+            public DefaultPackageRemoteControlService(object remoteControlService)
+            {
+                _remoteControlService = remoteControlService;
+            }
+
+            public IPackageSearchRemoteControlClient CreateClient(string hostId, string serverPath, int pollingMinutes)
+            {
+                var serviceType = _remoteControlService.GetType();
+                var serviceAssembly = serviceType.Assembly;
+                var clientType = serviceAssembly.GetType("Microsoft.VisualStudio.Services.RemoteControl.VSRemoteControlClient");
+
+                var vsClient = Activator.CreateInstance(clientType, args: new object[]
+                {
+                    HostId,
+                    serverPath,
+                    pollingMinutes,
+                    null
+                });
+
+                var clientField = vsClient.GetType().GetField("client", BindingFlags.Instance | BindingFlags.NonPublic);
+                var client = clientField.GetValue(vsClient) as IDisposable;
+                return new DefaultRemoteControlClient(client);
+            }
+        }
+
+        private class DefaultRemoteControlClient : IPackageSearchRemoteControlClient
+        {
+            private readonly IDisposable client;
+
+            public DefaultRemoteControlClient(IDisposable client)
+            {
+                this.client = client;
+            }
+
+            public void Dispose()
+            {
+                client.Dispose();
+            }
+
+            public Task<Stream> ReadFileAsync(__VsRemoteControlBehaviorOnStale behavior)
+            {
+                var clientType = client.GetType();
+                var readFileAsyncMethod = clientType.GetMethod("ReadFileAsync");
+                var streamTask = (Task<Stream>)readFileAsyncMethod.Invoke(client, new object[] { (int)behavior});
+
+                return streamTask;
+            }
+        }
+
+        private class DefaultPackageSearchDatabaseService : IPackageSearchDatabaseService
+        {
+            public AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes)
+            {
+                using (var memoryStream = new MemoryStream(bytes))
+                using (var streamReader = new StreamReader(memoryStream))
+                {
+                    var database = new AddReferenceDatabase();
+                    database.ReadText(streamReader);
+                    return database;
+                }
+            }
+        }
+    }
+
+    internal interface IPackageSearchDatabaseService
+    {
+        AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes);
+    }
+
+    /// <summary>
+    /// Used so we can mock out the remote control service in unit tests.
+    /// </summary>
+    internal interface IPackageSearchRemoteControlService
+    {
+        IPackageSearchRemoteControlClient CreateClient(string hostId, string serverPath, int pollingMinutes);
+    }
+
+    internal interface IPackageSearchRemoteControlClient : IDisposable
+    {
+        Task<Stream> ReadFileAsync(__VsRemoteControlBehaviorOnStale behavior);
+    }
+
+    /// <summary>
+    /// Used so we can mock out patching in unit tests.
+    /// </summary>
+    internal interface IPackageSearchPatchService
+    {
+        byte[] ApplyPatch(byte[] databaseBytes, byte[] patchBytes);
     }
 
     /// <summary>
