@@ -57,11 +57,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     {
         private const string HostId = "RoslynNuGetSearch";
         private const string BackupExtension = ".bak";
-        private readonly int DataFormatVersion = AddReferenceDatabase.TextFileFormatVersion;
 
-        private static readonly TimeSpan OneDay = TimeSpan.FromDays(1);
-        private static readonly TimeSpan OneMinute = TimeSpan.FromMinutes(1);
-        private static readonly TimeSpan TenSeconds = TimeSpan.FromSeconds(10);
+        private static readonly LinkedList<string> _log = new LinkedList<string>();
+
+        private readonly int DataFormatVersion = AddReferenceDatabase.TextFileFormatVersion;
 
         private readonly object gate = new object();
         private readonly CancellationTokenSource _cancellationTokenSource;
@@ -76,9 +75,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly object _remoteControlService;
         private readonly IVsActivityLog _activityLog;
 
-        private static readonly LinkedList<string> _log = new LinkedList<string>();
+        private readonly IPackageSearchDelayService _delayService;
 
         public PackageSearchService(VSShell.SVsServiceProvider serviceProvider)
+            : this(serviceProvider, new DefaultPackageSearchDelayService())
+        {
+        }
+
+        public PackageSearchService(VSShell.SVsServiceProvider serviceProvider, IPackageSearchDelayService delayService)
         {
             _remoteControlService = serviceProvider.GetService(typeof(SVsRemoteControlService));
             if (_remoteControlService == null)
@@ -88,6 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             _serviceProvider = serviceProvider;
+            _delayService = delayService;
             _activityLog = (IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog));
 
             var settingsManager = new ShellSettingsManager(serviceProvider);
@@ -102,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             // Kick off a database update.  Wait a few seconds before starting so we don't
             // interfere too much with solution loading.
-            Task.Delay(TenSeconds).ContinueWith(_ => UpdateDatabaseInBackgroundAsync(), TaskScheduler.Default);
+            Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ => UpdateDatabaseInBackgroundAsync(), TaskScheduler.Default);
         }
 
         public void Dispose()
@@ -219,8 +224,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 // Note: we skip OperationCanceledException because it's not 'bad'.
                 // It's the standard way to indicate that we've been asked to shut
                 // down.
-                LogException(e, "Error occurred updating. Retrying update in one minute");
-                return OneMinute;
+                var delay = _delayService.UpdateFailedDelay;
+                LogException(e, $"Error occurred updating. Retrying update in {delay}");
+                return _delayService.UpdateFailedDelay;
             }
         }
 
@@ -280,9 +286,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // we're waiting to write.
             await WriteDatabaseFile(bytes).ConfigureAwait(false);
 
-            LogInfo("Processing full database element completed. Update again in one day");
-
-            return OneDay;
+            var delay = _delayService.UpdateSucceededDelay;
+            LogInfo($"Processing full database element completed. Update again in {delay}");
+            return delay;
         }
 
         private async Task WriteDatabaseFile(byte[] bytes)
@@ -320,7 +326,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     File.Replace(tempFilePath, _databaseFileInfo.FullName, backupFilePath, ignoreMetadataErrors: true);
                     LogInfo("Replace database file completed");
                 },
-                repeat: 6, delay: TenSeconds).ConfigureAwait(false);
+                repeat: 6, delay: _delayService.FileWriteDelay).ConfigureAwait(false);
         }
 
         private async Task<TimeSpan> PatchLocalDatabaseAsync()
@@ -408,7 +414,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             if (isUpToDate)
             {
                 LogInfo("Local version is up to date");
-                return OneDay;
+                return _delayService.UpdateSucceededDelay;
             }
 
             if (isTooOld)
@@ -429,7 +435,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             await WriteDatabaseFile(finalBytes).ConfigureAwait(false);
 
-            return OneDay;
+            return _delayService.UpdateSucceededDelay;
         }
 
         private void ParsePatchElement(XElement patchElement, out bool isUpToDate, out bool isTooOld, out byte[] patchBytes)
@@ -493,7 +499,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             var serviceType = _remoteControlService.GetType();
             var serviceAssembly = serviceType.Assembly;
             var clientType = serviceAssembly.GetType("Microsoft.VisualStudio.Services.RemoteControl.VSRemoteControlClient");
-            var pollingMinutes = (int)OneDay.TotalMinutes;
+            var pollingMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
 
             var vsClient = Activator.CreateInstance(clientType, args: new object[]
             {
@@ -521,7 +527,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     }
 
                     LogInfo("File not downloaded. Trying again in one minute");
-                    await Task.Delay(OneMinute, _cancellationToken).ConfigureAwait(false);
+                    await Task.Delay(_delayService.CachePollDelay, _cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -636,5 +642,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 nameParts.Add(path.Name.ToString());
             }
         }
+
+        private class DefaultPackageSearchDelayService : IPackageSearchDelayService
+        {
+            public TimeSpan CachePollDelay { get; } = TimeSpan.FromMinutes(1);
+            public TimeSpan FileWriteDelay { get; } = TimeSpan.FromSeconds(10);
+            public TimeSpan UpdateFailedDelay { get; } = TimeSpan.FromMinutes(1);
+            public TimeSpan UpdateSucceededDelay { get; } = TimeSpan.FromDays(1);
+        }
+    }
+
+    internal interface IPackageSearchDelayService
+    {
+        /// <summary>
+        /// They time to wait after a successful update (default = 1 day).
+        /// </summary>
+        TimeSpan UpdateSucceededDelay { get; }
+
+        /// <summary>
+        /// They time to wait after a failed update (default = 1 minute).
+        /// </summary>
+        TimeSpan UpdateFailedDelay { get; }
+
+        /// <summary>
+        /// They time to wait after writing to disk fails (default = 10 seconds).
+        /// </summary>
+        TimeSpan FileWriteDelay { get; }
+
+        /// <summary>
+        /// How long to wait between each poll of the cache (default = 1 minute).
+        /// </summary>
+        TimeSpan CachePollDelay { get; }
     }
 }
