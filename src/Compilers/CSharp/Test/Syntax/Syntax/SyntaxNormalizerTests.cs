@@ -430,7 +430,7 @@ int i = 1;
     void foo()
     {
     }
-}";
+}".NormalizeLineEndings();
             var tree = SyntaxFactory.ParseSyntaxTree(code);
             TestNormalize(tree.GetCompilationUnitRoot(),
 @"class c1
