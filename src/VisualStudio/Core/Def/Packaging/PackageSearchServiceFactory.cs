@@ -71,7 +71,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly DirectoryInfo _cacheDirectoryInfo;
         private readonly FileInfo _databaseFileInfo;
 
-        private readonly VSShell.SVsServiceProvider _serviceProvider;
         private readonly object _remoteControlService;
         private readonly IVsActivityLog _activityLog;
 
@@ -97,7 +96,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return;
             }
 
-            _serviceProvider = serviceProvider;
             _delayService = delayService;
             _ioService = ioService;
             _activityLog = (IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog));
@@ -177,7 +175,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
         }
 
-        private async Task UpdateDatabaseInBackgroundAsync()
+        /// <summary>
+        /// Internal for testing purposes.
+        /// </summary>
+        internal async Task UpdateDatabaseInBackgroundAsync()
         {
             // Keep on looping until we're told to shut down.
             while (!_cancellationToken.IsCancellationRequested)
@@ -199,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         /// <returns>The timespan the caller should wait until calling this method again.</returns>
-        internal async Task<TimeSpan> UpdateDatabaseInBackgroundWorkerAsync()
+        private async Task<TimeSpan> UpdateDatabaseInBackgroundWorkerAsync()
         {
             // Attempt to update the local db if we have one, or download a full db
             // if we don't.  In the event of any error back off a minute and try 
