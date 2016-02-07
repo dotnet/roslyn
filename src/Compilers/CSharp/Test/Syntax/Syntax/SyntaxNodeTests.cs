@@ -2347,7 +2347,7 @@ class C
 
 #region Fred
 #endregion
-}";
+}".NormalizeLineEndings();
 
             var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
             Assert.NotNull(m);
@@ -2384,7 +2384,7 @@ class C
 #if true
 #endif
 #endregion
-}";
+}".NormalizeLineEndings();
 
             var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
             Assert.NotNull(m);
