@@ -65,9 +65,14 @@
     <Compile Include="Compilation\OperationVisitor.cs" />
     <Compile Include="Compilation\OperationWalker.cs" />
     <Compile Include="Compilation\ScriptCompilationInfo.cs" />
+    <Compile Include="DiagnosticAnalyzer\SyntaxTreeValueProvider.cs" />
+    <Compile Include="DiagnosticAnalyzer\SourceTextValueProvider.cs" />
+    <Compile Include="DiagnosticAnalyzer\CompilationAnalysisValueProviderFactory.cs" />
+    <Compile Include="DiagnosticAnalyzer\CompilationAnalysisValueProvider.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.GeneratedCodeUtilities.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.CompilationData.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisContextInfo.cs" />
+    <Compile Include="DiagnosticAnalyzer\AnalysisValueProvider.cs" />
     <Compile Include="DiagnosticAnalyzer\SuppressMessageInfo.cs" />
     <Compile Include="Diagnostic\SuppressionInfo.cs" />
     <Compile Include="InternalUtilities\JsonWriter.cs" />
@@ -77,9 +82,11 @@
     <Compile Include="RealParser.cs" />
     <Compile Include="ReferenceManager\MergedAliases.cs" />
     <Compile Include="StrongName\CryptoBlobParser.cs" />
+    <Compile Include="Syntax\SyntaxTreeComparer.cs" />
     <Compile Include="Syntax\ICompilationUnitSyntax.cs" />
     <Compile Include="Syntax\ISkippedTokensTriviaSyntax.cs" />
     <Compile Include="Text\LargeTextWriter.cs" />
+    <Compile Include="Text\SourceTextComparer.cs" />
     <Compile Include="Text\SourceTextWriter.cs" />
     <Compile Include="Text\StringTextWriter.cs" />
     <Compile Include="UnicodeCharacterUtilities.cs" />

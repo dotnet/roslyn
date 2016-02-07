@@ -342,7 +342,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IInstance As IExpression Implements IInvocationExpression.Instance
             Get
-                Return Me.ReceiverOpt
+                If Me.Method.IsShared Then
+                    Return Nothing
+                Else
+                    Return Me.ReceiverOpt
+                End If
             End Get
         End Property
 
@@ -1385,7 +1389,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IInstance As IExpression Implements IMemberReferenceExpression.Instance
             Get
-                Return Me.ReceiverOpt
+                If Me.PropertySymbol.IsShared Then
+                    Return Nothing
+                Else
+                    Return Me.ReceiverOpt
+                End If
             End Get
         End Property
 
@@ -1419,7 +1427,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IInstance As IExpression Implements IMemberReferenceExpression.Instance
             Get
-                Return Me.ReceiverOpt
+                If Me.EventSymbol.IsShared Then
+                    Return Nothing
+                Else
+                    Return Me.ReceiverOpt
+                End If
             End Get
         End Property
 
@@ -1453,7 +1465,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IInstance As IExpression Implements IMemberReferenceExpression.Instance
             Get
-                Return Me.ReceiverOpt
+                If Me.Method.IsShared Then
+                    Return Nothing
+                Else
+                    Return Me.ReceiverOpt
+                End If
             End Get
         End Property
 
@@ -1499,7 +1515,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IInstance As IExpression Implements IMemberReferenceExpression.Instance
             Get
-                Return Me.ReceiverOpt
+                If Me.FieldSymbol.IsShared Then
+                    Return Nothing
+                Else
+                    Return Me.ReceiverOpt
+                End If
             End Get
         End Property
 
