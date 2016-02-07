@@ -2022,7 +2022,7 @@ return (i);
             var text =
 @"#region A//B
 #endregion
-";
+".NormalizeLineEndings();
             var node = Parse(text);
             TestRoundTripping(node, text);
             VerifyDirectivesSpecial(node,
