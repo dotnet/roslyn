@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -51,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                    new DelayService(), 
                    new IOService(),
                    new PatchService(),
-                   new DefaultPackageSearchDatabaseFactoryService(),
+                   new DatabaseFactoryService(),
                    new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings))
         {
             // Kick off a database update.  Wait a few seconds before starting so we don't
@@ -579,20 +578,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 GetFullName(nameParts, path.Parent);
                 nameParts.Add(path.Name.ToString());
-            }
-        }
-
-        private class DefaultPackageSearchDatabaseFactoryService : IPackageSearchDatabaseFactoryService
-        {
-            public AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes)
-            {
-                using (var memoryStream = new MemoryStream(bytes))
-                using (var streamReader = new StreamReader(memoryStream))
-                {
-                    var database = new AddReferenceDatabase();
-                    database.ReadText(streamReader);
-                    return database;
-                }
             }
         }
     }
