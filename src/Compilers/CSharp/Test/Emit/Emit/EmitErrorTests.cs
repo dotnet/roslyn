@@ -300,6 +300,37 @@ public class A
                 Diagnostic(ErrorCode.ERR_TooManyLocals, "Main"));
         }
 
+        [Fact, WorkItem(8287, "https://github.com/dotnet/roslyn/issues/8287")]
+        public void ToManyUserStrings()
+        {
+            var builder = new System.Text.StringBuilder();
+            builder.Append(@"
+public class A
+{
+    public static void Main ()
+        {
+");
+            for (int i = 0; i < 11; i++)
+            {
+                builder.Append("System.Console.WriteLine(\"");
+                builder.Append((char)('A' + i), 1000000);
+                builder.Append("\");");
+                builder.AppendLine();
+            }
+
+            builder.Append(@"
+        }
+}
+");
+
+            var compilation = CreateCompilationWithMscorlib(builder.ToString());
+
+            compilation.VerifyEmitDiagnostics(
+    // error CS8103: Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.
+    Diagnostic(ErrorCode.ERR_TooManyUserStrings).WithLocation(1, 1)
+                );
+        }
+        
         #endregion
     }
 }

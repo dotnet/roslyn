@@ -699,6 +699,20 @@ End Class");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestWorkspaceContextHasReasonableProjectName()
+        {
+            using (var context = await TestContext.CreateAsync())
+            {
+                var compilation = await context.DefaultProject.GetCompilationAsync();
+                var result = await context.GenerateSourceAsync(compilation.ObjectType);
+                var openedDocument = context.GetDocument(result);
+
+                Assert.Equal(openedDocument.Project.AssemblyName, "mscorlib");
+                Assert.Equal(openedDocument.Project.Name, "mscorlib");
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestReuseGenerateFromDifferentProject()
         {
             using (var context = await TestContext.CreateAsync())

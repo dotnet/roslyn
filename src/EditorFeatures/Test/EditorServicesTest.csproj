@@ -148,6 +148,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -255,6 +256,7 @@
     <Compile Include="Outlining\AbstractSyntaxNodeOutlinerTests.cs" />
     <Compile Include="Outlining\AbstractSyntaxOutlinerTests.cs" />
     <Compile Include="Outlining\AbstractSyntaxTriviaOutlinerTests.cs" />
+    <Compile Include="Outlining\OutliningServiceTests.cs" />
     <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="DocCommentFormatting\DocCommentFormattingTests.cs" />
     <Compile Include="DocumentationComments\AbstractDocumentationCommentTests.cs" />

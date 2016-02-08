@@ -17,6 +17,7 @@
     <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
     <NuGetPackageRoot>$(UserProfile)\.nuget\packages</NuGetPackageRoot>
     <XunitVersion>2.1.0</XunitVersion>
+    <DeployExtension>false</DeployExtension>
   </PropertyGroup>
 
   <Target Name="Build">

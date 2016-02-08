@@ -1273,6 +1273,54 @@ class C : Attribute
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
+        [WorkItem(7900, "https://github.com/dotnet/roslyn/issues/7900")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatLockStatementWithEmbeddedStatementOnSemicolonDifferentLine()
+        {
+            var code = @"class C
+{
+    private object _l = new object();
+    public void M()
+    {
+        lock (_l)
+                       Console.WriteLine(""d"");$$
+    }
+}";
+            var expected = @"class C
+{
+    private object _l = new object();
+    public void M()
+    {
+        lock (_l)
+            Console.WriteLine(""d"");
+    }
+}";
+            await AssertFormatAfterTypeCharAsync(code, expected);
+        }
+
+        [WorkItem(7900, "https://github.com/dotnet/roslyn/issues/7900")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatLockStatementWithEmbeddedStatementOnSemicolonSameLine()
+        {
+            var code = @"class C
+{
+    private object _l = new object();
+    public void M()
+    {
+        lock (_l)      Console.WriteLine(""d"");$$
+    }
+}";
+            var expected = @"class C
+{
+    private object _l = new object();
+    public void M()
+    {
+        lock (_l) Console.WriteLine(""d"");
+    }
+}";
+            await AssertFormatAfterTypeCharAsync(code, expected);
+        }
+
         private static async Task AssertFormatAfterTypeCharAsync(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(code))

@@ -61,6 +61,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Building Project.
+        /// </summary>
+        internal static string BuildingProject {
+            get {
+                return ResourceManager.GetString("BuildingProject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Print a list of referenced assemblies..
         /// </summary>
         internal static string ReferencesCommandDescription {
@@ -102,6 +111,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string ResettingExecutionEngine {
             get {
                 return ResourceManager.GetString("ResettingExecutionEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resetting Interactive.
+        /// </summary>
+        internal static string ResettingInteractive {
+            get {
+                return ResourceManager.GetString("ResettingInteractive", resourceCulture);
             }
         }
         

@@ -895,7 +895,7 @@ public class B
             var compilation = CreateCompilationWithMscorlib45(source1);
             var anotherCompilation = CreateCompilationWithMscorlib45(source2);
             var treeInAnotherCompilation = anotherCompilation.SyntaxTrees.Single();
-            
+
             string message = new ArgumentException(
                 string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, AnalyzerWithInvalidDiagnosticLocation.Descriptor.Id, treeInAnotherCompilation.FilePath), "diagnostic").Message;
 
@@ -1356,6 +1356,67 @@ partial class PartialType
             VerifyGeneratedCodeAnalyzerDiagnostics(compilation, expected, GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
         }
 
+        internal class OwningSymbolTestAnalyzer : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor ExpressionDescriptor = new DiagnosticDescriptor(
+                "Expression",
+                "Expression",
+                "Expression found.",
+                "Testing",
+                DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            {
+                get { return ImmutableArray.Create(ExpressionDescriptor); }
+            }
+
+            public sealed override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(
+                     (nodeContext) =>
+                     {
+                         if (nodeContext.ContainingSymbol.Name.StartsWith("Funky") && nodeContext.Compilation.Language == "C#")
+                         {
+                             nodeContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(ExpressionDescriptor, nodeContext.Node.GetLocation()));
+                         }
+                     },
+                     SyntaxKind.IdentifierName,
+                     SyntaxKind.NumericLiteralExpression);
+            }
+        }
+
+        [Fact]
+        public void OwningSymbolTest()
+        {
+            const string source = @"
+class C
+{
+    public void UnFunkyMethod()
+    {
+        int x = 0;
+        int y = x;
+    }
+
+    public void FunkyMethod()
+    {
+        int x = 0;
+        int y = x;
+    }
+
+    public int FunkyField = 12;
+    public int UnFunkyField = 12;
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new OwningSymbolTestAnalyzer() }, null, null, false,
+                Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "0").WithLocation(12, 17),
+                Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "x").WithLocation(13, 17),
+                Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "12").WithLocation(16, 29)
+                );
+        }
+
         private static void VerifyGeneratedCodeAnalyzerDiagnostics(Compilation compilation, Func<string, bool> isGeneratedFileName, GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt)
         {
             var expected = GetExpectedGeneratedCodeAnalyzerDiagnostics(compilation, isGeneratedFileName, generatedCodeAnalysisFlagsOpt);
@@ -1446,7 +1507,7 @@ partial class PartialType
 
             if (compilation.Options.GeneralDiagnosticOption == ReportDiagnostic.Error)
             {
-                for(int i = 0; i < builder.Count; i++)
+                for (int i = 0; i < builder.Count; i++)
                 {
                     if (((string)builder[i].Code) != GeneratedCodeAnalyzer.Error.Id)
                     {
@@ -1497,7 +1558,7 @@ partial class PartialType
         public void TestEnsureNoMergedNamespaceSymbolAnalyzer()
         {
             var source = @"namespace N1.N2 { }";
-            
+
             var metadataReference = CreateCompilationWithMscorlib(source).ToMetadataReference();
             var compilation = CreateCompilationWithMscorlib(source, new[] { metadataReference });
             compilation.VerifyDiagnostics();
@@ -1505,6 +1566,45 @@ partial class PartialType
             // Analyzer reports a diagnostic if it receives a merged namespace symbol across assemblies in compilation.
             var analyzers = new DiagnosticAnalyzer[] { new EnsureNoMergedNamespaceSymbolAnalyzer() };
             compilation.VerifyAnalyzerDiagnostics(analyzers);
+        }
+
+        [Fact, WorkItem(6324, "https://github.com/dotnet/roslyn/issues/6324")]
+        public void TestSharedStateAnalyzer()
+        {
+            string source1 = @"
+public partial class C { }
+";
+            string source2 = @"
+public partial class C2 { }
+";
+            string source3 = @"
+public partial class C33 { }
+";
+            var tree1 = CSharpSyntaxTree.ParseText(source1, path: "Source1_File1.cs");
+            var tree2 = CSharpSyntaxTree.ParseText(source1, path: "Source1_File2.cs");
+            var tree3 = CSharpSyntaxTree.ParseText(source2, path: "Source2_File3.cs");
+            var tree4 = CSharpSyntaxTree.ParseText(source3, path: "Source3_File4.generated.cs");
+            var tree5 = CSharpSyntaxTree.ParseText(source3, path: "Source3_File5.designer.cs");
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2, tree3, tree4, tree5 });
+            compilation.VerifyDiagnostics();
+            
+            var analyzers = new DiagnosticAnalyzer[] { new SharedStateAnalyzer() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                Diagnostic("UserCodeDiagnostic").WithArguments("Source1_File1.cs").WithLocation(1, 1),
+                Diagnostic("UniqueTextFileDiagnostic").WithArguments("Source1_File1.cs").WithLocation(1, 1),
+                Diagnostic("GeneratedCodeDiagnostic", "C33").WithArguments("C33").WithLocation(2, 22),
+                Diagnostic("UserCodeDiagnostic", "C2").WithArguments("C2").WithLocation(2, 22),
+                Diagnostic("UserCodeDiagnostic", "C").WithArguments("C").WithLocation(2, 22),
+                Diagnostic("UserCodeDiagnostic").WithArguments("Source1_File2.cs").WithLocation(1, 1),
+                Diagnostic("UniqueTextFileDiagnostic").WithArguments("Source1_File2.cs").WithLocation(1, 1),
+                Diagnostic("UserCodeDiagnostic").WithArguments("Source2_File3.cs").WithLocation(1, 1),
+                Diagnostic("UniqueTextFileDiagnostic").WithArguments("Source2_File3.cs").WithLocation(1, 1),
+                Diagnostic("GeneratedCodeDiagnostic").WithArguments("Source3_File4.generated.cs").WithLocation(1, 1),
+                Diagnostic("UniqueTextFileDiagnostic").WithArguments("Source3_File4.generated.cs").WithLocation(1, 1),
+                Diagnostic("GeneratedCodeDiagnostic").WithArguments("Source3_File5.designer.cs").WithLocation(1, 1),
+                Diagnostic("UniqueTextFileDiagnostic").WithArguments("Source3_File5.designer.cs").WithLocation(1, 1),
+                Diagnostic("NumberOfUniqueTextFileDescriptor").WithArguments("3").WithLocation(1, 1));
         }
     }
 }

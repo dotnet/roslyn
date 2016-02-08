@@ -328,32 +328,34 @@ End Namespace
             Dim aliases As Dictionary(Of String, AliasAndImportsClausePosition) = Nothing
             Dim xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
 
-            Dim runtime = CreateRuntimeInstance(comp)
-            GetImports(
-                runtime,
-                "root.N.C.M",
-                GetExpressionStatement(comp),
-                rootNamespace,
-                currentNamespace,
-                typesAndNamespaces,
-                aliases,
-                xmlNamespaces)
+            WithRuntimeInstancePortableBug(comp,
+                Sub(runtime)
+                    GetImports(
+                        runtime,
+                        "root.N.C.M",
+                        GetExpressionStatement(comp),
+                        rootNamespace,
+                        currentNamespace,
+                        typesAndNamespaces,
+                        aliases,
+                        xmlNamespaces)
 
-            Assert.Equal("root", rootNamespace.ToTestDisplayString())
-            Assert.Equal("root.N", currentNamespace.ToTestDisplayString())
+                    Assert.Equal("root", rootNamespace.ToTestDisplayString())
+                    Assert.Equal("root.N", currentNamespace.ToTestDisplayString())
 
-            AssertEx.SetEqual(typesAndNamespaces.Select(Function(i) i.NamespaceOrType.ToTestDisplayString()), "System", "System.IO.Path", "System.Runtime", "System.Threading.Thread", "root.N")
+                    AssertEx.SetEqual(typesAndNamespaces.Select(Function(i) i.NamespaceOrType.ToTestDisplayString()), "System", "System.IO.Path", "System.Runtime", "System.Threading.Thread", "root.N")
 
-            AssertEx.SetEqual(aliases.Keys, "A", "B", "D", "E")
-            Assert.Equal("System.Collections", aliases("A").Alias.Target.ToTestDisplayString())
-            Assert.Equal("System.Collections.ArrayList", aliases("B").Alias.Target.ToTestDisplayString())
-            Assert.Equal("System.Threading.Tasks", aliases("D").Alias.Target.ToTestDisplayString())
-            Assert.Equal("System.Threading.Timer", aliases("E").Alias.Target.ToTestDisplayString())
+                    AssertEx.SetEqual(aliases.Keys, "A", "B", "D", "E")
+                    Assert.Equal("System.Collections", aliases("A").Alias.Target.ToTestDisplayString())
+                    Assert.Equal("System.Collections.ArrayList", aliases("B").Alias.Target.ToTestDisplayString())
+                    Assert.Equal("System.Threading.Tasks", aliases("D").Alias.Target.ToTestDisplayString())
+                    Assert.Equal("System.Threading.Timer", aliases("E").Alias.Target.ToTestDisplayString())
 
-            AssertEx.SetEqual(xmlNamespaces.Keys, "", "C", "F")
-            Assert.Equal("http://xml0", xmlNamespaces("").XmlNamespace)
-            Assert.Equal("http://xml1", xmlNamespaces("C").XmlNamespace)
-            Assert.Equal("http://xml3", xmlNamespaces("F").XmlNamespace)
+                    AssertEx.SetEqual(xmlNamespaces.Keys, "", "C", "F")
+                    Assert.Equal("http://xml0", xmlNamespaces("").XmlNamespace)
+                    Assert.Equal("http://xml1", xmlNamespaces("C").XmlNamespace)
+                    Assert.Equal("http://xml3", xmlNamespaces("F").XmlNamespace)
+                End Sub)
         End Sub
 
         <Fact>
@@ -372,29 +374,31 @@ End Namespace
                 Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll.WithRootNamespace(rootNamespaceName))
                 comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
 
-                Dim rootNamespace As NamespaceSymbol = Nothing
-                Dim currentNamespace As NamespaceSymbol = Nothing
-                Dim typesAndNamespaces As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition) = Nothing
-                Dim aliases As Dictionary(Of String, AliasAndImportsClausePosition) = Nothing
-                Dim xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
+                WithRuntimeInstancePortableBug(comp,
+                    Sub(runtime)
+                        Dim rootNamespace As NamespaceSymbol = Nothing
+                        Dim currentNamespace As NamespaceSymbol = Nothing
+                        Dim typesAndNamespaces As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition) = Nothing
+                        Dim aliases As Dictionary(Of String, AliasAndImportsClausePosition) = Nothing
+                        Dim xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
 
-                Dim runtime = CreateRuntimeInstance(comp)
-                GetImports(
-                    runtime,
-                    "N.C.M",
-                    GetExpressionStatement(comp),
-                    rootNamespace,
-                    currentNamespace,
-                    typesAndNamespaces,
-                    aliases,
-                    xmlNamespaces)
+                        GetImports(
+                            runtime,
+                            "N.C.M",
+                            GetExpressionStatement(comp),
+                            rootNamespace,
+                            currentNamespace,
+                            typesAndNamespaces,
+                            aliases,
+                            xmlNamespaces)
 
-                Assert.True(rootNamespace.IsGlobalNamespace)
-                Assert.Equal("N", currentNamespace.ToTestDisplayString())
+                        Assert.True(rootNamespace.IsGlobalNamespace)
+                        Assert.Equal("N", currentNamespace.ToTestDisplayString())
 
-                Assert.Equal("N", typesAndNamespaces.Single().NamespaceOrType.ToTestDisplayString())
-                Assert.Null(aliases)
-                Assert.Null(xmlNamespaces)
+                        Assert.Equal("N", typesAndNamespaces.Single().NamespaceOrType.ToTestDisplayString())
+                        Assert.Null(aliases)
+                        Assert.Null(xmlNamespaces)
+                    End Sub)
             Next
         End Sub
 
@@ -435,30 +439,32 @@ End Namespace
             Dim aliases As Dictionary(Of String, AliasAndImportsClausePosition) = Nothing
             Dim xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
 
-            Dim runtime = CreateRuntimeInstance(comp)
-            GetImports(
-                runtime,
-                "root.N.C.M",
-                GetExpressionStatement(comp),
-                rootNamespace,
-                currentNamespace,
-                typesAndNamespaces,
-                aliases,
-                xmlNamespaces)
+            WithRuntimeInstancePortableBug(comp,
+                Sub(runtime)
+                    GetImports(
+                        runtime,
+                        "root.N.C.M",
+                        GetExpressionStatement(comp),
+                        rootNamespace,
+                        currentNamespace,
+                        typesAndNamespaces,
+                        aliases,
+                        xmlNamespaces)
 
-            Assert.Equal("root", rootNamespace.ToTestDisplayString())
-            Assert.Equal("root.N", currentNamespace.ToTestDisplayString())
+                    Assert.Equal("root", rootNamespace.ToTestDisplayString())
+                    Assert.Equal("root.N", currentNamespace.ToTestDisplayString())
 
-            ' CONSIDER: We could de-dup unaliased imports as well.
-            AssertEx.SetEqual(typesAndNamespaces.Select(Function(i) i.NamespaceOrType.ToTestDisplayString()), "System", "System.IO.Path", "System", "System.IO.Path", "root.N")
+                    ' CONSIDER: We could de-dup unaliased imports as well.
+                    AssertEx.SetEqual(typesAndNamespaces.Select(Function(i) i.NamespaceOrType.ToTestDisplayString()), "System", "System.IO.Path", "System", "System.IO.Path", "root.N")
 
-            AssertEx.SetEqual(aliases.Keys, "A", "B")
-            Assert.Equal("System.Collections", aliases("A").Alias.Target.ToTestDisplayString())
-            Assert.Equal("System.Collections.ArrayList", aliases("B").Alias.Target.ToTestDisplayString())
+                    AssertEx.SetEqual(aliases.Keys, "A", "B")
+                    Assert.Equal("System.Collections", aliases("A").Alias.Target.ToTestDisplayString())
+                    Assert.Equal("System.Collections.ArrayList", aliases("B").Alias.Target.ToTestDisplayString())
 
-            AssertEx.SetEqual(xmlNamespaces.Keys, "", "C")
-            Assert.Equal("http://xml0", xmlNamespaces("").XmlNamespace)
-            Assert.Equal("http://xml1", xmlNamespaces("C").XmlNamespace)
+                    AssertEx.SetEqual(xmlNamespaces.Keys, "", "C")
+                    Assert.Equal("http://xml0", xmlNamespaces("").XmlNamespace)
+                    Assert.Equal("http://xml1", xmlNamespaces("C").XmlNamespace)
+                End Sub)
         End Sub
 
         <WorkItem(2441, "https://github.com/dotnet/roslyn/issues/2441")>

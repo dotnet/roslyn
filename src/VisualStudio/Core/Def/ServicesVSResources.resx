@@ -135,12 +135,6 @@
   <data name="FileNameMustHaveTheExtension" xml:space="preserve">
     <value>File name must have the "{0}" extension.</value>
   </data>
-  <data name="BuildingProject" xml:space="preserve">
-    <value>Building Project</value>
-  </data>
-  <data name="ResettingInteractive" xml:space="preserve">
-    <value>Resetting Interactive</value>
-  </data>
   <data name="Debugger" xml:space="preserve">
     <value>Debugger</value>
   </data>
@@ -524,5 +518,8 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="Installing_package_0_failed" xml:space="preserve">
     <value>Installing package '{0}' failed</value>
+  </data>
+  <data name="Unknown" xml:space="preserve">
+    <value>&lt;Unknown&gt;</value>
   </data>
 </root>
