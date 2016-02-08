@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // if the return type of GetResult is void, the await-expression is classified as nothing. If it has a
             // non-void return type T, the await-expression is classified as a value of type T.
             TypeSymbol awaitExpressionType = hasErrors ? CreateErrorType()
-                : (object)getResult != null ? getResult.ReturnType.TypeSymbol
+                : (object)getResult != null ? GetTypeOrReturnTypeWithAdjustedNullableAnnotations(getResult).TypeSymbol
                 : Compilation.DynamicType;
 
             return new BoundAwaitExpression(node, expression, getAwaiter, isCompleted, getResult, awaitExpressionType, hasErrors);
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            TypeSymbol awaiterType = getAwaiter.ReturnType.TypeSymbol;
+            TypeSymbol awaiterType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(getAwaiter).TypeSymbol;
             return GetIsCompletedProperty(awaiterType, node, expression.Type, diagnostics, out isCompleted)
                 && AwaiterImplementsINotifyCompletion(awaiterType, node, diagnostics)
                 && GetGetResultMethod(awaiterType, node, expression.Type, diagnostics, out getResult);

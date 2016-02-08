@@ -271,19 +271,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerRefOutDifference: true,
             typeSymbolEqualityOptions: TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeSymbolEqualityOptions.IgnoreDynamic);
 
-        /// <summary>
-        /// This instance is used as a key in the lambda return type inference.
-        /// We basically only interested in parameters since inference will set the return type to null.
-        /// </summary>
-        public static readonly MemberSignatureComparer LambdaReturnInferenceCacheComparer = new MemberSignatureComparer(
-            considerName: false,                // valid invoke is always called "Invoke"
-            considerExplicitlyImplementedInterfaces: false,
-            considerReturnType: false,          // do not care
-            considerTypeConstraints: false,     // valid invoke is never generic
-            considerCallingConvention: false,   // valid invoke is never static
-            considerRefOutDifference: true,
-            typeSymbolEqualityOptions: TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes);
-
         // Compare the "unqualified" part of the member name (no explicit part)
         private readonly bool _considerName;
 

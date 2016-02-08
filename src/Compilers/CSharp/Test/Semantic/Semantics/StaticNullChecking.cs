@@ -12869,6 +12869,941 @@ partial class C
             c.VerifyDiagnostics(expected);
         }
 
+        [Fact]
+        public void NullableOptOut_13()
+        {
+            string source = @"
+class C 
+{
+    void Main() {}
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    string?[]? M1()
+    {
+        return null;
+    }
+
+    void Test1()
+    {
+        M1().ToString();
+        M1()[0].ToString();
+        var x1 = M1()[0] ?? """";
+    }
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    string[] M2()
+    {
+        return null;
+    }
+
+    void Test2()
+    {
+        M2()[0] = null;
+        var x2 = M2()[0] ?? """";
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source},
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void NullableOptOut_14()
+        {
+            string source = @"
+class C 
+{
+    void Main() {}
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    CL1<string?>? M1()
+    {
+        return null;
+    }
+
+    void Test1()
+    {
+        M1().ToString();
+        M1().P1.ToString();
+        var x1 = M1().P1 ?? """";
+    }
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    CL1<string> M2()
+    {
+        return null;
+    }
+
+    void Test2()
+    {
+        M2().P1 = null;
+        var x2 = M2().P1 ?? """";
+    }
+
+    CL1<string?> M3()
+    {
+         return new CL1<string?>();
+    }
+
+    void Test3()
+    {
+        M3().ToString();
+        M3().P1.ToString();
+        var x3 = M3().P1 ?? """";
+    }
+
+    CL1<string> M4()
+    {
+        return new CL1<string>();
+    }
+
+    void Test4()
+    {
+        M4().P1 = null;
+        var x4 = M4().P1 ?? """";
+    }
+}
+
+class CL1<T>
+{
+    public T P1;
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(
+    // (39,9): warning CS8202: Possible dereference of a null reference.
+    //         M3().P1.ToString();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M3().P1").WithLocation(39, 9),
+    // (50,19): warning CS8201: Possible null reference assignment.
+    //         M4().P1 = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(50, 19),
+    // (51,18): hidden CS8207: Expression is probably never null.
+    //         var x4 = M4().P1 ?? "";
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "M4().P1").WithLocation(51, 18)
+                );
+        }
+
+        [Fact]
+        public void NullableOptOut_15()
+        {
+            string source = @"
+class C 
+{
+    void Main() {}
+}
+
+class CL1<T>
+{
+    public virtual CL1<T> M1()
+    {
+        return new CL1<T>();
+    }
+}
+
+class CL2 : CL1<string>
+{
+    public override CL1<string?> M1() // 2
+    {
+        return base.M1();
+    }
+}
+
+class CL3 : CL1<string?>
+{
+    public override CL1<string?> M1()
+    {
+        return base.M1();
+    }
+}
+
+class CL4<T> where T : class
+{
+    [System.Runtime.CompilerServices.NullableOptOut]
+    public virtual CL4<T?> M4()
+    {
+        return new CL4<T?>();
+    }
+}
+
+class CL5 : CL4<string>
+{
+    public override CL4<string> M4()
+    {
+        return base.M4();
+    }
+}
+
+class CL6 : CL4<string?>
+{
+    public override CL4<string> M4() // 6
+    {
+        return base.M4();
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(
+    // (17,34): warning CS8209: Nullability of reference types in return type doesn't match overridden member.
+    //     public override CL1<string?> M1() // 2
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M1").WithLocation(17, 34),
+    // (50,33): warning CS8209: Nullability of reference types in return type doesn't match overridden member.
+    //     public override CL4<string> M4() // 6
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M4").WithLocation(50, 33)
+                );
+        }
+
+        [Fact]
+        public void NullableOptOut_16()
+        {
+            string source = @"
+class C 
+{
+    void Main() {}
+}
+
+class CL1<T>
+{
+    public virtual void M1(CL1<T> x1)
+    {
+    }
+}
+
+class CL2 : CL1<string>
+{
+    public override void M1(CL1<string?> x2) // 2
+    {
+    }
+}
+
+class CL3 : CL1<string?>
+{
+    public override void M1(CL1<string?> x3)
+    {
+    }
+}
+
+class CL4<T> where T : class
+{
+    [System.Runtime.CompilerServices.NullableOptOut]
+    public virtual void M4(CL4<T?> x4)
+    {
+    }
+}
+
+class CL5 : CL4<string>
+{
+    public override void M4(CL4<string> x5)
+    {
+    }
+}
+
+class CL6 : CL4<string?>
+{
+    public override void M4(CL4<string> x6) // 6
+    {
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(
+    // (16,26): warning CS8210: Nullability of reference types in type of parameter 'x2' doesn't match overridden member.
+    //     public override void M1(CL1<string?> x2) // 2
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x2").WithLocation(16, 26),
+    // (45,26): warning CS8210: Nullability of reference types in type of parameter 'x6' doesn't match overridden member.
+    //     public override void M4(CL4<string> x6) // 6
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M4").WithArguments("x6").WithLocation(45, 26)
+                );
+        }
+
+        [Fact]
+        public void NullableOptOut_17()
+        {
+            string source = @"
+class C 
+{
+    void Main() {}
+
+    void Test1()
+    {
+        CL0<string?>.M1().ToString();
+        var x1 = CL0<string?>.M1() ?? """";
+    }
+}
+
+[System.Runtime.CompilerServices.NullableOptOut]
+class CL0<T>
+{
+    public static T M1()
+    {
+        return default(T);
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(
+    // (8,9): warning CS8202: Possible dereference of a null reference.
+    //         CL0<string?>.M1().ToString();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "CL0<string?>.M1()").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void NullableOptOut_18()
+        {
+            string source = @"
+class C 
+{
+    void Main() {}
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    CL1<string?>? M1 { get; set; }
+
+    void Test1()
+    {
+        M1.ToString();
+        M1.P1.ToString();
+        var x1 = M1.P1 ?? """";
+    }
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    CL1<string> M2 { get; set; }
+
+    void Test2()
+    {
+        M2.P1 = null;
+        var x2 = M2.P1 ?? """";
+    }
+
+    CL1<string?> M3 { get; set; }
+
+    void Test3()
+    {
+        M3.ToString();
+        M3.P1.ToString();
+        var x3 = M3.P1 ?? """";
+    }
+
+    CL1<string> M4 { get; set; }
+
+    void Test4()
+    {
+        M4.P1 = null;
+        var x4 = M4.P1 ?? """";
+    }
+}
+
+class CL1<T>
+{
+    public T P1;
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(
+    // (30,9): warning CS8202: Possible dereference of a null reference.
+    //         M3.P1.ToString();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M3.P1").WithLocation(30, 9),
+    // (38,17): warning CS8201: Possible null reference assignment.
+    //         M4.P1 = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(38, 17),
+    // (39,18): hidden CS8207: Expression is probably never null.
+    //         var x4 = M4.P1 ?? "";
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "M4.P1").WithLocation(39, 18)
+                );
+        }
+
+        [Fact]
+        public void NullableOptOut_19()
+        {
+            string source = @"
+class C 
+{
+    void Main() {}
+
+    void Test1()
+    {
+        CL0<string?>.M1.ToString();
+        var x1 = CL0<string?>.M1 ?? """";
+    }
+}
+
+[System.Runtime.CompilerServices.NullableOptOut]
+class CL0<T>
+{
+    public static T M1 { get; set; }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(
+    // (8,9): warning CS8202: Possible dereference of a null reference.
+    //         CL0<string?>.M1.ToString();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "CL0<string?>.M1").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void NullableOptOut_20()
+        {
+            string source = @"
+class C 
+{
+    void Main() {}
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    CL1<string?>? M1;
+
+    void Test1()
+    {
+        M1.ToString();
+        M1.P1.ToString();
+        var x1 = M1.P1 ?? """";
+    }
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    CL1<string> M2;
+
+    void Test2()
+    {
+        M2.P1 = null;
+        var x2 = M2.P1 ?? """";
+    }
+
+    CL1<string?> M3;
+
+    void Test3()
+    {
+        M3.ToString();
+        M3.P1.ToString();
+        var x3 = M3.P1 ?? """";
+    }
+
+    CL1<string> M4;
+
+    void Test4()
+    {
+        M4.P1 = null;
+        var x4 = M4.P1 ?? """";
+    }
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    void Assign()
+    {
+        M1 = null;
+        M2 = null;
+        M3 = null;
+        M4 = null;
+    }
+}
+
+class CL1<T>
+{
+    public T P1;
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(
+    // (30,9): warning CS8202: Possible dereference of a null reference.
+    //         M3.P1.ToString();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M3.P1").WithLocation(30, 9),
+    // (38,17): warning CS8201: Possible null reference assignment.
+    //         M4.P1 = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(38, 17),
+    // (39,18): hidden CS8207: Expression is probably never null.
+    //         var x4 = M4.P1 ?? "";
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "M4.P1").WithLocation(39, 18)
+                );
+        }
+
+        [Fact]
+        public void NullableOptOut_21()
+        {
+            string source = @"
+class C 
+{
+    void Main() {}
+
+    void Test1()
+    {
+        CL0<string?>.M1.ToString();
+        var x1 = CL0<string?>.M1 ?? """";
+    }
+}
+
+[System.Runtime.CompilerServices.NullableOptOut]
+class CL0<T>
+{
+    public static T M1 = default(T);
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(
+    // (8,9): warning CS8202: Possible dereference of a null reference.
+    //         CL0<string?>.M1.ToString();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "CL0<string?>.M1").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void NullableOptOut_22()
+        {
+            string source = @"
+class C 
+{
+    void Main() {}
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    event System.Func<string?>? M1;
+
+    void Test1()
+    {
+        M1.ToString();
+        M1().ToString();
+        var x1 = M1() ?? """";
+    }
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    event System.Func<string> M2;
+
+    void Test2()
+    {
+        var x2 = M2() ?? """";
+    }
+
+    event System.Func<string?> M3;
+
+    void Test3()
+    {
+        M3.ToString();
+        M3().ToString();
+        var x3 = M3() ?? """";
+    }
+
+    event System.Func<string> M4;
+
+    void Test4()
+    {
+        var x4 = M4() ?? """";
+    }
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    void Assign()
+    {
+        M1 = null;
+        M2 = null;
+        M3 = null;
+        M4 = null;
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(
+    // (29,9): warning CS8202: Possible dereference of a null reference.
+    //         M3().ToString();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M3()").WithLocation(29, 9),
+    // (37,18): hidden CS8207: Expression is probably never null.
+    //         var x4 = M4() ?? "";
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "M4()").WithLocation(37, 18)
+                );
+        }
+
+        [Fact]
+        public void NullableOptOut_23()
+        {
+            string source = @"
+class C 
+{
+    void Main() {}
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    delegate void D1 (CL1<string?>? x1);
+
+    void M1(D1 x1) {}
+
+    void Test1()
+    {
+        M1(a1 => a1.ToString());
+        M1(b1 => b1.P1.ToString());
+        M1(c1 => {var x1 = c1.P1 ?? """";});
+    }
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    delegate void D2(CL1<string> x2);
+    
+    void M2(D2 x2) {}
+
+    void Test2()
+    {
+        M2(a2 => {a2.P1 = null;});
+        M2(b2 => {var x2 = b2.P1 ?? """";});
+    }
+
+    delegate void D3 (CL1<string?> x3);
+    void M3(D3 x3) {}
+
+    void Test3()
+    {
+        M3(a3 => a3.ToString());
+        M3(b3 => b3.P1.ToString());
+        M3(c3 => {var x3 = c3.P1 ?? """";});
+    }
+
+    delegate void D4(CL1<string> x4);
+    void M4(D4 x4) {}
+
+    void Test4()
+    {
+        M4(a4 => {a4.P1 = null;});
+        M4(b4 => {var x4 = b4.P1 ?? """";});
+    }
+
+    void Test11()
+    {
+        D1 u11 = a11 => a11.ToString();
+        D1 v11 = b11 => b11.P1.ToString();
+        D1 w11 = c11 => {var x11 = c11.P1 ?? """";};
+    }
+
+    void Test21()
+    {
+        D2 u21 = a21 => {a21.P1 = null;};
+        D2 v21 = b21 => {var x21 = b21.P1 ?? """";};
+    }
+
+    void Test31()
+    {
+        D3 u31 = a31 => a31.ToString();
+        D3 v31 = b31 => b31.P1.ToString();
+        D3 w31 = c31 => {var x31 = c31.P1 ?? """";};
+    }
+
+    void Test41()
+    {
+        D4 u41 = a41 => {a41.P1 = null;};
+        D4 v41 = b41 => {var x41 = b41.P1 ?? """";};
+    }
+}
+
+class CL1<T>
+{
+    public T P1;
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(
+    // (35,18): warning CS8202: Possible dereference of a null reference.
+    //         M3(b3 => b3.P1.ToString());
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b3.P1").WithLocation(35, 18),
+    // (44,27): warning CS8201: Possible null reference assignment.
+    //         M4(a4 => {a4.P1 = null;});
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(44, 27),
+    // (45,28): hidden CS8207: Expression is probably never null.
+    //         M4(b4 => {var x4 = b4.P1 ?? "";});
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "b4.P1").WithLocation(45, 28),
+    // (64,25): warning CS8202: Possible dereference of a null reference.
+    //         D3 v31 = b31 => b31.P1.ToString();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b31.P1").WithLocation(64, 25),
+    // (70,35): warning CS8201: Possible null reference assignment.
+    //         D4 u41 = a41 => {a41.P1 = null;};
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(70, 35),
+    // (71,36): hidden CS8207: Expression is probably never null.
+    //         D4 v41 = b41 => {var x41 = b41.P1 ?? "";};
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "b41.P1").WithLocation(71, 36)
+                );
+        }
+
+        [Fact]
+        public void NullableOptOut_24()
+        {
+            string source = @"
+class C 
+{
+    void Main() {}
+
+    void M1(CL0<string?> x1) {}
+
+    void Test1()
+    {
+        M1(a1 => a1.ToString());
+        M1(b1 => {var x1 = b1 ?? """";});
+    }
+
+    void Test2()
+    {
+        CL0<string?> u2 = a2 => a2.ToString();
+        CL0<string?> v2 = b2 => {var x2 = b2 ?? """";};
+    }
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    void M2(CL0<string?> x1) {}
+
+    void Test3()
+    {
+        M2(a3 => a3.ToString());
+        M2(b3 => {var x3 = b3 ?? """";});
+    }
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    void M3(CL1<string?> x1) {}
+
+    void Test4()
+    {
+        M3(a4 => a4.ToString());
+        M3(b4 => {var x4 = b4 ?? """";});
+    }
+
+    void M4(CL1<string?> x1) {}
+
+    void Test5()
+    {
+        M4(a5 => a5.ToString());
+        M4(b5 => {var x5 = b5 ?? """";});
+    }
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    void M5(CL2<string?> x1) {}
+
+    void Test6()
+    {
+        M5(a6 => a6.ToString());
+        M5(b6 => {var x6 = b6 ?? """";});
+    }
+}
+
+[System.Runtime.CompilerServices.NullableOptOut]
+delegate void CL0<T>(T x); 
+
+[System.Runtime.CompilerServices.NullableOptOut]
+delegate void CL1<T>(T? x) where T : class; 
+
+delegate void CL2<T>(T? x) where T : class; 
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(
+    // (10,18): warning CS8202: Possible dereference of a null reference.
+    //         M1(a1 => a1.ToString());
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a1").WithLocation(10, 18),
+    // (16,33): warning CS8202: Possible dereference of a null reference.
+    //         CL0<string?> u2 = a2 => a2.ToString();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a2").WithLocation(16, 33),
+    // (42,18): warning CS8202: Possible dereference of a null reference.
+    //         M4(a5 => a5.ToString());
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a5").WithLocation(42, 18),
+    // (51,18): warning CS8202: Possible dereference of a null reference.
+    //         M5(a6 => a6.ToString());
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a6").WithLocation(51, 18)
+                );
+        }
+
+        [Fact]
+        public void NullableOptOut_25()
+        {
+            string source = @"
+class C 
+{
+    void Main() {}
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    delegate string D1 ();
+
+    void M1(D1 x1) {}
+
+    void Test1()
+    {
+        M1(() => null);
+    }
+
+    void Test2()
+    {
+        D1 x2 = () => null;
+    }
+
+    delegate T D3<T> ();
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    void M3(D3<string> x3) {}
+
+    void Test3()
+    {
+        M3(() => null);
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void NullableOptOut_26()
+        {
+            string source = @"
+class C 
+{
+    void Main() {}
+
+    void M1(CL0<string> x1) {}
+
+    void Test1()
+    {
+        M1(() => null);
+    }
+
+    void Test2()
+    {
+        CL0<string> x2 =() => null;
+    }
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    void M2(D2 x2) {}
+
+    void Test3()
+    {
+        M2(() => null);
+    }
+}
+
+[System.Runtime.CompilerServices.NullableOptOut]
+delegate T CL0<T>(); 
+
+delegate string D2();
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(
+    // (10,18): warning CS8203: Possible null reference return.
+    //         M1(() => null);
+    Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(10, 18),
+    // (15,31): warning CS8203: Possible null reference return.
+    //         CL0<string> x2 =() => null;
+    Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(15, 31),
+    // (23,18): warning CS8203: Possible null reference return.
+    //         M2(() => null);
+    Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(23, 18)
+                );
+        }
+
+        [Fact]
+        public void TypeArgumentInference_01()
+        {
+            string source = @"
+class C 
+{
+    void Main() {}
+
+    T M1<T>(T? x) where T: class {throw new System.NotImplementedException();}
+
+    void Test1(string? x1)
+    {
+        M1(x1).ToString();
+    }
+
+    void Test2(string?[] x2)
+    {
+        M1(x2)[0].ToString();
+    }
+
+    void Test3(CL0<string?>? x3)
+    {
+        M1(x3).P1.ToString();
+    }
+
+    void Test11(string? x11)
+    {
+        M1<string?>(x11).ToString();
+    }
+
+    void Test12(string?[] x12)
+    {
+        M1<string?[]>(x12)[0].ToString();
+    }
+
+    void Test13(CL0<string?>? x13)
+    {
+        M1<CL0<string?>?>(x13).P1.ToString();
+    }
+}
+
+class CL0<T>
+{
+    public T P1 {get;set;}
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(
+    // (25,9): warning CS8202: Possible dereference of a null reference.
+    //         M1<string?>(x11).ToString();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1<string?>(x11)").WithLocation(25, 9),
+    // (30,9): warning CS8202: Possible dereference of a null reference.
+    //         M1<string?[]>(x12)[0].ToString();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1<string?[]>(x12)[0]").WithLocation(30, 9),
+    // (35,9): warning CS8202: Possible dereference of a null reference.
+    //         M1<CL0<string?>?>(x13).P1.ToString();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1<CL0<string?>?>(x13)").WithLocation(35, 9),
+    // (35,9): warning CS8202: Possible dereference of a null reference.
+    //         M1<CL0<string?>?>(x13).P1.ToString();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1<CL0<string?>?>(x13).P1").WithLocation(35, 9)
+                );
+        }
+
         [Fact(Skip = "TODO")]
         public void Test2()
         {

@@ -248,8 +248,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly Binder binder;
         private readonly ConcurrentDictionary<TypeSymbol, BoundLambda> _bindingCache = new ConcurrentDictionary<TypeSymbol, BoundLambda>(TypeSymbol.EqualsIncludingNullableComparer);
 
-        private readonly ConcurrentDictionary<MethodSymbol, BoundLambda> _returnInferenceCache =
-            new ConcurrentDictionary<MethodSymbol, BoundLambda>(MemberSignatureComparer.LambdaReturnInferenceCacheComparer);
+        private readonly ConcurrentDictionary<TargetParamInfo, BoundLambda> _returnInferenceCache =
+            new ConcurrentDictionary<TargetParamInfo, BoundLambda>();
 
         private BoundLambda _errorBinding;
 
@@ -325,16 +325,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static ImmutableArray<ParameterSymbol> DelegateParameters(NamedTypeSymbol delegateType)
+        private TypeSymbolWithAnnotations DelegateReturnType(NamedTypeSymbol delegateType)
         {
             NamedTypeSymbol d = delegateType.GetDelegateType();
-            return ((object)d == null || (object)d.DelegateInvokeMethod == null) ? ImmutableArray<ParameterSymbol>.Empty : d.DelegateInvokeMethod.Parameters;
-        }
-
-        private static TypeSymbolWithAnnotations DelegateReturnType(NamedTypeSymbol delegateType)
-        {
-            NamedTypeSymbol d = delegateType.GetDelegateType();
-            return ((object)d == null || (object)d.DelegateInvokeMethod == null) ? null : d.DelegateInvokeMethod.ReturnType;
+            return ((object)d == null || (object)d.DelegateInvokeMethod == null) ? null :
+                        binder.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(d.DelegateInvokeMethod);
         }
 
         private bool DelegateNeedsReturn(NamedTypeSymbol delegateType)
@@ -366,10 +361,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // when binding for real (not for return inference), there is still
             // a good chance that we could reuse a body of a lambda previously bound for 
             // return type inference.
-            MethodSymbol cacheKey = GetCacheKey(delegateType);
+            TargetParamInfo paramInfo = GetTargetParamInfo(delegateType);
 
             BoundLambda returnInferenceLambda;
-            if (_returnInferenceCache.TryGetValue(cacheKey, out returnInferenceLambda) && returnInferenceLambda.InferredFromSingleType)
+            if (_returnInferenceCache.TryGetValue(paramInfo, out returnInferenceLambda) && returnInferenceLambda.InferredFromSingleType)
             {
                 var lambdaSym = returnInferenceLambda.Symbol;
                 var lambdaRetType = lambdaSym.ReturnType;
@@ -384,11 +379,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var parameters = DelegateParameters(delegateType);
-            lambdaSymbol = new LambdaSymbol(binder.Compilation, binder.ContainingMemberOrLambda, _unboundLambda, parameters, returnType);
+            lambdaSymbol = new LambdaSymbol(binder.Compilation, binder.ContainingMemberOrLambda, _unboundLambda, delegateType, paramInfo, returnType);
             lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
             block = BindLambdaBody(lambdaSymbol, ref lambdaBodyBinder, diagnostics);
-            ValidateUnsafeParameters(diagnostics, parameters);
+            ValidateUnsafeParameters(diagnostics, paramInfo);
 
         haveLambdaBodyAndBinders:
 
@@ -430,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private void ValidateUnsafeParameters(DiagnosticBag diagnostics, ImmutableArray<ParameterSymbol> parameters)
+        private void ValidateUnsafeParameters(DiagnosticBag diagnostics, TargetParamInfo paramInfo)
         {
             // It is legal to use a delegate type that has unsafe parameter types inside
             // a safe context if the anonymous method has no parameter list!
@@ -444,11 +438,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // NOTE: we can get here with parameters.Length > ParameterCount
                 // in a case where we are binding for error reporting purposes 
-                var numParametersToCheck = Math.Min(parameters.Length, ParameterCount);
+                var numParametersToCheck = Math.Min(paramInfo.Types.Length, ParameterCount);
                 for (int i = 0; i < numParametersToCheck; i++)
                 {
-                    ParameterSymbol parameter = parameters[i];
-                    if (parameter.Type.IsUnsafe())
+                    if (paramInfo.Types[i].IsUnsafe())
                     {
                         this.binder.ReportUnsafeIfNotAllowed(this.ParameterLocation(i), diagnostics);
                     }
@@ -459,8 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundLambda ReallyInferReturnType(NamedTypeSymbol delegateType)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            var parameters = DelegateParameters(delegateType);
-            var lambdaSymbol = new LambdaSymbol(binder.Compilation, binder.ContainingMemberOrLambda, _unboundLambda, parameters, returnType: null);
+            var lambdaSymbol = new LambdaSymbol(binder.Compilation, binder.ContainingMemberOrLambda, _unboundLambda, delegateType, GetTargetParamInfo(delegateType), returnType: null);
             Binder lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
             var block = BindLambdaBody(lambdaSymbol, ref lambdaBodyBinder, diagnostics);
 
@@ -476,34 +468,89 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLambda BindForReturnTypeInference(NamedTypeSymbol delegateType)
         {
-            MethodSymbol cacheKey = GetCacheKey(delegateType);
+            TargetParamInfo paramInfo = GetTargetParamInfo(delegateType);
 
             BoundLambda result;
-            if (!_returnInferenceCache.TryGetValue(cacheKey, out result))
+            if (!_returnInferenceCache.TryGetValue(paramInfo, out result))
             {
                 result = ReallyInferReturnType(delegateType);
-                _returnInferenceCache.TryAdd(cacheKey, result);
+                _returnInferenceCache.TryAdd(paramInfo, result);
             }
 
             return result;
         }
 
-        private static MethodSymbol GetCacheKey(NamedTypeSymbol delegateType)
+        internal class TargetParamInfo
+        {
+            public readonly ImmutableArray<TypeSymbolWithAnnotations>Types;
+            public readonly ImmutableArray<RefKind> RefKinds;
+
+            public TargetParamInfo(ImmutableArray<TypeSymbolWithAnnotations> types, ImmutableArray<RefKind> refKinds)
+            {
+                Debug.Assert(types.Length == refKinds.Length);
+                this.Types = types;
+                this.RefKinds = refKinds;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if ((object)this == obj)
+                {
+                    return true;
+                }
+
+                var other = obj as TargetParamInfo;
+
+                if ((object)other == null || other.Types.Length != this.Types.Length)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < this.Types.Length; i++)
+                {
+                    if (!other.Types[i].Equals(this.Types[i], TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes) ||
+                        other.RefKinds[i] != this.RefKinds[i])
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            public override int GetHashCode()
+            {
+                return this.Types.Length; // Matches MemberSignatureComparer.GetHashCode 
+            }
+        }
+
+        private TargetParamInfo GetTargetParamInfo(NamedTypeSymbol delegateType)
         {
             delegateType = delegateType.GetDelegateType();
 
             if (delegateType != null)
             {
                 var invoke = delegateType.DelegateInvokeMethod;
-                if (invoke != null)
+                if (invoke != null && invoke.ParameterCount > 0)
                 {
-                    return invoke;
+                    var parameters = invoke.Parameters;
+                    var typesBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(parameters.Length);
+                    var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance(parameters.Length);
+
+                    for (int i = 0; i < parameters.Length; i++)
+                    {
+                        var p = parameters[i];
+                        refKindsBuilder.Add(p.RefKind);
+                        typesBuilder.Add(binder.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(p));
+                    }
+
+                    return new TargetParamInfo(typesBuilder.ToImmutableAndFree(), refKindsBuilder.ToImmutableAndFree());
                 }
             }
 
             // delegateType or DelegateInvokeMethod can be null in cases of malformed delegates
-            // in such case we would want something trivial with no parameters, like a fake static ctor
-            return new SynthesizedStaticConstructor(delegateType);
+            // in such case we would want something trivial with no parameters
+            return new TargetParamInfo(ImmutableArray<TypeSymbolWithAnnotations>.Empty, ImmutableArray<RefKind>.Empty);
         }
 
         public TypeSymbol InferReturnType(NamedTypeSymbol delegateType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

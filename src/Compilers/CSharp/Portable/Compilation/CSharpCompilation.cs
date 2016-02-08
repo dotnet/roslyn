@@ -2906,22 +2906,102 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal bool RespectNullableAnnotations(Symbol symbol)
+        internal TypeSymbolWithAnnotations GetTypeOrReturnTypeWithAdjustedNullableAnnotations(Symbol symbol)
         {
-            Debug.Assert(!(symbol is TypeSymbol));
+            Symbol definition = symbol.OriginalDefinition;
 
-            var symbolContainingModule = symbol.ContainingModule;
+            if (!ShouldSuppressNullableAnnotations(definition))
+            {
+                return symbol.Kind == SymbolKind.Parameter ? ((ParameterSymbol)symbol).Type : symbol.GetTypeOrReturnType();
+            }
 
-            // TODO: This is probably not always accurate when generic instantiations are involved, but is a good starting point.
-            if ((object)symbolContainingModule != null && symbolContainingModule.UtilizesNullableReferenceTypes && symbol.IsDefinition)
+            // Nullable annotations on definition should be ignored
+            TypeSymbolWithAnnotations definitionType = definition.Kind == SymbolKind.Parameter ? ((ParameterSymbol)definition).Type : definition.GetTypeOrReturnType();
+            TypeSymbolWithAnnotations adjustedDefinitionType = definitionType.SetUnknownNullabilityForRefernceTypes();
+
+            if ((object)definition == symbol)
+            {
+                return adjustedDefinitionType;
+            }
+
+            if ((object)definitionType == adjustedDefinitionType)
+            {
+                // Adjustment has no effect
+                return symbol.Kind == SymbolKind.Parameter ? ((ParameterSymbol)symbol).Type : symbol.GetTypeOrReturnType();
+            }
+
+            // The original symbol was substituted, need to re-apply substitution to the adjusted type.   
+            TypeMap typeSubstitution;
+
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Method:
+                    typeSubstitution = ((MethodSymbol)symbol).TypeSubstitution;
+                    break;
+
+                case SymbolKind.Parameter:
+                    if (symbol.ContainingSymbol.Kind == SymbolKind.Method)
+                    {
+                        typeSubstitution = ((MethodSymbol)symbol.ContainingSymbol).TypeSubstitution;
+                        break;
+                    }
+
+                    goto default;
+
+                default:
+                    typeSubstitution = symbol.ContainingType.TypeSubstitution;
+                    break;
+            }
+
+            return adjustedDefinitionType.SubstituteType(typeSubstitution);
+        }
+
+        internal bool ShouldSuppressNullableAnnotations(Symbol definition)
+        {
+            Debug.Assert(definition.IsDefinition);
+            var symbolContainingModule = definition.ContainingModule;
+
+            if ((object)symbolContainingModule != null && symbolContainingModule.UtilizesNullableReferenceTypes)
             {
                 var symbolContainingAssembly = symbolContainingModule.ContainingAssembly;
 
-                return (object)symbolContainingAssembly != null && !((SourceModuleSymbol)SourceModule).IsNullableOptOutForAssembly(symbolContainingAssembly) &&
-                       !symbol.NullableOptOut;
+                if ((object)symbolContainingAssembly != null && !((SourceModuleSymbol)SourceModule).IsNullableOptOutForAssembly(symbolContainingAssembly) &&
+                       !definition.NullableOptOut)
+                {
+                    // All annotations should be accepted as is
+                    return false;
+                }
             }
 
-            return false;
+            return true;
+        }
+
+        internal TypeSymbolWithAnnotations GetFieldTypeWithAdjustedNullableAnnotations(FieldSymbol field, ConsList<FieldSymbol> fieldsBeingBound)
+        {
+            FieldSymbol definition = field.OriginalDefinition;
+
+            if (!ShouldSuppressNullableAnnotations(definition))
+            {
+                return field.GetFieldType(fieldsBeingBound);
+            }
+
+            // Nullable annotations on definition should be ignored
+            TypeSymbolWithAnnotations definitionType = definition.GetFieldType(fieldsBeingBound);
+            TypeSymbolWithAnnotations adjustedDefinitionType = definitionType.SetUnknownNullabilityForRefernceTypes();
+
+            if ((object)definition == field)
+            {
+                return adjustedDefinitionType;
+            }
+
+            if ((object)definitionType == adjustedDefinitionType)
+            {
+                // Adjustment has no effect
+                return field.GetFieldType(fieldsBeingBound);
+            }
+
+            // The original symbol was substituted, need to re-apply substitution to the adjusted type.   
+            return adjustedDefinitionType.SubstituteType(field.ContainingType.TypeSubstitution);
         }
 
         private class SymbolSearcher

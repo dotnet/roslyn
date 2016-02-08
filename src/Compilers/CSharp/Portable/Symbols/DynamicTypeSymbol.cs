@@ -220,6 +220,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
+        internal override TypeSymbol SetUnknownNullabilityForRefernceTypes()
+        {
+            return this;
+        }
+
         #region ISymbol Members
 
         public override void Accept(SymbolVisitor visitor)

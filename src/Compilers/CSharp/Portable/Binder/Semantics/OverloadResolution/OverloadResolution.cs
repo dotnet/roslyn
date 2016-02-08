@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // names. The names can be null if no names were supplied to any arguments.
         public void MethodInvocationOverloadResolution(
             ArrayBuilder<MethodSymbol> methods,
-            ArrayBuilder<TypeSymbol> typeArguments,
+            ArrayBuilder<TypeSymbolWithAnnotations> typeArguments,
             AnalyzedArguments arguments,
             OverloadResolutionResult<MethodSymbol> result,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
@@ -113,14 +113,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowRefOmittedArguments,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            ArrayBuilder<TypeSymbol> typeArguments = ArrayBuilder<TypeSymbol>.GetInstance();
+            ArrayBuilder<TypeSymbolWithAnnotations> typeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
             MethodOrPropertyOverloadResolution(indexers, typeArguments, arguments, result, isMethodGroupConversion: false, allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics);
             typeArguments.Free();
         }
 
         internal void MethodOrPropertyOverloadResolution<TMember>(
             ArrayBuilder<TMember> members,
-            ArrayBuilder<TypeSymbol> typeArguments,
+            ArrayBuilder<TypeSymbolWithAnnotations> typeArguments,
             AnalyzedArguments arguments,
             OverloadResolutionResult<TMember> result,
             bool isMethodGroupConversion,
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void PerformMemberOverloadResolution<TMember>(
             ArrayBuilder<MemberResolutionResult<TMember>> results,
             ArrayBuilder<TMember> members,
-            ArrayBuilder<TypeSymbol> typeArguments,
+            ArrayBuilder<TypeSymbolWithAnnotations> typeArguments,
             AnalyzedArguments arguments,
             bool completeResults,
             bool isMethodGroupConversion,
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TMember member, // method or property
             ArrayBuilder<MemberResolutionResult<TMember>> results,
             ArrayBuilder<TMember> members,
-            ArrayBuilder<TypeSymbol> typeArguments,
+            ArrayBuilder<TypeSymbolWithAnnotations> typeArguments,
             AnalyzedArguments arguments,
             bool completeResults,
             bool isMethodGroupConversion,
@@ -1124,27 +1124,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Return the parameter type corresponding to the given argument index.
-        private static TypeSymbol GetParameterType(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters)
+        private TypeSymbol GetParameterType(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters)
         {
             RefKind discarded;
             return GetParameterType(argIndex, result, parameters, out discarded);
         }
 
         // Return the parameter type corresponding to the given argument index.
-        private static TypeSymbol GetParameterType(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, out RefKind refKind)
+        private TypeSymbol GetParameterType(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, out RefKind refKind)
         {
             int paramIndex = result.ParameterFromArgument(argIndex);
             ParameterSymbol parameter = parameters[paramIndex];
             refKind = parameter.RefKind;
+            var type = _binder.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(parameter).TypeSymbol;
 
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
-                parameter.IsParams && parameter.Type.TypeSymbol.IsSZArray())
+                parameter.IsParams && type.IsSZArray())
             {
-                return ((ArrayTypeSymbol)parameter.Type.TypeSymbol).ElementType.TypeSymbol;
+                return ((ArrayTypeSymbol)type).ElementType.TypeSymbol;
             }
             else
             {
-                return parameter.Type.TypeSymbol;
+                return type;
             }
         }
 
@@ -2349,7 +2350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
                 var parameter = parameters[parm];
-                types.Add(parameter.Type.TypeSymbol);
+                types.Add(_binder.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(parameter).TypeSymbol);
 
                 RefKind argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
                 RefKind paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, allowRefOmittedArguments, ref hasAnyRefOmittedArgument);
@@ -2414,7 +2415,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var refs = ArrayBuilder<RefKind>.GetInstance();
             bool anyRef = false;
             var parameters = member.GetParameters();
-            var elementType = ((ArrayTypeSymbol)parameters[parameters.Length - 1].Type.TypeSymbol).ElementType.TypeSymbol;
             bool hasAnyRefArg = argumentRefKinds.Any();
             hasAnyRefOmittedArgument = false;
 
@@ -2422,7 +2422,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var parm = argToParamMap.IsDefault ? arg : argToParamMap[arg];
                 var parameter = parameters[parm];
-                types.Add(parm == parameters.Length - 1 ? elementType : parameter.Type.TypeSymbol);
+                var type = _binder.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(parameter).TypeSymbol;
+
+                types.Add(parm == parameters.Length - 1 ? ((ArrayTypeSymbol)type).ElementType.TypeSymbol : type);
 
                 var argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
                 var paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, allowRefOmittedArguments, ref hasAnyRefOmittedArgument);
@@ -2442,7 +2444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal MemberResolutionResult<TMember> IsMemberApplicableInNormalForm<TMember>(
             TMember member,                // method or property
             TMember leastOverriddenMember, // method or property
-            ArrayBuilder<TypeSymbol> typeArguments,
+            ArrayBuilder<TypeSymbolWithAnnotations> typeArguments,
             AnalyzedArguments arguments,
             bool isMethodGroupConversion,
             bool allowRefOmittedArguments,
@@ -2499,7 +2501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MemberResolutionResult<TMember> IsMemberApplicableInExpandedForm<TMember>(
             TMember member,                // method or property
             TMember leastOverriddenMember, // method or property
-            ArrayBuilder<TypeSymbol> typeArguments,
+            ArrayBuilder<TypeSymbolWithAnnotations> typeArguments,
             AnalyzedArguments arguments,
             bool allowRefOmittedArguments,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -2559,7 +2561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MemberResolutionResult<TMember> IsApplicable<TMember>(
             TMember member,                // method or property
             TMember leastOverriddenMember, // method or property 
-            ArrayBuilder<TypeSymbol> typeArgumentsBuilder,
+            ArrayBuilder<TypeSymbolWithAnnotations> typeArgumentsBuilder,
             AnalyzedArguments arguments,
             EffectiveParameters originalEffectiveParameters,
             EffectiveParameters constructedEffectiveParameters,
@@ -2592,7 +2594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     MethodSymbol leastOverriddenMethod = (MethodSymbol)(Symbol)leastOverriddenMember;
 
-                    ImmutableArray<TypeSymbol> typeArguments;
+                    ImmutableArray<TypeSymbolWithAnnotations> typeArguments;
                     if (typeArgumentsBuilder.Count > 0)
                     {
                         // generic type arguments explicitly specified at call-site:
@@ -2652,7 +2654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // using the generic parameters of "method", so we can now substitute these type parameters 
                     // in the constructed effective parameters.
 
-                    var map = new TypeMap(method.TypeParameters, typeArguments.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations), allowAlpha: true);
+                    var map = new TypeMap(method.TypeParameters, typeArguments, allowAlpha: true);
 
                     effectiveParameters = new EffectiveParameters(
                         map.SubstituteTypesWithoutModifiers(constructedEffectiveParameters.ParameterTypes),
@@ -2673,7 +2675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IsApplicable(member, effectiveParameters, arguments, argsToParamsMap, member.GetIsVararg(), hasAnyRefOmittedArgument, ignoreOpenTypes, ref useSiteDiagnostics));
         }
 
-        private ImmutableArray<TypeSymbol> InferMethodTypeArguments(
+        private ImmutableArray<TypeSymbolWithAnnotations> InferMethodTypeArguments(
             MethodSymbol method,
             ImmutableArray<TypeParameterSymbol> originalTypeParameters,
             AnalyzedArguments arguments,
@@ -2716,12 +2718,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (inferredFromFirstArgument.IsDefault)
                 {
                     error = MemberAnalysisResult.TypeInferenceExtensionInstanceArgumentFailed();
-                    return default(ImmutableArray<TypeSymbol>);
+                    return default(ImmutableArray<TypeSymbolWithAnnotations>);
                 }
             }
 
             error = MemberAnalysisResult.TypeInferenceFailed();
-            return default(ImmutableArray<TypeSymbol>);
+            return default(ImmutableArray<TypeSymbolWithAnnotations>);
         }
 
         private MemberAnalysisResult IsApplicable(

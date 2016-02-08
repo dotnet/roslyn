@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression userDefinedConversion;
 
-            TypeSymbol conversionReturnType = conversion.BestUserDefinedConversionAnalysis.Operator.ReturnType.TypeSymbol;
+            TypeSymbol conversionReturnType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(conversion.BestUserDefinedConversionAnalysis.Operator).TypeSymbol;
             TypeSymbol conversionToType = conversion.BestUserDefinedConversionAnalysis.ToType;
             Conversion toConversion = conversion.UserDefinedToConversion;
 

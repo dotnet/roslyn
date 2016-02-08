@@ -875,7 +875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expression = ConstructBoundMemberGroupAndReportOmittedTypeArguments(
                         node,
                         typeArgumentList,
-                        typeArguments.IsDefault ? default(ImmutableArray<TypeSymbol>) : typeArguments.SelectAsArray(TypeMap.AsTypeSymbol),
+                        typeArguments,
                         receiver,
                         name,
                         members,
@@ -1971,13 +1971,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static TypeSymbol GetCorrespondingParameterType(ref MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, int arg)
+        private TypeSymbol GetCorrespondingParameterType(ref MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, int arg)
         {
             int paramNum = result.ParameterFromArgument(arg);
-            var type =
-                (paramNum == parameters.Length - 1 && result.Kind == MemberResolutionKind.ApplicableInExpandedForm) ?
-                ((ArrayTypeSymbol)parameters[paramNum].Type.TypeSymbol).ElementType.TypeSymbol :
-                parameters[paramNum].Type.TypeSymbol;
+            var type = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(parameters[paramNum]).TypeSymbol;
+
+            if (paramNum == parameters.Length - 1 && result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
+            {
+                type = ((ArrayTypeSymbol)type).ElementType.TypeSymbol;
+            }
+
             return type;
         }
 
@@ -2120,7 +2123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Default inferred reference types to a nullable state.
             var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, 
-                                                              TypeSymbolWithAnnotations.Create(bestType, makeNullableIfReferenceType: node.IsFeatureStaticNullCheckingEnabled()), 
+                                                              TypeSymbolWithAnnotations.Create(bestType, isNullableIfReferenceType: node.IsFeatureStaticNullCheckingEnabled()), 
                                                               rank);
             return BindArrayCreationWithInitializer(diagnostics, node, initializer, arrayType,
                 sizes: ImmutableArray<BoundExpression>.Empty, boundInitExprOpt: boundInitializerExpressions);
@@ -2771,7 +2774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiver: receiver,
                         methods: candidateConstructors,
                         resultKind: LookupResultKind.OverloadResolutionFailure,
-                        typeArguments: ImmutableArray<TypeSymbol>.Empty,
+                        typeArguments: ImmutableArray<TypeSymbolWithAnnotations>.Empty,
                         analyzedArguments: analyzedArguments,
                         invokedAsExtensionMethod: false,
                         isDelegate: false,
@@ -4451,9 +4454,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ((GenericNameSyntax)right).TypeArgumentList.Arguments :
                 default(SeparatedSyntaxList<TypeSyntax>);
             bool rightHasTypeArguments = typeArgumentsSyntax.Count > 0;
-            ImmutableArray<TypeSymbol> typeArguments = rightHasTypeArguments ?
-                BindTypeArguments(typeArgumentsSyntax, diagnostics).SelectAsArray(TypeMap.AsTypeSymbol) :
-                default(ImmutableArray<TypeSymbol>);
+            ImmutableArray<TypeSymbolWithAnnotations> typeArguments = rightHasTypeArguments ?
+                BindTypeArguments(typeArgumentsSyntax, diagnostics) :
+                default(ImmutableArray<TypeSymbolWithAnnotations>);
 
             bool hasErrors = false;
 
@@ -4472,7 +4475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if ((typeArgument.IsPointerType()) || typeArgument.IsRestrictedType())
                     {
                         // "The type '{0}' may not be used as a type argument"
-                        Error(diagnostics, ErrorCode.ERR_BadTypeArgument, typeArgumentsSyntax[i], typeArgument);
+                        Error(diagnostics, ErrorCode.ERR_BadTypeArgument, typeArgumentsSyntax[i], typeArgument.TypeSymbol);
                         hasErrors = true;
                     }
                 }
@@ -4793,7 +4796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return new BoundMethodGroup(
                         node,
-                        typeArguments.IsDefault ? default(ImmutableArray<TypeSymbol>) : typeArguments.SelectAsArray(TypeMap.AsTypeSymbol),
+                        typeArguments,
                         boundLeft,
                         rightName,
                         lookupResult.Symbols.All(s => s.Kind == SymbolKind.Method) ? lookupResult.Symbols.SelectAsArray(s_toMethodSymbolFunc) : ImmutableArray<MethodSymbol>.Empty,
@@ -4930,7 +4933,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we've reported other errors.
                 return new BoundMethodGroup(
                     node,
-                    default(ImmutableArray<TypeSymbol>),
+                    default(ImmutableArray<TypeSymbolWithAnnotations>),
                     nameString,
                     methods,
                     methods.Length == 1 ? methods[0] : null,
@@ -5040,7 +5043,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = ConstructBoundMemberGroupAndReportOmittedTypeArguments(
                     node,
                     typeArgumentsSyntax,
-                    typeArguments.IsDefault ? default(ImmutableArray<TypeSymbol>) : typeArguments.SelectAsArray(TypeMap.AsTypeSymbol),
+                    typeArguments,
                     left,
                     plainName,
                     members,
@@ -5124,7 +5127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string methodName,
             AnalyzedArguments analyzedArguments,
             BoundExpression left,
-            ImmutableArray<TypeSymbol> typeArguments,
+            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
             bool isMethodGroupConversion)
         {
             var firstResult = new MethodGroupResolution();
@@ -5216,7 +5219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode node,
             BoundExpression left,
             string rightName,
-            ImmutableArray<TypeSymbol> typeArguments,
+            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
             DiagnosticBag diagnostics)
         {
             int arity;
@@ -5313,7 +5316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
-            TypeSymbol fieldType = fieldSymbol.GetFieldType(this.FieldsBeingBound).TypeSymbol;
+            TypeSymbol fieldType = GetFieldTypeWithAdjustedNullableAnnotations(fieldSymbol, this.FieldsBeingBound);
             BoundExpression expr = new BoundFieldAccess(node, receiver, fieldSymbol, constantValueOpt, resultKind, fieldType, hasErrors: (hasErrors || hasError));
 
             // Spec 14.3: "Within an enum member initializer, values of other enum members are
@@ -5361,6 +5364,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expr;
         }
 
+        internal TypeSymbol GetFieldTypeWithAdjustedNullableAnnotations(FieldSymbol fieldSymbol, ConsList<FieldSymbol> fieldsBeingBound)
+        {
+            if (((CSharpParseOptions)Compilation.SyntaxTrees.FirstOrDefault()?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
+                !IsBindingModuleLevelAttribute()) // TODO: It is possible to get into cycle while binding module level attributes because Opt-In/Opt-Out state depends on them
+            {
+                return Compilation.GetFieldTypeWithAdjustedNullableAnnotations(fieldSymbol, fieldsBeingBound).TypeSymbol;
+            }
+
+            return fieldSymbol.GetFieldType(fieldsBeingBound).TypeSymbol;
+        }
+
         private bool InEnumMemberInitializer()
         {
             var containingType = this.ContainingType;
@@ -5382,7 +5396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
-            return new BoundPropertyAccess(node, receiver, propertySymbol, lookupResult, propertySymbol.Type.TypeSymbol, hasErrors: (hasErrors || hasError));
+            return new BoundPropertyAccess(node, receiver, propertySymbol, lookupResult, GetTypeOrReturnTypeWithAdjustedNullableAnnotations(propertySymbol).TypeSymbol, hasErrors: (hasErrors || hasError));
         }
 
         private BoundExpression BindEventAccess(
@@ -5404,7 +5418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
-            return new BoundEventAccess(node, receiver, eventSymbol, isUsableAsField, lookupResult, eventSymbol.Type.TypeSymbol, hasErrors: (hasErrors || hasError));
+            return new BoundEventAccess(node, receiver, eventSymbol, isUsableAsField, lookupResult, GetTypeOrReturnTypeWithAdjustedNullableAnnotations(eventSymbol).TypeSymbol, hasErrors: (hasErrors || hasError));
         }
 
         // Say if the receive is an instance or a type, or could be either (returns null).
@@ -6119,7 +6133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentRefKinds,
                     isExpanded,
                     argsToParams,
-                    property.Type.TypeSymbol,
+                    GetTypeOrReturnTypeWithAdjustedNullableAnnotations(property).TypeSymbol,
                     gotError);
             }
 

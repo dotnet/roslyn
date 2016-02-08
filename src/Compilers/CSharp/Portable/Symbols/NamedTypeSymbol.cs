@@ -767,13 +767,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                TypeMap substitution = new TypeMap(this.GetAllTypeParameters(),
+                TypeMap substitution = new TypeMap(this.OriginalDefinition.GetAllTypeParameters(),
                                                    allTypeArguments.ToImmutableAndFree());
 
                 result = substitution.SubstituteNamedType(this.OriginalDefinition);
             }
 
             return true;
+        }
+
+        internal override TypeSymbol SetUnknownNullabilityForRefernceTypes()
+        {
+            if (!IsGenericType)
+            {
+                return this;
+            }
+
+            var allTypeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+            GetAllTypeArgumentsNoUseSiteDiagnostics(allTypeArguments);
+
+            bool haveChanges = false;
+            for (int i = 0; i < allTypeArguments.Count; i++)
+            {
+                TypeSymbolWithAnnotations oldTypeArgument = allTypeArguments[i];
+                TypeSymbolWithAnnotations newTypeArgument = oldTypeArgument.SetUnknownNullabilityForRefernceTypes();
+                if ((object)oldTypeArgument != newTypeArgument)
+                {
+                    allTypeArguments[i] = newTypeArgument;
+                    haveChanges = true;
+                }
+            }
+
+            if (!haveChanges)
+            {
+                allTypeArguments.Free();
+                return this;
+            }
+            else
+            {
+                TypeMap substitution = new TypeMap(this.OriginalDefinition.GetAllTypeParameters(),
+                                                   allTypeArguments.ToImmutableAndFree());
+
+                return substitution.SubstituteNamedType(this.OriginalDefinition);
+            }
         }
 
         /// <summary>

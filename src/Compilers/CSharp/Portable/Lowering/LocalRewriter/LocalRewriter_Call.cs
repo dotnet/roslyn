@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hasImplicitReceiver;
             BoundExpression loweredReceiver;
-            ImmutableArray<TypeSymbol> typeArguments;
+            ImmutableArray<TypeSymbolWithAnnotations> typeArguments;
             string name;
             switch (node.Expression.Kind)
             {
