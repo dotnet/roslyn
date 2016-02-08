@@ -22,7 +22,9 @@ namespace System.Runtime.CompilerServices
                     AttributeTargets.GenericParameter | // The generic parameter is a nullable reference type
                     AttributeTargets.Module | // Nullable reference types in this module are annotated by means of NullableAttribute applied to other targets in it
                     AttributeTargets.Parameter | // The type of the parameter is a nullable reference type, or has a nullable reference type as one of its constituents  
-                    AttributeTargets.ReturnValue, // The return type is a nullable reference type, or has a nullable reference type as one of its constituents  
+                    AttributeTargets.ReturnValue | // The return type is a nullable reference type, or has a nullable reference type as one of its constituents  
+                    AttributeTargets.Property | // The type of the property is a nullable reference type, or has a nullable reference type as one of its constituents 
+                    AttributeTargets.Class , // Base type has a nullable reference type as one of its constituents
                    AllowMultiple = false)]
     public class NullableAttribute : Attribute
     {
@@ -11542,6 +11544,52 @@ class C
                                                                 references: new[] { c0.ToMetadataReference() });
 
             c.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void NullableAttribute_04()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+
+public abstract class B
+{
+    [Nullable] public string F1; 
+    [Nullable] public event System.Action E1;
+    [Nullable] public string[][,] P2 {get; set;}
+    [return:Nullable] public System.Action<string?> M1(string? x) 
+    {throw new System.NotImplementedException();}
+    public string[][,] M2([Nullable] string[][,] x) 
+    {throw new System.NotImplementedException();}
+}
+
+public class C<T> {}
+
+[Nullable] public class F : C<F>
+{}
+";
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (17,2): error CS8223: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
+    // [Nullable] public class F : C<F>
+    Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable").WithLocation(17, 2),
+    // (7,6): error CS8223: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
+    //     [Nullable] public event System.Action E1;
+    Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable").WithLocation(7, 6),
+    // (8,6): error CS8223: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
+    //     [Nullable] public string[][,] P2 {get; set;}
+    Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable").WithLocation(8, 6),
+    // (9,13): error CS8223: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
+    //     [return:Nullable] public System.Action<string?> M1(string? x) 
+    Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable").WithLocation(9, 13),
+    // (11,28): error CS8223: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
+    //     public string[][,] M2([Nullable] string[][,] x) 
+    Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable").WithLocation(11, 28),
+    // (6,6): error CS8223: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
+    //     [Nullable] public string F1; 
+    Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable").WithLocation(6, 6)
+                );
         }
 
         [Fact]
