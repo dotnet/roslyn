@@ -4295,7 +4295,10 @@ namespace Microsoft.Cci
             // If so, use the RVA of the already serialized one.
             // Note that we don't need to rewrite the fake tokens in the body before looking it up.
             int bodyRva;
-            if (isSmallBody && _smallMethodBodies.TryGetValue(methodBody.IL, out bodyRva))
+
+            // Don't do small body method caching during deterministic builds until this issue is fixed
+            // https://github.com/dotnet/roslyn/issues/7595
+            if (!_deterministic && isSmallBody && _smallMethodBodies.TryGetValue(methodBody.IL, out bodyRva))
             {
                 return bodyRva;
             }
@@ -4305,7 +4308,12 @@ namespace Microsoft.Cci
                 bodyRva = ilWriter.Position;
                 ilWriter.WriteByte((byte)((ilLength << 2) | 2));
 
-                _smallMethodBodies.Add(methodBody.IL, bodyRva);
+                // Don't do small body method caching during deterministic builds until this issue is fixed
+                // https://github.com/dotnet/roslyn/issues/7595
+                if (!_deterministic)
+                {
+                    _smallMethodBodies.Add(methodBody.IL, bodyRva);
+                }
             }
             else
             {
