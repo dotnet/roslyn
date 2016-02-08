@@ -78,17 +78,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             return CodeModelService.GetParameterFullName(node);
         }
 
-        internal override SyntaxNode LookupNode()
-        {
-            SyntaxNode node;
-            if (!TryLookupNode(out node))
-            {
-                throw Exceptions.ThrowEFail();
-            }
-
-            return node;
-        }
-
         internal override bool TryLookupNode(out SyntaxNode node)
         {
             node = null;

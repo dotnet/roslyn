@@ -45,17 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             return _kind == MethodKind.PropertyGet || _kind == MethodKind.PropertySet;
         }
 
-        internal override SyntaxNode LookupNode()
-        {
-            SyntaxNode node;
-            if (!TryLookupNode(out node))
-            {
-                throw Exceptions.ThrowEFail();
-            }
-
-            return node;
-        }
-
         internal override bool TryLookupNode(out SyntaxNode node)
         {
             node = null;

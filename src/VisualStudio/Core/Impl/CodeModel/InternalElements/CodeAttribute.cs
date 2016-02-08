@@ -47,17 +47,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             return GetCollection<CodeAttribute>(Parent);
         }
 
-        internal override SyntaxNode LookupNode()
-        {
-            SyntaxNode node;
-            if (!TryLookupNode(out node))
-            {
-                throw Exceptions.ThrowEFail();
-            }
-
-            return node;
-        }
-
         internal override bool TryLookupNode(out SyntaxNode node)
         {
             node = null;
