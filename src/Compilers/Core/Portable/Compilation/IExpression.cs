@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         IExpression Operand { get; }
     }
 
-    enum SimpleUnaryOperationKind
+    public enum SimpleUnaryOperationKind
     {
         None = 0x0,
 
@@ -349,21 +349,22 @@ namespace Microsoft.CodeAnalysis.Semantics
         Plus = 0x7,
         Minus = 0x8,
         True = 0x9,
-        False = 0xa
+        False = 0xa,
+        BitwiseOrLogicalNot = 0xb
     }
 
-    enum UnaryOperandKind
+    public enum UnaryOperandKind
     {
-        OperatorMethod = 0x1,
-        Integer = 0x2,
-        Unsigned = 0x3,
-        Floating = 0x4,
-        Decimal = 0x5,
-        Boolean = 0x6,
-        Enum = 0x7,
-        Dynamic = 0x8,
-        Object = 0x9,
-        Pointer = 0xa
+        OperatorMethod = 0x100,
+        Integer = 0x200,
+        Unsigned = 0x300,
+        Floating = 0x400,
+        Decimal = 0x500,
+        Boolean = 0x600,
+        Enum = 0x700,
+        Dynamic = 0x800,
+        Object = 0x900,
+        Pointer = 0xa00
     }
 
     /// <summary>
@@ -371,75 +372,76 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum UnaryOperationKind
     {
-        None,
+        None = 0x0,
 
-        OperatorMethodBitwiseNegation,
-        OperatorMethodLogicalNot,
-        OperatorMethodPostfixIncrement,
-        OperatorMethodPostfixDecrement,
-        OperatorMethodPrefixIncrement,
-        OperatorMethodPrefixDecrement,
-        OperatorMethodPlus,
-        OperatorMethodMinus,
-        OperatorMethodTrue,
-        OperatorMethodFalse,
+        OperatorMethodBitwiseNegation = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.BitwiseNegation,
+        OperatorMethodLogicalNot = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.LogicalNot,
+        OperatorMethodPostfixIncrement = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.PostfixIncrement,
+        OperatorMethodPostfixDecrement = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.PostfixDecrement,
+        OperatorMethodPrefixIncrement = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.PrefixIncrement,
+        OperatorMethodPrefixDecrement = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.PrefixDecrement,
+        OperatorMethodPlus = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.Plus,
+        OperatorMethodMinus = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.Minus,
+        OperatorMethodTrue = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.True,
+        OperatorMethodFalse = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.False,
 
-        IntegerBitwiseNegation,
-        IntegerPlus,
-        IntegerMinus,
-        IntegerPostfixIncrement,
-        IntegerPostfixDecrement,
-        IntegerPrefixIncrement,
-        IntegerPrefixDecrement,
+        IntegerBitwiseNegation = UnaryOperandKind.Integer | SimpleUnaryOperationKind.BitwiseNegation,
+        IntegerPlus = UnaryOperandKind.Integer | SimpleUnaryOperationKind.Plus,
+        IntegerMinus = UnaryOperandKind.Integer | SimpleUnaryOperationKind.Minus,
+        IntegerPostfixIncrement = UnaryOperandKind.Integer | SimpleUnaryOperationKind.PostfixIncrement,
+        IntegerPostfixDecrement = UnaryOperandKind.Integer | SimpleUnaryOperationKind.PostfixDecrement,
+        IntegerPrefixIncrement = UnaryOperandKind.Integer | SimpleUnaryOperationKind.PrefixIncrement,
+        IntegerPrefixDecrement = UnaryOperandKind.Integer | SimpleUnaryOperationKind.PrefixDecrement,
 
-        UnsignedPostfixIncrement,
-        UnsignedPostfixDecrement,
-        UnsignedPrefixIncrement,
-        UnsignedPrefixDecrement,
+        UnsignedPostfixIncrement = UnaryOperandKind.Unsigned | SimpleUnaryOperationKind.PostfixIncrement,
+        UnsignedPostfixDecrement = UnaryOperandKind.Unsigned | SimpleUnaryOperationKind.PostfixDecrement,
+        UnsignedPrefixIncrement = UnaryOperandKind.Unsigned | SimpleUnaryOperationKind.PrefixIncrement,
+        UnsignedPrefixDecrement = UnaryOperandKind.Unsigned | SimpleUnaryOperationKind.PrefixDecrement,
 
-        FloatingPlus,
-        FloatingMinus,
-        FloatingPostfixIncrement,
-        FloatingPostfixDecrement,
-        FloatingPrefixIncrement,
-        FloatingPrefixDecrement,
+        FloatingPlus = UnaryOperandKind.Floating | SimpleUnaryOperationKind.Plus,
+        FloatingMinus = UnaryOperandKind.Floating | SimpleUnaryOperationKind.Minus,
+        FloatingPostfixIncrement = UnaryOperandKind.Floating | SimpleUnaryOperationKind.PostfixIncrement,
+        FloatingPostfixDecrement = UnaryOperandKind.Floating | SimpleUnaryOperationKind.PostfixDecrement,
+        FloatingPrefixIncrement = UnaryOperandKind.Floating | SimpleUnaryOperationKind.PrefixIncrement,
+        FloatingPrefixDecrement = UnaryOperandKind.Floating | SimpleUnaryOperationKind.PrefixDecrement,
 
-        DecimalPlus,
-        DecimalMinus,
-        DecimalPostfixIncrement,
-        DecimalPostfixDecrement,
-        DecimalPrefixIncrement,
-        DecimalPrefixDecrement,
+        DecimalPlus = UnaryOperandKind.Decimal | SimpleUnaryOperationKind.Plus,
+        DecimalMinus = UnaryOperandKind.Decimal | SimpleUnaryOperationKind.Minus,
+        DecimalPostfixIncrement = UnaryOperandKind.Decimal | SimpleUnaryOperationKind.PostfixIncrement,
+        DecimalPostfixDecrement = UnaryOperandKind.Decimal | SimpleUnaryOperationKind.PostfixDecrement,
+        DecimalPrefixIncrement = UnaryOperandKind.Decimal | SimpleUnaryOperationKind.PrefixIncrement,
+        DecimalPrefixDecrement = UnaryOperandKind.Decimal | SimpleUnaryOperationKind.PrefixDecrement,
 
-        BooleanBitwiseNegation,
-        BooleanLogicalNot,
+        BooleanBitwiseNegation = UnaryOperandKind.Boolean | SimpleUnaryOperationKind.BitwiseNegation,
+        BooleanLogicalNot = UnaryOperandKind.Boolean | SimpleUnaryOperationKind.LogicalNot,
 
-        EnumPostfixIncrement,
-        EnumPostfixDecrement,
-        EnumPrefixIncrement,
-        EnumPrefixDecrement,
+        EnumPostfixIncrement = UnaryOperandKind.Enum | SimpleUnaryOperationKind.PostfixIncrement,
+        EnumPostfixDecrement = UnaryOperandKind.Enum | SimpleUnaryOperationKind.PostfixDecrement,
+        EnumPrefixIncrement = UnaryOperandKind.Enum | SimpleUnaryOperationKind.PrefixIncrement,
+        EnumPrefixDecrement = UnaryOperandKind.Enum | SimpleUnaryOperationKind.PrefixDecrement,
 
-        PointerPostfixIncrement,
-        PointerPostfixDecrement,
-        PointerPrefixIncrement,
-        PointerPrefixDecrement,
+        PointerPostfixIncrement = UnaryOperandKind.Pointer | SimpleUnaryOperationKind.PostfixIncrement,
+        PointerPostfixDecrement = UnaryOperandKind.Pointer | SimpleUnaryOperationKind.PostfixDecrement,
+        PointerPrefixIncrement = UnaryOperandKind.Pointer | SimpleUnaryOperationKind.PrefixIncrement,
+        PointerPrefixDecrement = UnaryOperandKind.Pointer | SimpleUnaryOperationKind.PrefixDecrement,
 
-        DynamicBitwiseNegation,
-        DynamicLogicalNot,
-        DynamicTrue,
-        DynamicFalse,
-        DynamicPlus,
-        DynamicMinus,
-        DynamicPostfixIncrement,
-        DynamicPostfixDecrement,
-        DynamicPrefixIncrement,
-        DynamicPrefixDecrement,
+        DynamicBitwiseNegation = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.BitwiseNegation,
+        DynamicLogicalNot = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.LogicalNot,
+        DynamicTrue = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.True,
+        DynamicFalse = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.False,
+        DynamicPlus = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.Plus,
+        DynamicMinus = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.Minus,
+        DynamicPostfixIncrement = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.PostfixIncrement,
+        DynamicPostfixDecrement = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.PostfixDecrement,
+        DynamicPrefixIncrement = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.PrefixIncrement,
+        DynamicPrefixDecrement = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.PrefixDecrement,
 
-        ObjectPlus,
-        ObjectMinus,
-        ObjectNot
+        ObjectPlus = UnaryOperandKind.Object | SimpleUnaryOperationKind.Plus,
+        ObjectMinus = UnaryOperandKind.Object | SimpleUnaryOperationKind.Minus,
+        ObjectNot = UnaryOperandKind.Object | SimpleUnaryOperationKind.BitwiseOrLogicalNot
     }
 
+    
     /// <summary>
     /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
     /// </summary>
@@ -459,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         IExpression Right { get; }
     }
 
-    enum SimpleBinaryOperationKind
+    public enum SimpleBinaryOperationKind
     {
         None = 0x0,
 
@@ -467,45 +469,49 @@ namespace Microsoft.CodeAnalysis.Semantics
         Subtract = 0x2,
         Multiply = 0x3,
         Divide = 0x4,
-        Remainder = 0x5,
-        Power = 0x6,
-        LeftShift = 0x7,
-        RightShift = 0x8,
-        And = 0x9,
-        Or = 0xa,
-        ExclusiveOr = 0xb,
-        ConditionalAnd = 0xc,
-        ConditionalOr = 0xd,
-        Concatenate = 0xe,
+        IntegerDivide = 0x5,
+        Remainder = 0x6,
+        Power = 0x7,
+        LeftShift = 0x8,
+        RightShift = 0x9,
+        And = 0xa,
+        Or = 0xb,
+        ExclusiveOr = 0xc,
+        ConditionalAnd = 0xd,
+        ConditionalOr = 0xe,
+        Concatenate = 0xf,
 
         // Relational operations.
 
-        Equals = 0xf,
-        NotEquals = 0x10,
-        LessThan = 0x11,
-        LessThanOrEqual = 0x12,
-        GreaterThanOrEqual = 0x13,
-        GreaterThan = 0x14,
+        Equals = 0x10,
+        ObjectValueEquals = 0x11,
+        NotEquals = 0x12,
+        ObjectValueNotEquals = 0x13,
+        LessThan = 0x14,
+        LessThanOrEqual = 0x15,
+        GreaterThanOrEqual = 0x16,
+        GreaterThan = 0x17,
 
-        Like = 0x15
+        Like = 0x18
     }
 
-    enum BinaryOperandsKind
+    public enum BinaryOperandsKind
     {
-        OperatorMethod = 0x1001,
-        Integer = 0x1002,
-        Unsigned = 0x1003,
-        Floating = 0x1004,
-        Decimal = 0x1005,
-        Boolean = 0x1006,
-        Enum = 0x1007,
-        Dynamic = 0x1008,
-        Object = 0x1009,
-        PointerInteger = 0x100a,
-        IntegerPointer = 0x100b,
-        String = 0x100c,
-        Delegate = 0x100d,
-        Nullable = 0x100e
+        OperatorMethod = 0x100,
+        Integer = 0x200,
+        Unsigned = 0x300,
+        Floating = 0x400,
+        Decimal = 0x500,
+        Boolean = 0x600,
+        Enum = 0x700,
+        Dynamic = 0x800,
+        Object = 0x900,
+        Pointer = 0xa00,
+        PointerInteger = 0xb00,
+        IntegerPointer = 0xc00,
+        String = 0xd00,
+        Delegate = 0xe00,
+        Nullable = 0xf00
     }
 
     /// <summary>
@@ -513,178 +519,239 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum BinaryOperationKind
     {
-        None,
+        None = 0x0,
 
-        OperatorMethodAdd,
-        OperatorMethodSubtract,
-        OperatorMethodMultiply,
-        OperatorMethodDivide,
-        OperatorMethodRemainder,
-        OperatorMethodLeftShift,
-        OperatorMethodRightShift,
-        OperatorMethodAnd,
-        OperatorMethodOr,
-        OperatorMethodExclusiveOr,
-        OperatorMethodConditionalAnd,
-        OperatorMethodConditionalOr,
+        OperatorMethodAdd = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Add,
+        OperatorMethodSubtract = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Subtract,
+        OperatorMethodMultiply = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Multiply,
+        OperatorMethodDivide = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Divide,
+        OperatorMethodRemainder = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Remainder,
+        OperatorMethodLeftShift = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.LeftShift,
+        OperatorMethodRightShift = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.RightShift,
+        OperatorMethodAnd = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.And,
+        OperatorMethodOr = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Or,
+        OperatorMethodExclusiveOr = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.ExclusiveOr,
+        OperatorMethodConditionalAnd = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.ConditionalAnd,
+        OperatorMethodConditionalOr = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.ConditionalOr,
 
-        IntegerAdd,
-        IntegerSubtract,
-        IntegerMultiply,
-        IntegerDivide,
-        IntegerRemainder,
-        IntegerLeftShift,
-        IntegerRightShift,
-        IntegerAnd,
-        IntegerOr,
-        IntegerExclusiveOr,
+        IntegerAdd = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.Add,
+        IntegerSubtract = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.Subtract,
+        IntegerMultiply = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.Multiply,
+        IntegerDivide = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.Divide,
+        IntegerRemainder = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.Remainder,
+        IntegerLeftShift = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.LeftShift,
+        IntegerRightShift = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.RightShift,
+        IntegerAnd = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.And,
+        IntegerOr = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.Or,
+        IntegerExclusiveOr = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.ExclusiveOr,
 
-        UnsignedAdd,
-        UnsignedSubtract,
-        UnsignedMultiply,
-        UnsignedDivide,
-        UnsignedRemainder,
-        UnsignedLeftShift,
-        UnsignedRightShift,
-        UnsignedAnd,
-        UnsignedOr,
-        UnsignedExclusiveOr,
+        UnsignedAdd = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.Add,
+        UnsignedSubtract = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.Subtract,
+        UnsignedMultiply = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.Multiply,
+        UnsignedDivide = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.Divide,
+        UnsignedRemainder = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.Remainder,
+        UnsignedLeftShift = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.LeftShift,
+        UnsignedRightShift = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.RightShift,
+        UnsignedAnd = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.And,
+        UnsignedOr = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.Or,
+        UnsignedExclusiveOr = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.ExclusiveOr,
 
-        FloatingAdd,
-        FloatingSubtract,
-        FloatingMultiply,
-        FloatingDivide,
-        FloatingRemainder,
-        FloatingPower,
+        FloatingAdd = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.Add,
+        FloatingSubtract = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.Subtract,
+        FloatingMultiply = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.Multiply,
+        FloatingDivide = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.Divide,
+        FloatingRemainder = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.Remainder,
+        FloatingPower = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.Power,
 
-        DecimalAdd,
-        DecimalSubtract,
-        DecimalMultiply,
-        DecimalDivide,
+        DecimalAdd = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.Add,
+        DecimalSubtract = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.Subtract,
+        DecimalMultiply = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.Multiply,
+        DecimalDivide = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.Divide,
 
-        BooleanAnd,
-        BooleanOr,
-        BooleanExclusiveOr,
-        BooleanConditionalAnd,
-        BooleanConditionalOr,
+        BooleanAnd = BinaryOperandsKind.Boolean | SimpleBinaryOperationKind.And,
+        BooleanOr = BinaryOperandsKind.Boolean | SimpleBinaryOperationKind.Or,
+        BooleanExclusiveOr = BinaryOperandsKind.Boolean | SimpleBinaryOperationKind.ExclusiveOr,
+        BooleanConditionalAnd = BinaryOperandsKind.Boolean | SimpleBinaryOperationKind.ConditionalAnd,
+        BooleanConditionalOr = BinaryOperandsKind.Boolean | SimpleBinaryOperationKind.ConditionalOr,
 
-        EnumAdd,
-        EnumSubtract,
-        EnumAnd,
-        EnumOr,
-        EnumExclusiveOr,
+        EnumAdd = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.Add,
+        EnumSubtract = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.Subtract,
+        EnumAnd = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.And,
+        EnumOr = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.Or,
+        EnumExclusiveOr = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.ExclusiveOr,
 
-        PointerIntegerAdd,
-        IntegerPointerAdd,
-        PointerIntegerSubtract,
-        PointerSubtract,
+        PointerIntegerAdd = BinaryOperandsKind.PointerInteger | SimpleBinaryOperationKind.Add,
+        IntegerPointerAdd = BinaryOperandsKind.IntegerPointer | SimpleBinaryOperationKind.Add,
+        PointerIntegerSubtract = BinaryOperandsKind.PointerInteger | SimpleBinaryOperationKind.Subtract,
+        PointerSubtract = BinaryOperandsKind.Pointer | SimpleBinaryOperationKind.Subtract,
 
-        DynamicAdd,
-        DynamicSubtract,
-        DynamicMultiply,
-        DynamicDivide,
-        DynamicRemainder,
-        DynamicLeftShift,
-        DynamicRightShift,
-        DynamicAnd,
-        DynamicOr,
-        DynamicExclusiveOr,
+        DynamicAdd = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.Add,
+        DynamicSubtract = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.Subtract,
+        DynamicMultiply = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.Multiply,
+        DynamicDivide = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.Divide,
+        DynamicRemainder = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.Remainder,
+        DynamicLeftShift = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.LeftShift,
+        DynamicRightShift = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.RightShift,
+        DynamicAnd = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.And,
+        DynamicOr = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.Or,
+        DynamicExclusiveOr = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.ExclusiveOr,
 
-        ObjectAdd,
-        ObjectSubtract,
-        ObjectMultiply,
-        ObjectDivide,
-        ObjectPower,
-        ObjectIntegerDivide,
-        ObjectRemainder,
-        ObjectLeftShift,
-        ObjectRightShift,
-        ObjectAnd,
-        ObjectOr,
-        ObjectExclusiveOr,
-        ObjectConditionalAnd,
-        ObjectConditionalOr,
-        ObjectConcatenation,
+        ObjectAdd = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Add,
+        ObjectSubtract = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Subtract,
+        ObjectMultiply = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Multiply,
+        ObjectDivide = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Divide,
+        ObjectIntegerDivide = BinaryOperandsKind.Object | SimpleBinaryOperationKind.IntegerDivide,
+        ObjectRemainder = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Remainder,
+        ObjectPower = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Power,
+        ObjectLeftShift = BinaryOperandsKind.Object | SimpleBinaryOperationKind.LeftShift,
+        ObjectRightShift = BinaryOperandsKind.Object | SimpleBinaryOperationKind.RightShift,
+        ObjectAnd = BinaryOperandsKind.Object | SimpleBinaryOperationKind.And,
+        ObjectOr = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Or,
+        ObjectExclusiveOr = BinaryOperandsKind.Object | SimpleBinaryOperationKind.ExclusiveOr,
+        ObjectConditionalAnd = BinaryOperandsKind.Object | SimpleBinaryOperationKind.ConditionalAnd,
+        ObjectConditionalOr = BinaryOperandsKind.Object | SimpleBinaryOperationKind.ConditionalOr,
+        ObjectConcatenate = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Concatenate,
 
-        StringConcatenation,
+        StringConcatenate = BinaryOperandsKind.String | SimpleBinaryOperationKind.Concatenate,
 
         // Relational operations.
 
-        OperatorMethodEquals,
-        OperatorMethodNotEquals,
-        OperatorMethodLessThan,
-        OperatorMethodLessThanOrEqual,
-        OperatorMethodGreaterThanOrEqual,
-        OperatorMethodGreaterThan,
+        OperatorMethodEquals = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Equals,
+        OperatorMethodNotEquals = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.NotEquals,
+        OperatorMethodLessThan = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.LessThan,
+        OperatorMethodLessThanOrEqual = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.LessThanOrEqual,
+        OperatorMethodGreaterThanOrEqual = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.GreaterThanOrEqual,
+        OperatorMethodGreaterThan = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.GreaterThan,
 
-        IntegerEquals,
-        IntegerNotEquals,
-        IntegerLessThan,
-        IntegerLessThanOrEqual,
-        IntegerGreaterThanOrEqual,
-        IntegerGreaterThan,
-        UnsignedLessThan,
-        UnsignedLessThanOrEqual,
-        UnsignedGreaterThanOrEqual,
-        UnsignedGreaterThan,
+        IntegerEquals = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.Equals,
+        IntegerNotEquals = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.NotEquals,
+        IntegerLessThan = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.LessThan,
+        IntegerLessThanOrEqual = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.LessThanOrEqual,
+        IntegerGreaterThanOrEqual = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.GreaterThanOrEqual,
+        IntegerGreaterThan = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.GreaterThan,
 
-        FloatingEquals,
-        FloatingNotEquals,
-        FloatingLessThan,
-        FloatingLessThanOrEqual,
-        FloatingGreaterThanOrEqual,
-        FloatingGreaterThan,
+        UnsignedLessThan = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.LessThan,
+        UnsignedLessThanOrEqual = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.LessThanOrEqual,
+        UnsignedGreaterThanOrEqual = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.GreaterThanOrEqual,
+        UnsignedGreaterThan = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.GreaterThan,
 
-        DecimalEquals,
-        DecimalNotEquals,
-        DecimalLessThan,
-        DecimalLessThanOrEqual,
-        DecimalGreaterThanOrEqual,
-        DecimalGreaterThan,
+        FloatingEquals = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.Equals,
+        FloatingNotEquals = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.NotEquals,
+        FloatingLessThan = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.LessThan,
+        FloatingLessThanOrEqual = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.LessThanOrEqual,
+        FloatingGreaterThanOrEqual = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.GreaterThanOrEqual,
+        FloatingGreaterThan = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.GreaterThan,
 
-        BooleanEquals,
-        BooleanNotEquals,
+        DecimalEquals = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.Equals,
+        DecimalNotEquals = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.NotEquals,
+        DecimalLessThan = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.LessThan,
+        DecimalLessThanOrEqual = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.LessThanOrEqual,
+        DecimalGreaterThanOrEqual = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.GreaterThanOrEqual,
+        DecimalGreaterThan = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.GreaterThan,
 
-        StringEquals,
-        StringNotEquals,
-        StringLike,
+        BooleanEquals = BinaryOperandsKind.Boolean | SimpleBinaryOperationKind.Equals,
+        BooleanNotEquals = BinaryOperandsKind.Boolean | SimpleBinaryOperationKind.NotEquals,
 
-        DelegateEquals,
-        DelegateNotEquals,
+        StringEquals = BinaryOperandsKind.String | SimpleBinaryOperationKind.Equals,
+        StringNotEquals = BinaryOperandsKind.String | SimpleBinaryOperationKind.NotEquals,
+        StringLike = BinaryOperandsKind.String | SimpleBinaryOperationKind.Like,
 
-        NullableEquals,
-        NullableNotEquals,
+        DelegateEquals = BinaryOperandsKind.Delegate | SimpleBinaryOperationKind.Equals,
+        DelegateNotEquals = BinaryOperandsKind.Delegate | SimpleBinaryOperationKind.NotEquals,
 
-        ObjectEquals,
-        ObjectNotEquals,
-        ObjectVBEquals,
-        ObjectVBNotEquals,
-        ObjectLike,
-        ObjectLessThan,
-        ObjectLessThanOrEqual,
-        ObjectGreaterThanOrEqual,
-        ObjectGreaterThan,
+        NullableEquals = BinaryOperandsKind.Nullable | SimpleBinaryOperationKind.Equals,
+        NullableNotEquals = BinaryOperandsKind.Nullable | SimpleBinaryOperationKind.NotEquals,
 
-        EnumEquals,
-        EnumNotEquals,
-        EnumLessThan,
-        EnumLessThanOrEqual,
-        EnumGreaterThanOrEqual,
-        EnumGreaterThan,
+        ObjectEquals = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Equals,
+        ObjectNotEquals = BinaryOperandsKind.Object | SimpleBinaryOperationKind.NotEquals,
+        ObjectVBEquals = BinaryOperandsKind.Object | SimpleBinaryOperationKind.ObjectValueEquals,
+        ObjectVBNotEquals = BinaryOperandsKind.Object | SimpleBinaryOperationKind.ObjectValueNotEquals,
+        ObjectLike = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Like,
+        ObjectLessThan = BinaryOperandsKind.Object | SimpleBinaryOperationKind.LessThan,
+        ObjectLessThanOrEqual = BinaryOperandsKind.Object | SimpleBinaryOperationKind.LessThanOrEqual,
+        ObjectGreaterThanOrEqual = BinaryOperandsKind.Object | SimpleBinaryOperationKind.GreaterThanOrEqual,
+        ObjectGreaterThan = BinaryOperandsKind.Object | SimpleBinaryOperationKind.GreaterThan,
 
-        PointerEquals,
-        PointerNotEquals,
-        PointerLessThan,
-        PointerLessThanOrEqual,
-        PointerGreaterThanOrEqual,
-        PointerGreaterThan,
+        EnumEquals = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.Equals,
+        EnumNotEquals = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.NotEquals,
+        EnumLessThan = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.LessThan,
+        EnumLessThanOrEqual = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.LessThanOrEqual,
+        EnumGreaterThanOrEqual = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.GreaterThanOrEqual,
+        EnumGreaterThan = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.GreaterThan,
 
-        DynamicEquals,
-        DynamicNotEquals,
-        DynamicLessThan,
-        DynamicLessThanOrEqual,
-        DynamicGreaterThanOrEqual,
-        DynamicGreaterThan
+        PointerEquals = BinaryOperandsKind.Pointer | SimpleBinaryOperationKind.Equals,
+        PointerNotEquals = BinaryOperandsKind.Pointer | SimpleBinaryOperationKind.NotEquals,
+        PointerLessThan = BinaryOperandsKind.Pointer | SimpleBinaryOperationKind.LessThan,
+        PointerLessThanOrEqual = BinaryOperandsKind.Pointer | SimpleBinaryOperationKind.LessThanOrEqual,
+        PointerGreaterThanOrEqual = BinaryOperandsKind.Pointer | SimpleBinaryOperationKind.GreaterThanOrEqual,
+        PointerGreaterThan = BinaryOperandsKind.Pointer | SimpleBinaryOperationKind.GreaterThan,
+
+        DynamicEquals = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.Equals,
+        DynamicNotEquals = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.NotEquals,
+        DynamicLessThan = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.LessThan,
+        DynamicLessThanOrEqual = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.LessThanOrEqual,
+        DynamicGreaterThanOrEqual = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.GreaterThanOrEqual,
+        DynamicGreaterThan = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.GreaterThan
+    }
+
+    public static class UnaryAndBinaryOperationExtensions
+    {
+        const int SimpleUnaryOperationKindMask = 0xff;
+        const int UnaryOperandKindMask = 0xff00;
+        const int SimpleBinaryOperationKindMask = 0xff;
+        const int BinaryOperandsKindMask = 0xff00;
+
+        /// <summary>
+        /// Get kind of unary operation independent of data type.
+        /// </summary>
+        public static SimpleUnaryOperationKind GetSimpleUnaryOperationKind(this IUnaryOperatorExpression unary)
+        {
+            return GetSimpleUnaryOperationKind(unary.UnaryOperationKind);
+        }
+
+        /// <summary>
+        /// Get unary operand kind.
+        /// </summary>
+        public static UnaryOperandKind GetUnaryOperandKind(this IUnaryOperatorExpression unary)
+        {
+            return GetUnaryOperandKind(unary.UnaryOperationKind);
+        }
+
+        /// <summary>
+        /// Get kind of binary operation independent of data type.
+        /// </summary>
+        public static SimpleBinaryOperationKind GetSimpleBinaryOperationKind(this IBinaryOperatorExpression binary)
+        {
+            return GetSimpleBinaryOperationKind(binary.BinaryOperationKind);
+        }
+
+        /// <summary>
+        /// Get binary operand kinds.
+        /// </summary>
+        public static BinaryOperandsKind GetBinaryOperandsKind(this IBinaryOperatorExpression binary)
+        {
+            return GetBinaryOperandsKind(binary.BinaryOperationKind);
+        }
+
+        public static SimpleUnaryOperationKind GetSimpleUnaryOperationKind(UnaryOperationKind kind)
+        {
+            return (SimpleUnaryOperationKind)((int)kind & UnaryAndBinaryOperationExtensions.SimpleUnaryOperationKindMask);
+        }
+
+        public static UnaryOperandKind GetUnaryOperandKind(UnaryOperationKind kind)
+        {
+            return (UnaryOperandKind)((int)kind & UnaryAndBinaryOperationExtensions.UnaryOperandKindMask);
+        }
+
+        public static SimpleBinaryOperationKind GetSimpleBinaryOperationKind(BinaryOperationKind kind)
+        {
+            return (SimpleBinaryOperationKind)((int)kind & UnaryAndBinaryOperationExtensions.SimpleBinaryOperationKindMask);
+        }
+
+        public static BinaryOperandsKind GetBinaryOperandsKind(BinaryOperationKind kind)
+        {
+            return (BinaryOperandsKind)((int)kind & UnaryAndBinaryOperationExtensions.BinaryOperandsKindMask);
+        }
     }
 
     /// <summary>

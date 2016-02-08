@@ -2341,7 +2341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.String:
                         case BinaryOperatorKind.StringAndObject:
                         case BinaryOperatorKind.ObjectAndString:
-                            return BinaryOperationKind.StringConcatenation;
+                            return BinaryOperationKind.StringConcatenate;
                         case BinaryOperatorKind.UserDefined:
                             return BinaryOperationKind.OperatorMethodAdd;
                     }

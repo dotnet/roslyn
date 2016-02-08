@@ -599,7 +599,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IUnaryKind As UnaryOperationKind Implements IUnaryOperatorExpression.UnaryOperationKind
+        Private ReadOnly Property IUnaryOperationKind As UnaryOperationKind Implements IUnaryOperatorExpression.UnaryOperationKind
             Get
                 Return DeriveUnaryOperationKind(Me.OperatorKind, Me.Operand)
             End Get
@@ -639,7 +639,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IUnaryKind As UnaryOperationKind Implements IUnaryOperatorExpression.UnaryOperationKind
+        Private ReadOnly Property IUnaryOperationKind As UnaryOperationKind Implements IUnaryOperatorExpression.UnaryOperationKind
             Get
                 Select Case OperatorKind And UnaryOperatorKind.OpMask
                     Case UnaryOperatorKind.Plus
@@ -2957,7 +2957,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SpecialType.System_String
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.Concatenate
-                            Return BinaryOperationKind.StringConcatenation
+                            Return BinaryOperationKind.StringConcatenate
                         Case BinaryOperatorKind.Equals
                             Return BinaryOperationKind.StringEquals
                         Case BinaryOperatorKind.NotEquals
@@ -2982,7 +2982,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case BinaryOperatorKind.Modulo
                             Return BinaryOperationKind.ObjectRemainder
                         Case BinaryOperatorKind.Concatenate
-                            Return BinaryOperationKind.ObjectConcatenation
+                            Return BinaryOperationKind.ObjectConcatenate
                         Case BinaryOperatorKind.And
                             Return BinaryOperationKind.ObjectAnd
                         Case BinaryOperatorKind.Or
