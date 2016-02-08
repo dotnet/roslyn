@@ -281,14 +281,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
             factoryMock.Verify()
         End Function
 
-        Private Shared Sub SetupWritesDatabaseSuccessfullyToDisk(ioServiceMock As Mock(Of IPackageSearchIOService))
-            ' Expect that we'll write out the temp file.
-            ioServiceMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsRegex(".*tmp"), It.IsAny(Of Byte())))
-
-            ' Expect that we'll replace the existing file with the temp file.
-            ioServiceMock.Setup(Sub(s) s.Replace(It.IsRegex(".*tmp"), It.IsRegex(".*txt"), It.IsRegex(".*bak"), It.IsAny(Of Boolean)))
-        End Sub
-
         <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
         Public Async Function WriteAgainOnIOFailure() As Task
             Dim cancellationTokenSource = New CancellationTokenSource()
@@ -438,9 +430,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
             ioServiceMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
+            clientMock2.Verify()
             delayMock.Verify()
             databaseFactoryMock.Verify()
         End Function
+
+        Private Shared Sub SetupWritesDatabaseSuccessfullyToDisk(ioServiceMock As Mock(Of IPackageSearchIOService))
+            ' Expect that we'll write out the temp file.
+            ioServiceMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsRegex(".*tmp"), It.IsAny(Of Byte())))
+
+            ' Expect that we'll replace the existing file with the temp file.
+            ioServiceMock.Setup(Sub(s) s.Replace(It.IsRegex(".*tmp"), It.IsRegex(".*txt"), It.IsRegex(".*bak"), It.IsAny(Of Boolean)))
+        End Sub
 
         Private Shared Function CreateRemoteControlServiceMock(
                 clientMock As Mock(Of IPackageSearchRemoteControlClient),
