@@ -59,12 +59,10 @@ namespace Microsoft.CodeAnalysis
             this.MessageProvider = parser.MessageProvider;
             this.AnalyzerLoader = analyzerLoader;
 
-#if DEBUG
             if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
             {
                 EmitDeterminismKey(Arguments, args, baseDirectory, parser);
             }
-#endif
         }
 
         internal abstract bool SuppressDefaultResponseFile(IEnumerable<string> args);
@@ -872,6 +870,9 @@ namespace Microsoft.CodeAnalysis
         /// 
         ///     - https://github.com/dotnet/roslyn/blob/master/docs/compilers/Deterministic%20Inputs.md
         /// 
+        /// Issue #8193 tracks filling this out to the full specification. 
+        /// 
+        ///     https://github.com/dotnet/roslyn/issues/8193
         /// </summary>
         private static string CreateDeterminismKey(CommandLineArguments args, string[] rawArgs, string baseDirectory, CommandLineParser parser)
         {
