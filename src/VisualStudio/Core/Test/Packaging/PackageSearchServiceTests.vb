@@ -435,6 +435,65 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
             databaseFactoryMock.Verify()
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        Public Async Function LocalDatabaseExistingCausesPatchToDownload_ContentsCausesPatching_FailureToPatchCausesFullDownload() As Task
+            Dim cancellationTokenSource = New CancellationTokenSource()
+
+            Dim ioServiceMock = New Mock(Of IPackageSearchIOService)()
+
+            ' Simulate the database being there.
+            ioServiceMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
+
+            ' We'll successfully read in the local database.
+            Dim databaseFactoryMock = New Mock(Of IPackageSearchDatabaseFactoryService)(MockBehavior.Strict)
+            databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
+                Returns(New AddReferenceDatabase())
+
+            ' Create a client that will return a patch with contents.
+            Dim clientMock = CreatePatchClientMock(contents:="")
+            Dim remoteControlMock = CreateRemoteControlServiceMock(clientMock, latest:=False)
+
+            ' Simulate a crash in the patching process.
+            Dim patchService = New Mock(Of IPackageSearchPatchService)(MockBehavior.Strict)
+            patchService.Setup(Sub(s) s.ApplyPatch(It.IsAny(Of Byte()), It.IsAny(Of Byte()))).
+                Throws(New NotImplementedException())
+
+            ' This should cause us to want to then download the full db.  So now
+            ' setup an expectation that we'll download the latest.
+            Dim clientMock2 = CreateFullDatabaseClientMock()
+            SetupDownloadLatest(remoteControlMock, clientMock2)
+
+            ' Expect that we'll write the database to disk successfully.
+            SetupWritesDatabaseSuccessfullyToDisk(ioServiceMock)
+
+            Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
+
+            ' Because we wrote the full database, we expect we'll loop on the 'UpdateSucceededDelay'.
+            ' Cancel processing at that point so the test can complete.
+            delayMock.SetupGet(Function(s) s.UpdateSucceededDelay).Returns(TimeSpan.Zero).
+                Callback(AddressOf cancellationTokenSource.Cancel)
+
+            Dim searchService = New PackageSearchService(
+                remoteControlService:=remoteControlMock.Object,
+                logService:=TestLogService.Instance,
+                delayService:=delayMock.Object,
+                ioService:=ioServiceMock.Object,
+                patchService:=Nothing,
+                databaseFactoryService:=databaseFactoryMock.Object,
+                localSettingsDirectory:="TestDirectory",
+                swallowException:=s_allButMoqExceptions,
+                cancellationTokenSource:=cancellationTokenSource)
+
+            Await searchService.UpdateDatabaseInBackgroundAsync()
+            ioServiceMock.Verify()
+            remoteControlMock.Verify()
+            clientMock.Verify()
+            clientMock2.Verify()
+            patchService.Verify()
+            delayMock.Verify()
+            databaseFactoryMock.Verify()
+        End Function
+
         Private Shared Sub SetupWritesDatabaseSuccessfullyToDisk(ioServiceMock As Mock(Of IPackageSearchIOService))
             ' Expect that we'll write out the temp file.
             ioServiceMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsRegex(".*tmp"), It.IsAny(Of Byte())))
