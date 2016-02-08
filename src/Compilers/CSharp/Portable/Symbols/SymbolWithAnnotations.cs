@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, bool? isNullableIfReferenceType)
         {
-            if (isNullableIfReferenceType == false || !typeSymbol.IsReferenceType)
+            if (isNullableIfReferenceType == false || !typeSymbol.IsReferenceType || typeSymbol.IsNullableType())
             {
                 return Create(typeSymbol);
             }

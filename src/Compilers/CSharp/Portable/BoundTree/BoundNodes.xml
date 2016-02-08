@@ -1354,5 +1354,9 @@
     <Field Name="Alignment" Type="BoundExpression" Null="allow"/>
     <Field Name="Format" Type="BoundExpression" Null="allow"/>
   </Node>
-  
+
+  <!-- Special node, used only during Data Flow Pass -->
+  <Node Name="BoundValuePlaceholder" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
 </Tree>
