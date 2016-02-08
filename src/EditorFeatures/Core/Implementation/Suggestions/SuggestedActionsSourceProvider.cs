@@ -281,8 +281,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var fixCount = fixes.Length;
 
                     Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet = codeAction =>
-                                CodeFixSuggestedAction.GetFixAllSuggestedActionSet(codeAction, fixCount, fixCollection.FixAllContext,
-                                    workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator);
+                        CodeFixSuggestedAction.GetFixAllSuggestedActionSet(
+                            codeAction, fixCount, fixCollection.FixAllContext, workspace,
+                            _textView, _subjectBuffer, _owner._editHandler, _owner._waitIndicator);
 
                     foreach (var fix in fixes)
                     {
@@ -295,19 +296,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 var nestedActions = new List<SuggestedAction>();
                                 foreach (var nestedAction in fix.Action.GetCodeActions())
                                 {
-                                    nestedActions.Add(new CodeFixSuggestedAction(workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
+                                    nestedActions.Add(new CodeFixSuggestedAction(workspace, 
+                                        _textView, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
                                         fix, nestedAction, fixCollection.Provider, getFixAllSuggestedActionSet(nestedAction)));
                                 }
 
                                 var diag = fix.PrimaryDiagnostic;
                                 var set = new SuggestedActionSet(nestedActions, SuggestedActionSetPriority.Medium, diag.Location.SourceSpan.ToSpan());
 
-                                suggestedAction = new SuggestedAction(workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
+                                suggestedAction = new SuggestedAction(workspace, 
+                                    _textView, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
                                     fix.Action, fixCollection.Provider, new[] { set });
                             }
                             else
                             {
-                                suggestedAction = new CodeFixSuggestedAction(workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
+                                suggestedAction = new CodeFixSuggestedAction(
+                                    workspace, _textView, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
                                     fix, fix.Action, fixCollection.Provider, getFixAllSuggestedActionSet(fix.Action));
                             }
 
@@ -325,12 +329,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 SuggestedAction suggestedAction;
                                 if (fix.Action.HasCodeActions)
                                 {
-                                    suggestedAction = new SuppressionSuggestedAction(workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
+                                    suggestedAction = new SuppressionSuggestedAction(
+                                        workspace, _textView, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
                                         fix, fixCollection.Provider, getFixAllSuggestedActionSet);
                                 }
                                 else
                                 {
-                                    suggestedAction = new CodeFixSuggestedAction(workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
+                                    suggestedAction = new CodeFixSuggestedAction(
+                                        workspace, _textView, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
                                         fix, fix.Action, fixCollection.Provider, getFixAllSuggestedActionSet(fix.Action));
                                 }
 
@@ -431,9 +437,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 foreach (var a in refactoring.Actions)
                 {
-                    refactoringSuggestedActions.Add(
-                        new CodeRefactoringSuggestedAction(
-                            workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator, a, refactoring.Provider));
+                    refactoringSuggestedActions.Add(new CodeRefactoringSuggestedAction(
+                        workspace, _textView, _subjectBuffer, _owner._editHandler, _owner._waitIndicator, a, refactoring.Provider));
                 }
 
                 return new SuggestedActionSet(refactoringSuggestedActions.ToImmutable(), SuggestedActionSetPriority.Low);

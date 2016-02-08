@@ -90,7 +90,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             provider.ComputeRefactoringsAsync(context).Wait();
             var action = refactorings.Single();
             var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
-            previews = editHandler.GetPreviews(workspace, action.GetPreviewOperationsAsync(CancellationToken.None).Result, CancellationToken.None);
+            previews = editHandler.GetPreviews(workspace, action.GetPreviewOperationsAsync(CancellationToken.None).Result,
+                textView: null, cancellationToken: CancellationToken.None);
         }
 
         [WpfFact]
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
 
                 // The changed document comes first.
                 var previewObjects = await previews.GetPreviewsAsync();
-                var preview = previewObjects[0];
+                var preview = previewObjects.Previews[0];
                 Assert.NotNull(preview);
                 Assert.True(preview is IWpfDifferenceViewer);
                 var diffView = preview as IWpfDifferenceViewer;
@@ -113,14 +114,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 diffView.Close();
 
                 // Then comes the removed metadata reference.
-                preview = previewObjects[1];
+                preview = previewObjects.Previews[1];
                 Assert.NotNull(preview);
                 Assert.True(preview is string);
                 text = preview as string;
                 Assert.Contains(s_removedMetadataReferenceDisplayName, text, StringComparison.Ordinal);
 
                 // And finally the added project.
-                preview = previewObjects[2];
+                preview = previewObjects.Previews[2];
                 Assert.NotNull(preview);
                 Assert.True(preview is string);
                 text = preview as string;

@@ -2,6 +2,7 @@
   "dependencies": {
     "ManagedEsent": "1.9.2.0",
     "Microsoft.Composition": "1.0.27",
+    "NuGet.VisualStudio": { "version": "2.8.6", "embedInteropTypes": "true" },
   },
   "frameworks": {
     "net46": { }

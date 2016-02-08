@@ -229,6 +229,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
             Return Nothing
         End Function
 
+        Protected Overrides Function GetDescription(nameParts As IReadOnlyList(Of String)) As String
+            Return $"Imports { String.Join(".", nameParts) }"
+        End Function
+
         Protected Overrides Function GetDescription(namespaceSymbol As INamespaceOrTypeSymbol, semanticModel As SemanticModel, root As SyntaxNode) As String
             Return $"Imports {namespaceSymbol.ToDisplayString()}"
         End Function
@@ -297,17 +301,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
                 placeSystemNamespaceFirst As Boolean,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
+            Dim nameSyntax = DirectCast(symbol.GenerateTypeSyntax(addGlobal:=False), NameSyntax)
+
+            Return Await AddImportsAsync(
+                contextNode, document, placeSystemNamespaceFirst, nameSyntax, cancellationToken).ConfigureAwait(False)
+        End Function
+
+        Private Shared Async Function AddImportsAsync(contextNode As SyntaxNode, document As Document, placeSystemNamespaceFirst As Boolean, nameSyntax As NameSyntax, cancellationToken As CancellationToken) As Task(Of Document)
             Dim root = DirectCast(Await contextNode.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(False), CompilationUnitSyntax)
 
             Dim memberImportsClause =
-                SyntaxFactory.SimpleImportsClause(name:=DirectCast(symbol.GenerateTypeSyntax(addGlobal:=False), NameSyntax).WithAdditionalAnnotations(Simplifier.Annotation))
+                SyntaxFactory.SimpleImportsClause(name:=nameSyntax.WithAdditionalAnnotations(Simplifier.Annotation))
             Dim newImport = SyntaxFactory.ImportsStatement(
                 importsClauses:=SyntaxFactory.SingletonSeparatedList(Of ImportsClauseSyntax)(memberImportsClause))
 
             Dim syntaxTree = contextNode.SyntaxTree
             Return document.WithSyntaxRoot(
-                root.AddImportsStatement(newImport, placeSystemNamespaceFirst,
-                                         CaseCorrector.Annotation, Formatter.Annotation))
+                root.AddImportsStatement(newImport, placeSystemNamespaceFirst, CaseCorrector.Annotation, Formatter.Annotation))
+        End Function
+
+        Protected Overrides Function AddImportAsync(contextNode As SyntaxNode, nameSpaceParts As IReadOnlyList(Of String), document As Document, specialCaseSystem As Boolean, cancellationToken As CancellationToken) As Task(Of Document)
+            Dim nameSyntax = CreateNameSyntax(nameSpaceParts, nameSpaceParts.Count - 1)
+            Return AddImportsAsync(contextNode, document, specialCaseSystem, nameSyntax, cancellationToken)
+        End Function
+
+        Private Function CreateNameSyntax(nameSpaceParts As IReadOnlyList(Of String), index As Integer) As NameSyntax
+            Dim namePiece = SyntaxFactory.IdentifierName(nameSpaceParts(index))
+            Return If(index = 0,
+                DirectCast(namePiece, NameSyntax),
+                SyntaxFactory.QualifiedName(CreateNameSyntax(nameSpaceParts, index - 1), namePiece))
         End Function
 
         Protected Overrides Function IsViableExtensionMethod(method As IMethodSymbol,

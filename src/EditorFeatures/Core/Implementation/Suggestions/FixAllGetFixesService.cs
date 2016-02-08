@@ -133,9 +133,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesPreviewChanges, cancellationToken))
             {
                 var previewService = workspace.Services.GetService<IPreviewDialogService>();
-                var glyph = languageOpt == null ?
-                    Glyph.Assembly :
-                    languageOpt == LanguageNames.CSharp ? Glyph.CSharpProject : Glyph.BasicProject;
+                var glyph = languageOpt == null
+                    ? Glyph.Assembly
+                    : languageOpt == LanguageNames.CSharp
+                        ? Glyph.CSharpProject
+                        : Glyph.BasicProject;
 
                 var changedSolution = previewService.PreviewChanges(
                     string.Format(EditorFeaturesResources.PreviewChangesOf, fixAllPreviewChangesTitle),

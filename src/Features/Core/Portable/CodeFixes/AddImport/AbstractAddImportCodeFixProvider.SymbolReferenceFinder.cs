@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -15,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
     {
         private class SymbolReferenceFinder
         {
+            private const string AttributeSuffix = "Attribute";
+
             private readonly CancellationToken _cancellationToken;
             private readonly Diagnostic _diagnostic;
             private readonly Document _document;
@@ -45,25 +48,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             }
 
-            internal Task<List<SymbolReference>> FindInAllProjectSymbolsAsync(
+            internal Task<List<SymbolReference>> FindInAllSymbolsInProjectAsync(
                 Project project, bool exact)
             {
-                var searchScope = new AllSymbolsProjectSearchScope(project, exact, _cancellationToken);
+                var searchScope = new AllSymbolsProjectSearchScope(_owner, project, exact, _cancellationToken);
                 return DoAsync(searchScope);
             }
 
-            internal Task<List<SymbolReference>> FindInSourceProjectSymbolsAsync(
+            internal Task<List<SymbolReference>> FindInSourceSymbolsInProjectAsync(
                 ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
                 Project project, bool exact)
             {
-                var searchScope = new SourceSymbolsProjectSearchScope(projectToAssembly, project, exact, _cancellationToken);
+                var searchScope = new SourceSymbolsProjectSearchScope(_owner, projectToAssembly, project, exact, _cancellationToken);
                 return DoAsync(searchScope);
             }
 
-            internal Task<List<SymbolReference>> FindInMetadataAsync(
+            internal Task<List<SymbolReference>> FindInMetadataSymbolsAsync(
                 Solution solution, IAssemblySymbol assembly, PortableExecutableReference metadataReference, bool exact)
             {
-                var searchScope = new MetadataSymbolsSearchScope(solution, assembly, metadataReference, exact, _cancellationToken);
+                var searchScope = new MetadataSymbolsSearchScope(_owner, solution, assembly, metadataReference, exact, _cancellationToken);
                 return DoAsync(searchScope);
             }
 
@@ -167,7 +170,86 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return GetMatchingTypes(searchScope, name, arity, inAttributeContext, symbols, hasIncompleteParentMember);
             }
 
-            private async Task<IEnumerable<SearchResult<ITypeSymbol>>> GetTypeSymbols(
+            internal async Task FindNugetReferencesAsync(List<Reference> allReferences)
+            {
+                if (allReferences.Count > 0)
+                {
+                    // Only do this if none of the project searches or nuget searches produced any results.
+                    // We may have a lot of metadata to search through, and it would be good to avoid that 
+                    // if we can.
+                    return;
+                }
+
+                TSimpleNameSyntax nameNode;
+                if (!_owner.CanAddImportForType(_diagnostic, _node, out nameNode))
+                {
+                    return;
+                }
+
+                string name;
+                int arity;
+                bool inAttributeContext, hasIncompleteParentMember;
+                CalculateContext(nameNode, _syntaxFacts, out name, out arity, out inAttributeContext, out hasIncompleteParentMember);
+
+                if (ExpressionBinds(nameNode, checkForExtensionMethods: false))
+                {
+                    return;
+                }
+
+                await FindNugetReferencesAsync(allReferences, nameNode, name, arity, inAttributeContext).ConfigureAwait(false);
+            }
+
+            private async Task FindNugetReferencesAsync(
+                List<Reference> allReferences, TSimpleNameSyntax nameNode, string name, int arity, bool inAttributeContext)
+            {
+                await FindNugetReferencesAsync(allReferences, nameNode, name, arity).ConfigureAwait(false);
+                if (arity == 0 && inAttributeContext)
+                {
+                    await FindNugetReferencesAsync(allReferences, nameNode, name + AttributeSuffix, arity).ConfigureAwait(false);
+                }
+            }
+
+            private Task FindNugetReferencesAsync(List<Reference> allReferences, TSimpleNameSyntax nameNode, string name, int arity)
+            {
+                var workspaceServices = _document.Project.Solution.Workspace.Services;
+                var searchService = workspaceServices.GetService<IPackageSearchService>();
+                var installerService = workspaceServices.GetService<IPackageInstallerService>();
+                if (searchService == null || installerService == null)
+                {
+                    return SpecializedTasks.EmptyTask;
+
+                }
+                return Task.Run(() => FindNugetReferences(searchService, installerService, allReferences, nameNode, name, arity), _cancellationToken);
+            }
+
+            private void FindNugetReferences(
+                IPackageSearchService nugetService,
+                IPackageInstallerService installerService,
+                List<Reference> allReferences,
+                TSimpleNameSyntax nameNode,
+                string name,
+                int arity)
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
+                var results = nugetService.Search(name, arity, _cancellationToken);
+
+                var project = _document.Project;
+                var projectId = project.Id;
+                var workspace = project.Solution.Workspace;
+
+                int weight = 0;
+                foreach (var result in results)
+                {
+                    if (!installerService.IsInstalled(workspace, projectId, result.PackageName))
+                    {
+                        allReferences.Add(new PackageReference(_owner, installerService,
+                            new SearchResult(name, nameNode, result.NameParts, weight), result.PackageName));
+                        weight++;
+                    }
+                }
+            }
+
+            private async Task<IEnumerable<SymbolResult<ITypeSymbol>>> GetTypeSymbols(
                 SearchScope searchScope,
                 string name,
                 TSimpleNameSyntax nameNode,
@@ -188,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // also lookup type symbols with the "Attribute" suffix.
                 if (inAttributeContext)
                 {
-                    var attributeSymbols = await searchScope.FindDeclarationsAsync(name + "Attribute", nameNode, SymbolFilter.Type).ConfigureAwait(false);
+                    var attributeSymbols = await searchScope.FindDeclarationsAsync(name + AttributeSuffix, nameNode, SymbolFilter.Type).ConfigureAwait(false);
 
                     symbols = symbols.Concat(
                         attributeSymbols.Select(r => r.WithDesiredName(r.DesiredName.GetWithoutAttributeSuffix(isCaseSensitive: false))));
@@ -324,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             private List<SymbolReference> GetMatchingTypes(
-                SearchScope searchScope, string name, int arity, bool inAttributeContext, IEnumerable<SearchResult<ITypeSymbol>> symbols, bool hasIncompleteParentMember)
+                SearchScope searchScope, string name, int arity, bool inAttributeContext, IEnumerable<SymbolResult<ITypeSymbol>> symbols, bool hasIncompleteParentMember)
             {
                 var accessibleTypeSymbols = symbols
                     .Where(s => ArityAccessibilityAndAttributeContextAreCorrect(
@@ -337,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             private List<SymbolReference> GetNamespacesForMatchingTypesAsync(
                 SearchScope searchScope, int arity, bool inAttributeContext, bool hasIncompleteParentMember,
-                IEnumerable<SearchResult<ITypeSymbol>> symbols)
+                IEnumerable<SymbolResult<ITypeSymbol>> symbols)
             {
                 var accessibleTypeSymbols = symbols
                     .Where(s => s.Symbol.ContainingSymbol is INamespaceSymbol
@@ -349,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return GetProposedNamespaces(searchScope, accessibleTypeSymbols.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace)));
             }
 
-            private List<SymbolReference> GetProposedNamespaces(SearchScope scope, IEnumerable<SearchResult<INamespaceSymbol>> namespaces)
+            private List<SymbolReference> GetProposedNamespaces(SearchScope scope, IEnumerable<SymbolResult<INamespaceSymbol>> namespaces)
             {
                 // We only want to offer to add a using if we don't already have one.
                 return
@@ -360,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                               .ToList();
             }
 
-            private List<SymbolReference> GetProposedTypes(SearchScope searchScope, string name, List<SearchResult<ITypeSymbol>> accessibleTypeSymbols)
+            private List<SymbolReference> GetProposedTypes(SearchScope searchScope, string name, List<SymbolResult<ITypeSymbol>> accessibleTypeSymbols)
             {
                 List<SymbolReference> result = null;
                 if (accessibleTypeSymbols != null)
@@ -378,14 +460,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return result;
             }
 
-            private Task<IEnumerable<SearchResult<ISymbol>>> GetSymbolsAsync(SearchScope searchScope, TSimpleNameSyntax nameNode)
+            private Task<IEnumerable<SymbolResult<ISymbol>>> GetSymbolsAsync(SearchScope searchScope, TSimpleNameSyntax nameNode)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
 
                 // See if the name binds.  If it does, there's nothing further we need to do.
                 if (ExpressionBinds(nameNode, checkForExtensionMethods: true))
                 {
-                    return SpecializedTasks.EmptyEnumerable<SearchResult<ISymbol>>();
+                    return SpecializedTasks.EmptyEnumerable<SymbolResult<ISymbol>>();
                 }
 
                 string name;
@@ -393,14 +475,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out name, out arity);
                 if (name == null)
                 {
-                    return SpecializedTasks.EmptyEnumerable<SearchResult<ISymbol>>();
+                    return SpecializedTasks.EmptyEnumerable<SymbolResult<ISymbol>>();
                 }
 
                 return searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Member);
             }
 
             private IEnumerable<SymbolReference> FilterForExtensionMethods(
-                SearchScope searchScope, SyntaxNode expression, IEnumerable<SearchResult<ISymbol>> symbols)
+                SearchScope searchScope, SyntaxNode expression, IEnumerable<SymbolResult<ISymbol>> symbols)
             {
                 var extensionMethodSymbols = OfType<IMethodSymbol>(symbols)
                     .Where(s => s.Symbol.IsExtensionMethod &&
@@ -413,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             private IList<SymbolReference> FilterForFieldsAndProperties(
-                SearchScope searchScope, SyntaxNode expression, IEnumerable<SearchResult<ISymbol>> symbols)
+                SearchScope searchScope, SyntaxNode expression, IEnumerable<SymbolResult<ISymbol>> symbols)
             {
                 var propertySymbols = OfType<IPropertySymbol>(symbols)
                     .Where(property => property.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly) == true &&
@@ -427,11 +509,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 return GetProposedNamespaces(
                     searchScope,
-                        propertySymbols.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace)).Concat(
-                        fieldSymbols.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace))));
+                    propertySymbols.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace)).Concat(
+                       fieldSymbols.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace))));
             }
 
-            private async Task<IEnumerable<SearchResult<IMethodSymbol>>> GetAddMethodsAsync(
+            private async Task<IEnumerable<SymbolResult<IMethodSymbol>>> GetAddMethodsAsync(
                 SearchScope searchScope, SyntaxNode expression)
             {
                 string name;
@@ -439,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _syntaxFacts.GetNameAndArityOfSimpleName(_node, out name, out arity);
                 if (name != null || !_owner.IsAddMethodContext(_node, _semanticModel))
                 {
-                    return SpecializedCollections.EmptyEnumerable<SearchResult<IMethodSymbol>>();
+                    return SpecializedCollections.EmptyEnumerable<SymbolResult<IMethodSymbol>>();
                 }
 
                 // Note: there is no desiredName for these search results.  We're searching for
@@ -453,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     .Select(s => s.WithDesiredName(null));
             }
 
-            private IEnumerable<SearchResult<T>> OfType<T>(IEnumerable<SearchResult<ISymbol>> symbols) where T : ISymbol
+            private IEnumerable<SymbolResult<T>> OfType<T>(IEnumerable<SymbolResult<ISymbol>> symbols) where T : ISymbol
             {
                 return symbols.Where(s => s.Symbol is T).Select(s => s.WithSymbol((T)s.Symbol));
             }

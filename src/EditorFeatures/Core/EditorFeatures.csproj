@@ -279,6 +279,8 @@
     <Compile Include="Extensibility\SignatureHelp\SignatureHelpParameter.cs" />
     <Compile Include="Extensibility\SignatureHelp\SignatureHelpTriggerInfo.cs" />
     <Compile Include="Extensibility\SignatureHelp\SignatureHelpTriggerReason.cs" />
+    <Compile Include="Implementation\CodeActions\PreviewOperationWithTextView.cs" />
+    <Compile Include="Implementation\SearchNuGet\AbstractOfferNuGetSearchCodeFixProvider.cs" />
     <Compile Include="Implementation\Classification\SemanticClassificationBufferTaggerProvider.cs" />
     <Compile Include="Implementation\Classification\SemanticClassificationBufferTaggerProvider.Tagger.cs" />
     <Compile Include="Implementation\Classification\SemanticClassificationUtilities.cs" />
@@ -287,6 +289,9 @@
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
     <Compile Include="Implementation\Outlining\AbstractSyntaxOutliner.cs" />
     <Compile Include="Implementation\Outlining\InvalidOutliningRegionException.cs" />
+    <Compile Include="Implementation\SearchNuGet\OfferNuGetSearchPanel.xaml.cs">
+      <DependentUpon>OfferNuGetSearchPanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Implementation\Suggestions\FixMultipleOccurrencesService.cs" />
     <Compile Include="Implementation\Suggestions\FixMultipleSuggestedAction.cs" />
     <Compile Include="Implementation\GoToImplementation\GoToImplementationCommandHandler.cs" />
@@ -799,6 +804,10 @@
     <Page Include="Implementation\InlineRename\Dashboard\Dashboard.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Implementation\SearchNuGet\OfferNuGetSearchPanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>

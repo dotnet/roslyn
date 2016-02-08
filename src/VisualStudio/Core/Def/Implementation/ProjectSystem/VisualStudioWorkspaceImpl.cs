@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -22,11 +23,13 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
+using NuGet.VisualStudio;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.ProjectSystem;
 using VSLangProj;
 using VSLangProj140;
 using OLEServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+using Microsoft.VisualStudio.LanguageServices.Packaging;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -49,6 +52,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private ISolutionCrawlerRegistrationService _registrationService;
 
         private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
+
+        private PackageInstallerService _packageInstallerService;
+        private PackageSearchService _packageSearchService;
 
         public VisualStudioWorkspaceImpl(
             SVsServiceProvider serviceProvider,
@@ -102,6 +108,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Ensure the options factory services are initialized on the UI thread
             this.Services.GetService<IOptionService>();
+
+            // Ensure the nuget package services are initialized on the UI thread.
+            _packageSearchService = this.Services.GetService<IPackageSearchService>() as PackageSearchService;
+            _packageInstallerService = (PackageInstallerService)this.Services.GetService<IPackageInstallerService>();
+            _packageInstallerService.Connect(this);
         }
 
         /// <summary>NOTE: Call only from derived class constructor</summary>
@@ -212,6 +223,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 throw new ArgumentException(string.Format(ServicesVSResources.CouldNotFindProject, projectId));
             }
+        }
+
+        internal EnvDTE.Project TryGetDTEProject(ProjectId projectId)
+        {
+            IVisualStudioHostProject hostProject;
+            IVsHierarchy hierarchy;
+            EnvDTE.Project project;
+
+            return TryGetProjectData(projectId, out hostProject, out hierarchy, out project) ? project : null;
         }
 
         internal bool TryAddReferenceToProject(ProjectId projectId, string assemblyName)
@@ -986,6 +1006,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected override void Dispose(bool finalize)
         {
+            _packageInstallerService?.Disconnect(this);
+            _packageSearchService?.Dispose();
+
             // workspace is going away. unregister this workspace from work coordinator
             StopSolutionCrawler();
 

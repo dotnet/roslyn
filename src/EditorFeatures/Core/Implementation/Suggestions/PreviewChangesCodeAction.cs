@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 "vs.codefix.previewchanges",
                 _originalCodeAction.Title,
                 EditorFeaturesResources.PreviewChangesRootNodeText,
-                Glyph.OpenFolder,
+                CodeAnalysis.Glyph.OpenFolder,
                 _changeSummary.NewSolution,
                 _changeSummary.OldSolution,
                 showCheckBoxes: false);

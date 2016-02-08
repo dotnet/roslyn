@@ -26,22 +26,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private abstract class SearchScope
         {
             public readonly bool Exact;
+
+            protected readonly AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider;
             protected readonly CancellationToken cancellationToken;
 
-            protected SearchScope(bool exact, CancellationToken cancellationToken)
+            protected SearchScope(AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider, bool exact, CancellationToken cancellationToken)
             {
+                this.provider = provider;
                 this.Exact = exact;
                 this.cancellationToken = cancellationToken;
             }
 
             protected abstract Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery query);
-            public abstract SymbolReference CreateReference<T>(SearchResult<T> symbol) where T : INamespaceOrTypeSymbol;
+            public abstract SymbolReference CreateReference<T>(SymbolResult<T> symbol) where T : INamespaceOrTypeSymbol;
 
-            public async Task<IEnumerable<SearchResult<ISymbol>>> FindDeclarationsAsync(string name, TSimpleNameSyntax nameNode, SymbolFilter filter)
+            public async Task<IEnumerable<SymbolResult<ISymbol>>> FindDeclarationsAsync(string name, TSimpleNameSyntax nameNode, SymbolFilter filter)
             {
                 if (name != null && string.IsNullOrWhiteSpace(name))
                 {
-                    return SpecializedCollections.EmptyEnumerable<SearchResult<ISymbol>>();
+                    return SpecializedCollections.EmptyEnumerable<SymbolResult<ISymbol>>();
                 }
 
                 var query = this.Exact ? SearchQuery.Create(name, ignoreCase: true) : SearchQuery.CreateFuzzy(name);
@@ -51,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 {
                     // We did an exact, case insensitive, search.  Case sensitive matches should
                     // be preffered though over insensitive ones.
-                    return symbols.Select(s => SearchResult.Create(s.Name, nameNode, s, weight: s.Name == name ? 0 : 1)).ToList();
+                    return symbols.Select(s => SymbolResult.Create(s.Name, nameNode, s, weight: s.Name == name ? 0 : 1)).ToList();
                 }
 
                 // TODO(cyrusn): It's a shame we have to compute this twice.  However, there's no
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         var areSimilar = similarityChecker.AreSimilar(s.Name, out matchCost);
 
                         Debug.Assert(areSimilar);
-                        return SearchResult.Create(s.Name, nameNode, s, matchCost);
+                        return SymbolResult.Create(s.Name, nameNode, s, matchCost);
                     }).ToList();
                 }
             }
@@ -75,16 +78,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         {
             protected readonly Project _project;
 
-            public ProjectSearchScope(Project project, bool ignoreCase, CancellationToken cancellationToken)
-                : base(ignoreCase, cancellationToken)
+            public ProjectSearchScope(
+                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                Project project,
+                bool ignoreCase,
+                CancellationToken cancellationToken)
+                : base(provider, ignoreCase, cancellationToken)
             {
                 _project = project;
             }
 
-            public override SymbolReference CreateReference<T>(SearchResult<T> searchResult)
+            public override SymbolReference CreateReference<T>(SymbolResult<T> symbol)
             {
                 return new ProjectSymbolReference(
-                    searchResult.WithSymbol<INamespaceOrTypeSymbol>(searchResult.Symbol), _project.Id);
+                    provider, symbol.WithSymbol<INamespaceOrTypeSymbol>(symbol.Symbol), _project);
             }
         }
 
@@ -95,8 +102,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         /// </summary>
         private class AllSymbolsProjectSearchScope : ProjectSearchScope
         {
-            public AllSymbolsProjectSearchScope(Project project, bool ignoreCase, CancellationToken cancellationToken)
-                : base(project, ignoreCase, cancellationToken)
+            public AllSymbolsProjectSearchScope(
+                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider, 
+                Project project,
+                bool ignoreCase,
+                CancellationToken cancellationToken)
+                : base(provider, project, ignoreCase, cancellationToken)
             {
             }
 
@@ -115,9 +126,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private readonly ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> _projectToAssembly;
 
             public SourceSymbolsProjectSearchScope(
+                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
                 ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
                 Project project, bool ignoreCase, CancellationToken cancellationToken)
-                : base(project, ignoreCase, cancellationToken)
+                : base(provider, project, ignoreCase, cancellationToken)
             {
                 _projectToAssembly = projectToAssembly;
             }
@@ -158,21 +170,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private readonly Solution _solution;
 
             public MetadataSymbolsSearchScope(
+                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
                 Solution solution,
                 IAssemblySymbol assembly,
                 PortableExecutableReference metadataReference,
                 bool exact,
                 CancellationToken cancellationToken)
-                : base(exact, cancellationToken)
+                : base(provider, exact, cancellationToken)
             {
                 _solution = solution;
                 _assembly = assembly;
                 _metadataReference = metadataReference;
             }
 
-            public override SymbolReference CreateReference<T>(SearchResult<T> searchResult)
+            public override SymbolReference CreateReference<T>(SymbolResult<T> searchResult)
             {
                 return new MetadataSymbolReference(
+                    provider,
                     searchResult.WithSymbol<INamespaceOrTypeSymbol>(searchResult.Symbol),
                     _metadataReference);
             }

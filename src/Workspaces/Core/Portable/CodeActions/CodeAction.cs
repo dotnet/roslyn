@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal virtual bool IsInvokable => true;
 
+        internal virtual Glyph? Glyph => null;
+
         internal virtual ImmutableArray<CodeAction> GetCodeActions()
         {
             return ImmutableArray<CodeAction>.Empty;

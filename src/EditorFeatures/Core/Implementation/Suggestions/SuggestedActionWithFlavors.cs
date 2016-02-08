@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
@@ -20,11 +21,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     {
         protected SuggestedActionWithFlavors(
             Workspace workspace,
+            ITextView textView,
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
             IWaitIndicator waitIndicator,
             CodeAction codeAction,
-            object provider) : base(workspace, subjectBuffer, editHandler, waitIndicator, codeAction, provider)
+            object provider) : base(workspace, textView, subjectBuffer, editHandler, waitIndicator, codeAction, provider)
         {
         }
 
@@ -100,7 +102,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             var previewAction = new PreviewChangesCodeAction(Workspace, CodeAction, changeSummary);
-            var previewSuggestedAction = new PreviewChangesSuggestedAction(Workspace, SubjectBuffer, EditHandler, WaitIndicator, previewAction, Provider);
+            var previewSuggestedAction = new PreviewChangesSuggestedAction(
+                Workspace, TextView, SubjectBuffer, EditHandler, WaitIndicator, previewAction, Provider);
             return new SuggestedActionSet(ImmutableArray.Create(previewSuggestedAction));
         }
 

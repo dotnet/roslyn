@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -14,12 +15,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     {
         public CodeRefactoringSuggestedAction(
             Workspace workspace,
+            ITextView textView,
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
             IWaitIndicator waitIndicator,
             CodeAction codeAction,
             CodeRefactoringProvider provider)
-            : base(workspace, subjectBuffer, editHandler, waitIndicator, codeAction, provider)
+            : base(workspace, textView, subjectBuffer, editHandler, waitIndicator, codeAction, provider)
         {
         }
     }

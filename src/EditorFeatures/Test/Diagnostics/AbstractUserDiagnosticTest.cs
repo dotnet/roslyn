@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             if (!hasProjectChange)
             {
                 // If there is just one document change then we expect the preview to be a WpfTextView
-                var content = (await editHandler.GetPreviews(workspace, operations, CancellationToken.None).GetPreviewsAsync())[0];
+                var content = (await editHandler.GetPreviews(workspace, operations, textView: null, cancellationToken: CancellationToken.None).GetPreviewsAsync()).Previews[0];
                 var diffView = content as IWpfDifferenceViewer;
                 Assert.NotNull(diffView);
                 diffView.Close();
@@ -366,12 +366,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             else
             {
                 // If there are more changes than just the document we need to browse all the changes and get the document change
-                var contents = editHandler.GetPreviews(workspace, operations, CancellationToken.None);
+                var contents = editHandler.GetPreviews(workspace, operations, textView: null, cancellationToken: CancellationToken.None);
                 bool hasPreview = false;
                 var previews = await contents.GetPreviewsAsync();
-                if (previews != null)
+                if (previews.Previews != null)
                 {
-                    foreach (var preview in previews)
+                    foreach (var preview in previews.Previews)
                     {
                         if (preview != null)
                         {

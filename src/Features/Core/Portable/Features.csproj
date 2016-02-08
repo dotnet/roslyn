@@ -89,9 +89,14 @@
     <Compile Include="ChangeSignature\IUnifiedArgumentSyntax.cs" />
     <Compile Include="ChangeSignature\ParameterConfiguration.cs" />
     <Compile Include="ChangeSignature\SignatureChange.cs" />
+    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.MetadataSymbolReference.cs" />
+    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.NugetReference.cs" />
+    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.ProjectSymbolReference.cs" />
+    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.Reference.cs" />
     <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SearchScope.cs" />
     <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SymbolReference.cs" />
     <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SymbolReferenceFinder.cs" />
+    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SymbolResult.cs" />
     <Compile Include="CodeFixes\CodeFixContextExtensions.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixMultipleCodeAction.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllCodeAction.cs" />
@@ -146,7 +151,6 @@
     <Compile Include="CodeRefactorings\PredefinedCodeRefactoringProviderNames.cs" />
     <Compile Include="CodeRefactorings\ServicesLayerCodeActionHelpersService.cs" />
     <Compile Include="CodeRefactorings\WorkspaceServices\IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
-    <Compile Include="Common\Glyph.cs" />
     <Compile Include="Completion\AbstractCompletionService.cs" />
     <Compile Include="Completion\CommonCompletionUtilities.cs" />
     <Compile Include="Completion\CompletionFilterReason.cs" />
@@ -261,6 +265,7 @@
     <Compile Include="Shared\Options\ServiceFeatureOnOffOptionsProvider.cs" />
     <Compile Include="Shared\Utilities\IOUtilities.cs" />
     <Compile Include="Shared\Utilities\LinkedFilesSymbolEquivalenceComparer.cs" />
+    <Compile Include="Shared\Utilities\LogicalStringComparer.cs" />
     <Compile Include="Shared\Utilities\SupportedPlatformData.cs" />
     <Compile Include="Completion\Providers\SymbolCompletionItem.cs" />
     <Compile Include="Completion\CompletionRules.cs" />
@@ -565,7 +570,6 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />

@@ -91,6 +91,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
+        public static object SmartTagFillBrushKey { get; set; } = "SmartTagFillBrush";
+        public static object SystemMenuBrushKey { get; set; } = "SystemMenuBrush";
+        public static object PanelTextBrushKey { get; set; } = "PanelTextBrush";
+        public static object SystemInfoBackgroundBrushKey { get; set; } = "SystemInfoBackgroundBrush";
+        public static object CommandBarMenuBackgroundGradientBrushKey { get; set; } = "CommandBarMenuBackgroundGradientBrush";
+
         public static object ButtonStyleKey
         {
             get

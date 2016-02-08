@@ -196,6 +196,7 @@
     <Compile Include="ReferenceHighlighting\ReferenceHighlightingAdditionalReferenceProvider.cs" />
     <Compile Include="RenameTracking\CSharpRenameTrackingCodeFixProvider.cs" />
     <Compile Include="RenameTracking\CSharpRenameTrackingLanguageHeuristicsService.cs" />
+    <Compile Include="SearchNuGet\CSharpOfferNuGetSearchCodeFixProvider.cs" />
     <Compile Include="SignatureHelp\AbstractCSharpSignatureHelpProvider.cs" />
     <Compile Include="SignatureHelp\AttributeSignatureHelpProvider.cs" />
     <Compile Include="SignatureHelp\ConstructorInitializerSignatureHelpProvider.cs" />
@@ -219,6 +220,7 @@
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
+      <Aliases>global</Aliases>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
