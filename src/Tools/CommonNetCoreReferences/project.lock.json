@@ -98,7 +98,7 @@
           "lib/dotnet/System.Collections.Concurrent.dll": {}
         }
       },
-      "System.Collections.Immutable/1.1.38-beta-23504": {
+      "System.Collections.Immutable/1.1.37": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
           "System.Diagnostics.Debug": "[4.0.0, )",
@@ -110,10 +110,10 @@
           "System.Threading": "[4.0.0, )"
         },
         "compile": {
-          "lib/dotnet5.1/System.Collections.Immutable.dll": {}
+          "lib/dotnet/System.Collections.Immutable.dll": {}
         },
         "runtime": {
-          "lib/dotnet5.1/System.Collections.Immutable.dll": {}
+          "lib/dotnet/System.Collections.Immutable.dll": {}
         }
       },
       "System.Collections.NonGeneric/4.0.0": {
@@ -1138,17 +1138,17 @@
         "System.Collections.Concurrent.nuspec"
       ]
     },
-    "System.Collections.Immutable/1.1.38-beta-23504": {
-      "sha512": "OJDxjX1yliiB3pe4XtP9Eg5IpNGPhbehD7GSXwkZAEnAVKtvrVRQqjCxubpFH1JiL18EAjyF+K8MqWQtXutMzg==",
+    "System.Collections.Immutable/1.1.37": {
+      "sha512": "fTpqwZYBzoklTT+XjTRK8KxvmrGkYHzBiylCcKyQcxiOM8k+QvhNBxRvFHDWzy4OEP5f8/9n+xQ9mEgEXY+muA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
-        "lib/dotnet5.1/System.Collections.Immutable.dll",
-        "lib/dotnet5.1/System.Collections.Immutable.xml",
+        "lib/dotnet/System.Collections.Immutable.dll",
+        "lib/dotnet/System.Collections.Immutable.xml",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
-        "package/services/metadata/core-properties/3db8fbf6698c4148b242102211dca00d.psmdcp",
+        "package/services/metadata/core-properties/a02fdeabe1114a24bba55860b8703852.psmdcp",
         "System.Collections.Immutable.nuspec"
       ]
     },
@@ -3612,7 +3612,7 @@
       "Microsoft.NETCore.TestHost >= 1.0.0-beta-23504",
       "System.AppContext >= 4.0.1-beta-23504",
       "System.Collections >= 4.0.11-beta-23504",
-      "System.Collections.Immutable >= 1.1.38-beta-23504",
+      "System.Collections.Immutable >= 1.1.37<= 1.1.37.0",
       "System.Console >= 4.0.0-beta-23504",
       "System.Diagnostics.Debug >= 4.0.11-beta-23504",
       "System.Diagnostics.FileVersionInfo >= 4.0.0-beta-23504",

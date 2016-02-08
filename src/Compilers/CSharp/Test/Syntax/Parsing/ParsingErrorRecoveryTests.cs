@@ -6343,7 +6343,7 @@ public class Test
             var text = @"{
         this.I = i;
     };
-}";
+}".NormalizeLineEndings();
 
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
             Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
@@ -6850,7 +6850,7 @@ static
 {
     class c
 }
-";
+".NormalizeLineEndings();
             var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
 
             Assert.Equal(source, root.ToFullString());
@@ -6867,7 +6867,7 @@ static
 {
     struct c : I
 }
-";
+".NormalizeLineEndings();
             var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
 
             Assert.Equal(source, root.ToFullString());
@@ -6886,7 +6886,7 @@ static
     {
     }
 }
-";
+".NormalizeLineEndings();
             var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
 
             Assert.Equal(source, root.ToFullString());
@@ -6905,7 +6905,7 @@ static
     {
     }
 }
-";
+".NormalizeLineEndings();
             var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
 
             Assert.Equal(source, root.ToFullString());

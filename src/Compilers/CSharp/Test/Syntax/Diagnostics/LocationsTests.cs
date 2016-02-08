@@ -129,7 +129,7 @@ int f;
 #line 17 ""d:\twing.cs""
 #endif
 int a;
-}";
+}".NormalizeLineEndings();
             var resolver = new TestSourceResolver();
 
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "foo.cs");
@@ -209,7 +209,7 @@ class X {
             string sampleProgram = @"using System;
 class X {
 int x; 
-}";
+}".NormalizeLineEndings();
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\foo.cs");
 
             AssertMappedSpanEqual(syntaxTree, "ing Sy", "c:\\foo.cs", 0, 2, 0, 8, hasMappedPath: false);
@@ -410,7 +410,7 @@ class MainClass
         char c;   // CS0168 on line 9
     }
 }
-";
+".NormalizeLineEndings();
 
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram);
 

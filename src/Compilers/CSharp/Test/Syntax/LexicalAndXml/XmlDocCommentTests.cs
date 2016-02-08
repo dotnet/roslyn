@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text =
 @"/// <foo />
-class C { }";
+class C { }".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -145,7 +145,7 @@ class C { }";
         {
             var text =
 @"/** <foo /> */
-class C { }";
+class C { }".NormalizeLineEndings();
 
             var tree = Parse(text);
             Assert.NotNull(tree);
@@ -270,7 +270,7 @@ class C { }";
         {
             var text =
 @"/// <foo 
-/// />";
+/// />".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -294,7 +294,7 @@ class C { }";
             var text =
 @"/// <foo 
 /// />
-class C { }";
+class C { }".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -319,7 +319,7 @@ class C { }";
             var text =
 @"/** <foo 
   * />
-  */";
+  */".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -345,7 +345,7 @@ class C { }";
 @"/** <foo 
   * />
   */
-class C { }";
+class C { }".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -707,7 +707,7 @@ class C { }";
             var text =
 @"/// <foo>
 /// bar
-/// </foo>";
+/// </foo>".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -741,7 +741,7 @@ class C { }";
 @"/** <foo>
   * bar
   * </foo>
-  */";
+  */".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -774,7 +774,7 @@ class C { }";
             var text =
 @"/// <![CDATA[ this is a test
 /// of &some; cdata /// */ /**
-/// ""']]<>/></text]]>";
+/// ""']]<>/></text]]>".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -805,7 +805,7 @@ class C { }";
 @"/** <![CDATA[ this is a test
   * of &some; cdata
   * ""']]<>/></text]]>
-  */";
+  */".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -858,7 +858,7 @@ class C { }";
         public void TestIncompleteEOLCDataSection()
         {
             var text = @"/// <![CDATA[ incomplete
-class C { }"; // end of line/comment
+class C { }".NormalizeLineEndings(); // end of line/comment
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -936,7 +936,7 @@ class C { }"; // end of line/comment
             var text =
 @"/// <!-- this is a test
 /// of &some; comment
-/// ""']]<>/></text-->";
+/// ""']]<>/></text-->".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -967,7 +967,7 @@ class C { }"; // end of line/comment
 @"/** <!-- this is a test
   * of &some; comment
   * ""']]<>/></text-->
-  */";
+  */".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -1020,7 +1020,7 @@ class C { }"; // end of line/comment
         public void TestIncompleteEOLComment()
         {
             var text = @"/// <!-- incomplete
-class C { }"; // end of line/comment
+class C { }".NormalizeLineEndings(); // end of line/comment
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -1072,7 +1072,7 @@ class C { }"; // end of line/comment
             var text =
 @"/// <?ProcessingInstruction this is a test
 /// of &a; ProcessingInstruction /// */ /**
-/// ""']]>/>?</text?>";
+/// ""']]>/>?</text?>".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -1105,7 +1105,7 @@ class C { }"; // end of line/comment
 @"/** <?prefix:localname this is a test <!--
   * of &a; ProcessingInstruction
   * ""']]>/></text>]]>?>
-  */";
+  */".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -1595,7 +1595,7 @@ class C { }";
             var text =
 @"/**
 x
-*/";
+*/".NormalizeLineEndings();
             var tree = Parse(text);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -2333,7 +2333,7 @@ class C{}";
         public void TestSingleLineXmlCommentWithMissingStartTag()
         {
             var text = @"///</Foo>
-class C{}";
+class C{}".NormalizeLineEndings();
             var tree = Parse(text);
 
             Assert.NotNull(tree);

@@ -1483,7 +1483,7 @@ class A { }
             var tree = SyntaxFactory.ParseSyntaxTree(
 @"/*START*/namespace Microsoft.CSharp.Test
 {
-}/*END*/");
+}/*END*/".NormalizeLineEndings());
             var rootNode = tree.GetCompilationUnitRoot();
 
             Assert.Equal(53, rootNode.FullSpan.Length);
@@ -1503,7 +1503,7 @@ class A { }
 namespace Microsoft.CSharp.Test
 {
 }
-/*END*/");
+/*END*/".NormalizeLineEndings());
             var rootNode = tree.GetCompilationUnitRoot();
 
             Assert.Equal(57, rootNode.FullSpan.Length);
@@ -2339,7 +2339,7 @@ void M()
 {
 } // after
 #endregion
-}");
+}".NormalizeLineEndings());
 
             var expectedText = @"
 class C
@@ -2347,7 +2347,7 @@ class C
 
 #region Fred
 #endregion
-}";
+}".NormalizeLineEndings();
 
             var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
             Assert.NotNull(m);
@@ -2374,7 +2374,7 @@ void M()
 #endif
 } // after
 #endregion
-}");
+}".NormalizeLineEndings());
 
             var expectedText = @"
 class C
@@ -2384,7 +2384,7 @@ class C
 #if true
 #endif
 #endregion
-}";
+}".NormalizeLineEndings();
 
             var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
             Assert.NotNull(m);

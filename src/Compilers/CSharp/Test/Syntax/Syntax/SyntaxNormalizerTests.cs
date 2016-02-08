@@ -283,9 +283,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void TestNormalizeDeclaration(string text, string expected)
         {
             var node = SyntaxFactory.ParseCompilationUnit(text);
-            Assert.Equal(text, node.ToFullString());
+            Assert.Equal(text.NormalizeLineEndings(), node.ToFullString().NormalizeLineEndings());
             var actual = node.NormalizeWhitespace("  ").ToFullString();
-            Assert.Equal(expected, actual);
+            Assert.Equal(expected.NormalizeLineEndings(), actual.NormalizeLineEndings());
         }
 
         [Fact]
@@ -430,7 +430,7 @@ int i = 1;
     void foo()
     {
     }
-}";
+}".NormalizeLineEndings();
             var tree = SyntaxFactory.ParseSyntaxTree(code);
             TestNormalize(tree.GetCompilationUnitRoot(),
 @"class c1
@@ -456,7 +456,7 @@ int i = 1;
     void foo()
     {
     }
-}";
+}".NormalizeLineEndings();
             var tree = SyntaxFactory.ParseSyntaxTree(code);
             TestNormalize(tree.GetCompilationUnitRoot(),
 @"class c1
@@ -467,7 +467,7 @@ int i = 1;
   void foo()
   {
   }
-}");
+}".NormalizeLineEndings());
         }
 
         [Fact]
@@ -491,7 +491,7 @@ int i = 1;
         private void TestNormalize(CSharpSyntaxNode node, string expected)
         {
             var actual = node.NormalizeWhitespace("  ").ToFullString();
-            Assert.Equal(expected, actual);
+            Assert.Equal(expected.NormalizeLineEndings(), actual.NormalizeLineEndings());
         }
 
         private void TestNormalizeTrivia(string text, string expected)
@@ -502,8 +502,8 @@ int i = 1;
 
         private void TestNormalize(SyntaxTriviaList trivia, string expected)
         {
-            var actual = trivia.NormalizeWhitespace("    ").ToFullString();
-            Assert.Equal(expected, actual);
+            var actual = trivia.NormalizeWhitespace("    ").ToFullString().NormalizeLineEndings();
+            Assert.Equal(expected.NormalizeLineEndings(), actual);
         }
     }
 }
