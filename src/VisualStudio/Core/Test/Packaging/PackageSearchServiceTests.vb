@@ -17,14 +17,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
         Public Async Function CreateCacheFolderIfMissing() As Task
             Dim cancellationTokenSource = New CancellationTokenSource()
 
-            Dim ioServiceMock = New Mock(Of IPackageSearchIOService)(MockBehavior.Strict)
+            Dim ioMock = New Mock(Of IPackageSearchIOService)(MockBehavior.Strict)
 
             ' Simulate the cache folder being missing.
-            ioServiceMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+            ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
             ' Expect that the cache directory is created.  Cancel processing at that point so 
             ' the test can complete.
-            ioServiceMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo))).Callback(
+            ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo))).Callback(
                 AddressOf cancellationTokenSource.Cancel)
 
             Dim remoteControlService = New Mock(Of IPackageSearchRemoteControlService)
@@ -33,7 +33,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 remoteControlService:=remoteControlService.Object,
                 logService:=TestLogService.Instance,
                 delayService:=TestDelayService.Instance,
-                ioService:=ioServiceMock.Object,
+                ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=Nothing,
                 localSettingsDirectory:="TestDirectory",
@@ -41,7 +41,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await service.UpdateDatabaseInBackgroundAsync()
-            ioServiceMock.Verify()
+            ioMock.Verify()
             remoteControlService.Verify()
         End Function
 
@@ -49,11 +49,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
         Public Async Function DoNotCreateCacheFolderIfItIsThere() As Task
             Dim cancellationTokenSource = New CancellationTokenSource()
 
-            Dim ioServiceMock = New Mock(Of IPackageSearchIOService)(MockBehavior.Strict)
+            Dim ioMock = New Mock(Of IPackageSearchIOService)(MockBehavior.Strict)
 
             ' Simulate the cache folder being there.  We use a 'strict' mock so that 
             ' we'll throw if we get the call to create the directory.
-            ioServiceMock.Setup(Function(s) s.Exists(It.IsAny(Of DirectoryInfo))).Returns(True).Callback(
+            ioMock.Setup(Function(s) s.Exists(It.IsAny(Of DirectoryInfo))).Returns(True).Callback(
                 AddressOf cancellationTokenSource.Cancel)
 
             Dim remoteControlService = New Mock(Of IPackageSearchRemoteControlService)
@@ -62,7 +62,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 remoteControlService:=remoteControlService.Object,
                 logService:=TestLogService.Instance,
                 delayService:=TestDelayService.Instance,
-                ioService:=ioServiceMock.Object,
+                ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=Nothing,
                 localSettingsDirectory:="TestDirectory",
@@ -70,7 +70,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await service.UpdateDatabaseInBackgroundAsync()
-            ioServiceMock.Verify()
+            ioMock.Verify()
             remoteControlService.Verify()
         End Function
 
@@ -78,10 +78,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
         Public Async Function DownloadFullDatabaseWhenLocalDatabaseIsMissing() As Task
             Dim cancellationTokenSource = New CancellationTokenSource()
 
-            Dim ioServiceMock = New Mock(Of IPackageSearchIOService)()
+            Dim ioMock = New Mock(Of IPackageSearchIOService)()
 
             ' Simlute the local database being missing.
-            ioServiceMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+            ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
             Dim clientMock = New Mock(Of IPackageSearchRemoteControlClient)
 
@@ -98,7 +98,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 remoteControlService:=serviceMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=TestDelayService.Instance,
-                ioService:=ioServiceMock.Object,
+                ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=Nothing,
                 localSettingsDirectory:="TestDirectory",
@@ -106,7 +106,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await searchService.UpdateDatabaseInBackgroundAsync()
-            ioServiceMock.Verify()
+            ioMock.Verify()
             serviceMock.Verify()
             clientMock.Verify()
         End Function
@@ -115,8 +115,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
         Public Async Function TestClientDisposedAfterUse() As Task
             Dim cancellationTokenSource = New CancellationTokenSource()
 
-            Dim ioServiceMock = New Mock(Of IPackageSearchIOService)()
-            ioServiceMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+            Dim ioMock = New Mock(Of IPackageSearchIOService)()
+            ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
             Dim clientMock = New Mock(Of IPackageSearchRemoteControlClient)(MockBehavior.Strict)
             clientMock.Setup(Sub(c) c.Dispose())
@@ -131,7 +131,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 remoteControlService:=serviceMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=TestDelayService.Instance,
-                ioService:=ioServiceMock.Object,
+                ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=Nothing,
                 localSettingsDirectory:="TestDirectory",
@@ -139,7 +139,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await searchService.UpdateDatabaseInBackgroundAsync()
-            ioServiceMock.Verify()
+            ioMock.Verify()
             serviceMock.Verify()
             clientMock.Verify()
         End Function
@@ -148,10 +148,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
         Public Async Function CrashInClientRunsFailureLoopPath() As Task
             Dim cancellationTokenSource = New CancellationTokenSource()
 
-            Dim ioServiceMock = New Mock(Of IPackageSearchIOService)()
+            Dim ioMock = New Mock(Of IPackageSearchIOService)()
 
             ' Simulate the database not being there.
-            ioServiceMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+            ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
             Dim clientMock = New Mock(Of IPackageSearchRemoteControlClient)(MockBehavior.Strict)
 
@@ -178,7 +178,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=delayMock.Object,
-                ioService:=ioServiceMock.Object,
+                ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=Nothing,
                 localSettingsDirectory:="TestDirectory",
@@ -186,7 +186,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await searchService.UpdateDatabaseInBackgroundAsync()
-            ioServiceMock.Verify()
+            ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
             delayMock.Verify()
@@ -196,9 +196,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
         Public Async Function FailureToParseDBRunsFailureLoopPath() As Task
             Dim cancellationTokenSource = New CancellationTokenSource()
 
-            Dim ioServiceMock = New Mock(Of IPackageSearchIOService)()
+            Dim ioMock = New Mock(Of IPackageSearchIOService)()
             'Simulate the database file not existing.
-            ioServiceMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+            ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
             ' Get a client that will download the latest database.
             Dim clientMock = CreateFullDatabaseClientMock()
@@ -220,7 +220,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=delayMock.Object,
-                ioService:=ioServiceMock.Object,
+                ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=factoryMock.Object,
                 localSettingsDirectory:="TestDirectory",
@@ -228,7 +228,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await searchService.UpdateDatabaseInBackgroundAsync()
-            ioServiceMock.Verify()
+            ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
             delayMock.Verify()
@@ -239,9 +239,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
         Public Async Function SuccessParsingDBWritesToDisk() As Task
             Dim cancellationTokenSource = New CancellationTokenSource()
 
-            Dim ioServiceMock = New Mock(Of IPackageSearchIOService)()
+            Dim ioMock = New Mock(Of IPackageSearchIOService)()
             ' Simulate the local database not being there.
-            ioServiceMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+            ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
             ' Create a client that will download the latest database.
             Dim clientMock = CreateFullDatabaseClientMock()
@@ -253,7 +253,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Returns(New AddReferenceDatabase())
 
             ' Expect that we'll write the database to disk successfully.
-            SetupWritesDatabaseSuccessfullyToDisk(ioServiceMock)
+            SetupWritesDatabaseSuccessfullyToDisk(ioMock)
 
             Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
 
@@ -266,7 +266,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=delayMock.Object,
-                ioService:=ioServiceMock.Object,
+                ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=factoryMock.Object,
                 localSettingsDirectory:="TestDirectory",
@@ -274,7 +274,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await searchService.UpdateDatabaseInBackgroundAsync()
-            ioServiceMock.Verify()
+            ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
             delayMock.Verify()
@@ -285,10 +285,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
         Public Async Function WriteAgainOnIOFailure() As Task
             Dim cancellationTokenSource = New CancellationTokenSource()
 
-            Dim ioServiceMock = New Mock(Of IPackageSearchIOService)()
+            Dim ioMock = New Mock(Of IPackageSearchIOService)()
 
             ' Simulate the database being missing.
-            ioServiceMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+            ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
             ' Create a client that will download the latest databsae
             Dim clientMock = CreateFullDatabaseClientMock()
@@ -302,17 +302,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
             Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
 
             ' Write the temp file out to disk.
-            ioServiceMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsAny(Of String), It.IsAny(Of Byte())))
+            ioMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsAny(Of String), It.IsAny(Of Byte())))
 
             ' Simulate a failure doing the first 'replace' of the database file.
-            ioServiceMock.Setup(Sub(s) s.Replace(It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of Boolean))).
+            ioMock.Setup(Sub(s) s.Replace(It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of Boolean))).
                 Throws(New IOException())
 
             ' We'll expect to have to replay the write.  So we should get a call to 'FileWriteDelay'
             delayMock.SetupGet(Function(s) s.FileWriteDelay).Returns(TimeSpan.Zero)
 
             ' Succeed on the second write attempt.
-            ioServiceMock.Setup(Sub(s) s.Replace(It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of Boolean)))
+            ioMock.Setup(Sub(s) s.Replace(It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of Boolean)))
 
             ' Because writing to disk succeeded, we expect we'll loop on the 'UpdateSucceededDelay'.
             ' Cancel processing at that point so the test can complete.
@@ -323,7 +323,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=delayMock.Object,
-                ioService:=ioServiceMock.Object,
+                ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=factoryMock.Object,
                 localSettingsDirectory:="TestDirectory",
@@ -331,7 +331,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await searchService.UpdateDatabaseInBackgroundAsync()
-            ioServiceMock.Verify()
+            ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
             delayMock.Verify()
@@ -342,10 +342,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
         Public Async Function LocalDatabaseExistingCausesPatchToDownload_UpToDate_DoesNothing() As Task
             Dim cancellationTokenSource = New CancellationTokenSource()
 
-            Dim ioServiceMock = New Mock(Of IPackageSearchIOService)()
+            Dim ioMock = New Mock(Of IPackageSearchIOService)()
 
             ' Simulate the database being there.
-            ioServiceMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
+            ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
 
             ' We'll successfully read in the local database.
             Dim databaseFactoryMock = New Mock(Of IPackageSearchDatabaseFactoryService)(MockBehavior.Strict)
@@ -367,7 +367,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=delayMock.Object,
-                ioService:=ioServiceMock.Object,
+                ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=databaseFactoryMock.Object,
                 localSettingsDirectory:="TestDirectory",
@@ -375,7 +375,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await searchService.UpdateDatabaseInBackgroundAsync()
-            ioServiceMock.Verify()
+            ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
             delayMock.Verify()
@@ -386,10 +386,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
         Public Async Function LocalDatabaseExistingCausesPatchToDownload_IsTooOldCausesFullDownload() As Task
             Dim cancellationTokenSource = New CancellationTokenSource()
 
-            Dim ioServiceMock = New Mock(Of IPackageSearchIOService)()
+            Dim ioMock = New Mock(Of IPackageSearchIOService)()
 
             ' Simulate the database being there.
-            ioServiceMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
+            ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
 
             ' We'll successfully read in the local database.
             Dim databaseFactoryMock = New Mock(Of IPackageSearchDatabaseFactoryService)(MockBehavior.Strict)
@@ -406,7 +406,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
             SetupDownloadLatest(remoteControlMock, clientMock2)
 
             ' Expect that we'll write the database to disk successfully.
-            SetupWritesDatabaseSuccessfullyToDisk(ioServiceMock)
+            SetupWritesDatabaseSuccessfullyToDisk(ioMock)
 
             Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
 
@@ -419,7 +419,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=delayMock.Object,
-                ioService:=ioServiceMock.Object,
+                ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=databaseFactoryMock.Object,
                 localSettingsDirectory:="TestDirectory",
@@ -427,7 +427,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await searchService.UpdateDatabaseInBackgroundAsync()
-            ioServiceMock.Verify()
+            ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
             clientMock2.Verify()
@@ -439,10 +439,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
         Public Async Function LocalDatabaseExistingCausesPatchToDownload_ContentsCausesPatching_FailureToPatchCausesFullDownload() As Task
             Dim cancellationTokenSource = New CancellationTokenSource()
 
-            Dim ioServiceMock = New Mock(Of IPackageSearchIOService)()
+            Dim ioMock = New Mock(Of IPackageSearchIOService)()
 
             ' Simulate the database being there.
-            ioServiceMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
+            ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
 
             ' We'll successfully read in the local database.
             Dim databaseFactoryMock = New Mock(Of IPackageSearchDatabaseFactoryService)(MockBehavior.Strict)
@@ -464,7 +464,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
             SetupDownloadLatest(remoteControlMock, clientMock2)
 
             ' Expect that we'll write the database to disk successfully.
-            SetupWritesDatabaseSuccessfullyToDisk(ioServiceMock)
+            SetupWritesDatabaseSuccessfullyToDisk(ioMock)
 
             Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
 
@@ -477,7 +477,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 remoteControlService:=remoteControlMock.Object,
                 logService:=TestLogService.Instance,
                 delayService:=delayMock.Object,
-                ioService:=ioServiceMock.Object,
+                ioService:=ioMock.Object,
                 patchService:=Nothing,
                 databaseFactoryService:=databaseFactoryMock.Object,
                 localSettingsDirectory:="TestDirectory",
@@ -485,7 +485,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 cancellationTokenSource:=cancellationTokenSource)
 
             Await searchService.UpdateDatabaseInBackgroundAsync()
-            ioServiceMock.Verify()
+            ioMock.Verify()
             remoteControlMock.Verify()
             clientMock.Verify()
             clientMock2.Verify()
@@ -494,12 +494,65 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
             databaseFactoryMock.Verify()
         End Function
 
-        Private Shared Sub SetupWritesDatabaseSuccessfullyToDisk(ioServiceMock As Mock(Of IPackageSearchIOService))
+        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        Public Async Function LocalDatabaseExistingCausesPatchToDownload_ContentsCausesPatching_SuccessfulPatchWritesToDisk() As Task
+            Dim cancellationTokenSource = New CancellationTokenSource()
+
+            Dim ioMock = New Mock(Of IPackageSearchIOService)()
+
+            ' Simulate the database being there.
+            ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
+
+            ' We'll successfully read in the local database.
+            Dim databaseFactoryMock = New Mock(Of IPackageSearchDatabaseFactoryService)(MockBehavior.Strict)
+            databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
+                Returns(New AddReferenceDatabase())
+
+            ' Create a client that will return a patch with contents.
+            Dim clientMock = CreatePatchClientMock(contents:="")
+            Dim remoteControlMock = CreateRemoteControlServiceMock(clientMock, latest:=False)
+
+            ' Simulate a crash in the patching process.
+            Dim patchMock = New Mock(Of IPackageSearchPatchService)(MockBehavior.Strict)
+            patchMock.Setup(Function(s) s.ApplyPatch(It.IsAny(Of Byte()), It.IsAny(Of Byte()))).
+                Returns(New Byte() {0})
+
+            ' Expect that we'll write the database to disk successfully.
+            SetupWritesDatabaseSuccessfullyToDisk(ioMock)
+
+            Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
+
+            ' Because we wrote the full database, we expect we'll loop on the 'UpdateSucceededDelay'.
+            ' Cancel processing at that point so the test can complete.
+            delayMock.SetupGet(Function(s) s.UpdateSucceededDelay).Returns(TimeSpan.Zero).
+                Callback(AddressOf cancellationTokenSource.Cancel)
+
+            Dim searchService = New PackageSearchService(
+                remoteControlService:=remoteControlMock.Object,
+                logService:=TestLogService.Instance,
+                delayService:=delayMock.Object,
+                ioService:=ioMock.Object,
+                patchService:=patchMock.Object,
+                databaseFactoryService:=databaseFactoryMock.Object,
+                localSettingsDirectory:="TestDirectory",
+                swallowException:=s_allButMoqExceptions,
+                cancellationTokenSource:=cancellationTokenSource)
+
+            Await searchService.UpdateDatabaseInBackgroundAsync()
+            ioMock.Verify()
+            remoteControlMock.Verify()
+            clientMock.Verify()
+            patchMock.Verify()
+            delayMock.Verify()
+            databaseFactoryMock.Verify()
+        End Function
+
+        Private Shared Sub SetupWritesDatabaseSuccessfullyToDisk(ioMock As Mock(Of IPackageSearchIOService))
             ' Expect that we'll write out the temp file.
-            ioServiceMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsRegex(".*tmp"), It.IsAny(Of Byte())))
+            ioMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsRegex(".*tmp"), It.IsAny(Of Byte())))
 
             ' Expect that we'll replace the existing file with the temp file.
-            ioServiceMock.Setup(Sub(s) s.Replace(It.IsRegex(".*tmp"), It.IsRegex(".*txt"), It.IsRegex(".*bak"), It.IsAny(Of Boolean)))
+            ioMock.Setup(Sub(s) s.Replace(It.IsRegex(".*tmp"), It.IsRegex(".*txt"), It.IsRegex(".*bak"), It.IsAny(Of Boolean)))
         End Sub
 
         Private Shared Function CreateRemoteControlServiceMock(
