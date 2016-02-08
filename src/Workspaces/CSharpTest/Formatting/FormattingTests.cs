@@ -7273,7 +7273,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(6628, "https://github.com/dotnet/roslyn/issues/6628")]
-        public async Task RemoveUnnecessarySuppressOperationAroundElseStatement()
+        public async Task FormatElseBlockBracesOnDifferentLineToNewLines()
         {
             await AssertFormatAsync(@"
 class C
@@ -7303,7 +7303,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(6628, "https://github.com/dotnet/roslyn/issues/6628")]
-        public async Task SuppressOperationAroundSingleLineElseStatement()
+        public async Task FormatOnElseBlockBracesOnSameLineRemainsInSameLine_1()
         {
             var code = @"
 class C
@@ -7321,7 +7321,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(6628, "https://github.com/dotnet/roslyn/issues/6628")]
-        public async Task SuppressOperationAroundSingleLineElseBoby()
+        public async Task FormatOnElseBlockBracesOnSameLineRemainsInSameLine_2()
         {
             var code = @"
 class C
