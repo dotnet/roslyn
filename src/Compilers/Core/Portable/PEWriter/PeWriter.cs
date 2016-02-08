@@ -88,7 +88,8 @@ namespace Microsoft.Cci
                 // If PDB writer is given, we have to have PDB path.
                 Debug.Assert(nativePdbWriterOpt == null || pdbPathOpt != null);
 
-            try {
+            try
+            {
                 var peWriter = new PeWriter(context.Module.Properties, context.Module.Win32Resources, context.Module.Win32ResourceSection, pdbPathOpt, deterministic);
                 var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, deterministic, getPortablePdbStreamOpt != null, cancellationToken);
 
@@ -100,7 +101,7 @@ namespace Microsoft.Cci
             {
                 throw;
             }
-            catch (Exception e)
+            catch (IOException e)
             {
                 throw new PeWritingException(e);
             }
