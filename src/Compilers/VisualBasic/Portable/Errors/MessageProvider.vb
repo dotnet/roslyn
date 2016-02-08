@@ -497,6 +497,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ERRID.ERR_TooManyUserStrings
             End Get
         End Property
+        Public Overrides ReadOnly Property ERR_PEWritingFailure As Integer
+            Get
+                Return ERRID.ERR_PEWritingFailure
+            End Get
+        End Property
     End Class
 
 End Namespace

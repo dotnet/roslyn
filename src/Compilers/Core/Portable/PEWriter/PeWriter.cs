@@ -85,13 +85,25 @@ namespace Microsoft.Cci
             bool deterministic,
             CancellationToken cancellationToken)
         {
-            // If PDB writer is given, we have to have PDB path.
-            Debug.Assert(nativePdbWriterOpt == null || pdbPathOpt != null);
+                // If PDB writer is given, we have to have PDB path.
+                Debug.Assert(nativePdbWriterOpt == null || pdbPathOpt != null);
 
-            var peWriter = new PeWriter(context.Module.Properties, context.Module.Win32Resources, context.Module.Win32ResourceSection, pdbPathOpt, deterministic);
-            var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, deterministic, getPortablePdbStreamOpt != null, cancellationToken);
+            try {
+                var peWriter = new PeWriter(context.Module.Properties, context.Module.Win32Resources, context.Module.Win32ResourceSection, pdbPathOpt, deterministic);
+                var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, deterministic, getPortablePdbStreamOpt != null, cancellationToken);
 
-            return peWriter.WritePeToStream(mdWriter, getPeStream, getPortablePdbStreamOpt, nativePdbWriterOpt);
+                return peWriter.WritePeToStream(mdWriter, getPeStream, getPortablePdbStreamOpt, nativePdbWriterOpt);
+            } 
+            // A PeWritingException could be thrown by getPeStream, so don't 
+            // wrap that in another exception, just rethrow.
+            catch (PeWritingException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new PeWritingException(e);
+            }
         }
 
         private bool WritePeToStream(MetadataWriter mdWriter, Func<Stream> getPeStream, Func<Stream> getPortablePdbStreamOpt, PdbWriter nativePdbWriterOpt)
