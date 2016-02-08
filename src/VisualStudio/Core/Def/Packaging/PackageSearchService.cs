@@ -21,7 +21,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
     internal partial class PackageSearchService : ForegroundThreadAffinitizedObject, IPackageSearchService, IDisposable
     {
-        public const string ContentsAttributeName = "contents";
+        // Internal for testing purposes.
+        internal const string ContentsAttributeName = "contents";
+        internal const string IsUpToDateAttributeName = "isUpToDate";
+        internal const string IsTooOldAttributeName = "isTooOld";
 
         private const string HostId = "RoslynNuGetSearch";
         private const string BackupExtension = ".bak";
@@ -49,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         public PackageSearchService(VSShell.SVsServiceProvider serviceProvider)
             : this(CreateRemoteControlService(serviceProvider),
                    new LogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog))),
-                   new DelayService(), 
+                   new DelayService(),
                    new IOService(),
                    new PatchService(),
                    new DatabaseFactoryService(),
@@ -418,10 +421,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             patchBytes = null;
 
-            var isUpToDateAttribute = patchElement.Attribute("isUpToDate");
+            var isUpToDateAttribute = patchElement.Attribute(IsUpToDateAttributeName);
             isUpToDate = isUpToDateAttribute != null && (bool)isUpToDateAttribute;
 
-            var isTooOldAttribute = patchElement.Attribute("isTooOld");
+            var isTooOldAttribute = patchElement.Attribute(IsTooOldAttributeName);
             isTooOld = isTooOldAttribute != null && (bool)isTooOldAttribute;
 
             var contentsAttribute = patchElement.Attribute(ContentsAttributeName);
