@@ -1381,7 +1381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol baseType = null;
 
                 // For a script class or a submission class base should have no members.
-                if (containingType != null && containingType.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)containingType).IsScriptClass)
+                if ((object)containingType != null && containingType.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)containingType).IsScriptClass)
                 {
                     return ImmutableArray<Symbol>.Empty;
                 }

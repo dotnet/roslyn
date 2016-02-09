@@ -48,11 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return NoLocation.Singleton;
         }
 
+        /// <summary>
+        /// Returns null for a submission class.
+        /// This ensures that a submission class does not inherit methods such as ToString or GetHashCode.
+        /// </summary>
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
             get
             {
-                // Returns null for a submission class. This ensures that a submission class does not inherit methods such as ToString or GetHashCode.
                 return IsScriptClass ? null : this.DeclaringCompilation.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
             }
         }
