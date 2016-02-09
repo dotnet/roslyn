@@ -293,10 +293,10 @@ namespace Microsoft.CodeAnalysis
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         public class CSharpGenericNameAnalyzer : DiagnosticAnalyzer
         {
-            public const string DiagnosticId = "DiagnosticId";
-            public const string Title = "Title";
-            public const string Message = "Message";
-            public const string Category = "Category";
+            public const string DiagnosticId = nameof(DiagnosticId);
+            public const string Title = nameof(Title);
+            public const string Message = nameof(Message);
+            public const string Category = nameof(Category);
             public const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
 
             internal static DiagnosticDescriptor Rule =
@@ -332,10 +332,10 @@ namespace Microsoft.CodeAnalysis
         public abstract class AbstractNamespaceDeclarationAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer
             where TLanguageKindEnum : struct
         {
-            public const string DiagnosticId = "DiagnosticId";
-            public const string Title = "Title";
-            public const string Message = "Message";
-            public const string Category = "Category";
+            public const string DiagnosticId = nameof(DiagnosticId);
+            public const string Title = nameof(Title);
+            public const string Message = nameof(Message);
+            public const string Category = nameof(Category);
             public const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
 
             internal static DiagnosticDescriptor Rule =
@@ -375,10 +375,10 @@ namespace Microsoft.CodeAnalysis
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class EnsureNoMergedNamespaceSymbolAnalyzer : DiagnosticAnalyzer
         {
-            public const string DiagnosticId = "DiagnosticId";
-            public const string Title = "Title";
-            public const string Message = "Message";
-            public const string Category = "Category";
+            public const string DiagnosticId = nameof(DiagnosticId);
+            public const string Title = nameof(Title);
+            public const string Message = nameof(Message);
+            public const string Category = nameof(Category);
             public const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
 
             internal static DiagnosticDescriptor Rule =

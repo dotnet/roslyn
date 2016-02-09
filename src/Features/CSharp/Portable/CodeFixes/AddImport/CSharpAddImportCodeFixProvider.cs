@@ -30,92 +30,92 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         /// <summary>
         /// name does not exist in context
         /// </summary>
-        private const string CS0103 = "CS0103";
+        private const string CS0103 = nameof(CS0103);
 
         /// <summary>
         /// type or namespace could not be found
         /// </summary>
-        private const string CS0246 = "CS0246";
+        private const string CS0246 = nameof(CS0246);
 
         /// <summary>
         /// wrong number of type args
         /// </summary>
-        private const string CS0305 = "CS0305";
+        private const string CS0305 = nameof(CS0305);
 
         /// <summary>
         /// type does not contain a definition of method or extension method
         /// </summary>
-        private const string CS1061 = "CS1061";
+        private const string CS1061 = nameof(CS1061);
 
         /// <summary>
         /// cannot find implementation of query pattern
         /// </summary>
-        private const string CS1935 = "CS1935";
+        private const string CS1935 = nameof(CS1935);
 
         /// <summary>
         /// The non-generic type 'A' cannot be used with type arguments
         /// </summary>
-        private const string CS0308 = "CS0308";
+        private const string CS0308 = nameof(CS0308);
 
         /// <summary>
         /// 'A' is inaccessible due to its protection level
         /// </summary>
-        private const string CS0122 = "CS0122";
+        private const string CS0122 = nameof(CS0122);
 
         /// <summary>
         /// The using alias 'A' cannot be used with type arguments
         /// </summary>
-        private const string CS0307 = "CS0307";
+        private const string CS0307 = nameof(CS0307);
 
         /// <summary>
         /// 'A' is not an attribute class
         /// </summary>
-        private const string CS0616 = "CS0616";
+        private const string CS0616 = nameof(CS0616);
 
         /// <summary>
         ///  No overload for method 'X' takes 'N' arguments
         /// </summary>
-        private const string CS1501 = "CS1501";
+        private const string CS1501 = nameof(CS1501);
 
         /// <summary>
         /// cannot convert from 'int' to 'string'
         /// </summary>
-        private const string CS1503 = "CS1503";
+        private const string CS1503 = nameof(CS1503);
 
         /// <summary>
         /// XML comment on 'construct' has syntactically incorrect cref attribute 'name'
         /// </summary>
-        private const string CS1574 = "CS1574";
+        private const string CS1574 = nameof(CS1574);
 
         /// <summary>
         /// Invalid type for parameter 'parameter number' in XML comment cref attribute
         /// </summary>
-        private const string CS1580 = "CS1580";
+        private const string CS1580 = nameof(CS1580);
 
         /// <summary>
         /// Invalid return type in XML comment cref attribute
         /// </summary>
-        private const string CS1581 = "CS1581";
+        private const string CS1581 = nameof(CS1581);
 
         /// <summary>
         /// XML comment has syntactically incorrect cref attribute
         /// </summary>
-        private const string CS1584 = "CS1584";
+        private const string CS1584 = nameof(CS1584);
 
         /// <summary>
         /// Type 'X' does not contain a valid extension method accepting 'Y'
         /// </summary>
-        private const string CS1929 = "CS1929";
+        private const string CS1929 = nameof(CS1929);
 
         /// <summary>
         /// Cannot convert method group 'X' to non-delegate type 'Y'. Did you intend to invoke the method?
         /// </summary>
-        private const string CS0428 = "CS0428";
+        private const string CS0428 = nameof(CS0428);
 
         /// <summary>
         ///  There is no argument given that corresponds to the required formal parameter 'X' of 'Y'
         /// </summary>
-        private const string CS7036 = "CS7036";
+        private const string CS7036 = nameof(CS7036);
 
         public override ImmutableArray<string> FixableDiagnosticIds
         {

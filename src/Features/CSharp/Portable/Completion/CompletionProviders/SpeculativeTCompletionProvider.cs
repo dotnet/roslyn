@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var filterSpan = this.GetTextChangeSpan(text, position);
 
-                const string T = "T";
+                const string T = nameof(T);
                 context.AddItem(new CompletionItem(this, T, filterSpan, descriptionFactory: null, glyph: Glyph.TypeParameter));
             }
         }

@@ -42,10 +42,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private const string ReturnReplacementString = @"{|r|}";
         private const string NewLineReplacementString = @"{|n|}";
 
-        private const string HTML = "HTML";
-        private const string HTMLX = "HTMLX";
-        private const string Razor = "Razor";
-        private const string XOML = "XOML";
+        private const string HTML = nameof(HTML);
+        private const string HTMLX = nameof(HTMLX);
+        private const string Razor = nameof(Razor);
+        private const string XOML = nameof(XOML);
 
         private const char RazorExplicit = '@';
 

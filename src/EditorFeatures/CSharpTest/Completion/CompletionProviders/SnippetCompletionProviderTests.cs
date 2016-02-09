@@ -143,15 +143,15 @@ class C
 
         private class MockSnippetInfoService : ISnippetInfoService
         {
-            internal const string SnippetShortcut = "SnippetShortcut";
-            internal const string SnippetDescription = "SnippetDescription";
-            internal const string SnippetTitle = "SnippetTitle";
-            internal const string SnippetPath = "SnippetPath";
+            internal const string SnippetShortcut = nameof(SnippetShortcut);
+            internal const string SnippetDescription = nameof(SnippetDescription);
+            internal const string SnippetTitle = nameof(SnippetTitle);
+            internal const string SnippetPath = nameof(SnippetPath);
 
             internal const string PreProcessorSnippetShortcut = "#PreProcessorSnippetShortcut";
-            internal const string PreProcessorSnippetDescription = "PreProcessorSnippetDescription";
+            internal const string PreProcessorSnippetDescription = nameof(PreProcessorSnippetDescription);
             internal const string PreProcessorSnippetTitle = "#PreProcessorSnippetTitle";
-            internal const string PreProcessorSnippetPath = "PreProcessorSnippetPath";
+            internal const string PreProcessorSnippetPath = nameof(PreProcessorSnippetPath);
 
             public IEnumerable<SnippetInfo> GetSnippetsIfAvailable()
             {

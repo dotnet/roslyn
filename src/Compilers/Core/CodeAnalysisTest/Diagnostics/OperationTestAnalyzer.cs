@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     public class ArrayInitializerTestAnalyzer : DiagnosticAnalyzer
     {
         /// <summary>Diagnostic category "Maintainability".</summary>
-        private const string Maintainability = "Maintainability";
+        private const string Maintainability = nameof(Maintainability);
 
         public static readonly DiagnosticDescriptor DoNotUseLargeListOfArrayInitializersDescriptor = new DiagnosticDescriptor(
             "DoNotUseLongListToInitializeArray",
@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     public class VariableDeclarationTestAnalyzer : DiagnosticAnalyzer
     {
         /// <summary>Diagnostic category "Maintainability".</summary>
-        private const string Maintainability = "Maintainability";
+        private const string Maintainability = nameof(Maintainability);
 
         public static readonly DiagnosticDescriptor TooManyLocalVarDeclarationsDescriptor = new DiagnosticDescriptor(
             "TooManyLocalVarDeclarations",
@@ -822,7 +822,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     public class CaseTestAnalyzer : DiagnosticAnalyzer
     {
         /// <summary>Diagnostic category "Maintainability".</summary>
-        private const string Maintainability = "Maintainability";
+        private const string Maintainability = nameof(Maintainability);
 
         public static readonly DiagnosticDescriptor HasDefaultCaseDescriptor = new DiagnosticDescriptor(
             "HasDefaultCase",
