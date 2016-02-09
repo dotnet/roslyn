@@ -486,14 +486,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             catch (Exception e)
             {
-                if (HostCompilerSupportsAllParameters)
-                {
-                    // If the host compiler doesn't support everything we need, we're going to end up 
-                    // shelling out to the command-line compiler anyway.  That means the command-line
-                    // compiler will log the error.  So here, we only log the error if we would've
-                    // tried to use the host compiler.
-                    Log.LogErrorWithCodeFromResources("General_CouldNotSetHostObjectParameter", param, e.Message);
-                }
+                Log.LogErrorWithCodeFromResources("General_CouldNotSetHostObjectParameter", param, e.Message);
                 return false;
             }
 
@@ -618,14 +611,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             catch (Exception e)
             {
-                if (HostCompilerSupportsAllParameters)
-                {
-                    // If the host compiler doesn't support everything we need, we're going to end up 
-                    // shelling out to the command-line compiler anyway.  That means the command-line
-                    // compiler will log the error.  So here, we only log the error if we would've
-                    // tried to use the host compiler.
-                    Log.LogErrorWithCodeFromResources("General_CouldNotSetHostObjectParameter", param, e.Message);
-                }
+                Log.LogErrorWithCodeFromResources("General_CouldNotSetHostObjectParameter", param, e.Message);
                 return false;
             }
             finally
