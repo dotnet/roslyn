@@ -5,6 +5,7 @@ Imports System.Globalization
 Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -1780,7 +1781,7 @@ End Class"
                 options:=TestOptions.DebugDll.WithRootNamespace("Root"),
                 references:=allReferences)
 
-            WithRuntimeInstancePortableBug(comp, allReferences,
+            WithRuntimeInstance(comp, allReferences,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "Root.C.M")
                     Dim errorMessage As String = Nothing
@@ -3999,7 +4000,7 @@ Module Module1
     End Sub
 End Module"
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(MakeSources(source), options:=TestOptions.DebugDll)
-            WithRuntimeInstance(compilation,
+            WithRuntimeInstancePortableBug(compilation,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "Module1._Closure$__.VB$StateMachine___Lambda$__0-0.MoveNext")
                     Dim errorMessage As String = Nothing
@@ -4031,7 +4032,7 @@ Class C
     End Sub
 End Class"
             Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            WithRuntimeInstancePortableBug(compilation,
+            WithRuntimeInstance(compilation,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
 
@@ -4163,7 +4164,7 @@ End Class"
                 options:=TestOptions.DebugDll,
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
 
-            WithRuntimeInstancePortableBug(compilation0,
+            WithRuntimeInstance(compilation0,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
                     Dim errorMessage As String = Nothing

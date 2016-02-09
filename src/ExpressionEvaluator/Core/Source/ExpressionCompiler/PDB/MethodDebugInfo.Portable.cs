@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     partial class MethodDebugInfo<TTypeSymbol, TLocalSymbol>
     {
         /// <exception cref="BadImageFormatException">Invalid data format.</exception>
-        public static MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadFromPortable(MetadataReader reader, int methodToken, int ilOffset, EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider)
+        public static MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadFromPortable(MetadataReader reader, int methodToken, int ilOffset, EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider, bool isVisualBasicMethod)
         {
             string defaultNamespace;
             ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopes;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var methodHandle = (MethodDefinitionHandle)MetadataTokens.EntityHandle(methodToken);
 
-            ReadLocalScopeInformation(reader, methodHandle, ilOffset, symbolProvider, out importGroups, out externAliases, out localVariableNames, out dynamicLocals, out localConstants, out reuseSpan);
+            ReadLocalScopeInformation(reader, methodHandle, ilOffset, symbolProvider, isVisualBasicMethod, out importGroups, out externAliases, out localVariableNames, out dynamicLocals, out localConstants, out reuseSpan);
             ReadMethodCustomDebugInformation(reader, methodHandle, out hoistedLocalScopes, out defaultNamespace);
 
             return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             MethodDefinitionHandle methodHandle,
             int ilOffset,
             EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider,
+            bool isVisualBasicMethod,
             out ImmutableArray<ImmutableArray<ImportRecord>> importGroups,
             out ImmutableArray<ExternAliasRecord> externAliases,
             out ImmutableArray<string> localVariableNames,
@@ -53,13 +55,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             out ImmutableArray<TLocalSymbol> localConstants,
             out ILSpan reuseSpan)
         {
-            var importGroupsBuilder = ArrayBuilder<ImmutableArray<ImportRecord>>.GetInstance();
-            var externAliasesBuilder = ArrayBuilder<ExternAliasRecord>.GetInstance();
             var localVariableNamesBuilder = ArrayBuilder<string>.GetInstance();
             var localConstantsBuilder = ArrayBuilder<TLocalSymbol>.GetInstance();
 
             ImmutableDictionary<int, ImmutableArray<bool>>.Builder lazyDynamicLocalsBuilder = null;
 
+            var innerMostImportScope = default(ImportScopeHandle);
             uint reuseSpanStart = 0;
             uint reuseSpanEnd = uint.MaxValue;
             try
@@ -87,13 +88,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         reuseSpanStart = Math.Max(reuseSpanStart, (uint)scope.StartOffset);
                         reuseSpanEnd = Math.Min(reuseSpanEnd, (uint)scope.EndOffset);
 
-                        // imports:
-                        if (!scope.ImportScope.IsNil)
-                        {
-                            PopulateImports(reader, scope.ImportScope, symbolProvider, importGroupsBuilder, externAliasesBuilder);
-                        }
+                        // imports (use the inner-most):
+                        innerMostImportScope = scope.ImportScope;
 
-                        // locals:
+                        // locals (from all contained scopes):
                         foreach (var variableHandle in scope.GetLocalVariables())
                         {
                             var variable = reader.GetLocalVariable(variableHandle);
@@ -112,7 +110,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             }
                         }
 
-                        // constants:
+                        // constants (from all contained scopes):
                         foreach (var constantHandle in scope.GetLocalConstants())
                         {
                             var constant = reader.GetLocalConstant(constantHandle);
@@ -134,13 +132,29 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             finally
             {
-                importGroups = importGroupsBuilder.ToImmutableAndFree();
-                externAliases = externAliasesBuilder.ToImmutableAndFree();
                 localVariableNames = localVariableNamesBuilder.ToImmutableAndFree();
                 localConstants = localConstantsBuilder.ToImmutableAndFree();
                 dynamicLocals = lazyDynamicLocalsBuilder?.ToImmutable();
                 reuseSpan = new ILSpan(reuseSpanStart, reuseSpanEnd);
             }
+
+            var importGroupsBuilder = ArrayBuilder<ImmutableArray<ImportRecord>>.GetInstance();
+            var externAliasesBuilder = ArrayBuilder<ExternAliasRecord>.GetInstance();
+
+            try
+            {
+                if (!innerMostImportScope.IsNil)
+                {
+                    PopulateImports(reader, innerMostImportScope, symbolProvider, isVisualBasicMethod, importGroupsBuilder, externAliasesBuilder);
+                }
+            }
+            catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
+            {
+                // ignore invalid imports
+            }
+
+            importGroups = importGroupsBuilder.ToImmutableAndFree();
+            externAliases = externAliasesBuilder.ToImmutableAndFree();
         }
 
         private static string ReadUtf8String(MetadataReader reader, BlobHandle handle)
@@ -154,6 +168,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             MetadataReader reader, 
             ImportScopeHandle handle, 
             EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider,
+            bool isVisualBasicMethod,
             ArrayBuilder<ImmutableArray<ImportRecord>> importGroupsBuilder,
             ArrayBuilder<ExternAliasRecord> externAliasesBuilder)
         {
@@ -229,7 +244,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     }
                 }
 
-                if (importGroupBuilder.Count > 0)
+                // VB always expects two import groups (even if they are empty).
+                // TODO: consider doing this for C# as well and handle empty groups in the binder.
+                if (isVisualBasicMethod || importGroupBuilder.Count > 0)
                 {
                     importGroupsBuilder.Add(importGroupBuilder.ToImmutable());
                     importGroupBuilder.Clear();
@@ -249,7 +266,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             out string defaultNamespace)
         {
             hoistedLocalScopes = ImmutableArray<HoistedLocalScopeRecord>.Empty;
-            defaultNamespace = "";
                 
             foreach (var infoHandle in reader.GetCustomDebugInformation(methodHandle))
             {
@@ -257,7 +273,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var id = reader.GetGuid(info.Kind);
                 if (id == PortableCustomDebugInfoKinds.StateMachineHoistedLocalScopes)
                 {
-                    // only single CDI is allowed on a method:
+                    // only single CDIof this kind is allowed on a method:
                     if (!hoistedLocalScopes.IsEmpty)
                     {
                         throw new BadImageFormatException();
@@ -265,12 +281,28 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                     hoistedLocalScopes = DecodeHoistedLocalScopes(reader.GetBlobReader(info.Value));
                 }
-                else if (id == PortableCustomDebugInfoKinds.DefaultNamespace)
+            }
+
+            // TODO: consider looking this up once per module (not for every method)
+            defaultNamespace = null;
+            foreach (var infoHandle in reader.GetCustomDebugInformation(EntityHandle.ModuleDefinition))
+            {
+                var info = reader.GetCustomDebugInformation(infoHandle);
+                var id = reader.GetGuid(info.Kind);
+                if (id == PortableCustomDebugInfoKinds.DefaultNamespace)
                 {
+                    // only single CDI of this kind is allowed on the module:
+                    if (defaultNamespace != null)
+                    {
+                        throw new BadImageFormatException();
+                    }
+
                     var valueReader = reader.GetBlobReader(info.Value);
                     defaultNamespace = valueReader.ReadUTF8(valueReader.Length);
                 }
             }
+
+            defaultNamespace = defaultNamespace ?? "";
         }
 
         /// <exception cref="BadImageFormatException">Invalid data format.</exception>

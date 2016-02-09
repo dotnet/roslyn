@@ -632,9 +632,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim projectLevelXmlImports As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
             Dim fileLevelXmlImports As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
 
-            Debug.Assert(importRecordGroups.Length = 2) ' First project-level, then file-level.
-            Dim projectLevelImportRecords = importRecordGroups(0)
-            Dim fileLevelImportRecords = importRecordGroups(1)
+            Debug.Assert(importRecordGroups.Length = 2) ' First file-level, then project-level.
+            Dim projectLevelImportRecords = importRecordGroups(1)
+            Dim fileLevelImportRecords = importRecordGroups(0)
 
             ' Use this to give the imports different positions
             Dim position = 0
@@ -792,12 +792,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         Return False ' Don't add anything for this import.
                     End If
 
-                    If importsBuilder Is Nothing Then
-                        importsBuilder = ArrayBuilder(Of NamespaceOrTypeAndImportsClausePosition).GetInstance()
-                    End If
+                    ' Native PDBs: aliased namespace is stored as NamespaceOrType
+                    ' Portable PDBs: aliased namespace is stored as Namespace
+                    If [alias] Is Nothing Then
+                        If importsBuilder Is Nothing Then
+                            importsBuilder = ArrayBuilder(Of NamespaceOrTypeAndImportsClausePosition).GetInstance()
+                        End If
 
-                    ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                    importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(namespaceOrTypeSymbol, position))
+                        ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
+                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(namespaceOrTypeSymbol, position))
+                    Else
+                        Dim aliasSymbol As New AliasSymbol(importBinder.Compilation, importBinder.ContainingNamespaceOrType, [alias], namespaceOrTypeSymbol, NoLocation.Singleton)
+
+                        If aliases Is Nothing Then
+                            aliases = New Dictionary(Of String, AliasAndImportsClausePosition)()
+                        End If
+
+                        ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
+                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position)
+                    End If
 
                 Case ImportTargetKind.NamespaceOrType ' Aliased namespace or type (native PDB only)
                     Dim unusedDiagnostics = DiagnosticBag.GetInstance()
@@ -822,6 +835,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
                     ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
                     aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position)
+
                 Case ImportTargetKind.XmlNamespace
                     If xmlImports Is Nothing Then
                         xmlImports = New Dictionary(Of String, XmlNamespaceAndImportsClausePosition)()

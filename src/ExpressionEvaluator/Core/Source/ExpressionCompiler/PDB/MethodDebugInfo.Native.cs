@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             var symReader4 = symReader as ISymUnmanagedReader4;
-            if (symReader4 != null && !isVisualBasicMethod) // TODO: VB Portable PDBs
+            if (symReader4 != null) // TODO: VB Portable PDBs
             {
                 byte* metadata;
                 int size;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var mdReader = new MetadataReader(metadata, size);
                     try
                     {
-                        return ReadFromPortable(mdReader, methodToken, ilOffset, symbolProviderOpt);
+                        return ReadFromPortable(mdReader, methodToken, ilOffset, symbolProviderOpt, isVisualBasicMethod);
                     }
                     catch (BadImageFormatException)
                     {
@@ -349,8 +349,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             importRecordGroups = ImmutableArray.Create(
-                projectLevelImportRecords.ToImmutableAndFree(),
-                fileLevelImportRecords.ToImmutableAndFree());
+                fileLevelImportRecords.ToImmutableAndFree(),
+                projectLevelImportRecords.ToImmutableAndFree());
 
             defaultNamespaceName = defaultNamespaceName ?? "";
         }

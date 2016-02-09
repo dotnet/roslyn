@@ -45,14 +45,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             _runtimeInstances.Free()
         End Sub
 
-        ' TODO: remove -- workaround for bugs in Portable PDB handling in EE
+        ' TODO: remove -- workaround for bug https://github.com/dotnet/roslyn/issues/8473 in the VB compiler
+        ' https://github.com/dotnet/roslyn/issues/8473
         Friend Shared Sub WithRuntimeInstancePortableBug(compilation As Compilation, validator As Action(Of RuntimeInstance))
-            WithRuntimeInstancePortableBug(compilation, Nothing, validator)
-        End Sub
-
-        ' TODO: remove -- workaround for bugs in Portable PDB handling in EE
-        Friend Shared Sub WithRuntimeInstancePortableBug(compilation As Compilation, references As IEnumerable(Of MetadataReference), validator As Action(Of RuntimeInstance))
-            Using instance = RuntimeInstance.Create(compilation, references, DebugInformationFormat.Pdb, True)
+            Using instance = RuntimeInstance.Create(compilation, Nothing, DebugInformationFormat.Pdb, True)
                 validator(instance)
             End Using
         End Sub
@@ -356,6 +352,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 
         Friend Shared Function [Alias](kind As DkmClrAliasKind, name As String, fullName As String, typeAssemblyQualifiedName As String, customTypeInfo As CustomTypeInfo) As [Alias]
             Return New [Alias](kind, name, fullName, typeAssemblyQualifiedName, customTypeInfo)
+        End Function
+
+        Friend Shared Function GetMethodDebugInfo(runtime As RuntimeInstance, qualifiedMethodName As String, Optional ilOffset As Integer = 0) As MethodDebugInfo(Of TypeSymbol, LocalSymbol)
+            Dim peCompilation = runtime.Modules.SelectAsArray(Function(m) m.MetadataBlock).ToCompilation()
+            Dim peMethod = peCompilation.GlobalNamespace.GetMember(Of PEMethodSymbol)(qualifiedMethodName)
+            Dim peModule = DirectCast(peMethod.ContainingModule, PEModuleSymbol)
+            Dim symReader = runtime.Modules.Single(Function(mi) mi.ModuleVersionId = peModule.Module.GetModuleVersionIdOrThrow()).SymReader
+            Dim symbolProvider = New VisualBasicEESymbolProvider(peModule, peMethod)
+            Return MethodDebugInfo(Of TypeSymbol, LocalSymbol).ReadMethodDebugInfo(DirectCast(symReader, ISymUnmanagedReader), symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion:=1, ilOffset:=ilOffset, isVisualBasicMethod:=True)
         End Function
     End Class
 End Namespace

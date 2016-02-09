@@ -49,6 +49,51 @@ class C
         }
 
         [Fact]
+        public void NestedScopes()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        int i = 1;
+        {
+            int j = 2;
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            CompileAndVerify(comp).VerifyIL("C.M", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  .locals init (int V_0, //i
+                int V_1) //j
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  nop
+  IL_0004:  ldc.i4.2
+  IL_0005:  stloc.1
+  IL_0006:  nop
+  IL_0007:  ret
+}
+");
+
+            WithRuntimeInstance(comp, runtime =>
+            {
+                GetMethodDebugInfo(runtime, "C.M", ilOffset: 0x0004).ImportRecordGroups.Verify(@"
+                {
+                    Namespace: string='System'
+                }");
+            });
+        }
+
+        [Fact]
         public void NestedNamespaces()
         {
             var source = @"
