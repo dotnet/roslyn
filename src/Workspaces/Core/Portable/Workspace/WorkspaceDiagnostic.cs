@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public class WorkspaceDiagnostic
     {
         public WorkspaceDiagnosticKind Kind { get; }
@@ -18,13 +18,16 @@ namespace Microsoft.CodeAnalysis
 
         public override string ToString()
         {
-            return GetDebuggerDisplay();
-        }
+            string kindText;
 
-        /// <remarks>Internal for testing purposes</remarks>
-        internal string GetDebuggerDisplay()
-        {
-            return string.Format("[{0}] {1}", this.Kind.ToString(), this.Message);
+            switch (Kind)
+            {
+                case WorkspaceDiagnosticKind.Failure: kindText = WorkspacesResources.Failure; break;
+                case WorkspaceDiagnosticKind.Warning: kindText = WorkspacesResources.Warning; break;
+                default: throw ExceptionUtilities.UnexpectedValue(Kind);
+            }
+
+            return $"[{kindText}] {Message}";
         }
     }
 }

@@ -459,4 +459,10 @@
   <data name="FixableDiagnosticIdsIncorrectlyInitialized" xml:space="preserve">
     <value>'{0}' returned an uninitialized ImmutableArray</value>
   </data>
+  <data name="Failure" xml:space="preserve">
+    <value>Failure</value>
+  </data>
+  <data name="Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
 </root>
