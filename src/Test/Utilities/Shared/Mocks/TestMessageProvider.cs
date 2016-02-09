@@ -363,7 +363,7 @@ namespace Roslyn.Test.Utilities
             }
         }
         
-        public override int ERR_PEWritingFailure 
+        public override int ERR_PeWritingFailure 
         {
             get
             {

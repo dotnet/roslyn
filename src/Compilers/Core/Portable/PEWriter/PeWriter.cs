@@ -85,8 +85,8 @@ namespace Microsoft.Cci
             bool deterministic,
             CancellationToken cancellationToken)
         {
-                // If PDB writer is given, we have to have PDB path.
-                Debug.Assert(nativePdbWriterOpt == null || pdbPathOpt != null);
+            // If PDB writer is given, we have to have PDB path.
+            Debug.Assert(nativePdbWriterOpt == null || pdbPathOpt != null);
 
             try
             {
@@ -95,12 +95,6 @@ namespace Microsoft.Cci
 
                 return peWriter.WritePeToStream(mdWriter, getPeStream, getPortablePdbStreamOpt, nativePdbWriterOpt);
             } 
-            // A PeWritingException could be thrown by getPeStream, so don't 
-            // wrap that in another exception, just rethrow.
-            catch (PeWritingException)
-            {
-                throw;
-            }
             catch (IOException e)
             {
                 throw new PeWritingException(e);
