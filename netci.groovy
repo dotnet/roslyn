@@ -63,7 +63,6 @@ static void addArtifactArchiving(def myJob, String patternString, String exclude
         defaultExcludes(false)
         exclude(excludeString)
         fingerprint(false)
-        latestOnly(false)
         onlyIfSuccessful(false)
         pattern(patternString)
       }
@@ -134,7 +133,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
       pullRequest {
         admin('Microsoft')
         useGitHubHooks(true)
-        regexTriggerPhrase("(?i).*test\\W+(${contextName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*")
+        triggerPhrase("(?i).*test\\W+(${contextName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*")
         onlyTriggerPhrase(triggerOnly)
         autoCloseFailedPullRequests(false)
         orgWhitelist('Microsoft')
@@ -147,6 +146,29 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
         }
       }
     }
+  }
+}
+
+static void addStandardJob(def myJob, String jobName, String branchName, String buildTarget, String opsys) {
+  addLogRotator(myJob)
+  addWrappers(myJob)
+
+  addArtifactArchiving(myJob, "**/Binaries/**", "**/Binaries/Obj/**")
+
+  if (branchName == 'prtest') {
+    switch (buildTarget) {
+      case 'unit32':
+        addPullRequestTrigger(myJob, jobName, opsys, "(unit|unit32|unit\\W+32)")
+        break;
+      case 'unit64':
+        addPullRequestTrigger(myJob, jobName, opsys, '(unit|unit64|unit\\W+64)')
+        break;
+    }
+    addScm(myJob, '${sha1}', '+refs/pull/*:refs/remotes/origin/pr/*')
+  } else {
+    addPushTrigger(myJob)
+    addScm(myJob, "*/${branchName}")
+    addEmailPublisher(myJob)
   }
 }
 
@@ -198,30 +220,30 @@ set TMP=%TEMP%
                 break;
             }
 
-            addLogRotator(myJob)
-            addWrappers(myJob)
-
             addUnitPublisher(myJob)
-            addArtifactArchiving(myJob, "**/Binaries/**", "**/Binaries/Obj/**")
-
-            if (branchName == 'prtest') {
-              switch (buildTarget) {
-                case 'unit32':
-                  addPullRequestTrigger(myJob, jobName, opsys, "(unit|unit32|unit\\W+32)")
-                  break;
-                case 'unit64':
-                  addPullRequestTrigger(myJob, jobName, opsys, '(unit|unit64|unit\\W+64)')
-                  break;
-              }
-              addScm(myJob, '${sha1}', '+refs/pull/*:refs/remotes/origin/pr/*')
-            } else {
-              addPushTrigger(myJob)
-              addScm(myJob, "*/${branchName}")
-              addEmailPublisher(myJob)
-            }
+            addStandardJob(myJob, jobName, branchName, buildTarget, opsys)
           }
         }
       }
     }
   }
+
+  def determinismJobName = "roslyn_${branchName.substring(0, 6)}_determinism"
+  def determinismJob = job(determinismJobName) {
+    description('')
+  }
+
+  determinismJob.with {
+    label('windows-roslyn')
+    steps {
+      batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
+mkdir %TEMP%
+set TMP=%TEMP%
+.\\cibuild.cmd /testDeterminism""")
+    }
+  }
+
+  addStandardJob(determinismJob, determinismJobName, branchName, "unit32", "win")
 }
+
+

@@ -20,6 +20,7 @@ if /I "%1" == "/debug" set BuildConfiguration=Debug&&shift&& goto :ParseArgument
 if /I "%1" == "/release" set BuildConfiguration=Release&&shift&& goto :ParseArguments
 if /I "%1" == "/test32" set Test64=false&&shift&& goto :ParseArguments
 if /I "%1" == "/test64" set Test64=true&&shift&& goto :ParseArguments
+if /I "%1" == "/testDeterminism" set TestDeterminism=true&&shift&& goto :ParseArguments
 if /I "%1" == "/perf" set Perf=true&&shift&& goto :ParseArguments
 if /I "%1" == "/restore" set BuildRestore=true&&shift&& goto :ParseArguments
 call :Usage && exit /b 1
@@ -65,13 +66,18 @@ msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configu
 
 call :TerminateBuildProcesses
 
+if defined TestDeterminism (
+    powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\test-determinism.ps1 %bindir%\Bootstrap" || goto :BuildFailed
+    exit /b 0
+)
+
 if defined Perf (
   set Target=Build
 ) else (
   set Target=BuildAndTest
 )
 
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath=%bindir%\Bootstrap BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:DeployExtension=false /fileloggerparameters:LogFile=%bindir%\Build.log;verbosity=diagnostic || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath=%bindir%\Bootstrap BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /fileloggerparameters:LogFile=%bindir%\Build.log;verbosity=diagnostic || goto :BuildFailed
 
 call :TerminateBuildProcesses
 

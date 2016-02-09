@@ -26,8 +26,21 @@
     <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
     <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.Compilers\1.2.0-beta1-20160202-02\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
     <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\1.1.1-beta1-20150818-01\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
+    <RoslynBuildUtilFilePath>$(NuGetPackageRoot)\Roslyn.MSBuild.Util\0.9.1\lib\net45\Roslyn.MSBuild.Util.dll</RoslynBuildUtilFilePath>
     <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
   </PropertyGroup>
+
+  <!-- 
+    Roslyn uses the WriteCodeFragment task to output generated assembly attributes.  In MSBuild 14.0 update 1 this task 
+    produces non-deterministic output.  This is fixed in update 2 but until that is released we use a hand patched
+    version of the Task that is deterministic.  
+
+    MSBuild bug: https://github.com/Microsoft/msbuild/issues/408
+    Bug tracking removing this: https://github.com/dotnet/roslyn/issues/8421
+  -->
+  <UsingTask TaskName="Roslyn.MSBuild.Util.WriteCodeFragmentEx"
+             AssemblyFile="$(RoslynBuildUtilFilePath)"
+             Condition="'$(OS)' == 'Windows_NT'" />
 
   <Target Name="RestoreToolsetCheck"
       Condition="'$(BuildingProject)' == 'true'">
@@ -89,6 +102,8 @@
     <!-- If we're on Visual Studio 2015 RTM and  we still have Roslyn installed, our VSIX-producing packages are not going to install, so let's not even try.
          Update 1 supports this, so we'll use csi.exe's existence as a simple proxy for whether we have Update 1 installed or not. -->
     <DeployExtension Condition="'$(DeployExtension)' == '' AND Exists('$(DevEnvDir)\CommonExtensions\Microsoft\Roslyn\Language Services\extension.vsixmanifest') AND !Exists('$(MSBuildBinPath)\csi.exe')">false</DeployExtension>
+
+    <Deterministic>True</Deterministic>
   </PropertyGroup>
 
   <Choose>
@@ -290,4 +305,16 @@
     <AuthenticodeCertificateName>MicrosoftSHA1</AuthenticodeCertificateName>
     <FakeSignToolPath>$(NuGetPackageRoot)\FakeSign\0.9.2\tools\FakeSign.exe</FakeSignToolPath>
   </PropertyGroup>
+
+  <!-- 
+    When running our determinism tests we need to copy the diagnostic file from the intermediate directory 
+    to the location of the binary.  This ensures .dll and .dll.key are next to each other to be picked up
+    by our test scripts
+  -->
+  <Target Name="CopyDeterministicBuildDiagnosticFile" Condition="'$(DebugDeterminism)' != ''" AfterTargets="CoreCompile">
+    <Copy
+        Condition="Exists(@(IntermediateAssembly -> '%(fullpath).key'))"
+        SourceFiles="@(IntermediateAssembly -> '%(fullpath).key')"
+        DestinationFolder="$(OutDir)" />
+  </Target>
  </Project>
