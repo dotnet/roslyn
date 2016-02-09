@@ -1535,7 +1535,7 @@ namespace Roslyn.Test.MetadataUtilities
                     foreach (var sequencePoint in entry.GetSequencePoints())
                     {
                         _writer.Write("  ");
-                        _writer.WriteLine(sequencePoint);
+                        _writer.WriteLine(SequencePoint(sequencePoint));
                     }
                 }
                 catch (BadImageFormatException)
@@ -1619,7 +1619,7 @@ namespace Roslyn.Test.MetadataUtilities
             WriteTableName(TableIndex.LocalConstant);
         }
 
-        private SignatureTypeCode ReadConstantTypeCode(ref BlobReader sigReader, List<CustomModifier<Handle>> modifiers)
+        private SignatureTypeCode ReadConstantTypeCode(ref BlobReader sigReader, List<string> modifiers)
         {
             while (true)
             {
@@ -1627,7 +1627,7 @@ namespace Roslyn.Test.MetadataUtilities
                 if (s == SignatureTypeCode.OptionalModifier || s == SignatureTypeCode.RequiredModifier)
                 {
                     var type = sigReader.ReadTypeHandle();
-                    modifiers.Add(new CustomModifier<Handle>(type, isRequired: s == SignatureTypeCode.RequiredModifier));
+                    modifiers.Add((s == SignatureTypeCode.RequiredModifier ? "modreq" : "modopt") + "(" + Token(() => type) + ")");
                 }
                 else
                 {
@@ -1640,7 +1640,7 @@ namespace Roslyn.Test.MetadataUtilities
         {
             var sigReader = reader.GetBlobReader(signature);
 
-            var modifiers = new List<CustomModifier<Handle>>();
+            var modifiers = new List<string>();
 
             SignatureTypeCode typeCode = ReadConstantTypeCode(ref sigReader, modifiers);
 
@@ -1685,13 +1685,8 @@ namespace Roslyn.Test.MetadataUtilities
 
             return string.Format("{0} [{1}{2}]",
                 value,
-                FormatCustomModifiers(modifiers),
+                 string.Join(" ", modifiers),
                 typeHandle.IsNil ? typeCode.ToString() : Token(() => typeHandle));
-        }
-
-        private string FormatCustomModifiers(IEnumerable<CustomModifier<Handle>> modifiers)
-        {
-            return string.Join(" ", modifiers.Select(m => (m.IsRequired ? "modreq" : "modopt") + "(" + Token(() => m.Type) + ")"));
         }
 
         private static bool IsPrimitiveType(SignatureTypeCode typeCode)
