@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             this.Condition = condition;
             this.IfTrue = ifTrue;
             this.IfFalse = ifFalse;
-            this.ResultType = resultType;
+            this.Type = resultType;
             this.Syntax = syntax;
         }
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public IExpression IfFalse { get; }
 
-        public ITypeSymbol ResultType { get; }
+        public ITypeSymbol Type { get; }
 
         public SyntaxNode Syntax { get; }
 
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public SyntaxNode Syntax { get; }
 
-            public ITypeSymbol ResultType => this.Target.ResultType;
+            public ITypeSymbol Type => this.Target.Type;
 
             public OperationKind Kind => OperationKind.AssignmentExpression;
 
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public SyntaxNode Syntax { get; }
 
-            public ITypeSymbol ResultType => this.Target.ResultType;
+            public ITypeSymbol Type => this.Target.Type;
 
             public OperationKind Kind => OperationKind.CompoundAssignmentExpression;
 
@@ -260,13 +260,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         public IntegerLiteral(long value, ITypeSymbol resultType, SyntaxNode syntax)
         {
             _value = value;
-            this.ResultType = resultType;
+            this.Type = resultType;
             this.Syntax = syntax;
         }
         
-        public string Spelling =>_value.ToString();
+        public string Text =>_value.ToString();
 
-        public ITypeSymbol ResultType { get; }
+        public ITypeSymbol Type { get; }
 
         public OperationKind Kind => OperationKind.LiteralExpression;
 
@@ -294,13 +294,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         public Literal(ConstantValue value, ITypeSymbol resultType, SyntaxNode syntax)
         {
             _value = value;
-            this.ResultType = resultType;
+            this.Type = resultType;
             this.Syntax = syntax;
         }
 
-        public string Spelling => _value.Value.ToString();
+        public string Text => _value.Value.ToString();
 
-        public ITypeSymbol ResultType { get; }
+        public ITypeSymbol Type { get; }
 
         public OperationKind Kind => OperationKind.LiteralExpression;
 
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             this.BinaryOperationKind = binaryKind;
             this.Left = left;
             this.Right = right;
-            this.ResultType = resultType;
+            this.Type = resultType;
             this.Syntax = syntax;
         }
 
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public IMethodSymbol OperatorMethod => null;
 
-        public ITypeSymbol ResultType { get; }
+        public ITypeSymbol Type { get; }
 
         public OperationKind Kind => OperationKind.BinaryOperatorExpression;
 
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             this.Syntax = syntax;
         }
 
-        public ITypeSymbol ResultType => _arrayType;
+        public ITypeSymbol Type => _arrayType;
 
         public ImmutableArray<IExpression> DimensionSizes { get; }
 
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 ElementValues = elementValues;
                 Syntax = syntax;
-                ResultType = arrayType;
+                Type = arrayType;
             }
 
             public ImmutableArray<IExpression> ElementValues { get; }
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public OperationKind Kind => OperationKind.ArrayInitializer;
 
-            public ITypeSymbol ResultType { get; }
+            public ITypeSymbol Type { get; }
 
             public SyntaxNode Syntax { get; }
 

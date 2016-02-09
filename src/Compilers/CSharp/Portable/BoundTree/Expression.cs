@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     partial class BoundExpression : IExpression
     {
-        ITypeSymbol IExpression.ResultType => this.Type;
+        ITypeSymbol IExpression.Type => this.Type;
 
         OperationKind IOperation.Kind => this.ExpressionKind;
 
@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
         
-        ImmutableArray<IArgument> IInvocationExpression.ArgumentsInParameterOrder => DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters);
+        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInParameterOrder => DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters);
 
-        IArgument IInvocationExpression.ArgumentMatchingParameter(IParameterSymbol parameter)
+        IArgument IHasArgumentsExpression.GetArgumentMatchingParameter(IParameterSymbol parameter)
         {
             return ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, parameter.ContainingSymbol as Symbols.MethodSymbol, parameter);
         }
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundLiteral : ILiteralExpression
     {
-        string ILiteralExpression.Spelling => this.Syntax.ToString();
+        string ILiteralExpression.Text => this.Syntax.ToString();
 
         protected override OperationKind ExpressionKind => OperationKind.LiteralExpression;
 
@@ -462,9 +462,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IMethodSymbol IObjectCreationExpression.Constructor => this.Constructor;
 
-        ImmutableArray<IArgument> IObjectCreationExpression.ConstructorArguments => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters);
+        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInParameterOrder => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters);
 
-        IArgument IObjectCreationExpression.ArgumentMatchingParameter(IParameterSymbol parameter)
+        IArgument IHasArgumentsExpression.GetArgumentMatchingParameter(IParameterSymbol parameter)
         {
             return BoundCall.ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Constructor, parameter);
         }

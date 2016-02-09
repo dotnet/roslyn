@@ -12,17 +12,33 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Result type of the expression.
         /// </summary>
-        ITypeSymbol ResultType { get; }
+        ITypeSymbol Type { get; }
         /// <summary>
         /// If the expression evaluates to a constant value, <see cref="Optional{Object}.HasValue"/> is true and <see cref="Optional{Object}.Value"/> is the value of the expression, and otherwise <see cref="Optional{Object}.HasValue"/> is false.
         /// </summary>
         Optional<object> ConstantValue { get; }
     }
 
+    public interface IHasArgumentsExpression : IExpression
+    {
+        /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in parameter order,
+        /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
+        /// optional arguments missing in source.
+        /// </summary>
+        ImmutableArray<IArgument> ArgumentsInParameterOrder { get; }
+        /// <summary>
+        /// Find the argument supplied for a given parameter of the target method.
+        /// </summary>
+        /// <param name="parameter">Parameter of the target method.</param>
+        /// <returns>Argument corresponding to the parameter.</returns>
+        IArgument GetArgumentMatchingParameter(IParameterSymbol parameter);
+    }
+
     /// <summary>
     /// Represents a C# or VB method invocation.
     /// </summary>
-    public interface IInvocationExpression : IExpression
+    public interface IInvocationExpression : IHasArgumentsExpression
     {
         /// <summary>
         /// Method to be invoked.
@@ -37,23 +53,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         bool IsVirtual { get; }
         /// <summary>
-        /// Arguments of the invocation, excluding the instance argument. Arguments are in parameter order,
-        /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
-        /// optional arguments missing in source.
-        /// </summary>
-        ImmutableArray<IArgument> ArgumentsInParameterOrder { get; }
-        /// <summary>
         /// Arguments of the invocation, excluding the instance argument. Arguments are in the order specified in source,
         /// and params/ParamArray arguments have been collected into arrays. Arguments are not present
         /// unless supplied in source.
         /// </summary>
         ImmutableArray<IArgument> ArgumentsInSourceOrder { get; }
-        /// <summary>
-        /// Find the argument supplied for a given parameter of the target method.
-        /// </summary>
-        /// <param name="parameter">Parameter of the target method.</param>
-        /// <returns>Argument corresponding to the parameter.</returns>
-        IArgument ArgumentMatchingParameter(IParameterSymbol parameter);
     }
 
     /// <summary>
@@ -899,7 +903,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Textual representation of the literal.
         /// </summary>
-        string Spelling { get; }
+        string Text { get; }
     }
 
     /// <summary>
@@ -927,17 +931,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a new/New expression.
     /// </summary>
-    public interface IObjectCreationExpression : IExpression
+    public interface IObjectCreationExpression : IHasArgumentsExpression
     {
         /// <summary>
-        /// Constructor to be invoked for the created instance.
+        /// Constructor to be invoked on the created instance.
         /// </summary>
         IMethodSymbol Constructor { get; }
-        /// <summary>
-        /// Arguments to the constructor.
-        /// </summary>
-        ImmutableArray<IArgument> ConstructorArguments { get; }
-        IArgument ArgumentMatchingParameter(IParameterSymbol parameter);
         /// <summary>
         /// Explicitly-specified member initializers.
         /// </summary>
@@ -1076,21 +1075,5 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Name of the member.
         /// </summary>
         string MemberName { get; }
-    }
-
-    /// <summary>
-    /// Defines extension methods useful for IExpression instances.
-    /// </summary>
-    public static class IExpressionExtensions
-    {
-        /// <summary>
-        /// Tests if an invocation is to a static/shared method.
-        /// </summary>
-        /// <param name="invocation">Invocation to be tested.</param>
-        /// <returns>True if the invoked method is static/shared, false otherwise.</returns>
-        public static bool IsStatic(this IInvocationExpression invocation)
-        {
-            return invocation.TargetMethod.IsStatic;
-        }
     }
 }

@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IResultType As ITypeSymbol Implements IExpression.ResultType
+        Private ReadOnly Property IResultType As ITypeSymbol Implements IExpression.Type
             Get
                 Return Me.Type
             End Get
@@ -238,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundLiteral
         Implements ILiteralExpression
 
-        Private ReadOnly Property ISpelling As String Implements ILiteralExpression.Spelling
+        Private ReadOnly Property ISpelling As String Implements ILiteralExpression.Text
             Get
                 Return Me.Syntax.ToString()
             End Get
@@ -310,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundCall
         Implements IInvocationExpression
 
-        Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IInvocationExpression.ArgumentMatchingParameter
+        Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
             Return ArgumentMatchingParameter(Me.Arguments, parameter, Me.Method.Parameters)
         End Function
 
@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IInvocationExpression.ArgumentsInParameterOrder
+        Private ReadOnly Property IArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
             Get
                 Return DeriveArguments(Me.Arguments, Me.Method.Parameters)
             End Get
@@ -1147,7 +1147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ReadOnly s_memberInitializersMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundObjectCreationExpression, Object)
 
-        Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IObjectCreationExpression.ArgumentMatchingParameter
+        Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
             Return BoundCall.ArgumentMatchingParameter(Me.Arguments, parameter, Me.ConstructorOpt.Parameters)
         End Function
 
@@ -1157,7 +1157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IConstructorArguments As ImmutableArray(Of IArgument) Implements IObjectCreationExpression.ConstructorArguments
+        Private ReadOnly Property IConstructorArguments As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
             Get
                 Return BoundCall.DeriveArguments(Me.Arguments, Me.ConstructorOpt.Parameters)
             End Get

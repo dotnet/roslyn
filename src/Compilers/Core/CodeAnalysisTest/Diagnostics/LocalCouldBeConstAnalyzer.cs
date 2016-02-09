@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
             else if (target.Kind == OperationKind.FieldReferenceExpression)
             {
                 IFieldReferenceExpression fieldReference = (IFieldReferenceExpression)target;
-                if (fieldReference.Instance != null && fieldReference.Instance.ResultType.IsValueType)
+                if (fieldReference.Instance != null && fieldReference.Instance.Type.IsValueType)
                 {
                     AssignTo(fieldReference.Instance, assignedToLocals, mightBecomeConstLocals);
                 }

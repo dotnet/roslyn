@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                 assignedToFields.Add(targetField);
                 mightBecomeReadOnlyFields.Remove(targetField);
 
-                if (fieldReference.Instance != null && fieldReference.Instance.ResultType.IsValueType)
+                if (fieldReference.Instance != null && fieldReference.Instance.Type.IsValueType)
                 {
                     AssignTo(fieldReference.Instance, inConstructor, staticConstructorType, assignedToFields, mightBecomeReadOnlyFields);
                 }

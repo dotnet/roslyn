@@ -263,11 +263,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                 IConversionExpression conversion = (IConversionExpression)value;
                 if (!conversion.IsExplicit)
                 {
-                    return conversion.Operand.ResultType;
+                    return conversion.Operand.Type;
                 }
             }
 
-            return value.ResultType;
+            return value.Type;
         }
 
         void Report(OperationBlockAnalysisContext context, ILocalSymbol local, ITypeSymbol moreSpecificType, DiagnosticDescriptor descriptor)

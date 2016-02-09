@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                              IExpression conditionRight = condition.Right;
 
                              if (conditionRight.ConstantValue.HasValue &&
-                                 conditionRight.ResultType.SpecialType == SpecialType.System_Int32 &&
+                                 conditionRight.Type.SpecialType == SpecialType.System_Int32 &&
                                  conditionLeft.Kind == OperationKind.LocalReferenceExpression)
                              {
                                  // Test is known to be a comparison of a local against a constant.
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                          if (setupAssignment.Target.Kind == OperationKind.LocalReferenceExpression &&
                                              ((ILocalReferenceExpression)setupAssignment.Target).Local == testVariable &&
                                              setupAssignment.Value.ConstantValue.HasValue &&
-                                             setupAssignment.Value.ResultType.SpecialType == SpecialType.System_Int32)
+                                             setupAssignment.Value.Type.SpecialType == SpecialType.System_Int32)
                                          {
                                              // Setup is known to be an assignment of a constant to the local used in the test.
 
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                                          if (advanceAssignment.Target.Kind == OperationKind.LocalReferenceExpression &&
                                                              ((ILocalReferenceExpression)advanceAssignment.Target).Local == testVariable &&
                                                              advanceAssignment.Value.Kind == OperationKind.BinaryOperatorExpression &&
-                                                             advanceAssignment.Value.ResultType.SpecialType == SpecialType.System_Int32)
+                                                             advanceAssignment.Value.Type.SpecialType == SpecialType.System_Int32)
                                                          {
                                                              // Advance is known to be an assignment of a binary operation to the local used in the test.
 
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                                                  advanceOperation.Left.Kind == OperationKind.LocalReferenceExpression &&
                                                                  ((ILocalReferenceExpression)advanceOperation.Left).Local == testVariable &&
                                                                  advanceOperation.Right.ConstantValue.HasValue &&
-                                                                 advanceOperation.Right.ResultType.SpecialType == SpecialType.System_Int32)
+                                                                 advanceOperation.Right.Type.SpecialType == SpecialType.System_Int32)
                                                              {
                                                                  // Advance binary operation is known to involve a reference to the local used in the test and a constant.
                                                                  advanceIncrement = advanceOperation.Right;
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                                          if (advanceAssignment.Target.Kind == OperationKind.LocalReferenceExpression &&
                                                              ((ILocalReferenceExpression)advanceAssignment.Target).Local == testVariable &&
                                                              advanceAssignment.Value.ConstantValue.HasValue &&
-                                                             advanceAssignment.Value.ResultType.SpecialType == SpecialType.System_Int32)
+                                                             advanceAssignment.Value.Type.SpecialType == SpecialType.System_Int32)
                                                          {
                                                              // Advance binary operation is known to involve a reference to the local used in the test and a constant.
                                                              advanceIncrement = advanceAssignment.Value;
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                          IExpression singleValueExpression = singleValueClause.Value;
                                          if (singleValueExpression != null &&
                                              singleValueExpression.ConstantValue.HasValue &&
-                                             singleValueExpression.ResultType.SpecialType == SpecialType.System_Int32)
+                                             singleValueExpression.Type.SpecialType == SpecialType.System_Int32)
                                          {
                                              int singleValue = (int)singleValueExpression.ConstantValue.Value;
                                              caseValueCount += IncludeClause(singleValue, singleValue, ref minCaseValue, ref maxCaseValue);
@@ -344,10 +344,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                          IExpression rangeMaxExpression = rangeClause.MaximumValue;
                                          if (rangeMinExpression != null &&
                                              rangeMinExpression.ConstantValue.HasValue &&
-                                             rangeMinExpression.ResultType.SpecialType == SpecialType.System_Int32 &&
+                                             rangeMinExpression.Type.SpecialType == SpecialType.System_Int32 &&
                                              rangeMaxExpression != null &&
                                              rangeMaxExpression.ConstantValue.HasValue &&
-                                             rangeMaxExpression.ResultType.SpecialType == SpecialType.System_Int32)
+                                             rangeMaxExpression.Type.SpecialType == SpecialType.System_Int32)
                                          {
                                              int rangeMinValue = (int)rangeMinExpression.ConstantValue.Value;
                                              int rangeMaxValue = (int)rangeMaxExpression.ConstantValue.Value;
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                          IExpression relationalValueExpression = relationalClause.Value;
                                          if (relationalValueExpression != null &&
                                              relationalValueExpression.ConstantValue.HasValue &&
-                                             relationalValueExpression.ResultType.SpecialType == SpecialType.System_Int32)
+                                             relationalValueExpression.Type.SpecialType == SpecialType.System_Int32)
                                          {
                                              int rangeMinValue = int.MaxValue;
                                              int rangeMaxValue = int.MinValue;
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         private static void TestAscendingArgument(OperationAnalysisContext operationContext, IExpression argument, ref long priorArgumentValue)
         {
             Optional<object> argumentValue = argument.ConstantValue;
-            if (argumentValue.HasValue && argument.ResultType.SpecialType == SpecialType.System_Int32)
+            if (argumentValue.HasValue && argument.Type.SpecialType == SpecialType.System_Int32)
             {
                 int integerArgument = (int)argumentValue.Value;
                 if (integerArgument < priorArgumentValue)
@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      ILiteralExpression literal = (ILiteralExpression)operationContext.Operation;
-                     if (literal.ResultType.SpecialType == SpecialType.System_Int32 &&
+                     if (literal.Type.SpecialType == SpecialType.System_Int32 &&
                          literal.ConstantValue.HasValue &&
                          (int)literal.ConstantValue.Value == 17)
                      {
@@ -1364,7 +1364,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     {
                         if (binary.GetBinaryOperandsKind() == BinaryOperandsKind.Floating)
                         {
-                            if (binary.BinaryOperationKind == BinaryOperationKind.FloatingMultiply && binary.ResultType.SpecialType == SpecialType.System_Double)
+                            if (binary.BinaryOperationKind == BinaryOperationKind.FloatingMultiply && binary.Type.SpecialType == SpecialType.System_Double)
                             {
                                 operationContext.ReportDiagnostic(Diagnostic.Create(DoubleMultiplyDescriptor, binary.Syntax.GetLocation()));
                             }

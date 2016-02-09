@@ -596,7 +596,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                                 Dim stepValue As IExpression = New Temporary(SyntheticLocalKind.ForLoopStepValue, BoundFor, BoundFor.StepValue)
                                 Dim stepRelationalCode As BinaryOperationKind = DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, BoundFor.StepValue)
-                                Dim stepCondition As IExpression = New Binary(stepRelationalCode, stepValue, New BoundLiteral(Nothing, Semantics.Expression.SynthesizeNumeric(stepValue.ResultType, 0), BoundFor.StepValue.Type), booleanType, BoundFor.StepValue.Syntax)
+                                Dim stepCondition As IExpression = New Binary(stepRelationalCode, stepValue, New BoundLiteral(Nothing, Semantics.Expression.SynthesizeNumeric(stepValue.Type, 0), BoundFor.StepValue.Type), booleanType, BoundFor.StepValue.Syntax)
 
                                 Dim positiveStepRelationalCode As BinaryOperationKind = DeriveBinaryOperationKind(BinaryOperatorKind.LessThanOrEqual, controlVariable)
                                 Dim positiveStepCondition As IExpression = New Binary(positiveStepRelationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)
@@ -674,9 +674,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public ReadOnly Property ResultType As ITypeSymbol Implements IExpression.ResultType
+            Public ReadOnly Property Type As ITypeSymbol Implements IExpression.Type
                 Get
-                    Return Me._capturedValue.ResultType
+                    Return Me._capturedValue.Type
                 End Get
             End Property
 
@@ -913,7 +913,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundThrowStatement
         Implements IThrowStatement
 
-        Private ReadOnly Property IThrown As IExpression Implements IThrowStatement.Thrown
+        Private ReadOnly Property IThrown As IExpression Implements IThrowStatement.ThrownObject
             Get
                 Return Me.ExpressionOpt
             End Get
@@ -1130,7 +1130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundSyncLockStatement
         Implements ILockStatement
 
-        Private ReadOnly Property ILocked As IExpression Implements ILockStatement.Locked
+        Private ReadOnly Property ILocked As IExpression Implements ILockStatement.LockedObject
             Get
                 Return Me.LockExpression
             End Get
@@ -1278,7 +1278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ReadOnly s_variablesMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundUsingStatement, Variables)
 
-        Private ReadOnly Property IVariables As IVariableDeclarationStatement Implements IUsingWithDeclarationStatement.Variables
+        Private ReadOnly Property IVariables As IVariableDeclarationStatement Implements IUsingWithDeclarationStatement.Declaration
             Get
                 Return s_variablesMappings.GetValue(
                     Me,
@@ -1473,7 +1473,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public ReadOnly Property ResultType As ITypeSymbol Implements IExpression.ResultType
+            Public ReadOnly Property Type As ITypeSymbol Implements IExpression.Type
                 Get
                     Return Nothing
                 End Get

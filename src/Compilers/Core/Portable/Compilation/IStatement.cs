@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IThrowStatement : IStatement
     {
         // Thrown expression.
-        IExpression Thrown { get; }
+        IExpression ThrownObject { get; }
     }
 
     /// <summary>
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Value to be locked.
         /// </summary>
-        IExpression Locked { get; }
+        IExpression LockedObject { get; }
         /// <summary>
         /// Body of the lock, to be executed while holding the lock.
         /// </summary>
@@ -395,9 +395,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IUsingWithDeclarationStatement : IUsingStatement
     {
         /// <summary>
-        /// Variables declared by the using.
+        /// Declaration of variables introduced by the using.
         /// </summary>
-        IVariableDeclarationStatement Variables { get; }
+        IVariableDeclarationStatement Declaration { get; }
     }
 
     /// <summary>

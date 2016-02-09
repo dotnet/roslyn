@@ -1,9 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Semantics;
 
-namespace Microsoft.CodeAnalysis.Semantics
+namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Root type for representing the abstract semantics of C# and VB statements and expressions.

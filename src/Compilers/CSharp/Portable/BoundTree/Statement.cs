@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundUsingStatement : IUsingWithDeclarationStatement, IUsingWithExpressionStatement
     {
-        IVariableDeclarationStatement IUsingWithDeclarationStatement.Variables => this.DeclarationsOpt;
+        IVariableDeclarationStatement IUsingWithDeclarationStatement.Declaration => this.DeclarationsOpt;
 
         IExpression IUsingWithExpressionStatement.Value => this.ExpressionOpt;
 
@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundThrowStatement : IThrowStatement
     {
-        IExpression IThrowStatement.Thrown => this.ExpressionOpt;
+        IExpression IThrowStatement.ThrownObject => this.ExpressionOpt;
 
         protected override OperationKind StatementKind => OperationKind.ThrowStatement;
 
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundLockStatement : ILockStatement
     {
-        IExpression ILockStatement.Locked => this.Argument;
+        IExpression ILockStatement.LockedObject => this.Argument;
 
         IStatement ILockStatement.Body => this.Body;
 

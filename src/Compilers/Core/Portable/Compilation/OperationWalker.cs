@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitThrowStatement(IThrowStatement operation)
         {
-            Visit(operation.Thrown);
+            Visit(operation.ThrownObject);
         }
 
         public override void VisitReturnStatement(IReturnStatement operation)
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitLockStatement(ILockStatement operation)
         {
-            Visit(operation.Locked);
+            Visit(operation.LockedObject);
             Visit(operation.Body);
         }
 
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitUsingWithDeclarationStatement(IUsingWithDeclarationStatement operation)
         {
-            Visit(operation.Variables);
+            Visit(operation.Declaration);
         }
 
         public override void VisitUsingWithExpressionStatement(IUsingWithExpressionStatement operation)
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitObjectCreationExpression(IObjectCreationExpression operation)
         {
-            VisitArray(operation.ConstructorArguments);
+            VisitArray(operation.ArgumentsInParameterOrder);
             VisitArray(operation.MemberInitializers);
         }
 
