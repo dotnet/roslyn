@@ -226,9 +226,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                             HostOperationBlockStartAnalysisScope scope,
                                                             ImmutableArray<IOperation> operationBlocks,
                                                             ISymbol owningSymbol,
+                                                            Compilation compilation,
                                                             AnalyzerOptions options,
                                                             CancellationToken cancellationToken)
-            : base(operationBlocks, owningSymbol, options, cancellationToken)
+            : base(operationBlocks, owningSymbol, compilation, options, cancellationToken)
         {
             _analyzer = analyzer;
             _scope = scope;

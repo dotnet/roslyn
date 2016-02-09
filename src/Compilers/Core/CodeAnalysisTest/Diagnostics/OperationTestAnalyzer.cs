@@ -90,16 +90,23 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         public sealed override void Initialize(AnalysisContext context)
         {
-            context.RegisterOperationAction(
-                 (operationContext) =>
-                 {
-                     if (operationContext.ContainingSymbol.Name.StartsWith("Funky") && operationContext.Compilation.Language != "Mumble")
-                     {
-                         operationContext.ReportDiagnostic(Diagnostic.Create(ExpressionDescriptor, operationContext.Operation.Syntax.GetLocation()));
-                     }
-                 },
-                 OperationKind.LocalReferenceExpression,
-                 OperationKind.LiteralExpression);
+            context.RegisterOperationBlockStartAction(
+                (operationBlockContext) =>
+                {
+                    if (operationBlockContext.Compilation.Language != "Stumble")
+                    {
+                        operationBlockContext.RegisterOperationAction(
+                             (operationContext) =>
+                             {
+                                 if (operationContext.ContainingSymbol.Name.StartsWith("Funky") && operationContext.Compilation.Language != "Mumble")
+                                 {
+                                     operationContext.ReportDiagnostic(Diagnostic.Create(ExpressionDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                                 }
+                             },
+                             OperationKind.LocalReferenceExpression,
+                             OperationKind.LiteralExpression);
+                    }
+                });
         }
     }
 

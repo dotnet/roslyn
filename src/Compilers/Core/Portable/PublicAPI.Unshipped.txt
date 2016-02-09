@@ -26,14 +26,16 @@ Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.Options.get -> Micro
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
-Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.OperationBlockAnalysisContext(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation> operationBlocks, Microsoft.CodeAnalysis.ISymbol owningSymbol, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<Microsoft.CodeAnalysis.Diagnostic> reportDiagnostic, System.Func<Microsoft.CodeAnalysis.Diagnostic, bool> isSupportedDiagnostic, System.Threading.CancellationToken cancellationToken) -> void
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.OperationBlockAnalysisContext(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation> operationBlocks, Microsoft.CodeAnalysis.ISymbol owningSymbol, Microsoft.CodeAnalysis.Compilation compilation, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<Microsoft.CodeAnalysis.Diagnostic> reportDiagnostic, System.Func<Microsoft.CodeAnalysis.Diagnostic, bool> isSupportedDiagnostic, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.OperationBlocks.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.OwningSymbol.get -> Microsoft.CodeAnalysis.ISymbol
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
-Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.OperationBlockStartAnalysisContext(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation> operationBlocks, Microsoft.CodeAnalysis.ISymbol owningSymbol, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Threading.CancellationToken cancellationToken) -> void
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.OperationBlockStartAnalysisContext(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation> operationBlocks, Microsoft.CodeAnalysis.ISymbol owningSymbol, Microsoft.CodeAnalysis.Compilation compilation, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.OperationBlocks.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.OwningSymbol.get -> Microsoft.CodeAnalysis.ISymbol
