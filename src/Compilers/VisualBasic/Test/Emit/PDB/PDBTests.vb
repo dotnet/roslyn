@@ -4349,7 +4349,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8494")>
         Public Sub ImportsInAsync()
             Dim source =
 "Imports System.Linq
@@ -4394,7 +4394,7 @@ End Class"
 </symbols>)
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8494")>
         Public Sub ImportsInAsyncLambda()
             Dim source =
 "Imports System.Linq
