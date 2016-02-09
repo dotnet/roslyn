@@ -1329,5 +1329,65 @@ class C
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Method()").WithLocation(30, 9)
                 );
         }
+
+        [Fact]
+        public void UnaryBinaryOperatorsCSharp()
+        {
+            const string source = @"
+public class A
+{
+    readonly int _value;
+
+    public A (int value)
+    {
+        _value = value;
+    }
+
+    public static A operator +(A x, A y)
+    {
+        return new A(x._value + y._value);
+    }
+
+    public static A operator *(A x, A y)
+    {
+        return new A(x._value * y._value);
+    }
+
+    public static A operator -(A x)
+    {
+        return new A(-x._value);
+    }
+
+    public static A operator +(A x)
+    {
+        return new A(+x._value);
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        bool b = false;
+        double d = 100;
+        A a1 = new A(0);
+        A a2 = new A(100);
+
+        b = !b;
+        d = d * 100;
+        a1 = a1 + a2;
+        a1 = -a2;
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new UnaryAndBinaryOperationsTestAnalyzer() }, null, null, false,
+                Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.BooleanNotDescriptor.Id, "!b").WithLocation(41, 13),
+                Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.DoubleMultiplyDescriptor.Id, "d * 100").WithLocation(42, 13),
+                Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.OperatorAddMethodDescriptor.Id, "a1 + a2").WithLocation(43, 14),
+                Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.OperatorMinusMethodDescriptor.Id, "-a2").WithLocation(44, 14)
+                );
+        }
     }
 }

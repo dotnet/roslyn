@@ -1303,4 +1303,117 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.EventAssignmentExpression);
         }
     }
+
+    public class UnaryAndBinaryOperationsTestAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor OperatorAddMethodDescriptor = new DiagnosticDescriptor(
+            "OperatorAddMethod",
+            "Operator Add method found",
+            "An operator Add method was found",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor OperatorMinusMethodDescriptor = new DiagnosticDescriptor(
+            "OperatorMinusMethod",
+            "Operator Minus method found",
+            "An operator Minus method was found",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor DoubleMultiplyDescriptor = new DiagnosticDescriptor(
+            "DoubleMultiply",
+            "Double multiply found",
+            "A double multiply was found",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor BooleanNotDescriptor = new DiagnosticDescriptor(
+            "BooleanNot",
+            "Boolean not found",
+            "A boolean not was found",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(OperatorAddMethodDescriptor, OperatorMinusMethodDescriptor, DoubleMultiplyDescriptor, BooleanNotDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    IBinaryOperatorExpression binary = (IBinaryOperatorExpression)operationContext.Operation;
+                    if (binary.GetSimpleBinaryOperationKind() == SimpleBinaryOperationKind.Add)
+                    {
+                        if (binary.GetBinaryOperandsKind() == BinaryOperandsKind.OperatorMethod)
+                        {
+                            if (binary.BinaryOperationKind == BinaryOperationKind.OperatorMethodAdd)
+                            {
+                                if (binary.OperatorMethod.Name.Contains("Addition"))
+                                {
+                                    operationContext.ReportDiagnostic(Diagnostic.Create(OperatorAddMethodDescriptor, binary.Syntax.GetLocation()));
+                                }
+                            }
+                        }
+                    }
+
+                    if (binary.GetSimpleBinaryOperationKind() == SimpleBinaryOperationKind.Multiply)
+                    {
+                        if (binary.GetBinaryOperandsKind() == BinaryOperandsKind.Floating)
+                        {
+                            if (binary.BinaryOperationKind == BinaryOperationKind.FloatingMultiply && binary.ResultType.SpecialType == SpecialType.System_Double)
+                            {
+                                operationContext.ReportDiagnostic(Diagnostic.Create(DoubleMultiplyDescriptor, binary.Syntax.GetLocation()));
+                            }
+                        }
+                    }
+                },
+                OperationKind.BinaryOperatorExpression);
+
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    IUnaryOperatorExpression unary = (IUnaryOperatorExpression)operationContext.Operation;
+                    if (unary.GetSimpleUnaryOperationKind() == SimpleUnaryOperationKind.Minus)
+                    {
+                        if (unary.GetUnaryOperandKind() == UnaryOperandKind.OperatorMethod)
+                        {
+                            if (unary.UnaryOperationKind == UnaryOperationKind.OperatorMethodMinus)
+                            {
+                                if (unary.OperatorMethod.Name.Contains("UnaryNegation"))
+                                {
+                                    operationContext.ReportDiagnostic(Diagnostic.Create(OperatorMinusMethodDescriptor, unary.Syntax.GetLocation()));
+                                }
+                            }
+                        }
+                    }
+
+                    if (unary.GetSimpleUnaryOperationKind() == SimpleUnaryOperationKind.LogicalNot)
+                    {
+                        if (unary.GetUnaryOperandKind() == UnaryOperandKind.Boolean)
+                        {
+                            if (unary.UnaryOperationKind == UnaryOperationKind.BooleanLogicalNot)
+                            {
+                                operationContext.ReportDiagnostic(Diagnostic.Create(BooleanNotDescriptor, unary.Syntax.GetLocation()));
+                            }
+                        }
+                    }
+
+                    if (unary.GetSimpleUnaryOperationKind() == SimpleUnaryOperationKind.BitwiseNegation)
+                    {
+                        if (unary.GetUnaryOperandKind() == UnaryOperandKind.Boolean)
+                        {
+                            if (unary.UnaryOperationKind == UnaryOperationKind.BooleanBitwiseNegation)
+                            {
+                                operationContext.ReportDiagnostic(Diagnostic.Create(BooleanNotDescriptor, unary.Syntax.GetLocation()));
+                            }
+                        }
+                    }
+                },
+                OperationKind.UnaryOperatorExpression);
+        }
+    }
 }

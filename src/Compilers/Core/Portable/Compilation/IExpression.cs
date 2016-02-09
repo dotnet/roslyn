@@ -702,7 +702,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         const int BinaryOperandsKindMask = 0xff00;
 
         /// <summary>
-        /// Get kind of unary operation independent of data type.
+        /// Get unary operation kind independent of data type.
         /// </summary>
         public static SimpleUnaryOperationKind GetSimpleUnaryOperationKind(this IUnaryOperatorExpression unary)
         {
@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         /// <summary>
-        /// Get kind of binary operation independent of data type.
+        /// Get binary operation kind independent of data type.
         /// </summary>
         public static SimpleBinaryOperationKind GetSimpleBinaryOperationKind(this IBinaryOperatorExpression binary)
         {

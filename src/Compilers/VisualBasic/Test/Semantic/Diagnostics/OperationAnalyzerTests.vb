@@ -1430,5 +1430,60 @@ End Class
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.P").WithLocation(26, 17),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Method()").WithLocation(27, 9))
         End Sub
+
+        <Fact>
+        Public Sub UnaryBinaryOperatorsVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Public Class A
+
+    Private ReadOnly _value As Integer
+
+    Public Sub New (value As Integer)
+        _value = value
+    End Sub
+
+    Public Shared Operator +(x As A, Y As A) As A
+        Return New A(x._value + y._value)
+    End Operator
+
+    Public Shared Operator *(x As A, y As A) As A
+        Return New A(x._value * y._value)
+    End Operator
+
+    Public Shared Operator -(x  As A) As A
+        Return New A(-x._value)
+    End Operator
+
+    Public Shared operator +(x As A) As A
+        Return New A(+x._value)
+    End Operator
+End CLass
+
+Class C
+    Public Shared Sub Main()
+        Dim B As Boolean = False
+        Dim d As Double = 100
+        Dim a1 As New A(0)
+        Dim a2 As New A(100)
+
+        b = Not b
+        d = d * 100
+        a1 = a1 + a2
+        a1 = -a2
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New UnaryAndBinaryOperationsTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.BooleanNotDescriptor.Id, "Not b").WithLocation(33, 13),
+                Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.DoubleMultiplyDescriptor.Id, "d * 100").WithLocation(34, 13),
+                Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.OperatorAddMethodDescriptor.Id, "a1 + a2").WithLocation(35, 14),
+                Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.OperatorMinusMethodDescriptor.Id, "-a2").WithLocation(36, 14))
+        End Sub
     End Class
 End Namespace
