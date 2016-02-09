@@ -47,21 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             _runtimeInstances.Free();
         }
 
-        // TODO: remove -- workaround for bugs in Portable PDB handling in EE
-        internal static void WithRuntimeInstancePortableBug(Compilation compilation, Action<RuntimeInstance> validator)
-        {
-            WithRuntimeInstancePortableBug(compilation, null, validator);
-        }
-
-        // TODO: remove -- workaround for bugs in Portable PDB handling in EE
-        internal static void WithRuntimeInstancePortableBug(Compilation compilation, IEnumerable<MetadataReference> references, Action<RuntimeInstance> validator)
-        {
-            using (var instance = RuntimeInstance.Create(compilation, references, DebugInformationFormat.Pdb, true))
-            {
-                validator(instance);
-            }
-        }
-
         internal static void WithRuntimeInstance(Compilation compilation, Action<RuntimeInstance> validator)
         {
             WithRuntimeInstance(compilation, null, true, validator);
@@ -105,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             ModuleInstance module,
             IEnumerable<MetadataReference> references)
         {
-            var instance = RuntimeInstance.Create(module, references);
+            var instance = RuntimeInstance.Create(module, references, DebugInformationFormat.Pdb);
             _runtimeInstances.Add(instance);
             return instance;
         }
@@ -358,6 +343,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         internal static Alias Alias(DkmClrAliasKind kind, string name, string fullName, string type, CustomTypeInfo customTypeInfo)
         {
             return new Alias(kind, name, fullName, type, customTypeInfo);
+        }
+
+        internal static MethodDebugInfo<TypeSymbol, LocalSymbol> GetMethodDebugInfo(RuntimeInstance runtime, string qualifiedMethodName, int ilOffset = 0)
+        {
+            var peCompilation = runtime.Modules.SelectAsArray(m => m.MetadataBlock).ToCompilation();
+            var peMethod = peCompilation.GlobalNamespace.GetMember<PEMethodSymbol>(qualifiedMethodName);
+            var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+
+            var symReader = runtime.Modules.Single(mi => mi.ModuleVersionId == peModule.Module.GetModuleVersionIdOrThrow()).SymReader;
+            var symbolProvider = new CSharpEESymbolProvider((SourceAssemblySymbol)peCompilation.Assembly, peModule, peMethod);
+
+            return MethodDebugInfo<TypeSymbol, LocalSymbol>.ReadMethodDebugInfo((ISymUnmanagedReader)symReader, symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion: 1, ilOffset: ilOffset, isVisualBasicMethod: false);
         }
     }
 }

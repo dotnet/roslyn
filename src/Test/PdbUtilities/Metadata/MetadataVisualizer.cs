@@ -582,9 +582,7 @@ namespace Roslyn.Test.MetadataUtilities
                         break;
 
                     case ImportDefinitionKind.ImportType:
-                        sb.AppendFormat("{0}::{1}",
-                            Token(() => import.TargetAssembly),
-                            Token(() => import.TargetType));
+                        sb.AppendFormat("{0}", Token(() => import.TargetType));
                         break;
 
                     case ImportDefinitionKind.ImportXmlNamespace:

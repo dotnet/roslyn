@@ -7,6 +7,7 @@ Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -35,10 +36,28 @@ End Class
 "
 
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll)
-            comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
 
-            Dim importStrings = GetImportStrings(comp, "M")
-            AssertEx.SetEqual(importStrings, "@F:System", "")
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim info = GetMethodDebugInfo(runtime, "C.M")
+
+                    If runtime.DebugFormat = DebugInformationFormat.PortablePdb Then
+                        info.ImportRecordGroups.Verify("
+                        {
+                            Namespace: string='System'
+                        }
+                        {
+                        }")
+                    Else
+                        info.ImportRecordGroups.Verify("
+                        {
+                            Namespace: string='System'
+                            CurrentNamespace: string=''
+                        }
+                        {
+                        }")
+                    End If
+                End Sub)
         End Sub
 
         <Fact>
@@ -56,13 +75,51 @@ End Class
 "
 
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll)
-            comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
 
-            Dim importStrings1 = GetImportStrings(comp, "M1")
-            AssertEx.SetEqual(importStrings1, "@F:System.IO", "")
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim info1 = GetMethodDebugInfo(runtime, "C.M1")
 
-            Dim importStrings2 = GetImportStrings(comp, "M2")
-            Assert.Equal(importStrings1.AsEnumerable(), importStrings2)
+                    If runtime.DebugFormat = DebugInformationFormat.PortablePdb Then
+                        info1.ImportRecordGroups.Verify("
+                        {
+                            Namespace: string='System.IO'
+                        }
+                        {
+                        }")
+                    Else
+                        info1.ImportRecordGroups.Verify("
+                        {
+                            Namespace: string='System.IO'
+                            CurrentNamespace: string=''
+                        }
+                        {
+                        }")
+                    End If
+
+                    Assert.Equal("", info1.DefaultNamespaceName)
+
+                    Dim info2 = GetMethodDebugInfo(runtime, "C.M2")
+
+                    If runtime.DebugFormat = DebugInformationFormat.PortablePdb Then
+                        info2.ImportRecordGroups.Verify("
+                        {
+                            Namespace: string='System.IO'
+                        }
+                        {
+                        }")
+                    Else
+                        info2.ImportRecordGroups.Verify("
+                        {
+                            Namespace: string='System.IO'
+                            CurrentNamespace: string=''
+                        }
+                        {
+                        }")
+                    End If
+
+                    Assert.Equal("", info2.DefaultNamespaceName)
+                End Sub)
         End Sub
 
         <Fact>
@@ -92,50 +149,55 @@ End Namespace
                 "<xmlns=""http://xml2"">",
                 "<xmlns:F=""http://xml3"">"
             }))
+
             Dim comp = CreateCompilationWithMscorlib({source}, options:=options)
-            comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
 
-            Dim importStrings = GetImportStrings(comp, "M")
-            AssertEx.SetEqual(
-                importStrings,
-                "@F:System", ' File-level namespace
-                "@FT:System.IO.Path", ' File-level type
-                "@FA:A=System.Collections", ' File-level aliased namespace
-                "@FA:B=System.Collections.ArrayList", ' File-level aliased type
-                "@FX:=http://xml0", ' File-level XML namespace
-                "@FX:C=http://xml1", ' File-level aliased XML namespace
-                "@P:System.Runtime", ' Project-level namespace
-                "@PT:System.Threading.Thread", ' Project-level type
-                "@PA:D=System.Threading.Tasks", ' Project-level aliased namespace
-                "@PA:E=System.Threading.Timer", ' Project-level aliased type
-                "@PX:=http://xml2", ' Project-level XML namespace
-                "@PX:F=http://xml3", ' Project-level aliased XML namespace
-                "*root", ' Root namespace
-                "root.N") ' Containing namespace
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim info = GetMethodDebugInfo(runtime, "root.N.C.M")
+
+                    If runtime.DebugFormat = DebugInformationFormat.PortablePdb Then
+                        info.ImportRecordGroups.Verify("
+                        {
+                            XmlNamespace: alias='' string='http://xml0'
+                            XmlNamespace: alias='C' string='http://xml1'
+                            Namespace: alias='A' string='System.Collections'
+                            Type: alias='B' type='System.Collections.ArrayList'
+                            Namespace: string='System'
+                            Type: type='System.IO.Path'
+                        }
+                        {
+                            XmlNamespace: alias='' string='http://xml2'
+                            XmlNamespace: alias='F' string='http://xml3'
+                            Namespace: alias='D' string='System.Threading.Tasks'
+                            Type: alias='E' type='System.Threading.Timer'
+                            Namespace: string='System.Runtime'
+                            Type: type='System.Threading.Thread'
+                        }")
+                    Else
+                        info.ImportRecordGroups.Verify("
+                        {
+                            XmlNamespace: alias='' string='http://xml0'
+                            XmlNamespace: alias='C' string='http://xml1'
+                            NamespaceOrType: alias='A' string='System.Collections'
+                            NamespaceOrType: alias='B' string='System.Collections.ArrayList'
+                            Namespace: string='System'
+                            Type: string='System.IO.Path'
+                            CurrentNamespace: string='root.N'
+                        }
+                        {
+                            XmlNamespace: alias='' string='http://xml2'
+                            XmlNamespace: alias='F' string='http://xml3'
+                            NamespaceOrType: alias='D' string='System.Threading.Tasks'
+                            NamespaceOrType: alias='E' string='System.Threading.Timer'
+                            Namespace: string='System.Runtime'
+                            Type: string='System.Threading.Thread'
+                        }")
+                    End If
+
+                    Assert.Equal("root", info.DefaultNamespaceName)
+                End Sub)
         End Sub
-
-        Private Shared Function GetImportStrings(compilation As Compilation, methodName As String) As ImmutableArray(Of String)
-            Assert.NotNull(compilation)
-            Assert.NotNull(methodName)
-
-            Using exebits As New MemoryStream()
-                Using pdbbits As New MemoryStream()
-                    compilation.Emit(exebits, pdbbits)
-
-                    exebits.Position = 0
-                    Using metadata = ModuleMetadata.CreateFromStream(exebits, leaveOpen:=True)
-                        Dim [module] = metadata.Module
-                        Dim metadataReader = [module].MetadataReader
-                        Dim methodHandle = metadataReader.MethodDefinitions.Single(Function(mh) metadataReader.GetString(metadataReader.GetMethodDefinition(mh).Name) = methodName)
-                        Dim methodToken = metadataReader.GetToken(methodHandle)
-
-                        pdbbits.Position = 0
-                        Dim reader = SymReaderFactory.CreateReader(pdbbits)
-                        Return reader.GetVisualBasicImportStrings(methodToken, methodVersion:=1)
-                    End Using
-                End Using
-            End Using
-        End Function
 
 #End Region
 
@@ -319,17 +381,57 @@ End Namespace
                 "<xmlns=""http://xml2"">",
                 "<xmlns:F=""http://xml3"">"
             }))
+
             Dim comp = CreateCompilationWithMscorlib({source}, options:=options)
-            comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
-
-            Dim rootNamespace As NamespaceSymbol = Nothing
-            Dim currentNamespace As NamespaceSymbol = Nothing
-            Dim typesAndNamespaces As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition) = Nothing
-            Dim aliases As Dictionary(Of String, AliasAndImportsClausePosition) = Nothing
-            Dim xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
-
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
+                    Dim info = GetMethodDebugInfo(runtime, "root.N.C.M")
+
+                    If runtime.DebugFormat = DebugInformationFormat.PortablePdb Then
+                        info.ImportRecordGroups.Verify("
+                        {
+                            XmlNamespace: alias='' string='http://xml0'
+                            XmlNamespace: alias='C' string='http://xml1'
+                            Namespace: alias='A' string='System.Collections'
+                            Type: alias='B' type='System.Collections.ArrayList'
+                            Namespace: string='System'
+                            Type: type='System.IO.Path'
+                        }
+                        {
+                            XmlNamespace: alias='' string='http://xml2'
+                            XmlNamespace: alias='F' string='http://xml3'
+                            Namespace: alias='D' string='System.Threading.Tasks'
+                            Type: alias='E' type='System.Threading.Timer'
+                            Namespace: string='System.Runtime'
+                            Type: type='System.Threading.Thread'
+                        }")
+                    Else
+                        info.ImportRecordGroups.Verify("
+                        {
+                            XmlNamespace: alias='' string='http://xml0'
+                            XmlNamespace: alias='C' string='http://xml1'
+                            NamespaceOrType: alias='A' string='System.Collections'
+                            NamespaceOrType: alias='B' string='System.Collections.ArrayList'
+                            Namespace: string='System'
+                            Type: string='System.IO.Path'
+                            CurrentNamespace: string='root.N'
+                        }
+                        {
+                            XmlNamespace: alias='' string='http://xml2'
+                            XmlNamespace: alias='F' string='http://xml3'
+                            NamespaceOrType: alias='D' string='System.Threading.Tasks'
+                            NamespaceOrType: alias='E' string='System.Threading.Timer'
+                            Namespace: string='System.Runtime'
+                            Type: string='System.Threading.Thread'
+                        }")
+                    End If
+
+                    Dim rootNamespace As NamespaceSymbol = Nothing
+                    Dim currentNamespace As NamespaceSymbol = Nothing
+                    Dim typesAndNamespaces As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition) = Nothing
+                    Dim aliases As Dictionary(Of String, AliasAndImportsClausePosition) = Nothing
+                    Dim xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
+
                     GetImports(
                         runtime,
                         "root.N.C.M",
@@ -343,7 +445,11 @@ End Namespace
                     Assert.Equal("root", rootNamespace.ToTestDisplayString())
                     Assert.Equal("root.N", currentNamespace.ToTestDisplayString())
 
-                    AssertEx.SetEqual(typesAndNamespaces.Select(Function(i) i.NamespaceOrType.ToTestDisplayString()), "System", "System.IO.Path", "System.Runtime", "System.Threading.Thread", "root.N")
+                    Dim expectedNamespaces = If(runtime.DebugFormat = DebugInformationFormat.PortablePdb,
+                        {"System", "System.IO.Path", "System.Runtime", "System.Threading.Thread"},
+                        {"System", "System.IO.Path", "System.Runtime", "System.Threading.Thread", "root.N"})
+
+                    AssertEx.SetEqual(expectedNamespaces, typesAndNamespaces.Select(Function(i) i.NamespaceOrType.ToTestDisplayString()))
 
                     AssertEx.SetEqual(aliases.Keys, "A", "B", "D", "E")
                     Assert.Equal("System.Collections", aliases("A").Alias.Target.ToTestDisplayString())
@@ -374,7 +480,7 @@ End Namespace
                 Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll.WithRootNamespace(rootNamespaceName))
                 comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
 
-                WithRuntimeInstancePortableBug(comp,
+                WithRuntimeInstance(comp,
                     Sub(runtime)
                         Dim rootNamespace As NamespaceSymbol = Nothing
                         Dim currentNamespace As NamespaceSymbol = Nothing
@@ -395,7 +501,13 @@ End Namespace
                         Assert.True(rootNamespace.IsGlobalNamespace)
                         Assert.Equal("N", currentNamespace.ToTestDisplayString())
 
-                        Assert.Equal("N", typesAndNamespaces.Single().NamespaceOrType.ToTestDisplayString())
+                        ' Portable PDB doesn't include CurrentNamespace:
+                        If runtime.DebugFormat = DebugInformationFormat.PortablePdb Then
+                            Assert.True(typesAndNamespaces.IsDefault)
+                        Else
+                            Assert.Equal("N", typesAndNamespaces.Single().NamespaceOrType.ToTestDisplayString())
+                        End If
+
                         Assert.Null(aliases)
                         Assert.Null(xmlNamespaces)
                     End Sub)
@@ -439,7 +551,7 @@ End Namespace
             Dim aliases As Dictionary(Of String, AliasAndImportsClausePosition) = Nothing
             Dim xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
 
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     GetImports(
                         runtime,
@@ -455,7 +567,11 @@ End Namespace
                     Assert.Equal("root.N", currentNamespace.ToTestDisplayString())
 
                     ' CONSIDER: We could de-dup unaliased imports as well.
-                    AssertEx.SetEqual(typesAndNamespaces.Select(Function(i) i.NamespaceOrType.ToTestDisplayString()), "System", "System.IO.Path", "System", "System.IO.Path", "root.N")
+                    Dim expectedNamespaces = If(runtime.DebugFormat = DebugInformationFormat.PortablePdb,
+                        {"System", "System.IO.Path", "System", "System.IO.Path"},
+                        {"System", "System.IO.Path", "System", "System.IO.Path", "root.N"})
+
+                    AssertEx.SetEqual(expectedNamespaces, typesAndNamespaces.Select(Function(i) i.NamespaceOrType.ToTestDisplayString()))
 
                     AssertEx.SetEqual(aliases.Keys, "A", "B")
                     Assert.Equal("System.Collections", aliases("A").Alias.Target.ToTestDisplayString())
@@ -523,9 +639,7 @@ IL_000a:  ret
             <Out> ByRef aliases As Dictionary(Of String, AliasAndImportsClausePosition),
             <Out> ByRef xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition))
 
-            Dim evalContext = CreateMethodContext(
-                runtime,
-                methodName:=methodName)
+            Dim evalContext = CreateMethodContext(runtime, methodName)
             Dim compContext = evalContext.CreateCompilationContext(syntax)
 
             GetImports(compContext, rootNamespace, currentNamespace, typesAndNamespaces, aliases, xmlNamespaces)

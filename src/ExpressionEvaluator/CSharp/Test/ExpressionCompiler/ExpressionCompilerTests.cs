@@ -1444,7 +1444,7 @@ class C
                 options: TestOptions.DebugDll,
                 references: new[] { SystemCoreRef, CSharpRef });
 
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(
                 runtime,
@@ -1978,7 +1978,7 @@ class C<T>
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
 
@@ -3337,7 +3337,7 @@ class Program
     }
 }";
             var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "Program.F");
                 string error;
@@ -3549,7 +3549,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
                 string error;
@@ -4504,7 +4504,7 @@ struct S
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>d__0.MoveNext");
                 string error;
@@ -4725,7 +4725,7 @@ class C
 ";
 
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("X")) });
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
 
@@ -4791,7 +4791,7 @@ class C
 ";
 
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("global", "X")) });
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
 
@@ -4833,7 +4833,7 @@ class C
                     SystemXmlRef.WithAliases(ImmutableArray.Create("X"))
                 });
 
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
 
@@ -5235,7 +5235,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
                 ResultProperties resultProperties;
@@ -5705,7 +5705,7 @@ public class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source);
-            WithRuntimeInstancePortableBug(compilation, runtime =>
+            WithRuntimeInstance(compilation, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
 
@@ -5852,7 +5852,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M");
                 var testData = new CompilationTestData();
@@ -6092,7 +6092,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
                 string error;
@@ -6175,7 +6175,7 @@ class C
                 options: TestOptions.DebugDll,
                 references: new[] { SystemCoreRef });
 
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "N.C.<>c.<<M>b__0_0>d.MoveNext");
                 string error;

@@ -29,7 +29,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend ReadOnly Compilation As VisualBasicCompilation
         Friend ReadOnly NamespaceBinder As Binder ' Internal for test purposes.
 
-        Private ReadOnly _metadataDecoder As MetadataDecoder
         Private ReadOnly _currentFrame As MethodSymbol
         Private ReadOnly _locals As ImmutableArray(Of LocalSymbol)
         Private ReadOnly _displayClassVariables As ImmutableDictionary(Of String, DisplayClassVariable)
@@ -44,11 +43,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' </summary>
         Friend Sub New(
             compilation As VisualBasicCompilation,
-            metadataDecoder As MetadataDecoder,
             currentFrame As MethodSymbol,
             locals As ImmutableArray(Of LocalSymbol),
             inScopeHoistedLocals As InScopeHoistedLocals,
-            methodDebugInfo As MethodDebugInfo,
+            methodDebugInfo As MethodDebugInfo(Of TypeSymbol, LocalSymbol),
             syntax As ExecutableStatementSyntax)
 
             _syntax = syntax
@@ -64,7 +62,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End If
 
             Dim defaultNamespaceName As String = methodDebugInfo.DefaultNamespaceName
-            If defaultNamespaceName IsNot Nothing Then
+
+            ' Note We don't need to try to bind this string because this is analogous to passing
+            ' a command-line argument - as long as the syntax is valid, an appropriate symbol will
+            ' be created for us.
+            If defaultNamespaceName IsNot Nothing AndAlso TryParseDottedName(defaultNamespaceName, Nothing) Then
                 compilation = compilation.WithOptions(compilation.Options.WithRootNamespace(defaultNamespaceName))
             End If
 
@@ -79,11 +81,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             ' added (anonymous types, for instance).
             Debug.Assert(Me.Compilation IsNot originalCompilation)
 
-            _metadataDecoder = metadataDecoder
-
             NamespaceBinder = CreateBinderChain(
                 Me.Compilation,
-                metadataDecoder,
                 currentFrame.ContainingNamespace,
                 methodDebugInfo.ImportRecordGroups)
 
@@ -537,7 +536,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Shared Function CreateBinderChain(
             compilation As VisualBasicCompilation,
-            metadataDecoder As MetadataDecoder,
             [namespace] As NamespaceSymbol,
             importRecordGroups As ImmutableArray(Of ImmutableArray(Of ImportRecord))) As Binder
 
@@ -546,8 +544,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             binder = New IgnoreAccessibilityBinder(binder)
             binder = New SourceModuleBinder(binder, DirectCast(compilation.Assembly.Modules(0), SourceModuleSymbol))
 
-            If Not importRecordGroups.IsDefault Then
-                binder = BuildImportedSymbolsBinder(binder, New NamespaceBinder(binder, compilation.GlobalNamespace), metadataDecoder, importRecordGroups)
+            If Not importRecordGroups.IsEmpty Then
+                binder = BuildImportedSymbolsBinder(binder, New NamespaceBinder(binder, compilation.GlobalNamespace), importRecordGroups)
             End If
 
             Dim stack = ArrayBuilder(Of String).GetInstance()
@@ -629,7 +627,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Shared Function BuildImportedSymbolsBinder(
             containingBinder As Binder,
             importBinder As Binder,
-            metadataDecoder As MetadataDecoder,
             importRecordGroups As ImmutableArray(Of ImmutableArray(Of ImportRecord))) As Binder
 
             Dim projectLevelImportsBuilder As ArrayBuilder(Of NamespaceOrTypeAndImportsClausePosition) = Nothing
@@ -641,9 +638,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim projectLevelXmlImports As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
             Dim fileLevelXmlImports As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
 
-            Debug.Assert(importRecordGroups.Length = 2) ' First project-level, then file-level.
-            Dim projectLevelImportRecords = importRecordGroups(0)
-            Dim fileLevelImportRecords = importRecordGroups(1)
+            Debug.Assert(importRecordGroups.Length = 2) ' First file-level, then project-level.
+            Dim projectLevelImportRecords = importRecordGroups(1)
+            Dim fileLevelImportRecords = importRecordGroups(0)
 
             ' Use this to give the imports different positions
             Dim position = 0
@@ -652,7 +649,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 If AddImportForRecord(
                     importRecord,
                     importBinder,
-                    metadataDecoder,
                     position,
                     projectLevelImportsBuilder,
                     projectLevelAliases,
@@ -666,7 +662,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 If AddImportForRecord(
                     importRecord,
                     importBinder,
-                    metadataDecoder,
                     position,
                     fileLevelImportsBuilder,
                     fileLevelAliases,
@@ -715,7 +710,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Shared Function AddImportForRecord(
             importRecord As ImportRecord,
             importBinder As Binder,
-            metadataDecoder As MetadataDecoder,
             position As Integer,
             ByRef importsBuilder As ArrayBuilder(Of NamespaceOrTypeAndImportsClausePosition),
             ByRef aliases As Dictionary(Of String, AliasAndImportsClausePosition),
@@ -747,10 +741,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Select Case importRecord.TargetKind
                 Case ImportTargetKind.Type
                     Dim typeSymbol As TypeSymbol
-                    Dim portableImportRecord = TryCast(importRecord, PortableImportRecord)
-                    If portableImportRecord IsNot Nothing Then
-                        typeSymbol = portableImportRecord.GetTargetType(metadataDecoder)
-                        Debug.Assert(typeSymbol IsNot Nothing)
+                    If importRecord.TargetType IsNot Nothing Then
+                        typeSymbol = DirectCast(importRecord.TargetType, TypeSymbol)
                     Else
                         Debug.Assert(importRecord.Alias Is Nothing) ' Represented as ImportTargetKind.NamespaceOrType in old-format PDBs.
 
@@ -806,15 +798,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         Return False ' Don't add anything for this import.
                     End If
 
-                    If importsBuilder Is Nothing Then
-                        importsBuilder = ArrayBuilder(Of NamespaceOrTypeAndImportsClausePosition).GetInstance()
+                    ' Native PDBs: aliased namespace is stored as NamespaceOrType
+                    ' Portable PDBs: aliased namespace is stored as Namespace
+                    If [alias] Is Nothing Then
+                        If importsBuilder Is Nothing Then
+                            importsBuilder = ArrayBuilder(Of NamespaceOrTypeAndImportsClausePosition).GetInstance()
+                        End If
+
+                        ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
+                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(namespaceOrTypeSymbol, position))
+                    Else
+                        Dim aliasSymbol As New AliasSymbol(importBinder.Compilation, importBinder.ContainingNamespaceOrType, [alias], namespaceOrTypeSymbol, NoLocation.Singleton)
+
+                        If aliases Is Nothing Then
+                            aliases = New Dictionary(Of String, AliasAndImportsClausePosition)()
+                        End If
+
+                        ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
+                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position)
                     End If
 
-                    ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                    importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(namespaceOrTypeSymbol, position))
-                Case ImportTargetKind.NamespaceOrType ' Aliased namespace or type
-                    Debug.Assert(TypeOf importRecord Is NativeImportRecord) ' Only happens when reading old-format PDBs
-
+                Case ImportTargetKind.NamespaceOrType ' Aliased namespace or type (native PDB only)
                     Dim unusedDiagnostics = DiagnosticBag.GetInstance()
                     Dim namespaceOrTypeSymbol = importBinder.BindNamespaceOrTypeSyntax(targetSyntax, unusedDiagnostics)
                     unusedDiagnostics.Free()
@@ -837,6 +841,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
                     ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
                     aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position)
+
                 Case ImportTargetKind.XmlNamespace
                     If xmlImports Is Nothing Then
                         xmlImports = New Dictionary(Of String, XmlNamespaceAndImportsClausePosition)()
