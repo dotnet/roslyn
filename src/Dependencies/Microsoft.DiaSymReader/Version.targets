@@ -1,7 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <AssemblyVersion>1.0.7</AssemblyVersion>
-    <NuGetVersion>$(AssemblyVersion)-beta1</NuGetVersion>
+    <NuGetVersion>$(AssemblyVersion)</NuGetVersion>
   </PropertyGroup>
 
   <!-- AssemblyFileVersion -->
@@ -11,7 +11,7 @@
       <PropertyGroup>
         <BuildVersion>$(AssemblyVersion).$(BuildNumber.Split('.')[0])</BuildVersion>
         <NuGetVersion>$(NuGetVersion)-$(BuildNumber.Split('.')[0])</NuGetVersion>
-        <NuGetVersionType>PerBuildPreRelease</NuGetVersionType>
+        <NuGetVersionType>Release</NuGetVersionType>
       </PropertyGroup>
     </When>
 
@@ -19,7 +19,7 @@
       <!-- Local build. -->
       <PropertyGroup>
         <BuildVersion>$(AssemblyVersion).0</BuildVersion>
-        <NuGetVersionType>PreRelease</NuGetVersionType>
+        <NuGetVersionType>Release</NuGetVersionType>
       </PropertyGroup>
     </Otherwise>
   </Choose>
