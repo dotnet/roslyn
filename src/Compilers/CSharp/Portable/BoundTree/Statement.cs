@@ -581,12 +581,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly ConditionalWeakTable<BoundLocalDeclaration, object> s_variablesMappings =
             new ConditionalWeakTable<BoundLocalDeclaration, object>();
 
-        ImmutableArray<IVariable> IVariableDeclarationStatement.Variables
+        ImmutableArray<IVariableDeclaration> IVariableDeclarationStatement.Variables
         {
             get
             {
-                return (ImmutableArray<IVariable>) s_variablesMappings.GetValue(this, 
-                    declaration => ImmutableArray.Create<IVariable>(new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
+                return (ImmutableArray<IVariableDeclaration>) s_variablesMappings.GetValue(this, 
+                    declaration => ImmutableArray.Create<IVariableDeclaration>(new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
             }
         }
 
@@ -608,14 +608,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly ConditionalWeakTable<BoundMultipleLocalDeclarations, object> s_variablesMappings =
             new ConditionalWeakTable<BoundMultipleLocalDeclarations, object>();
 
-        ImmutableArray<IVariable> IVariableDeclarationStatement.Variables
+        ImmutableArray<IVariableDeclaration> IVariableDeclarationStatement.Variables
         {
             get
             {
-                return (ImmutableArray<IVariable>)s_variablesMappings.GetValue(this,
+                return (ImmutableArray<IVariableDeclaration>)s_variablesMappings.GetValue(this,
                     multipleDeclarations =>
                         multipleDeclarations.LocalDeclarations.SelectAsArray(declaration => 
-                            (IVariable)new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
+                            (IVariableDeclaration)new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
             }
         }
 

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitVariable(IVariable operation)
+        public virtual void VisitVariableDeclaration(IVariableDeclaration operation)
         {
             DefaultVisit(operation);
         }
@@ -268,7 +268,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitTypeOperationExpression(ITypeOperationExpression operation)
+        public virtual void VisitSizeOfExpression(ISizeOfExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitTypeOfExpression(ITypeOfExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -408,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitVariable(IVariable operation, TArgument argument)
+        public virtual TResult VisitVariableDeclaration(IVariableDeclaration operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -648,7 +653,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitTypeOperationExpression(ITypeOperationExpression operation, TArgument argument)
+        public virtual TResult VisitSizeOfExpression(ISizeOfExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitTypeOfExpression(ITypeOfExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

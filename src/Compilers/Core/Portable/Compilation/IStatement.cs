@@ -34,13 +34,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Variables declared by the statement.
         /// </summary>
-        ImmutableArray<IVariable> Variables { get; }
+        ImmutableArray<IVariableDeclaration> Variables { get; }
     }
 
     /// <summary>
     /// Represents a local variable declaration.
     /// </summary>
-    public interface IVariable : IOperation
+    public interface IVariableDeclaration : IOperation
     {
         /// <summary>
         /// Variable declared by the declaration.

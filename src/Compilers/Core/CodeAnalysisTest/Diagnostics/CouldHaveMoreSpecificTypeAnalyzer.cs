@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                                     (operationContext) =>
                                     {
                                         IVariableDeclarationStatement declaration = (IVariableDeclarationStatement)operationContext.Operation;
-                                        foreach (IVariable variable in declaration.Variables)
+                                        foreach (IVariableDeclaration variable in declaration.Variables)
                                         {
                                             ILocalSymbol local = variable.Variable;
                                             if (variable.InitialValue != null)

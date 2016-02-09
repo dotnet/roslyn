@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             VisitArray(operation.Variables);
         }
 
-        public override void VisitVariable(IVariable operation)
+        public override void VisitVariableDeclaration(IVariableDeclaration operation)
         {
             Visit(operation.InitialValue);
         }
@@ -302,7 +302,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.Operand);
         }
 
-        public override void VisitTypeOperationExpression(ITypeOperationExpression operation)
+        public override void VisitSizeOfExpression(ISizeOfExpression operation)
+        { }
+
+        public override void VisitTypeOfExpression(ITypeOfExpression operation)
         { }
 
         public override void VisitLambdaExpression(ILambdaExpression operation)

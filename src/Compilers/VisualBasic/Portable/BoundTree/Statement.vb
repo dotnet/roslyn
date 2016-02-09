@@ -983,10 +983,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ReadOnly s_variablesMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundDimStatement, Object)
 
-        Private ReadOnly Property IVariables As ImmutableArray(Of IVariable) Implements IVariableDeclarationStatement.Variables
+        Private ReadOnly Property IVariables As ImmutableArray(Of IVariableDeclaration) Implements IVariableDeclarationStatement.Variables
             Get
                 Dim variables = s_variablesMappings.GetValue(Me, Function(dimStatement)
-                                                                     Dim builder = ArrayBuilder(Of IVariable).GetInstance()
+                                                                     Dim builder = ArrayBuilder(Of IVariableDeclaration).GetInstance()
                                                                      For Each base In dimStatement.LocalDeclarations
                                                                          If base.Kind = BoundKind.LocalDeclaration Then
                                                                              Dim declaration = DirectCast(base, BoundLocalDeclaration)
@@ -1001,7 +1001,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      Return builder.ToImmutableAndFree()
                                                                  End Function
                                                                )
-                Return DirectCast(variables, ImmutableArray(Of IVariable))
+                Return DirectCast(variables, ImmutableArray(Of IVariableDeclaration))
             End Get
         End Property
 
@@ -1283,7 +1283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return s_variablesMappings.GetValue(
                     Me,
                     Function(BoundUsing)
-                        Return New Variables(BoundUsing.ResourceList.As(Of IVariable))
+                        Return New Variables(BoundUsing.ResourceList.As(Of IVariableDeclaration))
                     End Function)
             End Get
         End Property
@@ -1317,9 +1317,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private NotInheritable Class Variables
             Implements IVariableDeclarationStatement
 
-            Private ReadOnly _variables As ImmutableArray(Of IVariable)
+            Private ReadOnly _variables As ImmutableArray(Of IVariableDeclaration)
 
-            Public Sub New(variables As ImmutableArray(Of IVariable))
+            Public Sub New(variables As ImmutableArray(Of IVariableDeclaration))
                 _variables = variables
             End Sub
 
@@ -1349,7 +1349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Private ReadOnly Property IVariableDeclaration_Variables As ImmutableArray(Of IVariable) Implements IVariableDeclarationStatement.Variables
+            Private ReadOnly Property IVariableDeclaration_Variables As ImmutableArray(Of IVariableDeclaration) Implements IVariableDeclarationStatement.Variables
                 Get
                     Return _variables
                 End Get

@@ -860,24 +860,23 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface ITypeOperationExpression : IExpression
     {
         /// <summary>
-        /// Kind of type operation.
-        /// </summary>
-        TypeOperationKind TypeOperationKind { get; }
-        /// <summary>
         /// Type operand.
         /// </summary>
         ITypeSymbol TypeOperand { get; }
     }
 
     /// <summary>
-    /// Kinds of type operations.
+    /// Represents a SizeOf expression.
     /// </summary>
-    public enum TypeOperationKind
+    public interface ISizeOfExpression : ITypeOperationExpression
     {
-        None,
+    }
 
-        SizeOf,
-        TypeOf
+    /// <summary>
+    /// Represents a TypeOf expression.
+    /// </summary>
+    public interface ITypeOfExpression : ITypeOperationExpression
+    {
     }
 
     /// <summary>

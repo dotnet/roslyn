@@ -765,41 +765,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    partial class BoundSizeOfOperator : ITypeOperationExpression
+    partial class BoundSizeOfOperator : ISizeOfExpression
     {
-        TypeOperationKind ITypeOperationExpression.TypeOperationKind => TypeOperationKind.SizeOf;
-
         ITypeSymbol ITypeOperationExpression.TypeOperand => this.SourceType.Type;
 
-        protected override OperationKind ExpressionKind => OperationKind.TypeOperationExpression;
+        protected override OperationKind ExpressionKind => OperationKind.SizeOfExpression;
 
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitTypeOperationExpression(this);
+            visitor.VisitSizeOfExpression(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitTypeOperationExpression(this, argument);
+            return visitor.VisitSizeOfExpression(this, argument);
         }
     }
 
-    partial class BoundTypeOfOperator : ITypeOperationExpression
+    partial class BoundTypeOfOperator : ITypeOfExpression
     {
-        TypeOperationKind ITypeOperationExpression.TypeOperationKind => TypeOperationKind.TypeOf;
-
         ITypeSymbol ITypeOperationExpression.TypeOperand => this.SourceType.Type;
 
-        protected override OperationKind ExpressionKind => OperationKind.TypeOperationExpression;
+        protected override OperationKind ExpressionKind => OperationKind.TypeOfExpression;
 
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitTypeOperationExpression(this);
+            visitor.VisitTypeOfExpression(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitTypeOperationExpression(this, argument);
+            return visitor.VisitTypeOfExpression(this, argument);
         }
     }
 

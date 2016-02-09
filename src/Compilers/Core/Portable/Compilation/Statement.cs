@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
-    internal sealed class VariableDeclaration : IVariable
+    internal sealed class VariableDeclaration : IVariableDeclaration
     {
         public VariableDeclaration(ILocalSymbol variable, IExpression initialValue, SyntaxNode syntax)
         {
@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public void Accept(OperationVisitor visitor)
         {
-            visitor.VisitVariable(this);
+            visitor.VisitVariableDeclaration(this);
         }
 
         public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitVariable(this, argument);
+            return visitor.VisitVariableDeclaration(this, argument);
         }
     }
 }
