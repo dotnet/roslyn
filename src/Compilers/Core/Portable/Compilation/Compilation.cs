@@ -1844,17 +1844,8 @@ namespace Microsoft.CodeAnalysis
                     {
                         Debug.Assert(Options.StrongNameProvider != null);
 
-                        // Targeted try-catch for errors during CreateInputStream as found in TFS 1140649
-                        // TODO: Put this wrapping in PeWriter to catch all potential PE writing exceptions
-                        try
-                        {
-                            signingInputStream = Options.StrongNameProvider.CreateInputStream();
-                            retStream = signingInputStream;
-                        }
-                        catch (Exception e)
-                        {
-                            throw new Cci.PeWritingException(e);
-                        }
+                        signingInputStream = Options.StrongNameProvider.CreateInputStream();
+                        retStream = signingInputStream;
                     }
                     else
                     {
