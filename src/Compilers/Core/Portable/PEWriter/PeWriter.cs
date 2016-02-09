@@ -94,8 +94,12 @@ namespace Microsoft.Cci
                 var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, deterministic, getPortablePdbStreamOpt != null, cancellationToken);
 
                 return peWriter.WritePeToStream(mdWriter, getPeStream, getPortablePdbStreamOpt, nativePdbWriterOpt);
-            } 
-            catch (IOException e)
+            }
+            catch (PeWritingException)
+            {
+                throw;
+            }
+            catch (Exception e)
             {
                 throw new PeWritingException(e);
             }
