@@ -149,7 +149,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         changes = formattingService.GetFormattingChangesAsync(document, textChange.Span, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                     }
 
-                    document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, CancellationToken.None);
+                    if (changes != null && !changes.IsEmpty())
+                    {
+                        document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, CancellationToken.None);
+                    }
+
                     formattingTransaction.Complete();
                 }
             }
