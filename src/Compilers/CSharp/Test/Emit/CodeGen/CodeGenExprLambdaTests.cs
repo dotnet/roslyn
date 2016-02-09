@@ -2333,7 +2333,7 @@ public class Test
 
             // no use Array.Empty here since it is not available
             CompileAndVerify(
-                comp45, 
+                comp45,
                 expectedOutput: expectedOutput).
                     VerifyIL("Test.Main",
                     @"
@@ -2362,7 +2362,6 @@ public class Test
   IL_0043:  ret
 }
                     ");
-
         }
 
         [WorkItem(544270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544270")]
@@ -3225,7 +3224,7 @@ class Program
             CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
                 // (6,47): error CS0845: An expression tree lambda may not contain a coalescing operator with a null literal left-hand side
                 //     Expression<Func<object>> testExpr = () => null ?? new object();
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null").WithLocation(6, 47) );
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null").WithLocation(6, 47));
         }
 
         [WorkItem(4593, "https://github.com/dotnet/roslyn/issues/4593")]
@@ -3350,7 +3349,7 @@ class Program
             string expectedOutput = @"Convert(Call(null.[System.Delegate CreateDelegate(System.Type, System.Object, System.Reflection.MethodInfo)](Constant(Del Type:System.Type), Parameter(tc1 Type:TestClass1), Constant(Int32 Func1(System.String) Type:System.Reflection.MethodInfo)) Type:System.Delegate) Type:Del)";
 
             var comp = CreateCompilationWithMscorlib(
-                new[] { source, ExpressionTestLibrary }, 
+                new[] { source, ExpressionTestLibrary },
                 new[] { SystemCoreRef },
                 TestOptions.ReleaseExe);
 
@@ -3365,7 +3364,6 @@ class Program
                 TestOptions.ReleaseExe);
 
             CompileAndVerify(comp45, expectedOutput: expectedOutput45);
-
         }
 
         [WorkItem(544430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544430")]

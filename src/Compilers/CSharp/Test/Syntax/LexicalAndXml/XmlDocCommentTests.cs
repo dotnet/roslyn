@@ -2865,7 +2865,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestDocumentationComment()
         {
-            var expected = 
+            var expected =
                 "/// <summary>\r\n" +
                 "/// This class provides extension methods for the <see cref=\"TypeName\"/> class.\r\n" +
                 "/// </summary>\r\n" +
@@ -2894,7 +2894,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlSummaryElement()
         {
-            var expected = 
+            var expected =
                 "/// <summary>\r\n" +
                 "/// This class provides extension methods.\r\n" +
                 "/// </summary>";
@@ -2914,8 +2914,8 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlSeeElementAndXmlSeeAlsoElement()
         {
-            var expected = 
-                "/// <summary>\r\n" + 
+            var expected =
+                "/// <summary>\r\n" +
                 "/// This class provides extension methods for the <see cref=\"TypeName\"/> class and the <seealso cref=\"TypeName2\"/> class.\r\n" +
                 "/// </summary>";
 
@@ -2940,7 +2940,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlNewLineElement()
         {
-            var expected = 
+            var expected =
                 "/// <summary>\r\n" +
                 "/// This is a summary.\r\n" +
                 "/// </summary>\r\n" +
@@ -2971,7 +2971,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlParamAndParamRefElement()
         {
-            var expected = 
+            var expected =
                 "/// <summary>\r\n" +
                 "/// <paramref name=\"b\"/>\r\n" +
                 "/// </summary>\r\n" +
@@ -2997,7 +2997,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlReturnsElement()
         {
-            var expected = 
+            var expected =
                 "/// <summary>\r\n" +
                 "/// \r\n" +
                 "/// </summary>\r\n" +
@@ -3024,7 +3024,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlRemarksElement()
         {
-            var expected = 
+            var expected =
                 "/// <summary>\r\n" +
                 "/// \r\n" +
                 "/// </summary>\r\n" +
@@ -3053,7 +3053,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlExceptionElement()
         {
-            var expected = 
+            var expected =
                 "/// <summary>\r\n" +
                 "/// \r\n" +
                 "/// </summary>\r\n" +
@@ -3061,7 +3061,7 @@ public class Program
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
-                    SyntaxFactory.XmlNewLine("\r\n"), 
+                    SyntaxFactory.XmlNewLine("\r\n"),
                     SyntaxFactory.XmlNewLine("\r\n")),
                 SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlExceptionElement(
@@ -3078,7 +3078,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlPermissionElement()
         {
-            var expected = 
+            var expected =
                 "/// <summary>\r\n" +
                 "/// \r\n" +
                 "/// </summary>\r\n" +

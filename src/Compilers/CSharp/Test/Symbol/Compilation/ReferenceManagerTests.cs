@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ReferenceManagerTests : CSharpTestBase
     {
-        private static readonly CSharpCompilationOptions s_signedDll = 
+        private static readonly CSharpCompilationOptions s_signedDll =
             TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2);
-        
+
         [Fact]
         public void WinRtCompilationReferences()
         {
@@ -1364,11 +1364,11 @@ public class A
 
             var c = CreateCompilationWithMscorlib45(new[] { t1, t2 }, options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(
                 new TestMetadataReferenceResolver(
-                    pathResolver: new VirtualizedRelativePathResolver(new[] 
+                    pathResolver: new VirtualizedRelativePathResolver(new[]
                     {
                         @"C:\A\lib.dll",
                         @"C:\B\lib.dll"
-                    }), 
+                    }),
                     files: new Dictionary<string, PortableExecutableReference>()
                     {
                         { @"C:\A\lib.dll", TestReferences.NetFx.v4_0_30319.Microsoft_CSharp },
@@ -2609,7 +2609,7 @@ public class C : A
                 // 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 
                 // 'B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "A").WithArguments(
-                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", 
+                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A",
                     "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"));
 
             Assert.Equal("B", ((AssemblySymbol)c.GetAssemblyOrModuleSymbol(b3RefY)).Name);
@@ -2844,7 +2844,7 @@ public class C : A
                 { "B, 1.0.0.0", b2Ref }
             });
 
-            var c = CreateCompilationWithMscorlib("public class C : A { }", new[] { aRef, b3Ref }, 
+            var c = CreateCompilationWithMscorlib("public class C : A { }", new[] { aRef, b3Ref },
                 s_signedDll.WithMetadataReferenceResolver(resolver));
 
             c.VerifyEmitDiagnostics(
@@ -2852,11 +2852,11 @@ public class C : A
                 // 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity
                 // 'B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "A").WithArguments(
-                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", 
+                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A",
                     "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"));
 
             Assert.Equal(
-                "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", 
+                "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
                 ((AssemblySymbol)c.GetAssemblyOrModuleSymbol(b3Ref)).Identity.GetDisplayName());
 
             Assert.Null((AssemblySymbol)c.GetAssemblyOrModuleSymbol(b2Ref));
@@ -2905,8 +2905,8 @@ public class C : A
                 // 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' which has a higher version than referenced assembly 
                 // 'B' with identity 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'
                 Diagnostic(ErrorCode.ERR_AssemblyMatchBadVersion, "C").WithArguments(
-                    "A", "A, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", 
-                    "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", 
+                    "A", "A, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                    "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
                     "B", "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2"),
 
                 // (1,14): error CS1705: Assembly 
@@ -2915,7 +2915,7 @@ public class C : A
                 // 'B' with identity 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'
                 Diagnostic(ErrorCode.ERR_AssemblyMatchBadVersion, "C").WithArguments(
                     "D", "D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
-                    "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", 
+                    "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
                     "B", "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2"));
 
             resolverC.VerifyResolutionAttempts(
@@ -2970,14 +2970,14 @@ public class C : A
                 // 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 
                 // 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "C").WithArguments(
-                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", 
+                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A",
                     "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"),
 
                 // (1,14): warning CS1701: Assuming assembly reference 
                 // 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'E' matches identity
                 // 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "C").WithArguments(
-                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "E", 
+                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "E",
                     "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"));
 
             resolverC.VerifyResolutionAttempts(
@@ -3178,7 +3178,7 @@ public class C : A
             //          "System, v2"
             //     b -> "mscorlib, v4"
             //          "System, v4"
-            var aRef = CreateCompilation(@"public interface A { System.Diagnostics.Process PA { get; } }", new[] { TestReferences.NetFx.v2_0_50727.mscorlib, TestReferences.NetFx.v2_0_50727.System }, 
+            var aRef = CreateCompilation(@"public interface A { System.Diagnostics.Process PA { get; } }", new[] { TestReferences.NetFx.v2_0_50727.mscorlib, TestReferences.NetFx.v2_0_50727.System },
                 options: options, assemblyName: "A").EmitToImageReference();
 
             var bRef = CreateCompilation(@"public interface B { System.Diagnostics.Process PB { get; } }", new[] { MscorlibRef_v4_0_30316_17626, TestReferences.NetFx.v4_0_30319.System },

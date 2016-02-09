@@ -1133,9 +1133,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var token = new SyntaxToken(
                 InternalSyntax.SyntaxFactory.XmlTextNewLine(
-                    (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode, 
-                    text, 
-                    text, 
+                    (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode,
+                    text,
+                    text,
                     (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
 
             if (continueXmlDocumentationComment)

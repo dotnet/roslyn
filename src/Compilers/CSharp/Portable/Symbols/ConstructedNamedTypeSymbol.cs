@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    constructedFrom: constructedFrom, unbound: unbound)
         {
             bool hasTypeArgumentsCustomModifiers = false;
-            _typeArguments = typeArguments.SelectAsArray(a => 
+            _typeArguments = typeArguments.SelectAsArray(a =>
                                                             {
                                                                 if (!a.CustomModifiers.IsDefaultOrEmpty)
                                                                 {

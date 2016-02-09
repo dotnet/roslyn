@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     _recursionDepth--;
                 }
-                
             }
         }
 

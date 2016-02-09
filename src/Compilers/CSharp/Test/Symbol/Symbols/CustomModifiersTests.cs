@@ -60,7 +60,7 @@ class Module1
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void ConcatModifiers_01()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -109,14 +109,14 @@ class Module1
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options:TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: "Test");
         }
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void ConcatModifiers_02()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -187,7 +187,7 @@ class CL3
             var withoutModifiers = withModifiers.OriginalDefinition.Construct(withModifiers.TypeArguments);
             Assert.True(withModifiers.HasTypeArgumentsCustomModifiers);
             Assert.False(withoutModifiers.HasTypeArgumentsCustomModifiers);
-            Assert.True(withoutModifiers.Equals(withModifiers, ignoreCustomModifiersAndArraySizesAndLowerBounds:true));
+            Assert.True(withoutModifiers.Equals(withModifiers, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
             Assert.NotEqual(withoutModifiers, withModifiers);
 
             CompileAndVerify(compilation, expectedOutput: "Overriden");
@@ -195,7 +195,7 @@ class CL3
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void ConcatModifiersAndByRef_01()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -266,7 +266,7 @@ class CL3
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void ConcatModifiersAndByRef_02()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -337,7 +337,7 @@ class CL3
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void ConcatModifiersAndByRef_03()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -408,7 +408,7 @@ class CL3
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void ConcatModifiersAndByRef_04()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -475,12 +475,12 @@ class CL3
             var test = cl3.GetMember<MethodSymbol>("Test");
             Assert.Equal("void CL3.Test(ref modopt(System.Runtime.CompilerServices.IsConst) System.Int32 modopt(System.Runtime.CompilerServices.IsVolatile) modopt(System.Runtime.CompilerServices.IsLong) x)", test.ToTestDisplayString());
 
-            CompileAndVerify(compilation, expectedOutput:"Overriden");
+            CompileAndVerify(compilation, expectedOutput: "Overriden");
         }
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void ConcatModifiers_03()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -581,7 +581,7 @@ Get Overriden");
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void ConcatModifiers_04()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -646,12 +646,12 @@ class CL3
             var test = cl3.GetMember<MethodSymbol>("Test");
             Assert.Equal("void CL3.Test(System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong) [] x)", test.ToTestDisplayString());
 
-            CompileAndVerify(compilation, expectedOutput:"Overriden");
+            CompileAndVerify(compilation, expectedOutput: "Overriden");
         }
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void ConcatModifiers_05()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -705,7 +705,7 @@ class Module1
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options:TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
             Assert.Equal("System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong) CL1<System.Int32 modopt(System.Runtime.CompilerServices.IsLong)>.Test", cl2.BaseType.GetMember("Test").ToTestDisplayString());
@@ -715,7 +715,7 @@ class Module1
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void ConstructedTypesEquality_02()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -791,7 +791,7 @@ class Module1
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options:TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
 
             var base1 = compilation.GetTypeByMetadataName("CL2").BaseType;
             var base2 = compilation.GetTypeByMetadataName("CL3").BaseType;
@@ -799,7 +799,7 @@ class Module1
 
             Assert.True(base1.HasTypeArgumentsCustomModifiers);
             Assert.True(base2.HasTypeArgumentsCustomModifiers);
-            Assert.True(base1.Equals(base2, ignoreCustomModifiersAndArraySizesAndLowerBounds:true));
+            Assert.True(base1.Equals(base2, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
             Assert.NotEqual(base1, base2);
 
             Assert.True(base3.HasTypeArgumentsCustomModifiers);
@@ -810,7 +810,7 @@ class Module1
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void RetargetingModifiedTypeArgument_01()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit Test1
        extends[mscorlib] System.Object
@@ -857,7 +857,7 @@ class Module1
             Assert.Same(compilation1.SourceModule.CorLibrary(), test.Parameters.First().Type.OriginalDefinition.ContainingAssembly);
             Assert.Same(compilation1.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type).TypeArgumentsCustomModifiers.First().First().Modifier.ContainingAssembly);
 
-            var compilation2 = CreateCompilationWithMscorlib45(new SyntaxTree[] {}, references: new [] {new CSharpCompilationReference(compilation1)});
+            var compilation2 = CreateCompilationWithMscorlib45(new SyntaxTree[] { }, references: new[] { new CSharpCompilationReference(compilation1) });
 
             test = compilation2.GetTypeByMetadataName("Module1").GetMember<MethodSymbol>("Test");
             Assert.Equal("void Module1.Test(System.Int32 modopt(System.Runtime.CompilerServices.IsLong)? x)", test.ToTestDisplayString());
@@ -871,7 +871,7 @@ class Module1
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void TypeUnification_01()
-        { 
+        {
             var ilSource = @"
 .class interface public abstract auto ansi ITest0`1<T>
 {
@@ -910,7 +910,7 @@ interface ITest4<T, U>
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void TypeUnification_02()
-        { 
+        {
             var ilSource = @"
 .class interface public abstract auto ansi ITest0`1<T>
 {
@@ -949,7 +949,7 @@ interface ITest4<T, U>
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void TypeUnification_03()
-        { 
+        {
             var ilSource = @"
 .class interface public abstract auto ansi ITest0`1<T>
 {
@@ -981,7 +981,7 @@ interface ITest4<T, U>
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void TypeUnification_04()
-        { 
+        {
             var ilSource = @"
 .class interface public abstract auto ansi ITest0`1<T>
 {
@@ -1020,7 +1020,7 @@ interface ITest4<T, U>
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void TypeUnification_05()
-        { 
+        {
             var ilSource = @"
 .class interface public abstract auto ansi ITest0`1<T>
 {
@@ -1062,7 +1062,7 @@ interface ITest4<T, U>
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void TypeUnification_06()
-        { 
+        {
             var ilSource = @"
 .class interface public abstract auto ansi ITest0`1<T>
 {
@@ -1173,7 +1173,7 @@ class CL3 : CL2
 [System.Runtime.CompilerServices.DynamicAttribute(new Boolean[3] { False, True, True })]
 [System.Runtime.CompilerServices.DynamicAttribute(new Boolean[3] { False, True, True })]
 [System.Runtime.CompilerServices.DynamicAttribute(new Boolean[3] { False, True, True })]",
-                             sourceSymbolValidator:validator, symbolValidator:validator);
+                             sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
@@ -1690,6 +1690,5 @@ Implemented B");
             Assert.True(t1.Equals(t2, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
             Assert.True(t2.Equals(t1, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
         }
-
     }
 }

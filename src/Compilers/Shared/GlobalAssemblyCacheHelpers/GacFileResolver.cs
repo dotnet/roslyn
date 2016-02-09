@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// among the set filtered by <paramref name="architectures"/></param>
         /// <exception cref="PlatformNotSupportedException">The platform doesn't support GAC.</exception>
         public GacFileResolver(
-            ImmutableArray<ProcessorArchitecture> architectures = default(ImmutableArray<ProcessorArchitecture>), 
+            ImmutableArray<ProcessorArchitecture> architectures = default(ImmutableArray<ProcessorArchitecture>),
             CultureInfo preferredCulture = null)
         {
             if (!IsAvailable)

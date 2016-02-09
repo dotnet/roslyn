@@ -2259,7 +2259,7 @@ class Program
             var importAddressTableDirectoryBytes = new byte[peHeader.ImportAddressTableDirectory.Size];
             peStream.Position = importAddressTableDirectoryOffset;
             peStream.Read(importAddressTableDirectoryBytes, 0, importAddressTableDirectoryBytes.Length);
-            AssertEx.Equal(new byte[] 
+            AssertEx.Equal(new byte[]
             {
                 0x60, 0x23, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00

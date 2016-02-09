@@ -137,35 +137,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                     foreach (var metadataReference in projectChanges.GetRemovedMetadataReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, 
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
                             string.Format(EditorFeaturesResources.RemovingReferenceFrom, metadataReference.Display, oldProject.Name)));
                     }
 
                     foreach (var projectReference in projectChanges.GetAddedProjectReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, 
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
                             string.Format(EditorFeaturesResources.AddingReferenceTo, newSolution.GetProject(projectReference.ProjectId).Name, oldProject.Name)));
                     }
 
                     foreach (var projectReference in projectChanges.GetRemovedProjectReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, 
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
                             string.Format(EditorFeaturesResources.RemovingReferenceFrom, oldSolution.GetProject(projectReference.ProjectId).Name, oldProject.Name)));
                     }
 
                     foreach (var analyzer in projectChanges.GetAddedAnalyzerReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, 
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
                             string.Format(EditorFeaturesResources.AddingAnalyzerReferenceTo, analyzer.Display, oldProject.Name)));
                     }
 
                     foreach (var analyzer in projectChanges.GetRemovedAnalyzerReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null, 
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
                             string.Format(EditorFeaturesResources.RemovingAnalyzerReferenceFrom, analyzer.Display, oldProject.Name)));
                     }
                 }
@@ -173,21 +173,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 foreach (var project in solutionChanges.GetAddedProjects())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    previewItems.Add(new SolutionPreviewItem(project.Id, null, 
+                    previewItems.Add(new SolutionPreviewItem(project.Id, null,
                         string.Format(EditorFeaturesResources.AddingProject, project.Name)));
                 }
 
                 foreach (var project in solutionChanges.GetRemovedProjects())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    previewItems.Add(new SolutionPreviewItem(project.Id, null, 
+                    previewItems.Add(new SolutionPreviewItem(project.Id, null,
                         string.Format(EditorFeaturesResources.RemovingProject, project.Name)));
                 }
 
                 foreach (var projectChanges in solutionChanges.GetProjectChanges().Where(ProjectReferencesChanged))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    previewItems.Add(new SolutionPreviewItem(projectChanges.OldProject.Id, null, 
+                    previewItems.Add(new SolutionPreviewItem(projectChanges.OldProject.Id, null,
                         string.Format(EditorFeaturesResources.ChangingProjectReferencesFor, projectChanges.OldProject.Name)));
                 }
 

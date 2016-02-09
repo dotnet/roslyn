@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         internal abstract Func<object[], Task> CommonGetExecutor(CancellationToken cancellationToken);
 
         // Apply recursive alias <host> to the host assembly reference, so that we hide its namespaces and global types behind it.
-        internal static readonly MetadataReferenceProperties HostAssemblyReferenceProperties = 
+        internal static readonly MetadataReferenceProperties HostAssemblyReferenceProperties =
             MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("<host>")).WithRecursiveAliases(true);
 
         /// <summary>
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         }
 
         internal override Script WithOptionsInternal(ScriptOptions options) => WithOptions(options);
-        
+
         internal override ImmutableArray<Diagnostic> CommonCompile(CancellationToken cancellationToken)
         {
             // TODO: avoid throwing exception, report all diagnostics https://github.com/dotnet/roslyn/issues/5949

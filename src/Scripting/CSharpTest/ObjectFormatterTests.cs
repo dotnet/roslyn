@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 {
     public class ObjectFormatterTests : ObjectFormatterTestBase
     {
-        private static readonly ObjectFormatter Formatter = new TestCSharpObjectFormatter();
+        private static readonly ObjectFormatter s_formatter = new TestCSharpObjectFormatter();
 
         [Fact]
         public void Objects()
@@ -25,17 +25,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             string str;
             object nested = new Outer.Nested<int>();
 
-            str = Formatter.FormatObject(nested, SingleLineOptions);
+            str = s_formatter.FormatObject(nested, SingleLineOptions);
             Assert.Equal(@"Outer.Nested<int> { A=1, B=2 }", str);
 
-            str = Formatter.FormatObject(nested, HiddenOptions);
+            str = s_formatter.FormatObject(nested, HiddenOptions);
             Assert.Equal(@"Outer.Nested<int>", str);
 
-            str = Formatter.FormatObject(A<int>.X, HiddenOptions);
+            str = s_formatter.FormatObject(A<int>.X, HiddenOptions);
             Assert.Equal(@"A<int>.B<int>", str);
 
             object obj = new A<int>.B<bool>.C.D<string, double>.E();
-            str = Formatter.FormatObject(obj, HiddenOptions);
+            str = s_formatter.FormatObject(obj, HiddenOptions);
             Assert.Equal(@"A<int>.B<bool>.C.D<string, double>.E", str);
 
             var sort = new Sort();
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         public void ArrayOfInt32_NoMembers()
         {
             object o = new int[4] { 3, 4, 5, 6 };
-            var str = Formatter.FormatObject(o, HiddenOptions);
+            var str = s_formatter.FormatObject(o, HiddenOptions);
             Assert.Equal("int[4] { 3, 4, 5, 6 }", str);
         }
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             var DO_NOT_ADD_TO_WATCH_WINDOW = new RecursiveRootHidden();
             DO_NOT_ADD_TO_WATCH_WINDOW.C = DO_NOT_ADD_TO_WATCH_WINDOW;
 
-            string str = Formatter.FormatObject(DO_NOT_ADD_TO_WATCH_WINDOW, SingleLineOptions);
+            string str = s_formatter.FormatObject(DO_NOT_ADD_TO_WATCH_WINDOW, SingleLineOptions);
             Assert.Equal(@"RecursiveRootHidden { A=0, B=0 }", str);
         }
 
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             string str;
             var a = new ComplexProxy();
 
-            str = Formatter.FormatObject(a, SeparateLinesOptions);
+            str = s_formatter.FormatObject(a, SeparateLinesOptions);
 
             AssertMembers(str, @"[AStr]",
                 @"_02_public_property_dd: *1",
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             );
 
             var b = new TypeWithComplexProxy();
-            str = Formatter.FormatObject(b, SeparateLinesOptions);
+            str = s_formatter.FormatObject(b, SeparateLinesOptions);
 
             AssertMembers(str, @"[BStr]",
                 @"_02_public_property_dd: *1",
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
             var obj = new InheritedDebuggerDisplay();
 
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("InheritedDebuggerDisplay(DebuggerDisplayValue)", str);
         }
 
@@ -243,10 +243,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
             var obj = new TypeWithDebuggerDisplayAndProxy();
 
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("TypeWithDebuggerDisplayAndProxy(DD) { A=0, B=0 }", str);
 
-            str = Formatter.FormatObject(obj, SeparateLinesOptions);
+            str = s_formatter.FormatObject(obj, SeparateLinesOptions);
             AssertMembers(str, "TypeWithDebuggerDisplayAndProxy(DD)",
                 "A: 0",
                 "B: 0"
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             string str;
 
             object obj = new RecursiveProxy.Node(0);
-            str = Formatter.FormatObject(obj, SeparateLinesOptions);
+            str = s_formatter.FormatObject(obj, SeparateLinesOptions);
 
             AssertMembers(str, "RecursiveProxy.Node",
                 "x: 0",
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             );
 
             obj = new InvalidRecursiveProxy.Node();
-            str = Formatter.FormatObject(obj, SeparateLinesOptions);
+            str = s_formatter.FormatObject(obj, SeparateLinesOptions);
 
             // TODO: better overflow handling
             Assert.Equal("!<Stack overflow while evaluating object>", str);
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             n1.next = n2;
             n1.data = new object[] { 7, n2, 8, obj };
 
-            str = Formatter.FormatObject(obj, SeparateLinesOptions);
+            str = s_formatter.FormatObject(obj, SeparateLinesOptions);
 
             AssertMembers(str, "object[5]",
                 "1",
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
                 "3"
             );
 
-            str = Formatter.FormatObject(obj, SingleLineOptions);
+            str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal(str, "object[5] { 1, { ... }, ListNode { data={ ... }, next=ListNode { data=object[4] { 7, ListNode { ... }, 8, { ... } }, next=ListNode { ... } } }, object[5] { 4, 5, { ... }, 6, ListNode { data=null, next=null } }, 3 }");
         }
 
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
                     MemberDisplayFormat = MemberDisplayFormat.SingleLine,
                 };
 
-                var actual = Formatter.FormatObject(obj, printOptions);
+                var actual = s_formatter.FormatObject(obj, printOptions);
                 var expected = output.Substring(0, i) + "...";
                 Assert.Equal(expected, actual);
             }
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         public void DebuggerProxy_FrameworkTypes_Array()
         {
             var obj = new Object[] { new C(), 1, "str", 'c', true, null, new bool[] { true, false, true, false } };
-            var str = Formatter.FormatObject(obj, SeparateLinesOptions);
+            var str = s_formatter.FormatObject(obj, SeparateLinesOptions);
 
             AssertMembers(str, "object[7]",
                 "[CStr]",
@@ -380,10 +380,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
                 }
             };
 
-            str = Formatter.FormatObject(a, SingleLineOptions);
+            str = s_formatter.FormatObject(a, SingleLineOptions);
             Assert.Equal("int[2, 3, 4] { { { 0, 1, 2, 3 }, { 10, 11, 12, 13 }, { 20, 21, 22, 23 } }, { { 100, 101, 102, 103 }, { 110, 111, 112, 113 }, { 120, 121, 122, 123 } } }", str);
 
-            str = Formatter.FormatObject(a, SeparateLinesOptions);
+            str = s_formatter.FormatObject(a, SeparateLinesOptions);
             AssertMembers(str, "int[2, 3, 4]",
                 "{ { 0, 1, 2, 3 }, { 10, 11, 12, 13 }, { 20, 21, 22, 23 } }",
                 "{ { 100, 101, 102, 103 }, { 110, 111, 112, 113 }, { 120, 121, 122, 123 } }"
@@ -393,19 +393,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             obj[0] = new int[1, 2][,,,];
             obj[0][0, 0] = new int[1, 2, 3, 4];
 
-            str = Formatter.FormatObject(obj, SingleLineOptions);
+            str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("int[2][,][,,,] { int[1, 2][,,,] { { int[1, 2, 3, 4] { { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } }, { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } } } }, null } }, null }", str);
 
             Array x = Array.CreateInstance(typeof(Object), lengths: new int[] { 2, 3 }, lowerBounds: new int[] { 2, 9 });
-            str = Formatter.FormatObject(x, SingleLineOptions);
+            str = s_formatter.FormatObject(x, SingleLineOptions);
             Assert.Equal("object[2..4, 9..12] { { null, null, null }, { null, null, null } }", str);
 
             Array y = Array.CreateInstance(typeof(Object), lengths: new int[] { 1, 1 }, lowerBounds: new int[] { 0, 0 });
-            str = Formatter.FormatObject(y, SingleLineOptions);
+            str = s_formatter.FormatObject(y, SingleLineOptions);
             Assert.Equal("object[1, 1] { { null } }", str);
 
             Array z = Array.CreateInstance(typeof(Object), lengths: new int[] { 0, 0 }, lowerBounds: new int[] { 0, 0 });
-            str = Formatter.FormatObject(z, SingleLineOptions);
+            str = s_formatter.FormatObject(z, SingleLineOptions);
             Assert.Equal("object[0, 0] { }", str);
         }
 
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             object obj;
 
             obj = Enumerable.Range(0, 10);
-            str = Formatter.FormatObject(obj, SingleLineOptions);
+            str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("RangeIterator { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }", str);
         }
 
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             object obj;
 
             obj = Enumerable.Range(0, 10).Where(i => { if (i == 5) throw new Exception("xxx"); return i < 7; });
-            str = Formatter.FormatObject(obj, SingleLineOptions);
+            str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("Enumerable.WhereEnumerableIterator<int> { 0, 1, 2, 3, 4, !<Exception> ... }", str);
         }
 
@@ -438,10 +438,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             object obj;
 
             obj = new ThrowingDictionary(throwAt: -1);
-            str = Formatter.FormatObject(obj, SingleLineOptions);
+            str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("ThrowingDictionary(10) { { 1, 1 }, { 2, 2 }, { 3, 3 }, { 4, 4 } }", str);
 
-            str = Formatter.FormatObject(obj, SeparateLinesOptions);
+            str = s_formatter.FormatObject(obj, SeparateLinesOptions);
             AssertMembers(str, "ThrowingDictionary(10)",
                 "{ 1, 1 }",
                 "{ 2, 2 }",
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             object obj;
 
             obj = new ThrowingDictionary(throwAt: 3);
-            str = Formatter.FormatObject(obj, SingleLineOptions);
+            str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("ThrowingDictionary(10) { { 1, 1 }, { 2, 2 }, !<Exception> ... }", str);
         }
 
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
             // BitArray doesn't have debugger proxy/display
             var obj = new System.Collections.BitArray(new int[] { 1 });
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("BitArray(32) { true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false }", str);
         }
 
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             obj.Enqueue(2);
             obj.Enqueue(3);
 
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("Queue<int>(3) { 1, 2, 3 }", str);
         }
 
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             obj.Push(2);
             obj.Push(3);
 
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("Stack<int>(3) { 3, 2, 1 }", str);
         }
 
@@ -502,13 +502,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
                 { "x", 1 },
             };
 
-            var str = Formatter.FormatObject(obj, SeparateLinesOptions);
+            var str = s_formatter.FormatObject(obj, SeparateLinesOptions);
 
             AssertMembers(str, "Dictionary<string, int>(1)",
                 "{ \"x\", 1 }"
             );
 
-            str = Formatter.FormatObject(obj, SingleLineOptions);
+            str = s_formatter.FormatObject(obj, SingleLineOptions);
 
             Assert.Equal("Dictionary<string, int>(1) { { \"x\", 1 } }", str);
         }
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
             var obj = new KeyValuePair<int, string>(1, "x");
 
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("KeyValuePair<int, string> { 1, \"x\" }", str);
         }
 
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
             var obj = new List<object> { 1, 2, 'c' };
 
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("List<object>(3) { 1, 2, 'c' }", str);
         }
 
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             obj.AddLast(2);
             obj.AddLast(3);
 
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("LinkedList<int>(3) { 1, 2, 3 }", str);
         }
 
@@ -551,13 +551,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             obj.Add(1, 5);
             obj.Add(2, 6);
 
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("SortedList<int, int>(3) { { 1, 5 }, { 2, 6 }, { 3, 4 } }", str);
 
             var obj2 = new SortedList<int[], int[]>();
             obj2.Add(new[] { 3 }, new int[] { 4 });
 
-            str = Formatter.FormatObject(obj2, SingleLineOptions);
+            str = s_formatter.FormatObject(obj2, SingleLineOptions);
             Assert.Equal("SortedList<int[], int[]>(1) { { int[1] { 3 }, int[1] { 4 } } }", str);
         }
 
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             obj.Add(3, 0x3c);
             obj.Add(2, 0x2b);
 
-            var str = Formatter.
+            var str = s_formatter.
                 FormatObject(obj, new PrintOptions { NumberRadix = ObjectFormatterHelpers.NumberRadixHexadecimal });
 
             Assert.Equal("SortedDictionary<int, int>(3) { { 0x00000001, 0x0000001a }, { 0x00000002, 0x0000002b }, { 0x00000003, 0x0000003c } }", str);
@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 
             // HashSet doesn't implement ICollection (it only implements ICollection<T>) so we don't call Count, 
             // instead a DebuggerDisplay.Value is used.
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("HashSet<int>(Count = 2) { 1, 2 }", str);
         }
 
@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             obj.Add(1);
             obj.Add(2);
 
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("SortedSet<int>(2) { 1, 2 }", str);
         }
 
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             var obj = new ConcurrentDictionary<string, int>();
             obj.AddOrUpdate("x", 1, (k, v) => v);
 
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
 
             Assert.Equal("ConcurrentDictionary<string, int>(1) { { \"x\", 1 } }", str);
         }
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             obj.Enqueue(2);
             obj.Enqueue(3);
 
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("ConcurrentQueue<object>(3) { 1, 2, 3 }", str);
         }
 
@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             obj.Push(2);
             obj.Push(3);
 
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("ConcurrentStack<object>(3) { 3, 2, 1 }", str);
         }
 
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             obj.Add(1);
             obj.Add(2, new CancellationToken());
 
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("BlockingCollection<int>(2) { 1, 2 }", str);
         }
 
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
             var obj = new System.Collections.ObjectModel.ReadOnlyCollection<int>(new[] { 1, 2, 3 });
 
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("ReadOnlyCollection<int>(3) { 1, 2, 3 }", str);
         }
 
@@ -672,10 +672,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 
             // Lazy<T> has both DebuggerDisplay and DebuggerProxy attributes and both display the same information.
 
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("Lazy<int[]>(ThreadSafetyMode=None, IsValueCreated=false, IsValueFaulted=false, Value=null) { IsValueCreated=false, IsValueFaulted=false, Mode=None, Value=null }", str);
 
-            str = Formatter.FormatObject(obj, SeparateLinesOptions);
+            str = s_formatter.FormatObject(obj, SeparateLinesOptions);
             AssertMembers(str, "Lazy<int[]>(ThreadSafetyMode=None, IsValueCreated=false, IsValueFaulted=false, Value=null)",
                 "IsValueCreated: false",
                 "IsValueFaulted: false",
@@ -685,10 +685,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 
             Assert.NotNull(obj.Value);
 
-            str = Formatter.FormatObject(obj, SingleLineOptions);
+            str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("Lazy<int[]>(ThreadSafetyMode=None, IsValueCreated=true, IsValueFaulted=false, Value=int[2] { 1, 2 }) { IsValueCreated=true, IsValueFaulted=false, Mode=None, Value=int[2] { 1, 2 } }", str);
 
-            str = Formatter.FormatObject(obj, SeparateLinesOptions);
+            str = s_formatter.FormatObject(obj, SeparateLinesOptions);
             AssertMembers(str, "Lazy<int[]>(ThreadSafetyMode=None, IsValueCreated=true, IsValueFaulted=false, Value=int[2] { 1, 2 })",
                 "IsValueCreated: true",
                 "IsValueFaulted: false",
@@ -706,12 +706,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
             var obj = new System.Threading.Tasks.Task(TaskMethod);
 
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal(
                 @"Task(Id = *, Status = Created, Method = ""Void TaskMethod()"") { AsyncState=null, CancellationPending=false, CreationOptions=None, Exception=null, Id=*, Status=Created }",
                 FilterDisplayString(str));
 
-            str = Formatter.FormatObject(obj, SeparateLinesOptions);
+            str = s_formatter.FormatObject(obj, SeparateLinesOptions);
             AssertMembers(FilterDisplayString(str), @"Task(Id = *, Status = Created, Method = ""Void TaskMethod()"")",
                 "AsyncState: null",
                 "CancellationPending: false",
@@ -727,10 +727,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
             var obj = new SpinLock();
 
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("SpinLock(IsHeld = false) { IsHeld=false, IsHeldByCurrentThread=false, OwnerThreadID=0 }", str);
 
-            str = Formatter.FormatObject(obj, SeparateLinesOptions);
+            str = s_formatter.FormatObject(obj, SeparateLinesOptions);
             AssertMembers(str, "SpinLock(IsHeld = false)",
                 "IsHeld: false",
                 "IsHeldByCurrentThread: false",
@@ -747,10 +747,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 
             using (new EnsureEnglishUICulture())
             {
-                var str = Formatter.FormatObject(obj, SingleLineOptions);
+                var str = s_formatter.FormatObject(obj, SingleLineOptions);
                 Assert.Equal("DiagnosticBag(Count = 2) { =error CS0180: 'bar' cannot be both extern and abstract, =error CS1679: Invalid extern alias for '/reference'; 'foo' is not a valid identifier }", str);
 
-                str = Formatter.FormatObject(obj, SeparateLinesOptions);
+                str = s_formatter.FormatObject(obj, SeparateLinesOptions);
                 AssertMembers(str, "DiagnosticBag(Count = 2)",
                      ": error CS0180: 'bar' cannot be both extern and abstract",
                      ": error CS1679: Invalid extern alias for '/reference'; 'foo' is not a valid identifier"
@@ -764,10 +764,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             var obj = new ArrayBuilder<int>();
             obj.AddRange(new[] { 1, 2, 3, 4, 5 });
 
-            var str = Formatter.FormatObject(obj, SingleLineOptions);
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("ArrayBuilder<int>(Count = 5) { 1, 2, 3, 4, 5 }", str);
 
-            str = Formatter.FormatObject(obj, SeparateLinesOptions);
+            str = s_formatter.FormatObject(obj, SeparateLinesOptions);
             AssertMembers(str, "ArrayBuilder<int>(Count = 5)",
                  "1",
                  "2",
@@ -831,7 +831,7 @@ $@"Exception of type 'System.Exception' was thrown.
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method(){string.Format(ScriptingResources.AtFileLine, filePath, 10006)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_NonGeneric(){string.Format(ScriptingResources.AtFileLine, filePath, 10036)}
 ";
-                var actual = Formatter.FormatUnhandledException(e);
+                var actual = s_formatter.FormatUnhandledException(e);
                 Assert.Equal(expected, actual);
             }
         }
@@ -853,7 +853,7 @@ $@"Exception of type 'System.Exception' was thrown.
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method<U>(){string.Format(ScriptingResources.AtFileLine, filePath, 10012)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethod(){string.Format(ScriptingResources.AtFileLine, filePath, 10057)}
 ";
-                var actual = Formatter.FormatUnhandledException(e);
+                var actual = s_formatter.FormatUnhandledException(e);
                 Assert.Equal(expected, actual);
             }
         }
@@ -875,7 +875,7 @@ $@"Exception of type 'System.Exception' was thrown.
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method(){string.Format(ScriptingResources.AtFileLine, filePath, 10021)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericType(){string.Format(ScriptingResources.AtFileLine, filePath, 10079)}
 ";
-                var actual = Formatter.FormatUnhandledException(e);
+                var actual = s_formatter.FormatUnhandledException(e);
                 Assert.Equal(expected, actual);
             }
         }
@@ -887,17 +887,17 @@ $@"Exception of type 'System.Exception' was thrown.
             {
                 Fixture<int>.Method<char>();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 const string filePath = @"z:\Fixture.cs";
 
                 // TODO (DevDiv #173210): Should show Fixture<int>.Method<char>
-                var expected = 
+                var expected =
 $@"Exception of type 'System.Exception' was thrown.
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method<U>(){string.Format(ScriptingResources.AtFileLine, filePath, 10027)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethodInGenericType(){string.Format(ScriptingResources.AtFileLine, filePath, 10101)}
 ";
-                var actual = Formatter.FormatUnhandledException(e);
+                var actual = s_formatter.FormatUnhandledException(e);
                 Assert.Equal(expected, actual);
             }
         }

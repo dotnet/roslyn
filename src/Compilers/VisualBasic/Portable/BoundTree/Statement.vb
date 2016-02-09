@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundStatement
+    Friend Partial Class BoundStatement
         Implements IStatement
 
         Private ReadOnly Property IKind As OperationKind Implements IOperation.Kind
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public MustOverride Overloads Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
     End Class
 
-    Partial Class BoundIfStatement
+    Friend Partial Class BoundIfStatement
         Implements IIfStatement
 
         Private ReadOnly Property ICondition As IExpression Implements IIfStatement.Condition
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundSelectStatement
+    Friend Partial Class BoundSelectStatement
         Implements ISwitchStatement
 
         Private Shared ReadOnly s_caseBlocksMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundSelectStatement, Object)
@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Class
     End Class
 
-    Partial Class BoundCaseBlock
+    Friend Partial Class BoundCaseBlock
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -234,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundCaseClause
+    Friend Partial Class BoundCaseClause
         Implements ICaseClause
 
         Private ReadOnly Property IIsInvalid As Boolean Implements IOperation.IsInvalid
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public MustOverride Overloads Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
     End Class
 
-    Partial Class BoundSimpleCaseClause
+    Friend Partial Class BoundSimpleCaseClause
         Implements ISingleValueCaseClause
 
         Private ReadOnly Property IEquality As BinaryOperationKind Implements ISingleValueCaseClause.Equality
@@ -324,7 +324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundRangeCaseClause
+    Friend Partial Class BoundRangeCaseClause
         Implements IRangeCaseClause
 
         Private ReadOnly Property IMaximumValue As IExpression Implements IRangeCaseClause.MaximumValue
@@ -382,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundRelationalCaseClause
+    Friend Partial Class BoundRelationalCaseClause
         Implements IRelationalCaseClause
 
         Private ReadOnly Property Relation As BinaryOperationKind Implements IRelationalCaseClause.Relation
@@ -430,7 +430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundCaseStatement
+    Friend Partial Class BoundCaseStatement
 
         ' Cases are found by going through ISwitch, so the VB Case statement is orphaned.
         Protected Overrides Function StatementKind() As OperationKind
@@ -446,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundDoLoopStatement
+    Friend Partial Class BoundDoLoopStatement
         Implements IWhileUntilLoopStatement
 
         Private ReadOnly Property ICondition As IExpression Implements IForWhileUntilLoopStatement.Condition
@@ -492,7 +492,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundForToStatement
+    Friend Partial Class BoundForToStatement
         Implements IForLoopStatement
 
         Private Shared ReadOnly s_loopBottomMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, Object)
@@ -700,7 +700,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Class
     End Class
 
-    Partial Class BoundForEachStatement
+    Friend Partial Class BoundForEachStatement
         Implements IForEachLoopStatement
 
         Private ReadOnly Property IterationVariable As ILocalSymbol Implements IForEachLoopStatement.IterationVariable
@@ -745,7 +745,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundTryStatement
+    Friend Partial Class BoundTryStatement
         Implements ITryStatement
 
         Private ReadOnly Property IBody As IBlockStatement Implements ITryStatement.Body
@@ -779,7 +779,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundCatchBlock
+    Friend Partial Class BoundCatchBlock
         Implements ICatch
 
         Private ReadOnly Property ICaughtType As ITypeSymbol Implements ICatch.CaughtType
@@ -838,7 +838,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundBlock
+    Friend Partial Class BoundBlock
         Implements IBlockStatement
 
         Private Shared ReadOnly s_blockStatementsMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundBlock, Object)
@@ -874,7 +874,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundBadStatement
+    Friend Partial Class BoundBadStatement
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.InvalidStatement
         End Function
@@ -888,7 +888,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundReturnStatement
+    Friend Partial Class BoundReturnStatement
         Implements IReturnStatement
 
         Private ReadOnly Property IReturned As IExpression Implements IReturnStatement.Returned
@@ -910,7 +910,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundThrowStatement
+    Friend Partial Class BoundThrowStatement
         Implements IThrowStatement
 
         Private ReadOnly Property IThrown As IExpression Implements IThrowStatement.Thrown
@@ -932,7 +932,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundWhileStatement
+    Friend Partial Class BoundWhileStatement
         Implements IWhileUntilLoopStatement
 
         Private ReadOnly Property ICondition As IExpression Implements IForWhileUntilLoopStatement.Condition
@@ -978,7 +978,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundDimStatement
+    Friend Partial Class BoundDimStatement
         Implements IVariableDeclarationStatement
 
         Private Shared ReadOnly s_variablesMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundDimStatement, Object)
@@ -1018,7 +1018,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundYieldStatement
+    Friend Partial Class BoundYieldStatement
         Implements IReturnStatement
         Private ReadOnly Property IReturned As IExpression Implements IReturnStatement.Returned
             Get
@@ -1039,7 +1039,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundLabelStatement
+    Friend Partial Class BoundLabelStatement
         Implements ILabelStatement
 
         Private ReadOnly Property ILabel As ILabelSymbol Implements ILabelStatement.Label
@@ -1061,7 +1061,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundGotoStatement
+    Friend Partial Class BoundGotoStatement
         Implements IBranchStatement
 
         Private ReadOnly Property ITarget As ILabelSymbol Implements IBranchStatement.Target
@@ -1083,7 +1083,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundContinueStatement
+    Friend Partial Class BoundContinueStatement
         Implements IBranchStatement
 
         Private ReadOnly Property ITarget As ILabelSymbol Implements IBranchStatement.Target
@@ -1105,7 +1105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundExitStatement
+    Friend Partial Class BoundExitStatement
         Implements IBranchStatement
 
         Private ReadOnly Property ITarget As ILabelSymbol Implements IBranchStatement.Target
@@ -1127,7 +1127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundSyncLockStatement
+    Friend Partial Class BoundSyncLockStatement
         Implements ILockStatement
 
         Private ReadOnly Property ILocked As IExpression Implements ILockStatement.Locked
@@ -1155,7 +1155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundNoOpStatement
+    Friend Partial Class BoundNoOpStatement
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.EmptyStatement
         End Function
@@ -1169,7 +1169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundSequencePoint
+    Friend Partial Class BoundSequencePoint
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1183,7 +1183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundSequencePointWithSpan
+    Friend Partial Class BoundSequencePointWithSpan
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1197,7 +1197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundStateMachineScope
+    Friend Partial Class BoundStateMachineScope
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1211,7 +1211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundStopStatement
+    Friend Partial Class BoundStopStatement
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.StopStatement
         End Function
@@ -1225,7 +1225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundEndStatement
+    Friend Partial Class BoundEndStatement
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.EndStatement
         End Function
@@ -1239,7 +1239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundWithStatement
+    Friend Partial Class BoundWithStatement
         Implements IWithStatement
 
         Private ReadOnly Property IBody As IStatement Implements IWithStatement.Body
@@ -1267,7 +1267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundUsingStatement
+    Friend Partial Class BoundUsingStatement
         Implements IUsingWithExpressionStatement, IUsingWithDeclarationStatement
 
         Private ReadOnly Property IValue As IExpression Implements IUsingWithExpressionStatement.Value
@@ -1357,7 +1357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Class
     End Class
 
-    Partial Class BoundExpressionStatement
+    Friend Partial Class BoundExpressionStatement
         Implements IExpressionStatement
 
         Private ReadOnly Property IExpression As IExpression Implements IExpressionStatement.Expression
@@ -1379,7 +1379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundAddRemoveHandlerStatement
+    Friend Partial Class BoundAddRemoveHandlerStatement
         Implements IExpressionStatement
 
         Protected Shared ReadOnly s_expressionsMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundAddRemoveHandlerStatement, IEventAssignmentExpression)
@@ -1487,7 +1487,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Class
     End Class
 
-    Partial Class BoundAddHandlerStatement
+    Friend Partial Class BoundAddHandlerStatement
 
         Protected Overrides ReadOnly Property IExpression As IExpression
             Get
@@ -1498,7 +1498,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Partial Class BoundRemoveHandlerStatement
+    Friend Partial Class BoundRemoveHandlerStatement
 
         Protected Overrides ReadOnly Property IExpression As IExpression
             Get
@@ -1509,7 +1509,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Partial Class BoundRedimStatement
+    Friend Partial Class BoundRedimStatement
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1523,7 +1523,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundRedimClause
+    Friend Partial Class BoundRedimClause
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1537,7 +1537,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundEraseStatement
+    Friend Partial Class BoundEraseStatement
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1551,7 +1551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundLocalDeclaration
+    Friend Partial Class BoundLocalDeclaration
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1565,7 +1565,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundAsNewLocalDeclarations
+    Friend Partial Class BoundAsNewLocalDeclarations
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1579,7 +1579,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundInitializer
+    Friend Partial Class BoundInitializer
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1593,7 +1593,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundConditionalGoto
+    Friend Partial Class BoundConditionalGoto
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1607,7 +1607,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundStatementList
+    Friend Partial Class BoundStatementList
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1621,7 +1621,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundRaiseEventStatement
+    Friend Partial Class BoundRaiseEventStatement
         Implements IExpressionStatement
 
         Public ReadOnly Property Expression As IExpression Implements IExpressionStatement.Expression
@@ -1643,7 +1643,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundResumeStatement
+    Friend Partial Class BoundResumeStatement
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1657,7 +1657,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundOnErrorStatement
+    Friend Partial Class BoundOnErrorStatement
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1671,7 +1671,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundUnstructuredExceptionHandlingStatement
+    Friend Partial Class BoundUnstructuredExceptionHandlingStatement
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1685,7 +1685,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundUnstructuredExceptionOnErrorSwitch
+    Friend Partial Class BoundUnstructuredExceptionOnErrorSwitch
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1699,7 +1699,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundUnstructuredExceptionResumeSwitch
+    Friend Partial Class BoundUnstructuredExceptionResumeSwitch
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function

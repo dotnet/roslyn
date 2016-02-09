@@ -817,8 +817,8 @@ Foo();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo"));
 
             var main2 = CreateCompilation(
-                new[] { Parse(mainSrc, options: TestOptions.Script) }, 
-                new[] { MscorlibRef_v46, sysConsoleRef, SystemRuntimeFacadeRef }, 
+                new[] { Parse(mainSrc, options: TestOptions.Script) },
+                new[] { MscorlibRef_v46, sysConsoleRef, SystemRuntimeFacadeRef },
                 TestOptions.ReleaseDll.WithUsings("System.Console").WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
 
             main2.VerifyDiagnostics();

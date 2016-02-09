@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -76,8 +77,8 @@ namespace Microsoft.DiaSymReader.PortablePdb
         }
 
         public int GetName(
-            int bufferLength, 
-            out int count, 
+            int bufferLength,
+            out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]char[] name)
         {
             var variable = MetadataReader.GetLocalVariable(_handle);
@@ -105,7 +106,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
             var signatureReader = new BlobReader(signaturePtr, signatureLength);
 
-           SignatureHeader header = signatureReader.ReadSignatureHeader();
+            SignatureHeader header = signatureReader.ReadSignatureHeader();
             if (header.Kind != SignatureKind.LocalVariables)
             {
                 count = 0;

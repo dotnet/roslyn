@@ -225,8 +225,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options ?? s_defaultSubmissionOptions,
                 (syntaxTree != null) ? new[] { syntaxTree } : SpecializedCollections.EmptyEnumerable<SyntaxTree>(),
                 references,
-                previousScriptCompilation, 
-                returnType, 
+                previousScriptCompilation,
+                returnType,
                 globalsType,
                 isSubmission: true);
         }
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return this;
             }
-            
+
             // Reference binding doesn't depend on previous submission so we can reuse it.
 
             return new CSharpCompilation(

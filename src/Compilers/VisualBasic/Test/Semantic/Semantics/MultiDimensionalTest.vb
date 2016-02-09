@@ -382,7 +382,7 @@ VerifyDiagnostics(
 
 #End Region
 
-        Private Shared arraysOfRank1IlSource As String =
+        Private Shared s_arraysOfRank1IlSource As String =
         <![CDATA[
 .class public auto ansi beforefieldinit Test
        extends [mscorlib]System.Object
@@ -480,7 +480,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseExe)
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
 Test1
@@ -521,7 +521,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseExe)
             Dim verifier = CompileAndVerify(Compilation, expectedOutput:=
             <![CDATA[
 Test1
@@ -573,7 +573,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseExe)
             Dim verifier = CompileAndVerify(Compilation, expectedOutput:=
             <![CDATA[
 Test1
@@ -619,7 +619,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options:=TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseDll)
             compilation.AssertTheseDiagnostics(
 <expected>
 BC30437: 'Public Overrides Function Test1() As Double()' cannot override 'Public Overridable Overloads Function Test1() As Double(*)' because they differ by their return types.
@@ -645,7 +645,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options:=TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseDll)
             compilation.AssertTheseDiagnostics(
 <expected>
 BC30284: function 'Test2' cannot be declared 'Overrides' because it does not override a function in a base class.
@@ -680,7 +680,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
+            Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
             compilation.AssertTheseDiagnostics(
 <expected>
 BC30311: Value of type 'Double(*)' cannot be converted to 'Double()'.
@@ -867,7 +867,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(
 <expected>
 BC36645: Data type(s) of the type parameter(s) in method 'Public Shared Sub M1(Of T)(a As T())' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
@@ -924,7 +924,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
 Test1
@@ -1140,7 +1140,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options:=TestOptions.ReleaseExe, includeVbRuntime:=True)
+            Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseExe, includeVbRuntime:=True)
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
 Test1
@@ -1186,7 +1186,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseExe)
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
 Test1
@@ -1223,7 +1223,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseExe)
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
 Test1
@@ -1262,7 +1262,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options:=TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseDll)
             compilation.AssertTheseDiagnostics(
 <expected>
 BC31092: ParamArray parameters must have an array type.
@@ -1296,7 +1296,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseExe)
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
 Test1
@@ -1353,7 +1353,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options:=TestOptions.ReleaseExe, includeVbRuntime:=True)
+            Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseExe, includeVbRuntime:=True)
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
 Test1
@@ -1417,7 +1417,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options:=TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseDll)
             compilation.AssertTheseDiagnostics(
 <expected>
 BC30415: 'ReDim' cannot change the number of dimensions of an array.
@@ -1451,7 +1451,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options:=TestOptions.ReleaseExe, includeVbRuntime:=True)
+            Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseExe, includeVbRuntime:=True)
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
 Test1
@@ -1503,7 +1503,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options:=TestOptions.ReleaseExe, includeVbRuntime:=True)
+            Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseExe, includeVbRuntime:=True)
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
 Test1
@@ -1561,7 +1561,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options:=TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseDll)
             compilation.AssertTheseDiagnostics(
 <expected>
 BC30311: Value of type 'Integer()' cannot be converted to 'Double(*)'.
@@ -1589,7 +1589,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options:=TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
 System.Int32

@@ -200,20 +200,20 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             // include existing line starts that occur after all changes
-            if (position < oldText.Length)  
-            {  
+            if (position < oldText.Length)
+            {
                 if (endsWithCR && _newText[position + delta] == '\n')
                 {
                     // remove last added line start (it was due to previous CR)
                     // a new line start including the LF will be added next
-                    lineStarts.RemoveLast();  
+                    lineStarts.RemoveLast();
                 }
 
                 var lps = oldLineInfo.GetLinePositionSpan(TextSpan.FromBounds(position, oldText.Length));
                 for (int i = lps.Start.Line + 1; i <= lps.End.Line; i++)
-                {  
+                {
                     lineStarts.Add(oldLineInfo[i].Start + delta);
-                }  
+                }
             }
 
             return new LineInfo(this, lineStarts.ToArrayAndFree());

@@ -1132,7 +1132,7 @@ public class C2 : C1
             var comp2 = CreateCompilation(source2, new[] { MscorlibRef_v4_0_30316_17626, module1.GetReference() }, TestOptions.DebugDll);
             var module2 = comp2.ToModuleInstance();
 
-            var runtime = CreateRuntimeInstance(new[] 
+            var runtime = CreateRuntimeInstance(new[]
             {
                 module1,
                 module2,

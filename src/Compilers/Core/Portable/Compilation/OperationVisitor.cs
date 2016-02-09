@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             // no-op
         }
-        
+
         public virtual void VisitBlockStatement(IBlockStatement operation)
         {
             DefaultVisit(operation);

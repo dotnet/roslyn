@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -248,12 +248,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.LoopStatement);
         }
 
-        static int Abs(int value)
+        private static int Abs(int value)
         {
             return value < 0 ? -value : value;
         }
 
-        void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
+        private void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
         {
             context.ReportDiagnostic(Diagnostic.Create(descriptor, syntax.GetLocation()));
         }
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.SwitchStatement);
         }
 
-        static int IncludeClause(int clauseMinValue, int clauseMaxValue, ref long minCaseValue, ref long maxCaseValue)
+        private static int IncludeClause(int clauseMinValue, int clauseMaxValue, ref long minCaseValue, ref long maxCaseValue)
         {
             if (clauseMinValue < minCaseValue)
             {
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             return clauseMaxValue - clauseMinValue + 1;
         }
 
-        void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
+        private void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
         {
             context.ReportDiagnostic(Diagnostic.Create(descriptor, syntax.GetLocation()));
         }
@@ -694,7 +694,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             ReliabilityCategory,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
-        
+
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get { return ImmutableArray.Create(DoNotUseMemberAssignmentDescriptor); }
@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.ReportDiagnostic(Diagnostic.Create(descriptor, syntax.GetLocation()));
         }
     }
-    
+
     /// <summary>Analyzer used to test for explicit vs. implicit instance references.</summary>
     public class ExplicitVsImplicitInstanceAnalyzer : DiagnosticAnalyzer
     {
@@ -910,7 +910,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      IInstanceReferenceExpression instanceReference = (IInstanceReferenceExpression)operationContext.Operation;
-                     operationContext.ReportDiagnostic(Diagnostic.Create(instanceReference.IsExplicit? ExplicitInstanceDescriptor : ImplicitInstanceDescriptor, instanceReference.Syntax.GetLocation()));
+                     operationContext.ReportDiagnostic(Diagnostic.Create(instanceReference.IsExplicit ? ExplicitInstanceDescriptor : ImplicitInstanceDescriptor, instanceReference.Syntax.GetLocation()));
                  },
                  OperationKind.InstanceReferenceExpression,
                  OperationKind.BaseClassInstanceReferenceExpression);
@@ -983,7 +983,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      IEventAssignmentExpression eventAssignment = (IEventAssignmentExpression)operationContext.Operation;
-                     operationContext.ReportDiagnostic(Diagnostic.Create(eventAssignment.Adds? HandlerAddedDescriptor : HandlerRemovedDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                     operationContext.ReportDiagnostic(Diagnostic.Create(eventAssignment.Adds ? HandlerAddedDescriptor : HandlerRemovedDescriptor, operationContext.Operation.Syntax.GetLocation()));
                  },
                  OperationKind.EventAssignmentExpression);
 
@@ -1009,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.MethodBindingExpression);
         }
     }
-    
+
     /// <summary>Analyzer used to test IOperation treatment of params array arguments.</summary>
     public class ParamsArrayTestAnalyzer : DiagnosticAnalyzer
     {
@@ -1133,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             ReliabilityCategory,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
-        
+
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get { return ImmutableArray.Create(NoneOperationDescriptor); }
@@ -1155,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     public class LambdaTestAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
-        
+
         public static readonly DiagnosticDescriptor LambdaExpressionDescriptor = new DiagnosticDescriptor(
             "LambdaExpression",
             "Lambda expressionn found",
@@ -1181,8 +1181,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => 
-            ImmutableArray.Create(LambdaExpressionDescriptor, 
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+            ImmutableArray.Create(LambdaExpressionDescriptor,
                                   TooManyStatementsInLambdaExpressionDescriptor,
                                   NoneOperationInLambdaExpressionDescriptor);
 
@@ -1220,11 +1220,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.LambdaExpression);
         }
     }
-    
+
     public class StaticMemberTestAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
-        
+
         public static readonly DiagnosticDescriptor StaticMemberDescriptor = new DiagnosticDescriptor(
             "StaticMember",
             "Static member found",
@@ -1244,8 +1244,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
-            get { return ImmutableArray.Create(StaticMemberDescriptor,
-                                               StaticMemberWithInstanceDescriptor); }
+            get
+            {
+                return ImmutableArray.Create(StaticMemberDescriptor,
+                                             StaticMemberWithInstanceDescriptor);
+            }
         }
 
         public sealed override void Initialize(AnalysisContext context)
