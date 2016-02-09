@@ -219,7 +219,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8494"), WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
         Public Sub LocalCapturedAndHoisted()
             Dim source =
 <compilation>
