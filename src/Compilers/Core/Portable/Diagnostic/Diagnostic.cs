@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
         /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
         /// <param name="properties">
-        /// An optional set of name-value pairs by means of which the the analyzer that creates the diagnostic
+        /// An optional set of name-value pairs by means of which the analyzer that creates the diagnostic
         /// can convey more detailed information to the fixer. If null, <see cref="Properties"/> will return
         /// <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.
         /// </param>
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis
         /// If null, <see cref="AdditionalLocations"/> will return an empty list.
         /// </param>
         /// <param name="properties">
-        /// An optional set of name-value pairs by means of which the the analyzer that creates the diagnostic
+        /// An optional set of name-value pairs by means of which the analyzer that creates the diagnostic
         /// can convey more detailed information to the fixer. If null, <see cref="Properties"/> will return
         /// <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.
         /// </param>
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis
         /// If null, <see cref="CustomTags"/> will return an empty list.
         /// </param>
         /// <param name="properties">
-        /// An optional set of name-value pairs by means of which the the analyzer that creates the diagnostic
+        /// An optional set of name-value pairs by means of which the analyzer that creates the diagnostic
         /// can convey more detailed information to the fixer. If null, <see cref="Properties"/> will return
         /// <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.
         /// </param>
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis
         /// If null, <see cref="CustomTags"/> will return an empty list.
         /// </param>
         /// <param name="properties">
-        /// An optional set of name-value pairs by means of which the the analyzer that creates the diagnostic
+        /// An optional set of name-value pairs by means of which the analyzer that creates the diagnostic
         /// can convey more detailed information to the fixer. If null, <see cref="Properties"/> will return
         /// <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.
         /// </param>
