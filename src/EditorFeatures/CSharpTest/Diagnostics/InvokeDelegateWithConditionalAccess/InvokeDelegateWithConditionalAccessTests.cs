@@ -150,7 +150,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-        public async Task TestMissingWithMultipleVariables()
+        public async Task TestMissingOnDeclarationWithMultipleVariables()
         {
             await TestMissingAsync(
 @"class C
@@ -163,13 +163,47 @@ class C
         {
             v();
         }
-        else {}
     }
 }");
         }
 
+        /// <remarks>
+        /// With multiple variables in the same declaration, the fix _is not_ offered on the declaration
+        /// itself, but _is_ offered on the invocation pattern.
+        /// </remarks>
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-        public async Task TestMissingIfUsedOutside()
+        public async Task TestLocationWhereOfferedWithMultipleVariables()
+        {
+            await TestAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a, x = a;
+        [||]if (v != null)
+        {
+            v();
+        }
+    }
+}",
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a, x = a;
+        v?.Invoke();
+    }
+}");
+        }
+
+        /// <remarks>
+        /// If we have a variable declaration and if it is read/written outside the delegate 
+        /// invocation pattern, the fix is not offered on the declaration.
+        /// </remarks>
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestMissingOnDeclarationIfUsedOutside()
         {
             await TestMissingAsync(
 @"class C
@@ -182,6 +216,42 @@ class C
         {
             v();
         }
+
+        v = null;
+    }
+}");
+        }
+
+        /// <remarks>
+        /// If we have a variable declaration and if it is read/written outside the delegate 
+        /// invocation pattern, the fix is not offered on the declaration but is offered on
+        /// the invocation pattern itself.
+        /// </remarks>
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestLocationWhereOfferedIfUsedOutside()
+        {
+            await TestAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        [||]if (v != null)
+        {
+            v();
+        }
+
+        v = null;
+    }
+}",
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        v?.Invoke();
 
         v = null;
     }
@@ -348,5 +418,66 @@ class C
     }
 }", compareTokens: false);
         }
+
+        /// <remarks>
+        /// tests locations where the fix is offered.
+        /// </remarks>
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestFixOfferedOnIf()
+        {
+            await TestAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        [||]if (v != null)
+        {
+            v();
+        }
+    }
+}",
+@"
+class C
+{
+    System.Action a;
+    void Foo()
+    {
+        a?.Invoke();
+    }
+}");
+        }
+
+        /// <remarks>
+        /// tests locations where the fix is offered.
+        /// </remarks>
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestFixOfferedInsideIf()
+        {
+            await TestAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        if (v != null)
+        {
+            [||]v();
+        }
+    }
+}",
+@"
+class C
+{
+    System.Action a;
+    void Foo()
+    {
+        a?.Invoke();
+    }
+}");
+        }
+
     }
 }
