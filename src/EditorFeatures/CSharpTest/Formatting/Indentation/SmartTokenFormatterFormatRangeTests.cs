@@ -1029,6 +1029,35 @@ class Class
         }
 
         [WpfFact]
+        [WorkItem(8413, "https://github.com/dotnet/roslyn/issues/8413")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task EmbeddedStatementDoBlockAlone()
+        {
+            var code = @"using System;
+class Class
+{
+    void Method()
+    {
+        do {
+}$$
+    }
+}";
+
+            var expected = @"using System;
+class Class
+{
+    void Method()
+    {
+        do
+        {
+        }
+    }
+}";
+
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
+        }
+
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmbeddedStatement5()
         {
@@ -1864,6 +1893,37 @@ class Class
         finally
         {
         }";
+
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
+        }
+
+        [WpfFact]
+        [WorkItem(6645, "https://github.com/dotnet/roslyn/issues/6645")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task TryStatement5()
+        {
+            var code = @"using System;
+
+class Class
+{
+    void Method()
+    {
+        try {
+        }$$
+    }
+}";
+
+            var expected = @"using System;
+
+class Class
+{
+    void Method()
+    {
+        try
+        {
+        }
+    }
+}";
 
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }

@@ -81,9 +81,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '//in other contexts, please make sure to appropriately modify Bindable::ResolveOverloadingShouldSkipBadMember
         ERR_UnreferencedAssemblyEvent3 = 30005
         ERR_UnreferencedModuleEvent3 = 30006
-        ERR_UnreferencedAssemblyBase3 = 30007
+        ' ERR_UnreferencedAssemblyBase3 = 30007
         ERR_UnreferencedModuleBase3 = 30008
-        ERR_UnreferencedAssemblyImplements3 = 30009
+        ' ERR_UnreferencedAssemblyImplements3 = 30009
         ERR_UnreferencedModuleImplements3 = 30010
 
         'ERR_CodegenError = 30011

@@ -927,6 +927,60 @@ End Class
             VerifyGeneratedCodeAnalyzerDiagnostics(compilation, expected, GeneratedCodeAnalysisFlags.Analyze Or GeneratedCodeAnalysisFlags.ReportDiagnostics)
         End Sub
 
+        Friend Class OwningSymbolTestAnalyzer
+            Inherits DiagnosticAnalyzer
+
+            Public Shared ReadOnly ExpressionDescriptor As New DiagnosticDescriptor("Expression", "Expression", "Expression found.", "Testing", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+
+            Public NotOverridable Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(ExpressionDescriptor)
+                End Get
+            End Property
+
+            Public NotOverridable Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterSyntaxNodeAction(
+                     Sub(nodeContext)
+                         If nodeContext.ContainingSymbol.Name.StartsWith("Funky") AndAlso nodeContext.Compilation.Language = "Visual Basic" Then
+                             nodeContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(ExpressionDescriptor, nodeContext.Node.GetLocation()))
+                         End If
+                     End Sub,
+                     SyntaxKind.IdentifierName,
+                     SyntaxKind.NumericLiteralExpression)
+            End Sub
+        End Class
+
+        <Fact>
+        Public Sub OwningSymbolVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub UnFunkyMethod()
+        Dim x As Integer = 0
+        Dim y As Integer = x
+    End Sub
+
+    Public Sub FunkyMethod()
+        Dim x As Integer = 0
+        Dim y As Integer = x
+    End Sub
+
+    Public FunkyField As Integer = 12
+    Public UnFunkyField As Integer = 12
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New OwningSymbolTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "0").WithLocation(8, 28),
+                                           Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "x").WithLocation(9, 28),
+                                           Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "12").WithLocation(12, 36))
+        End Sub
+
         Private Shared Sub VerifyGeneratedCodeAnalyzerDiagnostics(compilation As Compilation, isGeneratedFileName As Func(Of String, Boolean), generatedCodeAnalysisFlagsOpt As GeneratedCodeAnalysisFlags?)
             Dim expected = GetExpectedGeneratedCodeAnalyzerDiagnostics(compilation, isGeneratedFileName, generatedCodeAnalysisFlagsOpt)
             VerifyGeneratedCodeAnalyzerDiagnostics(compilation, expected, generatedCodeAnalysisFlagsOpt)

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 using Microsoft.VisualStudio.Debugger.Clr;
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     }
 }";
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
                 var testData = new CompilationTestData();
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     }
 }";
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
                 var testData = new CompilationTestData();
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     }
 }";
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
                 var testData = new CompilationTestData();
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     }
 }";
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
                 var testData = new CompilationTestData();
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     }
 }";
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
                 var testData = new CompilationTestData();
@@ -244,7 +245,7 @@ class Generic<T>
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
                 var testData = new CompilationTestData();
@@ -289,7 +290,7 @@ class Generic<T>
     }
 }";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M", atLineNumber: 799);
                 var testData = new CompilationTestData();
@@ -297,7 +298,16 @@ class Generic<T>
                 string typeName;
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(2, locals.Count);
-                VerifyCustomTypeInfo(locals[0], "a", null); // Dynamic info ignored because ambiguous.
+
+                if (runtime.DebugFormat == DebugInformationFormat.PortablePdb)
+                {
+                    VerifyCustomTypeInfo(locals[0], "a", 0x01);
+                }
+                else
+                {
+                    VerifyCustomTypeInfo(locals[0], "a", null); // Dynamic info ignored because ambiguous.
+                }
+
                 VerifyCustomTypeInfo(locals[1], "b", 0x01);
                 locals.Free();
 
@@ -306,8 +316,18 @@ class Generic<T>
                 locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(2, locals.Count);
+
                 VerifyCustomTypeInfo(locals[0], "b", 0x02);
-                VerifyCustomTypeInfo(locals[1], "a", null); // Dynamic info ignored because ambiguous.
+
+                if (runtime.DebugFormat == DebugInformationFormat.PortablePdb)
+                {
+                    VerifyCustomTypeInfo(locals[1], "a", 0x02);
+                }
+                else
+                {
+                    VerifyCustomTypeInfo(locals[1], "a", null); // Dynamic info ignored because ambiguous.
+                }
+
                 locals.Free();
             });
         }
@@ -334,7 +354,7 @@ class Generic<T>
     }
 }";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M", atLineNumber: 799);
                 var testData = new CompilationTestData();
@@ -351,8 +371,17 @@ class Generic<T>
                 locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(2, locals.Count);
+
                 VerifyCustomTypeInfo(locals[0], "b", null);
-                VerifyCustomTypeInfo(locals[1], "a", null); // Dynamic info ignored because ambiguous.
+                if (runtime.DebugFormat == DebugInformationFormat.PortablePdb)
+                {
+                    VerifyCustomTypeInfo(locals[1], "a", 0x02);
+                }
+                else
+                {
+                    VerifyCustomTypeInfo(locals[1], "a", null); // Dynamic info ignored because ambiguous.
+                }
+
                 locals.Free();
             });
         }
@@ -387,7 +416,7 @@ class Generic<T>
     }
 }";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M", atLineNumber: 799);
                 var testData = new CompilationTestData();
@@ -396,7 +425,16 @@ class Generic<T>
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(3, locals.Count);
                 VerifyCustomTypeInfo(locals[0], "e", null);
-                VerifyCustomTypeInfo(locals[1], "a", null); // Dynamic info ignored because ambiguous.
+
+                if (runtime.DebugFormat == DebugInformationFormat.PortablePdb)
+                {
+                    VerifyCustomTypeInfo(locals[1], "a", 0x01); 
+                }
+                else
+                {
+                    VerifyCustomTypeInfo(locals[1], "a", null); // Dynamic info ignored because ambiguous.
+                }
+
                 VerifyCustomTypeInfo(locals[2], "b", 0x01);
                 locals.Free();
 
@@ -406,8 +444,18 @@ class Generic<T>
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(3, locals.Count);
                 VerifyCustomTypeInfo(locals[0], "e", null);
-                VerifyCustomTypeInfo(locals[1], "a", null); // Dynamic info ignored because ambiguous.
-                VerifyCustomTypeInfo(locals[2], "c", null); // Dynamic info ignored because ambiguous.
+
+                if (runtime.DebugFormat == DebugInformationFormat.PortablePdb)
+                {
+                    VerifyCustomTypeInfo(locals[1], "a", 0x02);
+                    VerifyCustomTypeInfo(locals[2], "c", 0x02);
+                }
+                else
+                {
+                    VerifyCustomTypeInfo(locals[1], "a", null); // Dynamic info ignored because ambiguous.
+                    VerifyCustomTypeInfo(locals[2], "c", null); // Dynamic info ignored because ambiguous.
+                }
+
                 locals.Free();
 
                 context = CreateMethodContext(runtime, methodName: "C.M", atLineNumber: 999);
@@ -415,9 +463,20 @@ class Generic<T>
                 locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(3, locals.Count);
+
                 VerifyCustomTypeInfo(locals[0], "e", null);
-                VerifyCustomTypeInfo(locals[1], "a", null); // Dynamic info ignored because ambiguous.
-                VerifyCustomTypeInfo(locals[2], "c", null); // Dynamic info ignored because ambiguous.
+
+                if (runtime.DebugFormat == DebugInformationFormat.PortablePdb)
+                {
+                    VerifyCustomTypeInfo(locals[1], "a", 0x01);
+                    VerifyCustomTypeInfo(locals[2], "c", 0x01);
+                }
+                else
+                {
+                    VerifyCustomTypeInfo(locals[1], "a", null); // Dynamic info ignored because ambiguous.
+                    VerifyCustomTypeInfo(locals[2], "c", null); // Dynamic info ignored because ambiguous.
+                }
+
                 locals.Free();
             });
         }
@@ -451,7 +510,7 @@ class Generic<T>
     }
 }";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M", atLineNumber: 799);
                 var testData = new CompilationTestData();
@@ -460,7 +519,14 @@ class Generic<T>
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(3, locals.Count);
                 VerifyCustomTypeInfo(locals[0], "e", null);
-                VerifyCustomTypeInfo(locals[1], "a", null); // Dynamic info ignored because ambiguous.
+                if (runtime.DebugFormat == DebugInformationFormat.PortablePdb)
+                {
+                    VerifyCustomTypeInfo(locals[1], "a", 0x01);
+                }
+                else
+                {
+                    VerifyCustomTypeInfo(locals[1], "a", null); // Dynamic info ignored because ambiguous.
+                }
                 VerifyCustomTypeInfo(locals[2], "c", null);
                 locals.Free();
 
@@ -480,7 +546,14 @@ class Generic<T>
                 Assert.Equal(3, locals.Count);
                 VerifyCustomTypeInfo(locals[0], "e", null);
                 VerifyCustomTypeInfo(locals[1], "a", null);
-                VerifyCustomTypeInfo(locals[2], "c", null); // Dynamic info ignored because ambiguous.
+                if (runtime.DebugFormat == DebugInformationFormat.PortablePdb)
+                {
+                    VerifyCustomTypeInfo(locals[2], "c", 0x02);
+                }
+                else
+                {
+                    VerifyCustomTypeInfo(locals[2], "c", null); // Dynamic info ignored because ambiguous.
+                }
                 locals.Free();
             });
         }
@@ -500,7 +573,7 @@ class Generic<T>
 	}
 }";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M");
                 var testData = new CompilationTestData();
@@ -508,9 +581,19 @@ class Generic<T>
                 string typeName;
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(4, locals.Count);
-                VerifyCustomTypeInfo(locals[0], "c123456789012345678901234567890123456789012345678901234567890123", null); // dynamic info dropped
+
+                if (runtime.DebugFormat == DebugInformationFormat.PortablePdb)
+                {
+                    VerifyCustomTypeInfo(locals[0], "c123456789012345678901234567890123456789012345678901234567890123", 0x01);
+                    VerifyCustomTypeInfo(locals[2], "a123456789012345678901234567890123456789012345678901234567890123", 0x01);
+                }
+                else
+                {
+                    VerifyCustomTypeInfo(locals[0], "c123456789012345678901234567890123456789012345678901234567890123", null); // dynamic info dropped
+                    VerifyCustomTypeInfo(locals[2], "a123456789012345678901234567890123456789012345678901234567890123", null); // dynamic info dropped
+                }
+
                 VerifyCustomTypeInfo(locals[1], "d", 0x01);
-                VerifyCustomTypeInfo(locals[2], "a123456789012345678901234567890123456789012345678901234567890123", null); // dynamic info dropped
                 VerifyCustomTypeInfo(locals[3], "b", 0x01);
                 locals.Free();
             });
@@ -863,7 +946,7 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
                 var testData = new CompilationTestData();
