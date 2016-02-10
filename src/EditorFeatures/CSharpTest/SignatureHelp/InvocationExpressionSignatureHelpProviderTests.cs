@@ -375,7 +375,7 @@ public class D
             await TestAsync(markup);
         }
 
-        [WorkItem(539712)]
+        [WorkItem(539712, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539712")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnNamedType()
         {
@@ -407,7 +407,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(539712)]
+        [WorkItem(539712, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539712")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnInstance()
         {
@@ -439,7 +439,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(545118)]
+        [WorkItem(545118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestStatic1()
         {
@@ -468,7 +468,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(545118)]
+        [WorkItem(545118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestStatic2()
         {
@@ -498,7 +498,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(543117)]
+        [WorkItem(543117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543117")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnAnonymousType()
         {
@@ -537,7 +537,7 @@ $@"void List<'a>.Add('a item)
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnBaseExpression_ProtectedAccessibility()
         {
@@ -574,7 +574,7 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnBaseExpression_AbstractBase()
         {
@@ -611,7 +611,7 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnThisExpression_ProtectedAccessibility()
         {
@@ -643,7 +643,7 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnThisExpression_ProtectedAccessibility_Overridden()
         {
@@ -680,7 +680,7 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase()
         {
@@ -712,7 +712,7 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase_Overridden()
         {
@@ -749,7 +749,7 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnBaseExpression_ProtectedInternalAccessibility()
         {
@@ -786,7 +786,7 @@ public class Derived : Base
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(968188)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnBaseMember_ProtectedAccessibility_ThroughType()
         {
@@ -813,7 +813,7 @@ public class Derived : Base
             await TestAsync(markup, null);
         }
 
-        [WorkItem(968188)]
+        [WorkItem(968188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnBaseExpression_PrivateAccessibility()
         {
@@ -1619,7 +1619,7 @@ class C<T>
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(530017)]
+        [WorkItem(530017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530017")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task LongSignature()
         {
@@ -1766,7 +1766,7 @@ class C
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
-        [WorkItem(768697)]
+        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InstanceAndStaticMethodsShown1()
         {
@@ -1796,7 +1796,7 @@ class Foo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(768697)]
+        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InstanceAndStaticMethodsShown2()
         {
@@ -1826,7 +1826,7 @@ class Foo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(768697)]
+        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InstanceAndStaticMethodsShown3()
         {
@@ -1856,7 +1856,7 @@ class Foo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(768697)]
+        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InstanceAndStaticMethodsShown4()
         {
@@ -1880,7 +1880,7 @@ class Foo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(768697)]
+        [WorkItem(768697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InstanceAndStaticMethodsShown5()
         {
@@ -1904,7 +1904,7 @@ class Foo
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WorkItem(1067933)]
+        [WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InvokedWithNoToken()
         {
@@ -1945,7 +1945,7 @@ class C
         }
 
         [WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")]
-        [WorkItem(1068424)]
+        [WorkItem(1068424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestGenericParameters1()
         {
@@ -1972,7 +1972,7 @@ class C
         }
 
         [WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")]
-        [WorkItem(1068424)]
+        [WorkItem(1068424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestGenericParameters2()
         {

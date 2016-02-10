@@ -49,7 +49,7 @@ NewLines("Module Program \n Sub Main(args As String()) \n Foo([|Color.Purple|]) 
 NewLines("Module Program \n Sub Main(args As String()) \n Foo(Color.Purple) \n End Sub \n End Module \n Enum Color \n Red = 1 \n Green = 2 \n Blue = 4 \n Purple = 8 \n End Enum"))
         End Function
 
-        <WorkItem(540540)>
+        <WorkItem(540540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540540")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestGenerateAfterEnumWithIntegerMaxValue() As Task
             Await TestAsync(
@@ -64,7 +64,7 @@ NewLines("Module Program \n Sub Main(args As String()) \n [|Color.Green|] \n End
 NewLines("Module Program \n Sub Main(args As String()) \n Color.Green \n End Sub \n End Module \n Enum Color As UShort \n Red = 65535 \n Green = 0 \n End Enum"))
         End Function
 
-        <WorkItem(540546)>
+        <WorkItem(540546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540546")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestGenerateEnumMemberOfTypeLong() As Task
             Await TestAsync(
@@ -72,7 +72,7 @@ NewLines("Module Program \n Sub Main(args As String()) \n Foo([|Color.Blue|]) \n
 NewLines("Module Program \n Sub Main(args As String()) \n Foo(Color.Blue) \n End Sub \n End Module \n Enum Color As Long \n Red = Long.MinValue \n Blue = -9223372036854775807 \n End Enum"))
         End Function
 
-        <WorkItem(540636)>
+        <WorkItem(540636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540636")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestGenerateAfterEnumWithLongMaxValueInHex() As Task
             Await TestAsync(
@@ -80,7 +80,7 @@ NewLines("Class Program \n Sub Main(args As String()) \n [|Color.Blue|] \n End S
 NewLines("Class Program \n Sub Main(args As String()) \n Color.Blue \n End Sub \n End Class \n Enum Color As Long \n Red = &H7FFFFFFFFFFFFFFF \n Blue = &H8000000000000000 \n End Enum"))
         End Function
 
-        <WorkItem(540638)>
+        <WorkItem(540638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540638")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestGenerateAfterEnumWithLongMinValueInHex() As Task
             Await TestAsync(
@@ -109,7 +109,7 @@ NewLines("Class Program \n Sub Main(args As String()) \n [|Color.Blue|] \n End S
 NewLines("Class Program \n Sub Main(args As String()) \n Color.Blue \n End Sub \n End Class \n Enum Color As Long \n Red = &H414 / 2 \n Blue = 523 \n End Enum"))
         End Function
 
-        <WorkItem(540632)>
+        <WorkItem(540632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540632")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestGenerateAfterEnumWithULongMaxValue() As Task
             Await TestAsync(
@@ -160,7 +160,7 @@ NewLines("Class B \n Sub Main(args As String()) \n [|Color.Grey|] \n End Sub \n 
 NewLines("Class B \n Sub Main(args As String()) \n Color.Grey \n End Sub \n End Class \n Enum Color \n Red \n Green = 10 \n Blue \n Grey \n End Enum"))
         End Function
 
-        <WorkItem(540549)>
+        <WorkItem(540549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540549")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestNoExtraneousStatementTerminatorBeforeCommentedMember() As Task
             Dim code = <Text>Module Program
@@ -191,7 +191,7 @@ End Enum</Text>.Value.Replace(vbLf, vbCrLf)
                     compareTokens:=False)
         End Function
 
-        <WorkItem(540552)>
+        <WorkItem(540552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540552")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestGenerateAfterEnumWithMinValue() As Task
             Await TestAsync(
@@ -199,7 +199,7 @@ NewLines("Module Program \n Sub Main(args As String()) \n Foo([|Color.Blue|]) \n
 NewLines("Module Program \n Sub Main(args As String()) \n Foo(Color.Blue) \n End Sub \n End Module \n Enum Color \n Red = Integer.MinValue \n Blue = -2147483647 \n End Enum"))
         End Function
 
-        <WorkItem(540553)>
+        <WorkItem(540553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540553")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestGenerateAfterEnumWithMinValuePlusConstant() As Task
             Await TestAsync(
@@ -207,7 +207,7 @@ NewLines("Module Program \n Sub Main(args As String()) \n Foo([|Color.Blue|]) \n
 NewLines("Module Program \n Sub Main(args As String()) \n Foo(Color.Blue) \n End Sub \n End Module \n Enum Color \n Red = Integer.MinValue + 100 \n Blue = -2147483547 \n End Enum"))
         End Function
 
-        <WorkItem(540556)>
+        <WorkItem(540556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540556")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestGenerateAfterEnumWithByteMaxValue() As Task
             Await TestAsync(
@@ -236,7 +236,7 @@ NewLines("Class A \n Sub Main(args As String()) \n [|Color.Blue|] \n End Sub \n 
 NewLines("Class A \n Sub Main(args As String()) \n Color.Blue \n End Sub \n End Class \n Enum Color As SByte \n Red = &O176 \n Blue = &O177 \n End Enum"))
         End Function
 
-        <WorkItem(540631)>
+        <WorkItem(540631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540631")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestGenerateAfterEnumWithSByteMaxValueInOctal() As Task
             Await TestAsync(
@@ -244,7 +244,7 @@ NewLines("Class A \n Sub Main(args As String()) \n [|Color.Blue|] \n End Sub \n 
 NewLines("Class A \n Sub Main(args As String()) \n Color.Blue \n End Sub \n End Class \n Enum Color As SByte \n Red = &O177 \n Blue = &O1777777777777777777600 \n End Enum"))
         End Function
 
-        <WorkItem(528207)>
+        <WorkItem(528207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528207")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestAbsenceOfFixWhenImportingEnums() As Task
             Await TestMissingAsync(
@@ -258,7 +258,7 @@ NewLines("Imports Color \n Module Program \n Sub Main(args As String()) \n Foo([
 NewLines("Imports Color \n Module Program \n Sub Main(args As String()) \n Foo(Color.Green) \n End Sub \n End Module \n Enum Color As Long \n Red = -10 \n Green = -9 \n End Enum"))
         End Function
 
-        <WorkItem(540585)>
+        <WorkItem(540585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540585")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestGenerateIntoBitshiftEnum() As Task
             Await TestAsync(
@@ -266,7 +266,7 @@ NewLines("Module Program \n Sub Main(args As String()) \n Foo([|Color.Blue|]) \n
 NewLines("Module Program \n Sub Main(args As String()) \n Foo(Color.Blue) \n End Sub \n Enum Color \n Red = 1 << 0 \n Green = 1 << 1 \n Orange = 1 << 2 \n Blue = 1 << 3 \n End Enum \n End Module"))
         End Function
 
-        <WorkItem(540566)>
+        <WorkItem(540566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540566")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestKeywordName() As Task
             Await TestAsync(
@@ -274,7 +274,7 @@ NewLines("Imports Color \n Module Program \n Sub Main(args As String()) \n Foo([
 NewLines("Imports Color \n Module Program \n Sub Main(args As String()) \n Foo(Color.Enum) \n End Sub \n End Module \n Enum Color As Byte \n Red \n [Enum] \n End Enum"))
         End Function
 
-        <WorkItem(540547)>
+        <WorkItem(540547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540547")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestStandaloneReference() As Task
             Await TestAsync(
@@ -365,7 +365,7 @@ NewLines("Class B \n Sub Main(args As String()) \n Dim a As Integer = 1 \n a += 
 NewLines("Imports Microsoft.VisualBasic \n Module Program \n Sub Main(args As String()) \n Dim a = [|FirstDayOfWeek.EigthDay|] \n End Sub \n End Module"))
         End Function
 
-        <WorkItem(540638)>
+        <WorkItem(540638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540638")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestMaxHex() As Task
             Await TestAsync(
@@ -373,7 +373,7 @@ NewLines("Class Program \n Sub Main(args As String()) \n [|Color.Blue|] \n End S
 NewLines("Class Program \n Sub Main(args As String()) \n Color.Blue \n End Sub \n End Class \n Enum Color As Long \n Red = &H8000000000000000 \n Blue = &H8000000000000001 \n End Enum"))
         End Function
 
-        <WorkItem(540636)>
+        <WorkItem(540636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540636")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestMinHex() As Task
             Await TestAsync(
@@ -381,7 +381,7 @@ NewLines("Class Program \n Sub Main(args As String()) \n [|Color.Blue|] \n End S
 NewLines("Class Program \n Sub Main(args As String()) \n Color.Blue \n End Sub \n End Class \n Enum Color As Long \n Red = &H7FFFFFFFFFFFFFFF \n Blue = &H8000000000000000 \n End Enum"))
         End Function
 
-        <WorkItem(540631)>
+        <WorkItem(540631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540631")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestOctalBounds1() As Task
             Await TestAsync(
@@ -396,7 +396,7 @@ NewLines("Class A \n Sub Main(args As String()) \n [|Color.Blue|] \n End Sub \n 
 NewLines("Class A \n Sub Main(args As String()) \n Color.Blue \n End Sub \n End Class \n Enum Color As ULong \n Red = ULong.MaxValue \n Blue = 0 \n End Enum"))
         End Function
 
-        <WorkItem(540604)>
+        <WorkItem(540604, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540604")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestWrapAround1() As Task
             Await TestAsync(
@@ -416,7 +416,7 @@ NewLines("#ExternalSource (""Default.aspx"", 1) \n Imports System \n Enum E \n #
 NewLines("#ExternalSource (""Default.aspx"", 1) \n Imports System \n Enum E \n A \n B \n C \n #End ExternalSource \n End Enum \n #ExternalSource (""Default.aspx"", 2) \n Class C \n Sub Foo() \n Console.Write([|E.x|]) \n End Sub \n End Class \n #End ExternalSource"))
         End Function
 
-        <WorkItem(544656)>
+        <WorkItem(544656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544656")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestShortHexidecimalLiterals() As Task
             Await TestAsync(
@@ -424,7 +424,7 @@ NewLines("Module M \n Dim y = [|E.Y|] ' Generate Y \n End Module \n Enum E As Sh
 NewLines("Module M \n Dim y = E.Y ' Generate Y \n End Module \n Enum E As Short \n X = &H4000S \n Y = &H4001S \n End Enum"))
         End Function
 
-        <WorkItem(545937)>
+        <WorkItem(545937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545937")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestUShortEnums() As Task
             Await TestAsync(

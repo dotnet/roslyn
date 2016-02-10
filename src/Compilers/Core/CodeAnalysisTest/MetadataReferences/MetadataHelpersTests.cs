@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [WorkItem(546277, "DevDiv")]
+        [WorkItem(546277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546277")]
         [Fact]
         public void TestDecodeTypeNameMatrix()
         {
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             DecodeTypeNamesAndVerify(namesToDecode, expectedDecodedNames);
         }
 
-        [WorkItem(546277, "DevDiv")]
+        [WorkItem(546277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546277")]
         [Fact]
         public void TestDecodeArrayTypeName_Bug15478()
         {
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 expectedArrayRanks: new[] { 1 });
         }
 
-        [WorkItem(546277, "DevDiv")]
+        [WorkItem(546277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546277")]
         [Fact]
         public void TestDecodeArrayTypeName_Valid()
         {
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 expectedArrayRanks: new[] { 1, 2 });
         }
 
-        [WorkItem(546277, "DevDiv")]
+        [WorkItem(546277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546277")]
         [Fact]
         public void TestDecodeArrayTypeName_Invalid()
         {

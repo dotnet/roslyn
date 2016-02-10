@@ -182,6 +182,61 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.NotNull(commands.Where(n => n.Names.First() == "reset").SingleOrDefault());
         }
 
+        [WorkItem(8121, "https://github.com/dotnet/roslyn/issues/8121")]
+        [WpfFact]
+        public void InteractiveWindow_GetHelpShortcutDescriptionss()
+        {
+            var interactiveCommands = new InteractiveCommandsFactory(null, null).CreateInteractiveCommands(
+                Window,
+                string.Empty,
+                Enumerable.Empty<IInteractiveWindowCommand>());
+
+            var noSmartUpDownExpected =
+@"  Enter                If the current submission appears to be complete, evaluate it.  Otherwise, insert a new line.
+  Ctrl-Enter           Within the current submission, evaluate the current submission.
+                       Within a previous submission, append the previous submission to the current submission.
+  Shift-Enter          Insert a new line.
+  Escape               Clear the current submission.
+  Alt-UpArrow          Replace the current submission with a previous submission.
+  Alt-DownArrow        Replace the current submission with a subsequent submission (after having previously navigated backwards).
+  Ctrl-Alt-UpArrow     Replace the current submission with a previous submission beginning with the same text.
+  Ctrl-Alt-DownArrow   Replace the current submission with a subsequent submission beginning with the same text (after having previously navigated backwards).
+  Ctrl-K, Ctrl-Enter   Paste the selection at the end of interactive buffer, leave caret at the end of input.
+  Ctrl-E, Ctrl-Enter   Paste and execute the selection before any pending input in the interactive buffer.
+  Ctrl-A               First press, select the submission containing the cursor.  Second press, select all text in the window.
+";
+
+            // By default, SmartUpDown option is not set
+            var descriptions = ((Commands.Commands)interactiveCommands).ShortcutDescriptions;
+            Assert.Equal(noSmartUpDownExpected, descriptions);
+
+
+            var withSmartUpDownExpected =
+@"  Enter                If the current submission appears to be complete, evaluate it.  Otherwise, insert a new line.
+  Ctrl-Enter           Within the current submission, evaluate the current submission.
+                       Within a previous submission, append the previous submission to the current submission.
+  Shift-Enter          Insert a new line.
+  Escape               Clear the current submission.
+  Alt-UpArrow          Replace the current submission with a previous submission.
+  Alt-DownArrow        Replace the current submission with a subsequent submission (after having previously navigated backwards).
+  Ctrl-Alt-UpArrow     Replace the current submission with a previous submission beginning with the same text.
+  Ctrl-Alt-DownArrow   Replace the current submission with a subsequent submission beginning with the same text (after having previously navigated backwards).
+  Ctrl-K, Ctrl-Enter   Paste the selection at the end of interactive buffer, leave caret at the end of input.
+  Ctrl-E, Ctrl-Enter   Paste and execute the selection before any pending input in the interactive buffer.
+  Ctrl-A               First press, select the submission containing the cursor.  Second press, select all text in the window.
+  UpArrow              At the end of the current submission, replace the current submission with a previous submission.
+                       Elsewhere, move the cursor up one line.
+  DownArrow            At the end of the current submission, replace the current submission with a subsequent submission (after having previously navigated backwards).
+                       Elsewhere, move the cursor down one line.
+";
+
+            // Set SmartUpDown option to true
+            Window.TextView.Options.SetOptionValue(InteractiveWindowOptions.SmartUpDown, true);
+
+            descriptions = ((Commands.Commands)interactiveCommands).ShortcutDescriptions;
+            Assert.Equal(withSmartUpDownExpected, descriptions);
+        }
+
         [WorkItem(6625, "https://github.com/dotnet/roslyn/issues/6625")]
         [WpfFact]
         public void InteractiveWindow_DisplayCommandsHelp()
@@ -189,7 +244,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             var commandList = MockCommands("foo").ToArray();
             var commands = new Commands.Commands(null, "&", commandList);
 
-            Assert.Equal(new string[] { "&foo  Description of foo command."}, commands.Help().ToArray());
+            Assert.Equal(new string[] { "&foo                 Description of foo command." }, commands.Help().ToArray());
         }
 
         [WorkItem(3970, "https://github.com/dotnet/roslyn/issues/3970")]
@@ -1028,7 +1083,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             await SubmitAsync("1").ConfigureAwait(true);
         }
 
-        [WorkItem(5964)]
+        [WorkItem(5964, "https://github.com/dotnet/roslyn/issues/5964")]
         [WpfFact]
         public async Task SubmitAsyncMultiple()
         {
@@ -1086,6 +1141,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Window.Operations.TypeChar('y');
             Window.Operations.TypeChar('z');
             Assert.Equal("> xyz", GetTextFromCurrentSnapshot());
+        }
+
+        // TODO (https://github.com/dotnet/roslyn/issues/7976): delete this
+        [WorkItem(7976, "https://github.com/dotnet/roslyn/issues/7976")]
+        [WpfFact]
+        public void Workaround7976()
+        {
+            Thread.Sleep(TimeSpan.FromSeconds(10));
         }
 
         private string GetTextFromCurrentSnapshot()

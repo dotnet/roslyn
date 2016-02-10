@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Roslyn.MSBuild.Util</id>
+    <version>0.9.1</version>
+    <title>Roslyn.MSBuild.Util</title>
+    <authors>JaredPar</authors>
+    <owners>JaredPar</owners>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+    <projectUrl>https://github.com/dotnet/roslyn</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Provides WriteCodeFragmentEx.  This is an implementation of the standard WriteCodeFragment Task that is deterministic.</description>
+  </metadata>
+</package>

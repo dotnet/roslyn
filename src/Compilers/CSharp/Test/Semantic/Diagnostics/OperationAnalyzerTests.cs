@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -135,9 +136,7 @@ class C
                 Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Bexley").WithLocation(7, 17),
                 Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "M1(y + d)").WithLocation(10, 9),
                 Diagnostic(BadStuffTestAnalyzer.InvalidStatementDescriptor.Id, "goto;").WithLocation(11, 9),
-                Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "goto;").WithLocation(11, 9),
-                Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "").WithLocation(11, 13),
-                Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "").WithLocation(11, 13)
+                Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "goto;").WithLocation(11, 9)
                 );
         }
 
@@ -1092,6 +1091,8 @@ class C
     public void OnMumble(System.EventArgs args)
     {
         Mumble += new MumbleEventHandler(Mumbler);
+        Mumble += (s, a) => {};
+        Mumble += new MumbleEventHandler((s, a) => {});
         Mumble(this, args);
         object o = Mumble;
         MumbleEventHandler d = Mumbler;
@@ -1107,14 +1108,19 @@ class C
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new MemberReferenceAnalyzer() }, null, null, false,
                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "Mumble += new MumbleEventHandler(Mumbler)").WithLocation(10, 9),
-                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble += new MumbleEventHandler(Mumbler)").WithLocation(10, 9),
-                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "new MumbleEventHandler(Mumbler)").WithLocation(10, 19),
-                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(11, 9),
-                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(12, 20),
-                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(13, 32),
-                Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "Mumble -= new MumbleEventHandler(Mumbler)").WithLocation(15, 9),
-                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble -= new MumbleEventHandler(Mumbler)").WithLocation(15, 9),
-                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "new MumbleEventHandler(Mumbler)").WithLocation(15, 19)
+                // Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
+                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(10, 42),
+                Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "Mumble += (s, a) => {}").WithLocation(11, 9),
+                // Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
+                Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "Mumble += new MumbleEventHandler((s, a) => {})").WithLocation(12, 9),
+                // Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
+                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "(s, a) => {}").WithLocation(12, 42),   // Bug: this is not a method binding https://github.com/dotnet/roslyn/issues/8347
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(13, 9),
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(14, 20),
+                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(15, 32),
+                Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "Mumble -= new MumbleEventHandler(Mumbler)").WithLocation(17, 9),
+                // Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
+                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(17, 42)
                 );
         }
         
@@ -1152,6 +1158,175 @@ class C
                 Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5 }").WithLocation(16, 15),
                 Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5, 6 }").WithLocation(17, 15),
                 Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5, 6 }").WithLocation(17, 15)
+                );
+        }
+
+        [Fact]
+        public void FieldInitializersCSharp()
+        {
+            const string source = @"
+class C
+{
+    public int F1 = 44;
+    public string F2 = ""Hello"";
+    public int F3 = Foo();
+
+    static int Foo() { return 10; }
+    static int Bar(int P1 = 15, int F2 = 33) { return P1 + F2; }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new EqualsValueTestAnalyzer() }, null, null, false,
+                Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 44").WithLocation(4, 19),
+                Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= \"Hello\"").WithLocation(5, 22),
+                Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= Foo()").WithLocation(6, 19),
+                Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 33").WithLocation(9, 40)
+                );
+        }
+
+        [Fact]
+        public void OwningSymbolCSharp()
+        {
+            const string source = @"
+class C
+{
+    public void UnFunkyMethod()
+    {
+        int x = 0;
+        int y = x;
+    }
+
+    public void FunkyMethod()
+    {
+        int x = 0;
+        int y = x;
+    }
+
+    public int FunkyField = 12;
+    public int UnFunkyField = 12;
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new OwningSymbolTestAnalyzer() }, null, null, false,
+                Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "0").WithLocation(12, 17),
+                Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "x").WithLocation(13, 17),
+                Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "12").WithLocation(16, 29)
+                );
+        }
+
+        [Fact]
+        public void NoneOperationCSharp()
+        {
+            // BoundStatementList is OperationKind.None
+            const string source = @"
+class C
+{
+    public void M0()
+    {
+        int x = 0;
+        int y = x++;
+        int z = y++;
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NoneOperationTestAnalyzer() }, null, null, false);
+        }
+
+        [Fact]
+        public void LambdaExpressionCSharp()
+        {
+            const string source = @"
+using System;
+
+class B
+{
+    public void M0()
+    {
+        Action<int> action1 = input => { };
+        Action<int> action2 = input => input++;
+        Func<int,bool> func1 = input => { input++; input++; if (input > 0) return true; return false; };
+    }
+}
+
+public delegate void MumbleEventHandler(object sender, System.EventArgs args);
+
+class C
+{
+    public event MumbleEventHandler Mumble;
+
+    public void OnMumble(System.EventArgs args)
+    {
+        Mumble += new MumbleEventHandler((s, e) => { });
+        Mumble += (s, e) => { int i = 0; i++; i++; i++; };
+        Mumble(this, args);
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new LambdaTestAnalyzer() }, null, null, false,
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "input => { }").WithLocation(8, 31),
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "input => input++").WithLocation(9, 31),
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "input => { input++; input++; if (input > 0) return true; return false; }").WithLocation(10, 32),
+                Diagnostic(LambdaTestAnalyzer.TooManyStatementsInLambdaExpressionDescriptor.Id, "input => { input++; input++; if (input > 0) return true; return false; }").WithLocation(10, 32),
+                // Bug: missing a Lambda expression in delegate creation https://github.com/dotnet/roslyn/issues/8347
+                //Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "(s, e) => { }").WithLocation(22, 42),
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "(s, e) => { int i = 0; i++; i++; i++; }").WithLocation(23, 19),
+                Diagnostic(LambdaTestAnalyzer.TooManyStatementsInLambdaExpressionDescriptor.Id, "(s, e) => { int i = 0; i++; i++; i++; }").WithLocation(23, 19));
+        }
+
+        [WorkItem(8385, "https://github.com/dotnet/roslyn/issues/8385")]
+        [Fact]
+        public void StaticMemberReferenceCSharp()
+        {
+            const string source = @"
+using System;
+
+public class D
+{
+    public static event Action E;
+
+    public static int Field;
+
+    public static int Property => 0;
+
+    public static void Method() { }
+}
+
+class C
+{
+    public static event Action E;
+
+    public static void Bar() { }
+
+    void Foo()
+    {
+        C.E += D.Method;
+        C.E();
+        C.Bar();
+
+        D.E += () => { };
+        D.Field = 1;
+        var x = D.Property;
+        D.Method();
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("D.E").WithLocation(6, 32))
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new StaticMemberTestAnalyzer() }, null, null, false,
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.E += D.Method").WithLocation(23, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Method").WithLocation(23, 16),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.E").WithLocation(24, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.Bar()").WithLocation(25, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.E += () => { }").WithLocation(27, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Field").WithLocation(28, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Property").WithLocation(29, 17),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Method()").WithLocation(30, 9)
                 );
         }
     }

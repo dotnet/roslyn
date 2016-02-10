@@ -5344,4 +5344,7 @@
   <data name="SyntaxTreeIsNotASubmission" xml:space="preserve">
     <value>Syntax tree should be created from a submission.</value>
   </data>
+  <data name="ERR_TooManyUserStrings" xml:space="preserve">
+    <value>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string or XML literals.</value>
+  </data>
 </root>

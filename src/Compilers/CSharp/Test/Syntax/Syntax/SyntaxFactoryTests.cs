@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, c.SemicolonToken.Kind());
         }
 
-        [WorkItem(528399, "DevDiv")]
+        [WorkItem(528399, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528399")]
         [Fact()]
         public void PassExpressionToSyntaxToken()
         {
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<ArgumentException>(() => SyntaxFactory.Token(SyntaxKind.NumericLiteralExpression));
         }
 
-        [WorkItem(546101, "DevDiv")]
+        [WorkItem(546101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546101")]
         [Fact]
         public void TestConstructPragmaChecksumDirective()
         {
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("x,y,z", list2.ToString());
         }
 
-        [WorkItem(720708, "DevDiv")]
+        [WorkItem(720708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720708")]
         [Fact]
         public void TestLiteralDefaultStringValues()
         {
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CheckLiteralToString(decimal.MaxValue, @"79228162514264337593543950335M");
         }
 
-        [WorkItem(849836, "DevDiv")]
+        [WorkItem(849836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849836")]
         [Fact]
         public void TestLiteralToStringDifferentCulture()
         {

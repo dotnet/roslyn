@@ -213,7 +213,7 @@ $$");
 @"for (int i = 0; $$"));
         }
 
-        [WorkItem(538804)]
+        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInTypeOf()
         {
@@ -221,7 +221,7 @@ $$");
 @"typeof($$"));
         }
 
-        [WorkItem(538804)]
+        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInDefault()
         {
@@ -229,7 +229,7 @@ $$");
 @"default($$"));
         }
 
-        [WorkItem(538804)]
+        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInSizeOf()
         {
@@ -237,7 +237,7 @@ $$");
 @"sizeof($$"));
         }
 
-        [WorkItem(541670)]
+        [WorkItem(541670, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541670")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInReferenceSwitch()
         {
@@ -261,7 +261,7 @@ $$");
         }
 #endif
 
-        [WorkItem(543766)]
+        [WorkItem(543766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543766")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInDefaultParameterValue()
         {
@@ -269,7 +269,7 @@ $$");
 @"class C { void Foo(string[] args = $$");
         }
 
-        [WorkItem(544219)]
+        [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInObjectInitializerMemberContext()
         {
@@ -282,7 +282,7 @@ class C
         var c = new C { x = 2, y = 3, $$");
         }
 
-        [WorkItem(546938)]
+        [WorkItem(546938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546938")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInCrefContext()
         {
@@ -297,7 +297,7 @@ class Program
 }");
         }
 
-        [WorkItem(546955)]
+        [WorkItem(546955, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546955")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInCrefContextNotAfterDot()
         {

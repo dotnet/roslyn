@@ -1580,7 +1580,7 @@ End Class";
         /// Should support implementing and overriding indexed properties
         /// from C# if the accessors are implemented/overridden directly.
         /// </summary>
-        [WorkItem(545516, "DevDiv")]
+        [WorkItem(545516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545516")]
         [ClrOnlyFact]
         public void InterfaceImplementation()
         {
@@ -2440,7 +2440,7 @@ P1(4).set
 }");
         }
 
-        [WorkItem(546441, "DevDiv")]
+        [WorkItem(546441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546441")]
         [Fact]
         public void UnimplementedIndexedProperty()
         {
@@ -2519,7 +2519,7 @@ class D : CodeModule
             Assert.NotNull(sourceType2.FindImplementationForInterfaceMember(interfaceProperty.GetMethod));
         }
 
-        [WorkItem(530571, "DevDiv")]
+        [WorkItem(530571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530571")]
         [Fact(Skip = "530571")]
         public void GetAccessorMethodBug16439()
         {
@@ -2580,7 +2580,7 @@ class Test
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(846234, "DevDiv")]
+        [WorkItem(846234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846234")]
         [ClrOnlyFact]
         public void IndexedPropertyColorColor()
         {
@@ -2643,7 +2643,7 @@ P[2] = 2
 }");
         }
 
-        [WorkItem(853401, "DevDiv")]
+        [WorkItem(853401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853401")]
         [ClrOnlyFact]
         public void IndexedPropertyDynamicInvocation()
         {
@@ -2701,8 +2701,8 @@ End Class";
             CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(compilation2); // As in dev11.
         }
 
-        [WorkItem(846234, "DevDiv")]
-        [WorkItem(853401, "DevDiv")]
+        [WorkItem(846234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846234")]
+        [WorkItem(853401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853401")]
         [ClrOnlyFact]
         public void IndexedPropertyDynamicColorColorInvocation()
         {

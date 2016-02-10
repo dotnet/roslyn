@@ -63,7 +63,7 @@ End Class</a>
             Await VerifyItemExistsAsync(text.Value, "Foo()", "Sub Derived.Foo()")
         End Function
 
-        <WorkItem(543807)>
+        <WorkItem(543807, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543807")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestHideFinalize() As Task
             Dim text = <a>Class foo
@@ -73,7 +73,7 @@ End Class</a>
             Await VerifyItemIsAbsentAsync(text.Value, "Finalize()")
         End Function
 
-        <WorkItem(543807)>
+        <WorkItem(543807, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543807")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestShowShadowingFinalize() As Task
             Dim text = <a>Class foo
@@ -90,7 +90,7 @@ End class</a>
             Await VerifyItemIsAbsentAsync(text.Value, "foo.Finalize()")
         End Function
 
-        <WorkItem(543806)>
+        <WorkItem(543806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543806")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestShowObjectOverrides() As Task
             Dim text = <a>Class foo
@@ -518,7 +518,7 @@ End Class</a>
             Await VerifyItemIsAbsentAsync(markup.Value, "Foo(t As T, s As S)")
         End Function
 
-        <WorkItem(529714)>
+        <WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")>
         <WpfFact(Skip:="529714"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestGenericMethodTypeParametersRenamed() As Task
             Dim text = <a>Class CFoo
@@ -1033,7 +1033,7 @@ End Class</a>
             Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo", expectedCode.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <WorkItem(543937)>
+        <WorkItem(543937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543937")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitOptionalKeywordAndParameterValuesAreGenerated() As Task
             Dim markupBeforeCommit = <a><![CDATA[Class CBase
@@ -1131,7 +1131,7 @@ End Class</a>
             Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(Of T)(x As T)", expectedCode.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <WorkItem(545627)>
+        <WorkItem(545627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545627")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitGenericMethodOnArraySubstitutedGenericType() As Task
             Dim markupBeforeCommit = <a>Class A(Of T)
@@ -1371,7 +1371,7 @@ End Class</a>
             Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(ByRef x As Integer, y As String)", expectedCode.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <WorkItem(529714)>
+        <WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")>
         <WpfFact(Skip:="529714"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitGenericMethodTypeParametersRenamed() As Task
             Dim markupBeforeCommit = <a>Class CFoo
@@ -1430,7 +1430,7 @@ End Class</a>
             Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <WorkItem(543937)>
+        <WorkItem(543937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543937")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestOptionalArguments() As Task
             Dim markupBeforeCommit = <a>Class CBase
@@ -1462,7 +1462,7 @@ End Class</a>
             Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(x As Integer = 42)", expectedCode.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <WorkItem(636706)>
+        <WorkItem(636706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636706")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestParameterizedProperty() As Task
             Dim markupBeforeCommit = <a>Public Class Foo
@@ -1509,7 +1509,7 @@ End Class</a>
             Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Bar(bay As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <WorkItem(529737)>
+        <WorkItem(529737, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529737")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestOverrideDefaultPropertiesByName() As Task
             Dim markupBeforeCommit = <a>Class A
@@ -1550,7 +1550,7 @@ End Class
 
 #Region "Commit: With Trivia"
 
-        <WorkItem(529216)>
+        <WorkItem(529216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529216")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitSurroundingTriviaDirective() As Task
             Dim markupBeforeCommit = <a>Class Base
@@ -1613,7 +1613,7 @@ End Class</a>
             Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <WorkItem(529216)>
+        <WorkItem(529216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529216")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitAfterTriviaDirective() As Task
             Dim markupBeforeCommit = <a>Class Base
@@ -1676,7 +1676,7 @@ End Class</a>
             Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <WorkItem(529216)>
+        <WorkItem(529216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529216")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitAfterComment() As Task
             Dim markupBeforeCommit = <a>Class Base
@@ -1707,7 +1707,7 @@ End Class</a>
         End Function
 #End Region
 
-        <WorkItem(529572)>
+        <WorkItem(529572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529572")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestWitheventsFieldNotOffered() As Task
             Dim text = <a>Public Class C1

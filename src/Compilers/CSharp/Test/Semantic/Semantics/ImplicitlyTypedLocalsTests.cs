@@ -81,7 +81,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x"));
         }
 
-        [WorkItem(545612, "DevDiv")]
+        [WorkItem(545612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545612")]
         [Fact]
         public void VarTypeConflictsWithAlias()
         {

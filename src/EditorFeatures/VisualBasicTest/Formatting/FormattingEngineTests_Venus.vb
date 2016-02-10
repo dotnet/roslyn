@@ -36,7 +36,7 @@ End Module</Code>
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
-        <WorkItem(530138)>
+        <WorkItem(530138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530138")>
         Public Async Function SimpleScriptBlock() As Threading.Tasks.Task
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -104,7 +104,7 @@ End Module</Code>
             Await AssertFormatWithBaseIndentAfterReplacingLfToCrLfAsync(code.Value, expected.Value, baseIndentation:=7)
         End Function
 
-        <WorkItem(576526)>
+        <WorkItem(576526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576526")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function SimpleQueryWithinNugget() As Threading.Tasks.Task
             Dim code = <Code>Imports System

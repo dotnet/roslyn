@@ -6,18 +6,10 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 
-// Point-in-time conflict between System.Reflection.Metadata and temporary internal Roslyn.Reflection.Metadata
-// Replace this with using System.Reflection.Metadata.Decoding and uncomment type parameters when switching
-// back to public System.Reflection.Metadata API. 
-using ArrayShape = Roslyn.Reflection.Metadata.Decoding.ArrayShape;
-using CustomModifier = Roslyn.Reflection.Metadata.Decoding.CustomModifier<object>;
-using MethodSignature = Roslyn.Reflection.Metadata.Decoding.MethodSignature<object>;
-using ISignatureTypeProvider = Roslyn.Reflection.Metadata.Decoding.ISignatureTypeProvider<object>;
-using PrimitiveTypeCode = Roslyn.Reflection.Metadata.Decoding.PrimitiveTypeCode;
-using SignatureDecoder = Roslyn.Reflection.Metadata.Decoding.SignatureDecoder;
-
 namespace Microsoft.DiaSymReader.PortablePdb
 {
+    using Roslyn.Reflection.Metadata.Decoding;
+
     [ComVisible(false)]
     public sealed class SymVariable : ISymUnmanagedVariable
     {
@@ -130,13 +122,14 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
             var typeProvider = new DummyTypeProvider(_symMethod.MetadataReader);
 
+            var decoder = new SignatureDecoder<object>(typeProvider);
             for (int i = 0; i < slotIndex - 1; i++)
             {
-                SignatureDecoder.DecodeType(ref signatureReader, typeProvider);
+                decoder.DecodeType(ref signatureReader, allowTypeSpecifications: false);
             }
 
             int localSlotStart = signatureReader.Offset;
-            SignatureDecoder.DecodeType(ref signatureReader, typeProvider);
+            decoder.DecodeType(ref signatureReader, allowTypeSpecifications: false);
             int localSlotLength = signatureReader.Offset - localSlotStart;
 
             if (localSlotLength <= bufferLength)
@@ -148,7 +141,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             return HResult.S_OK;
         }
 
-        private sealed class DummyTypeProvider : ISignatureTypeProvider/*<object>*/
+        private sealed class DummyTypeProvider : ISignatureTypeProvider<object>
         {
             public DummyTypeProvider(MetadataReader reader)
             {
@@ -160,17 +153,18 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
             public object GetArrayType(object elementType, ArrayShape shape) => null;
             public object GetByReferenceType(object elementType) => null;
-            public object GetFunctionPointerType(MethodSignature/*<object>*/ signature) => null;
+            public object GetFunctionPointerType(MethodSignature<object> signature) => null;
             public object GetGenericInstance(object genericType, ImmutableArray<object> typeArguments) => null;
             public object GetGenericMethodParameter(int index) => null;
             public object GetGenericTypeParameter(int index) => null;
-            public object GetModifiedType(object unmodifiedType, ImmutableArray<CustomModifier/*<object>*/> customModifiers) => null;
+            public object GetModifiedType(MetadataReader reader, bool isRequired, object modifier, object unmodifiedType) => null;
             public object GetPinnedType(object elementType) => null;
             public object GetPointerType(object elementType) => null;
             public object GetPrimitiveType(PrimitiveTypeCode typeCode) => null;
             public object GetSZArrayType(object elementType) => null;
-            public object GetTypeFromDefinition(TypeDefinitionHandle handle, bool? isValueType) => null;
-            public object GetTypeFromReference(TypeReferenceHandle handle, bool? isValueType) => null;
+            public object GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, SignatureTypeHandleCode code) => null;
+            public object GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, SignatureTypeHandleCode code) => null;
+            public object GetTypeFromSpecification(MetadataReader reader, TypeSpecificationHandle handle, SignatureTypeHandleCode code) => null;
         }
     }
 }

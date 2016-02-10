@@ -142,7 +142,7 @@ class AsyncExample
 ");
         }
 
-        [WorkItem(573625)]
+        [WorkItem(573625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/573625")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestNestedAwaits1()
         {
@@ -178,7 +178,7 @@ class AsyncExample
 ");
         }
 
-        [WorkItem(573625)]
+        [WorkItem(573625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/573625")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestNestedAwaits2()
         {

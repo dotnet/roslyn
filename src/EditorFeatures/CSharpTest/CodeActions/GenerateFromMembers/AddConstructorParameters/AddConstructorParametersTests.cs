@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
             return new AddConstructorParametersCodeRefactoringProvider();
         }
 
-        [Fact, WorkItem(308077), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
         public async Task TestAdd1()
         {
             await TestAsync(
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
 index: 0);
         }
 
-        [Fact, WorkItem(308077), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
         public async Task TestAddOptional1()
         {
             await TestAsync(
@@ -32,7 +32,7 @@ index: 0);
 index: 1);
         }
 
-        [Fact, WorkItem(308077), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
         public async Task TestAddToConstructorWithMostMatchingParameters1()
         {
             await TestAsync(
@@ -41,7 +41,7 @@ index: 1);
 index: 0);
         }
 
-        [Fact, WorkItem(308077), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077"), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
         public async Task TestAddOptionalToConstructorWithMostMatchingParameters1()
         {
             await TestAsync(

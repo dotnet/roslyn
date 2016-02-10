@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact>
-        <WorkItem(1081584)>
+        <WorkItem(1081584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081584")>
         Public Sub TestYieldInSelectCase()
             CompileAndVerify(
 <compilation>
@@ -1559,7 +1559,7 @@ End Module
 ]]>)
         End Sub
         <Fact>
-        <WorkItem(703361, "DevDiv")>
+        <WorkItem(703361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703361")>
         Public Sub VerifyHelpers()
             Dim source = <compilation>
                              <file name="a.vb"><![CDATA[
@@ -1576,7 +1576,7 @@ End Class]]></file>
             Assert.Contains("System.Environment.get_CurrentManagedThreadId()", il, StringComparison.Ordinal)
         End Sub
 
-        <WorkItem(835430, "DevDiv")>
+        <WorkItem(835430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835430")>
         <Fact>
         Public Sub YieldInWith()
             Dim source =

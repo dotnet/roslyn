@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="CommandLineRunnerTests.vb" />
     <Compile Include="InteractiveSessionTests.vb" />
+    <Compile Include="PrintOptionsTests.vb" />
     <Compile Include="ObjectFormatterTests.vb" />
     <Compile Include="ScriptTests.vb" />
   </ItemGroup>

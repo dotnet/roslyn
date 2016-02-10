@@ -93,7 +93,7 @@ NewLines("Class SomeClass \n Dim x As [|Something|] \n End Class \n Namespace [N
 NewLines("Class SomeClass \n Dim x As [Namespace].Something \n End Class \n Namespace [Namespace] \n Class Something \n End Class \n End Namespace"))
         End Function
 
-        <WorkItem(540559)>
+        <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestQualifierIsNOTEscapedWhenNamespaceMatchesKeywordButIsNested() As Task
             Await TestAsync(
@@ -101,7 +101,7 @@ NewLines("Class SomeClass \n Dim x As [|Something|] \n End Class \n Namespace Ou
 NewLines("Class SomeClass \n Dim x As Outer.Namespace.Something \n End Class \n Namespace Outer \n Namespace [Namespace] \n Class Something \n End Class \n End Namespace \n End Namespace"))
         End Function
 
-        <WorkItem(540560)>
+        <WorkItem(540560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestFullyQualifyInImportsStatement() As Task
             Await TestAsync(
@@ -121,7 +121,7 @@ NewLines("Class SomeClass \n Sub Foo(Of [|SomeClass|])(x As SomeClass) \n End Su
 NewLines("Class SomeClass \n Sub Foo(Of SomeClass)(x As [|SomeClass|]) \n End Sub \n End Class \n Namespace SomeNamespace \n Class SomeClass \n End Class \n End Namespace"))
         End Function
 
-        <WorkItem(540673)>
+        <WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestCaseSensitivityForNestedNamespace() As Task
             Await TestAsync(
@@ -129,7 +129,7 @@ NewLines("Class Foo \n Sub bar() \n Dim q As [|innernamespace|].someClass \n End
 NewLines("Class Foo \n Sub bar() \n Dim q As SomeNamespace.InnerNamespace.someClass \n End Sub \n End Class \n Namespace SomeNamespace \n Namespace InnerNamespace \n Class SomeClass \n End Class \n End Namespace \n End Namespace"))
         End Function
 
-        <WorkItem(540543)>
+        <WorkItem(540543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540543")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestCaseSensitivity1() As Task
             Await TestAsync(
@@ -200,7 +200,7 @@ NewLines("Imports System \n Module Program \n Dim q As [|List(Of Integer)|] \n E
 NewLines("Imports System \n Module Program \n Dim q As Collections.Generic.List(Of Integer) \n End Module"))
         End Function
 
-        <WorkItem(540559)>
+        <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestEscaping1() As Task
             Await TestAsync(
@@ -208,7 +208,7 @@ NewLines("Class SomeClass \n Dim x As [|Something|] \n End Class \n Namespace Ou
 NewLines("Class SomeClass \n Dim x As Outer.Namespace.Something \n End Class \n Namespace Outer \n Namespace [Namespace] \n Class Something \n End Class \n End Namespace \n End Namespace"))
         End Function
 
-        <WorkItem(540559)>
+        <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestEscaping2() As Task
             Await TestAsync(
@@ -216,7 +216,7 @@ NewLines("Class SomeClass \n Dim x As [|Something|] \n End Class \n Namespace [N
 NewLines("Class SomeClass \n Dim x As [Namespace].Inner.Something \n End Class \n Namespace [Namespace] \n Namespace Inner \n Class Something \n End Class \n End Namespace \n End Namespace"))
         End Function
 
-        <WorkItem(540559)>
+        <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestEscaping3() As Task
             Await TestAsync(
@@ -224,7 +224,7 @@ NewLines("Class SomeClass \n Dim x As [|[Namespace]|] \n End Class \n Namespace 
 NewLines("Class SomeClass \n Dim x As Outer.Inner.[Namespace] \n End Class \n Namespace Outer \n Namespace Inner \n Class [Namespace] \n End Class \n End Namespace \n End Namespace"))
         End Function
 
-        <WorkItem(540560)>
+        <WorkItem(540560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestInImport() As Task
             Await TestAsync(
@@ -232,7 +232,7 @@ NewLines("Imports [|InnerNamespace|] \n Namespace SomeNamespace \n Namespace Inn
 NewLines("Imports SomeNamespace.InnerNamespace \n Namespace SomeNamespace \n Namespace InnerNamespace \n Class SomeClass \n End Class \n End Namespace \n End Namespace"))
         End Function
 
-        <WorkItem(540673)>
+        <WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestCaseInsensitivity() As Task
             Await TestAsync(
@@ -240,7 +240,7 @@ NewLines("Class FOo \n Sub bar() \n Dim q As [|innernamespace|].someClass \n End
 NewLines("Class FOo \n Sub bar() \n Dim q As SomeNamespace.InnerNamespace.someClass \n End Sub \n End Class \n Namespace SomeNamespace \n Namespace InnerNamespace \n Class SomeClass \n End Class \n End Namespace \n End Namespace"))
         End Function
 
-        <WorkItem(540706)>
+        <WorkItem(540706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540706")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestStandaloneMethod() As Task
             Await TestAsync(
@@ -248,21 +248,21 @@ NewLines("'Class [Class] \n Private Sub Method(i As Integer) \n [|[Enum]|] = 5 \
 NewLines("'Class [Class] \n Private Sub Method(i As Integer) \n System.[Enum] = 5 \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(540736)>
+        <WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestMissingOnBoundFieldType() As Task
             Await TestMissingAsync(
 NewLines("Imports System.Collections.Generic \n Class A \n Private field As [|List(Of C)|] \n Sub Main() \n Dim local As List(Of C) \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(540736)>
+        <WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestMissingOnBoundLocalType() As Task
             Await TestMissingAsync(
 NewLines("Imports System.Collections.Generic \n Class A \n Private field As [|List(Of C)|] \n Sub Main() \n Dim local As List(Of C) \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(540745)>
+        <WorkItem(540745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540745")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestCaseSensitivity2() As Task
             Await TestAsync(
@@ -270,7 +270,7 @@ NewLines("Module Program \n Sub Main(args As String()) \n Dim x As [|foo|] \n En
 NewLines("Module Program \n Sub Main(args As String()) \n Dim x As OUTER.INNER.FOO \n End Sub \n End Module \n Namespace OUTER \n Namespace INNER \n Friend Class FOO \n End Class \n End Namespace \n End Namespace"))
         End Function
 
-        <WorkItem(821292)>
+        <WorkItem(821292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/821292")>
         <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/7369"), Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestCaseSensitivity3() As Task
             Await TestAsync(
@@ -278,14 +278,14 @@ NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n Dim 
 NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n Dim x As IO.Stream \n End Sub \n End Module"))
         End Function
 
-        <WorkItem(545993)>
+        <WorkItem(545993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545993")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestNotOnNamedArgument() As Task
             Await TestMissingAsync(
 NewLines("Module Program \n <MethodImpl([|methodImplOptions|]:=MethodImplOptions.ForwardRef) \n Sub Main(args As String()) \n End Sub \n End Module"))
         End Function
 
-        <WorkItem(546107)>
+        <WorkItem(546107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546107")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestDoNotQualifyNestedTypeOfGenericType() As Task
             Await TestMissingAsync(
@@ -308,7 +308,7 @@ End Module</Text>.Value.Replace(vbLf, vbCrLf),
 compareTokens:=False)
         End Function
 
-        <WorkItem(775448)>
+        <WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestShouldTriggerOnBC32045() As Task
             ' BC32045: 'A' has no type parameters and so cannot have type arguments.
@@ -331,7 +331,7 @@ index:=0,
 compareTokens:=False)
         End Function
 
-        <WorkItem(947579)>
+        <WorkItem(947579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestAmbiguousTypeFix() As Task
             Await TestAsync(
@@ -384,7 +384,7 @@ compareTokens:=False)
                     New VisualBasicFullyQualifyCodeFixProvider())
             End Function
 
-            <WorkItem(829970)>
+            <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
             Public Async Function TestUnknownIdentifierInAttributeSyntaxWithoutTarget() As Task
                 Await TestAsync(

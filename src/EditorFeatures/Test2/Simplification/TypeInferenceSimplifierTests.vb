@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Simplification
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public Class TypeInferenceSimplifierTests
         Inherits AbstractSimplificationTests
-        <WorkItem(734369)>
+        <WorkItem(734369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734369")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontSimplify1() As Task
             Dim input =
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
 
-        <WorkItem(734369)>
+        <WorkItem(734369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734369")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplify_ArrayElementConversion() As Task
             Dim input =
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
 
-        <WorkItem(734377)>
+        <WorkItem(734377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734377")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplify1() As Task
             Dim input =
@@ -527,7 +527,7 @@ End Class
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
 
-        <WorkItem(734377)>
+        <WorkItem(734377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734377")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_ExplicitTypeDecl_FieldDecl() As Task
             Dim input =
@@ -573,7 +573,7 @@ End Namespace
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
 
-        <WorkItem(860111)>
+        <WorkItem(860111, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860111")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_ExplicitTypeDecl_MustGetNewSMForAnyReducer() As Task
             Dim input =

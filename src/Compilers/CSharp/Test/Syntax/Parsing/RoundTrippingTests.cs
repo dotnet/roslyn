@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact()]
-        [WorkItem(530410, "DevDiv")]
+        [WorkItem(530410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530410")]
         public void NullChar()
         {
             ParseAndRoundTripping("\0", 1);
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact()]
-        [WorkItem(530410, "DevDiv")]
+        [WorkItem(530410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530410")]
         public void CharMaxValue()
         {
             string text = "abc" + char.MaxValue + "def";
@@ -1546,7 +1546,7 @@ A a { 0, 1 };
             ParseAndRoundTripping(text);
         }
 
-        [Fact, WorkItem(536922, "DevDiv")]
+        [Fact, WorkItem(536922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536922")]
         public void RegressError4QueryWithNullable()
         {
             var text = @"using System.Linq;
@@ -1563,7 +1563,7 @@ class A
             ParseAndRoundTripping(text);
         }
 
-        [Fact, WorkItem(537265, "DevDiv")]
+        [Fact, WorkItem(537265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537265")]
         public void PartialMethodWithLanguageVersion2()
         {
             var text = @"partial class P
@@ -1579,7 +1579,7 @@ class A
             Assert.Equal(text, newTest);
         }
 
-        [WorkItem(527490, "DevDiv")]
+        [WorkItem(527490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527490")]
         [Fact]
         public void VariableDeclarationAsTypeOfArgument()
         {
@@ -1593,7 +1593,7 @@ class A
             Assert.NotEmpty(typeOfExpression.GetDiagnostics());
         }
 
-        [WorkItem(540809, "DevDiv")]
+        [WorkItem(540809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540809")]
         [Fact]
         public void IncompleteGlobalAlias()
         {
@@ -1604,7 +1604,7 @@ class A
             ParseAndRoundTripping(text, errorCount: 3);
         }
 
-        [WorkItem(542229, "DevDiv")]
+        [WorkItem(542229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542229")]
         [Fact]
         public void MethodCallWithQueryArgInsideQueryExpr()
         {
@@ -1630,7 +1630,7 @@ class Program
             ParseAndRoundTripping(text, 0);
         }
 
-        [WorkItem(542229, "DevDiv")]
+        [WorkItem(542229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542229")]
         [Fact]
         public void MethodCallWithFromArgInsideQueryExpr()
         {
@@ -1656,7 +1656,7 @@ class Program
             ParseAndRoundTripping(text, -1);
         }
 
-        [WorkItem(542229, "DevDiv")]
+        [WorkItem(542229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542229")]
         [Fact]
         public void ArrayCreationWithQueryArgInsideQueryExpr()
         {

@@ -1991,7 +1991,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(527647, "DevDiv")>
+        <WorkItem(527647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527647")>
         <Fact>
         Public Sub ExtraSequencePointForEndIf()
             Dim source =
@@ -2048,7 +2048,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(538821, "DevDiv")>
+        <WorkItem(538821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538821")>
         <Fact()>
         Public Sub MissingSequencePointForOptimizedIfThen()
             Dim source =
@@ -2220,7 +2220,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(538944, "DevDiv")>
+        <WorkItem(538944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538944")>
         <Fact()>
         Public Sub MissingEndWhileSequencePoint()
             Dim source =
@@ -3209,7 +3209,7 @@ End Class
 </symbols>)
         End Sub
 
-        <WorkItem(727419, "DevDiv")>
+        <WorkItem(727419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/727419")>
         <Fact()>
         Public Sub Bug727419()
             Dim source =
@@ -3299,7 +3299,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(722627, "DevDiv")>
+        <WorkItem(722627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/722627")>
         <Fact()>
         Public Sub Bug722627()
             Dim source =
@@ -3347,7 +3347,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(543703, "DevDiv")>
+        <WorkItem(543703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543703")>
         <Fact()>
         Public Sub DontIncludeMethodAttributesInSeqPoint()
             Dim source =
@@ -3397,7 +3397,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(529300, "DevDiv")>
+        <Fact(), WorkItem(529300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529300")>
         Public Sub DontShowOperatorNameCTypeInLocals()
             Dim source =
 <compilation>
@@ -3480,7 +3480,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(760994, "DevDiv")>
+        <WorkItem(760994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760994")>
         <Fact()>
         Public Sub Bug760994()
             Dim source =
@@ -3621,7 +3621,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(797482, "DevDiv")>
+        <Fact(), WorkItem(797482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797482")>
         Public Sub Bug797482()
             Dim source =
 <compilation>
@@ -3679,7 +3679,7 @@ End Module
         ''' the method must have a sequence point at
         ''' offset 0 for correct stepping behavior.
         ''' </summary>
-        <WorkItem(804681, "DevDiv")>
+        <WorkItem(804681, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/804681")>
         <Fact()>
         Public Sub DefaultConstructorWithInitializer()
             Dim source =
@@ -3823,8 +3823,8 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(846228, "DevDiv")>
-        <WorkItem(845078, "DevDiv")>
+        <WorkItem(846228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846228")>
+        <WorkItem(845078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/845078")>
         <Fact()>
         Public Sub RaiseEvent001()
             Dim source =
@@ -4115,7 +4115,7 @@ End Class
 </symbols>)
         End Sub
 
-        <WorkItem(876518)>
+        <WorkItem(876518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876518")>
         <Fact>
         Public Sub WinFormMain()
             Dim source =
@@ -4349,7 +4349,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8494")>
         Public Sub ImportsInAsync()
             Dim source =
 "Imports System.Linq
@@ -4394,7 +4394,7 @@ End Class"
 </symbols>)
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8494")>
         Public Sub ImportsInAsyncLambda()
             Dim source =
 "Imports System.Linq

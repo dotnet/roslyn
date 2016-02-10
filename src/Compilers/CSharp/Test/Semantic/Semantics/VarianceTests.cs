@@ -242,7 +242,7 @@ class Test
             }
         }
 
-        [WorkItem(539538, "DevDiv")]
+        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         /// <remarks>Based on LambdaTests.TestLambdaErrors03</remarks>
         [Fact]
         public void TestVarianceConversionCycle()
@@ -271,7 +271,7 @@ class C
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("C.Foo(D<IIn<I>>)", "C.Foo(D<I>)"));
         }
 
-        [WorkItem(539538, "DevDiv")]
+        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         /// <remarks>http://blogs.msdn.com/b/ericlippert/archive/2008/05/07/covariance-and-contravariance-part-twelve-to-infinity-but-not-beyond.aspx</remarks>
         [Fact]
         public void TestVarianceConversionInfiniteExpansion01()
@@ -296,7 +296,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "bar").WithArguments("IC<double>", "IN<IC<string>>"));
         }
 
-        [WorkItem(539538, "DevDiv")]
+        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         /// <remarks>http://blogs.msdn.com/b/ericlippert/archive/2008/05/07/covariance-and-contravariance-part-twelve-to-infinity-but-not-beyond.aspx</remarks>
         [Fact]
         public void TestVarianceConversionInfiniteExpansion02()
@@ -333,7 +333,7 @@ class Test
                 );
         }
 
-        [WorkItem(539538, "DevDiv")]
+        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         [Fact]
         public void TestVarianceConversionLongFailure()
         {
@@ -369,8 +369,8 @@ class M {
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a").WithArguments("A", "N<X>"));
         }
 
-        [WorkItem(539538, "DevDiv")]
-        [WorkItem(529488, "DevDiv")]
+        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
+        [WorkItem(529488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529488")]
         [Fact]
         public void TestVarianceConversionLongSuccess_Breaking()
         {
@@ -411,7 +411,7 @@ class M
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a").WithArguments("A", "N<X>"));
         }
 
-        [WorkItem(542482, "DevDiv")]
+        [WorkItem(542482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542482")]
         [Fact]
         public void CS1961ERR_UnexpectedVariance_ConstraintTypes()
         {
@@ -520,7 +520,7 @@ interface I8<in T, U>
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "S<T>").WithArguments("I8<T, U>.M(S<T>)", "T", "contravariant", "invariantly").WithLocation(33, 12));
         }
 
-        [WorkItem(602022, "DevDiv")]
+        [WorkItem(602022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602022")]
         [Fact]
         public void CS1961ERR_UnexpectedVariance_Enums()
         {
@@ -560,7 +560,7 @@ interface I4<in T, U>
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "C<T>.E").WithArguments("I4<T, U>.M(C<T>.E)", "T", "contravariant", "invariantly").WithLocation(19, 14));
         }
 
-        [WorkItem(542794, "DevDiv")]
+        [WorkItem(542794, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542794")]
         [Fact]
         public void ContravariantBaseInterface()
         {
@@ -579,7 +579,7 @@ interface IB<in T> : IA<IB<T>> { }
         /// Report errors on type parameter use
         /// rather than declaration.
         /// </summary>
-        [WorkItem(855750, "DevDiv")]
+        [WorkItem(855750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855750")]
         [Fact]
         public void ErrorLocations()
         {

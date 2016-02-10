@@ -246,9 +246,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.True(entries == 1 || entries == 2);
             bool hasDebug = entries == 2;
 
-            byte[] buffer = new byte[debugDirectory.Size];
-            peStream.Read(buffer, 0, buffer.Length); // TODO: this is not guaranteed to read buffer.Length of data
-
             peStream.Position = position;
             var reader = new BinaryReader(peStream);
 

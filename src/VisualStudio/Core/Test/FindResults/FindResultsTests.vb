@@ -17,7 +17,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.FindResults
     Public Class FindResultsTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(1138943)>
+        <WorkItem(1138943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1138943")>
         Public Async Function ConstructorReferencesShouldNotAppearUnderClassNodeInCSharp() As System.Threading.Tasks.Task
             Dim markup = <Text><![CDATA[
 class $$C
@@ -49,7 +49,7 @@ class $$C
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(1138943)>
+        <WorkItem(1138943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1138943")>
         Public Async Function ConstructorReferencesShouldNotAppearUnderClassNodeInVisualBasic() As System.Threading.Tasks.Task
             Dim markup = <Text><![CDATA[
 Class C$$

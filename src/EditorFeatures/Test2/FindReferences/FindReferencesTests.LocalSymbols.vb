@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WorkItem(530636)>
+        <WorkItem(530636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530636")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalInLambdaInField1() As Task
             Dim input =
@@ -122,7 +122,7 @@ End Module
             Await TestAsync(input)
         End Function
 
-        <WorkItem(530636)>
+        <WorkItem(530636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530636")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalInLambdaInField2() As Task
             Dim input =
@@ -139,7 +139,7 @@ End Module
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(608210)>
+        <WorkItem(608210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608210")>
         Public Async Function TestLocalInPropertyInitializer() As Task
             Dim input =
 <Workspace>

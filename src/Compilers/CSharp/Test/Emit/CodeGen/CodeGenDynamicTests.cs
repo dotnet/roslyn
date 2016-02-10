@@ -303,7 +303,7 @@ class C
             Assert.Equal(1, ((CSharpCompilation)c.Compilation).GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMember<NamedTypeSymbol>("Func`13").Arity);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190"), WorkItem(530436, "DevDiv")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190"), WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void InvalidFunc_Constraints()
         {
             var systemCoreRef = CreateCompilationWithMscorlib(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
@@ -599,7 +599,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(625282, "DevDiv")]
+        [WorkItem(625282, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/625282")]
         public void GenericIterator()
         {
             string source = @"
@@ -896,7 +896,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(627091, "DevDiv")]
+        [WorkItem(627091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627091")]
         public void GenericContainer_Lambda()
         {
             string source = @"
@@ -974,7 +974,7 @@ public class C
             CompileAndVerify(source, new[] { SystemCoreRef });
         }
 
-        [Fact, WorkItem(16)]
+        [Fact, WorkItem(16, "http://roslyn.codeplex.com/workitem/16")]
         public void RemoveAtOfKeywordAsDynamicMemberName()
         {
             string source = @"
@@ -3411,7 +3411,7 @@ public class C
 }");
         }
 
-        [WorkItem(547676, "DevDiv")]
+        [WorkItem(547676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547676")]
         [Fact]
         public void BooleanOperation_Bug547676()
         {
@@ -6197,7 +6197,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(622532, "DevDiv")]
+        [WorkItem(622532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622532")]
         public void InvokeMember_Static_Outer()
         {
             string source = @"
@@ -6261,7 +6261,7 @@ public class A
         }
 
         [Fact]
-        [WorkItem(622532, "DevDiv")]
+        [WorkItem(622532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622532")]
         public void InvokeMember_Static_Outer_AmbiguousAtRuntime()
         {
             string source = @"
@@ -6347,7 +6347,7 @@ public class A
                 expectedOutput: "The call is ambiguous between the following methods or properties: 'A.M(A)' and 'A.M(string)'");
         }
 
-        [Fact, WorkItem(649805, "DevDiv")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_StaticContext_StaticProperty()
         {
             string source = @"
@@ -6475,7 +6475,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(649805, "DevDiv")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_StaticContext_InstanceProperty()
         {
             string source = @"
@@ -6606,7 +6606,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(649805, "DevDiv")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_StaticContext_Parameter()
         {
             string source = @"
@@ -6732,7 +6732,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(649805, "DevDiv")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_InstanceContext_StaticProperty()
         {
             string source = @"
@@ -6860,7 +6860,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(649805, "DevDiv")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_InstanceContext_Parameter()
         {
             string source = @"
@@ -6986,7 +6986,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(649805, "DevDiv")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_InstanceContext_InstanceProperty()
         {
             string source = @"
@@ -7116,7 +7116,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(649805, "DevDiv")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_InFieldInitializer()
         {
             string source = @"
@@ -7176,7 +7176,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(649805, "DevDiv")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_InScriptVariableInitializer()
         {
             var sourceLib = @"
@@ -7267,7 +7267,7 @@ dynamic x = Color.F((dynamic)1);
 }", realIL: true);
         }
 
-        [Fact, WorkItem(649805, "DevDiv")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void InvokeMember_ColorColor_InScriptMethod()
         {
             var sourceLib = @"
@@ -7794,7 +7794,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(598043, "DevDiv")]
+        [WorkItem(598043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598043")]
         public void InvokeMember_NamedArguments_PartialMethods()
         {
             string source = @"
@@ -8717,7 +8717,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(627091, "DevDiv")]
+        [WorkItem(627091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627091")]
         public void InvokeStaticMember_InLambda()
         {
             string source = @"

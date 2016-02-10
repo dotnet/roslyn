@@ -564,6 +564,9 @@ namespace TestResources.SymbolsTests
 
         private static byte[] _Pia5;
         public static byte[] Pia5 => ResourceLoader.GetOrCreateResource(ref _Pia5, "SymbolsTests.NoPia.Pia5.dll");
+
+        private static byte[] _ParametersWithoutNames;
+        public static byte[] ParametersWithoutNames => ResourceLoader.GetOrCreateResource(ref _ParametersWithoutNames, "SymbolsTests.NoPia.ParametersWithoutNames.dll");
     }
 }
 

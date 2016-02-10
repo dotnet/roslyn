@@ -552,17 +552,6 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             #region Operations
 
-            // TODO (tomat): testing only
-            public void SetTestObjectFormattingOptions()
-            {
-                _globals.PrintOptions = new ObjectFormattingOptions(
-                    memberFormat: MemberDisplayFormat.Inline,
-                    quoteStrings: true,
-                    useHexadecimalNumbers: false,
-                    maxOutputLength: int.MaxValue,
-                    memberIndentation: "  ");
-            }
-
             /// <summary>
             /// Loads references, set options and execute files specified in the initialization file.
             /// Also prints logo unless <paramref name="isRestarting"/> is true.
@@ -831,8 +820,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         }
                         catch (Exception e)
                         {
-                            // TODO (tomat): format exception
-                            Console.Error.WriteLine(e);
+                            Console.Error.WriteLine(_replServiceProvider.ObjectFormatter.FormatUnhandledException(e));
                             return null;
                         }
                     }))).ConfigureAwait(false);

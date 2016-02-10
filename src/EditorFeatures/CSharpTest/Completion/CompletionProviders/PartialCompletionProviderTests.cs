@@ -382,7 +382,7 @@ partial struct c
             await VerifyNoItemsExistAsync(text);
         }
 
-        [WorkItem(578757)]
+        [WorkItem(578757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578757")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DoNotConsiderFollowingDeclarationPartial()
         {
@@ -399,7 +399,7 @@ partial struct c
             await VerifyNoItemsExistAsync(text);
         }
 
-        [WorkItem(578078)]
+        [WorkItem(578078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578078")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitAsync()
         {
@@ -427,7 +427,7 @@ partial class Bar
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Foo()", expectedCodeAfterCommit);
         }
 
-        [WorkItem(578078)]
+        [WorkItem(578078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578078")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AmbiguityCommittingWithParen()
         {
@@ -455,7 +455,7 @@ partial class Bar
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Foo()", expectedCodeAfterCommit, commitChar: '(');
         }
 
-        [WorkItem(965677)]
+        [WorkItem(965677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965677")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoDefaultParameterValues()
         {

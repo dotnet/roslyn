@@ -243,7 +243,7 @@ BC30052: Array exceeds the limit of 32 dimensions.
 </errors>)
         End Sub
 
-        <WorkItem(541971, "DevDiv")>
+        <WorkItem(541971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541971")>
         <Fact>
         Public Sub TestIndexSpecifiedWithRange()
             Dim source =
@@ -261,7 +261,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(541971, "DevDiv")>
+        <WorkItem(541971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541971")>
         <Fact>
         Public Sub TestIndexSpecifiedWithRange2()
             Dim source =
@@ -284,7 +284,7 @@ BC32059: Array lower bounds can be only '0'.
 </errors>)
         End Sub
 
-        <WorkItem(541971, "DevDiv")>
+        <WorkItem(541971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541971")>
         <Fact>
         Public Sub TestIndexSpecifiedWithRange3()
             Dim source =

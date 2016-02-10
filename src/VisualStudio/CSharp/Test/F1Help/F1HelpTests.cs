@@ -303,7 +303,7 @@ class Program
 }", "System.Int32");
         }
 
-        [WorkItem(864266)]
+        [WorkItem(864266, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864266")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestConstantField()
         {
@@ -316,7 +316,7 @@ class Program
 }", "System.Int32.MaxValue");
         }
 
-        [WorkItem(862420)]
+        [WorkItem(862420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862420")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestParameter()
         {
@@ -334,7 +334,7 @@ class Program
 ", "System.Int32");
         }
 
-        [WorkItem(862420)]
+        [WorkItem(862420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862420")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestArgumentType()
         {
@@ -352,7 +352,7 @@ class Program
 ", "System.Int32");
         }
 
-        [WorkItem(862396)]
+        [WorkItem(862396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862396")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestNoToken()
         {
@@ -365,7 +365,7 @@ class Program
 }", "");
         }
 
-        [WorkItem(862328)]
+        [WorkItem(862328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862328")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestLiteral()
         {
@@ -378,7 +378,7 @@ class Program
     }", "System.String");
         }
 
-        [WorkItem(862478)]
+        [WorkItem(862478, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862478")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestColonColon()
         {
@@ -396,7 +396,7 @@ class Program
 }", "::_CSharpKeyword");
         }
 
-        [WorkItem(864658)]
+        [WorkItem(864658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864658")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestNullable()
         {
@@ -416,7 +416,7 @@ a.Value.GetHashCode();
 }", "System.Nullable`1");
         }
 
-        [WorkItem(863517)]
+        [WorkItem(863517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863517")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestAfterLastToken()
         {
@@ -461,7 +461,7 @@ class Program
 }", "System.Int32");
         }
 
-        [WorkItem(867574)]
+        [WorkItem(867574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867574")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestFatArrow()
         {
@@ -474,7 +474,7 @@ class Program
 }", "=>_CSharpKeyword");
         }
 
-        [WorkItem(867572)]
+        [WorkItem(867572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867572")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestSubscription()
         {
@@ -488,14 +488,14 @@ class Program
 }", "CCC.e.add");
         }
 
-        [WorkItem(867554)]
+        [WorkItem(867554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867554")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestComment()
         {
             await TestAsync(@"// some comm[||]ents here", "comments");
         }
 
-        [WorkItem(867529)]
+        [WorkItem(867529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867529")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestDynamic()
         {

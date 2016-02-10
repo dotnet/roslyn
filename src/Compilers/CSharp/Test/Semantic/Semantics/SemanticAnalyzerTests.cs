@@ -34,7 +34,7 @@ Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "System.
                 );
         }
 
-        [Fact, WorkItem(546737, "DevDiv")]
+        [Fact, WorkItem(546737, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546737")]
         public void TestBug16693()
         {
             // We should treat I.Equals as hiding object.Equals, as noted in section 7.4.1 
@@ -58,7 +58,7 @@ class C
         }
 
 
-        [Fact, WorkItem(546716, "DevDiv")]
+        [Fact, WorkItem(546716, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546716")]
         public void TestBug16639()
         {
             // The bug here was that the warning was reported for the first case -- the conversion 
@@ -522,7 +522,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod").WithArguments("C.InstanceMethod()").WithLocation(223, 9));
         }
 
-        [WorkItem(538651, "DevDiv")]
+        [WorkItem(538651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538651")]
         [Fact]
         public void TestMemberResolutionWithHiding()
         {
@@ -897,7 +897,7 @@ class C
                 Diagnostic(ErrorCode.WRN_AssignmentToSelf, "q = q"));
         }
 
-        [Fact, WorkItem(672714, "DevDiv")]
+        [Fact, WorkItem(672714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672714")]
         public void TestAssignmentWarnings_Dynamic()
         {
             string source = @"

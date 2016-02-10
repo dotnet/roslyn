@@ -10254,6 +10254,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string or XML literals..
+        '''</summary>
+        Friend ReadOnly Property ERR_TooManyUserStrings() As String
+            Get
+                Return ResourceManager.GetString("ERR_TooManyUserStrings", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Method cannot contain both a &apos;Try&apos; statement and an &apos;On Error&apos; or &apos;Resume&apos; statement..
         '''</summary>
         Friend ReadOnly Property ERR_TryAndOnErrorDoNotMix() As String

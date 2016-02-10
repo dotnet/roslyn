@@ -917,7 +917,7 @@ End Class
 
 #Region "Regression"
 
-        <WorkItem(539107, "DevDiv")>
+        <WorkItem(539107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539107")>
         <Fact()>
         Public Sub LookupAtLocationEndSubNode()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -955,7 +955,7 @@ End Class
             Assert.Contains(expected_in_lookupSymbols(1), actual_lookupSymbols_as_string)
         End Sub
 
-        <WorkItem(539114, "DevDiv")>
+        <WorkItem(539114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539114")>
         <Fact()>
         Public Sub LookupAtLocationSubBlockNode()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -993,7 +993,7 @@ End Class
             Assert.DoesNotContain(not_expected_in_lookupSymbols(1), actual_lookupSymbols_as_string)
         End Sub
 
-        <WorkItem(539119, "DevDiv")>
+        <WorkItem(539119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539119")>
         <Fact()>
         Public Sub LookupSymbolsByNameIncorrectArity()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1012,7 +1012,7 @@ End Class
             Assert.Empty(actual_lookupSymbols)
         End Sub
 
-        <WorkItem(539130, "DevDiv")>
+        <WorkItem(539130, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539130")>
         <Fact()>
         Public Sub LookupWithNameZeroArity()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1093,7 +1093,7 @@ End Module
             Assert.DoesNotContain(not_expected_in_lookup(1), actual_lookupSymbols_as_string)
         End Sub
 
-        <WorkItem(539166, "DevDiv")>
+        <WorkItem(539166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539166")>
         <Fact()>
         Public Sub LookupLocationInsideFunctionIgnoreReturnVariable()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1129,7 +1129,7 @@ End Class
             result.Free()
         End Sub
 
-        <WorkItem(539166, "DevDiv")>
+        <WorkItem(539166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539166")>
         <Fact()>
         Public Sub LookupLocationInsideFunction()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1168,7 +1168,7 @@ End Class
             Assert.Contains(expected_in_lookupSymbols(1), actual_lookupSymbols_as_string)
         End Sub
 
-        <WorkItem(527759, "DevDiv")>
+        <WorkItem(527759, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527759")>
         <Fact()>
         Public Sub LookupAtLocationClassTypeBlockSyntax()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1215,7 +1215,7 @@ End Class
             Assert.Contains(expected_in_lookupSymbols(2), actual_lookupSymbols_as_string)
         End Sub
 
-        <WorkItem(527760, "DevDiv")>
+        <WorkItem(527760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527760")>
         <Fact()>
         Public Sub LookupAtLocationClassTypeStatementSyntax()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1262,7 +1262,7 @@ End Class
             Assert.Contains(expected_in_lookupSymbols(2), actual_lookupSymbols_as_string)
         End Sub
 
-        <WorkItem(527761, "DevDiv")>
+        <WorkItem(527761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527761")>
         <Fact()>
         Public Sub LookupAtLocationEndClassStatementSyntax()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1309,7 +1309,7 @@ End Class      'BIND:"End Class"
             Assert.Contains(expected_in_lookupSymbols(2), actual_lookupSymbols_as_string)
         End Sub
 
-        <WorkItem(539175, "DevDiv")>
+        <WorkItem(539175, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539175")>
         <Fact()>
         Public Sub LookupAtLocationNamespaceBlockSyntax()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1379,7 +1379,7 @@ End Namespace
             Assert.DoesNotContain(not_expected_in_lookupSymbols(3), actual_lookupSymbols_as_string)
         End Sub
 
-        <WorkItem(539177, "DevDiv")>
+        <WorkItem(539177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539177")>
         <Fact()>
         Public Sub LookupAtLocationEndNamespaceStatementSyntax()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1451,7 +1451,7 @@ End Namespace
             Next
         End Sub
 
-        <WorkItem(539185, "DevDiv")>
+        <WorkItem(539185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539185")>
         <Fact()>
         Public Sub LookupAtLocationInterfaceBlockSyntax()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1487,7 +1487,7 @@ End Namespace
             Assert.Contains(expected_in_lookupSymbols(1), actual_lookupSymbols_as_string)
         End Sub
 
-        <WorkItem(539185, "DevDiv")>
+        <WorkItem(539185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539185")>
         <Fact>
         Public Sub LookupAtLocationInterfaceStatementSyntax()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1523,7 +1523,7 @@ End Namespace
             Assert.Contains(expected_in_lookupSymbols(1), actual_lookupSymbols_as_string)
         End Sub
 
-        <WorkItem(539185, "DevDiv")>
+        <WorkItem(539185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539185")>
         <Fact>
         Public Sub LookupAtLocationEndInterfaceStatementSyntax()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1559,7 +1559,7 @@ End Namespace
             Assert.Contains(expected_in_lookupSymbols(1), actual_lookupSymbols_as_string)
         End Sub
 
-        <WorkItem(527774, "DevDiv")>
+        <WorkItem(527774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527774")>
         <Fact()>
         Public Sub LookupAtLocationCompilationUnitSyntax()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1596,7 +1596,7 @@ End Namespace
             Assert.Contains(expected_in_lookupSymbols(1), actual_lookupSymbols_as_string)
         End Sub
 
-        <WorkItem(527779, "DevDiv")>
+        <WorkItem(527779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527779")>
         <Fact()>
         Public Sub LookupAtLocationInheritsStatementSyntax()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1654,7 +1654,7 @@ End Class
             Assert.DoesNotContain(not_expected_in_lookupSymbols(0), actual_lookupSymbols_as_string)
         End Sub
 
-        <WorkItem(527780, "DevDiv")>
+        <WorkItem(527780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527780")>
         <Fact()>
         Public Sub LookupAtLocationImplementsStatementSyntax()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1708,7 +1708,7 @@ End Class
             Assert.Contains(expected_in_lookupSymbols(3), actual_lookupSymbols_as_string)
         End Sub
 
-        <WorkItem(539232, "DevDiv")>
+        <WorkItem(539232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539232")>
         <Fact()>
         Public Sub LookupAtLocationInsideIfPartOfSingleLineIfStatement()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1753,7 +1753,7 @@ End Module
             Assert.DoesNotContain(not_expected_in_lookupSymbols(0), actual_lookupSymbols_as_string)
         End Sub
 
-        <WorkItem(539234, "DevDiv")>
+        <WorkItem(539234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539234")>
         <Fact()>
         Public Sub LookupAtLocationInsideElsePartOfSingleLineElseStatement()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1798,7 +1798,7 @@ End Module
             Assert.DoesNotContain(not_expected_in_lookupSymbols(0), actual_lookupSymbols_as_string)
         End Sub
 
-        <WorkItem(542856, "DevDiv")>
+        <WorkItem(542856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542856")>
         <Fact()>
         Public Sub LookupParamSingleLineLambdaExpr()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1867,7 +1867,7 @@ End Module
             Assert.Contains(expected_in_lookupSymbols(0), actual_lookupSymbols_as_string)
         End Sub
 
-        <Fact(), WorkItem(546400, "DevDiv")>
+        <Fact(), WorkItem(546400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546400")>
         Public Sub Bug10272_3()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="GetSemanticInfo">
@@ -1903,7 +1903,7 @@ End Module
             Assert.Contains(expected_in_lookupSymbols(0), actual_lookupSymbols_as_string)
         End Sub
 
-        <Fact(), WorkItem(546400, "DevDiv")>
+        <Fact(), WorkItem(546400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546400")>
         Public Sub Bug10272_4()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="GetSemanticInfo">
@@ -1956,7 +1956,7 @@ End Class
             CompilationUtils.CheckSymbols(symbols, "Microsoft", "C", "System")
         End Sub
 
-        <Fact(), WorkItem(939844, "DevDiv")>
+        <Fact(), WorkItem(939844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939844")>
         Public Sub Bug939844_01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -1987,7 +1987,7 @@ End Module
             Assert.Equal("y As System.Int32", symsY(0).ToTestDisplayString())
         End Sub
 
-        <Fact(), WorkItem(939844, "DevDiv")>
+        <Fact(), WorkItem(939844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939844")>
         Public Sub Bug939844_02()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>

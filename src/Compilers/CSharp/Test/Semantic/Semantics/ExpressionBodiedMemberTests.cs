@@ -238,7 +238,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(1009638)]
+        [WorkItem(1009638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009638")]
         public void ExprBodiedFunc02()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -326,7 +326,7 @@ class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(1065375, "DevDiv"), WorkItem(313, "CodePlex")]
+        [WorkItem(1065375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065375"), WorkItem(313, "CodePlex")]
         [Fact]
         public void Bug1065375_1()
         {
@@ -346,7 +346,7 @@ public static class TestExtension
             CompileAndVerify(source, expectedOutput: "GetAction 1");
         }
 
-        [Fact, WorkItem(1069421, "DevDiv")]
+        [Fact, WorkItem(1069421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069421")]
         public void Bug1069421()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -367,7 +367,7 @@ class Program
             Assert.Equal(typeInfo1.Type, typeInfo2.Type);
         }
 
-        [WorkItem(1112875, "DevDiv")]
+        [WorkItem(1112875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112875")]
         [Fact]
         public void Bug1112875()
         {

@@ -11,15 +11,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits CompilationOptions
         Implements IEquatable(Of VisualBasicCompilationOptions)
 
-        Private Const s_globalImportsString = "GlobalImports"
-        Private Const s_rootNamespaceString = "RootNamespace"
-        Private Const s_optionStrictString = "OptionStrict"
-        Private Const s_optionInferString = "OptionInfer"
-        Private Const s_optionExplicitString = "OptionExplicit"
-        Private Const s_optionCompareTextString = "OptionCompareText"
-        Private Const s_embedVbCoreRuntimeString = "EmbedVbCoreRuntime"
-        Private Const s_parseOptionsString = "ParseOptions"
-
         Private _globalImports As ImmutableArray(Of GlobalImport)
         Private _rootNamespace As String
         Private _optionStrict As OptionStrict

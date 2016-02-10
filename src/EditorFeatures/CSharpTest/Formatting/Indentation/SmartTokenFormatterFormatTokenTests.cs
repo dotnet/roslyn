@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [WorkItem(537827)]
+        [WorkItem(537827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537827")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task ArrayInitializer3()
         {
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [Fact]
-        [WorkItem(543142)]
+        [WorkItem(543142, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543142")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EnterWithTrailingWhitespace()
         {
@@ -466,7 +466,7 @@ $$}
             AssertSmartTokenFormatterCloseBraceWithBaseIndentation(markup, baseIndentation: 7, expectedIndentation: 11);
         }
 
-        [WorkItem(766159)]
+        [WorkItem(766159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
         [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task TestPreprocessor()
         {
@@ -482,7 +482,7 @@ class C
             Assert.Equal(0, actualIndentation);
         }
 
-        [WorkItem(766159)]
+        [WorkItem(766159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
         [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task TestRegion()
         {
@@ -498,7 +498,7 @@ class C
             Assert.Equal(8, actualIndentation);
         }
 
-        [WorkItem(766159)]
+        [WorkItem(766159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]
         [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task TestEndRegion()
         {
@@ -516,7 +516,7 @@ class C
             Assert.Equal(8, actualIndentation);
         }
 
-        [WorkItem(777467)]
+        [WorkItem(777467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/777467")]
         [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task TestSelect()
         {
@@ -538,7 +538,7 @@ class Program
             Assert.Equal(15, actualIndentation);
         }
 
-        [WorkItem(777467)]
+        [WorkItem(777467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/777467")]
         [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task TestWhere()
         {

@@ -2949,7 +2949,7 @@ Console.WriteLine(2);
             CheckCompilationSyntaxTrees(compilation4, tree2, tree3);
         }
 
-        [WorkItem(578706, "DevDiv")]
+        [WorkItem(578706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578706")]
         [Fact]
         public void DeclaringCompilationOfAddedModule()
         {
