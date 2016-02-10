@@ -143,14 +143,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static void RemoveEmptyScopes(XElement pdb)
         {
-            var emptyScopes = from e in pdb.DescendantsAndSelf()
-                              where e.Name == "scope" && !e.HasElements
-                              select e;
+            XElement[] emptyScopes;
 
-            foreach (var e in emptyScopes.ToArray())
+            do
             {
-                e.Remove();
+                emptyScopes = (from e in pdb.DescendantsAndSelf()
+                               where e.Name == "scope" && !e.HasElements
+                               select e).ToArray();
+
+                foreach (var e in emptyScopes)
+                {
+                    e.Remove();
+                }
             }
+            while (emptyScopes.Any());
         }
 
         private static void RemoveEmptySequencePoints(XElement pdb)
@@ -190,7 +196,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                             e.Name == "type" ||
                                             e.Name == "defunct" ||
                                             e.Name == "extern" ||
-                                            e.Name == "externinfo"
+                                            e.Name == "externinfo" ||
+                                            e.Name == "local" && e.Attributes().Any(a => a.Name.LocalName == "name" && a.Value.StartsWith("$VB$ResumableLocal_"))
                                       select e;
 
             foreach (var e in nonPortableElements.ToArray())

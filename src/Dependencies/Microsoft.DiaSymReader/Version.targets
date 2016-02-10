@@ -1,25 +1,37 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <AssemblyVersion>1.0.7</AssemblyVersion>
-    <NuGetVersion>$(AssemblyVersion)</NuGetVersion>
+    <IsReleaseVersion>true</IsReleaseVersion>
   </PropertyGroup>
 
-  <!-- AssemblyFileVersion -->
   <Choose>
-    <When Condition="'$(BuildNumber)' != ''">
-      <!-- Lab build. -->
+    <When Condition="$(BuildNumber) == ''">
       <PropertyGroup>
-        <BuildVersion>$(AssemblyVersion).$(BuildNumber.Split('.')[0])</BuildVersion>
-        <NuGetVersion>$(NuGetVersion)-$(BuildNumber.Split('.')[0])</NuGetVersion>
-        <NuGetVersionType>Release</NuGetVersionType>
+        <NuGetVersionSuffix>beta1</NuGetVersionSuffix>
+        <BuildVersion>$(AssemblyVersion).0</BuildVersion>
       </PropertyGroup>
     </When>
 
     <Otherwise>
-      <!-- Local build. -->
       <PropertyGroup>
-        <BuildVersion>$(AssemblyVersion).0</BuildVersion>
+        <NuGetVersionSuffix>beta1-$(BuildNumber.Split('.')[0])</NuGetVersionSuffix>
+        <BuildVersion>$(AssemblyVersion).$(BuildNumber.Split('.')[0])</BuildVersion>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+  
+  <Choose>
+    <When Condition="$(IsReleaseVersion)" >
+      <PropertyGroup>
+        <NuGetVersion>$(AssemblyVersion)</NuGetVersion>
         <NuGetVersionType>Release</NuGetVersionType>
+      </PropertyGroup>
+    </When>
+    
+    <Otherwise>
+      <PropertyGroup>
+        <NuGetVersion>$(AssemblyVersion)-$(NuGetVersionSuffix)</NuGetVersion>
+        <NuGetVersionType>PerBuildPreRelease</NuGetVersionType>
       </PropertyGroup>
     </Otherwise>
   </Choose>

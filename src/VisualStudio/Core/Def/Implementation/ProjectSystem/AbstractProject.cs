@@ -540,7 +540,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AddAnalyzerAssembly(analyzer.FullPath);
         }
 
-        protected void AddProjectReference(ProjectReference projectReference)
+        // Internal for unit testing
+        internal void AddProjectReference(ProjectReference projectReference)
         {
             // dev11 is sometimes calling us multiple times for the same data
             if (!CanAddProjectReference(projectReference))
@@ -1015,7 +1016,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
         }
 
-        protected virtual void UpdateAnalyzerRules()
+        /// <summary>
+        /// Implemented by derived types to provide a way for <see cref="AbstractProject"/> to indicate that options will need to be refreshed.
+        /// It is expected that derived types will read in shared option state stored in this class, create new Compilation and Parse options,
+        /// and call <see cref="SetOptions"/> in response. The default implementation does nothing.
+        /// </summary>
+        protected virtual void UpdateOptions()
         {
         }
 

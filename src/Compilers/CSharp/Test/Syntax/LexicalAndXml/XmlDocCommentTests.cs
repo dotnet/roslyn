@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, leading[0].ToFullString());
         }
 
-        [ClrOnlyFact]
+        [Fact]
         public void TestEmptyElementNoAttributesPrecedingClass()
         {
             var text =
@@ -110,7 +111,7 @@ class C { }";
             Assert.Equal(1, leading.Count);
             var node = leading[0];
             Assert.Equal(SyntaxKind.SingleLineDocumentationCommentTrivia, node.Kind());
-            Assert.Equal("/// <foo />\r\n", node.ToFullString());
+            Assert.Equal($"/// <foo />{Environment.NewLine}", node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(3, doc.Content.Count);
             Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
@@ -265,7 +266,7 @@ class C { }";
             Assert.Equal("x\"y\"z", attr.TextTokens[0].ToString());
         }
 
-        [ClrOnlyFact]
+        [Fact]
         public void TestEmptyElementNoAttributesMultipleLines()
         {
             var text =
@@ -285,10 +286,10 @@ class C { }";
             Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
             Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
-            Assert.Equal("<foo \r\n/// />", doc.Content[1].ToFullString());
+            Assert.Equal($"<foo {Environment.NewLine}/// />", doc.Content[1].ToFullString());
         }
 
-        [ClrOnlyFact]
+        [Fact]
         public void TestEmptyElementNoAttributesMultipleLinesPrecedingClass()
         {
             var text =
@@ -303,17 +304,17 @@ class C { }";
             Assert.Equal(1, leading.Count);
             var node = leading[0];
             Assert.Equal(SyntaxKind.SingleLineDocumentationCommentTrivia, node.Kind());
-            Assert.Equal("/// <foo \r\n/// />\r\n", node.ToFullString());
+            Assert.Equal($"/// <foo {Environment.NewLine}/// />{Environment.NewLine}", node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(3, doc.Content.Count);
             Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
             Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
-            Assert.Equal("<foo \r\n/// />", doc.Content[1].ToFullString());
+            Assert.Equal($"<foo {Environment.NewLine}/// />", doc.Content[1].ToFullString());
             Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
-        [ClrOnlyFact]
+        [Fact]
         public void TestEmptyElementNoAttributesMultipleLinesDelimited()
         {
             var text =
@@ -334,7 +335,7 @@ class C { }";
             Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
             Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
-            Assert.Equal("<foo \r\n  * />", doc.Content[1].ToFullString());
+            Assert.Equal($"<foo {Environment.NewLine}  * />", doc.Content[1].ToFullString());
             Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
@@ -354,13 +355,13 @@ class C { }";
             Assert.Equal(2, leading.Count);
             var node = leading[0];
             Assert.Equal(SyntaxKind.MultiLineDocumentationCommentTrivia, node.Kind());
-            Assert.Equal("/** <foo \r\n  * />\r\n  */", node.ToFullString());
+            Assert.Equal($"/** <foo {Environment.NewLine}  * />{Environment.NewLine}  */", node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(3, doc.Content.Count);
             Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
             Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
-            Assert.Equal("<foo \r\n  * />", doc.Content[1].ToFullString());
+            Assert.Equal($"<foo {Environment.NewLine}  * />", doc.Content[1].ToFullString());
             Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
@@ -701,7 +702,7 @@ class C { }";
             Assert.NotEqual(0, doc.ErrorsAndWarnings().Length);
         }
 
-        [ClrOnlyFact]
+        [Fact]
         public void TestNonEmptyElementNoAttributes()
         {
             var text =
@@ -728,13 +729,13 @@ class C { }";
             Assert.Equal(1, element.Content.Count);
             var textsyntax = (XmlTextSyntax)element.Content[0];
             Assert.Equal(4, textsyntax.ChildNodesAndTokens().Count);
-            Assert.Equal("\r\n", textsyntax.ChildNodesAndTokens()[0].ToString());
+            Assert.Equal(Environment.NewLine, textsyntax.ChildNodesAndTokens()[0].ToString());
             Assert.Equal(" bar", textsyntax.ChildNodesAndTokens()[1].ToString());
-            Assert.Equal("\r\n", textsyntax.ChildNodesAndTokens()[2].ToString());
+            Assert.Equal(Environment.NewLine, textsyntax.ChildNodesAndTokens()[2].ToString());
             Assert.Equal(" ", textsyntax.ChildNodesAndTokens()[3].ToString());
         }
 
-        [ClrOnlyFact]
+        [Fact]
         public void TestNonEmptyElementNoAttributesDelimited()
         {
             var text =
@@ -762,13 +763,13 @@ class C { }";
             Assert.Equal(1, element.Content.Count);
             var textsyntax = (XmlTextSyntax)element.Content[0];
             Assert.Equal(4, textsyntax.ChildNodesAndTokens().Count);
-            Assert.Equal("\r\n", textsyntax.ChildNodesAndTokens()[0].ToString());
+            Assert.Equal(Environment.NewLine, textsyntax.ChildNodesAndTokens()[0].ToString());
             Assert.Equal(" bar", textsyntax.ChildNodesAndTokens()[1].ToString());
-            Assert.Equal("\r\n", textsyntax.ChildNodesAndTokens()[2].ToString());
+            Assert.Equal(Environment.NewLine, textsyntax.ChildNodesAndTokens()[2].ToString());
             Assert.Equal(" ", textsyntax.ChildNodesAndTokens()[3].ToString());
         }
 
-        [ClrOnlyFact]
+        [Fact]
         public void TestCDataSection()
         {
             var text =
@@ -792,13 +793,13 @@ class C { }";
             var cdata = (XmlCDataSectionSyntax)doc.Content[1];
             Assert.Equal(5, cdata.TextTokens.Count);
             Assert.Equal(" this is a test", cdata.TextTokens[0].ToString());
-            Assert.Equal("\r\n", cdata.TextTokens[1].ToString());
+            Assert.Equal(Environment.NewLine, cdata.TextTokens[1].ToString());
             Assert.Equal(" of &some; cdata /// */ /**", cdata.TextTokens[2].ToString());
-            Assert.Equal("\r\n", cdata.TextTokens[3].ToString());
+            Assert.Equal(Environment.NewLine, cdata.TextTokens[3].ToString());
             Assert.Equal(" \"']]<>/></text", cdata.TextTokens[4].ToString());
         }
 
-        [ClrOnlyFact]
+        [Fact]
         public void TestCDataSectionDelimited()
         {
             var text =
@@ -823,9 +824,9 @@ class C { }";
             var cdata = (XmlCDataSectionSyntax)doc.Content[1];
             Assert.Equal(5, cdata.TextTokens.Count);
             Assert.Equal(" this is a test", cdata.TextTokens[0].ToString());
-            Assert.Equal("\r\n", cdata.TextTokens[1].ToString());
+            Assert.Equal(Environment.NewLine, cdata.TextTokens[1].ToString());
             Assert.Equal(" of &some; cdata", cdata.TextTokens[2].ToString());
-            Assert.Equal("\r\n", cdata.TextTokens[3].ToString());
+            Assert.Equal(Environment.NewLine, cdata.TextTokens[3].ToString());
             Assert.Equal(" \"']]<>/></text", cdata.TextTokens[4].ToString());
             Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
@@ -854,7 +855,7 @@ class C { }";
             Assert.Equal(" incomplete", cdata.TextTokens[0].ToString());
         }
 
-        [ClrOnlyFact]
+        [Fact]
         public void TestIncompleteEOLCDataSection()
         {
             var text = @"/// <![CDATA[ incomplete
@@ -867,7 +868,7 @@ class C { }"; // end of line/comment
             Assert.Equal(1, leading.Count);
             var node = leading[0];
             Assert.Equal(SyntaxKind.SingleLineDocumentationCommentTrivia, node.Kind());
-            Assert.Equal("/// <![CDATA[ incomplete\r\n", node.ToFullString());
+            Assert.Equal($"/// <![CDATA[ incomplete{Environment.NewLine}", node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
             Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
@@ -877,7 +878,7 @@ class C { }"; // end of line/comment
             Assert.Equal(1, cdata.ErrorsAndWarnings().Length);
             Assert.Equal(2, cdata.TextTokens.Count);
             Assert.Equal(" incomplete", cdata.TextTokens[0].ToString());
-            Assert.Equal("\r\n", cdata.TextTokens[1].ToString());
+            Assert.Equal(Environment.NewLine, cdata.TextTokens[1].ToString());
         }
 
         [Fact]
@@ -930,7 +931,7 @@ class C { }"; // end of line/comment
             Assert.Equal(" incomplete", cdata.TextTokens[0].ToString());
         }
 
-        [ClrOnlyFact]
+        [Fact]
         public void TestComment()
         {
             var text =
@@ -954,13 +955,13 @@ class C { }"; // end of line/comment
             var comment = (XmlCommentSyntax)doc.Content[1];
             Assert.Equal(5, comment.TextTokens.Count);
             Assert.Equal(" this is a test", comment.TextTokens[0].ToString());
-            Assert.Equal("\r\n", comment.TextTokens[1].ToString());
+            Assert.Equal(Environment.NewLine, comment.TextTokens[1].ToString());
             Assert.Equal(" of &some; comment", comment.TextTokens[2].ToString());
-            Assert.Equal("\r\n", comment.TextTokens[3].ToString());
+            Assert.Equal(Environment.NewLine, comment.TextTokens[3].ToString());
             Assert.Equal(" \"']]<>/></text", comment.TextTokens[4].ToString());
         }
 
-        [ClrOnlyFact]
+        [Fact]
         public void TestCommentDelimited()
         {
             var text =
@@ -985,9 +986,9 @@ class C { }"; // end of line/comment
             var comment = (XmlCommentSyntax)doc.Content[1];
             Assert.Equal(5, comment.TextTokens.Count);
             Assert.Equal(" this is a test", comment.TextTokens[0].ToString());
-            Assert.Equal("\r\n", comment.TextTokens[1].ToString());
+            Assert.Equal(Environment.NewLine, comment.TextTokens[1].ToString());
             Assert.Equal(" of &some; comment", comment.TextTokens[2].ToString());
-            Assert.Equal("\r\n", comment.TextTokens[3].ToString());
+            Assert.Equal(Environment.NewLine, comment.TextTokens[3].ToString());
             Assert.Equal(" \"']]<>/></text", comment.TextTokens[4].ToString());
             Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
@@ -1016,7 +1017,7 @@ class C { }"; // end of line/comment
             Assert.Equal(" incomplete", comment.TextTokens[0].ToString());
         }
 
-        [ClrOnlyFact]
+        [Fact]
         public void TestIncompleteEOLComment()
         {
             var text = @"/// <!-- incomplete
@@ -1029,7 +1030,7 @@ class C { }"; // end of line/comment
             Assert.Equal(1, leading.Count);
             var node = leading[0];
             Assert.Equal(SyntaxKind.SingleLineDocumentationCommentTrivia, node.Kind());
-            Assert.Equal("/// <!-- incomplete\r\n", node.ToFullString());
+            Assert.Equal($"/// <!-- incomplete{Environment.NewLine}", node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
             Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
@@ -1039,7 +1040,7 @@ class C { }"; // end of line/comment
             Assert.Equal(1, comment.ErrorsAndWarnings().Length);
             Assert.Equal(2, comment.TextTokens.Count);
             Assert.Equal(" incomplete", comment.TextTokens[0].ToString());
-            Assert.Equal("\r\n", comment.TextTokens[1].ToString());
+            Assert.Equal(Environment.NewLine, comment.TextTokens[1].ToString());
         }
 
         [Fact]
@@ -1066,7 +1067,7 @@ class C { }"; // end of line/comment
             Assert.Equal(" incomplete", comment.TextTokens[0].ToString());
         }
 
-        [ClrOnlyFact]
+        [Fact]
         public void TestProcessingInstruction()
         {
             var text =
@@ -1092,13 +1093,13 @@ class C { }"; // end of line/comment
             Assert.Equal("ProcessingInstruction", ProcessingInstruction.Name.LocalName.Text);
             Assert.Equal(5, ProcessingInstruction.TextTokens.Count);
             Assert.Equal(" this is a test", ProcessingInstruction.TextTokens[0].ToString());
-            Assert.Equal("\r\n", ProcessingInstruction.TextTokens[1].ToString());
+            Assert.Equal(Environment.NewLine, ProcessingInstruction.TextTokens[1].ToString());
             Assert.Equal(" of &a; ProcessingInstruction /// */ /**", ProcessingInstruction.TextTokens[2].ToString());
-            Assert.Equal("\r\n", ProcessingInstruction.TextTokens[3].ToString());
+            Assert.Equal(Environment.NewLine, ProcessingInstruction.TextTokens[3].ToString());
             Assert.Equal(" \"']]>/>?</text", ProcessingInstruction.TextTokens[4].ToString());
         }
 
-        [ClrOnlyFact]
+        [Fact]
         public void TestProcessingInstructionDelimited()
         {
             var text =
@@ -1126,9 +1127,9 @@ class C { }"; // end of line/comment
             Assert.Equal("localname", ProcessingInstruction.Name.LocalName.Text);
             Assert.Equal(5, ProcessingInstruction.TextTokens.Count);
             Assert.Equal(" this is a test <!--", ProcessingInstruction.TextTokens[0].ToString());
-            Assert.Equal("\r\n", ProcessingInstruction.TextTokens[1].ToString());
+            Assert.Equal(Environment.NewLine, ProcessingInstruction.TextTokens[1].ToString());
             Assert.Equal(" of &a; ProcessingInstruction", ProcessingInstruction.TextTokens[2].ToString());
-            Assert.Equal("\r\n", ProcessingInstruction.TextTokens[3].ToString());
+            Assert.Equal(Environment.NewLine, ProcessingInstruction.TextTokens[3].ToString());
             Assert.Equal(" \"']]>/></text>]]>", ProcessingInstruction.TextTokens[4].ToString());
             Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
@@ -1589,7 +1590,7 @@ class C { }";
         }
 
         [WorkItem(899559, "DevDiv/Personal")]
-        [ClrOnlyFact]
+        [Fact]
         public void TestNoZeroWidthTrivia()
         {
             var text =
@@ -1612,13 +1613,13 @@ x
             Assert.Equal(3, xmltext.ChildNodesAndTokens().Count);
             Assert.Equal(SyntaxKind.XmlTextLiteralNewLineToken, xmltext.ChildNodesAndTokens()[0].Kind());
             Assert.True(xmltext.ChildNodesAndTokens()[0].HasLeadingTrivia);
-            Assert.Equal("\r\n", xmltext.ChildNodesAndTokens()[0].ToString());
+            Assert.Equal(Environment.NewLine, xmltext.ChildNodesAndTokens()[0].ToString());
             Assert.Equal(SyntaxKind.XmlTextLiteralToken, xmltext.ChildNodesAndTokens()[1].Kind());
             Assert.False(xmltext.ChildNodesAndTokens()[1].HasLeadingTrivia);
             Assert.Equal("x", xmltext.ChildNodesAndTokens()[1].ToString());
             Assert.Equal(SyntaxKind.XmlTextLiteralNewLineToken, xmltext.ChildNodesAndTokens()[2].Kind());
             Assert.False(xmltext.ChildNodesAndTokens()[2].HasLeadingTrivia);
-            Assert.Equal("\r\n", xmltext.ChildNodesAndTokens()[2].ToString());
+            Assert.Equal(Environment.NewLine, xmltext.ChildNodesAndTokens()[2].ToString());
         }
 
         [WorkItem(906364, "DevDiv/Personal")]
@@ -2329,7 +2330,7 @@ class C{}";
         }
 
         [WorkItem(906704, "DevDiv/Personal")]
-        [ClrOnlyFact]
+        [Fact]
         public void TestSingleLineXmlCommentWithMissingStartTag()
         {
             var text = @"///</Foo>
@@ -2355,7 +2356,7 @@ class C{}";
             // we should get just 2 nodes
             Assert.Equal(2, xmlText.TextTokens.Count);
 
-            Assert.Equal("///</Foo>\r\n", xmlText.TextTokens.ToFullString());
+            Assert.Equal($"///</Foo>{Environment.NewLine}", xmlText.TextTokens.ToFullString());
         }
 
         [WorkItem(906719, "DevDiv/Personal")]
@@ -2865,24 +2866,23 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestDocumentationComment()
         {
-            var expected =
-                "/// <summary>\r\n" +
-                "/// This class provides extension methods for the <see cref=\"TypeName\"/> class.\r\n" +
-                "/// </summary>\r\n" +
-                "/// <threadsafety static=\"true\" instance=\"false\"/>\r\n" +
-                "/// <preliminary/>";
+            var expected = @"/// <summary>
+/// This class provides extension methods for the <see cref=""TypeName""/> class.
+/// </summary>
+/// <threadsafety static=""true"" instance=""false""/>
+/// <preliminary/>";
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
-                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine(Environment.NewLine),
                     SyntaxFactory.XmlText("This class provides extension methods for the "),
                     SyntaxFactory.XmlSeeElement(
                         SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName("TypeName"))),
                     SyntaxFactory.XmlText(" class."),
-                    SyntaxFactory.XmlNewLine("\r\n")),
-                SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine(Environment.NewLine)),
+                SyntaxFactory.XmlNewLine(Environment.NewLine),
                 SyntaxFactory.XmlThreadSafetyElement(),
-                SyntaxFactory.XmlNewLine("\r\n"),
+                SyntaxFactory.XmlNewLine(Environment.NewLine),
                 SyntaxFactory.XmlPreliminaryElement());
 
             var actual = documentationComment.ToFullString();
@@ -2894,16 +2894,16 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlSummaryElement()
         {
-            var expected =
-                "/// <summary>\r\n" +
-                "/// This class provides extension methods.\r\n" +
-                "/// </summary>";
+            var expected = 
+@"/// <summary>
+/// This class provides extension methods.
+/// </summary>";
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
-                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine(Environment.NewLine),
                     SyntaxFactory.XmlText("This class provides extension methods."),
-                    SyntaxFactory.XmlNewLine("\r\n")));
+                    SyntaxFactory.XmlNewLine(Environment.NewLine)));
 
             var actual = documentationComment.ToFullString();
 
@@ -2914,14 +2914,14 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlSeeElementAndXmlSeeAlsoElement()
         {
-            var expected =
-                "/// <summary>\r\n" +
-                "/// This class provides extension methods for the <see cref=\"TypeName\"/> class and the <seealso cref=\"TypeName2\"/> class.\r\n" +
-                "/// </summary>";
+            var expected = 
+@"/// <summary>
+/// This class provides extension methods for the <see cref=""TypeName""/> class and the <seealso cref=""TypeName2""/> class.
+/// </summary>";
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
-                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine(Environment.NewLine),
                     SyntaxFactory.XmlText("This class provides extension methods for the "),
                     SyntaxFactory.XmlSeeElement(
                         SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName("TypeName"))),
@@ -2929,7 +2929,7 @@ public class Program
                     SyntaxFactory.XmlSeeAlsoElement(
                         SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName("TypeName2"))),
                     SyntaxFactory.XmlText(" class."),
-                    SyntaxFactory.XmlNewLine("\r\n")));
+                    SyntaxFactory.XmlNewLine(Environment.NewLine)));
 
             var actual = documentationComment.ToFullString();
 
@@ -2940,27 +2940,27 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlNewLineElement()
         {
-            var expected =
-                "/// <summary>\r\n" +
-                "/// This is a summary.\r\n" +
-                "/// </summary>\r\n" +
-                "/// \r\n" +
-                "/// \r\n" +
-                "/// <remarks>\r\n" +
-                "/// \r\n" +
-                "/// </remarks>";
+            var expected = 
+@"/// <summary>
+/// This is a summary.
+/// </summary>
+/// 
+/// 
+/// <remarks>
+/// 
+/// </remarks>";
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
-                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine(Environment.NewLine),
                     SyntaxFactory.XmlText("This is a summary."),
-                    SyntaxFactory.XmlNewLine("\r\n")),
-                SyntaxFactory.XmlNewLine("\r\n"),
-                SyntaxFactory.XmlNewLine("\r\n"),
-                SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine(Environment.NewLine)),
+                SyntaxFactory.XmlNewLine(Environment.NewLine),
+                SyntaxFactory.XmlNewLine(Environment.NewLine),
+                SyntaxFactory.XmlNewLine(Environment.NewLine),
                 SyntaxFactory.XmlRemarksElement(
-                    SyntaxFactory.XmlNewLine("\r\n"),
-                    SyntaxFactory.XmlNewLine("\r\n")));
+                    SyntaxFactory.XmlNewLine(Environment.NewLine),
+                    SyntaxFactory.XmlNewLine(Environment.NewLine)));
 
             var actual = documentationComment.ToFullString();
 
@@ -2971,21 +2971,21 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlParamAndParamRefElement()
         {
-            var expected =
-                "/// <summary>\r\n" +
-                "/// <paramref name=\"b\"/>\r\n" +
-                "/// </summary>\r\n" +
-                "/// <param name=\"a\"></param>\r\n" +
-                "/// <param name=\"b\"></param>";
+            var expected = 
+@"/// <summary>
+/// <paramref name=""b""/>
+/// </summary>
+/// <param name=""a""></param>
+/// <param name=""b""></param>";
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
-                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine(Environment.NewLine),
                     SyntaxFactory.XmlParamRefElement("b"),
-                    SyntaxFactory.XmlNewLine("\r\n")),
-                SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine(Environment.NewLine)),
+                SyntaxFactory.XmlNewLine(Environment.NewLine),
                 SyntaxFactory.XmlParamElement("a"),
-                SyntaxFactory.XmlNewLine("\r\n"),
+                SyntaxFactory.XmlNewLine(Environment.NewLine),
                 SyntaxFactory.XmlParamElement("b"));
 
             var actual = documentationComment.ToFullString();
@@ -2997,23 +2997,23 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlReturnsElement()
         {
-            var expected =
-                "/// <summary>\r\n" +
-                "/// \r\n" +
-                "/// </summary>\r\n" +
-                "/// <returns>\r\n" +
-                "/// Returns a value.\r\n" +
-                "/// </returns>";
+            var expected = 
+@"/// <summary>
+/// 
+/// </summary>
+/// <returns>
+/// Returns a value.
+/// </returns>";
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
-                    SyntaxFactory.XmlNewLine("\r\n"),
-                    SyntaxFactory.XmlNewLine("\r\n")),
-                SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine(Environment.NewLine),
+                    SyntaxFactory.XmlNewLine(Environment.NewLine)),
+                SyntaxFactory.XmlNewLine(Environment.NewLine),
                 SyntaxFactory.XmlReturnsElement(
-                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine(Environment.NewLine),
                     SyntaxFactory.XmlText("Returns a value."),
-                    SyntaxFactory.XmlNewLine("\r\n")));
+                    SyntaxFactory.XmlNewLine(Environment.NewLine)));
 
             var actual = documentationComment.ToFullString();
 
@@ -3024,25 +3024,25 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlRemarksElement()
         {
-            var expected =
-                "/// <summary>\r\n" +
-                "/// \r\n" +
-                "/// </summary>\r\n" +
-                "/// <remarks>\r\n" +
-                "/// Same as in class <see cref=\"TypeName\"/>.\r\n" +
-                "/// </remarks>";
+            var expected = 
+@"/// <summary>
+/// 
+/// </summary>
+/// <remarks>
+/// Same as in class <see cref=""TypeName""/>.
+/// </remarks>";
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
-                    SyntaxFactory.XmlNewLine("\r\n"),
-                    SyntaxFactory.XmlNewLine("\r\n")),
-                SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine(Environment.NewLine),
+                    SyntaxFactory.XmlNewLine(Environment.NewLine)),
+                SyntaxFactory.XmlNewLine(Environment.NewLine),
                 SyntaxFactory.XmlRemarksElement(
-                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine(Environment.NewLine),
                     SyntaxFactory.XmlText("Same as in class "),
                     SyntaxFactory.XmlSeeElement(SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName("TypeName"))),
                     SyntaxFactory.XmlText("."),
-                    SyntaxFactory.XmlNewLine("\r\n")));
+                    SyntaxFactory.XmlNewLine(Environment.NewLine)));
 
             var actual = documentationComment.ToFullString();
 
@@ -3053,17 +3053,17 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlExceptionElement()
         {
-            var expected =
-                "/// <summary>\r\n" +
-                "/// \r\n" +
-                "/// </summary>\r\n" +
-                "/// <exception cref=\"InvalidOperationException\">This exception will be thrown if the object is in an invalid state when calling this method.</exception>";
+            var expected = 
+@"/// <summary>
+/// 
+/// </summary>
+/// <exception cref=""InvalidOperationException"">This exception will be thrown if the object is in an invalid state when calling this method.</exception>";
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
-                    SyntaxFactory.XmlNewLine("\r\n"),
-                    SyntaxFactory.XmlNewLine("\r\n")),
-                SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine(Environment.NewLine), 
+                    SyntaxFactory.XmlNewLine(Environment.NewLine)),
+                SyntaxFactory.XmlNewLine(Environment.NewLine),
                 SyntaxFactory.XmlExceptionElement(
                     SyntaxFactory.TypeCref(
                         SyntaxFactory.ParseTypeName("InvalidOperationException")),
@@ -3078,17 +3078,17 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlPermissionElement()
         {
-            var expected =
-                "/// <summary>\r\n" +
-                "/// \r\n" +
-                "/// </summary>\r\n" +
-                "/// <permission cref=\"MyPermission\">Needs MyPermission to execute.</permission>";
+            var expected = 
+@"/// <summary>
+/// 
+/// </summary>
+/// <permission cref=""MyPermission"">Needs MyPermission to execute.</permission>";
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
-                    SyntaxFactory.XmlNewLine("\r\n"),
-                    SyntaxFactory.XmlNewLine("\r\n")),
-                SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine(Environment.NewLine),
+                    SyntaxFactory.XmlNewLine(Environment.NewLine)),
+                SyntaxFactory.XmlNewLine(Environment.NewLine),
                 SyntaxFactory.XmlPermissionElement(
                     SyntaxFactory.TypeCref(
                         SyntaxFactory.ParseTypeName("MyPermission")),

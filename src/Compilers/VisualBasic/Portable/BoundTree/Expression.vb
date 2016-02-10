@@ -1740,11 +1740,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1754,11 +1754,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1768,11 +1768,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1782,11 +1782,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1796,11 +1796,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1810,11 +1810,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1824,11 +1824,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1838,11 +1838,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1852,11 +1852,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1866,11 +1866,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1880,11 +1880,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1894,11 +1894,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1908,11 +1908,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1922,11 +1922,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1936,11 +1936,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1950,11 +1950,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1964,11 +1964,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1978,11 +1978,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1992,11 +1992,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2006,11 +2006,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2020,11 +2020,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2034,11 +2034,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2048,11 +2048,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2062,11 +2062,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2076,11 +2076,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2090,11 +2090,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2104,11 +2104,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2118,11 +2118,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2132,11 +2132,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2146,11 +2146,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2160,11 +2160,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2174,11 +2174,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2188,11 +2188,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2202,11 +2202,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2216,11 +2216,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2230,11 +2230,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2244,11 +2244,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2258,11 +2258,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2272,11 +2272,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2286,11 +2286,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2300,11 +2300,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2314,11 +2314,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2328,11 +2328,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2342,11 +2342,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2356,11 +2356,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2370,11 +2370,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2384,11 +2384,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2398,11 +2398,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2412,11 +2412,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2426,11 +2426,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2440,11 +2440,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2454,11 +2454,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2468,11 +2468,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2482,11 +2482,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2496,11 +2496,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2510,11 +2510,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2524,11 +2524,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2538,11 +2538,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2552,11 +2552,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2566,11 +2566,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2580,11 +2580,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2594,11 +2594,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2608,11 +2608,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2622,11 +2622,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2636,11 +2636,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2650,11 +2650,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2664,11 +2664,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2678,11 +2678,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2692,11 +2692,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2706,11 +2706,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2720,11 +2720,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2734,11 +2734,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2748,11 +2748,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -2762,11 +2762,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
