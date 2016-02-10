@@ -1442,6 +1442,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property EventInstance As IExpression Implements IEventAssignmentExpression.EventInstance
                 Get
+                    If [Event].IsStatic Then
+                        Return Nothing
+                    End If
+
                     Dim eventAccess As BoundEventAccess = TryCast(_statement.EventAccess, BoundEventAccess)
                     If eventAccess IsNot Nothing Then
                         Return eventAccess.ReceiverOpt

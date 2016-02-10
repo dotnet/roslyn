@@ -105,7 +105,7 @@ class C
 ";
 
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 EvaluationContext context;
                 CompilationTestData testData;
@@ -211,7 +211,7 @@ class C
 ";
 
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 EvaluationContext context;
                 CompilationTestData testData;
@@ -261,7 +261,7 @@ class C
         {
             var source = string.Format(asyncLambdaSourceTemplate, "/*instance*/", "1");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c.<<M>b__1_0>d.MoveNext");
 
@@ -302,7 +302,7 @@ class C
         {
             var source = string.Format(asyncLambdaSourceTemplate, "/*instance*/", "x");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
 
@@ -357,7 +357,7 @@ class C
         {
             var source = string.Format(asyncLambdaSourceTemplate, "/*instance*/", "u.GetHashCode()");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
 
@@ -412,7 +412,7 @@ class C
         {
             var source = string.Format(asyncLambdaSourceTemplate, "/*instance*/", "ch.GetHashCode()");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c.<<M>b__1_0>d.MoveNext");
 
@@ -453,7 +453,7 @@ class C
         {
             var source = string.Format(asyncLambdaSourceTemplate, "/*instance*/", "t.GetHashCode()");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<<M>b__1_0>d.MoveNext");
 
@@ -508,7 +508,7 @@ class C
         {
             var source = string.Format(asyncLambdaSourceTemplate, "/*instance*/", "x + t.GetHashCode()");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
 
@@ -578,7 +578,7 @@ class C
         {
             var source = string.Format(asyncLambdaSourceTemplate, "static", "1");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c.<<M>b__1_0>d.MoveNext");
 
@@ -619,7 +619,7 @@ class C
         {
             var source = string.Format(asyncLambdaSourceTemplate, "static", "x");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
 
@@ -674,7 +674,7 @@ class C
         {
             var source = string.Format(asyncLambdaSourceTemplate, "static", "u.GetHashCode()");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
 
@@ -729,7 +729,7 @@ class C
         {
             var source = string.Format(asyncLambdaSourceTemplate, "static", "ch.GetHashCode()");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c.<<M>b__1_0>d.MoveNext");
 
@@ -770,7 +770,7 @@ class C
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "/*instance*/", "1");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__1.<<M>b__1_0>d.MoveNext");
 
@@ -817,7 +817,7 @@ class C
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "/*instance*/", "x");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
 
@@ -878,7 +878,7 @@ class C
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "/*instance*/", "u.GetHashCode()");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
 
@@ -939,7 +939,7 @@ class C
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "/*instance*/", "ch.GetHashCode()");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__1.<<M>b__1_0>d.MoveNext");
 
@@ -986,7 +986,7 @@ class C
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "/*instance*/", "t.GetHashCode()");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<<M>b__1_0>d.MoveNext");
 
@@ -1047,7 +1047,7 @@ class C
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "/*instance*/", "x + t.GetHashCode()");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
 
@@ -1123,7 +1123,7 @@ class C
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "static", "1");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__1.<<M>b__1_0>d.MoveNext");
 
@@ -1170,7 +1170,7 @@ class C
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "static", "x");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
 
@@ -1231,7 +1231,7 @@ class C
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "static", "u.GetHashCode()");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__DisplayClass1_0.<<M>b__0>d.MoveNext");
 
@@ -1292,7 +1292,7 @@ class C
         {
             var source = string.Format(genericAsyncLambdaSourceTemplate, "static", "ch.GetHashCode()");
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-            WithRuntimeInstancePortableBug(comp, runtime =>
+            WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "D.<>c__1.<<M>b__1_0>d.MoveNext");
 
@@ -1356,7 +1356,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            WithRuntimeInstancePortableBug(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
             {
                 ImmutableArray<MetadataBlock> blocks;
                 Guid moduleVersionId;

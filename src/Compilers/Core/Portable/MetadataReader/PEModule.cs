@@ -2531,6 +2531,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        internal string GetParamNameOrThrow(ParameterHandle parameterDef)
+        {
+            Parameter parameter = MetadataReader.GetParameter(parameterDef);
+            return MetadataReader.GetString(parameter.Name);
+        }
+
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal int GetParameterSequenceNumberOrThrow(ParameterHandle param)
         {
             return MetadataReader.GetParameter(param).SequenceNumber;

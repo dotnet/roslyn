@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IMethodSymbol IInvocationExpression.TargetMethod => this.Method;
 
-        IExpression IInvocationExpression.Instance => this.ReceiverOpt;
+        IExpression IInvocationExpression.Instance => this.Method.IsStatic ? null : this.ReceiverOpt;
 
         bool IInvocationExpression.IsVirtual => (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) && !this.ReceiverOpt.SuppressVirtualCalls;
 
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundFieldAccess : IFieldReferenceExpression
     {
-        IExpression IMemberReferenceExpression.Instance => this.ReceiverOpt;
+        IExpression IMemberReferenceExpression.Instance => this.FieldSymbol.IsStatic? null : this.ReceiverOpt;
 
         ISymbol IMemberReferenceExpression.Member => this.FieldSymbol;
 
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IPropertySymbol IPropertyReferenceExpression.Property => this.PropertySymbol;
        
-        IExpression IMemberReferenceExpression.Instance => this.ReceiverOpt;
+        IExpression IMemberReferenceExpression.Instance => this.PropertySymbol.IsStatic ? null : this.ReceiverOpt;
 
         ISymbol IMemberReferenceExpression.Member => this.PropertySymbol;
 
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IEventSymbol IEventReferenceExpression.Event => this.EventSymbol;
 
-        IExpression IMemberReferenceExpression.Instance => this.ReceiverOpt;
+        IExpression IMemberReferenceExpression.Instance => this.EventSymbol.IsStatic ? null : this.ReceiverOpt;
 
         ISymbol IMemberReferenceExpression.Member => this.EventSymbol;
 
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IEventSymbol IEventAssignmentExpression.Event => this.Event;
 
-        IExpression IEventAssignmentExpression.EventInstance => this.ReceiverOpt;
+        IExpression IEventAssignmentExpression.EventInstance => this.Event.IsStatic ? null : this.ReceiverOpt;
 
         IExpression IEventAssignmentExpression.HandlerValue => this.Argument;
 

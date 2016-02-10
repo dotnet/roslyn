@@ -414,7 +414,7 @@ End Namespace
                 Select(Function(instance) New AssemblyReaders(instance.GetMetadataReader(), instance.SymReader)))
         End Function
 
-        Private Shared Sub CheckDteeMethodDebugInfo(methodDebugInfo As MethodDebugInfo, ParamArray namespaceNames As String())
+        Private Shared Sub CheckDteeMethodDebugInfo(methodDebugInfo As MethodDebugInfo(Of TypeSymbol, LocalSymbol), ParamArray namespaceNames As String())
             Assert.Equal("", methodDebugInfo.DefaultNamespaceName)
 
             Dim importRecordGroups = methodDebugInfo.ImportRecordGroups
@@ -424,8 +424,8 @@ End Namespace
 
             Assert.Empty(fileLevelImportRecords)
 
-            AssertEx.All(projectLevelImportRecords, Function(record) TypeOf record Is NativeImportRecord)
-            AssertEx.All(projectLevelImportRecords, Function(record) DirectCast(record, NativeImportRecord).ExternAlias Is Nothing)
+            AssertEx.All(projectLevelImportRecords, Function(record) TypeOf record Is ImportRecord)
+            AssertEx.All(projectLevelImportRecords, Function(record) DirectCast(record, ImportRecord).TargetAssemblyAlias Is Nothing)
             AssertEx.All(projectLevelImportRecords, Function(record) record.TargetKind = ImportTargetKind.Namespace)
             AssertEx.All(projectLevelImportRecords, Function(record) record.Alias Is Nothing)
             AssertEx.SetEqual(projectLevelImportRecords.Select(Function(record) record.TargetString), namespaceNames)
