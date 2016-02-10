@@ -2,10 +2,37 @@
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal abstract class ImportRecord
+    internal sealed class ImportRecord
     {
-        public abstract ImportTargetKind TargetKind { get; }
-        public abstract string Alias { get; }
-        public abstract string TargetString { get; }
+        public readonly ImportTargetKind TargetKind;
+        public readonly string Alias;
+
+        // target type of a type import (C#)
+        public readonly ITypeSymbol TargetType;
+
+        // target of an import (type, namespace or XML namespace) that needs to be bound (C#, VB)
+        public readonly string TargetString;
+        
+        // target assembly of a namespace import (C#, Portable)
+        public readonly IAssemblySymbol TargetAssembly;
+
+        // target assembly of a namespace import is identified by an extern alias which needs to be bound in the context (C#, native PDB)
+        public readonly string TargetAssemblyAlias;
+
+        public ImportRecord(
+            ImportTargetKind targetKind,
+            string alias = null,
+            ITypeSymbol targetType = null,
+            string targetString = null,
+            IAssemblySymbol targetAssembly = null,
+            string targetAssemblyAlias = null)
+        {
+            TargetKind = targetKind;
+            Alias = alias;
+            TargetType = targetType;
+            TargetString = targetString;
+            TargetAssembly = targetAssembly;
+            TargetAssemblyAlias = targetAssemblyAlias;
+        }
     }
 }

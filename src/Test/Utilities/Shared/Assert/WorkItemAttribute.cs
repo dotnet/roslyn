@@ -23,11 +23,6 @@ namespace Roslyn.Test.Utilities
             get { return _description; }
         }
 
-        public WorkItemAttribute(int id)
-            : this(id, string.Empty)
-        {
-        }
-
         public WorkItemAttribute(int id, string description)
         {
             _id = id;

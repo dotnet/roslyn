@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
                 io,
                 compiler,
                 VisualBasicScriptCompiler.Instance,
-                New VisualBasicObjectFormatter())
+                VisualBasicObjectFormatter.Instance)
         End Function
 
         <Fact()>
@@ -130,7 +130,7 @@ Type ""#help"" for more information.
         End Sub
 
         <Fact()>
-        <WorkItem(7133)>
+        <WorkItem(7133, "https://github.com/dotnet/roslyn/issues/7133")>
         Public Sub TestDisplayResultsWithCurrentUICulture()
             Dim runner = CreateRunner(args:={}, input:="Imports System.Globalization
 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")

@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
                     ConsoleIO.Default,
                     compiler,
                     VisualBasicScriptCompiler.Instance,
-                    New VisualBasicObjectFormatter())
+                    VisualBasicObjectFormatter.Instance)
 
                 Return runner.RunInteractive()
             Catch ex As Exception

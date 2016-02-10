@@ -126,7 +126,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996"), WorkItem(789705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789705")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8494"), WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996"), WorkItem(789705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789705")>
         Public Sub IteratorWithLiftedMultipleSameNameLocals()
             Dim source =
 <compilation>
@@ -219,7 +219,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8494"), WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
         Public Sub LocalCapturedAndHoisted()
             Dim source =
 <compilation>
@@ -273,7 +273,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8494"), WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
         Public Sub LocalCapturedAndNotHoisted()
             Dim source =
 <compilation>
@@ -322,7 +322,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8494"), WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
         Public Sub LocalHoistedAndNotCapture()
             Dim source =
 <compilation>

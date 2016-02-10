@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public SyntaxNode Syntax { get; }
 
-        public void Accept(IOperationVisitor visitor)
+        public void Accept(OperationVisitor visitor)
         {
             visitor.VisitVariable(this);
         }
 
-        public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitVariable(this, argument);
         }

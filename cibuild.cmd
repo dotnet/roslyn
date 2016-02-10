@@ -3,7 +3,7 @@
 REM Parse Arguments.
 
 set NugetZipUrlRoot=https://dotnetci.blob.core.windows.net/roslyn
-set NugetZipUrl=%NuGetZipUrlRoot%/nuget.46.zip
+set NugetZipUrl=%NuGetZipUrlRoot%/nuget.52.zip
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 set BuildRestore=false
@@ -20,6 +20,7 @@ if /I "%1" == "/debug" set BuildConfiguration=Debug&&shift&& goto :ParseArgument
 if /I "%1" == "/release" set BuildConfiguration=Release&&shift&& goto :ParseArguments
 if /I "%1" == "/test32" set Test64=false&&shift&& goto :ParseArguments
 if /I "%1" == "/test64" set Test64=true&&shift&& goto :ParseArguments
+if /I "%1" == "/testDeterminism" set TestDeterminism=true&&shift&& goto :ParseArguments
 if /I "%1" == "/perf" set Perf=true&&shift&& goto :ParseArguments
 if /I "%1" == "/restore" set BuildRestore=true&&shift&& goto :ParseArguments
 call :Usage && exit /b 1
@@ -38,13 +39,13 @@ if defined Perf (
 
 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat" || goto :BuildFailed
 
-powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
+powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
 
 REM Restore the NuGet packages 
 if "%BuildRestore%" == "true" (
     call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
 ) else (
-    powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\restore.ps1 %NugetZipUrl%" || goto :BuildFailed
+    powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\restore.ps1" "%NugetZipUrl%" || goto :BuildFailed
 )
 
 REM Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
@@ -54,16 +55,21 @@ if not exist "%bindir%" mkdir "%bindir%" || goto :BuildFailed
 REM Set the build version only so the assembly version is set to the semantic version,
 REM which allows analyzers to load because the compiler has binding redirects to the
 REM semantic version
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BuildVersion=0.0.0.0 %RoslynRoot%build/Toolset.sln /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile=%bindir%\Bootstrap.log || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BuildVersion=0.0.0.0 "%RoslynRoot%build\Toolset.sln" /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile="%bindir%\Bootstrap.log" || goto :BuildFailed
 
 if not exist "%bindir%\Bootstrap" mkdir "%bindir%\Bootstrap" || goto :BuildFailed
 move "Binaries\%BuildConfiguration%\*" "%bindir%\Bootstrap" || goto :BuildFailed
 copy "build\scripts\*" "%bindir%\Bootstrap" || goto :BuildFailed
 
 REM Clean the previous build
-msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%  /fileloggerparameters:LogFile=%bindir%\BootstrapClean.log || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%  /fileloggerparameters:LogFile="%bindir%\BootstrapClean.log" || goto :BuildFailed
 
 call :TerminateBuildProcesses
+
+if defined TestDeterminism (
+    powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\test-determinism.ps1" "%bindir%\Bootstrap" || goto :BuildFailed
+    exit /b 0
+)
 
 if defined Perf (
   set Target=Build
@@ -71,7 +77,7 @@ if defined Perf (
   set Target=BuildAndTest
 )
 
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath=%bindir%\Bootstrap BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:DeployExtension=false /fileloggerparameters:LogFile=%bindir%\Build.log;verbosity=diagnostic || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
 
 call :TerminateBuildProcesses
 
@@ -87,9 +93,9 @@ REM )
 
 if defined Perf (
   if DEFINED JenkinsCIPerfCredentials (
-    powershell .\ciperf.ps1 -BinariesDirectory %bindir%\%BuildConfiguration% %JenkinsCIPerfCredentials% || goto :BuildFailed
+    powershell .\ciperf.ps1 -BinariesDirectory "%bindir%\%BuildConfiguration%" %JenkinsCIPerfCredentials% || goto :BuildFailed
   ) else (
-    powershell .\ciperf.ps1 -BinariesDirectory %bindir%\%BuildConfiguration% -StorageAccountName roslynscratch -StorageContainer drops -SCRAMScope 'Roslyn\Azure' || goto :BuildFailed
+    powershell .\ciperf.ps1 -BinariesDirectory "%bindir%\%BuildConfiguration%" -StorageAccountName roslynscratch -StorageContainer drops -SCRAMScope 'Roslyn\Azure' || goto :BuildFailed
   )
 )
 

@@ -143,7 +143,7 @@ public enum Foo
                 hideAdvancedMembers: false);
         }
 
-        [WorkItem(8540099)]
+        [WorkItem(854099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854099")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInComment()
         {

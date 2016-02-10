@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
                 args ?? DefaultArgs,
                 new NotImplementedAnalyzerLoader());
 
-            return new CommandLineRunner(io, compiler, CSharpScriptCompiler.Instance, new CSharpObjectFormatter());
+            return new CommandLineRunner(io, compiler, CSharpScriptCompiler.Instance, CSharpObjectFormatter.Instance);
         }
 
         [Fact]
@@ -82,7 +82,7 @@ Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
         }
 
         [Fact]
-        [WorkItem(7133)]
+        [WorkItem(7133, "http://github.com/dotnet/roslyn/issues/7133")]
         public void TestDisplayResultsWithCurrentUICulture()
         {
             var runner = CreateRunner(input:
@@ -455,7 +455,6 @@ Type ""#help"" for more information.
 > ", runner.Console.Out.ToString());
         }
 
-        [WorkItem(5748, "unknown")]
         [Fact]
         public void RelativePath()
         {

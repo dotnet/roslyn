@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
     /// Represents a <see cref="IOperation"/> visitor that visits only the single IOperation
     /// passed into its Visit method.
     /// </summary>
-    public abstract class IOperationVisitor
+    public abstract class OperationVisitor
     {
         public virtual void Visit(IOperation operation)
         {
@@ -14,6 +16,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual void DefaultVisit(IOperation operation)
+        {
+            // no-op
+        }
+
+        internal void VisitNoneOperation(IOperation operation)
         {
             // no-op
         }
@@ -386,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <typeparam name="TResult">
     /// The type of the return value of this visitor's Visit method.
     /// </typeparam>
-    public abstract class IOperationVisitor<TArgument, TResult>
+    public abstract class OperationVisitor<TArgument, TResult>
     {
         public virtual TResult Visit(IOperation operation, TArgument argument)
         {
@@ -394,6 +401,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult DefaultVisit(IOperation operation, TArgument argument)
+        {
+            return default(TResult);
+        }
+
+        internal TResult VisitNoneOperation(IOperation operation, TArgument argument)
         {
             return default(TResult);
         }

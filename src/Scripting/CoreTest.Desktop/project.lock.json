@@ -21,6 +21,17 @@
           "lib/net45/_._": {}
         }
       },
+      "Microsoft.VisualBasic/10.0.0": {
+        "frameworkAssemblies": [
+          "Microsoft.VisualBasic"
+        ],
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.0, )"
@@ -204,7 +215,7 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc3-23721": {
+      "System.Reflection.Metadata/1.2.0-rc3-23803": {
         "dependencies": {
           "System.Collections.Immutable": "[1.1.37, )"
         },
@@ -403,6 +414,17 @@
       },
       "Microsoft.NETCore.Platforms/1.0.0": {},
       "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "Microsoft.VisualBasic/10.0.0": {
+        "frameworkAssemblies": [
+          "Microsoft.VisualBasic"
+        ],
         "compile": {
           "ref/net45/_._": {}
         },
@@ -609,7 +631,7 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc3-23721": {
+      "System.Reflection.Metadata/1.2.0-rc3-23803": {
         "dependencies": {
           "System.Collections.Immutable": "[1.1.37, )"
         },
@@ -913,6 +935,37 @@
         "runtimes/aot/lib/netcore50/System.Xml.dll",
         "runtimes/aot/lib/netcore50/System.Xml.Linq.dll",
         "runtimes/aot/lib/netcore50/System.Xml.Serialization.dll"
+      ]
+    },
+    "Microsoft.VisualBasic/10.0.0": {
+      "sha512": "5BEm2/HAVd97whRlCChU7rmSh/9cwGlZ/NTNe3Jl07zuPWfKQq5TUvVNUmdvmEe8QRecJLZ4/e7WF1i1O8V42g==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dotnet/Microsoft.VisualBasic.dll",
+        "lib/net45/_._",
+        "lib/netcore50/Microsoft.VisualBasic.dll",
+        "lib/win8/_._",
+        "lib/wpa81/_._",
+        "Microsoft.VisualBasic.nuspec",
+        "package/services/metadata/core-properties/5dbd3a7042354092a8b352b655cf4376.psmdcp",
+        "ref/dotnet/de/Microsoft.VisualBasic.xml",
+        "ref/dotnet/es/Microsoft.VisualBasic.xml",
+        "ref/dotnet/fr/Microsoft.VisualBasic.xml",
+        "ref/dotnet/it/Microsoft.VisualBasic.xml",
+        "ref/dotnet/ja/Microsoft.VisualBasic.xml",
+        "ref/dotnet/ko/Microsoft.VisualBasic.xml",
+        "ref/dotnet/Microsoft.VisualBasic.dll",
+        "ref/dotnet/Microsoft.VisualBasic.xml",
+        "ref/dotnet/ru/Microsoft.VisualBasic.xml",
+        "ref/dotnet/zh-hans/Microsoft.VisualBasic.xml",
+        "ref/dotnet/zh-hant/Microsoft.VisualBasic.xml",
+        "ref/net45/_._",
+        "ref/netcore50/Microsoft.VisualBasic.dll",
+        "ref/netcore50/Microsoft.VisualBasic.xml",
+        "ref/win8/_._",
+        "ref/wpa81/_._"
       ]
     },
     "System.AppContext/4.0.0": {
@@ -1520,18 +1573,20 @@
         "System.Reflection.Extensions.nuspec"
       ]
     },
-    "System.Reflection.Metadata/1.2.0-rc3-23721": {
-      "sha512": "MHnJWfhANEcGdavFd1ftoo669vjCUvCT6H7N6sNzcLkd1EsLaMgVJshVfA4RNUmUITDKKLAnPxxXIHQRW5mH9Q==",
+    "System.Reflection.Metadata/1.2.0-rc3-23803": {
+      "sha512": "enG+TBJWJbQVz0AEyQuIj8S61U+pKKZe3QEMsiO/MZhs+hxrM7PI3YKkbF6/2byFbeDIZ2iJVh3Di9EO/km/lg==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
+        "dotnet_library_license.txt",
         "lib/dotnet5.2/System.Reflection.Metadata.dll",
         "lib/dotnet5.2/System.Reflection.Metadata.xml",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml",
-        "package/services/metadata/core-properties/68cb3065f6c849c58eee471ee8bb094b.psmdcp",
-        "System.Reflection.Metadata.nuspec"
+        "package/services/metadata/core-properties/1aa63eb326a74fd8a358dc6deb5c5199.psmdcp",
+        "System.Reflection.Metadata.nuspec",
+        "ThirdPartyNotices.txt"
       ]
     },
     "System.Resources.ResourceManager/4.0.0": {

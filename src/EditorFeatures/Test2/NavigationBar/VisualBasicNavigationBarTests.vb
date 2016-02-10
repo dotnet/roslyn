@@ -1026,5 +1026,33 @@ End Class
                 rightItemToSelectText:="S",
                 expectedVirtualSpace:=4)
         End Function
+
+        <WorkItem(187865, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/187865")>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        Public Async Function DifferentMembersMetadataName() As Task
+            Await AssertItemsAreAsync(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Class C
+    Function Get_P(o As Object) As Object
+        Return o
+    End Function
+    ReadOnly Property P As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>,
+                Item("C", Glyph.ClassInternal, bolded:=True, children:={
+                    Item(NavigationItemNew, Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
+                    Item("Finalize", Glyph.MethodProtected, bolded:=False, hasNavigationSymbolId:=False),
+                    Item("Get_P", Glyph.MethodPublic, bolded:=True),
+                    Item("P", Glyph.PropertyPublic, bolded:=True)}))
+        End Function
+
     End Class
 End Namespace

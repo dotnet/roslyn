@@ -108,12 +108,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public Optional<object> ConstantValue => default(Optional<object>);
 
-        public void Accept(IOperationVisitor visitor)
+        public void Accept(OperationVisitor visitor)
         {
             visitor.VisitConditionalChoiceExpression(this);
         }
 
-        public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitConditionalChoiceExpression(this, argument);
         }
@@ -137,12 +137,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public IExpression Expression => _assignment;
 
-        public void Accept(IOperationVisitor visitor)
+        public void Accept(OperationVisitor visitor)
         {
             visitor.VisitExpressionStatement(this);
         }
 
-        public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitExpressionStatement(this, argument);
         }
@@ -170,12 +170,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public Optional<object> ConstantValue => default(Optional<object>);
 
-            public void Accept(IOperationVisitor visitor)
+            public void Accept(OperationVisitor visitor)
             {
                 visitor.VisitAssignmentExpression(this);
             }
 
-            public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+            public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
             {
                 return visitor.VisitAssignmentExpression(this, argument);
             }
@@ -200,12 +200,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public IExpression Expression => _compoundAssignment;
 
-        public void Accept(IOperationVisitor visitor)
+        public void Accept(OperationVisitor visitor)
         {
             visitor.VisitExpressionStatement(this);
         }
 
-        public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitExpressionStatement(this, argument);
         }
@@ -241,12 +241,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public bool UsesOperatorMethod => this.Operator != null;
 
-            public void Accept(IOperationVisitor visitor)
+            public void Accept(OperationVisitor visitor)
             {
                 visitor.VisitCompoundAssignmentExpression(this);
             }
 
-            public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+            public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
             {
                 return visitor.VisitCompoundAssignmentExpression(this, argument);
             }
@@ -276,12 +276,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public SyntaxNode Syntax { get; }
 
-        public void Accept(IOperationVisitor visitor)
+        public void Accept(OperationVisitor visitor)
         {
             visitor.VisitLiteralExpression(this);
         }
 
-        public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitLiteralExpression(this, argument);
         }
@@ -310,12 +310,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public SyntaxNode Syntax { get; }
 
-        public void Accept(IOperationVisitor visitor)
+        public void Accept(OperationVisitor visitor)
         {
             visitor.VisitLiteralExpression(this);
         }
 
-        public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitLiteralExpression(this, argument);
         }
@@ -352,12 +352,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public SyntaxNode Syntax { get; }
 
-        public void Accept(IOperationVisitor visitor)
+        public void Accept(OperationVisitor visitor)
         {
             visitor.VisitBinaryOperatorExpression(this);
         }
 
-        public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitBinaryOperatorExpression(this, argument);
         }
@@ -391,12 +391,12 @@ namespace Microsoft.CodeAnalysis.Semantics
        
         static bool IsInvalidInitializer(IArrayInitializer initializer) => initializer.IsInvalid;
 
-        public void Accept(IOperationVisitor visitor)
+        public void Accept(OperationVisitor visitor)
         {
             visitor.VisitArrayCreationExpression(this);
         }
 
-        public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitArrayCreationExpression(this, argument);
         }
@@ -424,12 +424,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public Optional<object> ConstantValue => default(Optional<object>);
 
-            public void Accept(IOperationVisitor visitor)
+            public void Accept(OperationVisitor visitor)
             {
                 visitor.VisitArrayInitializer(this);
             }
 
-            public TResult Accept<TArgument, TResult>(IOperationVisitor<TArgument, TResult> visitor, TArgument argument)
+            public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
             {
                 return visitor.VisitArrayInitializer(this, argument);
             }

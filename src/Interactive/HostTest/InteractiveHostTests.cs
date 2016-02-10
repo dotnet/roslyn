@@ -1183,6 +1183,14 @@ foo()
             Assert.Equal("", output);
         }
 
+        // TODO (https://github.com/dotnet/roslyn/issues/7976): delete this
+        [WorkItem(7976, "https://github.com/dotnet/roslyn/issues/7976")]
+        [Fact]
+        public void Workaround7976()
+        {
+            Thread.Sleep(TimeSpan.FromSeconds(10));
+        }
+
         #endregion
 
         private static ImmutableArray<string> SplitLines(string text)
