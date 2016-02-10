@@ -128,13 +128,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Characters_QuotesAndEscaping()
         {
-            Assert.Equal(QuoteAndEscapingCombinations('a'), new[] 
+            Assert.Equal(QuoteAndEscapingCombinations('a'), new[]
             {
                 "a", "a", "'a'", "'a'",
                 "97 a", "97 a", "97 'a'", "97 'a'",
             });
 
-            Assert.Equal(QuoteAndEscapingCombinations('\t'), new[] 
+            Assert.Equal(QuoteAndEscapingCombinations('\t'), new[]
             {
                 "\t", "\\t", "'\t'", "'\\t'",
                 "9 \t", "9 \\t", "9 '\t'", "9 '\\t'",

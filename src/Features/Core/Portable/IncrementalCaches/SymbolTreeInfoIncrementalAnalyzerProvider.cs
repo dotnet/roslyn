@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
                 return UpdateSymbolTreeInfoAsync(document.Project, cancellationToken);
             }
-            
+
             public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
             {
                 return UpdateSymbolTreeInfoAsync(project, cancellationToken);

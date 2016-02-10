@@ -80,7 +80,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         protected virtual void ValidateBuildRequest(BuildRequest request)
         {
-
         }
 
         /// <summary>
@@ -239,6 +238,5 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             CompilerServerLogger.LogException(e, string.Format("Client {0}: {1}", _loggingIdentifier, message));
         }
-
     }
 }

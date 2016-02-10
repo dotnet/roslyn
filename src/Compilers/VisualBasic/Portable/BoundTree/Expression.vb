@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.Semantics
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundExpression
+    Friend Partial Class BoundExpression
         Implements IExpression
 
         Private ReadOnly Property IConstantValue As [Optional](Of Object) Implements IExpression.ConstantValue
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public MustOverride Overloads Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
     End Class
 
-    Partial Class BoundAssignmentOperator
+    Friend Partial Class BoundAssignmentOperator
         Implements IAssignmentExpression
         Implements ICompoundAssignmentExpression
 
@@ -151,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundMeReference
+    Friend Partial Class BoundMeReference
         Implements IInstanceReferenceExpression
 
         Private ReadOnly Property IIsExplicit As Boolean Implements IInstanceReferenceExpression.IsExplicit
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundMyBaseReference
+    Friend Partial Class BoundMyBaseReference
         Implements IInstanceReferenceExpression
 
         Private ReadOnly Property IIsExplicit As Boolean Implements IInstanceReferenceExpression.IsExplicit
@@ -207,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundMyClassReference
+    Friend Partial Class BoundMyClassReference
         Implements IInstanceReferenceExpression
 
         Private ReadOnly Property IIsExplicit As Boolean Implements IInstanceReferenceExpression.IsExplicit
@@ -235,7 +235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundLiteral
+    Friend Partial Class BoundLiteral
         Implements ILiteralExpression
 
         Private ReadOnly Property ISpelling As String Implements ILiteralExpression.Text
@@ -257,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundAwaitOperator
+    Friend Partial Class BoundAwaitOperator
         Implements IAwaitExpression
 
         Private ReadOnly Property IUpon As IExpression Implements IAwaitExpression.Upon
@@ -279,7 +279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundLambda
+    Friend Partial Class BoundLambda
         Implements ILambdaExpression
 
         Private ReadOnly Property IBody As IBlockStatement Implements ILambdaExpression.Body
@@ -307,7 +307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundCall
+    Friend Partial Class BoundCall
         Implements IInvocationExpression
 
         Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
@@ -514,7 +514,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Class
     End Class
 
-    Partial Class BoundOmittedArgument
+    Friend Partial Class BoundOmittedArgument
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.OmittedArgumentExpression
         End Function
@@ -528,7 +528,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundParenthesized
+    Friend Partial Class BoundParenthesized
         Implements IParenthesizedExpression
 
         Private ReadOnly Property IOperand As IExpression Implements IParenthesizedExpression.Operand
@@ -550,7 +550,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundArrayAccess
+    Friend Partial Class BoundArrayAccess
         Implements IArrayElementReferenceExpression
 
         Private ReadOnly Property IArrayReference As IExpression Implements IArrayElementReferenceExpression.ArrayReference
@@ -578,7 +578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundUnaryOperator
+    Friend Partial Class BoundUnaryOperator
         Implements IUnaryOperatorExpression
 
         Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
@@ -618,7 +618,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundUserDefinedUnaryOperator
+    Friend Partial Class BoundUserDefinedUnaryOperator
         Implements IUnaryOperatorExpression
 
         Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
@@ -667,7 +667,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundBinaryOperator
+    Friend Partial Class BoundBinaryOperator
         Implements IBinaryOperatorExpression
 
         Private ReadOnly Property ILeft As IExpression Implements IBinaryOperatorExpression.Left
@@ -713,7 +713,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundUserDefinedBinaryOperator
+    Friend Partial Class BoundUserDefinedBinaryOperator
         Implements IBinaryOperatorExpression
 
         Private ReadOnly Property ILeft As IExpression Implements IBinaryOperatorExpression.Left
@@ -808,7 +808,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundBinaryConditionalExpression
+    Friend Partial Class BoundBinaryConditionalExpression
         Implements INullCoalescingExpression
 
         Private ReadOnly Property IPrimary As IExpression Implements INullCoalescingExpression.Primary
@@ -836,7 +836,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundUserDefinedShortCircuitingOperator
+    Friend Partial Class BoundUserDefinedShortCircuitingOperator
         Implements IBinaryOperatorExpression
 
         Private ReadOnly Property ILeft As IExpression Implements IBinaryOperatorExpression.Left
@@ -882,7 +882,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundBadExpression
+    Friend Partial Class BoundBadExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.InvalidExpression
         End Function
@@ -896,7 +896,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundTryCast
+    Friend Partial Class BoundTryCast
         Implements IConversionExpression
 
         Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
@@ -942,7 +942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundDirectCast
+    Friend Partial Class BoundDirectCast
         Implements IConversionExpression
 
         Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
@@ -988,7 +988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundConversion
+    Friend Partial Class BoundConversion
         Implements IConversionExpression
 
         Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
@@ -1034,7 +1034,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundUserDefinedConversion
+    Friend Partial Class BoundUserDefinedConversion
         Implements IConversionExpression
 
         Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
@@ -1080,7 +1080,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundTernaryConditionalExpression
+    Friend Partial Class BoundTernaryConditionalExpression
         Implements IConditionalChoiceExpression
 
         Private ReadOnly Property ICondition As IExpression Implements IConditionalChoiceExpression.Condition
@@ -1114,7 +1114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundTypeOf
+    Friend Partial Class BoundTypeOf
         Implements IIsExpression
 
         Private ReadOnly Property IIsType As ITypeSymbol Implements IIsExpression.IsType
@@ -1142,7 +1142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundObjectCreationExpression
+    Friend Partial Class BoundObjectCreationExpression
         Implements IObjectCreationExpression
 
         Private Shared ReadOnly s_memberInitializersMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundObjectCreationExpression, Object)
@@ -1309,7 +1309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 
-    Partial Class BoundNewT
+    Friend Partial Class BoundNewT
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.TypeParameterObjectCreationExpression
         End Function
@@ -1323,7 +1323,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundArrayCreation
+    Friend Partial Class BoundArrayCreation
         Implements IArrayCreationExpression
 
         Private ReadOnly Property IDimensionSizes As ImmutableArray(Of IExpression) Implements IArrayCreationExpression.DimensionSizes
@@ -1363,7 +1363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundArrayInitialization
+    Friend Partial Class BoundArrayInitialization
         Implements IArrayInitializer
 
         Public ReadOnly Property ElementValues As ImmutableArray(Of IExpression) Implements IArrayInitializer.ElementValues
@@ -1384,7 +1384,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundPropertyAccess
+    Friend Partial Class BoundPropertyAccess
         Implements IPropertyReferenceExpression
 
         Private ReadOnly Property IInstance As IExpression Implements IMemberReferenceExpression.Instance
@@ -1422,7 +1422,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundEventAccess
+    Friend Partial Class BoundEventAccess
         Implements IEventReferenceExpression
 
         Private ReadOnly Property IInstance As IExpression Implements IMemberReferenceExpression.Instance
@@ -1460,7 +1460,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundDelegateCreationExpression
+    Friend Partial Class BoundDelegateCreationExpression
         Implements IMethodBindingExpression
 
         Private ReadOnly Property IInstance As IExpression Implements IMemberReferenceExpression.Instance
@@ -1504,7 +1504,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundFieldAccess
+    Friend Partial Class BoundFieldAccess
         Implements IFieldReferenceExpression
 
         Private ReadOnly Property IField As IFieldSymbol Implements IFieldReferenceExpression.Field
@@ -1542,7 +1542,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundConditionalAccess
+    Friend Partial Class BoundConditionalAccess
         Implements IConditionalAccessExpression
 
         Private ReadOnly Property IAccess As IExpression Implements IConditionalAccessExpression.Access
@@ -1564,7 +1564,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundParameter
+    Friend Partial Class BoundParameter
         Implements IParameterReferenceExpression
 
         Private ReadOnly Property IParameter As IParameterSymbol Implements IParameterReferenceExpression.Parameter
@@ -1586,7 +1586,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundLocal
+    Friend Partial Class BoundLocal
         Implements ILocalReferenceExpression
 
         Private ReadOnly Property ILocal As ILocalSymbol Implements ILocalReferenceExpression.Local
@@ -1608,7 +1608,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundLateMemberAccess
+    Friend Partial Class BoundLateMemberAccess
         Implements ILateBoundMemberReferenceExpression
 
         Private ReadOnly Property IInstance As IExpression Implements ILateBoundMemberReferenceExpression.Instance
@@ -1636,7 +1636,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundFieldInitializer
+    Friend Partial Class BoundFieldInitializer
         Implements IFieldInitializer
 
         Private ReadOnly Property IInitializedFields As ImmutableArray(Of IFieldSymbol) Implements IFieldInitializer.InitializedFields
@@ -1664,7 +1664,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundPropertyInitializer
+    Friend Partial Class BoundPropertyInitializer
         Implements IPropertyInitializer
 
         Private ReadOnly Property IInitializedProperty As IPropertySymbol Implements IPropertyInitializer.InitializedProperty
@@ -1692,7 +1692,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundParameterEqualsValue
+    Friend Partial Class BoundParameterEqualsValue
         Implements IParameterInitializer
 
         Private ReadOnly Property IIsInvalid As Boolean Implements IOperation.IsInvalid
@@ -1734,1043 +1734,1043 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundTypeArguments
+    Friend Partial Class BoundTypeArguments
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundLValueToRValueWrapper
+    Friend Partial Class BoundLValueToRValueWrapper
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundWithLValueExpressionPlaceholder
+    Friend Partial Class BoundWithLValueExpressionPlaceholder
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundWithRValueExpressionPlaceholder
+    Friend Partial Class BoundWithRValueExpressionPlaceholder
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundRValuePlaceholder
+    Friend Partial Class BoundRValuePlaceholder
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundLValuePlaceholder
+    Friend Partial Class BoundLValuePlaceholder
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundDup
+    Friend Partial Class BoundDup
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundBadVariable
+    Friend Partial Class BoundBadVariable
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundArrayLength
+    Friend Partial Class BoundArrayLength
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundGetType
+    Friend Partial Class BoundGetType
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundFieldInfo
+    Friend Partial Class BoundFieldInfo
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundMethodInfo
+    Friend Partial Class BoundMethodInfo
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundTypeExpression
+    Friend Partial Class BoundTypeExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundTypeOrValueExpression
+    Friend Partial Class BoundTypeOrValueExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundNamespaceExpression
+    Friend Partial Class BoundNamespaceExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundNullableIsTrueOperator
+    Friend Partial Class BoundNullableIsTrueOperator
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundCompoundAssignmentTargetPlaceholder
+    Friend Partial Class BoundCompoundAssignmentTargetPlaceholder
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundReferenceAssignment
+    Friend Partial Class BoundReferenceAssignment
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundAddressOfOperator
+    Friend Partial Class BoundAddressOfOperator
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundSequencePointExpression
+    Friend Partial Class BoundSequencePointExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundMethodGroup
+    Friend Partial Class BoundMethodGroup
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundPropertyGroup
+    Friend Partial Class BoundPropertyGroup
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundAttribute
+    Friend Partial Class BoundAttribute
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundLateInvocation
+    Friend Partial Class BoundLateInvocation
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundLateAddressOfOperator
+    Friend Partial Class BoundLateAddressOfOperator
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundNoPiaObjectCreationExpression
+    Friend Partial Class BoundNoPiaObjectCreationExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundAnonymousTypeCreationExpression
+    Friend Partial Class BoundAnonymousTypeCreationExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundAnonymousTypePropertyAccess
+    Friend Partial Class BoundAnonymousTypePropertyAccess
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundAnonymousTypeFieldInitializer
+    Friend Partial Class BoundAnonymousTypeFieldInitializer
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundObjectInitializerExpression
+    Friend Partial Class BoundObjectInitializerExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundCollectionInitializerExpression
+    Friend Partial Class BoundCollectionInitializerExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundArrayLiteral
+    Friend Partial Class BoundArrayLiteral
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundSequence
+    Friend Partial Class BoundSequence
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundValueTypeMeReference
+    Friend Partial Class BoundValueTypeMeReference
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundPreviousSubmissionReference
+    Friend Partial Class BoundPreviousSubmissionReference
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundHostObjectMemberReference
+    Friend Partial Class BoundHostObjectMemberReference
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundPseudoVariable
+    Friend Partial Class BoundPseudoVariable
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundByRefArgumentPlaceholder
+    Friend Partial Class BoundByRefArgumentPlaceholder
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundByRefArgumentWithCopyBack
+    Friend Partial Class BoundByRefArgumentWithCopyBack
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundLateBoundArgumentSupportingAssignmentWithCapture
+    Friend Partial Class BoundLateBoundArgumentSupportingAssignmentWithCapture
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundLabel
+    Friend Partial Class BoundLabel
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class UnboundLambda
+    Friend Partial Class UnboundLambda
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundQueryExpression
+    Friend Partial Class BoundQueryExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundQuerySource
+    Friend Partial Class BoundQuerySource
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundToQueryableCollectionConversion
+    Friend Partial Class BoundToQueryableCollectionConversion
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundQueryableSource
+    Friend Partial Class BoundQueryableSource
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundQueryClause
+    Friend Partial Class BoundQueryClause
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundOrdering
+    Friend Partial Class BoundOrdering
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundQueryLambda
+    Friend Partial Class BoundQueryLambda
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundRangeVariableAssignment
+    Friend Partial Class BoundRangeVariableAssignment
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class GroupTypeInferenceLambda
+    Friend Partial Class GroupTypeInferenceLambda
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundAggregateClause
+    Friend Partial Class BoundAggregateClause
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundGroupAggregation
+    Friend Partial Class BoundGroupAggregation
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundRangeVariable
+    Friend Partial Class BoundRangeVariable
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundXmlName
+    Friend Partial Class BoundXmlName
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundXmlNamespace
+    Friend Partial Class BoundXmlNamespace
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundXmlDocument
+    Friend Partial Class BoundXmlDocument
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundXmlDeclaration
+    Friend Partial Class BoundXmlDeclaration
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundXmlProcessingInstruction
+    Friend Partial Class BoundXmlProcessingInstruction
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundXmlComment
+    Friend Partial Class BoundXmlComment
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundXmlAttribute
+    Friend Partial Class BoundXmlAttribute
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundXmlElement
+    Friend Partial Class BoundXmlElement
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundXmlMemberAccess
+    Friend Partial Class BoundXmlMemberAccess
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundXmlEmbeddedExpression
+    Friend Partial Class BoundXmlEmbeddedExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundXmlCData
+    Friend Partial Class BoundXmlCData
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundUnstructuredExceptionHandlingCatchFilter
+    Friend Partial Class BoundUnstructuredExceptionHandlingCatchFilter
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundSpillSequence
+    Friend Partial Class BoundSpillSequence
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundMidResult
+    Friend Partial Class BoundMidResult
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundConditionalAccessReceiverPlaceholder
+    Friend Partial Class BoundConditionalAccessReceiverPlaceholder
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundLoweredConditionalAccess
+    Friend Partial Class BoundLoweredConditionalAccess
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundComplexConditionalAccessReceiver
+    Friend Partial Class BoundComplexConditionalAccessReceiver
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundNameOfOperator
+    Friend Partial Class BoundNameOfOperator
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundTypeAsValueExpression
+    Friend Partial Class BoundTypeAsValueExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Partial Class BoundInterpolatedStringExpression
+    Friend Partial Class BoundInterpolatedStringExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            Throw ExceptionUtilities.Unreachable
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw ExceptionUtilities.Unreachable
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-    Module Expression
+    Friend Module Expression
         Friend Function DeriveUnaryOperationKind(operatorKind As UnaryOperatorKind, operand As BoundExpression) As UnaryOperationKind
             Select Case operand.Type.SpecialType
                 Case SpecialType.System_Byte, SpecialType.System_Int16, SpecialType.System_Int32, SpecialType.System_Int64, SpecialType.System_SByte, SpecialType.System_UInt16, SpecialType.System_UInt32, SpecialType.System_UInt64

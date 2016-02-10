@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         public new T ReturnValue { get; }
         internal override object GetReturnValue() => ReturnValue;
 
-        internal ScriptState(ScriptExecutionState executionState, T value, Script script) 
+        internal ScriptState(ScriptExecutionState executionState, T value, Script script)
             : base(executionState, script)
         {
             ReturnValue = value;

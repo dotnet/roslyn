@@ -1,11 +1,13 @@
-﻿using System.IO;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.IO;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
-    public class EndToEndDeterminismTest: TestBase
+    public class EndToEndDeterminismTest : TestBase
     {
         private string _flags = "/shared /deterministic+ /nologo /t:library /pdb:none";
 
@@ -21,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// <returns> An array of bytes that were read from the compiled DLL</returns>
         private byte[] CompileAndGetBytes(string source, string additionalFlags, out string finalFlags)
         {
-
             // Setup
             var tempDir = Temp.CreateDirectory();
             var srcFile = tempDir.CreateFile("test.cs").WriteAllText(source).Path;
@@ -49,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 File.Delete(srcFile);
                 File.Delete(outFile);
             }
-
         }
 
         /// <summary>
@@ -158,6 +158,5 @@ class CallerInfo {
 }";
             RunDeterministicTest(source);
         }
-
     }
 }

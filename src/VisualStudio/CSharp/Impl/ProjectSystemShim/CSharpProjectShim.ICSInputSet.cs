@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             if (!object.Equals(value, newValue))
             {
                 value = newValue;
-                SetOptions(this.CreateCompilationOptions(), this.CreateParseOptions());
+                UpdateOptions();
             }
         }
     }

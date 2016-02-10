@@ -2015,7 +2015,7 @@ return (i);
         }
 
         [WorkItem(2958, "DevDiv_Projects/Roslyn")]
-        [ClrOnlyFact]
+        [Fact]
         [Trait("Feature", "Directives")]
         public void TestRegionWithSingleLineComment()
         {
@@ -2030,14 +2030,14 @@ return (i);
                 new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
 
             var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
-            Assert.Equal("#region A//B\r\n", regionDirective.ToFullString());
+            Assert.Equal($"#region A//B{Environment.NewLine}", regionDirective.ToFullString());
             var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
             Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
             Assert.Equal("A//B", regionText.ToFullString());
         }
 
         [WorkItem(2958, "DevDiv_Projects/Roslyn")]
-        [ClrOnlyFact]
+        [Fact]
         [Trait("Feature", "Directives")]
         public void TestRegionWithInvalidSingleLineComment()
         {
@@ -2052,7 +2052,7 @@ return (i);
                 new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
 
             var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
-            Assert.Equal("#region A/\\B\r\n", regionDirective.ToFullString());
+            Assert.Equal($"#region A/\\B{Environment.NewLine}", regionDirective.ToFullString());
             var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
             Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
             Assert.Equal("A/\\B", regionText.ToFullString());

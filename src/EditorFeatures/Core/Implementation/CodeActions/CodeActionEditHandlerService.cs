@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 var title = op.Title;
                 if (title != null)
                 {
-                    return new SolutionPreviewResult(new List<SolutionPreviewItem>() { new SolutionPreviewItem(projectId: null, documentId: null, 
+                    return new SolutionPreviewResult(new List<SolutionPreviewItem>() { new SolutionPreviewItem(projectId: null, documentId: null,
                         lazyPreview: c => Task.FromResult<object>(title)) });
                 }
             }

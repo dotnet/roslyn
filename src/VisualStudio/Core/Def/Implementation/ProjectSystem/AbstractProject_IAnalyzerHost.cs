@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             ClearAnalyzerRuleSet();
             SetAnalyzerRuleSet(ruleSetFileFullPath);
-            UpdateAnalyzerRules();
+            UpdateOptions();
         }
 
         private void SetAnalyzerRuleSet(string ruleSetFileFullPath)

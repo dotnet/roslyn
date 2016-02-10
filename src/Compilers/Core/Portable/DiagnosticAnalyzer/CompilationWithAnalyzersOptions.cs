@@ -74,11 +74,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="logAnalyzerExecutionTime">Flag indicating whether analyzer execution time should be logged.</param>
         /// <param name="reportSuppressedDiagnostics">Flag indicating whether analyzer diagnostics with <see cref="Diagnostic.IsSuppressed"/> should be reported.</param>
         public CompilationWithAnalyzersOptions(
-            AnalyzerOptions options, 
+            AnalyzerOptions options,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
-            Func<Exception, bool> analyzerExceptionFilter, 
-            bool concurrentAnalysis, 
-            bool logAnalyzerExecutionTime, 
+            Func<Exception, bool> analyzerExceptionFilter,
+            bool concurrentAnalysis,
+            bool logAnalyzerExecutionTime,
             bool reportSuppressedDiagnostics)
         {
             _options = options;

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         internal static int RunServer(string pipeName, CancellationToken cancellationToken = default(CancellationToken))
-        { 
+        {
             if (string.IsNullOrEmpty(pipeName))
             {
                 return CommonCompiler.Failed;
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// be running.
         /// </summary>
         internal static async Task<int> RunShutdownAsync(string pipeName, bool waitForProcess = true, TimeSpan? timeout = null, CancellationToken cancellationToken = default(CancellationToken))
-        { 
+        {
             if (string.IsNullOrEmpty(pipeName))
             {
                 var clientDirectory = AppDomain.CurrentDomain.BaseDirectory;
@@ -194,9 +194,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         private static int RunCore(
-            IClientConnectionHost connectionHost, 
+            IClientConnectionHost connectionHost,
             IDiagnosticListener listener,
-            TimeSpan? keepAliveTimeout, 
+            TimeSpan? keepAliveTimeout,
             CancellationToken cancellationToken)
         {
             CompilerServerLogger.Log("Keep alive timeout is: {0} milliseconds.", keepAliveTimeout?.TotalMilliseconds ?? 0);

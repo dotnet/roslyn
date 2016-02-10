@@ -702,8 +702,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         UnboundArgumentErrorTypeSymbol.CreateTypeArguments(
                             unconstructedType.TypeParameters,
                             node.Arity,
-                            errorInfo: null), 
-                        unbound:false);
+                            errorInfo: null),
+                        unbound: false);
                 }
                 else
                 {

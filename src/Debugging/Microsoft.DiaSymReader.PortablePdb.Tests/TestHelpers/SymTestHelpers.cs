@@ -293,8 +293,8 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
 
         public static int[] GetILOffsetForEachLine(
             ISymUnmanagedReader symReader,
-            int methodToken, 
-            ISymUnmanagedDocument document, 
+            int methodToken,
+            ISymUnmanagedDocument document,
             int minLine, int maxLine)
         {
             Assert.True(minLine >= 1);
@@ -388,7 +388,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             Assert.True(maxLine >= minLine);
 
             var result = new List<int>();
-                     
+
             for (int line = minLine; line <= maxLine; line++)
             {
                 int closestLine;

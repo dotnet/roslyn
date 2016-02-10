@@ -263,8 +263,13 @@ namespace Microsoft.CodeAnalysis.Semantics
             this.Type = resultType;
             this.Syntax = syntax;
         }
+<<<<<<< HEAD
         
         public string Text =>_value.ToString();
+=======
+
+        public string Spelling => _value.ToString();
+>>>>>>> upstream/master
 
         public ITypeSymbol Type { get; }
 
@@ -363,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
     }
 
-    internal sealed class ArrayCreation: IArrayCreationExpression
+    internal sealed class ArrayCreation : IArrayCreationExpression
     {
         private readonly IArrayTypeSymbol _arrayType;
 
@@ -388,8 +393,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public OperationKind Kind => OperationKind.ArrayCreationExpression;
 
         public bool IsInvalid => IsInvalidInitializer(Initializer);
-       
-        static bool IsInvalidInitializer(IArrayInitializer initializer) => initializer.IsInvalid;
+
+        private static bool IsInvalidInitializer(IArrayInitializer initializer) => initializer.IsInvalid;
 
         public void Accept(OperationVisitor visitor)
         {
@@ -435,5 +440,4 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
         }
     }
-    
 }

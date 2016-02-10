@@ -818,7 +818,7 @@ End Class]]></a>.Value.NormalizeLineEndings()
             End Function
 
             Public Function GetNameForArgument(argument As SyntaxNode) As String Implements ISyntaxFactsService.GetNameForArgument
-                    Throw New NotImplementedException()
+                Throw New NotImplementedException()
             End Function
         End Class
     End Class

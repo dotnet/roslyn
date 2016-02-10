@@ -413,8 +413,6 @@ namespace Roslyn.Utilities
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(GetCurrentProcess), paramTypes: new Type[] { })
                 .CreateDelegate<Func<object>>();
-
-
         }
 
         internal static class RuntimeHelpers

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
         {
             get { return ImmutableArray.Create(FieldCouldBeReadOnlyDescriptor); }
         }
-        
+
         public sealed override void Initialize(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                              {
                                  bool inConstructor = containingMethod.MethodKind == MethodKind.Constructor;
                                  ITypeSymbol staticConstructorType = containingMethod.MethodKind == MethodKind.StaticConstructor ? containingMethod.ContainingType : null;
-                                 
+
                                  operationBlockContext.RegisterOperationAction(
                                     (operationContext) =>
                                     {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                  });
         }
 
-        static void AssignTo(IExpression target, bool inConstructor, ITypeSymbol staticConstructorType, HashSet<IFieldSymbol> assignedToFields, HashSet<IFieldSymbol> mightBecomeReadOnlyFields)
+        private static void AssignTo(IExpression target, bool inConstructor, ITypeSymbol staticConstructorType, HashSet<IFieldSymbol> assignedToFields, HashSet<IFieldSymbol> mightBecomeReadOnlyFields)
         {
             if (target.Kind == OperationKind.FieldReferenceExpression)
             {
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                 {
                     return;
                 }
-              
+
                 assignedToFields.Add(targetField);
                 mightBecomeReadOnlyFields.Remove(targetField);
 
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
             }
         }
 
-        void Report(CompilationAnalysisContext context, IFieldSymbol field, DiagnosticDescriptor descriptor)
+        private void Report(CompilationAnalysisContext context, IFieldSymbol field, DiagnosticDescriptor descriptor)
         {
             context.ReportDiagnostic(Diagnostic.Create(descriptor, field.Locations.FirstOrDefault()));
         }

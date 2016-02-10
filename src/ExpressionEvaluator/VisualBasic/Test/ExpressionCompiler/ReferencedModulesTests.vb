@@ -311,7 +311,7 @@ End Class"
                 options:=TestOptions.DebugDll,
                 references:={MscorlibRef, referenceA1})
 
-            WithRuntimeInstancePortableBug(compilationB, {MscorlibRef, SystemRef, MsvbRef, referenceA1, referenceA2},
+            WithRuntimeInstance(compilationB, {MscorlibRef, SystemRef, MsvbRef, referenceA1, referenceA2},
                 Sub(runtime)
 
                     Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing

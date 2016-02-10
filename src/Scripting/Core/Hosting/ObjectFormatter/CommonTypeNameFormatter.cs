@@ -202,9 +202,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         private void AppendArrayBound(StringBuilder sb, long bound, int numberRadix)
         {
             var options = new CommonPrimitiveFormatterOptions(
-                numberRadix: numberRadix, 
-                includeCodePoints: false, 
-                quoteStringsAndCharacters: true, 
+                numberRadix: numberRadix,
+                includeCodePoints: false,
+                quoteStringsAndCharacters: true,
                 escapeNonPrintableCharacters: true,
                 cultureInfo: CultureInfo.InvariantCulture);
             var formatted = int.MinValue <= bound && bound <= int.MaxValue
@@ -274,10 +274,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         }
 
         private void AppendTypeInstantiation(
-            StringBuilder builder, 
-            TypeInfo typeInfo, 
-            Type[] genericArguments, 
-            ref int genericArgIndex, 
+            StringBuilder builder,
+            TypeInfo typeInfo,
+            Type[] genericArguments,
+            ref int genericArgIndex,
             CommonTypeNameFormatterOptions options)
         {
             // generic arguments of all the outer types and the current type;

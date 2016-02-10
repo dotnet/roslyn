@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private static SourceText CreateMemoryStreamBasedEncodedText(byte[] bytes, 
+        private static SourceText CreateMemoryStreamBasedEncodedText(byte[] bytes,
             Func<Encoding> getEncoding,
             Encoding readEncodingOpt = null,
             SourceHashAlgorithm algorithm = SourceHashAlgorithm.Sha1)

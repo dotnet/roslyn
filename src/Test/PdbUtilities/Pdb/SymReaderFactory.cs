@@ -42,7 +42,7 @@ namespace Roslyn.Test.PdbUtilities
             SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
             return reader;
         }
-        
+
         private static ISymUnmanagedReader CreatePortableSymReader(Stream pdbStream, object metadataImporter)
         {
             var binder = new PortablePdb.SymBinder();
