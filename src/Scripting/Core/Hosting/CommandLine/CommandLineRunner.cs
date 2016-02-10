@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 var task = (state == null) ?
                     newScript.RunAsync(globals, cancellationToken) :
-                    newScript.ContinueAsync(state, cancellationToken);
+                    newScript.RunFromAsync(state, cancellationToken);
 
                 state = task.GetAwaiter().GetResult();
             }

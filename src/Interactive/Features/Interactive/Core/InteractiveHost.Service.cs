@@ -810,7 +810,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         {
                             var task = (stateOpt == null) ?
                                 script.RunAsync(_globals, CancellationToken.None) :
-                                script.ContinueAsync(stateOpt, CancellationToken.None);
+                                script.RunFromAsync(stateOpt, CancellationToken.None);
                             return await task.ConfigureAwait(false);
                         }
                         catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
