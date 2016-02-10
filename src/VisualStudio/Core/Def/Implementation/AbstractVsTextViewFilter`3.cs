@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             foreach (var documentId in vsWorkspace.GetRelatedDocumentIds(container))
             {
-                var hostProject = vsWorkspace.GetHostProject(documentId.ProjectId) as AbstractEncProject;
+                var hostProject = vsWorkspace.GetHostProject(documentId.ProjectId) as AbstractRoslynProject;
                 if (hostProject?.EditAndContinueImplOpt != null)
                 {
                     if (hostProject.EditAndContinueImplOpt.OnEdit(documentId))

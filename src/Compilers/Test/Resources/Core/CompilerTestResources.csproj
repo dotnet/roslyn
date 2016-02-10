@@ -311,6 +311,7 @@
     <Content Include="SymbolsTests\NoPia\LocalTypes3.vb" />
     <EmbeddedResource Include="SymbolsTests\NoPia\NoPIAGenerics1-Asm1.dll" />
     <EmbeddedResource Include="SymbolsTests\NoPia\Pia1.dll" />
+    <EmbeddedResource Include="SymbolsTests\NoPia\ParametersWithoutNames.dll" />
     <Content Include="SymbolsTests\NoPia\Pia1.vb" />
     <EmbeddedResource Include="SymbolsTests\NoPia\Pia1Copy.dll" />
     <EmbeddedResource Include="SymbolsTests\NoPia\Pia2.dll" />
@@ -412,6 +413,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ResourceLoader.cs" />
+    <None Include="SymbolsTests\NoPia\ParametersWithoutNames.cs" />
     <Compile Include="TestKeys.cs" />
     <Compile Include="TestResources.cs" />
   </ItemGroup>

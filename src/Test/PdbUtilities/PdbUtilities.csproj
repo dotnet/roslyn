@@ -80,23 +80,35 @@
     <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\ArrayShape.cs">
       <Link>Roslyn.Reflection.Metadata.Decoding\ArrayShape.cs</Link>
     </Compile>
-    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\CustomModifier.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\CustomModifier.cs</Link>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\IConstructedTypeProvider.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\IConstructedTypeProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\IPrimitiveTypeProvider.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\IPrimitiveTypeProvider.cs</Link>
     </Compile>
     <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs">
       <Link>Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
     </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\ISZArrayTypeProvider.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\ISZArrayTypeProvider.cs</Link>
+    </Compile>
     <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\ITypeProvider.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+      <Link>Roslyn.Reflection.Metadata.Decoding\ITypeProvider.cs</Link>
     </Compile>
     <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\MethodSignature.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+      <Link>Roslyn.Reflection.Metadata.Decoding\MethodSignature.cs</Link>
     </Compile>
     <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\PrimitiveTypeCode.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+      <Link>Roslyn.Reflection.Metadata.Decoding\PrimitiveTypeCode.cs</Link>
     </Compile>
     <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\SignatureDecoder.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+      <Link>Roslyn.Reflection.Metadata.Decoding\SignatureDecoder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\SignatureDecoderOptions.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\SignatureDecoderOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\SignatureTypeHandleCode.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\SignatureTypeHandleCode.cs</Link>
     </Compile>
     <Compile Include="Metadata\ILVisualizer.cs" />
     <Compile Include="Metadata\ILVisualizerAsTokens.cs" />

@@ -556,13 +556,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 TypeSymbol userDefinedConversionRewrittenType = conversion.Method.ReturnType;
 
-                if (rewrittenOperand.Type != conversion.Method.ParameterTypes[0])
+                // Lifted conversion, wrap return type in Nullable
+                // The conversion only needs to happen for non-nullable valuetypes
+                if (rewrittenOperand.Type.IsNullableType() &&
+                        conversion.Method.ParameterTypes[0] == rewrittenOperand.Type.GetNullableUnderlyingType() &&
+                        !userDefinedConversionRewrittenType.IsNullableType() &&
+                        userDefinedConversionRewrittenType.IsValueType)
                 {
-                    Debug.Assert(rewrittenOperand.Type.IsNullableType());
-                    Debug.Assert(rewrittenOperand.Type.GetNullableUnderlyingType() == conversion.Method.ParameterTypes[0]);
-                    Debug.Assert(!userDefinedConversionRewrittenType.IsNullableType());
-
-                    // Lifted conversion, wrap return type in Nullable
                     userDefinedConversionRewrittenType = ((NamedTypeSymbol)rewrittenOperand.Type.OriginalDefinition).Construct(userDefinedConversionRewrittenType);
                 }
 

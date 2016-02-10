@@ -953,6 +953,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CheckHostObjectSupport(param = nameof(NoVBRuntimeReference), resultFromHostObjectSetOperation: false);
                 }
 
+                InitializeHostObjectSupportForNewSwitches(vbcHostObject, ref param);
+
                 // In general, we don't support preferreduilang with the in-proc compiler.  It will always use the same locale as the
                 // host process, so in general, we have to fall back to the command line compiler if this option is specified.
                 // However, we explicitly allow two values (mostly for parity with C#):

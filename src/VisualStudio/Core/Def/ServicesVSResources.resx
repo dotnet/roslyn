@@ -510,4 +510,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="FullSolutionAnalysisOff" xml:space="preserve">
     <value>Low memory detected. Full solution analysis disabled for this solution.</value>
   </data>
+  <data name="Unknown" xml:space="preserve">
+    <value>&lt;Unknown&gt;</value>
+  </data>
 </root>

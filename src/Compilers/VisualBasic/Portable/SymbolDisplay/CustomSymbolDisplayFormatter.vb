@@ -1,8 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -123,6 +121,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared Function ShortNameWithTypeArgsAndContainingTypes(symbol As Symbol) As FormattedSymbol
             Return New FormattedSymbol(symbol, ShortWithTypeArgsAndContainingTypesFormat)
+        End Function
+
+        Public Shared Function DefaultErrorFormat(symbol As Symbol) As FormattedSymbol
+            Return New FormattedSymbol(symbol, SymbolDisplayFormat.VisualBasicErrorMessageFormat)
+        End Function
+
+        Public Shared Function DefaultErrorFormatIfSpecialType(arg As Object) As Object
+
+            Dim symbol = TryCast(arg, Symbol)
+            If symbol Is Nothing Then
+                Return arg
+            End If
+
+            If TypeOf symbol Is TypeSymbol AndAlso DirectCast(symbol, TypeSymbol).SpecialType <> SpecialType.None Then
+                Return DefaultErrorFormat(symbol)
+            End If
+
+            Return symbol
         End Function
     End Class
 End Namespace

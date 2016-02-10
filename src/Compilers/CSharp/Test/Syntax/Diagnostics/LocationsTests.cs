@@ -203,7 +203,7 @@ class X {
             AssertMappedSpanEqual(syntaxTree, "int s", "seconddirective", 19, 4, 19, 9, hasMappedPath: true);
         }
 
-        [ClrOnlyFact]
+        [Fact]
         public void TestLineMappingNoDirectives()
         {
             string sampleProgram = @"using System;
@@ -214,7 +214,7 @@ int x;
 
             AssertMappedSpanEqual(syntaxTree, "ing Sy", "c:\\foo.cs", 0, 2, 0, 8, hasMappedPath: false);
             AssertMappedSpanEqual(syntaxTree, "class X", "c:\\foo.cs", 1, 0, 1, 7, hasMappedPath: false);
-            AssertMappedSpanEqual(syntaxTree, "System;\r\nclass X", "c:\\foo.cs", 0, 6, 1, 7, hasMappedPath: false);
+            AssertMappedSpanEqual(syntaxTree, $"System;{Environment.NewLine}class X", "c:\\foo.cs", 0, 6, 1, 7, hasMappedPath: false);
             AssertMappedSpanEqual(syntaxTree, "x;", "c:\\foo.cs", 2, 4, 2, 6, hasMappedPath: false);
         }
 

@@ -65,9 +65,9 @@
     <Compile Include="Binders\SuppressDiagnosticsBinder.vb" />
     <Compile Include="CompilationContext.vb" />
     <Compile Include="CompilationExtensions.vb" />
+    <Compile Include="VisualBasicEESymbolProvider.vb" />
     <Compile Include="VisualBasicInScopeHoistedLocalsByName.vb" />
     <Compile Include="EETypeNameDecoder.vb" />
-    <Compile Include="SymUnmanagedReaderExtensions.vb" />
     <Compile Include="EEAssemblyBuilder.vb" />
     <Compile Include="EvaluationContext.vb" />
     <Compile Include="Resources.Designer.vb">

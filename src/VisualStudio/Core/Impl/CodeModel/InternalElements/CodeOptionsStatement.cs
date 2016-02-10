@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
@@ -59,21 +58,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             _name = name;
         }
 
-        internal override SyntaxNode LookupNode()
+        internal override bool TryLookupNode(out SyntaxNode node)
         {
+            node = null;
+
             var parentNode = this.FileCodeModel.GetSyntaxRoot();
             if (parentNode == null)
             {
-                throw Exceptions.ThrowEFail();
+                return false;
             }
 
             SyntaxNode optionNode;
             if (!CodeModelService.TryGetOptionNode(parentNode, _name, _ordinal, out optionNode))
             {
-                throw Exceptions.ThrowEFail();
+                return false;
             }
 
-            return optionNode;
+            node = optionNode;
+            return node != null;
         }
 
         public override EnvDTE.vsCMElement Kind
