@@ -1538,8 +1538,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             ERRID.ERR_AmbiguousAcrossInterfaces3,
                                             symbols.ToImmutable,
                                             name,
-                                            CustomSymbolDisplayFormatter.DefaultErrorFormat(symbols(i).ContainingType),
-                                            CustomSymbolDisplayFormatter.DefaultErrorFormat(symbols(j).ContainingType))
+                                            symbols(i).ContainingType,
+                                            symbols(j).ContainingType)
 
                                 GoTo ExitForFor
                             End If
