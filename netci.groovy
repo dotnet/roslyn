@@ -59,7 +59,7 @@ static void addArtifactArchiving(def myJob, String patternString, String exclude
   myJob.with {
     publishers {
       archiveArtifacts {
-        allowEmpty(false)
+        allowEmpty(true)
         defaultExcludes(false)
         exclude(excludeString)
         fingerprint(false)
@@ -153,7 +153,9 @@ static void addStandardJob(def myJob, String jobName, String branchName, String 
   addLogRotator(myJob)
   addWrappers(myJob)
 
-  addArtifactArchiving(myJob, "**/Binaries/**", "**/Binaries/Obj/**")
+  def includePattern = "Binaries/**/*.pdb,Binaries/**/*.xml,Binaries/**/*.baseline*,Binaries/**/*.original*,,Binaries/**/*.key,Binaries/**/*.log,Binaries/**/*.dmp"
+  def excludePattern = "Binaries/Obj/**,Binaries/Bootstrap/**"
+  addArtifactArchiving(myJob, includePattern, excludePattern)
 
   if (branchName == 'prtest') {
     switch (buildTarget) {
