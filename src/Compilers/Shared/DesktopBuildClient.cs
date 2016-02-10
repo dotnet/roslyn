@@ -60,11 +60,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         protected override Task<BuildResponse> RunServerCompilation(
-            List<string> arguments, 
-            BuildPaths buildPaths, 
+            List<string> arguments,
+            BuildPaths buildPaths,
             string sessionKey,
-            string keepAlive, 
-            string libDirectory, 
+            string keepAlive,
+            string libDirectory,
             CancellationToken cancellationToken)
         {
             return RunServerCompilationCore(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, TimeoutOverride, TryCreateServer, cancellationToken);
@@ -101,7 +101,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             Func<string, string, bool> tryCreateServerFunc,
             CancellationToken cancellationToken)
         {
-
             var clientDir = buildPaths.ClientDirectory;
             var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
             var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
@@ -336,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         internal static bool TryCreateServerCore(string clientDir, string pipeName)
-        { 
+        {
             // The server should be in the same directory as the client
             string expectedPath = Path.Combine(clientDir, ServerName);
 
@@ -424,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         internal static string GetPipeNameFromFileInfo(string compilerExeDirectory)
-        { 
+        {
             string basePipeName;
             using (var sha = SHA256.Create())
             {

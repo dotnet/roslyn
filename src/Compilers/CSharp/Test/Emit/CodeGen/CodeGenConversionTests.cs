@@ -994,7 +994,6 @@ class C
   IL_002b:  call       ""void C.Use(System.IntPtr?)""
   IL_0030:  ret
 }");
-
         }
     }
 }

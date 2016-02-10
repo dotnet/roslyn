@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            if ((object)other == null || !other.HasSameShapeAs(this) || 
+            if ((object)other == null || !other.HasSameShapeAs(this) ||
                 !other.ElementType.Equals(ElementType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
             {
                 return false;

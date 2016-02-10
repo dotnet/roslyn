@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression loweredAccessExpression;
-            
+
             if (used)
             {
                 loweredAccessExpression = this.VisitExpression(node.AccessExpression);

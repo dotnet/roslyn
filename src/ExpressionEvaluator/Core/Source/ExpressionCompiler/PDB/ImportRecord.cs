@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         // target of an import (type, namespace or XML namespace) that needs to be bound (C#, VB)
         public readonly string TargetString;
-        
+
         // target assembly of a namespace import (C#, Portable)
         public readonly IAssemblySymbol TargetAssembly;
 

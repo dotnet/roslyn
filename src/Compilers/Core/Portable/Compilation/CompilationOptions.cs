@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.XmlReferenceResolver,
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
-                   Hash.Combine(this.AssemblyIdentityComparer, 
+                   Hash.Combine(this.AssemblyIdentityComparer,
                    Hash.Combine(this.PublicSign, 0)))))))))))))))))))))))));
         }
 

@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         public override string MetadataName
         {
             get
-            {   
+            {
                 return HasNameInMetadata ? _name : string.Empty;
             }
         }

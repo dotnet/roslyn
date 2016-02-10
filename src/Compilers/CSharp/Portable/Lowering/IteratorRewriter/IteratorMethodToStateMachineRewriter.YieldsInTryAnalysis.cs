@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Analyses method body for labels.
     /// </summary>
-    internal abstract class LabelCollector : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator 
+    internal abstract class LabelCollector : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         // transient accumulator.
         protected HashSet<LabelSymbol> currentLabels;

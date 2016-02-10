@@ -582,11 +582,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Function
 
         Protected Overrides Function ClassifyConversion(model As SemanticModel, expression As ExpressionSyntax, targetType As ITypeSymbol) As Conversion
-                Return model.ClassifyConversion(expression, targetType)
+            Return model.ClassifyConversion(expression, targetType)
         End Function
 
         Protected Overrides Function ClassifyConversion(model As SemanticModel, originalType As ITypeSymbol, targetType As ITypeSymbol) As Conversion
-                Return model.Compilation.ClassifyConversion(originalType, targetType)
+            Return model.Compilation.ClassifyConversion(originalType, targetType)
         End Function
     End Class
 End Namespace

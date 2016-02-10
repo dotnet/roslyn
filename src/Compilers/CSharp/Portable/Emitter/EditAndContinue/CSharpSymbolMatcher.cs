@@ -843,8 +843,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 if ((object)originalDef != type)
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    var translatedTypeArguments = type.GetAllTypeArguments(ref useSiteDiagnostics).SelectAsArray((t, v) => new TypeWithModifiers((TypeSymbol)v.Visit(t.Type), 
-                                                                                                                                                  v.VisitCustomModifiers(t.CustomModifiers)), 
+                    var translatedTypeArguments = type.GetAllTypeArguments(ref useSiteDiagnostics).SelectAsArray((t, v) => new TypeWithModifiers((TypeSymbol)v.Visit(t.Type),
+                                                                                                                                                  v.VisitCustomModifiers(t.CustomModifiers)),
                                                                                                                  this);
 
                     var translatedOriginalDef = (NamedTypeSymbol)this.Visit(originalDef);

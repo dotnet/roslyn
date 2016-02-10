@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
         }
 
-        [Fact] 
+        [Fact]
         public void DeterministicFlag()
         {
             var vbc = new Vbc();

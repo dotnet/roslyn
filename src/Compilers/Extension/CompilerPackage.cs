@@ -95,7 +95,7 @@ namespace Roslyn.Compilers.Extension
             }
             catch (Exception e)
             {
-                var msg = 
+                var msg =
 $@"{e.Message}
 
 To reload the Roslyn compiler package, close Visual Studio and any MSBuild processes, then restart Visual Studio.";

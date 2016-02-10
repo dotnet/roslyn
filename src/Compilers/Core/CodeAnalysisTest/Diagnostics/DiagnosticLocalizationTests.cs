@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, AnalyzerManager.Instance);
             var descriptors = AnalyzerManager.Instance.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
 
-            Assert.Equal(1, descriptors.Length); 
+            Assert.Equal(1, descriptors.Length);
             Assert.Equal(descriptor.Id, descriptors[0].Id);
 
             // Access and evaluate localizable fields.

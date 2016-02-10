@@ -383,13 +383,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     if ((type != null && newType != null) &&
                         (
                             type.IsEnumType() &&
-                            type.EnumUnderlyingType != null && 
+                            type.EnumUnderlyingType != null &&
                             type.EnumUnderlyingType.SpecialType == newType.SpecialType) ||
                         (
                             newType.IsEnumType() &&
-                            newType.EnumUnderlyingType != null && 
+                            newType.EnumUnderlyingType != null &&
                             newType.EnumUnderlyingType.SpecialType == type.SpecialType))
-                    { 
+                    {
                         return true;
                     }
                 }
@@ -1049,9 +1049,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         protected void GetConversions(
-            TExpressionSyntax originalExpression, 
-            ITypeSymbol originalTargetType, 
-            TExpressionSyntax newExpression, 
+            TExpressionSyntax originalExpression,
+            ITypeSymbol originalTargetType,
+            TExpressionSyntax newExpression,
             ITypeSymbol newTargetType,
             out TConversion? originalConversion,
             out TConversion? newConversion)

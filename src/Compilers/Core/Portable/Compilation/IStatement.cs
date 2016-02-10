@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         // Statement that has been labeled.
         IStatement Labeled { get; }
     }
-    
+
     /// <summary>
     /// Represents a C# goto, break, or continue statement, or a VB GoTo, Exit ***, or Continue *** statement
     /// </summary>

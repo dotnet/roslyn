@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         [Fact]
         public void EndExclusive()
         {
-            var spans = new[] 
+            var spans = new[]
             {
                 new ILSpan(0u, uint.MaxValue),
                 new ILSpan(1, 9),

@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis
                 return base.FileExists(fullPath);
             }
 
-            public LoggingSourceFileResolver WithBaseDirectory(string value) => 
+            public LoggingSourceFileResolver WithBaseDirectory(string value) =>
                 (BaseDirectory == value) ? this : new LoggingSourceFileResolver(SearchPaths, value, PathMap, _loggerOpt);
 
-            public LoggingSourceFileResolver WithSearchPaths(ImmutableArray<string> value) => 
+            public LoggingSourceFileResolver WithSearchPaths(ImmutableArray<string> value) =>
                 (SearchPaths == value) ? this : new LoggingSourceFileResolver(value, BaseDirectory, PathMap, _loggerOpt);
         }
     }

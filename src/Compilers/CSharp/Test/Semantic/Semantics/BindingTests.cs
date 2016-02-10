@@ -2694,7 +2694,7 @@ class A
         }
 
         [Fact, WorkItem(5170, "https://github.com/dotnet/roslyn/issues/5170")]
-        public void TypeOfBinderParameter() 
+        public void TypeOfBinderParameter()
         {
             var sourceText = @"
 using System.Linq;
@@ -2710,7 +2710,7 @@ public static class LazyToStringExtension
             .Select(x => x.GetValue(obj))
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(sourceText, new[] { SystemCoreRef },  options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib(sourceText, new[] { SystemCoreRef }, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
                 // (12,42): error CS1002: ; expected
                 //             .Select(x => x.GetValue(obj))
@@ -2790,7 +2790,7 @@ class C
             var group1 = model.GetMemberGroup(node1);
             Assert.Equal(2, group1.Length);
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", group1[0].ToTestDisplayString());
-            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)", 
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)",
                          group1[1].ToTestDisplayString());
 
             var symbolInfo1 = model.GetSymbolInfo(node1);
@@ -2799,7 +2799,7 @@ class C
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", symbolInfo1.CandidateSymbols.Single().ToTestDisplayString());
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo1.CandidateReason);
 
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText== "AuthenticateAsync").Single().Parent;
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "AuthenticateAsync").Single().Parent;
 
             Assert.Equal("ctx.Authentication.AuthenticateAsync", node.ToString());
 
@@ -2869,7 +2869,7 @@ class C
             Assert.Equal("app.Use", node1.ToString());
             var group1 = model.GetMemberGroup(node1);
             Assert.Equal(2, group1.Length);
-            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)", 
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)",
                          group1[0].ToTestDisplayString());
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", group1[1].ToTestDisplayString());
 
@@ -2943,7 +2943,7 @@ class C
             var group1 = model.GetMemberGroup(node1);
             Assert.Equal(2, group1.Length);
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", group1[0].ToTestDisplayString());
-            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)", 
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)",
                          group1[1].ToTestDisplayString());
 
             var symbolInfo1 = model.GetSymbolInfo(node1);
@@ -3028,7 +3028,7 @@ class C
             var group1 = model.GetMemberGroup(node1);
             Assert.Equal(2, group1.Length);
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", group1[0].ToTestDisplayString());
-            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)", 
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)",
                          group1[1].ToTestDisplayString());
 
             var symbolInfo1 = model.GetSymbolInfo(node1);

@@ -461,7 +461,7 @@ class C
 
             // At runtime System.Runtime.dll contract assembly is replaced
             // by mscorlib.dll and System.Runtime.dll facade assemblies.
-            var runtime = CreateRuntimeInstance(new[] 
+            var runtime = CreateRuntimeInstance(new[]
             {
                 MscorlibFacadeRef.ToModuleInstance(),
                 SystemRuntimeFacadeRef.ToModuleInstance(),
@@ -627,7 +627,7 @@ public class B
             var compilationB = CreateCompilationWithMscorlibAndSystemCore(sourceB, options: TestOptions.DebugDll, references: new[] { moduleA.GetReference() });
             var moduleB = compilationB.ToModuleInstance();
 
-            var runtime = CreateRuntimeInstance(new[] 
+            var runtime = CreateRuntimeInstance(new[]
             {
                 MscorlibRef.ToModuleInstance(),
                 SystemCoreRef.ToModuleInstance(),

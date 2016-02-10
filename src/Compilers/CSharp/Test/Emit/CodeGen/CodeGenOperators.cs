@@ -4712,7 +4712,7 @@ class Test
         {
             var builder = new System.Text.StringBuilder();
             int i;
-            for (i = 0; i < count ; i++)
+            for (i = 0; i < count; i++)
             {
                 builder.Append(i + 1);
                 builder.Append(" * ");

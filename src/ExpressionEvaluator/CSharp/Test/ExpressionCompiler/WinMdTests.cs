@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
             var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage", "Windows.Foundation.Collections");
             Assert.True(runtimeAssemblies.Length >= 2);
-           
+
             // no reference to Windows.winmd
             WithRuntimeInstance(compilation0, new[] { MscorlibRef }.Concat(runtimeAssemblies), runtime =>
             {

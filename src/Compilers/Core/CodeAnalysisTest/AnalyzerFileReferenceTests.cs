@@ -251,7 +251,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
         private static Assembly OnResolve(object sender, ResolveEventArgs e)
         {
             Console.WriteLine($"Resolve in {AppDomain.CurrentDomain.Id} for {e.Name}");
-            return null; 
+            return null;
         }
 
         [Fact]

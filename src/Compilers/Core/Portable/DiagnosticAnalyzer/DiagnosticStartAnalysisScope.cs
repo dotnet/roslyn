@@ -167,12 +167,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            _scope.RegisterOperationBlockAction(this._analyzer, action);
+            _scope.RegisterOperationBlockAction(_analyzer, action);
         }
 
         public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
-            _scope.RegisterOperationAction(this._analyzer, action, operationKinds);
+            _scope.RegisterOperationAction(_analyzer, action, operationKinds);
         }
 
         internal override bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override ImmutableArray<OperationAnalyzerAction> OperationActions
         {
-            get { return base.OperationActions.AddRange(this._sessionScope.OperationActions); }
+            get { return base.OperationActions.AddRange(_sessionScope.OperationActions); }
         }
 
         public override AnalyzerActions GetAnalyzerActions(DiagnosticAnalyzer analyzer)
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public virtual ImmutableArray<OperationAnalyzerAction> OperationActions
         {
-            get { return this._operationActions; }
+            get { return _operationActions; }
         }
 
         public virtual AnalyzerActions GetAnalyzerActions(DiagnosticAnalyzer analyzer)
@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             OperationAnalyzerAction analyzerAction = new OperationAnalyzerAction(action, operationKinds, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).AddOperationAction(analyzerAction);
-            this._operationActions = this._operationActions.Add(analyzerAction);
+            _operationActions = _operationActions.Add(analyzerAction);
         }
 
         protected AnalyzerActions GetOrCreateAnalyzerActions(DiagnosticAnalyzer analyzer)
@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public int SemanticModelActionsCount { get { return _semanticModelActions.Length; } }
         public int SymbolActionsCount { get { return _symbolActions.Length; } }
         public int SyntaxNodeActionsCount { get { return _syntaxNodeActions.Length; } }
-        public int OperationActionsCount { get { return this._operationActions.Length; } }
+        public int OperationActionsCount { get { return _operationActions.Length; } }
         public int OperationBlockStartActionsCount { get { return _operationBlockStartActions.Length; } }
         public int OperationBlockEndActionsCount { get { return _operationBlockEndActions.Length; } }
         public int OperationBlockActionsCount { get { return _operationBlockActions.Length; } }
@@ -748,7 +748,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal ImmutableArray<OperationAnalyzerAction> OperationActions
         {
-            get { return this._operationActions; }
+            get { return _operationActions; }
         }
 
         internal void AddCompilationStartAction(CompilationStartAnalyzerAction action)

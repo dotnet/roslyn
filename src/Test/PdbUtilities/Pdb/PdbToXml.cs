@@ -843,7 +843,7 @@ namespace Roslyn.Test.PdbUtilities
                         _writer.WriteAttributeString("target", target);
                         _writer.WriteAttributeString("kind", "type");
                         Debug.Assert(scope == ImportScope.Unspecified); // Only C# hits this case.
-                        _writer.WriteEndElement(); 
+                        _writer.WriteEndElement();
                     }
                     else
                     {
@@ -1044,7 +1044,7 @@ namespace Roslyn.Test.PdbUtilities
                 _writer.WriteEndElement();
             }
         }
-        
+
         private unsafe string FormatLocalConstantSignature(ImmutableArray<byte> signature)
         {
             fixed (byte* sigPtr = signature.ToArray())
@@ -1066,13 +1066,13 @@ namespace Roslyn.Test.PdbUtilities
 
             public string GetByReferenceType(string elementType)
             {
-                return elementType + "&";  
+                return elementType + "&";
             }
 
             public string GetFunctionPointerType(MethodSignature<string> signature)
             {
                 // TODO:
-                return "method-ptr"; 
+                return "method-ptr";
             }
 
             public string GetGenericInstance(string genericType, ImmutableArray<string> typeArguments)
@@ -1495,7 +1495,7 @@ namespace Roslyn.Test.PdbUtilities
             return string.Format("<unexpected token kind: {0}>", AsToken(metadataReader.GetToken(handle)));
         }
 
-#region Utils
+        #region Utils
 
         private void WriteToken(int token)
         {
@@ -1517,6 +1517,6 @@ namespace Roslyn.Test.PdbUtilities
             return input.ToString(CultureInfo.InvariantCulture);
         }
 
-#endregion
+        #endregion
     }
 }
