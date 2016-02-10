@@ -44,7 +44,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
         /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
-        /// <param name="properties">An optional set of properties of the diagnostic. If null, <see cref="Properties"/> will return <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.</param>
+        /// <param name="properties">
+        /// An optional set of name-value pairs by means of which the the analyzer that creates the diagnostic
+        /// can convey more detailed information to the fixer. If null, <see cref="Properties"/> will return
+        /// <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.
+        /// </param>
         /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
@@ -87,7 +91,11 @@ namespace Microsoft.CodeAnalysis
         /// Typically, these are locations of other items referenced in the message.
         /// If null, <see cref="AdditionalLocations"/> will return an empty list.
         /// </param>
-        /// <param name="properties">An optional set of properties of the diagnostic. If null, <see cref="Properties"/> will return <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.</param>
+        /// <param name="properties">
+        /// An optional set of name-value pairs by means of which the the analyzer that creates the diagnostic
+        /// can convey more detailed information to the fixer. If null, <see cref="Properties"/> will return
+        /// <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.
+        /// </param>
         /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
@@ -136,7 +144,11 @@ namespace Microsoft.CodeAnalysis
         /// An optional set of custom tags for the diagnostic. See <see cref="WellKnownDiagnosticTags"/> for some well known tags.
         /// If null, <see cref="CustomTags"/> will return an empty list.
         /// </param>
-        /// <param name="properties">An optional set of properties of the diagnostic. If null, <see cref="Properties"/> will return <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.</param>
+        /// <param name="properties">
+        /// An optional set of name-value pairs by means of which the the analyzer that creates the diagnostic
+        /// can convey more detailed information to the fixer. If null, <see cref="Properties"/> will return
+        /// <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.
+        /// </param>
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             string id,
@@ -182,7 +194,11 @@ namespace Microsoft.CodeAnalysis
         /// An optional set of custom tags for the diagnostic. See <see cref="WellKnownDiagnosticTags"/> for some well known tags.
         /// If null, <see cref="CustomTags"/> will return an empty list.
         /// </param>
-        /// <param name="properties">An optional set of properties of the diagnostic. If null, <see cref="Properties"/> will return <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.</param>
+        /// <param name="properties">
+        /// An optional set of name-value pairs by means of which the the analyzer that creates the diagnostic
+        /// can convey more detailed information to the fixer. If null, <see cref="Properties"/> will return
+        /// <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.
+        /// </param>
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             string id,
