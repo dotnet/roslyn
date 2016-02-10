@@ -184,13 +184,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameter.Type.TypeKind == TypeKind.Array)
             {
                 IArrayTypeSymbol arrayType = (IArrayTypeSymbol)parameter.Type;
-                ArrayBuilder<IExpression> paramArrayArguments = ArrayBuilder<IExpression>.GetInstance(boundArguments.Length - firstArgumentElementIndex);
+                ArrayBuilder<IExpression> builder = ArrayBuilder<IExpression>.GetInstance(boundArguments.Length - firstArgumentElementIndex);
+
                 for (int index = firstArgumentElementIndex; index < boundArguments.Length; index++)
                 {
-                    paramArrayArguments.Add(boundArguments[index]);
+                    builder.Add(boundArguments[index]);
                 }
+                var paramArrayArguments = builder.ToImmutableAndFree();
 
-                return new ArrayCreation(arrayType, paramArrayArguments.ToImmutableAndFree(), boundArguments.Length - 1 > firstArgumentElementIndex ? boundArguments[firstArgumentElementIndex].Syntax : null);
+                return new ArrayCreation(arrayType, paramArrayArguments, paramArrayArguments.Length > 0 ? paramArrayArguments[0].Syntax : null);
             }
 
             return null;
