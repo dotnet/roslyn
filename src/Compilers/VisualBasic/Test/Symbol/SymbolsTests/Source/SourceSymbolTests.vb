@@ -536,5 +536,75 @@ End Module
 
         End Sub
 
+        <WorkItem(187865, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/187865")>
+        <Fact>
+        Public Sub DifferentMembersMetadataName()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Delegate Sub D()
+Class C
+    Function Get_P(o As Object) As Object
+        Return o
+    End Function
+    Function p(o As Object) As Object
+        Return o
+    End Function
+    ReadOnly Property P As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+    Event E As D
+    Sub Add_E()
+    End Sub
+    ReadOnly Property add_e As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+    Declare Sub ADD_E Lib "A" (o As Object)
+End Class
+    </file>
+</compilation>)
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC31061: function 'Get_P' conflicts with a member implicitly declared for property 'P' in class 'C'.
+    Function Get_P(o As Object) As Object
+             ~~~~~
+BC30260: 'P' is already declared as 'Public Function p(o As Object) As Object' in this class.
+    ReadOnly Property P As Object
+                      ~
+BC31060: event 'E' implicitly defines 'add_E', which conflicts with a member of the same name in class 'C'.
+    Event E As D
+          ~
+BC31060: event 'E' implicitly defines 'add_E', which conflicts with a member of the same name in class 'C'.
+    Event E As D
+          ~
+BC31060: event 'E' implicitly defines 'add_E', which conflicts with a member of the same name in class 'C'.
+    Event E As D
+          ~
+</expected>)
+
+            Dim type = compilation.GetMember(Of NamedTypeSymbol)("C")
+
+            Dim members = type.GetMembers("P")
+            Assert.Equal(2, members.Length)
+            Assert.Equal("p", members(0).MetadataName)
+            Assert.Equal("P", members(1).MetadataName)
+
+            members = type.GetMembers("get_P")
+            Assert.Equal(2, members.Length)
+            Assert.Equal("Get_P", members(0).MetadataName)
+            Assert.Equal("get_P", members(1).MetadataName)
+
+            members = type.GetMembers("add_E")
+            Assert.Equal(4, members.Length)
+            Assert.Equal("add_E", members(0).MetadataName)
+            Assert.Equal("Add_E", members(1).MetadataName)
+            Assert.Equal("add_e", members(2).MetadataName)
+            Assert.Equal("Add_E", members(3).MetadataName)
+        End Sub
+
     End Class
 End Namespace
