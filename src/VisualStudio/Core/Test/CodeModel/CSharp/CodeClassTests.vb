@@ -1,7 +1,9 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
@@ -3826,6 +3828,35 @@ class C$$
                     For i = 1 To 100
                         Dim variable = codeClass.AddVariable("x", "System.Int32")
                         codeClass.RemoveMember(variable)
+                    Next
+                End Sub)
+        End Function
+
+        <WorkItem(8423, "https://github.com/dotnet/roslyn/issues/8423")>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestAddAndRemoveViaTextChangeManyTimes() As Task
+            Dim code =
+<Code>
+class C$$
+{
+}
+</Code>
+
+            Await TestElement(code,
+                Sub(state, codeClass)
+                    For i = 1 To 100
+                        Dim variable = codeClass.AddVariable("x", "System.Int32")
+
+                        ' Now, delete the variable that we just added.
+                        Dim startPoint = variable.StartPoint
+                        Dim document = state.FileCodeModelObject.GetDocument()
+                        Dim text = document.GetTextAsync(CancellationToken.None).Result
+                        Dim textLine = text.Lines(startPoint.Line - 1)
+                        text = text.Replace(textLine.SpanIncludingLineBreak, "")
+                        document = document.WithText(text)
+
+                        Dim result = state.VisualStudioWorkspace.TryApplyChanges(document.Project.Solution)
+                        Assert.True(result)
                     Next
                 End Sub)
         End Function
