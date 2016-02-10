@@ -91,8 +91,6 @@ try
 
     popd
 
-    & $buildDir\VBCSCompiler.exe -shutdown
-
     if (-not $allGood) {
         exit 1
     }
@@ -104,3 +102,8 @@ catch
     write-host "Error: $($_.Exception.Message)"
     exit 1
 }
+finally
+{
+    gps VBCSCompiler -ErrorAction SilentlyContinue | kill
+}
+

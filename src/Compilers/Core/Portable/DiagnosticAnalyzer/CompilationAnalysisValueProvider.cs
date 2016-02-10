@@ -42,7 +42,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Store the value for the lifetime of the compilation.
             lock (_valueMap)
             {
-                _valueMap[key] = value;
+                // Check if another thread already stored the computed value.
+                TValue storedValue;
+                if (_valueMap.TryGetValue(key, out storedValue))
+                {
+                    // If so, we return the stored value.
+                    value = storedValue;
+                }
+                else
+                {
+                    // Otherwise, store the value computed here.
+                    _valueMap.Add(key, value);
+                }
             }
 
             return true;

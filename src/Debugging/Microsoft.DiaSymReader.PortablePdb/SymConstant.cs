@@ -95,27 +95,25 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 rawTypeCode == (int)MetadataUtilities.SignatureTypeCode_Class)
             {
                 var typeHandle = sigReader.ReadTypeHandle();
-                if (sigReader.RemainingBytes == 0)
+
+                string qualifiedName = _symReader.PdbReader.GetMetadataImport().GetQualifiedTypeName(typeHandle);
+                if (qualifiedName == "System.Decimal")
+                {
+                    translatedValue = sigReader.ReadDecimal();
+                }
+                else if (qualifiedName == "System.DateTime")
+                {
+                    translatedValue = BitConverter.Int64BitsToDouble(sigReader.ReadDateTime().Ticks);
+                }
+                else if (sigReader.RemainingBytes == 0)
                 {
                     // null reference is returned as a boxed integer 0:
                     translatedValue = NullReferenceValue;
                 }
                 else
                 {
-                    string qualifiedName = _symReader.PdbReader.GetMetadataImport().GetQualifiedTypeName(typeHandle);
-                    if (qualifiedName == "System.Decimal")
-                    {
-                        translatedValue = sigReader.ReadDecimal();
-                    }
-                    else if (qualifiedName == "System.DateTime")
-                    {
-                        translatedValue = BitConverter.Int64BitsToDouble(sigReader.ReadDateTime().Ticks);
-                    }
-                    else 
-                    {
-                        // unknown (not produced by C# or VB)
-                        translatedValue = null;
-                    }
+                    // unknown (not produced by C# or VB)
+                    translatedValue = null;
                 }
 
                 sigWriter.Write((byte)rawTypeCode);
@@ -139,7 +137,8 @@ namespace Microsoft.DiaSymReader.PortablePdb
                     sigWriter.Write((byte)MetadataUtilities.SignatureTypeCode_ValueType);
                     sigWriter.WriteCompressedInteger(MetadataUtilities.GetTypeDefOrRefOrSpecCodedIndex(enumTypeHandle));
                 }
-                else
+
+                if (sigReader.RemainingBytes > 0)
                 {
                     throw new BadImageFormatException();
                 }

@@ -13,10 +13,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
     internal sealed class RuntimeInstance : IDisposable
     {
         internal readonly ImmutableArray<ModuleInstance> Modules;
+        internal readonly DebugInformationFormat DebugFormat;
 
-        internal RuntimeInstance(ImmutableArray<ModuleInstance> modules)
+        internal RuntimeInstance(ImmutableArray<ModuleInstance> modules, DebugInformationFormat debugFormat)
         {
-            this.Modules = modules;
+            Modules = modules;
+            DebugFormat = debugFormat;
         }
 
         void IDisposable.Dispose()
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         internal static RuntimeInstance Create(IEnumerable<ModuleInstance> modules)
         {
-            return new RuntimeInstance(ImmutableArray.CreateRange(modules));
+            return new RuntimeInstance(ImmutableArray.CreateRange(modules), DebugInformationFormat.Pdb);
         }
 
         internal static RuntimeInstance Create(
@@ -47,12 +49,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
             references = references.Concat(new[] { ExpressionCompilerTestHelpers.IntrinsicAssemblyReference });
 
-            return Create(module, references);
+            return Create(module, references, debugFormat);
         }
 
         internal static RuntimeInstance Create(
             ModuleInstance module,
-            IEnumerable<MetadataReference> references)
+            IEnumerable<MetadataReference> references, 
+            DebugInformationFormat debugFormat)
         {
             // Create modules for the references and the program
             var modules = ImmutableArray.CreateRange(
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 Concat(new[] { module }));
 
             VerifyAllModules(modules);
-            return new RuntimeInstance(modules);
+            return new RuntimeInstance(modules, debugFormat);
         }
 
         /// <summary>

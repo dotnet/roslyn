@@ -1,26 +1,32 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal abstract class ExternAliasRecord
+    internal struct ExternAliasRecord
     {
         public readonly string Alias;
 
-        public ExternAliasRecord(string alias)
+        // IAssemblySymbol or AssemblyIdentity
+        public readonly object TargetAssembly;
+
+        public ExternAliasRecord(string alias, IAssemblySymbol targetAssembly)
         {
+            Debug.Assert(alias != null);
+            Debug.Assert(targetAssembly != null);
+
             Alias = alias;
+            TargetAssembly = targetAssembly;
         }
 
-        /// <remarks>
-        /// <paramref name="assemblyIdentityComparer"/> is only here to make the call
-        /// pattern uniform - it's actually only used by one subtype.
-        /// </remarks>
-        public abstract int GetIndexOfTargetAssembly<TSymbol>(
-            ImmutableArray<TSymbol> assembliesAndModules,
-            AssemblyIdentityComparer assemblyIdentityComparer)
-            where TSymbol : class, ISymbol;
+        public ExternAliasRecord(string alias, AssemblyIdentity targetIdentity)
+        {
+            Debug.Assert(alias != null);
+            Debug.Assert(targetIdentity != null);
+
+            Alias = alias;
+            TargetAssembly = targetIdentity;
+        }
     }
 }

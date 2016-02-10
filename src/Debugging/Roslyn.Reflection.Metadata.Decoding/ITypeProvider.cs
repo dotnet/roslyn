@@ -1,19 +1,68 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-// NOTE: This is a temporary internal copy of code that will be cut from System.Reflection.Metadata v1.1 and
-//       ship in System.Reflection.Metadata v1.2 (with breaking changes). Remove and use the public API when
-//       a v1.2 prerelease is available and code flow is such that we can start to depend on it.
+using System.Reflection.Metadata;
 
-using System.Collections.Immutable;
+#if SRM
+namespace System.Reflection.Metadata.Decoding
+#else
 
 namespace Roslyn.Reflection.Metadata.Decoding
+#endif
 {
-    internal interface ITypeProvider<TType>
+#if SRM && FUTURE
+    public
+#endif
+    interface ITypeProvider<TType>
     {
-        TType GetGenericInstance(TType genericType, ImmutableArray<TType> typeArguments);
-        TType GetArrayType(TType elementType, ArrayShape shape);
-        TType GetByReferenceType(TType elementType);
-        TType GetSZArrayType(TType elementType);
-        TType GetPointerType(TType elementType);
+        /// <summary>
+        /// Gets the type symbol for a type definition.
+        /// </summary>
+        /// <param name="reader">
+        /// The metadata reader that was passed to the<see cref= "SignatureDecoder{TType}" />. It may be null.
+        /// </param>
+        /// <param name="handle">
+        /// The type definition handle.
+        /// </param>
+        /// <param name="code">
+        /// When <see cref="SignatureDecoderOptions.DifferentiateClassAndValueTypes"/> is used indicates whether
+        /// the type reference is to class or value type. Otherwise <see cref="SignatureTypeHandleCode.Unresolved"/>
+        /// will be passed.
+        /// </param>
+        TType GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, SignatureTypeHandleCode code);
+
+        /// <summary>
+        /// Gets the type symbol for a type reference.
+        /// </summary>
+        /// <param name="reader">
+        /// The metadata reader that was passed to the <see cref= "SignatureDecoder{TType}" />. It may be null.
+        /// </param>
+        /// <param name="handle">
+        /// The type definition handle.
+        /// </param>
+        /// <param name="code">
+        /// When <see cref="SignatureDecoderOptions.DifferentiateClassAndValueTypes"/> is used indicates whether
+        /// the type reference is to class or value type. Otherwise <see cref="SignatureTypeHandleCode.Unresolved"/>
+        /// will be passed.
+        /// </param>
+        TType GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, SignatureTypeHandleCode code);
+
+
+        /// <summary>
+        /// Gets the type symbol for a type specification.
+        /// </summary>
+        /// <param name="reader">
+        /// The metadata reader that was passed to the <see cref= "SignatureDecoder{TType}" />. It may be null.
+        /// </param>
+        /// <param name="handle">
+        /// The type specification handle.
+        /// </param>
+        /// <param name="code">
+        /// When <see cref="SignatureDecoderOptions.DifferentiateClassAndValueTypes"/> is used indicates whether
+        /// the type reference is to class or value type. Otherwise <see cref="SignatureTypeHandleCode.Unresolved"/>
+        /// will be passed.
+        /// </param>
+        TType GetTypeFromSpecification(MetadataReader reader, TypeSpecificationHandle handle, SignatureTypeHandleCode code);
     }
 }
