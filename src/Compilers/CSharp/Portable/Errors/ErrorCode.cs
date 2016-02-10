@@ -1242,8 +1242,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MutuallyExclusiveOptions = 7102,
         #endregion diagnostics introduced in C# 6
 
-        // huge gap here; available 7103-8000
-
         #region more diagnostics introduced in Roslyn (C# 6)
         WRN_UnimplementedCommandLineSwitch = 8001,
         WRN_ReferencedAssemblyDoesNotHaveStrongName = 8002,
@@ -1426,7 +1424,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics for ref locals and ref returns introduced in C# 7
 
         ERR_PredefinedValueTupleTypeNotFound = 8179,
-        // Available  = 8180-8195
+        ERR_SemiOrLBraceOrArrowExpected = 8180,
+
+        // Available  = 8181-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,

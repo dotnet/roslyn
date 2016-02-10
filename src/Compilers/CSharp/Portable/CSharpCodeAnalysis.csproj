@@ -756,6 +756,7 @@
     <Compile Include="Syntax\AttributeSyntax.cs" />
     <Compile Include="Syntax\AttributeTargetSpecifierSyntax.cs" />
     <Compile Include="Syntax\CompilationUnitSyntax.cs" />
+    <Compile Include="Syntax\ConstructorDeclarationSyntax.cs" />
     <Compile Include="Syntax\CSharpLineDirectiveMap.cs" />
     <Compile Include="Syntax\CSharpPragmaWarningStateMap.cs" />
     <Compile Include="Syntax\CSharpSyntaxNode.cs" />
@@ -766,6 +767,7 @@
     <Compile Include="Syntax\CSharpSyntaxWalker.cs" />
     <Compile Include="Syntax\DeclarationStatementSyntax.cs" />
     <Compile Include="Syntax\DelegateDeclarationSyntax.cs" />
+    <Compile Include="Syntax\DestructorDeclarationSyntax.cs" />
     <Compile Include="Syntax\DirectiveTriviaSyntax.cs" />
     <Compile Include="Syntax\ExpressionStatementSyntax.cs" />
     <Compile Include="Syntax\ForStatementSyntax.cs" />

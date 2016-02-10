@@ -2416,7 +2416,7 @@ Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
 
         // TODO: extra error CS1014
         [Fact]
-        public void CS1043ERR_SemiOrLBraceExpected()
+        public void CS7887ERR_SemiOrLBraceOrArrowExpected()
         {
             var test = @"
 using System;
@@ -2434,9 +2434,9 @@ return 1;
 ";
 
             ParseAndValidate(test,
-    // (7,13): error CS1043: { or ; expected
+    // (7,13): error CS7887: { or ; or => expected
     //         get return 1;
-    Diagnostic(ErrorCode.ERR_SemiOrLBraceExpected, "return"),
+    Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "return"),
     // (8,2): error CS1513: } expected
     Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
