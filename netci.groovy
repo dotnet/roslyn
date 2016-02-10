@@ -243,6 +243,7 @@ set TMP=%TEMP%
     }
   }
 
+  addConcurrentBuild(determinismJob, null)
   addStandardJob(determinismJob, determinismJobName, branchName, "unit32", "win")
 }
 
