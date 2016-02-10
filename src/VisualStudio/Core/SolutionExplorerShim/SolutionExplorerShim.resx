@@ -174,4 +174,40 @@
   <data name="AnalyzersCommandHandler_CheckingOutRuleSet" xml:space="preserve">
     <value>Checking out {0} for editing...</value>
   </data>
+  <data name="AnalyzerItemNameDisplayName" xml:space="preserve">
+    <value>(Name)</value>
+  </data>
+  <data name="AnalyzerItemPathDisplayName" xml:space="preserve">
+    <value>Path</value>
+  </data>
+  <data name="DiagnosticItemCategoryDisplayName" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="DiagnosticItemDefaultSeverityDisplayName" xml:space="preserve">
+    <value>Default severity</value>
+  </data>
+  <data name="DiagnosticItemDescriptionDisplayName" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="DiagnosticItemEffectiveSeverityDisplayName" xml:space="preserve">
+    <value>Effective severity</value>
+  </data>
+  <data name="DiagnosticItemEnabledByDefaultDisplayName" xml:space="preserve">
+    <value>Enabled by default</value>
+  </data>
+  <data name="DiagnosticItemHelpLinkDisplayName" xml:space="preserve">
+    <value>Help link</value>
+  </data>
+  <data name="DiagnosticItemIDDisplayName" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="DiagnosticItemMessageDisplayName" xml:space="preserve">
+    <value>Message</value>
+  </data>
+  <data name="DiagnosticItemTagsDisplayName" xml:space="preserve">
+    <value>Tags</value>
+  </data>
+  <data name="DiagnosticItemTitleDisplayName" xml:space="preserve">
+    <value>Title</value>
+  </data>
 </root>
