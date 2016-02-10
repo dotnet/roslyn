@@ -331,25 +331,25 @@ namespace Roslyn.Test.MetadataUtilities
             return Literal(handle, BlobKind.None, (r, h) => "{" + r.GetGuid((GuidHandle)h) + "}");
         }
 
-        private static readonly Guid CSharpGuid = new Guid("3f5162f8-07c6-11d3-9053-00c04fa302a1");
-        private static readonly Guid VisualBasicGuid = new Guid("3a12d0b8-c26c-11d0-b442-00a0244a1dd2");
-        private static readonly Guid FSharpGuid = new Guid("ab4f38c9-b6e6-43ba-be3b-58080b2ccce3");
-        private static readonly Guid Sha1Guid = new Guid("ff1816ec-aa5e-4d10-87f7-6f4963833460");
-        private static readonly Guid Sha256Guid = new Guid("8829d00f-11b8-4213-878b-770e8597ac16");
-        
+        private static readonly Guid s_CSharpGuid = new Guid("3f5162f8-07c6-11d3-9053-00c04fa302a1");
+        private static readonly Guid s_visualBasicGuid = new Guid("3a12d0b8-c26c-11d0-b442-00a0244a1dd2");
+        private static readonly Guid s_FSharpGuid = new Guid("ab4f38c9-b6e6-43ba-be3b-58080b2ccce3");
+        private static readonly Guid s_sha1Guid = new Guid("ff1816ec-aa5e-4d10-87f7-6f4963833460");
+        private static readonly Guid s_sha256Guid = new Guid("8829d00f-11b8-4213-878b-770e8597ac16");
+
         private string GetLanguage(Guid guid)
         {
-            if (guid == CSharpGuid) return "C#";
-            if (guid == VisualBasicGuid) return "Visual Basic";
-            if (guid == FSharpGuid) return "F#";
+            if (guid == s_CSharpGuid) return "C#";
+            if (guid == s_visualBasicGuid) return "Visual Basic";
+            if (guid == s_FSharpGuid) return "F#";
 
             return "{" + guid + "}";
         }
 
         private string GetHashAlgorithm(Guid guid)
         {
-            if (guid == Sha1Guid) return "SHA-1";
-            if (guid == Sha256Guid) return "SHA-256";
+            if (guid == s_sha1Guid) return "SHA-1";
+            if (guid == s_sha256Guid) return "SHA-256";
 
             return "{" + guid + "}";
         }
@@ -576,7 +576,7 @@ namespace Roslyn.Test.MetadataUtilities
                         break;
 
                     case ImportDefinitionKind.ImportAssemblyNamespace:
-                        sb.AppendFormat("{0}::{1}", 
+                        sb.AppendFormat("{0}::{1}",
                             Token(() => import.TargetAssembly),
                             LiteralUtf8Blob(import.TargetNamespace, BlobKind.ImportNamespace));
                         break;
@@ -628,8 +628,8 @@ namespace Roslyn.Test.MetadataUtilities
 
         private string SequencePoint(SequencePoint sequencePoint)
         {
-            string range = sequencePoint.IsHidden ? 
-                "<hidden>" : 
+            string range = sequencePoint.IsHidden ?
+                "<hidden>" :
                 $"({sequencePoint.StartLine}, {sequencePoint.StartColumn}) - ({sequencePoint.EndLine}, {sequencePoint.EndColumn}) {Token(() => sequencePoint.Document)}";
 
             return $"IL_{sequencePoint.Offset:X4}: " + range;
@@ -1496,7 +1496,7 @@ namespace Roslyn.Test.MetadataUtilities
                 }
 
                 var entry = _reader.GetMethodDebugInformation(handle);
-                
+
                 _writer.WriteLine($"{MetadataTokens.GetRowNumber(handle)}: {Token(() => entry.Document)} #{_reader.GetHeapOffset(entry.SequencePointsBlob):x}");
 
                 if (entry.SequencePointsBlob.IsNil)
@@ -1676,7 +1676,7 @@ namespace Roslyn.Test.MetadataUtilities
                 typeHandle = sigReader.ReadTypeHandle();
                 value = (sigReader.RemainingBytes > 0) ? BitConverter.ToString(sigReader.ReadBytes(sigReader.RemainingBytes)) : "default";
             }
-            else 
+            else
             {
                 value = (typeCode == SignatureTypeCode.Object) ? "null" : $"<bad type code: {typeCode}>";
             }

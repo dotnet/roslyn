@@ -310,13 +310,13 @@ namespace RoslynYield
                 // yield return int.
                 Diagnostic(ErrorCode.ERR_YieldNotAllowedInScript, "yield").WithLocation(1, 1));
 
-            var tree = comp.SyntaxTrees[0];     
+            var tree = comp.SyntaxTrees[0];
             var yieldNode = (YieldStatementSyntax)tree.GetRoot().DescendantNodes().Where(n => n is YieldStatementSyntax).SingleOrDefault();
 
             Assert.NotNull(yieldNode);
             Assert.Equal(SyntaxKind.YieldReturnStatement, yieldNode.Kind());
 
-            var model = comp.GetSemanticModel(tree);          
+            var model = comp.GetSemanticModel(tree);
             var typeInfo = model.GetTypeInfo(yieldNode.Expression);
 
             Assert.Equal(TypeKind.Error, typeInfo.Type.TypeKind);

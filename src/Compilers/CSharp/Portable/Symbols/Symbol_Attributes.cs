@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return false;
             }
-            
+
             if ((explicitTarget & allowedTargets) == 0)
             {
                 // error: invalid target for symbol

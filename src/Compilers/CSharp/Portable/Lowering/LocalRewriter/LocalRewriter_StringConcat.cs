@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             var type = (NamedTypeSymbol)operand.Type;
                             var toStringMembers = type.GetMembers(toString.Name);
-                            foreach(var member in toStringMembers)
+                            foreach (var member in toStringMembers)
                             {
                                 var toStringMethod = member as MethodSymbol;
                                 if (toStringMethod.GetLeastOverriddenMethod(type) == (object)toString)

@@ -2420,6 +2420,5 @@ class Program
   IL_0060:  ret
 }");
         }
-
     }
 }

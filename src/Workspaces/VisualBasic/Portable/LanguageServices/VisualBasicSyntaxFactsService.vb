@@ -1179,11 +1179,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetNameForArgument(argument As SyntaxNode) As String Implements ISyntaxFactsService.GetNameForArgument
-           If TryCast(argument, ArgumentSyntax)?.IsNamed Then
+            If TryCast(argument, ArgumentSyntax)?.IsNamed Then
                 Return DirectCast(argument, SimpleArgumentSyntax).NameColonEquals.Name.Identifier.ValueText
             End If
 
             Return String.Empty
         End Function
-        End Class
+    End Class
 End Namespace

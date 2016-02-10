@@ -4252,8 +4252,8 @@ BC32500: 'GuidAttribute' cannot be applied because the format of the GUID '69D3E
         <WorkItem(531295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531295")>
         Public Sub TestWindowsRuntimeImportAttribute()
             Dim source = <compilation>
-                <file name="a.vb">
-                    <![CDATA[
+                             <file name="a.vb">
+                                 <![CDATA[
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -4272,8 +4272,8 @@ Class A
 	End Sub
 End Class
 ]]>
-                </file>
-            </compilation>
+                             </file>
+                         </compilation>
 
             Dim sourceValidator =
                 Sub(m As ModuleSymbol)
@@ -4338,7 +4338,7 @@ End Class
         Public Sub TestSynthesizedSTAThread()
             Dim source =
     <compilation>
-                    <file name="a.vb">
+        <file name="a.vb">
             Imports System
             Module Module1
                 Sub foo()
@@ -4348,7 +4348,7 @@ End Class
                 End Sub
             End Module
         </file>
-                </compilation>
+    </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.AssertNoErrors()
@@ -4369,7 +4369,7 @@ End Class
         Public Sub TestNoSynthesizedSTAThread_01()
             Dim source =
     <compilation>
-                        <file name="a.vb">
+        <file name="a.vb">
             Imports System
             Module Module1
                 Sub foo()
@@ -4379,7 +4379,7 @@ End Class
                 End Sub
             End Module
         </file>
-                    </compilation>
+    </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.AssertNoErrors()
@@ -4400,8 +4400,8 @@ End Class
         Public Sub TestNoSynthesizedSTAThread_02()
             Dim source =
 <compilation>
-                            <file name="a.vb">
-                                <![CDATA[ 
+    <file name="a.vb">
+        <![CDATA[ 
             Imports System
                 Module Module1
             Sub foo()
@@ -4412,8 +4412,8 @@ End Class
             End Sub
             End Module
         ]]>
-                            </file>
-                        </compilation>
+    </file>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.AssertNoErrors()
@@ -4434,8 +4434,8 @@ End Class
         Public Sub TestNoSynthesizedSTAThread_03()
             Dim source =
 <compilation>
-                                <file name="a.vb">
-                                    <![CDATA[ 
+    <file name="a.vb">
+        <![CDATA[ 
             Imports System
                 Module Module1
             Sub foo()
@@ -4446,8 +4446,8 @@ End Class
             End Sub
             End Module
         ]]>
-                                </file>
-                            </compilation>
+    </file>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.AssertNoErrors()
@@ -4470,8 +4470,8 @@ End Class
         <Fact, WorkItem(81, "https://github.com/dotnet/roslyn/issues/81")>
         Public Sub DisallowRequiredAttributeInSource()
             Dim source = <compilation>
-                                    <file name="a.vb">
-                                        <![CDATA[
+                             <file name="a.vb">
+                                 <![CDATA[
 Namespace VBClassLibrary
 
     <System.Runtime.CompilerServices.RequiredAttribute(GetType(RS))>
@@ -4497,8 +4497,8 @@ Namespace VBClassLibrary
 
 End Namespace
 ]]>
-                                    </file>
-                                </compilation>
+                             </file>
+                         </compilation>
 
             Dim comp = CreateCompilationWithMscorlib(source)
             CompilationUtils.AssertTheseDiagnostics(comp,
@@ -4539,8 +4539,8 @@ BC37235: The RequiredAttribute attribute is not permitted on Visual Basic types.
                 ]]>
 
             Dim source = <compilation>
-                                        <file name="a.vb">
-                                            <![CDATA[
+                             <file name="a.vb">
+                                 <![CDATA[
 Module M
     Sub Main()
         Dim r = New RequiredAttrClass()
@@ -4548,8 +4548,8 @@ Module M
     End Sub
 End Module
 ]]>
-                                        </file>
-                                    </compilation>
+                             </file>
+                         </compilation>
 
             Dim ilReference = CompileIL(ilSource.Value)
 
@@ -4637,8 +4637,8 @@ BC30649: 'RequiredAttrClass' is an unsupported type.
                 ]]>
 
             Dim source = <compilation>
-                                            <file name="a.vb">
-                                                <![CDATA[
+                             <file name="a.vb">
+                                 <![CDATA[
 Imports RequiredAttr
 
 Public Class C
@@ -4651,8 +4651,8 @@ Public Class C
     End Function
 End Class
 ]]>
-                                            </file>
-                                        </compilation>
+                             </file>
+                         </compilation>
 
             Dim ilReference = CompileIL(ilSource.Value)
 
@@ -4677,7 +4677,7 @@ BC30657: 'sc1_method' has a return type that is not supported or parameter types
         Public Sub TestAttributePropagationForAsyncAndIterators_01()
             Dim source =
             <compilation>
-                                                <file name="attr.vb"><![CDATA[
+                <file name="attr.vb"><![CDATA[
 Imports System
 Imports System.Collections.Generic
 Imports System.Threading.Tasks
@@ -4724,8 +4724,8 @@ Class MyAttribute
     Inherits System.Attribute
 End Class
             ]]>
-                                                </file>
-                                            </compilation>
+                </file>
+            </compilation>
 
             Dim attributeValidator As Action(Of ModuleSymbol) =
             Sub(m As ModuleSymbol)
@@ -4789,7 +4789,7 @@ End Class
         Public Sub TestAttributePropagationForAsyncAndIterators_02()
             Dim source =
             <compilation>
-                                                    <file name="attr.vb"><![CDATA[
+                <file name="attr.vb"><![CDATA[
 Imports System
 Imports System.Collections.Generic
 Imports System.Threading.Tasks
@@ -4839,8 +4839,8 @@ Class MyAttribute
     Inherits System.Attribute
 End Class
             ]]>
-                                                    </file>
-                                                </compilation>
+                </file>
+            </compilation>
 
             Dim attributeValidator As Action(Of ModuleSymbol) =
             Sub(m As ModuleSymbol)

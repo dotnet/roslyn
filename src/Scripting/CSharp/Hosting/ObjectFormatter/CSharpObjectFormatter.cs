@@ -9,14 +9,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
     {
         public static CSharpObjectFormatter Instance { get; } = new CSharpObjectFormatter();
 
-        private static readonly ObjectFormatter _impl = new CSharpObjectFormatterImpl();
+        private static readonly ObjectFormatter s_impl = new CSharpObjectFormatterImpl();
 
         private CSharpObjectFormatter()
         {
         }
 
-        public override string FormatObject(object obj, PrintOptions options) => _impl.FormatObject(obj, options);
+        public override string FormatObject(object obj, PrintOptions options) => s_impl.FormatObject(obj, options);
 
-        public override string FormatUnhandledException(Exception e) => _impl.FormatUnhandledException(e);
+        public override string FormatUnhandledException(Exception e) => s_impl.FormatUnhandledException(e);
     }
 }

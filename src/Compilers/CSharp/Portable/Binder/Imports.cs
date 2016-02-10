@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly Imports Empty = new Imports(
             null,
             ImmutableDictionary<string, AliasAndUsingDirective>.Empty,
-            ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty, 
-            ImmutableArray<AliasAndExternAliasDirective>.Empty, 
+            ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty,
+            ImmutableArray<AliasAndExternAliasDirective>.Empty,
             null);
 
         private readonly CSharpCompilation _compilation;
@@ -416,13 +416,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this;
             }
 
-            Debug.Assert(this._compilation == otherImports._compilation);
+            Debug.Assert(_compilation == otherImports._compilation);
 
             var usingAliases = this.UsingAliases.SetItems(otherImports.UsingAliases); // NB: SetItems, rather than AddRange
             var usings = this.Usings.AddRange(otherImports.Usings).Distinct(UsingTargetComparer.Instance);
             var externAliases = ConcatExternAliases(this.ExternAliases, otherImports.ExternAliases);
 
-            return new Imports(this._compilation, usingAliases, usings, externAliases, diagnostics: null);
+            return new Imports(_compilation, usingAliases, usings, externAliases, diagnostics: null);
         }
 
         private static ImmutableArray<AliasAndExternAliasDirective> ConcatExternAliases(ImmutableArray<AliasAndExternAliasDirective> externs1, ImmutableArray<AliasAndExternAliasDirective> externs2)
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<MethodSymbol> methods,
             string name,
             int arity,
-            LookupOptions options, 
+            LookupOptions options,
             Binder originalBinder)
         {
             var binderFlags = originalBinder.Flags;

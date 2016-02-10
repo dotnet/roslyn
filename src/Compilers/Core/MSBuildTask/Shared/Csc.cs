@@ -606,6 +606,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     }
                 }
 
+                InitializeHostObjectSupportForNewSwitches(cscHostObject, ref param);
+
                 // If we have been given a property value that the host compiler doesn't support
                 // then we need to state that we are falling back to the command line compiler.
                 // Null is supported because it means that option should be omitted, and compiler default used - obviously always valid.

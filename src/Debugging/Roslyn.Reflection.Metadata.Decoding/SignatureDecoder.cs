@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
@@ -21,7 +23,7 @@ namespace Roslyn.Reflection.Metadata.Decoding
 #if SRM && FUTURE
     public
 #endif
-    struct SignatureDecoder<TType>
+    internal struct SignatureDecoder<TType>
     {
         private readonly ISignatureTypeProvider<TType> _provider;
         private readonly MetadataReader _metadataReaderOpt;
@@ -38,8 +40,8 @@ namespace Roslyn.Reflection.Metadata.Decoding
         /// </param>
         /// <param name="options">Set of optional decoder features to enable.</param>
         public SignatureDecoder(
-            ISignatureTypeProvider<TType> provider, 
-            MetadataReader metadataReader = null, 
+            ISignatureTypeProvider<TType> provider,
+            MetadataReader metadataReader = null,
             SignatureDecoderOptions options = SignatureDecoderOptions.None)
         {
             if (provider == null)
@@ -330,9 +332,9 @@ namespace Roslyn.Reflection.Metadata.Decoding
             // Avoids cost of WinRT projection.
             if ((_options & SignatureDecoderOptions.DifferentiateClassAndValueTypes) == 0)
             {
-                code = SignatureTypeHandleCode.Unresolved; 
+                code = SignatureTypeHandleCode.Unresolved;
             }
- 
+
             EntityHandle handle = blobReader.ReadTypeHandle();
             if (!handle.IsNil)
             {
@@ -398,7 +400,7 @@ namespace Roslyn.Reflection.Metadata.Decoding
             {
                 // If we're asked to differentiate value types without a reader, then 
                 // return the designation unprojected as it occurs in the signature blob.
-                return; 
+                return;
             }
 
 #if SRM

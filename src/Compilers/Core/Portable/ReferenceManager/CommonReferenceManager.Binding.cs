@@ -115,18 +115,18 @@ namespace Microsoft.CodeAnalysis
                 {
                     ResolveAndBindMissingAssemblies(
                         compilation,
-                        explicitAssemblies, 
-                        explicitModules, 
+                        explicitAssemblies,
+                        explicitModules,
                         explicitReferences,
                         explicitReferenceMap,
-                        resolverOpt, 
-                        importOptions, 
+                        resolverOpt,
+                        importOptions,
                         supersedeLowerVersions,
                         referenceBindings,
                         assemblyReferencesBySimpleName,
-                        out allAssemblies, 
-                        out implicitlyResolvedReferences, 
-                        out implicitlyResolvedReferenceMap, 
+                        out allAssemblies,
+                        out implicitlyResolvedReferences,
+                        out implicitlyResolvedReferenceMap,
                         resolutionDiagnostics);
                 }
                 else
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var metadataReferencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
-            
+
             Dictionary<MetadataReference, MergedAliases> lazyAliasMap = null;
 
             // metadata references and corresponding bindings of their references, used to calculate a fixed point:
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis
                     var referenceAndBindings = referenceBindingsToProcess.Pop();
                     var requestingReference = referenceAndBindings.Item1;
                     var bindings = referenceAndBindings.Item2;
-                    
+
                     foreach (var binding in bindings)
                     {
                         // only attempt to resolve unbound references (regardless of version difference of the bound ones)
@@ -356,11 +356,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         private void GetInitialReferenceBindingsToProcess(
-            ImmutableArray<PEModule> explicitModules, 
+            ImmutableArray<PEModule> explicitModules,
             ImmutableArray<MetadataReference> explicitReferences,
-            ImmutableArray<ResolvedReference> explicitReferenceMap, 
-            ArrayBuilder<AssemblyReferenceBinding[]> referenceBindings, 
-            int totalReferencedAssemblyCount, 
+            ImmutableArray<ResolvedReference> explicitReferenceMap,
+            ArrayBuilder<AssemblyReferenceBinding[]> referenceBindings,
+            int totalReferencedAssemblyCount,
             [Out]ArrayBuilder<ValueTuple<MetadataReference, ArraySegment<AssemblyReferenceBinding>>> result)
         {
             Debug.Assert(result.Count == 0);
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static ImmutableArray<ResolvedReference> ToResolvedAssemblyReferences(
-            ImmutableArray<MetadataReference> references,           
+            ImmutableArray<MetadataReference> references,
             Dictionary<MetadataReference, MergedAliases> propertyMapOpt,
             int explicitAssemblyCount)
         {
@@ -494,9 +494,9 @@ namespace Microsoft.CodeAnalysis
 
             return CreateAssemblyDataForFile(
                 assembly,
-                assemblyMetadata.CachedSymbols, 
+                assemblyMetadata.CachedSymbols,
                 peReference.DocumentationProvider,
-                SimpleAssemblyName, 
+                SimpleAssemblyName,
                 importOptions,
                 peReference.Properties.EmbedInteropTypes);
         }

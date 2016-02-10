@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _cancellationToken.ThrowIfCancellationRequested();
 
                 ExecuteAndCatchIfThrows(startAction.Analyzer,
-                    () => startAction.Action(new AnalyzerCompilationStartAnalysisContext(startAction.Analyzer, compilationScope, 
+                    () => startAction.Action(new AnalyzerCompilationStartAnalysisContext(startAction.Analyzer, compilationScope,
                         _compilation, _analyzerOptions, _compilationAnalysisValueProviderFactory, _cancellationToken)),
                     new AnalysisContextInfo(_compilation));
             }

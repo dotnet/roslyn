@@ -339,7 +339,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             bool importCreated = false;
             ISymUnmanagedReader symReader;
             Assert.Equal(HResult.S_OK, SymBinder.GetReaderFromPdbStream(
-                new TestMetadataProvider(() => 
+                new TestMetadataProvider(() =>
                 {
                     importCreated = true;
                     return new SymMetadataImport(new MemoryStream(TestResources.Scopes.Dll));

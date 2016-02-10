@@ -160,7 +160,7 @@ End Class"
                         diagnostics:=diagnostics,
                         typeName:=typeName,
                         testData:=testData)
-            Assert.Equal(6, locals.Count)
+                    Assert.Equal(6, locals.Count)
                     VerifyLocal(testData, typeName, locals(0), "<>m0", "$exception", "Error", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
 "{
   // Code size       11 (0xb)
@@ -212,7 +212,7 @@ End Class"
   IL_0001:  ret
 }")
                     locals.Free()
-                    
+
                     ' Confirm that the Watch window is unaffected by the filtering in the Locals window.
                     Dim errorString As String = Nothing
                     context.CompileExpression("$ReturnValue", DkmEvaluationFlags.TreatAsExpression, aliases, errorString)

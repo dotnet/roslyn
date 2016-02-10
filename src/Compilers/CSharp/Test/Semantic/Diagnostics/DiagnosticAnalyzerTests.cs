@@ -1588,7 +1588,7 @@ public partial class C33 { }
 
             var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2, tree3, tree4, tree5 });
             compilation.VerifyDiagnostics();
-            
+
             var analyzers = new DiagnosticAnalyzer[] { new SharedStateAnalyzer() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                 Diagnostic("UserCodeDiagnostic").WithArguments("Source1_File1.cs").WithLocation(1, 1),

@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             for (int i = 0; i < NumThreads; i++)
             {
-                Task.Run(async () => 
+                Task.Run(async () =>
                 {
                     barrier.SignalAndWait();
                     Assert.Equal(expectedValue, await read());

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                 });
         }
 
-        static bool HasMoreSpecificSourceType<SymbolType>(SymbolType symbol, ITypeSymbol symbolType, Dictionary<SymbolType, HashSet<INamedTypeSymbol>> symbolsSourceTypes, out INamedTypeSymbol commonSourceType)
+        private static bool HasMoreSpecificSourceType<SymbolType>(SymbolType symbol, ITypeSymbol symbolType, Dictionary<SymbolType, HashSet<INamedTypeSymbol>> symbolsSourceTypes, out INamedTypeSymbol commonSourceType)
         {
             HashSet<INamedTypeSymbol> sourceTypes;
             if (symbolsSourceTypes.TryGetValue(symbol, out sourceTypes))
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
             return false;
         }
 
-        static INamedTypeSymbol CommonType(IEnumerable<INamedTypeSymbol> types)
+        private static INamedTypeSymbol CommonType(IEnumerable<INamedTypeSymbol> types)
         {
             foreach (INamedTypeSymbol type in types)
             {
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
             return null;
         }
 
-        static bool DerivesFrom(INamedTypeSymbol derivedType, INamedTypeSymbol baseType)
+        private static bool DerivesFrom(INamedTypeSymbol derivedType, INamedTypeSymbol baseType)
         {
             if (derivedType.TypeKind == TypeKind.Class || derivedType.TypeKind == TypeKind.Structure)
             {
@@ -208,12 +208,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
             return false;
         }
 
-        static void AssignTo(IExpression target, Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>> localsSourceTypes, Dictionary<IFieldSymbol, HashSet<INamedTypeSymbol>> fieldsSourceTypes, IExpression sourceValue)
+        private static void AssignTo(IExpression target, Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>> localsSourceTypes, Dictionary<IFieldSymbol, HashSet<INamedTypeSymbol>> fieldsSourceTypes, IExpression sourceValue)
         {
             AssignTo(target, localsSourceTypes, fieldsSourceTypes, OriginalType(sourceValue));
         }
 
-        static void AssignTo(IExpression target, Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>> localsSourceTypes, Dictionary<IFieldSymbol, HashSet<INamedTypeSymbol>> fieldsSourceTypes, ITypeSymbol sourceType)
+        private static void AssignTo(IExpression target, Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>> localsSourceTypes, Dictionary<IFieldSymbol, HashSet<INamedTypeSymbol>> fieldsSourceTypes, ITypeSymbol sourceType)
         {
             OperationKind targetKind = target.Kind;
             if (targetKind == OperationKind.LocalReferenceExpression)
@@ -228,12 +228,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
             }
         }
 
-        static void AssignTo<SymbolType>(SymbolType target, ITypeSymbol targetType, Dictionary<SymbolType, HashSet<INamedTypeSymbol>> sourceTypes, IExpression sourceValue)
+        private static void AssignTo<SymbolType>(SymbolType target, ITypeSymbol targetType, Dictionary<SymbolType, HashSet<INamedTypeSymbol>> sourceTypes, IExpression sourceValue)
         {
             AssignTo(target, targetType, sourceTypes, OriginalType(sourceValue));
         }
 
-        static void AssignTo<SymbolType>(SymbolType target, ITypeSymbol targetType, Dictionary<SymbolType, HashSet<INamedTypeSymbol>> sourceTypes, ITypeSymbol sourceType)
+        private static void AssignTo<SymbolType>(SymbolType target, ITypeSymbol targetType, Dictionary<SymbolType, HashSet<INamedTypeSymbol>> sourceTypes, ITypeSymbol sourceType)
         {
             if (sourceType != null && targetType != null)
             {
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
             }
         }
 
-        static ITypeSymbol OriginalType (IExpression value)
+        private static ITypeSymbol OriginalType(IExpression value)
         {
             if (value.Kind == OperationKind.ConversionExpression)
             {
@@ -270,12 +270,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
             return value.ResultType;
         }
 
-        void Report(OperationBlockAnalysisContext context, ILocalSymbol local, ITypeSymbol moreSpecificType, DiagnosticDescriptor descriptor)
+        private void Report(OperationBlockAnalysisContext context, ILocalSymbol local, ITypeSymbol moreSpecificType, DiagnosticDescriptor descriptor)
         {
             context.ReportDiagnostic(Diagnostic.Create(descriptor, local.Locations.FirstOrDefault(), local, moreSpecificType));
         }
 
-        void Report(CompilationAnalysisContext context, IFieldSymbol field, ITypeSymbol moreSpecificType, DiagnosticDescriptor descriptor)
+        private void Report(CompilationAnalysisContext context, IFieldSymbol field, ITypeSymbol moreSpecificType, DiagnosticDescriptor descriptor)
         {
             context.ReportDiagnostic(Diagnostic.Create(descriptor, field.Locations.FirstOrDefault(), field, moreSpecificType));
         }

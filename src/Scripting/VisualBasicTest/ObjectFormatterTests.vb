@@ -10,12 +10,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.UnitTests
     Public Class ObjectFormatterTests
         Inherits ObjectFormatterTestBase
 
-        Private Shared ReadOnly Formatter As ObjectFormatter = New TestVisualBasicObjectFormatter()
+        Private Shared ReadOnly s_formatter As ObjectFormatter = New TestVisualBasicObjectFormatter()
 
         <Fact()>
         Public Sub InlineCharacters()
-            Assert.Equal("ChrW(20)", Formatter.FormatObject(ChrW(20), SingleLineOptions))
-            Assert.Equal("vbBack", Formatter.FormatObject(ChrW(&H8), SingleLineOptions))
+            Assert.Equal("ChrW(20)", s_formatter.FormatObject(ChrW(20), SingleLineOptions))
+            Assert.Equal("vbBack", s_formatter.FormatObject(ChrW(&H8), SingleLineOptions))
         End Sub
 
         <Fact(Skip:="IDK")>
@@ -36,17 +36,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.UnitTests
             Dim str As String
             Dim nested As Object = New Outer.Nested(Of Integer)()
 
-            str = Formatter.FormatObject(nested, SingleLineOptions)
+            str = s_formatter.FormatObject(nested, SingleLineOptions)
             Assert.Equal("Outer.Nested(Of Integer) { A=1, B=2 }", str)
 
-            str = Formatter.FormatObject(nested, HiddenOptions)
+            str = s_formatter.FormatObject(nested, HiddenOptions)
             Assert.Equal("Outer.Nested(Of Integer)", str)
 
-            str = Formatter.FormatObject(A(Of Integer).X, HiddenOptions)
+            str = s_formatter.FormatObject(A(Of Integer).X, HiddenOptions)
             Assert.Equal("A(Of Integer).B(Of Integer)", str)
 
             Dim obj As Object = New A(Of Integer).B(Of Boolean).C.D(Of String, Double).E()
-            str = Formatter.FormatObject(obj, HiddenOptions)
+            str = s_formatter.FormatObject(obj, HiddenOptions)
             Assert.Equal("A(Of Integer).B(Of Boolean).C.D(Of String, Double).E", str)
 
             Dim sort = New Sort()

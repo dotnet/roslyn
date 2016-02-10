@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         internal static RuntimeInstance Create(
             Compilation compilation,
-            IEnumerable<MetadataReference> references = null, 
+            IEnumerable<MetadataReference> references = null,
             DebugInformationFormat debugFormat = 0,
             bool includeLocalSignatures = true)
         {
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         internal static RuntimeInstance Create(
             ModuleInstance module,
-            IEnumerable<MetadataReference> references, 
+            IEnumerable<MetadataReference> references,
             DebugInformationFormat debugFormat)
         {
             // Create modules for the references and the program

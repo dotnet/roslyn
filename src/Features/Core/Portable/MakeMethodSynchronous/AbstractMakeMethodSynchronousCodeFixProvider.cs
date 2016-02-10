@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -51,8 +53,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var methodSymbolOpt = semanticModel.GetDeclaredSymbol(node) as IMethodSymbol;
 
-            if (methodSymbolOpt?.MethodKind == MethodKind.Ordinary && 
-                methodSymbolOpt.Name.Length > AsyncSuffix.Length && 
+            if (methodSymbolOpt?.MethodKind == MethodKind.Ordinary &&
+                methodSymbolOpt.Name.Length > AsyncSuffix.Length &&
                 methodSymbolOpt.Name.EndsWith(AsyncSuffix))
             {
                 return await RenameThenRemoveAsyncTokenAsync(document, node, methodSymbolOpt, cancellationToken).ConfigureAwait(false);
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
 
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Solution>> createChangedSolution) 
+            public MyCodeAction(Func<CancellationToken, Task<Solution>> createChangedSolution)
                 : base(FeaturesResources.Make_method_synchronous, createChangedSolution, AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey)
             {
             }

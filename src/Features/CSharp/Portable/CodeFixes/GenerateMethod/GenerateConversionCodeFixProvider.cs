@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember)]
     internal class GenerateConversionCodeFixProvider : AbstractGenerateMemberCodeFixProvider
     {
-        private const string CS0029 = "CS0029"; // error CS0029: Cannot implicitly convert type 'type' to 'type'
-        private const string CS0030 = "CS0030"; // error CS0030: Cannot convert type 'type' to 'type'
+        private const string CS0029 = nameof(CS0029); // error CS0029: Cannot implicitly convert type 'type' to 'type'
+        private const string CS0030 = nameof(CS0030); // error CS0030: Cannot convert type 'type' to 'type'
 
         public override ImmutableArray<string> FixableDiagnosticIds
         {

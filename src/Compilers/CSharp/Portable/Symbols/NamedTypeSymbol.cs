@@ -695,8 +695,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            if (((thisIsNotConstructed || otherIsNotConstructed) && 
-                 !(ignoreCustomModifiersAndArraySizesAndLowerBounds && (this.HasTypeArgumentsCustomModifiers || other.HasTypeArgumentsCustomModifiers))) || 
+            if (((thisIsNotConstructed || otherIsNotConstructed) &&
+                 !(ignoreCustomModifiersAndArraySizesAndLowerBounds && (this.HasTypeArgumentsCustomModifiers || other.HasTypeArgumentsCustomModifiers))) ||
                 this.IsUnboundGenericType != other.IsUnboundGenericType)
             {
                 return false;
@@ -708,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return false;
             }
-             
+
             var typeArguments = this.TypeArgumentsNoUseSiteDiagnostics;
             var otherTypeArguments = other.TypeArgumentsNoUseSiteDiagnostics;
             int count = typeArguments.Length;

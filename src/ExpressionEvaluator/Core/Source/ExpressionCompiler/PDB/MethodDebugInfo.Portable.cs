@@ -12,7 +12,7 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    partial class MethodDebugInfo<TTypeSymbol, TLocalSymbol>
+    internal partial class MethodDebugInfo<TTypeSymbol, TLocalSymbol>
     {
         /// <exception cref="BadImageFormatException">Invalid data format.</exception>
         public static MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadFromPortable(MetadataReader reader, int methodToken, int ilOffset, EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider, bool isVisualBasicMethod)
@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                 hoistedLocalScopes,
-                importGroups, 
+                importGroups,
                 externAliases,
-                dynamicLocals, 
+                dynamicLocals,
                 defaultNamespace,
                 localVariableNames,
                 localConstants,
@@ -165,8 +165,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         /// <exception cref="BadImageFormatException">Invalid data format.</exception>
         private static void PopulateImports(
-            MetadataReader reader, 
-            ImportScopeHandle handle, 
+            MetadataReader reader,
+            ImportScopeHandle handle,
             EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider,
             bool isVisualBasicMethod,
             ArrayBuilder<ImmutableArray<ImportRecord>> importGroupsBuilder,
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             out string defaultNamespace)
         {
             hoistedLocalScopes = ImmutableArray<HoistedLocalScopeRecord>.Empty;
-                
+
             foreach (var infoHandle in reader.GetCustomDebugInformation(methodHandle))
             {
                 var info = reader.GetCustomDebugInformation(infoHandle);

@@ -13,7 +13,6 @@ namespace Roslyn.Utilities
     /// </summary>
     internal static class CoreClrShim
     {
-
         internal static class AssemblyLoadContext
         {
             internal static readonly Type Type = ReflectionUtilities.TryGetType(

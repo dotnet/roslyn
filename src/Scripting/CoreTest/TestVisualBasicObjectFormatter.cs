@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 
         protected override CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions) =>
             new CommonPrimitiveFormatterOptions(
-                numberRadix: printOptions.NumberRadix, 
+                numberRadix: printOptions.NumberRadix,
                 includeCodePoints: false,
-                escapeNonPrintableCharacters: printOptions.EscapeNonPrintableCharacters, 
+                escapeNonPrintableCharacters: printOptions.EscapeNonPrintableCharacters,
                 quoteStringsAndCharacters: _quoteStringsAndCharacters,
                 cultureInfo: _cultureInfo);
     }
