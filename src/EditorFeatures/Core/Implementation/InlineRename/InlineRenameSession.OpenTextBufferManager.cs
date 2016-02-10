@@ -202,7 +202,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                     _activeSpan = _activeSpan.HasValue && spans.Contains(_activeSpan.Value)
                         ? _activeSpan
-                        : spans.FirstOrNullable();
+                        : spans.Where(s => ActiveTextview.GetSpanInView(_subjectBuffer.CurrentSnapshot.GetSpan(s.ToSpan())).Count != 0)
+                            .FirstOrNullable(); // filter to spans that have a projection
 
                     UpdateReadOnlyRegions();
                     this.ApplyReplacementText(updateSelection: false);
@@ -557,8 +558,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                     var containingSpans = openTextBufferManager._referenceSpanToLinkedRenameSpanMap.Select(kvp =>
                     {
-                        var ss = textView.GetSpanInView(kvp.Value.TrackingSpan.GetSpan(snapshot)).Single();
-                        if (ss.IntersectsWith(selection.ActivePoint.Position) || ss.IntersectsWith(selection.AnchorPoint.Position))
+                        // GetSpanInView() can return an empty collection if the tracking span isn't mapped to anything
+                        // in the current view, specifically a `@model SomeModelClass` directive in a Razor file.
+                        var ss = textView.GetSpanInView(kvp.Value.TrackingSpan.GetSpan(snapshot)).FirstOrDefault();
+                        if (ss != null && (ss.IntersectsWith(selection.ActivePoint.Position) || ss.IntersectsWith(selection.AnchorPoint.Position)))
                         {
                             return Tuple.Create(kvp.Key, ss);
                         }
