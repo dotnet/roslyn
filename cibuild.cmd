@@ -21,21 +21,9 @@ if /I "%1" == "/release" set BuildConfiguration=Release&&shift&& goto :ParseArgu
 if /I "%1" == "/test32" set Test64=false&&shift&& goto :ParseArguments
 if /I "%1" == "/test64" set Test64=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testDeterminism" set TestDeterminism=true&&shift&& goto :ParseArguments
-if /I "%1" == "/perf" set Perf=true&&shift&& goto :ParseArguments
 if /I "%1" == "/restore" set BuildRestore=true&&shift&& goto :ParseArguments
 call :Usage && exit /b 1
 :DoneParsing
-
-if defined Perf (
-  if defined Test64 (
-    echo ERROR: Cannot combine /perf with either /test32 or /test64
-    call :Usage && exit /b 1
-  )
-
-  if "%BuildConfiguration%" == "Debug" (
-    echo Warning: Running perf tests on a Debug build is not recommended. Use /release for a Release build.
-  )
-)
 
 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat" || goto :BuildFailed
 
@@ -71,13 +59,7 @@ if defined TestDeterminism (
     exit /b 0
 )
 
-if defined Perf (
-  set Target=Build
-) else (
-  set Target=BuildAndTest
-)
-
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
 
 call :TerminateBuildProcesses
 
@@ -91,25 +73,16 @@ REM    git diff --exit-code
 REM    exit /b 1
 REM )
 
-if defined Perf (
-  if DEFINED JenkinsCIPerfCredentials (
-    powershell .\ciperf.ps1 -BinariesDirectory "%bindir%\%BuildConfiguration%" %JenkinsCIPerfCredentials% || goto :BuildFailed
-  ) else (
-    powershell .\ciperf.ps1 -BinariesDirectory "%bindir%\%BuildConfiguration%" -StorageAccountName roslynscratch -StorageContainer drops -SCRAMScope 'Roslyn\Azure' || goto :BuildFailed
-  )
-)
 
 REM Ensure caller sees successful exit.
 exit /b 0
 
 :Usage
-@echo Usage: cibuild.cmd [/debug^|/release] [/test32^|/test64^|/perf] [/restore]
+@echo Usage: cibuild.cmd [/debug^|/release] [/test32^|/test64] [/restore]
 @echo   /debug   Perform debug build.  This is the default.
 @echo   /release Perform release build.
 @echo   /test32  Run unit tests in the 32-bit runner.  This is the default.
 @echo   /test64  Run units tests in the 64-bit runner.
-@echo   /perf    Submit a job to the performance test system. Usually combined
-@echo            with /release. May not be combined with /test32 or /test64.
 @echo   /restore Perform actual nuget restore instead of using zip drops.
 @echo.
 @goto :eof
