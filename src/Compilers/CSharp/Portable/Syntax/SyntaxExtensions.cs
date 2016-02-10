@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.syntaxextensions
 
 using System;
 using System.Collections.Generic;
@@ -29,6 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case SyntaxKind.MethodDeclaration:
                     arrowExpr = ((MethodDeclarationSyntax)node).ExpressionBody;
+                    break;
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                    arrowExpr = ((AccessorDeclarationSyntax)node).ExpressionBody;
                     break;
                 case SyntaxKind.OperatorDeclaration:
                     arrowExpr = ((OperatorDeclarationSyntax)node).ExpressionBody;

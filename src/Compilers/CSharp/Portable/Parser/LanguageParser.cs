@@ -3724,11 +3724,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 BlockSyntax body = null;
+                ArrowExpressionClauseSyntax expressionBody = null;
                 SyntaxToken semicolon = null;
                 bool currentTokenIsSemicolon = this.CurrentToken.Kind == SyntaxKind.SemicolonToken;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken || (validAccName && !currentTokenIsSemicolon && !IsTerminator()))
+                if (validAccName && !currentTokenIsSemicolon && !IsTerminator())
                 {
-                    body = this.ParseBlock(isMethodBody: true, isAccessorBody: true);
+                    this.ParseBlockAndExpressionBodiesWithSemicolon(out body, out expressionBody, out semicolon);
+                    if (body == null && expressionBody == null && semicolon == null)
+                        this.AddError(semicolon, ErrorCode.ERR_SemiOrLBraceOrExpressionExpected);
                 }
                 else if (currentTokenIsSemicolon || validAccName)
                 {
@@ -3740,7 +3743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                 }
 
-                return _syntaxFactory.AccessorDeclaration(accessorKind, accAttrs, accMods.ToTokenList(), accessorName, body, semicolon);
+                return _syntaxFactory.AccessorDeclaration(accessorKind, accAttrs, accMods.ToTokenList(), accessorName, body, expressionBody, semicolon);
             }
             finally
             {

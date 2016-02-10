@@ -3259,6 +3259,11 @@
         <summary>Gets the optional body block which may be empty, but it is null if there are no braces.</summary>
       </PropertyComment>
     </Field>
+    <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true">
+      <PropertyComment>
+        <summary>Gets the optional expression body.</summary>
+      </PropertyComment>
+    </Field>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
       <PropertyComment>
         <summary>Gets the optional semicolon token.</summary>

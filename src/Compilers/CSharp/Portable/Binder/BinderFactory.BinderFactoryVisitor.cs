@@ -222,7 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitCore(parent.Parent);
                 }
 
-                bool inBlock = LookupPosition.IsInBlock(_position, parent.Body);
+                bool inBlock = LookupPosition.IsInBlock(_position, parent.Body)
+                                    || LookupPosition.IsInExpressionBody(_position, parent.ExpressionBody, parent.SemicolonToken);
                 var extraInfo = inBlock ? NodeUsage.AccessorBody : NodeUsage.Normal;  // extra info for the cache.
                 var key = CreateBinderCacheKey(parent, extraInfo);
 

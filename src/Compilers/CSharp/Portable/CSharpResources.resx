@@ -4696,4 +4696,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TooManyUserStrings" xml:space="preserve">
     <value>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</value>
   </data>
+  <data name="ERR_SemiOrLBraceOrExpressionExpected" xml:space="preserve">
+    <value>{ or ; or =&gt; expected</value>
+  </data>
 </root>

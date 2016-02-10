@@ -7775,6 +7775,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to { or ; or =&gt; expected.
+        /// </summary>
+        internal static string ERR_SemiOrLBraceOrExpressionExpected {
+            get {
+                return ResourceManager.GetString("ERR_SemiOrLBraceOrExpressionExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Key file &apos;{0}&apos; is missing the private key needed for signing.
         /// </summary>
         internal static string ERR_SignButNoPrivateKey {
