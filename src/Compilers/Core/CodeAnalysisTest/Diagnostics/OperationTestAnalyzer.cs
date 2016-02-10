@@ -1356,7 +1356,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      }
 
                  },
-                 OperationKind.BlockStatement);
+                 OperationKind.InvocationExpression);
         }
 
         // this OperationWalker collect:
