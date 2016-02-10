@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis
     {
         None = 0x0,
 
+        /// <summary>Indicates an <see cref="IInvalidStatement"/>.</summary>
         InvalidStatement = 0x1,
         /// <summary>Indicates an <see cref="IBlockStatement"/>.</summary>
         BlockStatement = 0x2,
@@ -51,11 +52,13 @@ namespace Microsoft.CodeAnalysis
         ContinueStatement = 0x7,
         /// <summary>Indicates an <see cref="IBranchStatement"/>.</summary>
         BreakStatement = 0x8,
+        /// <summary>Indicates an <see cref="IReturnStatement"/>.</summary>
         YieldBreakStatement = 0x9,
         LabelStatement = 0xa,
         LabeledStatement = 0xb,            // Why do both of these exist?
         /// <summary>Indicates an <see cref="IBranchStatement"/>.</summary>
         GoToStatement = 0xc,
+        /// <summary>Indicates an <see cref="IEmptyStatement"/>.</summary>
         EmptyStatement = 0xd,
         /// <summary>Indicates an <see cref="IThrowStatement"/>.</summary>
         ThrowStatement = 0xe,
@@ -151,7 +154,9 @@ namespace Microsoft.CodeAnalysis
         // VB only
 
         OmittedArgumentExpression = 0x3c,
+        /// <summary>Indicates an <see cref="IStopStatement"/>.</summary>
         StopStatement = 0x3d,
+        /// <summary>Indicates an <see cref="IEndStatement"/>.</summary>
         EndStatement = 0x3e,
         /// <summary>Indicates an <see cref="IWithStatement"/>.</summary>
         WithStatement = 0x3f,

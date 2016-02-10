@@ -130,10 +130,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitBranchStatement(IBranchStatement operation)
         { }
 
-        public override void VisitYieldBreakStatement(IStatement operation)
+        public override void VisitYieldBreakStatement(IReturnStatement operation)
         { }
 
-        public override void VisitEmptyStatement(IStatement operation)
+        public override void VisitEmptyStatement(IEmptyStatement operation)
         { }
 
         public override void VisitThrowStatement(IThrowStatement operation)
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitReturnStatement(IReturnStatement operation)
         {
-            Visit(operation.Returned);
+            Visit(operation.ReturnedValue);
         }
 
         public override void VisitLockStatement(ILockStatement operation)
@@ -192,10 +192,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.Body);
         }
 
-        public override void VisitStopStatement(IStatement operation)
+        public override void VisitStopStatement(IStopStatement operation)
         { }
 
-        public override void VisitEndStatement(IStatement operation)
+        public override void VisitEndStatement(IEndStatement operation)
         { }
 
         public override void VisitInvocationExpression(IInvocationExpression operation)
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitTypeParameterObjectCreationExpression(IExpression operation)
         { }
 
-        public override void VisitInvalidStatement(IStatement operation)
+        public override void VisitInvalidStatement(IInvalidStatement operation)
         { }
 
         public override void VisitInvalidExpression(IExpression operation)

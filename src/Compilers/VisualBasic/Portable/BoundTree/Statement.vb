@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Class BoundStatement
-        Implements IStatement
+        Implements IOperation
 
         Private ReadOnly Property IKind As OperationKind Implements IOperation.Kind
             Get
@@ -43,13 +43,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IIfTrue As IStatement Implements IIfStatement.IfTrue
+        Private ReadOnly Property IIfTrue As IOperation Implements IIfStatement.IfTrue
             Get
                 Return Me.Consequence
             End Get
         End Property
 
-        Private ReadOnly Property IIfFalse As IStatement Implements IIfStatement.IfFalse
+        Private ReadOnly Property IIfFalse As IOperation Implements IIfStatement.IfFalse
             Get
                 Return Me.AlternativeOpt
             End Get
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Implements ICase
 
             Private ReadOnly _clauses As ImmutableArray(Of ICaseClause)
-            Private ReadOnly _body As ImmutableArray(Of IStatement)
+            Private ReadOnly _body As ImmutableArray(Of IOperation)
             Private ReadOnly _isInvalid As Boolean
             Private ReadOnly _syntax As SyntaxNode
 
@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     _clauses = caseStatement.CaseClauses.As(Of ICaseClause)()
                 End If
 
-                _body = ImmutableArray.Create(Of IStatement)(boundCaseBlock.Body)
+                _body = ImmutableArray.Create(Of IOperation)(boundCaseBlock.Body)
                 _isInvalid = boundCaseBlock.HasErrors
                 _syntax = boundCaseBlock.Syntax
             End Sub
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return visitor.VisitCase(Me, argument)
             End Function
 
-            Public ReadOnly Property Body As ImmutableArray(Of IStatement) Implements ICase.Body
+            Public ReadOnly Property Body As ImmutableArray(Of IOperation) Implements ICase.Body
                 Get
                     Return _body
                 End Get
@@ -455,7 +455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IBody As IStatement Implements ILoopStatement.Body
+        Private ReadOnly Property IBody As IOperation Implements ILoopStatement.Body
             Get
                 Return Me.Body
             End Get
@@ -497,12 +497,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ReadOnly s_loopBottomMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, Object)
 
-        Private ReadOnly Property IAtLoopBottom As ImmutableArray(Of IStatement) Implements IForLoopStatement.AtLoopBottom
+        Private ReadOnly Property IAtLoopBottom As ImmutableArray(Of IOperation) Implements IForLoopStatement.AtLoopBottom
             Get
                 Dim result = s_loopBottomMappings.GetValue(
                     Me,
                     Function(BoundFor)
-                        Dim statements As ArrayBuilder(Of IStatement) = ArrayBuilder(Of IStatement).GetInstance()
+                        Dim statements As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance()
                         Dim operators As BoundForToUserDefinedOperators = BoundFor.OperatorsOpt
                         If operators IsNot Nothing Then
                             ' Use the operator methods. Figure out the precise rules first.
@@ -527,18 +527,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return statements.ToImmutableAndFree()
                     End Function)
 
-                Return DirectCast(result, ImmutableArray(Of IStatement))
+                Return DirectCast(result, ImmutableArray(Of IOperation))
             End Get
         End Property
 
         Private Shared ReadOnly s_loopTopMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, Object)
 
-        Private ReadOnly Property IBefore As ImmutableArray(Of IStatement) Implements IForLoopStatement.Before
+        Private ReadOnly Property IBefore As ImmutableArray(Of IOperation) Implements IForLoopStatement.Before
             Get
                 Dim result = s_loopTopMappings.GetValue(
                     Me,
                     Function(BoundFor)
-                        Dim statements As ArrayBuilder(Of IStatement) = ArrayBuilder(Of IStatement).GetInstance()
+                        Dim statements As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance()
 
                         ' ControlVariable = InitialValue
                         Dim controlReference As IReferenceExpression = TryCast(BoundFor.ControlVariable, IReferenceExpression)
@@ -559,7 +559,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return statements.ToImmutableAndFree()
                     End Function)
 
-                Return DirectCast(result, ImmutableArray(Of IStatement))
+                Return DirectCast(result, ImmutableArray(Of IOperation))
             End Get
         End Property
 
@@ -611,7 +611,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IBody As IStatement Implements ILoopStatement.Body
+        Private ReadOnly Property IBody As IOperation Implements ILoopStatement.Body
             Get
                 Return Me.Body
             End Get
@@ -639,10 +639,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Implements ISyntheticLocalReferenceExpression
 
             Private _temporaryKind As SyntheticLocalKind
-            Private _containingStatement As IStatement
+            Private _containingStatement As IOperation
             Private _capturedValue As IExpression
 
-            Public Sub New(temporaryKind As SyntheticLocalKind, containingStatement As IStatement, capturedValue As IExpression)
+            Public Sub New(temporaryKind As SyntheticLocalKind, containingStatement As IOperation, capturedValue As IExpression)
                 Me._temporaryKind = temporaryKind
                 Me._containingStatement = containingStatement
                 Me._capturedValue = capturedValue
@@ -686,7 +686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public ReadOnly Property ContainingStatement As IStatement Implements ISyntheticLocalReferenceExpression.ContainingStatement
+            Public ReadOnly Property ContainingStatement As IOperation Implements ISyntheticLocalReferenceExpression.ContainingStatement
                 Get
                     Return Me._containingStatement
                 End Get
@@ -726,7 +726,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property ILoop_Body As IStatement Implements ILoopStatement.Body
+        Private ReadOnly Property ILoop_Body As IOperation Implements ILoopStatement.Body
             Get
                 Return Me.Body
             End Get
@@ -849,15 +849,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IStatements As ImmutableArray(Of IStatement) Implements IBlockStatement.Statements
+        Private ReadOnly Property IStatements As ImmutableArray(Of IOperation) Implements IBlockStatement.Statements
             Get
                 ' This is to filter out operations of kind None.
                 Dim statements = s_blockStatementsMappings.GetValue(Me, Function(boundBlock)
-                                                                            Return boundBlock.Statements.As(Of IStatement).WhereAsArray(Function(statement)
+                                                                            Return boundBlock.Statements.As(Of IOperation).WhereAsArray(Function(statement)
                                                                                                                                             Return statement.Kind <> OperationKind.None
                                                                                                                                         End Function)
                                                                         End Function)
-                Return DirectCast(statements, ImmutableArray(Of IStatement))
+                Return DirectCast(statements, ImmutableArray(Of IOperation))
             End Get
         End Property
 
@@ -875,6 +875,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundBadStatement
+        Implements IInvalidStatement
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.InvalidStatement
         End Function
@@ -891,7 +892,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundReturnStatement
         Implements IReturnStatement
 
-        Private ReadOnly Property IReturned As IExpression Implements IReturnStatement.Returned
+        Private ReadOnly Property IReturned As IExpression Implements IReturnStatement.ReturnedValue
             Get
                 Return Me.ExpressionOpt
             End Get
@@ -941,7 +942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IBody As IStatement Implements ILoopStatement.Body
+        Private ReadOnly Property IBody As IOperation Implements ILoopStatement.Body
             Get
                 Return Me.Body
             End Get
@@ -1020,7 +1021,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Class BoundYieldStatement
         Implements IReturnStatement
-        Private ReadOnly Property IReturned As IExpression Implements IReturnStatement.Returned
+        Private ReadOnly Property IReturned As IExpression Implements IReturnStatement.ReturnedValue
             Get
                 Return Me.Expression
             End Get
@@ -1136,7 +1137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IBody As IStatement Implements ILockStatement.Body
+        Private ReadOnly Property IBody As IOperation Implements ILockStatement.Body
             Get
                 Return Me.Body
             End Get
@@ -1156,6 +1157,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundNoOpStatement
+        Implements IEmptyStatement
+
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.EmptyStatement
         End Function
@@ -1212,6 +1215,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundStopStatement
+        Implements IStopStatement
+
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.StopStatement
         End Function
@@ -1226,6 +1231,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundEndStatement
+        Implements IEndStatement
+
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.EndStatement
         End Function
@@ -1242,7 +1249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundWithStatement
         Implements IWithStatement
 
-        Private ReadOnly Property IBody As IStatement Implements IWithStatement.Body
+        Private ReadOnly Property IBody As IOperation Implements IWithStatement.Body
             Get
                 Return Me.Body
             End Get
@@ -1288,7 +1295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IBody As IStatement Implements IUsingStatement.Body
+        Private ReadOnly Property IBody As IOperation Implements IUsingStatement.Body
             Get
                 Return Me.Body
             End Get

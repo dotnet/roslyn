@@ -93,12 +93,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitYieldBreakStatement(IStatement operation)
+        public virtual void VisitYieldBreakStatement(IReturnStatement operation)
         {
             DefaultVisit(operation);
         }
 
-        public virtual void VisitEmptyStatement(IStatement operation)
+        public virtual void VisitEmptyStatement(IEmptyStatement operation)
         {
             DefaultVisit(operation);
         }
@@ -153,12 +153,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitStopStatement(IStatement operation)
+        public virtual void VisitStopStatement(IStopStatement operation)
         {
             DefaultVisit(operation);
         }
 
-        public virtual void VisitEndStatement(IStatement operation)
+        public virtual void VisitEndStatement(IEndStatement operation)
         {
             DefaultVisit(operation);
         }
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitInvalidStatement(IStatement operation)
+        public virtual void VisitInvalidStatement(IInvalidStatement operation)
         {
             DefaultVisit(operation);
         }
@@ -478,12 +478,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitYieldBreakStatement(IStatement operation, TArgument argument)
+        public virtual TResult VisitYieldBreakStatement(IReturnStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitEmptyStatement(IStatement operation, TArgument argument)
+        public virtual TResult VisitEmptyStatement(IEmptyStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -538,12 +538,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitStopStatement(IStatement operation, TArgument argument)
+        public virtual TResult VisitStopStatement(IStopStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitEndStatement(IStatement operation, TArgument argument)
+        public virtual TResult VisitEndStatement(IEndStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitInvalidStatement(IStatement operation, TArgument argument)
+        public virtual TResult VisitInvalidStatement(IInvalidStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

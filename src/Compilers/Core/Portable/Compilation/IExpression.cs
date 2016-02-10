@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Statement defining the lifetime of the synthetic local.
         /// </summary>
-        IStatement ContainingStatement { get; }
+        IOperation ContainingStatement { get; }
     }
 
     /// <summary>

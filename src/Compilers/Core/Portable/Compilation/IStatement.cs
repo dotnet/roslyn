@@ -5,21 +5,14 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Root type for representing the abstract semantics of C# and VB statements.
-    /// </summary>
-    public interface IStatement : IOperation
-    {
-    }
-
-    /// <summary>
     /// Represents a block scope.
     /// </summary>
-    public interface IBlockStatement : IStatement
+    public interface IBlockStatement : IOperation
     {
         /// <summary>
         /// Statements contained within the block.
         /// </summary>
-        ImmutableArray<IStatement> Statements { get; }
+        ImmutableArray<IOperation> Statements { get; }
         /// <summary>
         /// Local declarations contained within the block.
         /// </summary>
@@ -29,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a local variable declaration statement.
     /// </summary>
-    public interface IVariableDeclarationStatement : IStatement
+    public interface IVariableDeclarationStatement : IOperation
     {
         /// <summary>
         /// Variables declared by the statement.
@@ -55,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# switch or VB Select Case statement.
     /// </summary>
-    public interface ISwitchStatement : IStatement
+    public interface ISwitchStatement : IOperation
     {
         /// <summary>
         /// Value to be switched upon.
@@ -79,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Statements of the case.
         /// </summary>
-        ImmutableArray<IStatement> Body { get; }
+        ImmutableArray<IOperation> Body { get; }
     }
 
     /// <summary>
@@ -164,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an if statement in C# or an If statement in VB.
     /// </summary>
-    public interface IIfStatement : IStatement
+    public interface IIfStatement : IOperation
     {
         /// <summary>
         /// Condition of the if statement. For C# there is naturally one clause per if, but for VB If statements with multiple clauses are rewritten to have only one.
@@ -173,17 +166,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Statement executed if the condition is true.
         /// </summary>
-        IStatement IfTrue { get; }
+        IOperation IfTrue { get; }
         /// <summary>
         /// Statement executed if the condition is false.
         /// </summary>
-        IStatement IfFalse { get; }
+        IOperation IfFalse { get; }
     }
 
     /// <summary>
     /// Represents a C# while, for, foreach, or do statement, or a VB While, For, For Each, or Do statement.
     /// </summary>
-    public interface ILoopStatement : IStatement
+    public interface ILoopStatement : IOperation
     {
         /// <summary>
         /// Kind of the loop.
@@ -192,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Body of the loop.
         /// </summary>
-        IStatement Body { get; }
+        IOperation Body { get; }
     }
 
     /// <summary>
@@ -203,15 +196,15 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Indicates a C# while or do loop, or a VB While or Do loop.
         /// </summary>
-        WhileUntil,
+        WhileUntil = 0x0,
         /// <summary>
         /// Indicates a C# for loop or a VB For loop.
         /// </summary>
-        For,
+        For = 0x1,
         /// <summary>
         /// Indicates a C# foreach loop or a VB For Each loop.
         /// </summary>
-        ForEach
+        ForEach = 0x2
     }
 
     /// <summary>
@@ -248,11 +241,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Statements to execute before entry to the loop. For C# these come from the first clause of the for statement. For VB these initialize the index variable of the For statement.
         /// </summary>
-        ImmutableArray<IStatement> Before { get; }
+        ImmutableArray<IOperation> Before { get; }
         /// <summary>
         /// Statements to execute at the bottom of the loop. For C# these come from the third clause of the for statement. For VB these increment the index variable of the For statement.
         /// </summary>
-        ImmutableArray<IStatement> AtLoopBottom { get; }
+        ImmutableArray<IOperation> AtLoopBottom { get; }
         /// <summary>
         /// Declarations local to the loop.
         /// </summary>
@@ -277,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB label statement.
     /// </summary>
-    public interface ILabelStatement : IStatement
+    public interface ILabelStatement : IOperation
     {
         // Label that can be the target of branches.
         ILabelSymbol Label { get; }
@@ -289,13 +282,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface ILabeledStatement : ILabelStatement
     {
         // Statement that has been labeled.
-        IStatement Labeled { get; }
+        IOperation Labeled { get; }
     }
     
     /// <summary>
     /// Represents a C# goto, break, or continue statement, or a VB GoTo, Exit ***, or Continue *** statement
     /// </summary>
-    public interface IBranchStatement : IStatement
+    public interface IBranchStatement : IOperation
     {
         // Label that is the target of the branch.
         ILabelSymbol Target { get; }
@@ -304,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# throw or a VB Throw statement.
     /// </summary>
-    public interface IThrowStatement : IStatement
+    public interface IThrowStatement : IOperation
     {
         // Thrown expression.
         IExpression ThrownObject { get; }
@@ -313,18 +306,18 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# return or a VB Return statement.
     /// </summary>
-    public interface IReturnStatement : IStatement
+    public interface IReturnStatement : IOperation
     {
         /// <summary>
         /// Value to be returned.
         /// </summary>
-        IExpression Returned { get; }
+        IExpression ReturnedValue { get; }
     }
 
     /// <summary>
     /// Represents a C# lock or a VB SyncLock statement.
     /// </summary>
-    public interface ILockStatement : IStatement
+    public interface ILockStatement : IOperation
     {
         /// <summary>
         /// Value to be locked.
@@ -333,13 +326,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Body of the lock, to be executed while holding the lock.
         /// </summary>
-        IStatement Body { get; }
+        IOperation Body { get; }
     }
 
     /// <summary>
     /// Represents a C# try or a VB Try statement.
     /// </summary>
-    public interface ITryStatement : IStatement
+    public interface ITryStatement : IOperation
     {
         /// <summary>
         /// Body of the try, over which the handlers are active.
@@ -381,12 +374,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# using or VB Using statement.
     /// </summary>
-    public interface IUsingStatement : IStatement
+    public interface IUsingStatement : IOperation
     {
         /// <summary>
         /// Body of the using, over which the resources of the using are maintained.
         /// </summary>
-        IStatement Body { get; }
+        IOperation Body { get; }
     }
 
     /// <summary>
@@ -414,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# fixed staement.
     /// </summary>
-    public interface IFixedStatement : IStatement
+    public interface IFixedStatement : IOperation
     {
         /// <summary>
         /// Variables to be fixed.
@@ -423,13 +416,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Body of the fixed, over which the variables are fixed.
         /// </summary>
-        IStatement Body { get; }
+        IOperation Body { get; }
     }
 
     /// <summary>
     /// Represents a C# or VB statement that consists solely of an expression.
     /// </summary>
-    public interface IExpressionStatement : IStatement
+    public interface IExpressionStatement : IOperation
     {
         /// <summary>
         /// Expression of the statement.
@@ -440,15 +433,43 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a VB With statement.
     /// </summary>
-    public interface IWithStatement : IStatement
+    public interface IWithStatement : IOperation
     {
         /// <summary>
         /// Body of the with.
         /// </summary>
-        IStatement Body { get; }
+        IOperation Body { get; }
         /// <summary>
         /// Value to whose members leading-dot-qualified references within the with body bind.
         /// </summary>
         IExpression Value { get; }
+    }
+
+    /// <summary>
+    /// Reprsents an empty statement.
+    /// </summary>
+    public interface IEmptyStatement : IOperation
+    {
+    }
+
+    /// <summary>
+    /// Represents a VB Stop statement.
+    /// </summary>
+    public interface IStopStatement : IOperation
+    {
+    }
+
+    /// <summary>
+    /// Represents a VB End statemnt.
+    /// </summary>
+    public interface IEndStatement : IOperation
+    {
+    }
+
+    /// <summary>
+    /// Represents a syntactically or semantically invalid C# or VB statement.
+    /// </summary>
+    public interface IInvalidStatement : IOperation
+    {
     }
 }

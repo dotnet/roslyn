@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class BoundStatement : IStatement
+    partial class BoundStatement : IOperation
     {
         OperationKind IOperation.Kind => this.StatementKind;
 
@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly ConditionalWeakTable<BoundBlock, object> s_blockStatementsMappings =
             new ConditionalWeakTable<BoundBlock, object>();
 
-        ImmutableArray<IStatement> IBlockStatement.Statements
+        ImmutableArray<IOperation> IBlockStatement.Statements
         {
             get
             {
                 // This is to filter out operations of kind None.
-                return (ImmutableArray<IStatement>) s_blockStatementsMappings.GetValue(this,
-                    blockStatement => { return blockStatement.Statements.AsImmutable<IStatement>().WhereAsArray(statement => statement.Kind != OperationKind.None); }
+                return (ImmutableArray<IOperation>) s_blockStatementsMappings.GetValue(this,
+                    blockStatement => { return blockStatement.Statements.AsImmutable<IOperation>().WhereAsArray(statement => statement.Kind != OperationKind.None); }
                     );
             }
         }
@@ -88,8 +88,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    partial class BoundYieldBreakStatement
+    partial class BoundYieldBreakStatement : IReturnStatement
     {
+        IExpression IReturnStatement.ReturnedValue => null;
+
         protected override OperationKind StatementKind => OperationKind.YieldBreakStatement;
 
         public override void Accept(OperationVisitor visitor)
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    partial class BoundNoOpStatement
+    partial class BoundNoOpStatement : IEmptyStatement
     {
         protected override OperationKind StatementKind => OperationKind.EmptyStatement;
 
@@ -139,9 +141,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IExpression IIfStatement.Condition => this.Condition;
 
-        IStatement IIfStatement.IfTrue => this.Consequence;
+        IOperation IIfStatement.IfTrue => this.Consequence;
 
-        IStatement IIfStatement.IfFalse => this.AlternativeOpt;
+        IOperation IIfStatement.IfFalse => this.AlternativeOpt;
 
         protected override OperationKind StatementKind => OperationKind.IfStatement;
 
@@ -166,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         LoopKind ILoopStatement.LoopKind => LoopKind.WhileUntil;
 
-        IStatement ILoopStatement.Body => this.Body;
+        IOperation ILoopStatement.Body => this.Body;
 
         protected override OperationKind StatementKind => OperationKind.LoopStatement;
 
@@ -191,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         LoopKind ILoopStatement.LoopKind => LoopKind.WhileUntil;
 
-        IStatement ILoopStatement.Body => this.Body;
+        IOperation ILoopStatement.Body => this.Body;
 
         protected override OperationKind StatementKind => OperationKind.LoopStatement;
 
@@ -208,9 +210,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundForStatement : IForLoopStatement
     {
-        ImmutableArray<IStatement> IForLoopStatement.Before => ToStatements(this.Initializer);
+        ImmutableArray<IOperation> IForLoopStatement.Before => ToStatements(this.Initializer);
 
-        ImmutableArray<IStatement> IForLoopStatement.AtLoopBottom => ToStatements(this.Increment);
+        ImmutableArray<IOperation> IForLoopStatement.AtLoopBottom => ToStatements(this.Increment);
 
         ImmutableArray<ILocalSymbol> IForLoopStatement.Locals => this.OuterLocals.As<ILocalSymbol>();
 
@@ -218,23 +220,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         LoopKind ILoopStatement.LoopKind => LoopKind.For;
 
-        IStatement ILoopStatement.Body => this.Body;
+        IOperation ILoopStatement.Body => this.Body;
 
         protected override OperationKind StatementKind => OperationKind.LoopStatement;
 
-        ImmutableArray<IStatement> ToStatements(BoundStatement statement)
+        ImmutableArray<IOperation> ToStatements(BoundStatement statement)
         {
             BoundStatementList statementList = statement as BoundStatementList;
             if (statementList != null)
             {
-                return statementList.Statements.As<IStatement>();
+                return statementList.Statements.As<IOperation>();
             }
             else if (statement == null)
             {
-                return ImmutableArray<IStatement>.Empty;
+                return ImmutableArray<IOperation>.Empty;
             }
 
-            return ImmutableArray.Create<IStatement>(statement);
+            return ImmutableArray.Create<IOperation>(statement);
         }
 
         public override void Accept(OperationVisitor visitor)
@@ -256,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         LoopKind ILoopStatement.LoopKind => LoopKind.ForEach;
 
-        IStatement ILoopStatement.Body => this.Body;
+        IOperation ILoopStatement.Body => this.Body;
 
         protected override OperationKind StatementKind => OperationKind.LoopStatement;
 
@@ -306,13 +308,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public SwitchSection(BoundSwitchSection boundNode)
             {
-                this.Body = boundNode.Statements.As<IStatement>();
+                this.Body = boundNode.Statements.As<IOperation>();
                 this.Clauses = boundNode.BoundSwitchLabels.As<ICaseClause>();
                 this.IsInvalid = boundNode.HasErrors;
                 this.Syntax = boundNode.Syntax;
             }
 
-            public ImmutableArray<IStatement> Body { get; }
+            public ImmutableArray<IOperation> Body { get; }
 
             public ImmutableArray<ICaseClause> Clauses { get; }
 
@@ -446,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IVariableDeclarationStatement IFixedStatement.Variables => this.Declarations;
 
-        IStatement IFixedStatement.Body => this.Body;
+        IOperation IFixedStatement.Body => this.Body;
 
         protected override OperationKind StatementKind => OperationKind.FixedStatement;
 
@@ -467,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IExpression IUsingWithExpressionStatement.Value => this.ExpressionOpt;
 
-        IStatement IUsingStatement.Body => this.Body;
+        IOperation IUsingStatement.Body => this.Body;
 
         protected override OperationKind StatementKind => this.ExpressionOpt != null ? OperationKind.UsingWithExpressionStatement : OperationKind.UsingWithDeclarationStatement;
 
@@ -510,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundReturnStatement : IReturnStatement
     {
-        IExpression IReturnStatement.Returned => this.ExpressionOpt;
+        IExpression IReturnStatement.ReturnedValue => this.ExpressionOpt;
 
         protected override OperationKind StatementKind => OperationKind.ReturnStatement;
 
@@ -527,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundYieldReturnStatement : IReturnStatement
     {
-        IExpression IReturnStatement.Returned => this.Expression;
+        IExpression IReturnStatement.ReturnedValue => this.Expression;
 
         protected override OperationKind StatementKind => OperationKind.YieldReturnStatement;
 
@@ -546,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IExpression ILockStatement.LockedObject => this.Argument;
 
-        IStatement ILockStatement.Body => this.Body;
+        IOperation ILockStatement.Body => this.Body;
 
         protected override OperationKind StatementKind => OperationKind.LockStatement;
 
@@ -561,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    partial class BoundBadStatement
+    partial class BoundBadStatement : IInvalidStatement
     {
         protected override OperationKind StatementKind => OperationKind.InvalidStatement;
 
@@ -651,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundLabeledStatement : ILabeledStatement
     {
-        IStatement ILabeledStatement.Labeled => this.Body;
+        IOperation ILabeledStatement.Labeled => this.Body;
 
         ILabelSymbol ILabelStatement.Label => this.Label;
 
