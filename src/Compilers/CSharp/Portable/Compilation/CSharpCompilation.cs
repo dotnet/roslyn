@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region Constructors and Factories
 
         private static readonly CSharpCompilationOptions s_defaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
-        private static readonly CSharpCompilationOptions s_defaultSubmissionOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        private static readonly CSharpCompilationOptions s_defaultSubmissionOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithReferencesSupersedeLowerVersions(true);
 
         /// <summary>
         /// Creates a new compilation from scratch. Methods such as AddSyntaxTrees or AddReferences
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return Create(
                 assemblyName,
-                options ?? s_defaultSubmissionOptions,
+                options?.WithReferencesSupersedeLowerVersions(true) ?? s_defaultSubmissionOptions,
                 (syntaxTree != null) ? new[] { syntaxTree } : SpecializedCollections.EmptyEnumerable<SyntaxTree>(),
                 references,
                 previousScriptCompilation,
@@ -242,6 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isSubmission)
         {
             Debug.Assert(options != null);
+            Debug.Assert(!isSubmission || options.ReferencesSupersedeLowerVersions);
             CheckAssemblyName(assemblyName);
 
             var validatedReferences = ValidateReferences<CSharpCompilationReference>(references);

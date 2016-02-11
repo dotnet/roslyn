@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    assemblyIdentityComparer: assemblyIdentityComparer,
                    strongNameProvider: strongNameProvider,
                    metadataImportOptions: MetadataImportOptions.Public,
+                   referencesSupersedeLowerVersions: false,
                    publicSign: publicSign,
                    topLevelBinderFlags: BinderFlags.None)
         {
@@ -109,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssemblyIdentityComparer assemblyIdentityComparer,
             StrongNameProvider strongNameProvider,
             MetadataImportOptions metadataImportOptions,
+            bool referencesSupersedeLowerVersions,
             bool publicSign,
             BinderFlags topLevelBinderFlags)
             : base(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
@@ -116,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
                    concurrentBuild, deterministic, extendedCustomDebugInformation, debugPlusMode, xmlReferenceResolver,
                    sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer,
-                   strongNameProvider, metadataImportOptions)
+                   strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions)
         {
             this.Usings = usings.AsImmutableOrEmpty();
             this.AllowUnsafe = allowUnsafe;
@@ -150,6 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             assemblyIdentityComparer: other.AssemblyIdentityComparer,
             strongNameProvider: other.StrongNameProvider,
             metadataImportOptions: other.MetadataImportOptions,
+            referencesSupersedeLowerVersions: other.ReferencesSupersedeLowerVersions,
             reportSuppressedDiagnostics: other.ReportSuppressedDiagnostics,
             publicSign: other.PublicSign,
             topLevelBinderFlags: other.TopLevelBinderFlags)
@@ -420,6 +423,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new CSharpCompilationOptions(this) { MetadataImportOptions_internal_protected_set = value };
+        }
+
+        internal CSharpCompilationOptions WithReferencesSupersedeLowerVersions(bool value)
+        {
+            if (value == this.ReferencesSupersedeLowerVersions)
+            {
+                return this;
+            }
+
+            return new CSharpCompilationOptions(this) { ReferencesSupersedeLowerVersions_internal_protected_set = value };
         }
 
         public new CSharpCompilationOptions WithXmlReferenceResolver(XmlReferenceResolver resolver)
@@ -744,6 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    assemblyIdentityComparer: assemblyIdentityComparer,
                    strongNameProvider: strongNameProvider,
                    metadataImportOptions: MetadataImportOptions.Public,
+                   referencesSupersedeLowerVersions: false,
                    publicSign: false,
                    topLevelBinderFlags: BinderFlags.None)
         {

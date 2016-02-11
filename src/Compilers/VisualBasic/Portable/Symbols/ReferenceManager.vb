@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend Function CreateAndSetSourceAssemblyFullBind(compilation As VisualBasicCompilation) As Boolean
 
                 Dim resolutionDiagnostics = DiagnosticBag.GetInstance()
-                Dim supersedeLowerVersions = compilation.IsSubmission
+                Dim supersedeLowerVersions = compilation.Options.ReferencesSupersedeLowerVersions
                 Dim assemblyReferencesBySimpleName = PooledDictionary(Of String, List(Of ReferencedAssemblyIdentity)).GetInstance()
 
                 Try
