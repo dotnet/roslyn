@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using VSLangProj;
 using Project = EnvDTE.Project;
 using System.Collections.Immutable;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -26,8 +27,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         private readonly IVsMonitorSelection _monitorSelection;
         private readonly IVsSolutionBuildManager _buildManager;
 
-        internal VsResetInteractive(DTE dte, IComponentModel componentModel, IVsMonitorSelection monitorSelection, IVsSolutionBuildManager buildManager, Func<string, string> createReference, Func<string, string> createImport)
-            : base(createReference, createImport)
+        internal VsResetInteractive(
+            DTE dte,
+            IComponentModel componentModel,
+            IVsMonitorSelection monitorSelection,
+            IVsSolutionBuildManager buildManager,
+            Func<string, string> createReference,
+            Func<string, string> createImport)
+            : base(componentModel.GetService<IEditorOptionsFactoryService>(), createReference, createImport)
         {
             _dte = dte;
             _componentModel = componentModel;

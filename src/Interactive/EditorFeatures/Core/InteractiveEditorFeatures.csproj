@@ -134,6 +134,8 @@
     <Compile Include="Extensibility\Interactive\InteractiveCommandHandler.cs" />
     <Compile Include="Extensibility\Interactive\InteractiveEvaluator.cs" />
     <Compile Include="Extensibility\Interactive\CSharpVBInteractiveCommandContentTypes.cs" />
+    <Compile Include="Extensibility\Interactive\ISendToInteractiveSubmissionProvider.cs" />
+    <Compile Include="Extensibility\Interactive\SendToInteractiveSubmissionProvider.cs" />
     <Compile Include="Extensibility\Interactive\ResetInteractive.cs" />
     <Compile Include="Implementation\Completion\InteractiveCommandCompletionService.cs" />
     <Compile Include="Implementation\Completion\Presentation\CompletionPresenter.cs" />

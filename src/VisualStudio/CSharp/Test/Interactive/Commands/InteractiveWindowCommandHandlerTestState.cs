@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.Text;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
@@ -42,7 +43,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
                 TestHost.Window,
                 GetExportedValue<IContentTypeRegistryService>(),
                 GetExportedValue<IEditorOptionsFactoryService>(),
-                GetExportedValue<IEditorOperationsFactoryService>());
+                GetExportedValue<IEditorOperationsFactoryService>(),
+                TestWaitIndicator.Default);
         }
 
         public static InteractiveWindowCommandHandlerTestState CreateTestState(string markup)

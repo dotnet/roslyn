@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.VisualStudio.InteractiveWindow;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -22,10 +24,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
         private readonly Func<string, string> _createImport;
 
+        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+
         internal event EventHandler ExecutionCompleted;
 
-        internal ResetInteractive(Func<string, string> createReference, Func<string, string> createImport)
+        internal ResetInteractive(IEditorOptionsFactoryService editorOptionsFactoryService, Func<string, string> createReference, Func<string, string> createImport)
         {
+            _editorOptionsFactoryService = editorOptionsFactoryService;
             _createReference = createReference;
             _createImport = createImport;
         }
@@ -104,11 +109,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 await interactiveEvaluator.SetPathsAsync(referenceSearchPaths, sourceSearchPaths, projectDirectory).ConfigureAwait(true);
             }
 
-            await interactiveWindow.SubmitAsync(new[]
+            var editorOptions = _editorOptionsFactoryService.GetOptions(interactiveWindow.CurrentLanguageBuffer);
+            var importReferencesCommand = referencePaths.Select(_createReference);
+            var importNamespacesCommand = namespacesToImport.Select(_createImport).Join(editorOptions.GetNewLineCharacter());
+            await interactiveWindow.SubmitAsync(importReferencesCommand.Concat(new[]
             {
-                referencePaths.Select(_createReference).Join("\r\n"),
-                namespacesToImport.Select(_createImport).Join("\r\n")
-            }).ConfigureAwait(true);
+                importNamespacesCommand
+            })).ConfigureAwait(true);
         }
 
         /// <summary>

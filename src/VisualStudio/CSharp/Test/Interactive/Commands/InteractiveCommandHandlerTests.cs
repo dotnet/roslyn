@@ -9,30 +9,58 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
     internal class InteractiveCommandHandlerTests
     {
-        private const string ExampleCode1 =
+        private const string Caret = "$$";
+        private const string ExampleCode1 = @"var x = 1;";
+        private const string ExampleCode2 =
 @"var x = 1;
 Task.Run(() => { return 1; });";
+        private const string ExampleCode2Line2 =
+@"Task.Run(() => { return 1; });";
+        private const string ExampleCode3 =
+@"Console.WriteLine(
+    ""InteractiveCommandHandlerExample"");";
+
+        private const string ExampleMultiline =
+@"namespace N {
+    void foo() {
+        Console.WriteLine(
+            $$""LLL"");
+    }
+}";
+        private const string ExpectedMultilineSelection =
+@"Console.WriteLine(
+            ""LLL"");";
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestExecuteInInteractiveWithoutSelection()
         {
-            AssertUnavailableExecuteInInteractive("$$");
-            AssertUnavailableExecuteInInteractive($"{ExampleCode1}$$");
+            AssertExecuteInInteractive(Caret, new string[0]);
+            AssertExecuteInInteractive(
+@"var x = 1;
+$$
+var y = 2;", new string[0]);
+            AssertExecuteInInteractive(ExampleCode1 + Caret, ExampleCode1);
+            AssertExecuteInInteractive(ExampleCode1.Insert(3, Caret), ExampleCode1);
+            AssertExecuteInInteractive(ExampleCode2 + Caret, ExampleCode2Line2);
+            AssertExecuteInInteractive(ExampleMultiline, ExpectedMultilineSelection);
         }
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestExecuteInInteractiveWithEmptyBuffer()
         {
-            AssertExecuteInInteractive(@"{|Selection:var x = 1;$$|}", "var x = 1;");
+            AssertExecuteInInteractive(
+@"{|Selection:|}var x = 1;
+{|Selection:$$|}var y = 2;", new string[0]);
             AssertExecuteInInteractive($@"{{|Selection:{ExampleCode1}$$|}}", ExampleCode1);
+            AssertExecuteInInteractive($@"{{|Selection:{ExampleCode2}$$|}}", ExampleCode2);
             AssertExecuteInInteractive(
 $@"var o = new object[] {{ 1, 2, 3 }};
 Console.WriteLine(o);
-{{|Selection:{ExampleCode1}$$|}}
+{{|Selection:{ExampleCode2}$$|}}
 
-Console.WriteLine(x);", ExampleCode1);
+Console.WriteLine(x);", ExampleCode2);
         }
 
         [WpfFact]
@@ -68,20 +96,49 @@ text some {{|Selection:int y;$$|}} here also", expectedBoxSubmissionResult);
         }
 
         [WpfFact]
+        public void TestExecuteInInteractiveWithDefines()
+        {
+            string exampleWithIfDirective =
+@"#if DEF
+public void $$Run()
+{
+}
+#endif";
+
+            AssertExecuteInInteractive(exampleWithIfDirective,
+@"public void Run()");
+
+            string exampleWithDefine =
+$@"#define DEF
+{exampleWithIfDirective}";
+
+            AssertExecuteInInteractive(exampleWithDefine,
+@"public void Run()
+{
+}");
+        }
+
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestCopyToInteractiveWithoutSelection()
         {
-            AssertUnavailableCopyToInteractive("$$");
-            AssertUnavailableCopyToInteractive($"{ExampleCode1}$$");
-            AssertUnavailableCopyToInteractive($"{ExampleCode1}$$", submissionBuffer: "var x = 1;");
-            AssertUnavailableCopyToInteractive($"{ExampleCode1}$$", submissionBuffer: "x = 2;");
+            AssertCopyToInteractive(Caret, "");
+            AssertCopyToInteractive($"{ExampleCode2}$$", ExampleCode2Line2);
+            AssertCopyToInteractive(
+                code: ExampleCode2 + Caret,
+                submissionBuffer: ExampleCode1,
+                expectedBufferText: ExampleCode1 + "\r\n" + ExampleCode2Line2);
+            AssertCopyToInteractive(
+                code: ExampleCode2 + Caret,
+                submissionBuffer: "x = 2;",
+                expectedBufferText: "x = 2;\r\n" + ExampleCode2Line2);
         }
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestCopyToInteractive()
         {
-            AssertCopyToInteractive($"{{|Selection:{ExampleCode1}$$|}}", ExampleCode1);
+            AssertCopyToInteractive($"{{|Selection:{ExampleCode2}$$|}}", ExampleCode2);
         }
 
         [WpfFact]
@@ -91,18 +148,9 @@ text some {{|Selection:int y;$$|}} here also", expectedBoxSubmissionResult);
             // Copy to interactive does not clear the existing buffer.
             // Therefore `var x = 1;` will still be present in the final buffer.
             AssertCopyToInteractive(
-                $"{{|Selection:{ExampleCode1}$$|}}",
-                $"var x = 1;\r\n{ExampleCode1}",
+                $"{{|Selection:{ExampleCode2}$$|}}",
+                $"var x = 1;\r\n{ExampleCode2}",
                 submissionBuffer: "var x = 1;");
-        }
-
-        private static void AssertUnavailableCopyToInteractive(string code, string submissionBuffer = null)
-        {
-            using (var workspace = InteractiveWindowCommandHandlerTestState.CreateTestState(code))
-            {
-                PrepareSubmissionBuffer(submissionBuffer, workspace);
-                Assert.Equal(CommandState.Unavailable, workspace.GetStateForCopyToInteractive());
-            }
         }
 
         private static void AssertCopyToInteractive(string code, string expectedBufferText, string submissionBuffer = null)
@@ -115,15 +163,12 @@ text some {{|Selection:int y;$$|}} here also", expectedBoxSubmissionResult);
             }
         }
 
-        private static void AssertUnavailableExecuteInInteractive(string code)
+        private static void AssertExecuteInInteractive(string code, string expectedSubmission, string submissionBuffer = null)
         {
-            using (var workspace = InteractiveWindowCommandHandlerTestState.CreateTestState(code))
-            {
-                Assert.Equal(CommandState.Unavailable, workspace.GetStateForExecuteInInteractive());
-            }
+            AssertExecuteInInteractive(code, new string[] { expectedSubmission }, submissionBuffer);
         }
 
-        private static void AssertExecuteInInteractive(string code, string expectedSubmission, string submissionBuffer = null)
+        private static void AssertExecuteInInteractive(string code, string[] expectedSubmissions, string submissionBuffer = null)
         {
             List<string> submissions = new List<string>();
             EventHandler<string> appendSubmission = (_, item) => { submissions.Add(item.TrimEnd()); };
@@ -135,18 +180,16 @@ text some {{|Selection:int y;$$|}} here also", expectedBoxSubmissionResult);
 
                 workspace.Evaluator.OnExecute += appendSubmission;
                 workspace.ExecuteInInteractive();
-                AssertEx.Equal(new string[] { expectedSubmission }, submissions);
+                AssertEx.Equal(expectedSubmissions, submissions);
             }
         }
 
         private static void PrepareSubmissionBuffer(string submissionBuffer, InteractiveWindowCommandHandlerTestState workspace)
         {
-            if (string.IsNullOrEmpty(submissionBuffer))
+            if (!string.IsNullOrEmpty(submissionBuffer))
             {
-                return;
+                workspace.WindowCurrentLanguageBuffer.Insert(0, submissionBuffer);
             }
-
-            workspace.WindowCurrentLanguageBuffer.Insert(0, submissionBuffer);
         }
     }
 }

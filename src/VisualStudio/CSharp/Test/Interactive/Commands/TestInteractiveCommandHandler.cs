@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text.Editor;
@@ -12,15 +14,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
     {
         private IInteractiveWindow _interactiveWindow;
 
+        private ISendToInteractiveSubmissionProvider _sendToInteractiveSubmissionProvider;
+
         public TestInteractiveCommandHandler(
             IInteractiveWindow interactiveWindow,
             IContentTypeRegistryService contentTypeRegistryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
-            : base(contentTypeRegistryService, editorOptionsFactoryService, editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            IWaitIndicator waitIndicator)
+            : base(contentTypeRegistryService, editorOptionsFactoryService, editorOperationsFactoryService, waitIndicator)
         {
             _interactiveWindow = interactiveWindow;
+            _sendToInteractiveSubmissionProvider = new CSharpSendToInteractiveSubmissionProvider();
         }
+
+        protected override ISendToInteractiveSubmissionProvider SendToInteractiveSubmissionProvider => _sendToInteractiveSubmissionProvider;
 
         protected override IInteractiveWindow OpenInteractiveWindow(bool focus)
         {
