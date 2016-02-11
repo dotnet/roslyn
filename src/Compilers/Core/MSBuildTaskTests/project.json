@@ -1,7 +1,7 @@
 ﻿{
   "dependencies": {
     
-    "Microsoft.DiaSymReader": "1.0.7-beta1-51221",
+    "Microsoft.DiaSymReader": "1.0.7",
     "Moq": "4.2.1402.2112",
     "xunit": "2.1.0",
     "xunit.runner.console": "2.1.0"
