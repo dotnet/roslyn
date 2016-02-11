@@ -17,6 +17,9 @@
     <InternalsVisibleToTypeScript>
       <Visible>false</Visible>
     </InternalsVisibleToTypeScript>
+    <InternalsVisibleToFSharp>
+      <Visible>false</Visible>
+    </InternalsVisibleToFSharp>
     <InternalsVisibleToMoq>
       <Visible>false</Visible>
     </InternalsVisibleToMoq>
@@ -34,7 +37,7 @@
           Inputs="$(MSBuildThisFileFullPath);$(MSBuildProjectFile)"
           Outputs="$(GeneratedInternalsVisibleToFile)"
           DependsOnTargets="PrepareForBuild"
-          Condition="'@(InternalsVisibleTo)' != '' OR '@(InternalsVisibleToTest)' != '' OR '@(InternalsVisibleToTypeScript)' != '' OR '@(InternalsVisibleToMoq)' != ''">
+          Condition="'@(InternalsVisibleTo)' != '' OR '@(InternalsVisibleToTest)' != '' OR '@(InternalsVisibleToTypeScript)' != '' OR '@(InternalsVisibleToFSharp)' != '' OR '@(InternalsVisibleToMoq)' != ''">
 
     <!--
          This is a slightly evil trick. What we have is a group of InternalsVisibleTo items which
@@ -65,6 +68,11 @@
     <CreateItem Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute"
                 AdditionalMetadata="_Parameter1=%(InternalsVisibleToTypeScript.Identity), PublicKey=002400000480000094000000060200000024000052534131000400000100010007d1fa57c4aed9f0a32e84aa0faefd0de9e8fd6aec8f87fb03766c834c99921eb23be79ad9d5dcc1dd9ad236132102900b723cf980957fc4e177108fc607774f29e8320e92ea05ece4e821c0a5efe8f1645c4c0c93c1ab99285d622caa652c1dfad63d745d6f2de5f17e5eaf0fc4963d261c8a12436518206dc093344d5ad293" 
                 Condition="'@(InternalsVisibleToTypeScript)' != ''">
+      <Output TaskParameter="Include" ItemName="InternalsVisibleToAttribute" />
+    </CreateItem>
+    <CreateItem Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute"
+                AdditionalMetadata="_Parameter1=%(InternalsVisibleToFSharp.Identity), PublicKey=002400000480000094000000060200000024000052534131000400000100010007D1FA57C4AED9F0A32E84AA0FAEFD0DE9E8FD6AEC8F87FB03766C834C99921EB23BE79AD9D5DCC1DD9AD236132102900B723CF980957FC4E177108FC607774F29E8320E92EA05ECE4E821C0A5EFE8F1645C4C0C93C1AB99285D622CAA652C1DFAD63D745D6F2DE5F17E5EAF0FC4963D261C8A12436518206DC093344D5AD293" 
+                Condition="'@(InternalsVisibleToFSharp)' != ''">
       <Output TaskParameter="Include" ItemName="InternalsVisibleToAttribute" />
     </CreateItem>
     <CreateItem Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute"

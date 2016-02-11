@@ -352,13 +352,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public virtual bool TryHandleReturn()
         {
-            // TODO(davip): Only move the caret if the enter was hit within the editable spans
-
             if (ExpansionSession != null)
             {
-                ExpansionSession.EndCurrentExpansion(fLeaveCaret: 0);
+                // Only move the caret if the enter was hit within the snippet fields.
+                var hitWithinField = VSConstants.S_OK == ExpansionSession.GoToNextExpansionField(fCommitIfLast: 0);
+                ExpansionSession.EndCurrentExpansion(fLeaveCaret: hitWithinField ? 0 : 1);
                 ExpansionSession = null;
-                return true;
+
+                return hitWithinField;
             }
 
             return false;
