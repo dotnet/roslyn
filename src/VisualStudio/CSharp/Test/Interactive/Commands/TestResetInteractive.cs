@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.VisualStudio.LanguageServices.Interactive;
+using Microsoft.VisualStudio.Text.Editor;
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -28,8 +29,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 
         internal string ProjectDirectory { get; set; }
 
-        public TestResetInteractive(IWaitIndicator waitIndicator, Func<string, string> createReference, Func<string, string> createImport, bool buildSucceeds)
-            : base(createReference, createImport)
+        public TestResetInteractive(
+            IWaitIndicator waitIndicator,
+            IEditorOptionsFactoryService editorOptionsFactoryService,
+            Func<string, string> createReference,
+            Func<string, string> createImport,
+            bool buildSucceeds)
+            : base(editorOptionsFactoryService, createReference, createImport)
         {
             _waitIndicator = waitIndicator;
             _buildSucceeds = buildSucceeds;
