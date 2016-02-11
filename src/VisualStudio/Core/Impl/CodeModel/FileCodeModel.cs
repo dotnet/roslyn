@@ -213,6 +213,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             if (!nodeKey.IsEmpty && _codeElementTable.TryGetValue(nodeKey, out codeElement))
             {
                 var managedElement = ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(codeElement);
+                Debug.Assert(managedElement != null, $"Could not get the underlying {nameof(AbstractKeyedCodeElement)} from {nameof(codeElement)} with {nameof(nodeKey)}: {nodeKey}");
+
                 if (managedElement?.IsValidNode() != true)
                 {
                     _codeElementTable.Remove(nodeKey);
