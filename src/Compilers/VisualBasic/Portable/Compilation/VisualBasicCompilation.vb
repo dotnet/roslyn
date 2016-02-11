@@ -446,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(_lazyAssemblySymbol Is Nothing)
             If Me.EventQueue IsNot Nothing Then
-                Me.EventQueue.Enqueue(New CompilationStartedEvent(Me))
+                Me.EventQueue.TryEnqueue(New CompilationStartedEvent(Me))
             End If
         End Sub
 
@@ -1647,17 +1647,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End SyncLock
 
             If completedCompilationUnit Then
-                EventQueue.Enqueue(New CompilationUnitCompletedEvent(Me, tree))
+                EventQueue.TryEnqueue(New CompilationUnitCompletedEvent(Me, tree))
             End If
 
             If completedCompilation Then
-                EventQueue.Enqueue(New CompilationCompletedEvent(Me))
-                EventQueue.Complete() ' signal the End Of compilation events
+                EventQueue.TryEnqueue(New CompilationCompletedEvent(Me))
+                EventQueue.TryComplete() ' signal the End Of compilation events
             End If
         End Sub
 
         Friend Function ShouldAddEvent(symbol As Symbol) As Boolean
-            If EventQueue Is Nothing Then
+            If EventQueue Is Nothing OrElse EventQueue.IsCompleted Then
                 Return False
             End If
 
@@ -1673,7 +1673,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Sub SymbolDeclaredEvent(symbol As Symbol)
             If ShouldAddEvent(symbol) Then
-                EventQueue.Enqueue(New SymbolDeclaredCompilationEvent(Me, symbol))
+                EventQueue.TryEnqueue(New SymbolDeclaredCompilationEvent(Me, symbol))
             End If
         End Sub
 

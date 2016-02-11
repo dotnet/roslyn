@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var compilationEvent in _analysisState.GetPendingEvents(analyzers, tree))
             {
-                eventQueue.Enqueue(compilationEvent);
+                eventQueue.TryEnqueue(compilationEvent);
             }
 
             return eventQueue;
@@ -920,7 +920,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var compilationEvent in _analysisState.GetPendingEvents(analyzers, includeSourceEvents, includeNonSourceEvents))
             {
-                eventQueue.Enqueue(compilationEvent);
+                eventQueue.TryEnqueue(compilationEvent);
             }
 
             return eventQueue;
