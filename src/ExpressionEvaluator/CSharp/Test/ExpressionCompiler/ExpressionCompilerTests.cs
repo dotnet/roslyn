@@ -1107,7 +1107,7 @@ class B : A
   }
 }";
             var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(source);
-            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });            
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var context = CreateMethodContext(runtime, "C.M");
 
             string error;
@@ -3684,7 +3684,7 @@ class C
 
             Assert.Equal(((ModuleMetadata)referenceN0.GetMetadata()).Name, ((ModuleMetadata)referenceN1.GetMetadata()).Name); // different netmodule, same name
 
-            var references = new[] 
+            var references = new[]
             {
                 MscorlibRef,
                 referenceD0,

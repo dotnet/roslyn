@@ -94,12 +94,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension()>
-        Friend Function ToErrorMessageArgument(target As Symbol) As Object
+        Friend Function ToErrorMessageArgument(target As Symbol, Optional errorCode As ERRID = ERRID.ERR_None) As Object
             If target.Kind = SymbolKind.Namespace Then
                 Dim ns As NamespaceSymbol = DirectCast(target, NamespaceSymbol)
                 If ns.IsGlobalNamespace Then
                     Return StringConstants.UnnamedNamespaceErrName
                 End If
+            End If
+
+            If errorCode = ERRID.ERR_TypeConflict6 Then
+                Return CustomSymbolDisplayFormatter.DefaultErrorFormat(target)
             End If
 
             Return target

@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -35,7 +36,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
         }
 
         protected abstract ImmutableArray<ChildScopeData> CreateChildren();
-        
+
         internal abstract int StartOffset { get; }
         internal abstract int EndOffset { get; }
         internal abstract ScopeData Parent { get; }

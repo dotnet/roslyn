@@ -60,21 +60,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             _namespaceName = name;
         }
 
-        internal override SyntaxNode LookupNode()
+        internal override bool TryLookupNode(out SyntaxNode node)
         {
+            node = null;
+
             var parentNode = _parentHandle.Value.LookupNode();
             if (parentNode == null)
             {
-                throw Exceptions.ThrowEFail();
+                return false;
             }
 
             SyntaxNode implementsNode;
             if (!CodeModelService.TryGetImplementsNode(parentNode, _namespaceName, _ordinal, out implementsNode))
             {
-                throw Exceptions.ThrowEFail();
+                return false;
             }
 
-            return implementsNode;
+            node = implementsNode;
+            return node != null;
         }
 
         public override EnvDTE.vsCMElement Kind

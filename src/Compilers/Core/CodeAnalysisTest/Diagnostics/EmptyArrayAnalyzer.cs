@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -18,14 +18,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
         /// <summary>The name of the Empty method on System.Array.</summary>
         internal const string ArrayEmptyMethodName = "Empty";
 
-        private static LocalizableString localizableTitle = "Empty Array";
-        private static LocalizableString localizableMessage = "Empty array creation can be replaced with Array.Empty";
-        
+        private static LocalizableString s_localizableTitle = "Empty Array";
+        private static LocalizableString s_localizableMessage = "Empty array creation can be replaced with Array.Empty";
+
         /// <summary>The diagnostic descriptor used when Array.Empty should be used instead of a new array allocation.</summary>
         public static readonly DiagnosticDescriptor UseArrayEmptyDescriptor = new DiagnosticDescriptor(
             "EmptyArrayRule",
-            localizableTitle,
-            localizableMessage,
+            s_localizableTitle,
+            s_localizableMessage,
             SystemCategory,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);

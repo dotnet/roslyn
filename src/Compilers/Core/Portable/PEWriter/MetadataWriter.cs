@@ -2269,8 +2269,8 @@ namespace Microsoft.Cci
 
         private void SerializeMetadataTables(
             BlobBuilder writer,
-            MetadataSizes metadataSizes, 
-            int methodBodyStreamRva, 
+            MetadataSizes metadataSizes,
+            int methodBodyStreamRva,
             int mappedFieldDataStreamRva)
         {
             int startPosition = writer.Position;
@@ -4492,9 +4492,9 @@ namespace Microsoft.Cci
                 int token;
                 if (!_userStringTokenOverflow)
                 {
-                    if(!heaps.TryGetUserStringToken(str, out token))
+                    if (!heaps.TryGetUserStringToken(str, out token))
                     {
-                        this.Context.Diagnostics.Add(this.messageProvider.CreateDiagnostic(this.messageProvider.ERR_TooManyUserStrings, 
+                        this.Context.Diagnostics.Add(this.messageProvider.CreateDiagnostic(this.messageProvider.ERR_TooManyUserStrings,
                                                                                            NoLocation.Singleton));
                         _userStringTokenOverflow = true;
                         token = overflowToken;

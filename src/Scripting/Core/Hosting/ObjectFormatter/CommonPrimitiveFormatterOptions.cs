@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         public CultureInfo CultureInfo { get; }
 
         public CommonPrimitiveFormatterOptions(
-            int numberRadix, 
-            bool includeCodePoints, 
-            bool quoteStringsAndCharacters, 
+            int numberRadix,
+            bool includeCodePoints,
+            bool quoteStringsAndCharacters,
             bool escapeNonPrintableCharacters,
             CultureInfo cultureInfo)
         {

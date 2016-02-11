@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.Utilities
                 default:
 
                     return ForegroundThreadDataKind.Unknown;
-
             }
         }
 

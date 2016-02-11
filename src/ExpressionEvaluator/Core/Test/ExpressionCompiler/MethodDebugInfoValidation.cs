@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         {
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expected,
                 string.Join(Environment.NewLine,
-                    actual.Select(g => string.Join(Environment.NewLine, 
+                    actual.Select(g => string.Join(Environment.NewLine,
                     new[] { "{" }.Concat(g.Select(i => "    " + DisplayImport(i))).Concat(new[] { "}" })))));
         }
 

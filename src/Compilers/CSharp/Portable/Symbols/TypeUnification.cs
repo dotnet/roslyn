@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MutableTypeMap substitution = null;
             bool result = CanUnifyHelper((object)t1 == null ? default(TypeWithModifiers) : new TypeWithModifiers(t1),
-                                         (object)t2 == null ? default(TypeWithModifiers) : new TypeWithModifiers(t2), 
+                                         (object)t2 == null ? default(TypeWithModifiers) : new TypeWithModifiers(t2),
                                          ref substitution);
 #if DEBUG
             Debug.Assert(!result ||
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         for (int i = 0; i < arity; i++)
                         {
                             if (!CanUnifyHelper(new TypeWithModifiers(nt1Arguments[i], nt1ArgumentsCustomModifiers.IsDefault ? default(ImmutableArray<CustomModifier>) : nt1ArgumentsCustomModifiers[i]),
-                                                new TypeWithModifiers(nt2Arguments[i], nt2ArgumentsCustomModifiers.IsDefault ? default(ImmutableArray<CustomModifier>) : nt2ArgumentsCustomModifiers[i]), 
+                                                new TypeWithModifiers(nt2Arguments[i], nt2ArgumentsCustomModifiers.IsDefault ? default(ImmutableArray<CustomModifier>) : nt2ArgumentsCustomModifiers[i]),
                                                 ref substitution))
                             {
                                 return false;

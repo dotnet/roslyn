@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 {
     public class Program
     {
-        public static int Main(string[] args) 
+        public static int Main(string[] args)
             => Main(args, SpecializedCollections.EmptyArray<string>());
 
         public static int Main(string[] args, string[] extraArgs)

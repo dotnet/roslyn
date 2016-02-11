@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
 
             return new ScriptOptions(
-                filePath: scriptPathOpt ?? "", 
+                filePath: scriptPathOpt ?? "",
                 references: ImmutableArray.CreateRange(resolvedReferences),
                 namespaces: CommandLineHelpers.GetImports(arguments),
                 metadataResolver: metadataResolver,
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             const int MaxDisplayCount = 5;
 
             var errorsAndWarnings = diagnostics.ToArray();
-           
+
             // by severity, then by location
             var ordered = errorsAndWarnings.OrderBy((d1, d2) =>
             {

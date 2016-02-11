@@ -799,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = lowestBoundNode;
                     break;
             }
-            
+
             return result as IOperation;
         }
 

@@ -1391,7 +1391,7 @@ namespace ConsoleApplication21
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AllocateNativeOverlapped").WithArguments("context", "ConsoleApplication21.FooBar.AllocateNativeOverlapped(System.Threading.IOCompletionCallback, object, byte[])").WithLocation(12, 44)
 );
         }
-        
+
         [Fact, WorkItem(8152, "https://github.com/dotnet/roslyn/issues/8152")]
         public void DuplicateDeclaration()
         {

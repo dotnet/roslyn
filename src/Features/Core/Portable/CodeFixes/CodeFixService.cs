@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var providerType = provider?.GetType();
             while (providerType != null)
             {
-                if (providerType.IsConstructedGenericType && 
+                if (providerType.IsConstructedGenericType &&
                     providerType.GetGenericTypeDefinition() == typeof(AddImport.AbstractAddImportCodeFixProvider<>))
                 {
                     return true;

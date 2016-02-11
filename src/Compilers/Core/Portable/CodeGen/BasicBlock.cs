@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         while (toRemove != branchBlock)
                         {
                             Debug.Assert(toRemove == next || toRemove.TotalSize == 0);
-                            Debug.Assert(!builder._labelInfos.Values.Any(li => li.bb == toRemove), 
+                            Debug.Assert(!builder._labelInfos.Values.Any(li => li.bb == toRemove),
                                 "nothing should branch to a trivial block at this point");
                             toRemove.Reachability = ILBuilder.Reachability.NotReachable;
                             toRemove = toRemove.NextBlock;

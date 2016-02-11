@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         /// Count of registered code block end actions.
         /// </summary>
         public int CodeBlockEndActionsCount => _actionCounts.CodeBlockEndActionsCount;
-        
+
         /// <summary>
         /// Count of registered code block actions.
         /// </summary>

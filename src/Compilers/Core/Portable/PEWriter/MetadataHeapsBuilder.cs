@@ -161,7 +161,7 @@ namespace Microsoft.Cci
 
                 _blobHeapSize += BlobWriterImpl.GetCompressedIntegerSize(blob.Length) + blob.Length;
             }
-            
+
             return index;
         }
 
@@ -382,7 +382,7 @@ namespace Microsoft.Cci
             foreach (KeyValuePair<string, StringIdx> entry in sorted)
             {
                 int position = _stringHeapStartOffset + _stringWriter.Position;
-                
+
                 // It is important to use ordinal comparison otherwise we'll use the current culture!
                 if (prev.EndsWith(entry.Key, StringComparison.Ordinal) && !BlobUtilities.IsLowSurrogateChar(entry.Key[0]))
                 {

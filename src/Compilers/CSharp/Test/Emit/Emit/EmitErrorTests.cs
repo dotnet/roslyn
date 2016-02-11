@@ -330,7 +330,7 @@ public class A
     Diagnostic(ErrorCode.ERR_TooManyUserStrings).WithLocation(1, 1)
                 );
         }
-        
+
         #endregion
     }
 }

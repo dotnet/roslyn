@@ -775,7 +775,7 @@ static class C
 } // end of class C
 ";
             var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource);
-            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });            
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var context = CreateMethodContext(runtime, "C.<M>b__0");
             VerifyNoThis(context);
         }

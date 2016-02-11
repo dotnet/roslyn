@@ -10,12 +10,12 @@ using Microsoft.DiaSymReader;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    partial class MethodDebugInfo<TTypeSymbol, TLocalSymbol>
+    internal partial class MethodDebugInfo<TTypeSymbol, TLocalSymbol>
     {
         public unsafe static MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadMethodDebugInfo(
             ISymUnmanagedReader symReader,
             EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProviderOpt, // TODO: only null in DTEE case where we looking for default namesapace
-            int methodToken, 
+            int methodToken,
             int methodVersion,
             int ilOffset,
             bool isVisualBasicMethod)
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private static ILSpan GetReuseSpan(ArrayBuilder<ISymUnmanagedScope> scopes, int ilOffset, bool isEndInclusive)
         {
             return MethodContextReuseConstraints.CalculateReuseSpan(
-                ilOffset, 
+                ilOffset,
                 ILSpan.MaxValue,
                 scopes.Select(scope => new ILSpan((uint)scope.GetStartOffset(), (uint)(scope.GetEndOffset() + (isEndInclusive ? 1 : 0)))));
         }

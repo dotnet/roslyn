@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -283,9 +284,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void TestNormalizeDeclaration(string text, string expected)
         {
             var node = SyntaxFactory.ParseCompilationUnit(text);
-            Assert.Equal(text, node.ToFullString());
+            Assert.Equal(text.NormalizeLineEndings(), node.ToFullString().NormalizeLineEndings());
             var actual = node.NormalizeWhitespace("  ").ToFullString();
-            Assert.Equal(expected, actual);
+            Assert.Equal(expected.NormalizeLineEndings(), actual.NormalizeLineEndings());
         }
 
         [Fact]
@@ -317,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(expected, actual);
         }
 
-        [ClrOnlyFact]
+        [Fact]
         [WorkItem(1066, "github")]
         public void TestNormalizePreprocessorDirectives()
         {
@@ -355,7 +356,7 @@ namespace foo
 ");
         }
 
-        [ClrOnlyFact]
+        [Fact]
         [WorkItem(531607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531607")]
         public void TestNormalizeLineDirectiveTrivia()
         {
@@ -391,7 +392,7 @@ namespace foo
         }
 
         [WorkItem(542887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542887")]
-        [ClrOnlyFact]
+        [Fact]
         public void TestFormattingForBlockSyntax()
         {
             var code =
@@ -414,11 +415,11 @@ int i = 1;
       int i = 1;
     }
   }
-}");
+}".NormalizeLineEndings());
         }
 
         [WorkItem(1079042, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079042")]
-        [ClrOnlyFact]
+        [Fact]
         public void TestNormalizeDocumentationComments()
         {
             var code =
@@ -433,32 +434,23 @@ int i = 1;
 }";
             var tree = SyntaxFactory.ParseSyntaxTree(code);
             TestNormalize(tree.GetCompilationUnitRoot(),
-@"class c1
-{
-  ///<summary>
-  /// A documentation comment
-  ///</summary>
-  void foo()
-  {
-  }
-}");
+"class c1\r\n" +
+"{\r\n"
++ // The normalizer doesn't change line endings in comments,
+  // see https://github.com/dotnet/roslyn/issues/8536
+$"  ///<summary>{Environment.NewLine}" +
+$"  /// A documentation comment{Environment.NewLine}" +
+$"  ///</summary>{Environment.NewLine}" +
+"  void foo()\r\n" +
+"  {\r\n" +
+"  }\r\n" +
+"}");
         }
 
-        [ClrOnlyFact]
+        [Fact]
         public void TestNormalizeDocumentationComments2()
         {
             var code =
-@"class c1
-{
-    ///  <summary>
-    ///  A documentation comment
-    ///  </summary>
-    void foo()
-    {
-    }
-}";
-            var tree = SyntaxFactory.ParseSyntaxTree(code);
-            TestNormalize(tree.GetCompilationUnitRoot(),
 @"class c1
 {
   ///  <summary>
@@ -467,7 +459,19 @@ int i = 1;
   void foo()
   {
   }
-}");
+}";
+            var tree = SyntaxFactory.ParseSyntaxTree(code);
+            TestNormalize(tree.GetCompilationUnitRoot(),
+"class c1\r\n" +
+"{\r\n" + // The normalizer doesn't change line endings in comments,
+          // see https://github.com/dotnet/roslyn/issues/8536
+$"  ///  <summary>{Environment.NewLine}" +
+$"  ///  A documentation comment{Environment.NewLine}" +
+$"  ///  </summary>{Environment.NewLine}" +
+"  void foo()\r\n" +
+"  {\r\n" +
+"  }\r\n" +
+"}");
         }
 
         [Fact]
@@ -502,8 +506,8 @@ int i = 1;
 
         private void TestNormalize(SyntaxTriviaList trivia, string expected)
         {
-            var actual = trivia.NormalizeWhitespace("    ").ToFullString();
-            Assert.Equal(expected, actual);
+            var actual = trivia.NormalizeWhitespace("    ").ToFullString().NormalizeLineEndings();
+            Assert.Equal(expected.NormalizeLineEndings(), actual);
         }
     }
 }

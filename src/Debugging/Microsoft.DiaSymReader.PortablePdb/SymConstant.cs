@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -12,11 +13,11 @@ namespace Microsoft.DiaSymReader.PortablePdb
         private readonly SymReader _symReader;
         private readonly LocalConstantHandle _handle;
 
-        private object _lazyValue = Uninitialized;
+        private object _lazyValue = s_uninitialized;
         private byte[] _lazySignature;
 
-        private static readonly object NullReferenceValue = 0;
-        private static readonly object Uninitialized = new object();
+        private static readonly object s_nullReferenceValue = 0;
+        private static readonly object s_uninitialized = new object();
 
         internal SymConstant(SymReader symReader, LocalConstantHandle handle)
         {
@@ -52,7 +53,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetValue(out object value)
         {
-            if (_lazyValue == Uninitialized)
+            if (_lazyValue == s_uninitialized)
             {
                 InitializeValueAndSignature();
             }
@@ -78,7 +79,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 {
                     sigReader.ReadCompressedInteger();
                 }
-                else 
+                else
                 {
                     break;
                 }
@@ -91,7 +92,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             }
 
             object translatedValue;
-            if (rawTypeCode == (int)MetadataUtilities.SignatureTypeCode_ValueType || 
+            if (rawTypeCode == (int)MetadataUtilities.SignatureTypeCode_ValueType ||
                 rawTypeCode == (int)MetadataUtilities.SignatureTypeCode_Class)
             {
                 var typeHandle = sigReader.ReadTypeHandle();
@@ -108,7 +109,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 else if (sigReader.RemainingBytes == 0)
                 {
                     // null reference is returned as a boxed integer 0:
-                    translatedValue = NullReferenceValue;
+                    translatedValue = s_nullReferenceValue;
                 }
                 else
                 {
@@ -210,7 +211,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
                             throw new BadImageFormatException();
                         }
 
-                        return NullReferenceValue;
+                        return s_nullReferenceValue;
                     }
 
                     if (sigReader.RemainingBytes % 2 != 0)
@@ -223,7 +224,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 case SignatureTypeCode.Object:
                     // null reference
                     isEnumTypeCode = false;
-                    return NullReferenceValue;
+                    return s_nullReferenceValue;
 
                 default:
                     throw new BadImageFormatException();

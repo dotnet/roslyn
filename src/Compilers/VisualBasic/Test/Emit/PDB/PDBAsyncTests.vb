@@ -370,7 +370,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8494"), WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
         Public Sub LocalCapturedInBetweenSuspensionPoints_Debug()
             Dim source =
 <compilation>
@@ -444,7 +444,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8494")>
+        <Fact>
         Public Sub LocalCapturedInBetweenSuspensionPoints_Release()
             Dim source =
 <compilation>
@@ -506,7 +506,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8494"), WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
         Public Sub LocalNotCapturedInBetweenSuspensionPoints_Debug()
             Dim source =
 <compilation>
@@ -578,7 +578,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8494")>
+        <Fact>
         Public Sub LocalNotCapturedInBetweenSuspensionPoints_Release()
             Dim source =
 <compilation>

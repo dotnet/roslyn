@@ -1278,7 +1278,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private sealed class ParameterDefinitionIndex : DefinitionIndexBase<IParameterDefinition>
         {
-            public ParameterDefinitionIndex(int lastRowId) 
+            public ParameterDefinitionIndex(int lastRowId)
                 : base(lastRowId)
             {
             }
@@ -1300,7 +1300,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private sealed class GenericParameterIndex : DefinitionIndexBase<IGenericParameter>
         {
-            public GenericParameterIndex(int lastRowId) 
+            public GenericParameterIndex(int lastRowId)
                 : base(lastRowId)
             {
             }
@@ -1362,7 +1362,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             private readonly DeltaMetadataWriter _writer;
 
-            public MethodImplIndex(DeltaMetadataWriter writer, int lastRowId) 
+            public MethodImplIndex(DeltaMetadataWriter writer, int lastRowId)
                 : base(lastRowId)
             {
                 _writer = writer;

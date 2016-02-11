@@ -1,4 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Linq;
 using System.IO;
@@ -217,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
             // invariant culture
             var provider = CreateProvider(CultureInfo.InvariantCulture);
             var sc = provider.GetMetadataShadowCopy(dll.Path, MetadataImageKind.Assembly);
-            Assert.Equal(Path.Combine(Path.GetDirectoryName(sc.PrimaryModule.FullPath), @"a.xml"), sc.DocumentationFile.FullPath); 
+            Assert.Equal(Path.Combine(Path.GetDirectoryName(sc.PrimaryModule.FullPath), @"a.xml"), sc.DocumentationFile.FullPath);
             Assert.Equal("Invariant", File.ReadAllText(sc.DocumentationFile.FullPath));
 
             // Greek culture

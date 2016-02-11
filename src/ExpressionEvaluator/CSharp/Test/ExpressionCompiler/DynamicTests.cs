@@ -428,7 +428,7 @@ class Generic<T>
 
                 if (runtime.DebugFormat == DebugInformationFormat.PortablePdb)
                 {
-                    VerifyCustomTypeInfo(locals[1], "a", 0x01); 
+                    VerifyCustomTypeInfo(locals[1], "a", 0x01);
                 }
                 else
                 {

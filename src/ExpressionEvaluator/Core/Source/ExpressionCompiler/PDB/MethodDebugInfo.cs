@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             methodContextReuseSpan = MethodContextReuseConstraints.CalculateReuseSpan(
                 ilOffset,
-                methodContextReuseSpan, 
+                methodContextReuseSpan,
                 HoistedLocalScopeRecords.Select(record => new ILSpan((uint)record.StartOffset, (uint)(record.StartOffset + record.Length))));
 
             var scopesBuilder = ArrayBuilder<int>.GetInstance();

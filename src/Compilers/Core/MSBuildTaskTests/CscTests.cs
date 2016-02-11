@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
 
-        [Fact] 
+        [Fact]
         public void DeterministicFlag()
         {
             var csc = new Csc();

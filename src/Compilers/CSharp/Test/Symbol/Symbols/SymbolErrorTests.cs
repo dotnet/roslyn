@@ -7958,7 +7958,7 @@ Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GM").WithArguments("GG
         [Fact]
         public void CS0509ERR_CantDeriveFromSealedType01()
         {
-            var source = 
+            var source =
 @"namespace NS
 {
     public struct stx { }
@@ -7980,7 +7980,7 @@ Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GM").WithArguments("GG
         [Fact]
         public void CS0509ERR_CantDeriveFromSealedType02()
         {
-            var source = 
+            var source =
 @"namespace N1 { enum E { A, B } }
 namespace N2
 {
@@ -8004,7 +8004,7 @@ namespace N2
         [Fact]
         public void CS0513ERR_AbstractInConcreteClass01()
         {
-            var source = 
+            var source =
 @"namespace NS
 {
     public class clx
@@ -9341,7 +9341,7 @@ public class Clx
         public void CS0542ERR_MemberNameSameAsType02()
         {
             // No errors for names from explicit implementations.
-            var source = 
+            var source =
 @"interface IM
 {
     void C();
@@ -10723,7 +10723,7 @@ class Class2 { }
         [Fact]
         public void CS0621ERR_VirtualPrivate02()
         {
-            var source = 
+            var source =
 @"abstract class A
 {
     abstract object P { get; }
@@ -10954,7 +10954,7 @@ public class Test
         [Fact]
         public void CS0644ERR_DeriveFromEnumOrValueType()
         {
-            var source = 
+            var source =
 @"using System;
 namespace N
 {
@@ -12378,7 +12378,7 @@ static class C
         [Fact]
         public void CS0713ERR_StaticDerivedFromNonObject01()
         {
-            var source = 
+            var source =
 @"namespace NS
 {
     public class Base
@@ -12410,7 +12410,7 @@ static class C
         [Fact]
         public void CS0713ERR_StaticDerivedFromNonObject02()
         {
-            var source = 
+            var source =
 @"delegate void A();
 struct B { }
 static class C : A { }
@@ -13721,7 +13721,7 @@ namespace TestNamespace
         [Fact]
         public void CS1014ERR_GetOrSetExpected()
         {
-            var source = 
+            var source =
 @"partial class C
 {
     public object P { partial get; set; }
@@ -15741,7 +15741,7 @@ namespace N1
    class A { public int Foo() { return 2; }}
 }
 ";
-            var expectedDiagnostics = new[] 
+            var expectedDiagnostics = new[]
             {
                 // (2,1): error CS7021: You cannot declare namespace in script code
                 // namespace N1
@@ -15919,7 +15919,7 @@ namespace x
         [Fact]
         public void CS0108WRN_NewRequired02()
         {
-            var source = 
+            var source =
 @"class A
 {
     public static void P() { }

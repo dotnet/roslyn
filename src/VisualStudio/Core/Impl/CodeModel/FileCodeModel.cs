@@ -199,6 +199,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _codeElementTable.Add(nodeKey, element);
         }
 
+        internal void OnBeforeCodeElementCreated(SyntaxNode node)
+        {
+            // It's conceivable that a consumer is creating a code element with the same node key as a "dead" element
+            // that hasn't been removed from the cache yet. For example, the element could have been "deleted" by
+            // simply replacing its text in the underlying buffer. To handle this situation, we test to see if the
+            // element is "dead" by checking whether it's underlying node is invalid (that is, it can't be found by
+            // its node key). If the element is "dead", we'll go ahead and remove it from the cache here to avoid a
+            // collision with the new element.
+
+            var nodeKey = CodeModelService.TryGetNodeKey(node);
+            EnvDTE.CodeElement codeElement;
+            if (!nodeKey.IsEmpty && _codeElementTable.TryGetValue(nodeKey, out codeElement))
+            {
+                var managedElement = ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(codeElement);
+                if (managedElement?.IsValidNode() != true)
+                {
+                    _codeElementTable.Remove(nodeKey);
+                }
+            }
+        }
+
         internal void OnCodeElementDeleted(SyntaxNodeKey nodeKey)
         {
             _codeElementTable.Remove(nodeKey);
