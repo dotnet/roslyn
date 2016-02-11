@@ -1433,6 +1433,32 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub LabelOperatorsVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Public Class A
+    Public Sub Fred()
+        Wilma:
+        GoTo Betty
+        Betty:
+        GoTo Wilma
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New LabelOperationsTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(LabelOperationsTestAnalyzer.LabelDescriptor.Id, "Wilma:").WithLocation(3, 9),
+                Diagnostic(LabelOperationsTestAnalyzer.GotoDescriptor.Id, "GoTo Betty").WithLocation(4, 9),
+                Diagnostic(LabelOperationsTestAnalyzer.LabelDescriptor.Id, "Betty:").WithLocation(5, 9),
+                Diagnostic(LabelOperationsTestAnalyzer.GotoDescriptor.Id, "GoTo Wilma").WithLocation(6, 9))
+        End Sub
+
+        <Fact>
         Public Sub UnaryBinaryOperatorsVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">

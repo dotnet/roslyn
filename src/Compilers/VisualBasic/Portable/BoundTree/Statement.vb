@@ -1050,6 +1050,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property ILabeled As IOperation Implements ILabelStatement.LabeledStatement
+            Get
+                ' The VB bound trees do not encode the statement to which the label is attached.
+                Return Nothing
+            End Get
+        End Property
+
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.LabelStatement
         End Function

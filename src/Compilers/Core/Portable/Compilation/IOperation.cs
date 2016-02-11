@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis
         LoopStatement = 0x6,
         /// <summary>Indicates an <see cref="IReturnStatement"/>.</summary>
         YieldBreakStatement = 0x9,
+        /// <summary>Indicates an <see cref="ILabelStatement"/>.</summary>
         LabelStatement = 0xa,
-        LabeledStatement = 0xb,            // Why do both of these exist?
         /// <summary>Indicates an <see cref="IBranchStatement"/>.</summary>
         BranchStatement = 0xc,
         /// <summary>Indicates an <see cref="IEmptyStatement"/>.</summary>

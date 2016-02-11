@@ -1332,6 +1332,29 @@ class C
         }
 
         [Fact]
+        public void LabelOperatorsCSharp()
+        {
+            const string source = @"
+public class A
+{
+    public void Fred()
+    {
+        Wilma: goto Betty;
+        Betty: goto Wilma;
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+             .VerifyDiagnostics()
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new LabelOperationsTestAnalyzer() }, null, null, false,
+                 Diagnostic(LabelOperationsTestAnalyzer.LabelDescriptor.Id, "Wilma: goto Betty;").WithLocation(6, 9),
+                 Diagnostic(LabelOperationsTestAnalyzer.GotoDescriptor.Id, "goto Betty;").WithLocation(6, 16),
+                 Diagnostic(LabelOperationsTestAnalyzer.LabelDescriptor.Id, "Betty: goto Wilma;").WithLocation(7, 9),
+                 Diagnostic(LabelOperationsTestAnalyzer.GotoDescriptor.Id, "goto Wilma;").WithLocation(7, 16)
+                 );
+        }
+
+        [Fact]
         public void UnaryBinaryOperatorsCSharp()
         {
             const string source = @"

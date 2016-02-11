@@ -101,7 +101,6 @@ Microsoft.CodeAnalysis.OperationKind.InvalidStatement = 1 -> Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.OperationKind.InvocationExpression = 28 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.IsExpression = 51 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.LabelStatement = 10 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.OperationKind.LabeledStatement = 11 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.LambdaExpression = 43 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.LateBoundMemberReferenceExpression = 38 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.LiteralExpression = 26 -> Microsoft.CodeAnalysis.OperationKind
@@ -434,8 +433,7 @@ Microsoft.CodeAnalysis.Semantics.IIsExpression.IsType.get -> Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.Semantics.IIsExpression.Operand.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.ILabelStatement
 Microsoft.CodeAnalysis.Semantics.ILabelStatement.Label.get -> Microsoft.CodeAnalysis.ILabelSymbol
-Microsoft.CodeAnalysis.Semantics.ILabeledStatement
-Microsoft.CodeAnalysis.Semantics.ILabeledStatement.Labeled.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.ILabelStatement.LabeledStatement.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.ILambdaExpression
 Microsoft.CodeAnalysis.Semantics.ILambdaExpression.Body.get -> Microsoft.CodeAnalysis.Semantics.IBlockStatement
 Microsoft.CodeAnalysis.Semantics.ILambdaExpression.Signature.get -> Microsoft.CodeAnalysis.IMethodSymbol
@@ -692,7 +690,6 @@ override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitInvalidStatement(
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitInvocationExpression(Microsoft.CodeAnalysis.Semantics.IInvocationExpression operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitIsExpression(Microsoft.CodeAnalysis.Semantics.IIsExpression operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitLabelStatement(Microsoft.CodeAnalysis.Semantics.ILabelStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitLabeledStatement(Microsoft.CodeAnalysis.Semantics.ILabeledStatement operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitLambdaExpression(Microsoft.CodeAnalysis.Semantics.ILambdaExpression operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitLateBoundMemberReferenceExpression(Microsoft.CodeAnalysis.Semantics.ILateBoundMemberReferenceExpression operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitLiteralExpression(Microsoft.CodeAnalysis.Semantics.ILiteralExpression operation) -> void
@@ -785,7 +782,6 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitInvalidStatement(
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitInvocationExpression(Microsoft.CodeAnalysis.Semantics.IInvocationExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitIsExpression(Microsoft.CodeAnalysis.Semantics.IIsExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitLabelStatement(Microsoft.CodeAnalysis.Semantics.ILabelStatement operation) -> void
-virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitLabeledStatement(Microsoft.CodeAnalysis.Semantics.ILabeledStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitLambdaExpression(Microsoft.CodeAnalysis.Semantics.ILambdaExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitLateBoundMemberReferenceExpression(Microsoft.CodeAnalysis.Semantics.ILateBoundMemberReferenceExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitLiteralExpression(Microsoft.CodeAnalysis.Semantics.ILiteralExpression operation) -> void
@@ -859,7 +855,6 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitInvocationExpression(Microsoft.CodeAnalysis.Semantics.IInvocationExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitIsExpression(Microsoft.CodeAnalysis.Semantics.IIsExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitLabelStatement(Microsoft.CodeAnalysis.Semantics.ILabelStatement operation, TArgument argument) -> TResult
-virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitLabeledStatement(Microsoft.CodeAnalysis.Semantics.ILabeledStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitLambdaExpression(Microsoft.CodeAnalysis.Semantics.ILambdaExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitLateBoundMemberReferenceExpression(Microsoft.CodeAnalysis.Semantics.ILateBoundMemberReferenceExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitLiteralExpression(Microsoft.CodeAnalysis.Semantics.ILiteralExpression operation, TArgument argument) -> TResult

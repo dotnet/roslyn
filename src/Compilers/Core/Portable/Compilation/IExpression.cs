@@ -95,19 +95,19 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Argument is specified positionally and matches the parameter of the same ordinality.
         /// </summary>
-        Positional,
+        Positional = 0x0,
         /// <summary>
         /// Argument is specified by name and matches the parameter of the same name.
         /// </summary>
-        Named,
+        Named = 0x1,
         /// <summary>
         /// Argument becomes an element of an array that matches a trailing C# params or VB ParamArray parameter.
         /// </summary>
-        ParamArray,
+        ParamArray = 0x2,
         /// <summary>
         /// Argument was omitted in source but has a default value supplied automatically.
         /// </summary>
-        DefaultValue
+        DefaultValue = 0x3
     }
 
     /// <summary>
@@ -185,16 +185,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum SyntheticLocalKind
     {
-        None,
+        None = 0x0,
 
         /// <summary>
         /// Created to capture the step value of a VB for loop.
         /// </summary>
-        ForLoopStepValue,
+        ForLoopStepValue = 0x1,
         /// <summary>
         /// Created to capture the limit value of a VB for loop.
         /// </summary>
-        ForLoopLimitValue
+        ForLoopLimitValue = 0x2
     }
 
     /// <summary>

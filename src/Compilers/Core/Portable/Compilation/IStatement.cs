@@ -94,19 +94,19 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Indicates case x in C# or Case x in VB.
         /// </summary>
-        SingleValue,
+        SingleValue = 0x0,
         /// <summary>
         /// Indicates Case Is op x in VB.
         /// </summary>
-        Relational,
+        Relational = 0x1,
         /// <summary>
         /// Indicates Case x To Y in VB.
         /// </summary>
-        Range,
+        Range = 0x2,
         /// <summary>
         /// Indicates default in C# or Case Else in VB.
         /// </summary>
-        Default
+        Default = 0x3
     }
 
     /// <summary>
@@ -276,17 +276,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         ///  Label that can be the target of branches.
         /// </summary>
         ILabelSymbol Label { get; }
-    }
-
-    /// <summary>
-    /// Represents a C# label statement.
-    /// </summary>
-    public interface ILabeledStatement : ILabelStatement
-    {
         /// <summary>
         /// Statement that has been labeled.
         /// </summary>
-        IOperation Labeled { get; }
+        IOperation LabeledStatement { get; }
     }
 
     /// <summary>

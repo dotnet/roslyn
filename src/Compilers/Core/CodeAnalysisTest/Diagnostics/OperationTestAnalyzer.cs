@@ -1315,6 +1315,56 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
     }
 
+    public class LabelOperationsTestAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor LabelDescriptor = new DiagnosticDescriptor(
+           "Label",
+           "Label found",
+           "A label was was found",
+           "Testing",
+           DiagnosticSeverity.Warning,
+           isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor GotoDescriptor = new DiagnosticDescriptor(
+          "Goto",
+          "Goto found",
+          "A goto was was found",
+          "Testing",
+          DiagnosticSeverity.Warning,
+          isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(LabelDescriptor, GotoDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    ILabelSymbol label = ((ILabelStatement)operationContext.Operation).Label;
+                    if (label.Name == "Wilma" || label.Name == "Betty")
+                    {
+                        operationContext.ReportDiagnostic(Diagnostic.Create(LabelDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                    }
+                },
+                OperationKind.LabelStatement);
+
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    IBranchStatement branch = (IBranchStatement)operationContext.Operation;
+                    if (branch.BranchKind == BranchKind.GoTo)
+                    {
+                        ILabelSymbol label = branch.Target;
+                        if (label.Name == "Wilma" || label.Name == "Betty")
+                        {
+                            operationContext.ReportDiagnostic(Diagnostic.Create(GotoDescriptor, branch.Syntax.GetLocation()));
+                        }
+                    }
+                },
+                OperationKind.BranchStatement);
+        }
+    }
+
     public class UnaryAndBinaryOperationsTestAnalyzer : DiagnosticAnalyzer
     {
         public static readonly DiagnosticDescriptor OperatorAddMethodDescriptor = new DiagnosticDescriptor(

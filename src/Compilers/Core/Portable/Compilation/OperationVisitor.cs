@@ -89,12 +89,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             DefaultVisit(operation);
         }
-
-        public virtual void VisitLabeledStatement(ILabeledStatement operation)
-        {
-            DefaultVisit(operation);
-        }
-
+        
         public virtual void VisitBranchStatement(IBranchStatement operation)
         {
             DefaultVisit(operation);
@@ -476,11 +471,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitLabelStatement(ILabelStatement operation, TArgument argument)
-        {
-            return DefaultVisit(operation, argument);
-        }
-
-        public virtual TResult VisitLabeledStatement(ILabeledStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

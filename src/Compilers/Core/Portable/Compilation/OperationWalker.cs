@@ -119,11 +119,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public override void VisitLabelStatement(ILabelStatement operation)
-        { }
-
-        public override void VisitLabeledStatement(ILabeledStatement operation)
         {
-            Visit(operation.Labeled);
+            Visit(operation.LabeledStatement);
         }
 
         public override void VisitBranchStatement(IBranchStatement operation)

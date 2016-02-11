@@ -642,6 +642,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundLabelStatement : ILabelStatement
     {
+        // These represent synthesized labels, and do not have an attached statement.
+        IOperation ILabelStatement.LabeledStatement => null;
+
         ILabelSymbol ILabelStatement.Label => this.Label;
 
         protected override OperationKind StatementKind => OperationKind.LabelStatement;
@@ -657,22 +660,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundLabeledStatement : ILabeledStatement
+    internal partial class BoundLabeledStatement : ILabelStatement
     {
-        IOperation ILabeledStatement.Labeled => this.Body;
+        IOperation ILabelStatement.LabeledStatement => this.Body;
 
         ILabelSymbol ILabelStatement.Label => this.Label;
 
-        protected override OperationKind StatementKind => OperationKind.LabeledStatement;
+        protected override OperationKind StatementKind => OperationKind.LabelStatement;
 
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitLabeledStatement(this);
+            visitor.VisitLabelStatement(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitLabeledStatement(this, argument);
+            return visitor.VisitLabelStatement(this, argument);
         }
     }
 
