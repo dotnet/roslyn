@@ -187,7 +187,6 @@ namespace Microsoft.CodeAnalysis
 
             if (!string.IsNullOrEmpty(keyFilePath))
             {
-
                 try
                 {
                     string resolvedKeyFile = ResolveStrongNameKeyFile(keyFilePath);

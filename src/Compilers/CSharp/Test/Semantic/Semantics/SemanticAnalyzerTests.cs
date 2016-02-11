@@ -732,7 +732,7 @@ class C
         [Fact]
         public void TestAssignmentErrors02()
         {
-            string source = 
+            string source =
 @"struct S { public int Field; }
 class C
 {
@@ -951,7 +951,7 @@ static class D { }
         [Fact]
         public void TestEnumZeroArg()
         {
-            string source = 
+            string source =
 @"enum E { Zero, One }
 enum F { Zero, One }
 class C
@@ -1079,7 +1079,7 @@ class C
         [Fact]
         public void TestEnumZeroAssign()
         {
-            string source = 
+            string source =
 @"enum E { Zero, One }
 enum F { Zero, One }
 class C

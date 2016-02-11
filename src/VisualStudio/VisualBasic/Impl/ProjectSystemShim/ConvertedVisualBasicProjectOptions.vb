@@ -53,7 +53,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             RuntimeLibraries = SpecializedCollections.EmptyEnumerable(Of String)
         End Sub
 
-        Public Sub New(options As VBCompilerOptions, compilerHost As IVbCompilerHost, globalImports As IEnumerable(Of GlobalImport), strongNameKeyPaths As ImmutableArray(Of String), projectDirectoryOpt As String, ruleSetOpt As IRuleSetFile)
+        Private Shared ReadOnly s_EmptyCommandLineArguments As VisualBasicCommandLineArguments = VisualBasicCommandLineParser.Default.Parse(SpecializedCollections.EmptyEnumerable(Of String)(), baseDirectory:="", sdkDirectory:=Nothing)
+
+        Public Sub New(options As VBCompilerOptions, compilerHost As IVbCompilerHost, globalImports As IEnumerable(Of GlobalImport), strongNameKeyPaths As ImmutableArray(Of String), projectDirectoryOpt As String, ruleSetOpt As IRuleSetFile, Optional parsedCommandLineArguments As CommandLineArguments = Nothing)
+            parsedCommandLineArguments = If(parsedCommandLineArguments, s_EmptyCommandLineArguments)
+
             If options.wszOutputPath IsNot Nothing AndAlso options.wszExeName IsNot Nothing Then
                 OutputPath = PathUtilities.CombinePathsUnchecked(options.wszOutputPath, options.wszExeName)
             Else
@@ -99,7 +103,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                         ' If they specified a fully qualified file, use it
                         If File.Exists(options.wszSpecifiedVBRuntime) Then
                             runtimes.Add(options.wszSpecifiedVBRuntime)
-                        ElseIf sdkPath IsNot Nothing
+                        ElseIf sdkPath IsNot Nothing Then
                             ' If it's just a filename, try to find it in the SDK path.
                             If options.wszSpecifiedVBRuntime = PathUtilities.GetFileName(options.wszSpecifiedVBRuntime) Then
                                 Dim runtimePath = PathUtilities.CombinePathsUnchecked(sdkPath, options.wszSpecifiedVBRuntime)
@@ -133,7 +137,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             ParseOptions = New VisualBasicParseOptions(
                 languageVersion:=options.langVersion,
                 preprocessorSymbols:=conditionalCompilationSymbols,
-                documentationMode:=If(Not String.IsNullOrEmpty(options.wszXMLDocName), DocumentationMode.Diagnose, DocumentationMode.Parse))
+                documentationMode:=If(Not String.IsNullOrEmpty(options.wszXMLDocName), DocumentationMode.Diagnose, DocumentationMode.Parse)) _
+                .WithFeatures(parsedCommandLineArguments.ParseOptions.Features)
 
             Dim platform As Platform
             If Not System.Enum.TryParse(options.wszPlatformType, ignoreCase:=True, result:=platform) Then
@@ -160,6 +165,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                                     cryptoKeyContainer:=options.wszStrongNameContainer,
                                     cryptoKeyFile:=options.wszStrongNameKeyFile,
                                     delaySign:=If(options.bDelaySign, CType(True, Boolean?), Nothing),
+                                    deterministic:=parsedCommandLineArguments.CompilationOptions.Deterministic,
                                     embedVbCoreRuntime:=options.vbRuntimeKind = VBRuntimeKind.EmbeddedRuntime,
                                     generalDiagnosticOption:=generalDiagnosticOption,
                                     globalImports:=globalImports,
@@ -171,6 +177,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                                     optimizationLevel:=If(options.bOptimize, OptimizationLevel.Release, OptimizationLevel.Debug),
                                     outputKind:=kind,
                                     parseOptions:=ParseOptions,
+                                    publicSign:=parsedCommandLineArguments.CompilationOptions.PublicSign,
                                     platform:=platform,
                                     rootNamespace:=If(options.wszDefaultNamespace, ""),
                                     specificDiagnosticOptions:=specificDiagnosticOptions,
@@ -235,7 +242,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                         diagnosticOptions(pair.Key) = ReportDiagnostic.Error
                     End If
                 Next
-            ElseIf options.WarningLevel = WarningLevel.WARN_None
+            ElseIf options.WarningLevel = WarningLevel.WARN_None Then
+
                 For Each pair In ruleSetSpecificDiagnosticOptions
                     If pair.Value <> ReportDiagnostic.Error Then
                         diagnosticOptions(pair.Key) = ReportDiagnostic.Suppress

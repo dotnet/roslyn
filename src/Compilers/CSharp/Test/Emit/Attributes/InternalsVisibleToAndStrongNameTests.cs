@@ -581,7 +581,7 @@ public class C {}",
 
             comp.VerifyDiagnostics(
     // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
-    Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1) );
+    Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
             Assert.True(comp.Options.PublicSign);
             Assert.True(comp.Assembly.PublicKey.IsDefaultOrEmpty);
         }

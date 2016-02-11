@@ -1920,7 +1920,6 @@ Module Program
 End Module
 ";
             await VerifyAsync(code, expected);
-
         }
 
         [Fact]

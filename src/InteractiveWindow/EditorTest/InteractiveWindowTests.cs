@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
         private InteractiveWindowTestHost _testHost;
         private List<InteractiveWindow.State> _states;
-        private readonly TestClipboard _testClipboard; 
+        private readonly TestClipboard _testClipboard;
         private readonly TaskFactory _factory = new TaskFactory(TaskScheduler.Default);
 
         public InteractiveWindowTests()
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _states = new List<InteractiveWindow.State>();
             _testHost = new InteractiveWindowTestHost(_states.Add);
             _testClipboard = new TestClipboard();
-            ((InteractiveWindow)Window).InteractiveWindowClipboard = _testClipboard;            
+            ((InteractiveWindow)Window).InteractiveWindowClipboard = _testClipboard;
         }
 
         void IDisposable.Dispose()
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _testHost.Dispose();
         }
 
-        private IInteractiveWindow Window => _testHost.Window;                                                                                                                                       
+        private IInteractiveWindow Window => _testHost.Window;
 
         private Task TaskRun(Action action)
         {
@@ -240,7 +240,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         [WorkItem(6625, "https://github.com/dotnet/roslyn/issues/6625")]
         [WpfFact]
         public void InteractiveWindow_DisplayCommandsHelp()
-        {            
+        {
             var commandList = MockCommands("foo").ToArray();
             var commands = new Commands.Commands(null, "&", commandList);
 
@@ -271,7 +271,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             }
             catch (InvalidOperationException)
             {
-
             }
         }
 
@@ -554,7 +553,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.Equal(expectedLine, actualLine.LineNumber);
             Assert.Equal(expectedColumn, actualColumn);
         }
-		
+
         [WpfFact]
         public void ResetCommandArgumentParsing_Success()
         {
@@ -696,7 +695,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 @"1",
 @"1
 ").ConfigureAwait(true);
-            Window.InsertCode("2");                                              
+            Window.InsertCode("2");
 
             var caret = Window.TextView.Caret;
 
@@ -720,7 +719,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Window.Operations.Delete();
             AssertCaretVirtualPosition(2, 2);
         }
-        
+
         [WpfFact]
         public async Task DeleteWithSelectionInReadonlyArea()
         {
@@ -730,8 +729,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 ").ConfigureAwait(true);
             Window.InsertCode("23");
 
-            var caret = Window.TextView.Caret;                                   
-            var selection = Window.TextView.Selection; 
+            var caret = Window.TextView.Caret;
+            var selection = Window.TextView.Selection;
 
             // Delete() with selection in readonly area, no-op       
             caret.MoveToPreviousCaretPosition();
@@ -747,7 +746,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());
 
             // Delete() with selection in active prompt, no-op
-            selection.Clear(); 
+            selection.Clear();
             var start = caret.MoveToNextCaretPosition().VirtualBufferPosition;
             caret.MoveToNextCaretPosition();
             var end = caret.MoveToNextCaretPosition().VirtualBufferPosition;
@@ -760,12 +759,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
             // Delete() with selection overlaps with editable buffer, 
             // delete editable content and move caret to closest editable location 
-            selection.Clear();       
+            selection.Clear();
             caret.MoveToPreviousCaretPosition();
             start = caret.MoveToPreviousCaretPosition().VirtualBufferPosition;
             caret.MoveToNextCaretPosition();
             caret.MoveToNextCaretPosition();
-            end = caret.MoveToNextCaretPosition().VirtualBufferPosition; 
+            end = caret.MoveToNextCaretPosition().VirtualBufferPosition;
             AssertCaretVirtualPosition(2, 3);
 
             selection.Select(start, end);
@@ -797,7 +796,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Window.Operations.Home(false);
             caret.MoveToPreviousCaretPosition();
             caret.MoveToPreviousCaretPosition();
-            caret.MoveToPreviousCaretPosition();  
+            caret.MoveToPreviousCaretPosition();
             AssertCaretVirtualPosition(1, 1);
 
             Window.Operations.Backspace();
@@ -866,7 +865,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             start = caret.Position.VirtualBufferPosition;
             caret.MoveToNextCaretPosition();
             caret.MoveToNextCaretPosition();
-            end = caret.MoveToNextCaretPosition().VirtualBufferPosition; 
+            end = caret.MoveToNextCaretPosition().VirtualBufferPosition;
             AssertCaretVirtualPosition(3, 2);
 
             selection.Select(start, end);
@@ -883,12 +882,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 @"1",
 @"1
 ").ConfigureAwait(true);
-            var caret = Window.TextView.Caret;      
+            var caret = Window.TextView.Caret;
 
             // Return() with caret in readonly area, no-op       
             caret.MoveToPreviousCaretPosition();
             caret.MoveToPreviousCaretPosition();
-            caret.MoveToPreviousCaretPosition();   
+            caret.MoveToPreviousCaretPosition();
             AssertCaretVirtualPosition(1, 1);
 
             Window.Operations.Return();
@@ -968,8 +967,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             await Submit(
 @"1",
 @"1
-").ConfigureAwait(true);                                                                                                                        
-            var caret = Window.TextView.Caret;                               
+").ConfigureAwait(true);
+            var caret = Window.TextView.Caret;
 
             // DeleteLine with caret in readonly area
             caret.MoveToPreviousCaretPosition();
@@ -991,7 +990,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             for (int i = 0; i < 11; ++i)
             {
                 caret.MoveToPreviousCaretPosition();
-            }                                          
+            }
 
             AssertCaretVirtualPosition(2, 0);
             Window.Operations.DeleteLine();
@@ -1154,7 +1153,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         private string GetTextFromCurrentSnapshot()
         {
             return Window.TextView.TextBuffer.CurrentSnapshot.GetText();
-        }    
+        }
 
         private async Task Submit(string submission, string output)
         {

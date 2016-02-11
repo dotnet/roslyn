@@ -11,7 +11,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         [Fact]
         public void GroupBy1()
         {
-            var pairs = new[] 
+            var pairs = new[]
             {
                 KeyValuePair.Create("A", 1),
                 KeyValuePair.Create("B", 2),

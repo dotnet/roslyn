@@ -88,8 +88,8 @@ text some {{|Selection:int y;$$|}} here also", expectedBoxSubmissionResult);
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestCopyToInteractiveWithNonEmptyBuffer()
         {
-          // Copy to interactive does not clear the existing buffer.
-          // Therefore `var x = 1;` will still be present in the final buffer.
+            // Copy to interactive does not clear the existing buffer.
+            // Therefore `var x = 1;` will still be present in the final buffer.
             AssertCopyToInteractive(
                 $"{{|Selection:{ExampleCode1}$$|}}",
                 $"var x = 1;\r\n{ExampleCode1}",

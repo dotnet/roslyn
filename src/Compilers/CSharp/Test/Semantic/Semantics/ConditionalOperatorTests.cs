@@ -1266,7 +1266,7 @@ class TestClass
 
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
 
-            CompileAndVerify(compilation, expectedOutput: 
+            CompileAndVerify(compilation, expectedOutput:
 @"----
 
 ----
@@ -1427,7 +1427,7 @@ class TestClass
     }
 }
 ";
-            
+
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe,
                                                             parseOptions: CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG"));
 
@@ -1450,7 +1450,7 @@ Test
 
             compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(compilation, expectedOutput:"---");
+            CompileAndVerify(compilation, expectedOutput: "---");
         }
     }
 }

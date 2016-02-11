@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             private const int SpansPerLineOfInput = 2;
 
-            private static readonly object SuppressPromptInjectionTag = new object();
+            private static readonly object s_suppressPromptInjectionTag = new object();
 
             private readonly InteractiveWindow _window;
 
@@ -45,8 +45,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// Returns `null` to indicate we don't record undo history for operations in standard-input buffer.
             /// This is exposed only for test purpose.
             /// </summary>
-            public ITextUndoHistory UndoHistory => 
-                ReadingStandardInput ? null :_undoManager.TextBufferUndoHistory;
+            public ITextUndoHistory UndoHistory =>
+                ReadingStandardInput ? null : _undoManager.TextBufferUndoHistory;
 
             private readonly History _history = new History();
             private string _historySearch;
@@ -291,7 +291,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 RemoveProtection(OutputBuffer, _outputProtection);
                 RemoveProtection(StandardInputBuffer, _standardInputProtection);
 
-                using (var edit = OutputBuffer.CreateEdit(EditOptions.None, null, SuppressPromptInjectionTag))
+                using (var edit = OutputBuffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag))
                 {
                     edit.Delete(0, OutputBuffer.CurrentSnapshot.Length);
                     edit.Apply();
@@ -301,7 +301,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 OutputClassifierProvider.ClearSpans(OutputBuffer);
                 _outputTrackingCaretPosition = 0;
 
-                using (var edit = StandardInputBuffer.CreateEdit(EditOptions.None, null, SuppressPromptInjectionTag))
+                using (var edit = StandardInputBuffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag))
                 {
                     edit.Delete(0, StandardInputBuffer.CurrentSnapshot.Length);
                     edit.Apply();
@@ -467,7 +467,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private void AppendLineNoPromptInjection(ITextBuffer buffer)
             {
-                using (var edit = buffer.CreateEdit(EditOptions.None, null, SuppressPromptInjectionTag))
+                using (var edit = buffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag))
                 {
                     edit.Insert(buffer.CurrentSnapshot.Length, _lineBreakString);
                     edit.Apply();
@@ -987,17 +987,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private void InsertProjectionSpan(int index, object span)
             {
-                _projectionBuffer.ReplaceSpans(index, 0, new[] { span }, EditOptions.None, editTag: SuppressPromptInjectionTag);
+                _projectionBuffer.ReplaceSpans(index, 0, new[] { span }, EditOptions.None, editTag: s_suppressPromptInjectionTag);
             }
 
             private void ReplaceProjectionSpan(int spanToReplace, ITrackingSpan newSpan)
             {
-                _projectionBuffer.ReplaceSpans(spanToReplace, 1, new[] { newSpan }, EditOptions.None, editTag: SuppressPromptInjectionTag);
+                _projectionBuffer.ReplaceSpans(spanToReplace, 1, new[] { newSpan }, EditOptions.None, editTag: s_suppressPromptInjectionTag);
             }
 
             private void RemoveProjectionSpans(int index, int count)
             {
-                _projectionBuffer.ReplaceSpans(index, count, Array.Empty<object>(), EditOptions.None, SuppressPromptInjectionTag);
+                _projectionBuffer.ReplaceSpans(index, count, Array.Empty<object>(), EditOptions.None, s_suppressPromptInjectionTag);
             }
 
             /// <summary>
@@ -1056,7 +1056,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 RemoveProtection(OutputBuffer, _outputProtection);
 
                 // append the text to output buffer and make sure it ends with a line break:
-                using (var edit = OutputBuffer.CreateEdit(EditOptions.None, null, SuppressPromptInjectionTag))
+                using (var edit = OutputBuffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag))
                 {
                     foreach (string text in output)
                     {
@@ -1443,7 +1443,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             private void AppendProjectionSpans(object span1, object span2)
             {
                 int index = _projectionBuffer.CurrentSnapshot.SpanCount;
-                _projectionBuffer.ReplaceSpans(index, 0, new[] { span1, span2 }, EditOptions.None, editTag: SuppressPromptInjectionTag);
+                _projectionBuffer.ReplaceSpans(index, 0, new[] { span1, span2 }, EditOptions.None, editTag: s_suppressPromptInjectionTag);
             }
 
             private bool TryGetCurrentLanguageBufferExtent(IProjectionSnapshot projectionSnapshot, out Span result)
@@ -1477,7 +1477,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             private void ProjectionBufferChanged(object sender, TextContentChangedEventArgs e)
             {
                 // this is an edit performed in this event:
-                if (e.EditTag == SuppressPromptInjectionTag)
+                if (e.EditTag == s_suppressPromptInjectionTag)
                 {
                     return;
                 }
@@ -1683,7 +1683,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     lastEnd = edit.End;
                 }
 
-                _projectionBuffer.ReplaceSpans(start, end - start, replacement, EditOptions.None, SuppressPromptInjectionTag);
+                _projectionBuffer.ReplaceSpans(start, end - start, replacement, EditOptions.None, s_suppressPromptInjectionTag);
             }
 
             private object CreateTrackingSpan(SnapshotSpan snapshotSpan)
@@ -2136,7 +2136,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var selection = TextView.Selection;
 
                 // if the span is already selected select all text in the projection buffer:
-                if (span == null || 
+                if (span == null ||
                     !selection.IsEmpty && selection.SelectedSpans.Count == 1 && selection.SelectedSpans[0] == span.Value)
                 {
                     var currentSnapshot = TextView.TextBuffer.CurrentSnapshot;
@@ -2396,7 +2396,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 using (var transaction = UndoHistory?.CreateTransaction(InteractiveWindowResources.Backspace))
                 {
-
                     if (DeleteHelper(isBackspace: true))
                     {
                         transaction?.Complete();
@@ -2439,7 +2438,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                     if (IsEmptyBoxSelection())
                     {
-                        return isBackspace ? EditorOperations.Backspace() : EditorOperations.Delete();                        
+                        return isBackspace ? EditorOperations.Backspace() : EditorOperations.Delete();
                     }
 
                     DeleteSelection();
@@ -2525,7 +2524,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     transaction?.Complete();
                 }
             }
-            
+
             /// <summary>
             /// Returns true if the entire selection is inside current submission.
             /// Current submission includes all active prompt buffers and all editable buffers
@@ -2732,7 +2731,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     return true;
                 }
             }
-            
+
             /// <summary>
             /// Implements <see cref="IInteractiveWindowOperations.Cut"/>.
             /// Cut is logically expressed as a combination of Copy and Delete.
@@ -3040,7 +3039,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     }
                 }
             }
-            
+
             /// <summary>
             /// Deletes characters preceding the current caret position in the current language buffer.
             /// 

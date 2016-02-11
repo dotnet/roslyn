@@ -246,7 +246,6 @@
     </Compile>
     <Compile Include="Progression\CSharpGraphProvider.cs" />
     <Compile Include="Progression\CSharpProgressionLanguageService.cs" />
-    <Compile Include="ProjectSystemShim\CSharpProject.cs" />
     <Compile Include="ProjectSystemShim\CSharpProjectShim.cs" />
     <Compile Include="ProjectSystemShim\CSharpProjectShim.ICSCompiler.cs" />
     <Compile Include="ProjectSystemShim\CSharpProjectShim.ICSCompilerConfig.cs" />

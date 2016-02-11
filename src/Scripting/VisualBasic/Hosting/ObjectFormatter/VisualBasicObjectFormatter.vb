@@ -9,17 +9,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
         Public Shared ReadOnly Property Instance As New VisualBasicObjectFormatter()
 
-        Private Shared ReadOnly _impl As ObjectFormatter = New VisualBasicObjectFormatterImpl()
+        Private Shared ReadOnly s_impl As ObjectFormatter = New VisualBasicObjectFormatterImpl()
 
         Private Sub New()
         End Sub
 
         Public Overrides Function FormatObject(obj As Object, options As PrintOptions) As String
-            Return _impl.FormatObject(obj, options)
+            Return s_impl.FormatObject(obj, options)
         End Function
 
         Public Overrides Function FormatUnhandledException(e As Exception) As String
-            Return _impl.FormatUnhandledException(e)
+            Return s_impl.FormatUnhandledException(e)
         End Function
     End Class
 

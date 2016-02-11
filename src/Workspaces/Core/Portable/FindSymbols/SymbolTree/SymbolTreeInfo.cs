@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 int mid = min + ((max - min) >> 1);
 
-                var comparison =  s_caseInsensitiveComparer.Compare(_nodes[mid].Name, name);
+                var comparison = s_caseInsensitiveComparer.Compare(_nodes[mid].Name, name);
                 if (comparison < 0)
                 {
                     min = mid + 1;
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim> s_metadataIdToGate = new ConditionalWeakTable<MetadataId, SemaphoreSlim>();
         private static readonly ConditionalWeakTable<MetadataId, SymbolTreeInfo> s_metadataIdToInfo = new ConditionalWeakTable<MetadataId, SymbolTreeInfo>();
 
-        private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim>.CreateValueCallback s_metadataIdToGateCallback = 
+        private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim>.CreateValueCallback s_metadataIdToGateCallback =
             _ => new SemaphoreSlim(1);
 
         /// <summary>
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<SymbolTreeInfo> TryGetInfoForMetadataAssemblyAsync(
             Solution solution,
             IAssemblySymbol assembly,
-            PortableExecutableReference reference, 
+            PortableExecutableReference reference,
             bool loadOnly,
             CancellationToken cancellationToken)
         {
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             list.Add(node);
 
             // Add all child members
-            var memberLookup = GetMembers(globalNamespace).ToLookup(c => c.Name);
+            var memberLookup = s_getMembers(globalNamespace).ToLookup(c => c.Name);
 
             foreach (var grouping in memberLookup)
             {
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static readonly Func<ISymbol, bool> UseSymbol = 
+        private static readonly Func<ISymbol, bool> s_useSymbol =
             s => s.CanBeReferencedByName && s.DeclaredAccessibility != Accessibility.Private;
 
         // generate nodes for symbols that share the same name, and all their descendants
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             list.Add(node);
 
             // Add all child members
-            var membersByName = symbolsWithSameName.SelectMany(GetMembers).ToLookup(s => s.Name);
+            var membersByName = symbolsWithSameName.SelectMany(s_getMembers).ToLookup(s => s.Name);
 
             foreach (var grouping in membersByName)
             {
@@ -391,11 +391,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static Func<ISymbol, IEnumerable<ISymbol>> GetMembers = symbol =>
+        private static Func<ISymbol, IEnumerable<ISymbol>> s_getMembers = symbol =>
         {
             var nt = symbol as INamespaceOrTypeSymbol;
-            return nt != null 
-                ? nt.GetMembers().Where(UseSymbol)
+            return nt != null
+                ? nt.GetMembers().Where(s_useSymbol)
                 : SpecializedCollections.EmptyEnumerable<ISymbol>();
         };
 

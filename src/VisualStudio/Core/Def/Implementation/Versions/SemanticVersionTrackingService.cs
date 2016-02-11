@@ -22,8 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Versions
     internal class SemanticVersionTrackingService : ISemanticVersionTrackingService
     {
         private const int SerializationFormat = 1;
-        private const string SemanticVersion = "SemanticVersion";
-        private const string DependentSemanticVersion = "DependentSemanticVersion";
+        private const string SemanticVersion = nameof(SemanticVersion);
+        private const string DependentSemanticVersion = nameof(DependentSemanticVersion);
 
         private static readonly ConditionalWeakTable<ProjectId, Versions> s_initialSemanticVersions = new ConditionalWeakTable<ProjectId, Versions>();
         private static readonly ConditionalWeakTable<ProjectId, Versions> s_initialDependentSemanticVersions = new ConditionalWeakTable<ProjectId, Versions>();

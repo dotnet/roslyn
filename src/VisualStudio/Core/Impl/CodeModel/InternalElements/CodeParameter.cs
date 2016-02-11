@@ -78,21 +78,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             return CodeModelService.GetParameterFullName(node);
         }
 
-        internal override SyntaxNode LookupNode()
+        internal override bool TryLookupNode(out SyntaxNode node)
         {
+            node = null;
+
             var parentNode = _parentHandle.Value.LookupNode();
             if (parentNode == null)
             {
-                throw Exceptions.ThrowEFail();
+                return false;
             }
 
             SyntaxNode parameterNode;
             if (!CodeModelService.TryGetParameterNode(parentNode, _name, out parameterNode))
             {
-                throw Exceptions.ThrowEFail();
+                return false;
             }
 
-            return parameterNode;
+            node = parameterNode;
+            return node != null;
         }
 
         public override EnvDTE.vsCMElement Kind

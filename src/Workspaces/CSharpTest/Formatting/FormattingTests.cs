@@ -7259,7 +7259,7 @@ class C
         lock (_l)
             Console.WriteLine(""d"");
     }
-}",@"
+}", @"
 class C
 {
     private object _l = new object();

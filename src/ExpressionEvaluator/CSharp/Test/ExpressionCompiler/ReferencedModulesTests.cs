@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -278,7 +279,7 @@ IL_0005:  ret
         {
             Assert.True(references.Contains(target));
             var modules = references.SelectAsArray(r => r.ToModuleInstance());
-            using (var runtime = new RuntimeInstance(modules))
+            using (var runtime = new RuntimeInstance(modules, DebugInformationFormat.Pdb))
             {
                 var moduleVersionId = target.GetModuleVersionId();
                 var blocks = runtime.Modules.SelectAsArray(m => m.MetadataBlock);
@@ -460,7 +461,7 @@ class C
 
             // At runtime System.Runtime.dll contract assembly is replaced
             // by mscorlib.dll and System.Runtime.dll facade assemblies.
-            var runtime = CreateRuntimeInstance(new[] 
+            var runtime = CreateRuntimeInstance(new[]
             {
                 MscorlibFacadeRef.ToModuleInstance(),
                 SystemRuntimeFacadeRef.ToModuleInstance(),
@@ -626,7 +627,7 @@ public class B
             var compilationB = CreateCompilationWithMscorlibAndSystemCore(sourceB, options: TestOptions.DebugDll, references: new[] { moduleA.GetReference() });
             var moduleB = compilationB.ToModuleInstance();
 
-            var runtime = CreateRuntimeInstance(new[] 
+            var runtime = CreateRuntimeInstance(new[]
             {
                 MscorlibRef.ToModuleInstance(),
                 SystemCoreRef.ToModuleInstance(),

@@ -2134,7 +2134,7 @@ class Test
             var expected = @"
 42
 ";
-            var c = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe ,expectedOutput: expected);
+            var c = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe, expectedOutput: expected);
 
             c.VerifyIL("Test.F", @"
 {
@@ -3947,6 +3947,5 @@ result";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe), expectedOutput: expectedOutput);
         }
-
     }
 }

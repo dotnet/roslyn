@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // If the task didn't complete for whatever reason ensure that we did close out the 
                 // named pipe so the client can continue processing locally.
                 if (listenSource.Task.Status != TaskStatus.RanToCompletion)
-                { 
+                {
                     if (pipeStream.IsConnected)
                     {
                         try
@@ -156,7 +156,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             return pipeStream;
         }
-
     }
 
     internal sealed class NamedPipeClientConnection : ClientConnection

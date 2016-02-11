@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IReferenceExpression : IExpression
     {
     }
-    
+
     /// <summary>
     /// Represents a reference to an array element.
     /// </summary>
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         bool IsVirtual { get; }
     }
-    
+
     /// <summary>
     /// Represents a reference to a property.
     /// </summary>
@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         IExpression Value { get; }
     }
-    
+
     /// <summary>
     /// Represents an initialization of a field.
     /// </summary>

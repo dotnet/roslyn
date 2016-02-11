@@ -218,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
             If isBoxCopy Then
                 data.SetData(InteractiveWindow.BoxSelectionCutCopyTag, True)
             End If
-                clipboard.SetDataObject(data)
+            clipboard.SetDataObject(data)
         End Sub
 
         Private Class MockClipboard

@@ -665,8 +665,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendWhenTrue("/nologo", _store, nameof(NoLogo));
             commandLine.AppendWhenTrue("/nowin32manifest", _store, nameof(NoWin32Manifest));
             commandLine.AppendPlusOrMinusSwitch("/optimize", _store, nameof(Optimize));
-            commandLine.AppendPlusOrMinusSwitch("/deterministic", _store, nameof(Deterministic));
-            commandLine.AppendPlusOrMinusSwitch("/publicsign", _store, nameof(PublicSign));
             commandLine.AppendSwitchIfNotNull("/pathmap:", PathMap);
             commandLine.AppendSwitchIfNotNull("/out:", OutputAssembly);
             commandLine.AppendSwitchIfNotNull("/ruleset:", CodeAnalysisRuleSet);
@@ -681,12 +679,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/win32icon:", Win32Icon);
             commandLine.AppendSwitchIfNotNull("/win32manifest:", Win32Manifest);
 
-            AddFeatures(commandLine, Features);
+            AddResponseFileCommandsForSwitchesSinceInitialReleaseThatAreNeededByTheHost(commandLine);
             AddAnalyzersToCommandLine(commandLine, Analyzers);
             AddAdditionalFilesToCommandLine(commandLine);
 
             // Append the sources.
             commandLine.AppendFileNamesIfNotNull(Sources, " ");
+        }
+
+        internal void AddResponseFileCommandsForSwitchesSinceInitialReleaseThatAreNeededByTheHost(CommandLineBuilderExtension commandLine)
+        {
+            commandLine.AppendPlusOrMinusSwitch("/deterministic", _store, nameof(Deterministic));
+            commandLine.AppendPlusOrMinusSwitch("/publicsign", _store, nameof(PublicSign));
+
+            AddFeatures(commandLine, Features);
         }
 
         /// <summary>
@@ -919,6 +925,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 Log.LogMessageFromResources(MessageImportance.Normal, "General_ParameterUnsupportedOnHostCompiler", parameterName);
                 _hostCompilerSupportsAllParameters = false;
+            }
+        }
+
+        internal void InitializeHostObjectSupportForNewSwitches(ITaskHost hostObject, ref string param)
+        {
+            var compilerOptionsHostObject = hostObject as ICompilerOptionsHostObject;
+
+            if (compilerOptionsHostObject != null)
+            {
+                var commandLineBuilder = new CommandLineBuilderExtension();
+                AddResponseFileCommandsForSwitchesSinceInitialReleaseThatAreNeededByTheHost(commandLineBuilder);
+                param = "CompilerOptions";
+                CheckHostObjectSupport(param, compilerOptionsHostObject.SetCompilerOptions(commandLineBuilder.ToString()));
             }
         }
 

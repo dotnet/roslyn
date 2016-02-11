@@ -1,4 +1,5 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,13 +10,13 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.Cci
 {
-    partial class MetadataWriter
+    internal partial class MetadataWriter
     {
         private struct DocumentRow
         {
-            public BlobIdx Name;          
+            public BlobIdx Name;
             public uint HashAlgorithm; // Guid
-            public BlobIdx Hash;       
+            public BlobIdx Hash;
             public uint Language;      // Guid
         }
 
@@ -31,27 +32,27 @@ namespace Microsoft.Cci
             public uint ImportScope;    // ImportScopeRid
             public uint VariableList;   // LocalVariableRid
             public uint ConstantList;   // LocalConstantRid
-            public uint StartOffset;  
-            public uint Length;                  
+            public uint StartOffset;
+            public uint Length;
         }
 
         private struct LocalVariableRow
         {
             public ushort Attributes;
             public ushort Index;
-            public StringIdx Name;     
+            public StringIdx Name;
         }
 
         private struct LocalConstantRow
         {
-            public StringIdx Name;     
+            public StringIdx Name;
             public BlobIdx Signature;
         }
 
         private struct ImportScopeRow
         {
             public uint Parent;        // ImportScopeRid
-            public BlobIdx Imports;   
+            public BlobIdx Imports;
         }
 
         private struct StateMachineMethodRow
@@ -64,7 +65,7 @@ namespace Microsoft.Cci
         {
             public uint Parent;       // HasCustomDebugInformation coded index
             public uint Kind;         // Guid
-            public BlobIdx Value;     
+            public BlobIdx Value;
         }
 
         private readonly List<DocumentRow> _documentTable = new List<DocumentRow>();
@@ -103,7 +104,7 @@ namespace Microsoft.Cci
             int singleDocumentRowId;
             BlobIdx sequencePointsBlob = SerializeSequencePoints(localSignatureRowId, bodyOpt.GetSequencePoints(), _documentIndex, out singleDocumentRowId);
             _methodDebugInformationTable.Add(new MethodDebugInformationRow { Document = (uint)singleDocumentRowId, SequencePoints = sequencePointsBlob });
-            
+
             // Unlike native PDB we don't emit an empty root scope.
             // scopes are already ordered by StartOffset ascending then by EndOffset descending (the longest scope first).
 
@@ -345,7 +346,7 @@ namespace Microsoft.Cci
                 // TODO: cache?
                 string namespaceName = TypeNameSerializer.BuildQualifiedNamespaceName(import.TargetNamespaceOpt);
                 writer.WriteCompressedInteger((uint)_debugHeapsOpt.ResolveBlobIndex(_debugHeapsOpt.GetBlobIndexUtf8(namespaceName)));
-            } 
+            }
             else
             {
                 // <import> ::= ImportReferenceAlias <alias>
@@ -504,7 +505,7 @@ namespace Microsoft.Cci
         }
 
         #endregion
-        
+
         #region State Machines
 
         private void SerializeAsyncMethodSteppingInfo(AsyncMethodBodyDebugInfo asyncInfo, int moveNextMethodRid)
@@ -697,8 +698,8 @@ namespace Microsoft.Cci
             return documentRowId;
         }
 
-        private static readonly char[] Separator1 = { '/' };
-        private static readonly char[] Separator2 = { '\\' };
+        private static readonly char[] s_separator1 = { '/' };
+        private static readonly char[] s_separator2 = { '\\' };
 
         private BlobIdx SerializeDocumentName(string name)
         {
@@ -706,9 +707,9 @@ namespace Microsoft.Cci
 
             var writer = new BlobBuilder();
 
-            int c1 = Count(name, Separator1[0]);
-            int c2 = Count(name, Separator2[0]);
-            char[] separator = (c1 >= c2) ? Separator1 : Separator2;
+            int c1 = Count(name, s_separator1[0]);
+            int c2 = Count(name, s_separator2[0]);
+            char[] separator = (c1 >= c2) ? s_separator1 : s_separator2;
 
             writer.WriteByte((byte)separator[0]);
 

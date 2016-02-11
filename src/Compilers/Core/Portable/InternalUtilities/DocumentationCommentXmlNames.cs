@@ -32,7 +32,7 @@ namespace Roslyn.Utilities
         public const string PreliminaryElementName = "preliminary";
         public const string KeywordElementName = "langword";
         public const string PlaceholderElementName = "placeholder";
-        
+
         public const string CrefAttributeName = "cref";
         public const string NameAttributeName = "name";
         public const string FileAttributeName = "file";
