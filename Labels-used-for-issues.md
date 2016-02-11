@@ -188,7 +188,7 @@ The issue lacks enough info to make progress on it (e.g. spec data for a feature
 
 ## New Language Features
 
-The **New Language Feature-<Feature Name>** labels track issues related to language features under active development. These labels are deleted when their corresponding language feature becomes part of the official language and its feature flag has been removed.
+The **New Language Feature - \<Feature Name\>** labels track issues related to language features under active development. These labels are deleted when their corresponding language feature becomes part of the official language and its feature flag has been removed.
 
 ## Pedantic
  
