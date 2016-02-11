@@ -352,6 +352,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             return ImmutableArray.CreateRange(_projectReferences);
         }
+        
+        public ImmutableArray<VisualStudioMetadataReference> GetCurrentMetadataReferences()
+        {
+            return ImmutableArray.CreateRange(_metadataReferences);
+        }
 
         public IVisualStudioHostDocument GetDocumentOrAdditionalDocument(DocumentId id)
         {

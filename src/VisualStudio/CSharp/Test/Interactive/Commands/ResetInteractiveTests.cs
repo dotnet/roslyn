@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
@@ -37,13 +39,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
                 Assert.True(replReferenceCommands.Any(rc => rc.EndsWith(@"ResetInteractiveTestsAssembly.dll""")));
                 Assert.True(replReferenceCommands.Any(rc => rc.EndsWith(@"ResetInteractiveVisualBasicSubproject.dll""")));
 
-                var expectedSubmissions = new List<string> {
-                    string.Join("\r\n", replReferenceCommands) + "\r\n",
-                    string.Join("\r\n", @"using ""ns1"";", @"using ""ns2"";") + "\r\n"};
-                AssertResetInteractive(workspace, project, buildSucceeds: true, expectedSubmissions: expectedSubmissions);
+                var expectedReferences = replReferenceCommands.ToList();
+                var expectedUsings = new List<string> { @"using ""ns1"";", @"using ""ns2"";" };
+                AssertResetInteractive(workspace, project, buildSucceeds: true, expectedReferences: expectedReferences, expectedUsings: expectedUsings);
 
                 // Test that no submissions are executed if the build fails.
-                AssertResetInteractive(workspace, project, buildSucceeds: false, expectedSubmissions: new List<string>());
+                AssertResetInteractive(workspace, project, buildSucceeds: false, expectedReferences: new List<string>());
             }
         }
 
@@ -51,8 +52,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
             TestWorkspace workspace,
             Project project,
             bool buildSucceeds,
-            List<string> expectedSubmissions)
+            List<string> expectedReferences = null,
+            List<string> expectedUsings = null)
         {
+            expectedReferences = expectedReferences ?? new List<string>();
+            expectedUsings = expectedUsings ?? new List<string>();
+
             InteractiveWindowTestHost testHost = new InteractiveWindowTestHost();
             List<string> executedSubmissionCalls = new List<string>();
             EventHandler<string> ExecuteSubmission = (_, code) => { executedSubmissionCalls.Add(code); };
@@ -60,9 +65,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
             testHost.Evaluator.OnExecute += ExecuteSubmission;
 
             IWaitIndicator waitIndicator = workspace.GetService<IWaitIndicator>();
+            IEditorOptionsFactoryService editorOptionsFactoryService = workspace.GetService<IEditorOptionsFactoryService>();
+            var editorOptions = editorOptionsFactoryService.GetOptions(testHost.Window.CurrentLanguageBuffer);
+            var newLineCharacter = editorOptions.GetNewLineCharacter();
 
             TestResetInteractive resetInteractive = new TestResetInteractive(
                 waitIndicator,
+                editorOptionsFactoryService,
                 CreateReplReferenceCommand,
                 CreateImport,
                 buildSucceeds: buildSucceeds)
@@ -79,6 +88,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
             // Validate that the project was rebuilt.
             Assert.Equal(1, resetInteractive.BuildProjectCount);
             Assert.Equal(0, resetInteractive.CancelBuildProjectCount);
+
+            var expectedSubmissions = new List<string>();
+            if (expectedReferences.Any())
+            {
+                expectedSubmissions.AddRange(expectedReferences.Select(r => r + newLineCharacter));
+            }
+            if (expectedUsings.Any())
+            {
+                expectedSubmissions.Add(string.Join(newLineCharacter, expectedUsings) + newLineCharacter);
+            }
 
             AssertEx.Equal(expectedSubmissions, executedSubmissionCalls);
 
