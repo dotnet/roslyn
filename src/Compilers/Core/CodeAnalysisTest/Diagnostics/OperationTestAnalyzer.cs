@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                                  if (forLoop.Before.Length == 1)
                                  {
-                                     IStatement setup = forLoop.Before[0];
+                                     IOperation setup = forLoop.Before[0];
                                      if (setup.Kind == OperationKind.ExpressionStatement && ((IExpressionStatement)setup).Expression.Kind == OperationKind.AssignmentExpression)
                                      {
                                          IAssignmentExpression setupAssignment = (IAssignmentExpression)((IExpressionStatement)setup).Expression;
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                                              if (forLoop.AtLoopBottom.Length == 1)
                                              {
-                                                 IStatement advance = forLoop.AtLoopBottom[0];
+                                                 IOperation advance = forLoop.AtLoopBottom[0];
                                                  if (advance.Kind == OperationKind.ExpressionStatement)
                                                  {
                                                      IExpression advanceExpression = ((IExpressionStatement)advance).Expression;

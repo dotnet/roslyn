@@ -8,11 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-<<<<<<< HEAD
-    partial class BoundStatement : IOperation
-=======
-    internal partial class BoundStatement : IStatement
->>>>>>> upstream/master
+    internal partial class BoundStatement : IOperation
     {
         OperationKind IOperation.Kind => this.StatementKind;
 
@@ -37,13 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 // This is to filter out operations of kind None.
-<<<<<<< HEAD
-                return (ImmutableArray<IOperation>) s_blockStatementsMappings.GetValue(this,
+                return (ImmutableArray<IOperation>)s_blockStatementsMappings.GetValue(this,
                     blockStatement => { return blockStatement.Statements.AsImmutable<IOperation>().WhereAsArray(statement => statement.Kind != OperationKind.None); }
-=======
-                return (ImmutableArray<IStatement>)s_blockStatementsMappings.GetValue(this,
-                    blockStatement => { return blockStatement.Statements.AsImmutable<IStatement>().WhereAsArray(statement => statement.Kind != OperationKind.None); }
->>>>>>> upstream/master
                     );
             }
         }
@@ -97,11 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-<<<<<<< HEAD
-    partial class BoundYieldBreakStatement : IReturnStatement
-=======
-    internal partial class BoundYieldBreakStatement
->>>>>>> upstream/master
+    internal partial class BoundYieldBreakStatement : IReturnStatement
     {
         IExpression IReturnStatement.ReturnedValue => null;
 
@@ -135,11 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-<<<<<<< HEAD
-    partial class BoundNoOpStatement : IEmptyStatement
-=======
-    internal partial class BoundNoOpStatement
->>>>>>> upstream/master
+    internal partial class BoundNoOpStatement : IEmptyStatement
     {
         protected override OperationKind StatementKind => OperationKind.EmptyStatement;
 
@@ -241,11 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind StatementKind => OperationKind.LoopStatement;
 
-<<<<<<< HEAD
-        ImmutableArray<IOperation> ToStatements(BoundStatement statement)
-=======
-        private ImmutableArray<IStatement> ToStatements(BoundStatement statement)
->>>>>>> upstream/master
+        private ImmutableArray<IOperation> ToStatements(BoundStatement statement)
         {
             BoundStatementList statementList = statement as BoundStatementList;
             if (statementList != null)
@@ -584,11 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-<<<<<<< HEAD
-    partial class BoundBadStatement : IInvalidStatement
-=======
-    internal partial class BoundBadStatement
->>>>>>> upstream/master
+    internal partial class BoundBadStatement : IInvalidStatement
     {
         protected override OperationKind StatementKind => OperationKind.InvalidStatement;
 
@@ -612,13 +587,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-<<<<<<< HEAD
                 return (ImmutableArray<IVariableDeclaration>) s_variablesMappings.GetValue(this, 
                     declaration => ImmutableArray.Create<IVariableDeclaration>(new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
-=======
-                return (ImmutableArray<IVariable>)s_variablesMappings.GetValue(this,
-                    declaration => ImmutableArray.Create<IVariable>(new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
->>>>>>> upstream/master
             }
         }
 
@@ -646,13 +616,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return (ImmutableArray<IVariableDeclaration>)s_variablesMappings.GetValue(this,
                     multipleDeclarations =>
-<<<<<<< HEAD
                         multipleDeclarations.LocalDeclarations.SelectAsArray(declaration => 
                             (IVariableDeclaration)new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
-=======
-                        multipleDeclarations.LocalDeclarations.SelectAsArray(declaration =>
-                            (IVariable)new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
->>>>>>> upstream/master
             }
         }
 

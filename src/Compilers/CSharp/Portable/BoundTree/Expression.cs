@@ -62,14 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return sourceOrderArguments.ToImmutableAndFree();
             }
         }
-<<<<<<< HEAD
-        
+
         ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInParameterOrder => DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters);
-=======
-
-        ImmutableArray<IArgument> IInvocationExpression.ArgumentsInParameterOrder => DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters);
->>>>>>> upstream/master
-
+        
         IArgument IHasArgumentsExpression.GetArgumentMatchingParameter(IParameterSymbol parameter)
         {
             return ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, parameter.ContainingSymbol as Symbols.MethodSymbol, parameter);
@@ -770,11 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-<<<<<<< HEAD
-    partial class BoundSizeOfOperator : ISizeOfExpression
-=======
-    internal partial class BoundSizeOfOperator : ITypeOperationExpression
->>>>>>> upstream/master
+    internal partial class BoundSizeOfOperator : ISizeOfExpression
     {
         ITypeSymbol ITypeOperationExpression.TypeOperand => this.SourceType.Type;
 
@@ -791,11 +782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-<<<<<<< HEAD
-    partial class BoundTypeOfOperator : ITypeOfExpression
-=======
-    internal partial class BoundTypeOfOperator : ITypeOperationExpression
->>>>>>> upstream/master
+    internal partial class BoundTypeOfOperator : ITypeOfExpression
     {
         ITypeSymbol ITypeOperationExpression.TypeOperand => this.SourceType.Type;
 
@@ -1063,13 +1050,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IExpression IBinaryOperatorExpression.Left => this.Left;
 
         IExpression IBinaryOperatorExpression.Right => this.Right;
-<<<<<<< HEAD
-   
-        bool IHasOperatorMethodExpression.UsesOperatorMethod => (this.OperatorKind & BinaryOperatorKind.TypeMask) == BinaryOperatorKind.UserDefined;
-=======
 
-        bool IHasOperatorExpression.UsesOperatorMethod => (this.OperatorKind & BinaryOperatorKind.TypeMask) == BinaryOperatorKind.UserDefined;
->>>>>>> upstream/master
+        bool IHasOperatorMethodExpression.UsesOperatorMethod => (this.OperatorKind & BinaryOperatorKind.TypeMask) == BinaryOperatorKind.UserDefined;
 
         IMethodSymbol IHasOperatorMethodExpression.OperatorMethod => this.MethodOpt;
 

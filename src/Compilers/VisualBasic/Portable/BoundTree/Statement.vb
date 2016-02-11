@@ -6,13 +6,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-<<<<<<< HEAD
-    Partial Class BoundStatement
+    Partial Friend Class BoundStatement
         Implements IOperation
-=======
-    Friend Partial Class BoundStatement
-        Implements IStatement
->>>>>>> upstream/master
 
         Private ReadOnly Property IKind As OperationKind Implements IOperation.Kind
             Get
@@ -231,11 +226,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitEmptyStatement(Me)
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitEmptyStatement(Me, argument)
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -443,11 +438,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitEmptyStatement(Me)
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitEmptyStatement(Me, argument)
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -879,12 +874,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-<<<<<<< HEAD
-    Partial Class BoundBadStatement
+    Partial Friend Class BoundBadStatement
         Implements IInvalidStatement
-=======
-    Friend Partial Class BoundBadStatement
->>>>>>> upstream/master
+
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.InvalidStatement
         End Function
@@ -1165,13 +1157,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-<<<<<<< HEAD
-    Partial Class BoundNoOpStatement
+    Partial Friend Class BoundNoOpStatement
         Implements IEmptyStatement
 
-=======
-    Friend Partial Class BoundNoOpStatement
->>>>>>> upstream/master
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.EmptyStatement
         End Function
@@ -1191,11 +1179,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitEmptyStatement(Me)
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitEmptyStatement(Me, argument)
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1205,11 +1193,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitEmptyStatement(Me)
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitEmptyStatement(Me, argument)
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1219,21 +1207,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitEmptyStatement(Me)
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitEmptyStatement(Me, argument)
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
-<<<<<<< HEAD
-    Partial Class BoundStopStatement
+    Partial Friend Class BoundStopStatement
         Implements IStopStatement
 
-=======
-    Friend Partial Class BoundStopStatement
->>>>>>> upstream/master
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.StopStatement
         End Function
@@ -1247,13 +1231,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-<<<<<<< HEAD
-    Partial Class BoundEndStatement
+    Partial Friend Class BoundEndStatement
         Implements IEndStatement
 
-=======
-    Friend Partial Class BoundEndStatement
->>>>>>> upstream/master
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.EndStatement
         End Function

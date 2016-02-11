@@ -263,13 +263,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             this.Type = resultType;
             this.Syntax = syntax;
         }
-<<<<<<< HEAD
-        
-        public string Text =>_value.ToString();
-=======
 
-        public string Spelling => _value.ToString();
->>>>>>> upstream/master
+        public string Text =>_value.ToString();
 
         public ITypeSymbol Type { get; }
 
