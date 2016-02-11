@@ -774,6 +774,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.MetadataImportOptions_internal_protected_set = value}
         End Function
 
+        Friend Function WithReferencesSupersedeLowerVersions(value As Boolean) As VisualBasicCompilationOptions
+            If value = Me.ReferencesSupersedeLowerVersions Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.ReferencesSupersedeLowerVersions_internal_protected_set = value}
+        End Function
+
         ''' <summary>
         ''' Creates a new <see cref="VisualBasicCompilationOptions"/> instance with a different parse option specified.
         ''' </summary>

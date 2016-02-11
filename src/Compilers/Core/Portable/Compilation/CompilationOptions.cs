@@ -172,6 +172,14 @@ namespace Microsoft.CodeAnalysis
         internal MetadataImportOptions MetadataImportOptions_internal_protected_set { set { MetadataImportOptions = value; } }
 
         /// <summary>
+        /// Apply additional disambiguation rules during resolution of referenced assemblies.
+        /// </summary>
+        internal bool ReferencesSupersedeLowerVersions { get; private set; }
+
+        // TODO: change visibility of the ReferencesSupersedeLowerVersions setter to internal & protected
+        internal bool ReferencesSupersedeLowerVersions_internal_protected_set { set { ReferencesSupersedeLowerVersions = value; } }
+
+        /// <summary>
         /// Modifies the incoming diagnostic, for example escalating its severity, or discarding it (returning null) based on the compilation options.
         /// </summary>
         /// <param name="diagnostic"></param>

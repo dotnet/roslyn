@@ -422,6 +422,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { MetadataImportOptions_internal_protected_set = value };
         }
 
+        internal CSharpCompilationOptions WithReferencesSupersedeLowerVersions(bool value)
+        {
+            if (value == this.ReferencesSupersedeLowerVersions)
+            {
+                return this;
+            }
+
+            return new CSharpCompilationOptions(this) { ReferencesSupersedeLowerVersions_internal_protected_set = value };
+        }
+
         public new CSharpCompilationOptions WithXmlReferenceResolver(XmlReferenceResolver resolver)
         {
             if (ReferenceEquals(resolver, this.XmlReferenceResolver))
