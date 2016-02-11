@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 EventSymbol overriddenEvent = this.OverriddenEvent;
                 if ((object)overriddenEvent != null)
                 {
-                    CopyEventCustomModifiers(overriddenEvent, ref _type);
+                    CopyEventCustomModifiers(overriddenEvent, ref _type, ContainingAssembly);
                 }
             }
 

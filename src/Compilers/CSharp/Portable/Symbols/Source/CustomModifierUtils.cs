@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we can use it in place of this.Type.  We do so by computing the dynamic transform flags that
             // code gen uses and then passing them to the dynamic type decoder that metadata reading uses.
 
-            const int customModifierCount = 0;// Ignore custom modifiers, since we're not done copying them.
-            ImmutableArray<bool> flags = CSharpCompilation.DynamicTransformsEncoder.Encode(destinationType, customModifierCount, refKind);
+            ImmutableArray<bool> flags = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(destinationType, refKind);
             TypeSymbol resultType = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(sourceType, containingAssembly, refKind, flags);
 
             Debug.Assert(resultType.Equals(sourceType, ignoreCustomModifiersAndArraySizesAndLowerBounds: false, ignoreDynamic: true)); // Same custom modifiers as source type.
