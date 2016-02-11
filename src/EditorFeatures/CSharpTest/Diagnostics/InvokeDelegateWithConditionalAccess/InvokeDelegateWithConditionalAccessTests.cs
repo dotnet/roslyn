@@ -479,5 +479,140 @@ class C
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestMissingOnConditionalInvocation()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        [||]var v = a;
+        v?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestMissingOnConditionalInvocation2()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        [||]v?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestMissingOnConditionalInvocation3()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        [||]a?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestMissingOnNonNullCheckExpressions()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        if (v == a)
+        {
+            [||]v();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestMissingOnNonNullCheckExpressions2()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        if (v == null)
+        {
+            [||]v();
+        }
+    }
+}");
+        }
+
+        /// <remarks>
+        /// if local declaration is not immediately preceding the invocation pattern, 
+        /// the fix is not offered on the declaration.
+        /// </remarks>
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestLocalNotImmediatelyPrecedingNullCheckAndInvokePattern()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        [||]var v = a;
+        int x;
+        if (v != null)
+        {
+            v();
+        }
+    }
+}");
+        }
+
+        /// <remarks>
+        /// if local declaration is not immediately preceding the invocation pattern, 
+        /// the fix is not offered on the declaration but is offered on the invocation pattern itself.
+        /// </remarks>
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestLocalDNotImmediatelyPrecedingNullCheckAndInvokePattern2()
+        {
+            await TestAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        int x;
+        [||]if (v != null)
+        {
+            v();
+        }
+    }
+}",
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        var v = a;
+        int x;
+        v?.Invoke();
+    }
+}");
+        }
     }
 }
