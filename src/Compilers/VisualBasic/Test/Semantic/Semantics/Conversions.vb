@@ -4727,5 +4727,28 @@ Expected - 2
             CompileAndVerify(compilation, expectedOutput:=expectedOutput).VerifyDiagnostics()
         End Sub
 
+        <WorkItem(8475, "https://github.com/dotnet/roslyn/issues/8475")>
+        <Fact()>
+        Public Sub ConvertConstantBeforeItsDeclaration()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Class Program
+    Shared Sub Main()
+        Dim x as Integer = STR
+        Const STR As String = ""
+    End Sub
+End Class
+    ]]></file>
+    </compilation>, options:=TestOptions.ReleaseExe)
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC32000: Local variable 'STR' cannot be referred to before it is declared.
+        Dim x as Integer = STR
+                           ~~~
+</expected>)
+        End Sub
+
     End Class
 End Namespace
