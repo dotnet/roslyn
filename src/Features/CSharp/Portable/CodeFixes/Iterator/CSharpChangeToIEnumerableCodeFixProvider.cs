@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         /// <summary>
         /// CS1624: The body of 'x' cannot be an iterator block because 'y' is not an iterator interface type
         /// </summary>
-        private const string CS1624 = "CS1624";
+        private const string CS1624 = nameof(CS1624);
 
         public override ImmutableArray<string> FixableDiagnosticIds
         {

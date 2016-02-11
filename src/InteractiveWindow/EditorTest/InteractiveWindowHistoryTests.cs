@@ -265,7 +265,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             //submit, submit, up, up, submit new, down, up
             const string inputString1 = "1 ";
             const string inputString2 = "2 ";
-            const string uncommittedInput = "uncommittedInput";
+            const string uncommittedInput = nameof(uncommittedInput);
 
             await InsertAndExecuteInput(inputString1).ConfigureAwait(true);
             await InsertAndExecuteInput(inputString2).ConfigureAwait(true);

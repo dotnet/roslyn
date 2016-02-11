@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -733,7 +734,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     public class ArrayInitializerTestAnalyzer : DiagnosticAnalyzer
     {
         /// <summary>Diagnostic category "Maintainability".</summary>
-        private const string Maintainability = "Maintainability";
+        private const string Maintainability = nameof(Maintainability);
 
         public static readonly DiagnosticDescriptor DoNotUseLargeListOfArrayInitializersDescriptor = new DiagnosticDescriptor(
             "DoNotUseLongListToInitializeArray",
@@ -773,7 +774,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     public class VariableDeclarationTestAnalyzer : DiagnosticAnalyzer
     {
         /// <summary>Diagnostic category "Maintainability".</summary>
-        private const string Maintainability = "Maintainability";
+        private const string Maintainability = nameof(Maintainability);
 
         public static readonly DiagnosticDescriptor TooManyLocalVarDeclarationsDescriptor = new DiagnosticDescriptor(
             "TooManyLocalVarDeclarations",
@@ -829,7 +830,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     public class CaseTestAnalyzer : DiagnosticAnalyzer
     {
         /// <summary>Diagnostic category "Maintainability".</summary>
-        private const string Maintainability = "Maintainability";
+        private const string Maintainability = nameof(Maintainability);
 
         public static readonly DiagnosticDescriptor HasDefaultCaseDescriptor = new DiagnosticDescriptor(
             "HasDefaultCase",
@@ -1424,6 +1425,94 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     }
                 },
                 OperationKind.UnaryOperatorExpression);
+        }
+    }
+
+    public class NullOperationSyntaxTestAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        // We should not see this warning triggered by any code
+        public static readonly DiagnosticDescriptor NullOperationSyntaxDescriptor = new DiagnosticDescriptor(
+            "NullOperationSyntax",
+            "null operation Syntax found",
+            "An IOperation with Syntax property of value null is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        // since we don't expect to see the first diagnostic, we created this one to make sure 
+        // the test didn't pass because the analyzer crashed.
+        public static readonly DiagnosticDescriptor ParamsArrayOperationDescriptor = new DiagnosticDescriptor(
+            "ParamsArray",
+            "Params array argument found",
+            "A params array argument is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(NullOperationSyntaxDescriptor, ParamsArrayOperationDescriptor); }
+        }
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+            (operationContext) =>
+            {
+                var nullList = new List<IOperation>();
+                var paramsList = new List<IOperation>();
+                var collector = new Walker(nullList, paramsList);
+                collector.Visit(operationContext.Operation);
+
+                foreach (var nullSyntaxOperation in nullList)
+                {
+                    operationContext.ReportDiagnostic(
+                        Diagnostic.Create(NullOperationSyntaxDescriptor, null));
+                }
+                foreach (var paramsarrayArgumentOperation in paramsList)
+                {
+                    operationContext.ReportDiagnostic(
+                        Diagnostic.Create(ParamsArrayOperationDescriptor,
+                                          paramsarrayArgumentOperation.Syntax.GetLocation()));
+                }
+
+            },
+            OperationKind.InvocationExpression);
+        }
+
+        // this OperationWalker collect:
+        // 1. all the operation with null Syntax property
+        // 2. all the params array argument operations
+        private sealed class Walker : OperationWalker
+        {
+            private readonly List<IOperation> _nullList;
+            private readonly List<IOperation> _paramsList;
+
+            public Walker(List<IOperation> nullList, List<IOperation> paramsList)
+            {
+                _nullList = nullList;
+                _paramsList = paramsList;
+            }
+
+            public override void Visit(IOperation operation)
+            {
+                if (operation != null)
+                {
+                    if (operation.Syntax == null)
+                    {
+                        _nullList.Add(operation);
+                    }
+                    if (operation.Kind == OperationKind.Argument)
+                    {
+                        if (((IArgument)operation).ArgumentKind == ArgumentKind.ParamArray)
+                        {
+                            _paramsList.Add(operation);
+                        }
+                    }
+                }
+                base.Visit(operation);
+            }
         }
     }
 }

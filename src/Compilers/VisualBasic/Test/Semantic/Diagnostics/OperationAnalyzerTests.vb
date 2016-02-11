@@ -1417,6 +1417,7 @@ End Class
 ]]>
                              </file>
                          </compilation>
+
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New StaticMemberTestAnalyzer}, Nothing, Nothing, False,
@@ -1477,6 +1478,7 @@ End Class
 ]]>
                              </file>
                          </compilation>
+
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New UnaryAndBinaryOperationsTestAnalyzer}, Nothing, Nothing, False,
@@ -1484,6 +1486,41 @@ End Class
                 Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.DoubleMultiplyDescriptor.Id, "d * 100").WithLocation(34, 13),
                 Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.OperatorAddMethodDescriptor.Id, "a1 + a2").WithLocation(35, 14),
                 Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.OperatorMinusMethodDescriptor.Id, "-a2").WithLocation(36, 14))
+        End Sub
+
+        <Fact>
+        Public Sub NullOperationSyntaxVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub M0(ParamArray b As Integer())
+    End Sub
+
+    Public Sub M1()
+        M0()
+        M0(1)
+        M0(1, 2)
+        M0(New Integer() {  })
+        M0(New Integer() { 1 })
+        M0(New Integer() { 1, 2 })
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            ' TODO: array should not be treated as ParamArray argument
+            ' https://github.com/dotnet/roslyn/issues/8570
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New NullOperationSyntaxTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0()").WithLocation(6, 9),
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0(1)").WithLocation(7, 9),
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0(1, 2)").WithLocation(8, 9),
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "New Integer() {  }").WithLocation(9, 12),
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "New Integer() { 1 }").WithLocation(10, 12),
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "New Integer() { 1, 2 }").WithLocation(11, 12))
         End Sub
     End Class
 End Namespace
