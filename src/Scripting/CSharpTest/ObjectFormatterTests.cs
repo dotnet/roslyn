@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Scripting;
@@ -775,6 +776,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
                  "4",
                  "5"
             );
+        }
+
+        [WorkItem(8542, "https://github.com/dotnet/roslyn/issues/8452")]
+        [Fact]
+        public void FormatConstructorSignature()
+        {
+            var constructor = typeof(object).GetTypeInfo().DeclaredConstructors.Single();
+            var signature = ((CommonObjectFormatter)s_formatter).FormatMethodSignature(constructor);
+            Assert.Equal("object..ctor()", signature); // Checking for exceptions, more than particular output.
         }
 
         // The stack trace contains line numbers.  We use a #line directive
