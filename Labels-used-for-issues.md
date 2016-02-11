@@ -186,6 +186,10 @@ Applied to any issue that the team at Microsoft put up-for-grabs which is subseq
 
 The issue lacks enough info to make progress on it (e.g. spec data for a feature, repro steps for a bug).  The developer will attempt to contact the person opening the issue to get more info.  After some reasonable amount of time, if the issue creator does not respond, the issue will be closed (and resolve as **“Not Reproducible”** if a bug). 
 
+## New Language Features
+
+The **New Language Feature-<Feature Name>** labels track issues related to language features under active development. These labels are deleted when their corresponding language feature becomes part of the official language and its feature flag has been removed.
+
 ## Pedantic
  
 ![image](https://cloud.githubusercontent.com/assets/20570/11489994/57ea2a86-9789-11e5-868b-db7be68cc87b.png)
