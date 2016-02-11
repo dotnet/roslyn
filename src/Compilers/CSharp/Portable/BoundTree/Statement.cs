@@ -58,7 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         ILabelSymbol IBranchStatement.Target => this.Label;
 
-        protected override OperationKind StatementKind => OperationKind.ContinueStatement;
+        BranchKind IBranchStatement.BranchKind => BranchKind.Continue;
+
+        protected override OperationKind StatementKind => OperationKind.BranchStatement;
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -75,7 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         ILabelSymbol IBranchStatement.Target => this.Label;
 
-        protected override OperationKind StatementKind => OperationKind.BreakStatement;
+        BranchKind IBranchStatement.BranchKind => BranchKind.Break;
+
+        protected override OperationKind StatementKind => OperationKind.BranchStatement;
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -109,7 +113,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         ILabelSymbol IBranchStatement.Target => this.Label;
 
-        protected override OperationKind StatementKind => OperationKind.GoToStatement;
+        BranchKind IBranchStatement.BranchKind => BranchKind.GoTo;
+
+        protected override OperationKind StatementKind => OperationKind.BranchStatement;
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -280,14 +286,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IExpression ISwitchStatement.Value => this.BoundExpression;
 
-        ImmutableArray<ICase> ISwitchStatement.Cases
+        ImmutableArray<ISwitchCase> ISwitchStatement.Cases
         {
             get
             {
-                return (ImmutableArray<ICase>)s_switchSectionsMappings.GetValue(this,
+                return (ImmutableArray<ISwitchCase>)s_switchSectionsMappings.GetValue(this,
                     switchStatement =>
                     {
-                        return switchStatement.SwitchSections.SelectAsArray(switchSection => (ICase)new SwitchSection(switchSection));
+                        return switchStatement.SwitchSections.SelectAsArray(switchSection => (ISwitchCase)new SwitchSection(switchSection));
                     });
             }
         }
@@ -304,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitSwitchStatement(this, argument);
         }
 
-        private sealed class SwitchSection : ICase
+        private sealed class SwitchSection : ISwitchCase
         {
             public SwitchSection(BoundSwitchSection boundNode)
             {
@@ -320,18 +326,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool IsInvalid { get; }
 
-            OperationKind IOperation.Kind => OperationKind.SwitchSection;
+            OperationKind IOperation.Kind => OperationKind.SwitchCase;
 
             public SyntaxNode Syntax { get; }
 
             void IOperation.Accept(OperationVisitor visitor)
             {
-                visitor.VisitCase(this);
+                visitor.VisitSwitchCase(this);
             }
 
             TResult IOperation.Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
             {
-                return visitor.VisitCase(this, argument);
+                return visitor.VisitSwitchCase(this, argument);
             }
         }
     }
@@ -400,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IBlockStatement ITryStatement.Body => this.TryBlock;
 
-        ImmutableArray<ICatch> ITryStatement.Catches => this.CatchBlocks.As<ICatch>();
+        ImmutableArray<ICatchClause> ITryStatement.Catches => this.CatchBlocks.As<ICatchClause>();
 
         IBlockStatement ITryStatement.FinallyHandler => this.FinallyBlockOpt;
 
@@ -417,17 +423,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundCatchBlock : ICatch
+    internal partial class BoundCatchBlock : ICatchClause
     {
-        IBlockStatement ICatch.Handler => this.Body;
+        IBlockStatement ICatchClause.Handler => this.Body;
 
-        ITypeSymbol ICatch.CaughtType => this.ExceptionTypeOpt;
+        ITypeSymbol ICatchClause.CaughtType => this.ExceptionTypeOpt;
 
-        IExpression ICatch.Filter => this.ExceptionFilterOpt;
+        IExpression ICatchClause.Filter => this.ExceptionFilterOpt;
 
-        ILocalSymbol ICatch.ExceptionLocal => this.LocalOpt;
+        ILocalSymbol ICatchClause.ExceptionLocal => this.LocalOpt;
 
-        OperationKind IOperation.Kind => OperationKind.CatchHandler;
+        OperationKind IOperation.Kind => OperationKind.CatchClause;
 
         bool IOperation.IsInvalid => this.Body.HasErrors || (this.ExceptionFilterOpt != null && this.ExceptionFilterOpt.HasErrors);
 

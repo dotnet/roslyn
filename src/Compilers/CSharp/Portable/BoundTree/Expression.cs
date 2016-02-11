@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IExpression IConversionExpression.Operand => this.Operand;
 
-        Semantics.ConversionKind IConversionExpression.ConversionKind => Semantics.ConversionKind.AsCast;
+        Semantics.ConversionKind IConversionExpression.ConversionKind => Semantics.ConversionKind.TryCast;
 
         bool IConversionExpression.IsExplicit => true;
 

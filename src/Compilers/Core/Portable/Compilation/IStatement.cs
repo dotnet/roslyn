@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Cases of the switch.
         /// </summary>
-        ImmutableArray<ICase> Cases { get; }
+        ImmutableArray<ISwitchCase> Cases { get; }
     }
 
     /// <summary>
     /// Represents a C# case or VB Case statement.
     /// </summary>
-    public interface ICase : IOperation
+    public interface ISwitchCase : IOperation
     {
         /// <summary>
         /// Clauses of the case. For C# there is one clause per case, but for VB there can be multiple.
@@ -272,7 +272,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public interface ILabelStatement : IOperation
     {
-        // Label that can be the target of branches.
+        /// <summary>
+        ///  Label that can be the target of branches.
+        /// </summary>
         ILabelSymbol Label { get; }
     }
 
@@ -281,7 +283,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public interface ILabeledStatement : ILabelStatement
     {
-        // Statement that has been labeled.
+        /// <summary>
+        /// Statement that has been labeled.
+        /// </summary>
         IOperation Labeled { get; }
     }
 
@@ -290,8 +294,21 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public interface IBranchStatement : IOperation
     {
-        // Label that is the target of the branch.
+        /// <summary>
+        /// Label that is the target of the branch.
+        /// </summary>
         ILabelSymbol Target { get; }
+        /// <summary>
+        /// Kind of the branch.
+        /// </summary>
+        BranchKind BranchKind { get; }
+    }
+
+    public enum BranchKind
+    {
+        Continue = 0x0,
+        Break = 0x1,
+        GoTo = 0x2
     }
 
     /// <summary>
@@ -299,7 +316,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public interface IThrowStatement : IOperation
     {
-        // Thrown expression.
+        /// <summary>
+        /// Value to be thrown.
+        /// </summary>
         IExpression ThrownObject { get; }
     }
 
@@ -341,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Catch clauses of the try.
         /// </summary>
-        ImmutableArray<ICatch> Catches { get; }
+        ImmutableArray<ICatchClause> Catches { get; }
         /// <summary>
         /// Finally handler of the try.
         /// </summary>
@@ -351,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# catch or VB Catch clause.
     /// </summary>
-    public interface ICatch : IOperation
+    public interface ICatchClause : IOperation
     {
         /// <summary>
         /// Body of the exception handler.

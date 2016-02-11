@@ -73,14 +73,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ReadOnly s_caseBlocksMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundSelectStatement, Object)
 
-        Private ReadOnly Property ICases As ImmutableArray(Of ICase) Implements ISwitchStatement.Cases
+        Private ReadOnly Property ICases As ImmutableArray(Of ISwitchCase) Implements ISwitchStatement.Cases
             Get
                 Dim cases = s_caseBlocksMappings.GetValue(Me, Function(boundSelect)
                                                                   Return boundSelect.CaseBlocks.SelectAsArray(Function(boundCaseBlock)
-                                                                                                                  Return DirectCast(New CaseBlock(boundCaseBlock), ICase)
+                                                                                                                  Return DirectCast(New CaseBlock(boundCaseBlock), ISwitchCase)
                                                                                                               End Function)
                                                               End Function)
-                Return DirectCast(cases, ImmutableArray(Of ICase))
+                Return DirectCast(cases, ImmutableArray(Of ISwitchCase))
             End Get
         End Property
 
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private NotInheritable Class CaseBlock
-            Implements ICase
+            Implements ISwitchCase
 
             Private ReadOnly _clauses As ImmutableArray(Of ICaseClause)
             Private ReadOnly _body As ImmutableArray(Of IOperation)
@@ -126,20 +126,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Public Sub Accept(visitor As OperationVisitor) Implements IOperation.Accept
-                visitor.VisitCase(Me)
+                visitor.VisitSwitchCase(Me)
             End Sub
 
             Public Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
-                Return visitor.VisitCase(Me, argument)
+                Return visitor.VisitSwitchCase(Me, argument)
             End Function
 
-            Public ReadOnly Property Body As ImmutableArray(Of IOperation) Implements ICase.Body
+            Public ReadOnly Property Body As ImmutableArray(Of IOperation) Implements ISwitchCase.Body
                 Get
                     Return _body
                 End Get
             End Property
 
-            Public ReadOnly Property Clauses As ImmutableArray(Of ICaseClause) Implements ICase.Clauses
+            Public ReadOnly Property Clauses As ImmutableArray(Of ICaseClause) Implements ISwitchCase.Clauses
                 Get
                     Return _clauses
                 End Get
@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
                 Get
-                    Return OperationKind.SwitchSection
+                    Return OperationKind.SwitchCase
                 End Get
             End Property
 
@@ -754,9 +754,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property ICatches As ImmutableArray(Of ICatch) Implements ITryStatement.Catches
+        Private ReadOnly Property ICatches As ImmutableArray(Of ICatchClause) Implements ITryStatement.Catches
             Get
-                Return Me.CatchBlocks.As(Of ICatch)()
+                Return Me.CatchBlocks.As(Of ICatchClause)()
             End Get
         End Property
 
@@ -779,10 +779,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundCatchBlock
-        Implements ICatch
+    Partial Friend Class BoundCatchBlock
+        Implements ICatchClause
 
-        Private ReadOnly Property ICaughtType As ITypeSymbol Implements ICatch.CaughtType
+        Private ReadOnly Property ICaughtType As ITypeSymbol Implements ICatchClause.CaughtType
             Get
                 If Me.ExceptionSourceOpt IsNot Nothing Then
                     Return Me.ExceptionSourceOpt.Type
@@ -793,19 +793,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IFilter As IExpression Implements ICatch.Filter
+        Private ReadOnly Property IFilter As IExpression Implements ICatchClause.Filter
             Get
                 Return Me.ExceptionFilterOpt
             End Get
         End Property
 
-        Private ReadOnly Property IHandler As IBlockStatement Implements ICatch.Handler
+        Private ReadOnly Property IHandler As IBlockStatement Implements ICatchClause.Handler
             Get
                 Return Me.Body
             End Get
         End Property
 
-        Private ReadOnly Property ILocals As ILocalSymbol Implements ICatch.ExceptionLocal
+        Private ReadOnly Property ILocals As ILocalSymbol Implements ICatchClause.ExceptionLocal
             Get
                 Return Me.LocalOpt
             End Get
@@ -813,7 +813,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IKind As OperationKind Implements IOperation.Kind
             Get
-                Return OperationKind.CatchHandler
+                Return OperationKind.CatchClause
             End Get
         End Property
 
@@ -1072,8 +1072,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property IBranchKind As BranchKind Implements IBranchStatement.BranchKind
+            Get
+                Return BranchKind.GoTo
+            End Get
+        End Property
+
         Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.GoToStatement
+            Return OperationKind.BranchStatement
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
@@ -1094,8 +1100,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property IBranchKind As BranchKind Implements IBranchStatement.BranchKind
+            Get
+                Return BranchKind.Continue
+            End Get
+        End Property
+
         Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.ContinueStatement
+            Return OperationKind.BranchStatement
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
@@ -1116,8 +1128,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property IBranchKind As BranchKind Implements IBranchStatement.BranchKind
+            Get
+                Return BranchKind.Break
+            End Get
+        End Property
+
         Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.BreakStatement
+            Return OperationKind.BranchStatement
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)

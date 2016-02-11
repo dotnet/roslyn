@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             VisitArray(operation.Cases);
         }
 
-        public override void VisitCase(ICase operation)
+        public override void VisitSwitchCase(ISwitchCase operation)
         {
             VisitArray(operation.Clauses);
             VisitArray(operation.Body);
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.FinallyHandler);
         }
 
-        public override void VisitCatch(ICatch operation)
+        public override void VisitCatch(ICatchClause operation)
         {
             Visit(operation.Filter);
             Visit(operation.Handler);

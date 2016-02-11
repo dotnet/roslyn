@@ -782,27 +782,27 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum ConversionKind
     {
-        None,
+        None = 0x0,
         /// <summary>
         /// Conversion is defined by the underlying type system and throws an exception if it fails.
         /// </summary>
-        Cast,
+        Cast = 0x1,
         /// <summary>
         /// Conversion is defined by the underlying type system and produces a null result if it fails.
         /// </summary>
-        AsCast,
+        TryCast = 0x2,
         /// <summary>
         /// Conversion has VB-specific semantics.
         /// </summary>
-        Basic,
+        Basic = 0x3,
         /// <summary>
         /// Conversion has C#-specific semantics.
         /// </summary>
-        CSharp,
+        CSharp = 0x4,
         /// <summary>
         /// Conversion is implemented by a conversion operator method.
         /// </summary>
-        OperatorMethod
+        OperatorMethod = 0x5
     }
 
     /// <summary>

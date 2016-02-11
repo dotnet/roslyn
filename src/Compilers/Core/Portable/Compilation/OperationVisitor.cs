@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitCase(ICase operation)
+        public virtual void VisitSwitchCase(ISwitchCase operation)
         {
             DefaultVisit(operation);
         }
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitCatch(ICatch operation)
+        public virtual void VisitCatch(ICatchClause operation)
         {
             DefaultVisit(operation);
         }
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitCase(ICase operation, TArgument argument)
+        public virtual TResult VisitSwitchCase(ISwitchCase operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitCatch(ICatch operation, TArgument argument)
+        public virtual TResult VisitCatch(ICatchClause operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

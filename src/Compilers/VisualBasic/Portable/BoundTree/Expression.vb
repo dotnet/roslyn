@@ -901,7 +901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
             Get
-                Return Semantics.ConversionKind.AsCast
+                Return Semantics.ConversionKind.TryCast
             End Get
         End Property
 

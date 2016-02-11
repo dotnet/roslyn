@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      long caseValueCount = 0;
                      bool hasDefault = false;
                      bool hasNonDefault = false;
-                     foreach (ICase switchCase in switchOperation.Cases)
+                     foreach (ISwitchCase switchCase in switchOperation.Cases)
                      {
                          foreach (ICaseClause clause in switchCase.Clauses)
                          {
@@ -870,8 +870,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                  Report(operationContext, caseClause.Syntax, HasDefaultCaseDescriptor);
                              }
                              break;
-                         case OperationKind.SwitchSection:
-                             var switchSection = (ICase)operationContext.Operation;
+                         case OperationKind.SwitchCase:
+                             var switchSection = (ISwitchCase)operationContext.Operation;
                              if (!switchSection.IsInvalid && switchSection.Clauses.Length > 1)
                              {
                                  Report(operationContext, switchSection.Syntax, MultipleCaseClausesDescriptor);
@@ -879,7 +879,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                              break;
                      }
                  },
-                 OperationKind.SwitchSection,
+                 OperationKind.SwitchCase,
                  OperationKind.SingleValueCaseClause,
                  OperationKind.RangeCaseClause,
                  OperationKind.RelationalCaseClause);
@@ -1458,26 +1458,26 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public sealed override void Initialize(AnalysisContext context)
         {
             context.RegisterOperationAction(
-            (operationContext) =>
-            {
-                var nullList = new List<IOperation>();
-                var paramsList = new List<IOperation>();
-                var collector = new Walker(nullList, paramsList);
-                collector.Visit(operationContext.Operation);
-
-                foreach (var nullSyntaxOperation in nullList)
+                (operationContext) =>
                 {
-                    operationContext.ReportDiagnostic(
-                        Diagnostic.Create(NullOperationSyntaxDescriptor, null));
-                }
-                foreach (var paramsarrayArgumentOperation in paramsList)
-                {
-                    operationContext.ReportDiagnostic(
-                        Diagnostic.Create(ParamsArrayOperationDescriptor,
-                                          paramsarrayArgumentOperation.Syntax.GetLocation()));
-                }
+                    var nullList = new List<IOperation>();
+                    var paramsList = new List<IOperation>();
+                    var collector = new Walker(nullList, paramsList);
+                    collector.Visit(operationContext.Operation);
 
-            },
+                    foreach (var nullSyntaxOperation in nullList)
+                    {
+                        operationContext.ReportDiagnostic(
+                            Diagnostic.Create(NullOperationSyntaxDescriptor, null));
+                    }
+                    foreach (var paramsarrayArgumentOperation in paramsList)
+                    {
+                        operationContext.ReportDiagnostic(
+                            Diagnostic.Create(ParamsArrayOperationDescriptor,
+                                              paramsarrayArgumentOperation.Syntax.GetLocation()));
+                    }
+
+                },
             OperationKind.InvocationExpression);
         }
 
