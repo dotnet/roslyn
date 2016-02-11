@@ -2949,5 +2949,78 @@ class C4
                 AssertEx.Equal(expectedNames, actualNames);
             }
         }
+
+        private class FailingStream : Stream
+        {
+            private static readonly IOException exception = new IOException();
+            public override bool CanRead { get { throw exception; } }
+
+            public override bool CanSeek { get { throw exception; } }
+
+            public override bool CanWrite { get { throw exception; } }
+
+            public override long Length
+            {
+                get
+                {
+                    throw exception;
+                }
+            }
+
+            public override long Position
+            {
+                get
+                {
+                    throw exception;
+                }
+
+                set
+                {
+                    throw exception;
+                }
+            }
+
+            public override void Flush()
+            {
+                throw exception;
+            }
+
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+                throw exception;
+            }
+
+            public override long Seek(long offset, SeekOrigin origin)
+            {
+                throw exception;
+            }
+
+            public override void SetLength(long value)
+            {
+                throw exception;
+            }
+
+            public override void Write(byte[] buffer, int offset, int count)
+            {
+                throw exception;
+            }
+        }
+
+        [Fact]
+        [WorkItem(3240, "https://github.com/dotnet/roslyn/pull/8227")]
+
+        public void FailingEmitter()
+        {
+            string source = @"
+public class X
+{
+    public static void Main()
+    {
+  
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.Emit(new FailingStream());
+        }
     }
 }
