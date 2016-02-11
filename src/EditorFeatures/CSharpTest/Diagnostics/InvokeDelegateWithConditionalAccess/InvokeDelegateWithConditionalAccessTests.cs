@@ -614,5 +614,23 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestMissingOnFunc()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    System.Func<int> a;
+    int Foo()
+    {
+        var v = a;
+        [||]if (v != null)
+        {
+            return v();
+        }
+    }
+}");
+        }
     }
 }
