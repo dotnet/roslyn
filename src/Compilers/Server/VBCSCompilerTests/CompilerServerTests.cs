@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         static CompilerServerUnitTests()
         {
             var basePath = Path.GetDirectoryName(typeof(CompilerServerUnitTests).Assembly.Location);
-            if (!File.Exists(Path.Combine(basePath, CompilerServerExeName)) || 
-                !File.Exists(Path.Combine(basePath, CSharpClientExeName)) || 
+            if (!File.Exists(Path.Combine(basePath, CompilerServerExeName)) ||
+                !File.Exists(Path.Combine(basePath, CSharpClientExeName)) ||
                 !File.Exists(Path.Combine(basePath, BasicClientExeName)))
             {
                 IsRunningAgainstInstallation = true;
@@ -338,7 +338,7 @@ End Module")
                 var result = ProcessUtilities.Run("cmd",
                     string.Format("/C {0} /shared:{3} /utf8output /nologo /t:library {1} > {2}",
                     BasicCompilerClientExecutable,
-                    srcFile, 
+                    srcFile,
                     tempOut.Path,
                     serverData.PipeName));
 
@@ -920,7 +920,7 @@ class Hello
                 exeFileName = $"hellocs{i}.exe";
                 prefix = "CS";
                 sourceFile = compilationDir.CreateFile($"hello{i}.cs");
-                sourceText = 
+                sourceText =
 $@"using System;
 class Hello 
 {{
@@ -1106,7 +1106,7 @@ End Module
                 var result = ProcessUtilities.Run("cmd",
                     string.Format("/C {0} /shared:{3} /nologo /t:library {1} > {2}",
                     CSharpCompilerClientExecutable,
-                    srcFile, 
+                    srcFile,
                     tempOut.Path,
                     serverData.PipeName));
 
@@ -1381,7 +1381,7 @@ class Program
             Assert.Equal("", result.Errors);
         }
 
-        [Fact] 
+        [Fact]
         [WorkItem(1024619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024619")]
         public async Task Bug1024619_01()
         {

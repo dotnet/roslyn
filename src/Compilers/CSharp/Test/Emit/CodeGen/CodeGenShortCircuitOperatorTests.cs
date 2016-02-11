@@ -6634,7 +6634,6 @@ True");
 }");
         }
 
-        [WorkItem(1, "unknown")]
         [Fact]
         public void Bug1()
         {
@@ -6893,6 +6892,5 @@ namespace ConsoleApplication9
   IL_0013:  ret
 }");
         }
-
     }
 }

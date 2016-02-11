@@ -97,8 +97,8 @@ using F = System.IO;
         public void ConcatCollidingExternAliases()
         {
             var comp = CreateCompilationWithMscorlib(
-                "extern alias A; extern alias B;", 
-                new[] 
+                "extern alias A; extern alias B;",
+                new[]
                 {
                     SystemCoreRef.WithAliases(new[] { "A" }),
                     SystemDataRef.WithAliases(new[] { "B" }),

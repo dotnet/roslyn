@@ -196,18 +196,18 @@ End Module</File>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOptionsWithTriviaMovedNextToOtherOptions() As Task
             Dim text = <File>
-Imports Microsoft
+Option Explicit Off
 
 Module Program
     Sub Main(args As String())
 
     End Sub
 End Module
-[|Imports System|] 'Comment</File>
+[|Option Compare Binary|] 'Comment</File>
 
             Dim expected = <File>
-Imports Microsoft
-Imports System 'Comment
+Option Explicit Off
+Option Compare Binary 'Comment
 
 Module Program
     Sub Main(args As String())
@@ -242,6 +242,147 @@ End Module</File>
 
             Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
+
+        <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestOptionsMovedAfterBannerText() As Task
+            Dim text = <File>
+' Copyright
+
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+End Module
+[|Option Explicit Off|]</File>
+
+            Dim expected = <File>
+' Copyright
+Option Explicit Off
+
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+End Module</File>
+
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+        End Function
+
+        <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestOptionsMovedAfterBannerTextThatFollowsEndOfLineTrivia() As Task
+            Dim text = <File>
+
+' Copyright
+
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+End Module
+[|Option Explicit Off|]</File>
+
+            Dim expected = <File>
+
+' Copyright
+Option Explicit Off
+
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+End Module</File>
+
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+        End Function
+
+        <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestOptionsMovedAfterBannerTextFollowedByOtherOptions() As Task
+            Dim text = <File>
+' Copyright
+Option Explicit Off
+
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+End Module
+[|Option Compare Binary|]</File>
+
+            Dim expected = <File>
+' Copyright
+Option Explicit Off
+Option Compare Binary
+
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+End Module</File>
+
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+        End Function
+
+        <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestOptionsMovedToTopWithLeadingTriviaButNoBannerText() As Task
+            Dim text = <File>
+#Const A = 5
+
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+End Module
+[|Option Compare Binary|]</File>
+
+            Dim expected = <File>
+Option Compare Binary
+#Const A = 5
+
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+End Module</File>
+
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+        End Function
+
+        <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestOptionsMovedAfterBannerTextWithImports() As Task
+            Dim text = <File>
+
+' Copyright
+Imports System
+Imports System.Collections.Generic
+
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+End Module
+[|Option Compare Binary|]</File>
+
+            Dim expected = <File>
+
+' Copyright
+Option Compare Binary
+Imports System
+Imports System.Collections.Generic
+
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+End Module</File>
+
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+        End Function
+
 #End Region
 
 #Region "Attribute Tests"
@@ -334,6 +475,35 @@ End Module
 &lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt; 'Another Comment
 Module Program
     Sub Main(args As String())
+    End Sub
+End Module
+</File>
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+        End Function
+
+        <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestAttributeMovedAfterBannerText() As Task
+            Dim text = <File>
+' Copyright
+' License information.
+
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+End Module
+&lt;[|Assembly:|] Reflection.AssemblyCultureAttribute("de")&gt;
+</File>
+
+            Dim expected = <File>
+' Copyright
+' License information.
+&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt;
+
+Module Program
+    Sub Main(args As String())
+
     End Sub
 End Module
 </File>

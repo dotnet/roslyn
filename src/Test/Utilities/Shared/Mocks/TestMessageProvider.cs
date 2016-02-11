@@ -354,5 +354,13 @@ namespace Roslyn.Test.Utilities
                 throw new NotImplementedException();
             }
         }
+
+        public override int ERR_TooManyUserStrings
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
     }
 }

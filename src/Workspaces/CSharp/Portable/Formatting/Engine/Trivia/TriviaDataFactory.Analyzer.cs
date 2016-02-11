@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     // that still have a full width that is non-zero.  i.e. a missing token that
                     // still has trailing trivia on it.
 
-                    for (var currentToken = token1; !currentToken.IsKind(SyntaxKind.None); )
+                    for (var currentToken = token1; !currentToken.IsKind(SyntaxKind.None);)
                     {
                         var previousToken = currentToken.GetPreviousToken(includeSkipped: false, includeZeroWidth: true);
                         if (previousToken.FullWidth() == 0)

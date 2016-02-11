@@ -539,14 +539,12 @@ $$");
 }");
         }
 
-        [WorkItem(18374)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAsync()
         {
             await VerifyKeywordAsync(@"class c { async $$ }");
         }
 
-        [WorkItem(18374)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterAsyncAsType()
         {

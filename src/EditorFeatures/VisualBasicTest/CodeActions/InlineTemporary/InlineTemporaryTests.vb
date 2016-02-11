@@ -4181,5 +4181,32 @@ End Class
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
+        <WorkItem(8119, "https://github.com/dotnet/roslyn/issues/8119")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function ShouldWorkEvenWhenReferencesVaryByCase() As Task
+            Dim code = "
+Imports System.Collections.Generic
+Class C
+    Sub M()
+        Dim [||]List As New List(Of String)
+        List.Add(""Apple"")
+        list.Add(""Banana"")
+    End Sub
+End Class
+"
+
+            Dim expected = "
+Imports System.Collections.Generic
+Class C
+    Sub M()
+        Call New List(Of String)().Add(""Apple"")
+        Call New List(Of String)().Add(""Banana"")
+    End Sub
+End Class
+"
+
+            Await TestAsync(code, expected, compareTokens:=False)
+        End Function
+
     End Class
 End Namespace

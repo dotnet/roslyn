@@ -102,8 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else
                 {
-                    _ilEmitStyle = IsDebugPlus() ? 
-                        ILEmitStyle.DebugFriendlyRelease : 
+                    _ilEmitStyle = IsDebugPlus() ?
+                        ILEmitStyle.DebugFriendlyRelease :
                         ILEmitStyle.Release;
                 }
             }
@@ -119,8 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             try
             {
                 _boundBody = Optimizer.Optimize(
-                    boundBody, 
-                    debugFriendly: _ilEmitStyle != ILEmitStyle.Release, 
+                    boundBody,
+                    debugFriendly: _ilEmitStyle != ILEmitStyle.Release,
                     stackLocals: out _stackLocals);
             }
             catch (BoundTreeVisitor.CancelledByStackGuardException ex)
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private bool IsDebugPlus()
         {
-            return this._module.Compilation.Options.DebugPlusMode;
+            return _module.Compilation.Options.DebugPlusMode;
         }
 
         private LocalDefinition LazyReturnTemp
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             constraints: LocalSlotConstraints.None,
                             isDynamic: false,
                             dynamicTransformFlags: ImmutableArray<TypedConstant>.Empty,
-                            isSlotReusable:  false);
+                            isSlotReusable: false);
                     }
                     else
                     {

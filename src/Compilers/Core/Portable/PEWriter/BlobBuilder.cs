@@ -1066,8 +1066,8 @@ namespace Microsoft.Cci
 
         internal string GetDebuggerDisplay()
         {
-            return IsHead ? 
-                string.Join("->", GetChunks().Select(chunk => $"[{Display(chunk._buffer, chunk.Length)}]")) : 
+            return IsHead ?
+                string.Join("->", GetChunks().Select(chunk => $"[{Display(chunk._buffer, chunk.Length)}]")) :
                 $"<{Display(_buffer, Length)}>";
         }
 

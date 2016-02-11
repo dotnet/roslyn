@@ -1,4 +1,6 @@
-﻿using Roslyn.Test.Utilities;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
@@ -21,7 +23,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 isABaseDirectory = "C://";
             }
 
-            try {
+            try
+            {
                 new SourceFileResolver(
                     ImmutableArray.Create(""),
                     isABaseDirectory,
@@ -35,15 +38,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // Empty pathmap value doesn't throw
             new SourceFileResolver(
-                ImmutableArray.Create(""), 
-                isABaseDirectory, 
+                ImmutableArray.Create(""),
+                isABaseDirectory,
                 ImmutableArray.Create(KeyValuePair.Create<string, string>("key", "")));
         }
 
         [Fact]
         public void BadBaseDirectory()
         {
-            try {
+            try
+            {
                 new SourceFileResolver(
                     ImmutableArray.Create(""),
                     "not_a_root directory",

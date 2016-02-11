@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
 
         ' It shouldn't be necessary to include VB runtime assembly
         ' explicitly in VisualBasicScript.Create.
-        Private Shared ReadOnly DefaultOptions As ScriptOptions = ScriptOptions.Default.AddReferences(MsvbRef)
+        Private Shared ReadOnly s_defaultOptions As ScriptOptions = ScriptOptions.Default.AddReferences(MsvbRef)
 
         <Fact>
         Public Sub TestCreateScript()
@@ -24,19 +24,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
 
         <Fact>
         Public Sub TestEvalScript()
-            Dim value = VisualBasicScript.EvaluateAsync("? 1 + 2", DefaultOptions)
+            Dim value = VisualBasicScript.EvaluateAsync("? 1 + 2", s_defaultOptions)
             Assert.Equal(3, value.Result)
         End Sub
 
         <Fact>
         Public Async Function TestRunScript() As Task
-            Dim state = Await VisualBasicScript.RunAsync("? 1 + 2", DefaultOptions)
+            Dim state = Await VisualBasicScript.RunAsync("? 1 + 2", s_defaultOptions)
             Assert.Equal(3, state.ReturnValue)
         End Function
 
         <Fact>
         Public Async Function TestCreateAndRunScript() As Task
-            Dim script = VisualBasicScript.Create("? 1 + 2", DefaultOptions)
+            Dim script = VisualBasicScript.Create("? 1 + 2", s_defaultOptions)
             Dim state = Await script.RunAsync()
             Assert.Same(script, state.Script)
             Assert.Equal(3, state.ReturnValue)
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
 
         <Fact>
         Public Async Function TestRunScriptWithSpecifiedReturnType() As Task
-            Dim state = Await VisualBasicScript.RunAsync("? 1 + 2", DefaultOptions)
+            Dim state = Await VisualBasicScript.RunAsync("? 1 + 2", s_defaultOptions)
             Assert.Equal(3, state.ReturnValue)
         End Function
 
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
 
         <Fact>
         Public Async Function TestRunVoidScript() As Task
-            Dim state = Await VisualBasicScript.RunAsync("System.Console.WriteLine(0)", DefaultOptions)
+            Dim state = Await VisualBasicScript.RunAsync("System.Console.WriteLine(0)", s_defaultOptions)
             Assert.Null(state.ReturnValue)
         End Function
 

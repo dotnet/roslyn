@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim containingAssembly As AssemblySymbol = Me.ContainingAssembly
 
                 If containingAssembly.IsMissing Then
-                    Return ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssembly3, containingAssembly.Identity, Me)
+                    Return ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssembly3, containingAssembly.Identity, CustomSymbolDisplayFormatter.DefaultErrorFormatIfSpecialType(Me))
                 Else
                     Dim containingModule As ModuleSymbol = Me.ContainingModule
 

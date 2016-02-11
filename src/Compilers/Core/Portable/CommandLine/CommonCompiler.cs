@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         public abstract DiagnosticFormatter DiagnosticFormatter { get; }
         private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
 
-        public abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger);
+        public abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLoggerOpt);
         public abstract void PrintLogo(TextWriter consoleOutput);
         public abstract void PrintHelp(TextWriter consoleOutput);
         internal abstract string GetToolName();
@@ -58,6 +58,11 @@ namespace Microsoft.CodeAnalysis
             this.Arguments = parser.Parse(allArgs, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories);
             this.MessageProvider = parser.MessageProvider;
             this.AnalyzerLoader = analyzerLoader;
+
+            if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
+            {
+                EmitDeterminismKey(Arguments, args, baseDirectory, parser);
+            }
         }
 
         internal abstract bool SuppressDefaultResponseFile(IEnumerable<string> args);
@@ -140,15 +145,15 @@ namespace Microsoft.CodeAnalysis
             var filePath = file.Path;
             try
             {
-            // PERF: Using a very small buffer size for the FileStream opens up an optimization within EncodedStringText where
-            // we read the entire FileStream into a byte array in one shot. For files that are actually smaller than the buffer
-            // size, FileStream.Read still allocates the internal buffer.
-            using (var data = PortableShim.FileStream.Create(filePath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.ReadWrite, bufferSize: 1, options: PortableShim.FileOptions.None))
-            {
-                normalizedFilePath = (string)PortableShim.FileStream.Name.GetValue(data);
-                return EncodedStringText.Create(data, Arguments.Encoding, Arguments.ChecksumAlgorithm);
+                // PERF: Using a very small buffer size for the FileStream opens up an optimization within EncodedStringText where
+                // we read the entire FileStream into a byte array in one shot. For files that are actually smaller than the buffer
+                // size, FileStream.Read still allocates the internal buffer.
+                using (var data = PortableShim.FileStream.Create(filePath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.ReadWrite, bufferSize: 1, options: PortableShim.FileOptions.None))
+                {
+                    normalizedFilePath = (string)PortableShim.FileStream.Name.GetValue(data);
+                    return EncodedStringText.Create(data, Arguments.Encoding, Arguments.ChecksumAlgorithm);
+                }
             }
-        }
             catch (Exception e)
             {
                 diagnostics.Add(ToFileReadDiagnostics(this.MessageProvider, e, filePath));
@@ -177,7 +182,7 @@ namespace Microsoft.CodeAnalysis
             return diagnosticInfo;
         }
 
-        public bool ReportErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput, ErrorLogger errorLogger)
+        public bool ReportErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
         {
             bool hasErrors = false;
             foreach (var diag in diagnostics)
@@ -202,7 +207,7 @@ namespace Microsoft.CodeAnalysis
 
                 // We want to report diagnostics with source suppression in the error log file.
                 // However, these diagnostics should not be reported on the console output.
-                ErrorLogger.LogDiagnostic(diag, this.Culture, errorLogger);
+                errorLoggerOpt?.LogDiagnostic(diag, this.Culture);
                 if (diag.IsSuppressed)
                 {
                     continue;
@@ -221,7 +226,7 @@ namespace Microsoft.CodeAnalysis
             return hasErrors;
         }
 
-        public bool ReportErrors(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput, ErrorLogger errorLogger)
+        public bool ReportErrors(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
         {
             bool hasErrors = false;
             if (diagnostics != null && diagnostics.Any())
@@ -235,7 +240,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     PrintError(diagnostic, consoleOutput);
-                    ErrorLogger.LogDiagnostic(Diagnostic.Create(diagnostic), this.Culture, errorLogger);
+                    errorLoggerOpt?.LogDiagnostic(Diagnostic.Create(diagnostic), this.Culture);
 
                     if (diagnostic.Severity == DiagnosticSeverity.Error)
                     {
@@ -367,7 +372,7 @@ namespace Microsoft.CodeAnalysis
                     analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
                     Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
                     var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.CastUp(additionalTextFiles));
-                    
+
                     analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, Arguments.ReportAnalyzer, out compilation, analyzerCts.Token);
                     getAnalyzerDiagnostics = () => analyzerDriver.GetDiagnosticsAsync(compilation).Result;
                 }
@@ -846,6 +851,69 @@ namespace Microsoft.CodeAnalysis
             {
                 return Arguments.PreferredUILang ?? CultureInfo.CurrentUICulture;
             }
+        }
+
+        private static void EmitDeterminismKey(CommandLineArguments args, string[] rawArgs, string baseDirectory, CommandLineParser parser)
+        {
+            var key = CreateDeterminismKey(args, rawArgs, baseDirectory, parser);
+            var filePath = Path.Combine(args.OutputDirectory, args.OutputFileName + ".key");
+            using (var stream = PortableShim.File.Create(filePath))
+            {
+                var bytes = Encoding.UTF8.GetBytes(key);
+                stream.Write(bytes, 0, bytes.Length);
+            }
+        }
+
+        /// <summary>
+        /// The string returned from this function represents the inputs to the compiler which impact determinism.  It is 
+        /// meant to be inline with the specification here:
+        /// 
+        ///     - https://github.com/dotnet/roslyn/blob/master/docs/compilers/Deterministic%20Inputs.md
+        /// 
+        /// Issue #8193 tracks filling this out to the full specification. 
+        /// 
+        ///     https://github.com/dotnet/roslyn/issues/8193
+        /// </summary>
+        private static string CreateDeterminismKey(CommandLineArguments args, string[] rawArgs, string baseDirectory, CommandLineParser parser)
+        {
+            List<Diagnostic> diagnostics = new List<Diagnostic>();
+            List<string> flattenedArgs = new List<string>();
+            parser.FlattenArgs(rawArgs, diagnostics, flattenedArgs, null, baseDirectory);
+
+            var builder = new StringBuilder();
+            var name = !string.IsNullOrEmpty(args.OutputFileName)
+                ? Path.GetFileNameWithoutExtension(Path.GetFileName(args.OutputFileName))
+                : $"no-output-name-{Guid.NewGuid().ToString()}";
+
+            builder.AppendLine($"{name}");
+            builder.AppendLine($"Command Line:");
+            foreach (var current in flattenedArgs)
+            {
+                builder.AppendLine($"\t{current}");
+            }
+
+            builder.AppendLine("Source Files:");
+            var hash = new MD5CryptoServiceProvider();
+            foreach (var sourceFile in args.SourceFiles)
+            {
+                var sourceFileName = Path.GetFileName(sourceFile.Path);
+
+                string hashValue;
+                try
+                {
+                    var bytes = PortableShim.File.ReadAllBytes(sourceFile.Path);
+                    var hashBytes = hash.ComputeHash(bytes);
+                    var data = BitConverter.ToString(hashBytes);
+                    hashValue = data.Replace("-", "");
+                }
+                catch (Exception ex)
+                {
+                    hashValue = $"Could not compute {ex.Message}";
+                }
+                builder.AppendLine($"\t{sourceFileName} - {hashValue}");
+            }
+
+            return builder.ToString();
         }
     }
 }

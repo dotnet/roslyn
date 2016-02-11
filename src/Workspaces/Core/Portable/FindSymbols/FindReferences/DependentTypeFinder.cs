@@ -101,6 +101,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>>.CreateValueCallback s_createSymbolDictionary =
             _ => new ConcurrentDictionary<SymbolKey, List<SymbolKey>>(s_symbolIdComparer);
 
+        /// <summary>
+        /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync"/>, which is a publically callable method.
+        /// </summary>
         public static Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
@@ -118,27 +121,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     projects,
                     s_findDerivedClassesPredicate,
                     s_derivedClassesCache,
-                    cancellationToken);
-            }
-
-            return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
-        }
-
-        public static Task<IEnumerable<INamedTypeSymbol>> FindDerivedInterfacesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            CancellationToken cancellationToken)
-        {
-            if (type != null && type.TypeKind == TypeKind.Interface)
-            {
-                type = type.OriginalDefinition;
-                return GetDependentTypesAsync(
-                    type,
-                    solution,
-                    projects,
-                    s_findDerivedInterfacesPredicate,
-                    s_derivedInterfacesCache,
                     cancellationToken);
             }
 

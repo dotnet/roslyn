@@ -2450,7 +2450,7 @@ o.F()]]>
         <Fact>
         Public Sub InteractiveExtensionMethods()
             Dim references = {MscorlibRef, SystemCoreRef}
-            
+
             Dim source0 = "
 Imports System.Runtime.CompilerServices
 <Extension>

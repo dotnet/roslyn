@@ -91,8 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SourceParameterSymbolBase destinationParameter = (SourceParameterSymbolBase)destinationParameters[i];
                 ParameterSymbol sourceParameter = sourceParameters[i];
 
-                if (sourceParameter.CustomModifiers.Any() || sourceParameter.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds:true) ||
-                    destinationParameter.CustomModifiers.Any() || destinationParameter.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds:true) || // Could happen if the associated property has custom modifiers.
+                if (sourceParameter.CustomModifiers.Any() || sourceParameter.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: true) ||
+                    destinationParameter.CustomModifiers.Any() || destinationParameter.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: true) || // Could happen if the associated property has custom modifiers.
                     (alsoCopyParamsModifier && (sourceParameter.IsParams != destinationParameter.IsParams)))
                 {
                     if (builder == null)
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     bool newParams = alsoCopyParamsModifier ? sourceParameter.IsParams : destinationParameter.IsParams;
-                    builder.Add(destinationParameter.WithCustomModifiersAndParams(sourceParameter.Type, sourceParameter.CustomModifiers, 
+                    builder.Add(destinationParameter.WithCustomModifiersAndParams(sourceParameter.Type, sourceParameter.CustomModifiers,
                                                                                   destinationParameter.RefKind != RefKind.None ? sourceParameter.CountOfCustomModifiersPrecedingByRef : (ushort)0,
                                                                                   newParams));
                 }

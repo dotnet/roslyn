@@ -3287,5 +3287,14 @@ class Program
     public int this[int index] => (int)0;
 }");
         }
+
+        [WorkItem(6682, "https://github.com/dotnet/roslyn/issues/6682")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestThisWithNoType()
+        {
+            await TestAsync(
+@"class Program { dynamic x = 7 ; static void Main ( string [ ] args ) { [|this|] . x = default(dynamic) ; } } ",
+@"class Program { dynamic x = 7 ; static void Main ( string [ ] args ) { x = default(dynamic) ; } } ");
+        }
     }
 }

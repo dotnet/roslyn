@@ -4421,7 +4421,7 @@ Class C
 End Class
 ]]></text>
 
-            Await TestAsync(input, expected, DontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
+            Await TestAsync(input, expected, s_dontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
         End Function
 
         <WorkItem(7955, "https://github.com/dotnet/roslyn/issues/7955")>
@@ -4454,13 +4454,175 @@ Class C
 End Class
 ]]></text>
 
-            Await TestAsync(input, expected, DontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
+            Await TestAsync(input, expected, s_dontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
         End Function
+
+        <WorkItem(8381, "https://github.com/dotnet/roslyn/issues/8381")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function SimplifyMeRegardlessOfTypeAndOptionStrict1() As Task
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" CommonReferences="true">
+                <Document>
+Option Strict On
+
+Class Class1
+    Private field1 As Short
+    Private field2 As Integer
+
+    Public Sub New()
+        {|SimplifyParent:Me.field1|} = 0
+        Me.field2 = 0
+    End Sub
+End Class
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+              <text>
+Option Strict On
+
+Class Class1
+    Private field1 As Short
+    Private field2 As Integer
+
+    Public Sub New()
+        field1 = 0
+        Me.field2 = 0
+    End Sub
+End Class
+</text>
+
+            Await TestAsync(input, expected, s_dontQualifyMemberAccessWithThisOrMe)
+        End Function
+
+        <WorkItem(8381, "https://github.com/dotnet/roslyn/issues/8381")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function SimplifyMeRegardlessOfTypeAndOptionStrict2() As Task
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" CommonReferences="true">
+                <Document>
+Option Strict On
+
+Class Class1
+    Private field1 As Short
+    Private field2 As Integer
+
+    Public Sub New()
+        Me.field1 = 0
+        {|SimplifyParent:Me.field2|} = 0
+    End Sub
+End Class
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+              <text>
+Option Strict On
+
+Class Class1
+    Private field1 As Short
+    Private field2 As Integer
+
+    Public Sub New()
+        Me.field1 = 0
+        field2 = 0
+    End Sub
+End Class
+</text>
+
+            Await TestAsync(input, expected, s_dontQualifyMemberAccessWithThisOrMe)
+        End Function
+
+        <WorkItem(8381, "https://github.com/dotnet/roslyn/issues/8381")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function SimplifyMeRegardlessOfTypeAndOptionStrict3() As Task
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" CommonReferences="true">
+                <Document>
+Option Strict Off
+
+Class Class1
+    Private field1 As Short
+    Private field2 As Integer
+
+    Public Sub New()
+        {|SimplifyParent:Me.field1|} = 0
+        Me.field2 = 0
+    End Sub
+End Class
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+              <text>
+Option Strict Off
+
+Class Class1
+    Private field1 As Short
+    Private field2 As Integer
+
+    Public Sub New()
+        field1 = 0
+        Me.field2 = 0
+    End Sub
+End Class
+</text>
+
+            Await TestAsync(input, expected, s_dontQualifyMemberAccessWithThisOrMe)
+        End Function
+
+        <WorkItem(8381, "https://github.com/dotnet/roslyn/issues/8381")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function SimplifyMeRegardlessOfTypeAndOptionStrict4() As Task
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" CommonReferences="true">
+                <Document>
+Option Strict Off
+
+Class Class1
+    Private field1 As Short
+    Private field2 As Integer
+
+    Public Sub New()
+        Me.field1 = 0
+        {|SimplifyParent:Me.field2|} = 0
+    End Sub
+End Class
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+              <text>
+Option Strict Off
+
+Class Class1
+    Private field1 As Short
+    Private field2 As Integer
+
+    Public Sub New()
+        Me.field1 = 0
+        field2 = 0
+    End Sub
+End Class
+</text>
+
+            Await TestAsync(input, expected, s_dontQualifyMemberAccessWithThisOrMe)
+        End Function
+
 #End Region
 
 #Region "Helpers"
 
-        Shared DontPreferIntrinsicPredefinedTypeKeywordInDeclaration As Dictionary(Of OptionKey, Object) = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), False}}
+        Private Shared s_dontPreferIntrinsicPredefinedTypeKeywordInDeclaration As Dictionary(Of OptionKey, Object) = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), False}}
+        Private Shared s_dontQualifyMemberAccessWithThisOrMe As Dictionary(Of OptionKey, Object) = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, LanguageNames.VisualBasic), False}}
 
 #End Region
 

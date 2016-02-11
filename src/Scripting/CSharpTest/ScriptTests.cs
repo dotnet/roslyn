@@ -476,7 +476,7 @@ if (true)
         {
             var resolver = TestSourceReferenceResolver.Create(
                 KeyValuePair.Create("a.csx", "return 42;"));
-            var options = ScriptOptions.Default.WithSourceResolver(resolver);       
+            var options = ScriptOptions.Default.WithSourceResolver(resolver);
 
             var script = CSharpScript.Create("#load \"a.csx\"", options);
             var result = await script.EvaluateAsync();

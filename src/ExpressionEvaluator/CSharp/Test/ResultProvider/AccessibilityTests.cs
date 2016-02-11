@@ -10,7 +10,7 @@ using Roslyn.Test.Utilities;
 using System;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     internal class AccessibilityTests : CSharpResultProviderTestBase
     {

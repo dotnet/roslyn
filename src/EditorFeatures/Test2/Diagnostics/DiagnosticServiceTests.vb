@@ -847,6 +847,25 @@ class AnonymousFunctions
 
         <WpfFact, WorkItem(1042914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042914"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticsReportedOnAllPartialDefinitions()
+            ' Test partial type diagnostic reported on all source files.
+            Dim analyzer = New PartialTypeDiagnosticAnalyzer(indexOfDeclToReportDiagnostic:=Nothing)
+            TestDiagnosticsReportedOnAllPartialDefinitionsCore(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+        End Sub
+
+        <WpfFact, WorkItem(3748, "https://github.com/dotnet/roslyn/issues/3748"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Public Sub TestDiagnosticsReportedOnAllPartialDefinitions2()
+            ' Test partial type diagnostic reported on all source files with multiple analyzers.
+
+            ' NOTE: This test is written to guard a race condition, which originally reproed only when the driver processes 'dummyAnalyzer' before 'analyzer'.
+            ' As this is non-deterministic, we execute it within a loop to increase the chance of failure if this regresses again.
+            For i = 0 To 10
+                Dim dummyAnalyzer = New DummySymbolAnalyzer()
+                Dim analyzer = New PartialTypeDiagnosticAnalyzer(indexOfDeclToReportDiagnostic:=Nothing)
+                TestDiagnosticsReportedOnAllPartialDefinitionsCore(ImmutableArray.Create(Of DiagnosticAnalyzer)(dummyAnalyzer, analyzer))
+            Next i
+        End Sub
+
+        Private Shared Sub TestDiagnosticsReportedOnAllPartialDefinitionsCore(analyzers As ImmutableArray(Of DiagnosticAnalyzer))
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test1.cs">
@@ -862,8 +881,7 @@ class AnonymousFunctions
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 ' Test partial type diagnostic reported on all source files.
-                Dim analyzer = New PartialTypeDiagnosticAnalyzer(indexOfDeclToReportDiagnostic:=Nothing)
-                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                Dim analyzerReference = New AnalyzerImageReference(analyzers)
                 project = project.AddAnalyzerReference(analyzerReference)
 
                 Dim diagnosticService = New TestDiagnosticAnalyzerService()
@@ -1333,6 +1351,25 @@ public class B
                     index += 1
                 Next
 
+            End Sub
+        End Class
+
+        Private Class DummySymbolAnalyzer
+            Inherits DiagnosticAnalyzer
+
+            Public Shared ReadOnly DiagDescriptor As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic")
+
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(DiagDescriptor)
+                End Get
+            End Property
+
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterSymbolAction(AddressOf AnalyzeSymbol, SymbolKind.NamedType)
+            End Sub
+
+            Private Sub AnalyzeSymbol(context As SymbolAnalysisContext)
             End Sub
         End Class
 

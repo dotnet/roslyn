@@ -47,15 +47,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             TypeParameterCount = typeParameterCount;
         }
 
-        public async Task<ISymbol> GetSymbolAsync(Document document, CancellationToken cancellationToken)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(Span);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-            return symbol;
-        }
-
         internal void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(Name);

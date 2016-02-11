@@ -1477,7 +1477,7 @@ class A { }
         }
 
         [WorkItem(536995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536995")]
-        [ClrOnlyFact]
+        [Fact]
         public void TestTextAndSpanWithTrivia1()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
@@ -1486,8 +1486,6 @@ class A { }
 }/*END*/");
             var rootNode = tree.GetCompilationUnitRoot();
 
-            Assert.Equal(53, rootNode.FullSpan.Length);
-            Assert.Equal(44, rootNode.Span.Length);
             Assert.Equal(rootNode.FullSpan.Length, rootNode.ToFullString().Length);
             Assert.Equal(rootNode.Span.Length, rootNode.ToString().Length);
             Assert.Equal(true, rootNode.ToString().Contains("/*END*/"));
@@ -1495,7 +1493,7 @@ class A { }
         }
 
         [WorkItem(536996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536996")]
-        [ClrOnlyFact]
+        [Fact]
         public void TestTextAndSpanWithTrivia2()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
@@ -1506,8 +1504,6 @@ namespace Microsoft.CSharp.Test
 /*END*/");
             var rootNode = tree.GetCompilationUnitRoot();
 
-            Assert.Equal(57, rootNode.FullSpan.Length);
-            Assert.Equal(46, rootNode.Span.Length);
             Assert.Equal(rootNode.FullSpan.Length, rootNode.ToFullString().Length);
             Assert.Equal(rootNode.Span.Length, rootNode.ToString().Length);
             Assert.Equal(true, rootNode.ToString().Contains("/*END*/"));
@@ -2326,7 +2322,7 @@ class C
             Assert.Equal(expectedText, text);
         }
 
-        [ClrOnlyFact]
+        [Fact]
         public void TestRemove_KeepUnbalancedDirectives()
         {
             var cu = SyntaxFactory.ParseCompilationUnit(@"
@@ -2339,7 +2335,7 @@ void M()
 {
 } // after
 #endregion
-}");
+}".NormalizeLineEndings());
 
             var expectedText = @"
 class C
@@ -2347,7 +2343,7 @@ class C
 
 #region Fred
 #endregion
-}";
+}".NormalizeLineEndings();
 
             var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
             Assert.NotNull(m);
@@ -2359,7 +2355,7 @@ class C
             Assert.Equal(expectedText, text);
         }
 
-        [ClrOnlyFact]
+        [Fact]
         public void TestRemove_KeepDirectives()
         {
             var cu = SyntaxFactory.ParseCompilationUnit(@"
@@ -2374,7 +2370,7 @@ void M()
 #endif
 } // after
 #endregion
-}");
+}".NormalizeLineEndings());
 
             var expectedText = @"
 class C
@@ -2384,7 +2380,7 @@ class C
 #if true
 #endif
 #endregion
-}";
+}".NormalizeLineEndings();
 
             var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
             Assert.NotNull(m);

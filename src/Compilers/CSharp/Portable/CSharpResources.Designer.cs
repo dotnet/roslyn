@@ -8126,6 +8126,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals..
+        /// </summary>
+        internal static string ERR_TooManyUserStrings {
+            get {
+                return ResourceManager.GetString("ERR_TooManyUserStrings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A format specifier may not contain trailing whitespace..
         /// </summary>
         internal static string ERR_TrailingWhitespaceInFormatSpecifier {

@@ -200,7 +200,7 @@
     <Compile Include="Interactive\VsInteractiveWindowPackage.cs" />
     <Compile Include="Interactive\VsInteractiveWindowProvider.cs" />
     <Compile Include="Interactive\CommonVsUtils.cs" />
-    <Compile Include="Interactive\ResetInteractive.cs" />
+    <Compile Include="Interactive\VsResetInteractive.cs" />
     <Compile Include="Interactive\ScriptingOleCommandTarget.cs" />
     <Compile Include="Interactive\VsUpdateSolutionEvents.cs" />
   </ItemGroup>

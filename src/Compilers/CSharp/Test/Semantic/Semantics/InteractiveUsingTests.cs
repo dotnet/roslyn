@@ -329,7 +329,7 @@ namespace B
 
         [WorkItem(5423, "https://github.com/dotnet/roslyn/issues/5423")]
         [Fact]
-        void UsingsFromLoadedScript()
+        private void UsingsFromLoadedScript()
         {
             const string scriptSource = @"
 using static System.IO.Path;
@@ -374,7 +374,7 @@ t = typeof(C); // declaration exposed
 
         [WorkItem(5423, "https://github.com/dotnet/roslyn/issues/5423")]
         [Fact]
-        void UsingsToLoadedScript()
+        private void UsingsToLoadedScript()
         {
             const string scriptSource = @"
 using System.Collections.Generic;
@@ -459,7 +459,7 @@ class C { }
         }
 
         [Fact]
-        void GlobalUsingsToLoadedScript()
+        private void GlobalUsingsToLoadedScript()
         {
             const string scriptSource = @"
 System.Type t;
@@ -572,7 +572,7 @@ namespace NOuter
                 // using static NInner.CInner;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NInner").WithArguments("NInner").WithLocation(1, 14));
         }
-        
+
         private static Symbol GetSpeculativeSymbol(CSharpCompilation comp, string name)
         {
             var tree = comp.SyntaxTrees.Single();
@@ -588,8 +588,8 @@ namespace NOuter
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             return (TypeSymbol)model.GetSpeculativeTypeInfo(
-                tree.Length, 
-                SyntaxFactory.IdentifierName(name), 
+                tree.Length,
+                SyntaxFactory.IdentifierName(name),
                 SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
         }
     }

@@ -547,7 +547,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), name);
                                     continue;
                                 }
-                                switch (value.ToLower()) {
+                                switch (value.ToLower())
+                                {
                                     case "full":
                                     case "pdbonly":
                                         debugInformationFormat = DebugInformationFormat.Pdb;

@@ -8249,7 +8249,7 @@ public static class Test
 ";
             await VerifyItemExistsAsync(markup, "TestA");
         }
-        
+
         [WorkItem(7932, "https://github.com/dotnet/roslyn/issues/7932")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExtensionMethodWithinParentClassOfferedForCompletion()

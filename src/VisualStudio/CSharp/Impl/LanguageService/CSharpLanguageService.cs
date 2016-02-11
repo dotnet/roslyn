@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
     [ExcludeFromCodeCoverage]
     [Guid(Guids.CSharpLanguageServiceIdString)]
-    internal partial class CSharpLanguageService : AbstractLanguageService<CSharpPackage, CSharpLanguageService, CSharpProject>
+    internal partial class CSharpLanguageService : AbstractLanguageService<CSharpPackage, CSharpLanguageService, CSharpProjectShim>
     {
         internal CSharpLanguageService(CSharpPackage package)
             : base(package)

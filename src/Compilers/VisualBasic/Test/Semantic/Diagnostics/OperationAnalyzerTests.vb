@@ -1,9 +1,10 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
+Imports Roslyn.Test.Utilities
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -123,18 +124,12 @@ End Class
             comp.VerifyAnalyzerDiagnostics({New BadStuffTestAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Framitz()").WithLocation(3, 9),
                                            Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Framitz()").WithLocation(3, 9),
-                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Framitz").WithLocation(3, 9),
-                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Framitz").WithLocation(3, 9),
                                            Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Bexley()").WithLocation(4, 28),
                                            Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Bexley()").WithLocation(4, 28),
-                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Bexley").WithLocation(4, 28),
-                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Bexley").WithLocation(4, 28),
                                            Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "M1(d)").WithLocation(7, 9),
                                            Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "M1(d)").WithLocation(7, 9),
                                            Diagnostic(BadStuffTestAnalyzer.InvalidStatementDescriptor.Id, "Goto").WithLocation(8, 9),
-                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Goto").WithLocation(8, 9),
-                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "").WithLocation(8, 13),
-                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "").WithLocation(8, 13))
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Goto").WithLocation(8, 9))
         End Sub
 
         <Fact>
@@ -1145,6 +1140,10 @@ Class C
 
     Public Sub OnMumble(args As System.EventArgs)
         AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)
+        AddHandler Mumble, New MumbleEventHandler(Sub(s As Object, a As System.EventArgs)
+                                                  End Sub)
+        AddHandler Mumble, Sub(s As Object, a As System.EventArgs)
+                           End Sub
         RaiseEvent Mumble(Me, args)
         ' Dim o As object = AddressOf Mumble
         Dim d As MumbleEventHandler = AddressOf Mumbler
@@ -1162,16 +1161,16 @@ End Class
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New MemberReferenceAnalyzer}, Nothing, Nothing, False,
-                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)").WithLocation(7, 9),
-                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)").WithLocation(7, 9),
-                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(7, 20),
+                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)").WithLocation(7, 9),  ' Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
                  Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(7, 51),
-                 Diagnostic(MemberReferenceAnalyzer.FieldReferenceDescriptor.Id, "Mumble").WithLocation(8, 20),
-                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(10, 39),
-                 Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "RemoveHandler Mumble, AddressOf Mumbler").WithLocation(12, 9),
-                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "RemoveHandler Mumble, AddressOf Mumbler").WithLocation(12, 9),
-                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(12, 23),
-                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(12, 31))
+                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(Sub(s As Object, a As System.EventArgs)
+                                                  End Sub)").WithLocation(8, 9),                                                                                    ' Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
+                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, Sub(s As Object, a As System.EventArgs)
+                           End Sub").WithLocation(10, 9),                                                                                                           ' Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
+                 Diagnostic(MemberReferenceAnalyzer.FieldReferenceDescriptor.Id, "Mumble").WithLocation(12, 20),   ' Bug: This should be an event reference. https://github.com/dotnet/roslyn/issues/8345
+                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(14, 39),
+                 Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "RemoveHandler Mumble, AddressOf Mumbler").WithLocation(16, 9),                    ' Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
+                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(16, 31))
         End Sub
 
         <Fact>
@@ -1209,6 +1208,262 @@ End Class
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5 }").WithLocation(12, 15),
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15),
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15))
+        End Sub
+
+        <Fact>
+        Public Sub FieldInitializersVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public F1 As Integer = 44
+    Public F2 As String = "Hello"
+    Public F3 As Integer = Foo()
+
+    Public Shared Function Foo()
+        Return 10
+    End Function
+
+    Public Shared Function Bar(Optional P1 As Integer = 10, Optional F2 As Integer = 20)
+        Return P1 + F2
+    End Function
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New EqualsValueTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 44").WithLocation(2, 26),
+                                           Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= ""Hello""").WithLocation(3, 25),
+                                           Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= Foo()").WithLocation(4, 26),
+                                           Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 20").WithLocation(10, 84))
+        End Sub
+
+        <Fact>
+        Public Sub OwningSymbolVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub UnFunkyMethod()
+        Dim x As Integer = 0
+        Dim y As Integer = x
+    End Sub
+
+    Public Sub FunkyMethod()
+        Dim x As Integer = 0
+        Dim y As Integer = x
+    End Sub
+
+    Public FunkyField As Integer = 12
+    Public UnFunkyField As Integer = 12
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New OwningSymbolTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "0").WithLocation(8, 28),
+                                           Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "x").WithLocation(9, 28),
+                                           Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "12").WithLocation(12, 36))
+        End Sub
+
+        <Fact>
+        Public Sub NoneOperationVisualBasic()
+            ' BoundCaseStatement is OperationKind.None
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub M1(x as Integer)
+        Select Case x
+            Case 1, 2
+                Exit Select
+            Case = 10
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New NoneOperationTestAnalyzer}, Nothing, Nothing, False)
+        End Sub
+
+        <Fact>
+        Public Sub LambdaExpressionVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Imports System
+
+Class B
+    Public Sub M1(x As Integer)
+        Dim action1 As Action = Sub()
+                                End Sub
+        Dim action2 As Action = Sub()
+                                    Console.WriteLine(1)
+                                End Sub
+        Dim func1 As Func(Of Integer, Integer) = Function(value As Integer)
+                                                     value = value + 1
+                                                     value = value + 1
+                                                     value = value + 1
+                                                     Return value + 1
+                                                 End Function
+    End Sub
+End Class
+
+Delegate Sub MumbleEventHandler(sender As Object, args As EventArgs)
+
+Class C
+    Public Event Mumble As MumbleEventHandler
+
+    Public Sub OnMumble(args As EventArgs)
+        AddHandler Mumble, New MumbleEventHandler(Sub(s As Object, a As EventArgs)
+                                                  End Sub)
+        AddHandler Mumble, Sub(s As Object, a As EventArgs)
+                               Dim value = 1
+                               value = value + 1
+                               value = value + 1
+                               value = value + 1
+                           End Sub
+        RaiseEvent Mumble(Me, args)
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New LambdaTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "Sub()
+                                End Sub").WithLocation(5, 33),
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "Sub(s As Object, a As EventArgs)
+                                                  End Sub").WithLocation(25, 51),
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "Sub()
+                                    Console.WriteLine(1)
+                                End Sub").WithLocation(7, 33),
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "Sub(s As Object, a As EventArgs)
+                               Dim value = 1
+                               value = value + 1
+                               value = value + 1
+                               value = value + 1
+                           End Sub").WithLocation(27, 28),
+                Diagnostic(LambdaTestAnalyzer.TooManyStatementsInLambdaExpressionDescriptor.Id, "Sub(s As Object, a As EventArgs)
+                               Dim value = 1
+                               value = value + 1
+                               value = value + 1
+                               value = value + 1
+                           End Sub").WithLocation(27, 28),
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "Function(value As Integer)
+                                                     value = value + 1
+                                                     value = value + 1
+                                                     value = value + 1
+                                                     Return value + 1
+                                                 End Function").WithLocation(10, 50),
+                Diagnostic(LambdaTestAnalyzer.TooManyStatementsInLambdaExpressionDescriptor.Id, "Function(value As Integer)
+                                                     value = value + 1
+                                                     value = value + 1
+                                                     value = value + 1
+                                                     Return value + 1
+                                                 End Function").WithLocation(10, 50))
+        End Sub
+
+        <WorkItem(8385, "https://github.com/dotnet/roslyn/issues/8385")>
+        <Fact>
+        Public Sub StaticMemberReferenceVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class D
+    Public Shared Event E()
+
+    Public Shared Field As Integer
+
+    Public Shared Property P As Integer
+
+    Public Shared Sub Method()
+    End Sub
+End Class
+
+Class C
+    Public Shared Event E()
+
+    Public Shared Sub Bar()
+    End Sub
+
+    Public Sub Foo()
+        AddHandler C.E, AddressOf D.Method
+        RaiseEvent E()  ' Can't raise static event with type in VB
+        C.Bar()
+
+        AddHandler D.E, Sub()
+                        End Sub
+        D.Field = 1
+        Dim x = D.P
+        D.Method()
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New StaticMemberTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "AddHandler C.E, AddressOf D.Method").WithLocation(19, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "AddressOf D.Method").WithLocation(19, 25),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "E").WithLocation(20, 20),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.Bar()").WithLocation(21, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "AddHandler D.E, Sub()
+                        End Sub").WithLocation(23, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Field").WithLocation(25, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.P").WithLocation(26, 17),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Method()").WithLocation(27, 9))
+        End Sub
+
+        <Fact>
+        Public Sub NullOperationSyntaxVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub M0(ParamArray b As Integer())
+    End Sub
+
+    Public Sub M1()
+        M0()
+        M0(1)
+        M0(1, 2)
+        M0(New Integer() {  })
+        M0(New Integer() { 1 })
+        M0(New Integer() { 1, 2 })
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            ' TODO: array should not be treated as ParamArray argument
+            ' https://github.com/dotnet/roslyn/issues/8570
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New NullOperationSyntaxTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0()").WithLocation(6, 9),
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0(1)").WithLocation(7, 9),
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0(1, 2)").WithLocation(8, 9),
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "New Integer() {  }").WithLocation(9, 12),
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "New Integer() { 1 }").WithLocation(10, 12),
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "New Integer() { 1, 2 }").WithLocation(11, 12))
         End Sub
     End Class
 End Namespace

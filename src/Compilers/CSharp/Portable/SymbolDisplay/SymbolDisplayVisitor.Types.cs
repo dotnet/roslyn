@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.LessThanToken);
 
                 var first = true;
-                for (int i =0; i < typeArguments.Length; i++)
+                for (int i = 0; i < typeArguments.Length; i++)
                 {
                     var typeArg = typeArguments[i];
 
@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!modifiers.IsDefault)
                     {
-                        AddCustomModifiersIfRequired(modifiers[i], leadingSpace: true, trailingSpace:false);
+                        AddCustomModifiersIfRequired(modifiers[i], leadingSpace: true, trailingSpace: false);
                     }
                 }
 

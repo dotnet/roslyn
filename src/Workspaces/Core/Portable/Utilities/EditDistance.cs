@@ -70,7 +70,7 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
-            ArrayPool<char>.ReleaseArray(this._sourceLowerCaseCharacters);
+            ArrayPool<char>.ReleaseArray(_sourceLowerCaseCharacters);
             _source = null;
             _sourceLowerCaseCharacters = null;
         }
@@ -90,7 +90,7 @@ namespace Roslyn.Utilities
 
         public int GetEditDistance(string target, int threshold = int.MaxValue)
         {
-            if (this._sourceLowerCaseCharacters == null)
+            if (_sourceLowerCaseCharacters == null)
             {
                 throw new ObjectDisposedException(nameof(EditDistance));
             }
@@ -175,7 +175,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        public static int GetEditDistance(ArraySlice<char> source, ArraySlice<char> target, int threshold  = int.MaxValue)
+        public static int GetEditDistance(ArraySlice<char> source, ArraySlice<char> target, int threshold = int.MaxValue)
         {
             return source.Length <= target.Length
                 ? GetEditDistanceWorker(source, target, threshold)

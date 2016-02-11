@@ -39,10 +39,10 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         }
 
         public void GetTypeDefProps(
-            int typeDefinition, 
-            [MarshalAs(UnmanagedType.LPWStr), Out]StringBuilder qualifiedName, 
-            int qualifiedNameBufferLength, 
-            out int qualifiedNameLength, 
+            int typeDefinition,
+            [MarshalAs(UnmanagedType.LPWStr), Out]StringBuilder qualifiedName,
+            int qualifiedNameBufferLength,
+            out int qualifiedNameLength,
             [MarshalAs(UnmanagedType.U4)]out TypeAttributes attributes,
             out int baseType)
         {
@@ -64,7 +64,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             }
             else
             {
-                qualifiedNameLength = 
+                qualifiedNameLength =
                     (typeDef.Namespace.IsNil ? 0 : MetadataReader.GetString(typeDef.Namespace).Length + 1) +
                     MetadataReader.GetString(typeDef.Name).Length;
             }
@@ -74,10 +74,10 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         }
 
         public void GetTypeRefProps(
-            int typeReference, 
+            int typeReference,
             out int resolutionScope,
-            [MarshalAs(UnmanagedType.LPWStr), Out]StringBuilder qualifiedName, 
-            int qualifiedNameBufferLength, 
+            [MarshalAs(UnmanagedType.LPWStr), Out]StringBuilder qualifiedName,
+            int qualifiedNameBufferLength,
             out int qualifiedNameLength)
         {
             var handle = (TypeReferenceHandle)MetadataTokens.Handle(typeReference);
