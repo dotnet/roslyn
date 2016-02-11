@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             try
             {
                 _console.ForegroundColor = ConsoleColor.Red;
-                _console.Out.Write(_objectFormatter.FormatUnhandledException(e));
+                _console.Out.Write(_objectFormatter.FormatException(e));
             }
             finally
             {

@@ -17,6 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 
         public override string FormatObject(object obj, PrintOptions options) => s_impl.FormatObject(obj, options);
 
-        public override string FormatUnhandledException(Exception e) => s_impl.FormatUnhandledException(e);
+        public override string FormatException(Exception e) => s_impl.FormatException(e);
     }
 }

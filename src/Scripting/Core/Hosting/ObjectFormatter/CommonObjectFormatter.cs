@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 arrayBoundRadix: printOptions.NumberRadix,
                 showNamespaces: false);
 
-        public override string FormatUnhandledException(Exception e)
+        public override string FormatException(Exception e)
         {
             if (e == null)
             {

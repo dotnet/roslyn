@@ -841,7 +841,7 @@ $@"Exception of type 'System.Exception' was thrown.
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method(){string.Format(ScriptingResources.AtFileLine, filePath, 10006)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_NonGeneric(){string.Format(ScriptingResources.AtFileLine, filePath, 10036)}
 ";
-                var actual = s_formatter.FormatUnhandledException(e);
+                var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
             }
         }
@@ -863,7 +863,7 @@ $@"Exception of type 'System.Exception' was thrown.
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method<U>(){string.Format(ScriptingResources.AtFileLine, filePath, 10012)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethod(){string.Format(ScriptingResources.AtFileLine, filePath, 10057)}
 ";
-                var actual = s_formatter.FormatUnhandledException(e);
+                var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
             }
         }
@@ -885,7 +885,7 @@ $@"Exception of type 'System.Exception' was thrown.
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method(){string.Format(ScriptingResources.AtFileLine, filePath, 10021)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericType(){string.Format(ScriptingResources.AtFileLine, filePath, 10079)}
 ";
-                var actual = s_formatter.FormatUnhandledException(e);
+                var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
             }
         }
@@ -907,7 +907,7 @@ $@"Exception of type 'System.Exception' was thrown.
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method<U>(){string.Format(ScriptingResources.AtFileLine, filePath, 10027)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethodInGenericType(){string.Format(ScriptingResources.AtFileLine, filePath, 10101)}
 ";
-                var actual = s_formatter.FormatUnhandledException(e);
+                var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
             }
         }
