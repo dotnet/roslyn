@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
@@ -188,12 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (methodOrdinal >= 0)
                 {
                     builder.Append(methodOrdinal);
-
-                    if (methodGeneration > 0)
-                    {
-                        builder.Append(GenerationSeparator);
-                        builder.Append(methodGeneration);
-                    }
+                    AppendOptionalGeneration(builder, methodGeneration);
                 }
 
                 if (entityOrdinal >= 0)
@@ -204,16 +200,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     builder.Append(entityOrdinal);
-
-                    if (entityGeneration > 0)
-                    {
-                        builder.Append(GenerationSeparator);
-                        builder.Append(entityGeneration);
-                    }
+                    AppendOptionalGeneration(builder, entityGeneration);
                 }
             }
 
             return result.ToStringAndFree();
+        }
+
+        private static void AppendOptionalGeneration(StringBuilder builder, int generation)
+        {
+            if (generation > 0)
+            {
+                builder.Append(GenerationSeparator);
+                builder.Append(generation);
+            }
         }
 
         internal static string MakeHoistedLocalFieldName(SynthesizedLocalKind kind, int slotIndex, string localNameOpt = null)
@@ -446,6 +446,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((char)GeneratedNameKind.DynamicCallSiteField == 'p');
             return "<>p__" + StringExtensions.GetNumeral(uniqueId);
+        }
+
+        /// <summary>
+        /// Produces name of the synthesized delegate symbol that encodes the parameter byref-ness and return type of the delegate.
+        /// The arity is appended via `N suffix in MetadataName calculation since the delegate is generic.
+        /// </summary>
+        internal static string MakeDynamicCallSiteDelegateName(BitVector byRefs, bool returnsVoid, int generation)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var builder = pooledBuilder.Builder;
+
+            builder.Append(returnsVoid ? "<>A" : "<>F");
+
+            if (!byRefs.IsNull)
+            {
+                builder.Append("{");
+
+                int i = 0;
+                foreach (int byRefIndex in byRefs.Words())
+                {
+                    if (i > 0)
+                    {
+                        builder.Append(",");
+                    }
+
+                    builder.AppendFormat("{0:x8}", byRefIndex);
+                    i++;
+                }
+
+                builder.Append("}");
+                Debug.Assert(i > 0);
+            }
+
+            AppendOptionalGeneration(builder, generation);
+            return pooledBuilder.ToStringAndFree();
         }
 
         internal static string AsyncBuilderFieldName()
