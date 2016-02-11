@@ -9,7 +9,7 @@ Supported Platforms:
 - .NET Framework 4.5
     </description>
     <dependencies>
-      <dependency id="Microsoft.DiaSymReader" version="1.0.7-beta1-51221" />
+      <dependency id="Microsoft.DiaSymReader" version="1.0.7" />
       <dependency id="System.Reflection.Metadata" version="1.2.0-rc3-23803" />
       <dependency id="System.Collections.Immutable" version="1.1.37" />
     </dependencies>
