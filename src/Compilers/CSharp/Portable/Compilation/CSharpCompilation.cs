@@ -2885,7 +2885,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void SymbolDeclaredEvent(Symbol symbol)
         {
-            if (EventQueue != null) EventQueue.Enqueue(new SymbolDeclaredCompilationEvent(this, symbol));
+            if (EventQueue?.IsCompleted == false)
+            {
+                EventQueue.Enqueue(new SymbolDeclaredCompilationEvent(this, symbol));
+            }
         }
 
         /// <summary>
