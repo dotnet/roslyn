@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    if (accessor.Kind() == SyntaxKind.GetAccessorDeclaration && (accessor.Body != null || accessor.ExpressionBody != null))
+                    if (accessor.Body != null || accessor.ExpressionBody != null)
                     {
                         notRegularProperty = false;
                     }

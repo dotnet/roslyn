@@ -7777,9 +7777,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to { or ; or =&gt; expected.
         /// </summary>
-        internal static string ERR_SemiOrLBraceOrExpressionExpected {
+        internal static string ERR_SemiOrLBraceOrArrowExpected {
             get {
-                return ResourceManager.GetString("ERR_SemiOrLBraceOrExpressionExpected", resourceCulture);
+                return ResourceManager.GetString("ERR_SemiOrLBraceOrArrowExpected", resourceCulture);
             }
         }
         

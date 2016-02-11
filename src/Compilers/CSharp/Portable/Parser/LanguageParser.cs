@@ -2799,7 +2799,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             out BlockSyntax blockBody,
             out ArrowExpressionClauseSyntax expressionBody,
             out SyntaxToken semicolon,
-            bool parseSemicolonAfterBlock = true)
+            bool parseSemicolonAfterBlock = true,
+            bool isAccessorBody = false)
         {
             // Check for 'forward' declarations with no block of any kind
             if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
@@ -2815,13 +2816,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
             {
-                blockBody = this.ParseBlock(isMethodBody: true);
+                blockBody = this.ParseBlock(isMethodBody: true, isAccessorBody: isAccessorBody);
             }
 
-            if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
+            else if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
             {
                 expressionBody = this.ParseArrowExpressionClause();
                 expressionBody = CheckFeatureAvailability(expressionBody, MessageID.IDS_FeatureExpressionBodiedMethod);
+            }
+            else if (isAccessorBody)
+            {
+                // There's a special error code for a missing token after an accessor keyword
+                this.AddError(SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken), ErrorCode.ERR_SemiOrLBraceOrArrowExpected);
             }
 
             semicolon = null;
@@ -3725,17 +3731,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 BlockSyntax body = null;
                 ArrowExpressionClauseSyntax expressionBody = null;
+
                 SyntaxToken semicolon = null;
                 bool currentTokenIsSemicolon = this.CurrentToken.Kind == SyntaxKind.SemicolonToken;
-                if (validAccName && !currentTokenIsSemicolon && !IsTerminator())
+                if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken 
+                            || (validAccName && !currentTokenIsSemicolon && !IsTerminator()))
                 {
-                    this.ParseBlockAndExpressionBodiesWithSemicolon(out body, out expressionBody, out semicolon);
-                    if (body == null && expressionBody == null && semicolon == null)
-                        this.AddError(semicolon, ErrorCode.ERR_SemiOrLBraceOrExpressionExpected);
+                    ParseBlockAndExpressionBodiesWithSemicolon(out body, out expressionBody, out semicolon, isAccessorBody: true);
                 }
                 else if (currentTokenIsSemicolon || validAccName)
                 {
-                    semicolon = this.EatToken(SyntaxKind.SemicolonToken, ErrorCode.ERR_SemiOrLBraceExpected);
+                    semicolon = this.EatToken(SyntaxKind.SemicolonToken, ErrorCode.ERR_SemiOrLBraceOrArrowExpected);
 
                     if (isEvent)
                     {
@@ -6982,9 +6988,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return (BlockSyntax)this.EatNode();
             }
 
+            // OBSOLETE: The "var openBrace = ..." statement (as is local field "isAccessorBody") is actually obsolete,
+            // because in an accessor this method can only be entered if we already have an
+            // open brace. Otherwise it is already checked in method ParseBlockAndExpressionBodiesWithSemicolon
+            // That's why we assert when this is not so. Must check the Assert before the token is evtl. eaten.
+            Debug.Assert(!isAccessorBody || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken,
+                "Cannot enter ParseBlock in accessor when CurrentToken is not OpenBraceToken!");
             // There's a special error code for a missing token after an accessor keyword
             var openBrace = isAccessorBody && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken
-                ? this.AddError(SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken), ErrorCode.ERR_SemiOrLBraceExpected)
+                ? this.AddError(SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken), ErrorCode.ERR_SemiOrLBraceOrArrowExpected)
                 : this.EatToken(SyntaxKind.OpenBraceToken);
 
             var statements = _pool.Allocate<StatementSyntax>();
