@@ -19,6 +19,7 @@ namespace Roslyn.Test.Utilities
             public const string AsyncLazy = nameof(AsyncLazy);
             public const string AutomaticEndConstructCorrection = nameof(AutomaticEndConstructCorrection);
             public const string AutomaticCompletion = nameof(AutomaticCompletion);
+            public const string BlockCommentEditing = nameof(BlockCommentEditing);
             public const string BraceHighlighting = nameof(BraceHighlighting);
             public const string BraceMatching = nameof(BraceMatching);
             public const string CallHierarchy = nameof(CallHierarchy);
