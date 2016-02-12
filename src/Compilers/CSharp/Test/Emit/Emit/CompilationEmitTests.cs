@@ -2953,11 +2953,11 @@ class C4
         private class FailingStream : Stream
         {
             private static readonly IOException exception = new IOException();
-            public override bool CanRead { get { throw exception; } }
+            public override bool CanRead { get { return true; } }
 
-            public override bool CanSeek { get { throw exception; } }
+            public override bool CanSeek { get { return true; } }
 
-            public override bool CanWrite { get { throw exception; } }
+            public override bool CanWrite { get { return true; } }
 
             public override long Length
             {
@@ -3020,7 +3020,11 @@ public class X
     }
 }";
             var compilation = CreateCompilationWithMscorlib(source);
-            compilation.Emit(new FailingStream());
+            var result = compilation.Emit(new FailingStream());
+            Assert.False(result.Success);
+            result.Diagnostics.Verify(
+// error CS8104: An error occurred while writing the Portable Executable file.
+Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments("I/O error occurred.").WithLocation(1, 1));
         }
     }
 }
