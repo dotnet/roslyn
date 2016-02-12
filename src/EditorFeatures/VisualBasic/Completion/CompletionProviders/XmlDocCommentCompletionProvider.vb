@@ -14,25 +14,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
     Partial Friend Class XmlDocCommentCompletionProvider
         Inherits AbstractDocCommentCompletionProvider
 
-        ' Tag names
-        Private Const CompletionListTagName = "completionlist"
-        Private Const ExampleTagName = "example"
-        Private Const ExceptionTagName = "exception"
-        Private Const IncludeTagName = "include"
-        Private Const ParamTagName = "param"
-        Private Const PermissionTagName = "permission"
-        Private Const RemarksTagName = "remarks"
-        Private Const ReturnsTagName = "returns"
-        Private Const SummaryTagName = "summary"
-        Private Const TypeParamTagName = "typeparam"
-        Private Const ValueTagName = "value"
-
-        ' Attribute names
-        Private Const CrefAttributeName = "cref"
-        Private Const ListTagName = "list"
-        Private Const ListHeaderTagName = "listheader"
-        Private Const NameAttributeName = "name"
-
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return text(characterPosition) = "<"c OrElse (text(characterPosition) = "/"c AndAlso characterPosition > 0 AndAlso text(characterPosition - 1) = "<"c)
         End Function
@@ -174,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
 
             Dim nameToken = name.LocalName
             If Not nameToken.IsMissing AndAlso nameToken.ValueText.Length > 0 Then
-                Return SpecializedCollections.SingletonEnumerable(Of CompletionItem)(New XmlDocCommentCompletionItem(Me, span, nameToken.ValueText, nameToken.ValueText + ">", String.Empty, GetCompletionItemRules()))
+                Return SpecializedCollections.SingletonEnumerable(Of CompletionItem)(New XmlDocCommentCompletionItem(Me, span, nameToken.ValueText, nameToken.ValueText & ">", String.Empty, GetCompletionItemRules()))
             End If
 
             Return Nothing
