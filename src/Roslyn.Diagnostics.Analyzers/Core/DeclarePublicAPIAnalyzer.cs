@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -117,7 +116,6 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public DeclarePublicAPIAnalyzer()
         {
-
         }
 
         public override void Initialize(AnalysisContext context)
@@ -127,7 +125,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
         {
-            var additionalFiles = compilationContext.Options.AdditionalFiles;
+            ImmutableArray<AdditionalText> additionalFiles = compilationContext.Options.AdditionalFiles;
             if (!_extraAdditionalFiles.IsDefaultOrEmpty)
             {
                 additionalFiles = additionalFiles.AddRange(_extraAdditionalFiles);
@@ -145,7 +143,7 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 compilationContext.RegisterCompilationEndAction(context =>
                 {
-                    foreach (var cur in errors)
+                    foreach (Diagnostic cur in errors)
                     {
                         context.ReportDiagnostic(cur);
                     }
@@ -166,7 +164,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         internal static string GetPublicApiName(ISymbol symbol)
         {
-            var publicApiName = symbol.ToDisplayString(s_publicApiFormat);
+            string publicApiName = symbol.ToDisplayString(s_publicApiFormat);
 
             ITypeSymbol memberType = null;
             if (symbol is IMethodSymbol)
@@ -196,12 +194,12 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static ApiData ReadApiData(string path, SourceText sourceText)
         {
-            var apiBuilder = ImmutableArray.CreateBuilder<ApiLine>();
-            var removedBuilder = ImmutableArray.CreateBuilder<RemovedApiLine>();
+            ImmutableArray<ApiLine>.Builder apiBuilder = ImmutableArray.CreateBuilder<ApiLine>();
+            ImmutableArray<RemovedApiLine>.Builder removedBuilder = ImmutableArray.CreateBuilder<RemovedApiLine>();
 
-            foreach (var line in sourceText.Lines)
+            foreach (TextLine line in sourceText.Lines)
             {
-                var text = line.ToString();
+                string text = line.ToString();
                 if (string.IsNullOrWhiteSpace(text))
                 {
                     continue;
@@ -210,7 +208,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 var apiLine = new ApiLine(text, line.Span, sourceText, path);
                 if (text.StartsWith(RemovedApiPrefix, StringComparison.Ordinal))
                 {
-                    var removedtext = text.Substring(RemovedApiPrefix.Length);
+                    string removedtext = text.Substring(RemovedApiPrefix.Length);
                     removedBuilder.Add(new RemovedApiLine(removedtext, apiLine));
                 }
                 else
@@ -243,12 +241,12 @@ namespace Roslyn.Diagnostics.Analyzers
             shippedText = null;
             unshippedText = null;
 
-            var comparer = StringComparer.Ordinal;
-            foreach (var text in additionalTexts)
+            StringComparer comparer = StringComparer.Ordinal;
+            foreach (AdditionalText text in additionalTexts)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var fileName = Path.GetFileName(text.Path);
+                string fileName = Path.GetFileName(text.Path);
                 if (comparer.Equals(fileName, ShippedFileName))
                 {
                     shippedText = text;
@@ -282,16 +280,16 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static void ValidateApiList(Dictionary<string, ApiLine> publicApiMap, ImmutableArray<ApiLine> apiList, List<Diagnostic> errors)
         {
-            foreach (var cur in apiList)
+            foreach (ApiLine cur in apiList)
             {
                 ApiLine existingLine;
                 if (publicApiMap.TryGetValue(cur.Text, out existingLine))
                 {
-                    var existingLinePositionSpan = existingLine.SourceText.Lines.GetLinePositionSpan(existingLine.Span);
-                    var existingLocation = Location.Create(existingLine.Path, existingLine.Span, existingLinePositionSpan);
+                    LinePositionSpan existingLinePositionSpan = existingLine.SourceText.Lines.GetLinePositionSpan(existingLine.Span);
+                    Location existingLocation = Location.Create(existingLine.Path, existingLine.Span, existingLinePositionSpan);
 
-                    var duplicateLinePositionSpan = cur.SourceText.Lines.GetLinePositionSpan(cur.Span);
-                    var duplicateLocation = Location.Create(cur.Path, cur.Span, duplicateLinePositionSpan);
+                    LinePositionSpan duplicateLinePositionSpan = cur.SourceText.Lines.GetLinePositionSpan(cur.Span);
+                    Location duplicateLocation = Location.Create(cur.Path, cur.Span, duplicateLinePositionSpan);
                     errors.Add(Diagnostic.Create(DuplicateSymbolInApiFiles, duplicateLocation, new[] { existingLocation }, cur.Text));
                 }
                 else

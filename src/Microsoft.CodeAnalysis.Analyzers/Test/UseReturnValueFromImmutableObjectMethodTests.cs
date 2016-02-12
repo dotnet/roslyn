@@ -35,10 +35,10 @@ class TestSimple
     }
 }
 ";
-            var documentExpected = GetCSharpExpectedDiagnostic(10, 9, "Document", "WithText");
-            var projectExpected = GetCSharpExpectedDiagnostic(13, 9, "Project", "AddDocument");
-            var solutionExpected = GetCSharpExpectedDiagnostic(16, 9, "Solution", "AddProject");
-            var compilationExpected = GetCSharpExpectedDiagnostic(19, 9, "Compilation", "RemoveAllSyntaxTrees");
+            DiagnosticResult documentExpected = GetCSharpExpectedDiagnostic(10, 9, "Document", "WithText");
+            DiagnosticResult projectExpected = GetCSharpExpectedDiagnostic(13, 9, "Project", "AddDocument");
+            DiagnosticResult solutionExpected = GetCSharpExpectedDiagnostic(16, 9, "Solution", "AddProject");
+            DiagnosticResult compilationExpected = GetCSharpExpectedDiagnostic(19, 9, "Compilation", "RemoveAllSyntaxTrees");
 
             VerifyCSharp(source, documentExpected, projectExpected, solutionExpected, compilationExpected);
         }
@@ -58,7 +58,7 @@ class TestExtensionMethodTrivia
         node.WithLeadingTrivia<SyntaxNode>();
     }
 }";
-            var expected = GetCSharpExpectedDiagnostic(10, 9, "SyntaxNode", "WithLeadingTrivia");
+            DiagnosticResult expected = GetCSharpExpectedDiagnostic(10, 9, "SyntaxNode", "WithLeadingTrivia");
             VerifyCSharp(source, expected);
         }
 
@@ -118,7 +118,7 @@ namespace ConsoleApplication1
 
         private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string objectName, string methodName)
         {
-            var fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
+            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
             return new DiagnosticResult
             {
                 Id = DiagnosticIds.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocation,

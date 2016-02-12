@@ -53,13 +53,13 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         {
             var shippedText = new TestAdditionalText(DeclarePublicAPIAnalyzer.ShippedFileName, shippedApiText);
             var unshippedText = new TestAdditionalText(DeclarePublicAPIAnalyzer.UnshippedFileName, unshippedApiText);
-            var array = ImmutableArray.Create<AdditionalText>(shippedText, unshippedText);
+            ImmutableArray<AdditionalText> array = ImmutableArray.Create<AdditionalText>(shippedText, unshippedText);
             return new DeclarePublicAPIAnalyzer(array);
         }
 
         private void VerifyCSharp(string source, string shippedApiText, string unshippedApiText, params DiagnosticResult[] expected)
         {
-            var analyzer = CreateAnalyzer(shippedApiText, unshippedApiText);
+            DeclarePublicAPIAnalyzer analyzer = CreateAnalyzer(shippedApiText, unshippedApiText);
             Verify(source, LanguageNames.CSharp, analyzer, expected);
         }
 
@@ -199,7 +199,7 @@ C.Property.set -> void
 C.Method() -> void
 ";
 
-            var unshippedText = $@"
+            string unshippedText = $@"
 {DeclarePublicAPIAnalyzer.RemovedApiPrefix}C.Method() -> void
 ";
 
@@ -217,7 +217,7 @@ public class C
 }
 ";
 
-            var shippedText = $@"
+            string shippedText = $@"
 C
 C.Field -> int
 C.Property.get -> int
@@ -225,7 +225,7 @@ C.Property.set -> void
 {DeclarePublicAPIAnalyzer.RemovedApiPrefix}C.Method() -> void
 ";
 
-            var unshippedText = $@"";
+            string unshippedText = $@"";
 
             VerifyCSharp(source, shippedText, unshippedText,
                 // error RS0024: The contents of the public API files are invalid: The shipped API file can't have removed members
