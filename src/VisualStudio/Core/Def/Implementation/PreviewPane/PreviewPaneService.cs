@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             return helpLink;
         }
 
-        object IPreviewPaneService.GetPreviewPane(DiagnosticData diagnostic, string language, string projectType, IList<object> previewContent)
+        object IPreviewPaneService.GetPreviewPane(DiagnosticData diagnostic, string language, string projectType, IReadOnlyList<object> previewContent)
         {
             var title = diagnostic?.Message;
 
