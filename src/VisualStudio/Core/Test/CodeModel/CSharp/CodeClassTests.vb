@@ -3854,6 +3854,8 @@ class C$$
                             Assert.False(True,
 $"Failed to add variable in loop iteration {i}!
 
+Exception: {ex.Message}
+
 Document text:
 {initialDocument.GetTextAsync(CancellationToken.None).Result}")
 
