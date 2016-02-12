@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Structure AnonymousTypeDescriptor
         Implements IEquatable(Of AnonymousTypeDescriptor)
 
-        Public Shared ReadOnly SubReturnParameterName As String = "Sub"
-        Public Shared ReadOnly FunctionReturnParameterName As String = "Function"
+        Public Const SubReturnParameterName As String = "Sub"
+        Public Const FunctionReturnParameterName As String = "Function"
 
         Friend Shared Function GetReturnParameterName(isFunction As Boolean) As String
             Return If(isFunction, FunctionReturnParameterName, SubReturnParameterName)

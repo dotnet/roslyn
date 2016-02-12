@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             if (typeArguments.Length == 0)
             {
-                return "";
+                throw new ArgumentException(null, nameof(typeArguments));
             }
 
             var pooled = PooledStringBuilder.GetInstance();

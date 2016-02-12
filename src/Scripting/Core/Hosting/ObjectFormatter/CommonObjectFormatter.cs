@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 arrayBoundRadix: printOptions.NumberRadix,
                 showNamespaces: false);
 
-        public override string FormatUnhandledException(Exception e)
+        public override string FormatException(Exception e)
         {
             if (e == null)
             {
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// Returns a method signature display string. Used to display stack frames.
         /// </summary>
         /// <returns>Null if the method is a compiler generated method that shouldn't be displayed to the user.</returns>
-        protected virtual string FormatMethodSignature(MethodBase method)
+        protected internal virtual string FormatMethodSignature(MethodBase method)
         {
             var pooled = PooledStringBuilder.GetInstance();
             var builder = pooled.Builder;
@@ -112,7 +112,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             builder.Append(TypeNameFormatter.FormatTypeName(declaringType, options));
             builder.Append('.');
             builder.Append(method.Name);
-            builder.Append(TypeNameFormatter.FormatTypeArguments(method.GetGenericArguments(), options));
+            if (method.IsGenericMethod)
+            {
+                builder.Append(TypeNameFormatter.FormatTypeArguments(method.GetGenericArguments(), options));
+            }
 
             builder.Append('(');
 

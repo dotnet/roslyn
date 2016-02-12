@@ -639,8 +639,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim fileLevelXmlImports As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
 
             Debug.Assert(importRecordGroups.Length = 2) ' First file-level, then project-level.
-            Dim projectLevelImportRecords = importRecordGroups(1)
             Dim fileLevelImportRecords = importRecordGroups(0)
+            Dim projectLevelImportRecords = importRecordGroups(1)
 
             ' Use this to give the imports different positions
             Dim position = 0

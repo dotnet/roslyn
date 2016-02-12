@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal sealed class ImportRecord
+    internal struct ImportRecord
     {
         public readonly ImportTargetKind TargetKind;
         public readonly string Alias;

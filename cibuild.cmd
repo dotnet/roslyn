@@ -3,7 +3,7 @@
 REM Parse Arguments.
 
 set NugetZipUrlRoot=https://dotnetci.blob.core.windows.net/roslyn
-set NugetZipUrl=%NuGetZipUrlRoot%/nuget.future.11.zip
+set NugetZipUrl=%NuGetZipUrlRoot%/nuget.future.12.zip
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 set BuildRestore=false
@@ -56,6 +56,7 @@ call :TerminateBuildProcesses
 
 if defined TestDeterminism (
     powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\test-determinism.ps1" "%bindir%\Bootstrap" || goto :BuildFailed
+    call :TerminateBuildProcesses
     exit /b 0
 )
 

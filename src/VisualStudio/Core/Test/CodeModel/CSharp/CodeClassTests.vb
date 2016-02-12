@@ -3856,7 +3856,7 @@ class C$$
                         document = document.WithText(text)
 
                         Dim result = state.VisualStudioWorkspace.TryApplyChanges(document.Project.Solution)
-                        Assert.True(result)
+                        Assert.True(result, "Attempt to apply changes to workspace failed.")
                     Next
                 End Sub)
         End Function

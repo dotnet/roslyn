@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             if (string.IsNullOrEmpty(pipeName))
             {
                 var clientDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                pipeName = DesktopBuildClient.GetPipeNameFromFileInfo(clientDirectory);
+                pipeName = DesktopBuildClient.GetPipeNameForPath(clientDirectory);
             }
 
             var mutexName = BuildProtocolConstants.GetServerMutexName(pipeName);

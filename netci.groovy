@@ -153,7 +153,7 @@ static void addStandardJob(def myJob, String jobName, String branchName, String 
   addLogRotator(myJob)
   addWrappers(myJob)
 
-  def includePattern = "Binaries/**/*.pdb,Binaries/**/*.xml,Binaries/**/*.baseline*,Binaries/**/*.original*,,Binaries/**/*.key,Binaries/**/*.log,Binaries/**/*.dmp"
+  def includePattern = "Binaries/**/*.pdb,Binaries/**/*.xml,Binaries/**/*.log,Binaries/**/*.dmp,Binaries/**/*.zip"
   def excludePattern = "Binaries/Obj/**,Binaries/Bootstrap/**"
   addArtifactArchiving(myJob, includePattern, excludePattern)
 
@@ -230,23 +230,24 @@ set TMP=%TEMP%
     }
   }
 
-  def determinismJobName = "roslyn_${branchName.substring(0, 6)}_determinism"
-  def determinismJob = job(determinismJobName) {
-    description('')
-  }
+  if (branchName != 'prtest') {
+    def determinismJobName = "roslyn_${branchName.substring(0, 6)}_determinism"
+    def determinismJob = job(determinismJobName) {
+      description('')
+    }
 
-  determinismJob.with {
-    label('windows-roslyn')
-    steps {
-      batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
+    determinismJob.with {
+      label('windows-roslyn')
+      steps {
+        batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
 set TMP=%TEMP%
 .\\cibuild.cmd /testDeterminism""")
+      }
     }
+
+    addConcurrentBuild(determinismJob, null)
+    addStandardJob(determinismJob, determinismJobName, branchName, "unit32", "win")
   }
-
-  addConcurrentBuild(determinismJob, null)
-  addStandardJob(determinismJob, determinismJobName, branchName, "unit32", "win")
 }
-
 

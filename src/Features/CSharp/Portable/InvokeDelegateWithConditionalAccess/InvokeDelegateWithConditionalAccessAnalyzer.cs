@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -128,6 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                             Location.Create(tree, TextSpan.FromBounds(expressionStatement.Span.End, ifStatement.Span.End)),
                             additionalLocations, properties));
                     }
+
+                    return true;
                 }
             }
 
@@ -150,8 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 return false;
             }
 
-            if (!IsNotEqualsExpression(condition.Left, condition.Right) &&
-                !IsNotEqualsExpression(condition.Right, condition.Left))
+            if (!IsNullCheckExpression(condition.Left, condition.Right) &&
+                !IsNullCheckExpression(condition.Right, condition.Left))
             {
                 return false;
             }
@@ -244,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             return true;
         }
 
-        private bool IsNotEqualsExpression(ExpressionSyntax left, ExpressionSyntax right) =>
+        private bool IsNullCheckExpression(ExpressionSyntax left, ExpressionSyntax right) =>
             left.IsKind(SyntaxKind.IdentifierName) && right.IsKind(SyntaxKind.NullLiteralExpression);
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
