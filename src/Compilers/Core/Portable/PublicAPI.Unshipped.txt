@@ -143,10 +143,11 @@ Microsoft.CodeAnalysis.OperationKind.YieldBreakStatement = 9 -> Microsoft.CodeAn
 Microsoft.CodeAnalysis.OperationKind.YieldReturnStatement = 21 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.SemanticModel.GetOperation(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.ArgumentKind
-Microsoft.CodeAnalysis.Semantics.ArgumentKind.DefaultValue = 3 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
-Microsoft.CodeAnalysis.Semantics.ArgumentKind.Named = 1 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
-Microsoft.CodeAnalysis.Semantics.ArgumentKind.ParamArray = 2 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
-Microsoft.CodeAnalysis.Semantics.ArgumentKind.Positional = 0 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
+Microsoft.CodeAnalysis.Semantics.ArgumentKind.DefaultValue = 4 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
+Microsoft.CodeAnalysis.Semantics.ArgumentKind.Named = 2 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
+Microsoft.CodeAnalysis.Semantics.ArgumentKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
+Microsoft.CodeAnalysis.Semantics.ArgumentKind.ParamArray = 3 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
+Microsoft.CodeAnalysis.Semantics.ArgumentKind.Positional = 1 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind.Boolean = 1536 -> Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind.Decimal = 1280 -> Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind
@@ -156,6 +157,7 @@ Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind.Enum = 1792 -> Microsoft.Cod
 Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind.Floating = 1024 -> Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind.Integer = 512 -> Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind.IntegerPointer = 3072 -> Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind.Nullable = 3840 -> Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind.Object = 2304 -> Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind.OperatorMethod = 256 -> Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind
@@ -312,14 +314,16 @@ Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.UnsignedRemainder = 774 -> 
 Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.UnsignedRightShift = 777 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.UnsignedSubtract = 770 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.BranchKind
-Microsoft.CodeAnalysis.Semantics.BranchKind.Break = 1 -> Microsoft.CodeAnalysis.Semantics.BranchKind
-Microsoft.CodeAnalysis.Semantics.BranchKind.Continue = 0 -> Microsoft.CodeAnalysis.Semantics.BranchKind
-Microsoft.CodeAnalysis.Semantics.BranchKind.GoTo = 2 -> Microsoft.CodeAnalysis.Semantics.BranchKind
+Microsoft.CodeAnalysis.Semantics.BranchKind.Break = 2 -> Microsoft.CodeAnalysis.Semantics.BranchKind
+Microsoft.CodeAnalysis.Semantics.BranchKind.Continue = 1 -> Microsoft.CodeAnalysis.Semantics.BranchKind
+Microsoft.CodeAnalysis.Semantics.BranchKind.GoTo = 3 -> Microsoft.CodeAnalysis.Semantics.BranchKind
+Microsoft.CodeAnalysis.Semantics.BranchKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.BranchKind
 Microsoft.CodeAnalysis.Semantics.CaseKind
-Microsoft.CodeAnalysis.Semantics.CaseKind.Default = 3 -> Microsoft.CodeAnalysis.Semantics.CaseKind
-Microsoft.CodeAnalysis.Semantics.CaseKind.Range = 2 -> Microsoft.CodeAnalysis.Semantics.CaseKind
-Microsoft.CodeAnalysis.Semantics.CaseKind.Relational = 1 -> Microsoft.CodeAnalysis.Semantics.CaseKind
-Microsoft.CodeAnalysis.Semantics.CaseKind.SingleValue = 0 -> Microsoft.CodeAnalysis.Semantics.CaseKind
+Microsoft.CodeAnalysis.Semantics.CaseKind.Default = 4 -> Microsoft.CodeAnalysis.Semantics.CaseKind
+Microsoft.CodeAnalysis.Semantics.CaseKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.CaseKind
+Microsoft.CodeAnalysis.Semantics.CaseKind.Range = 3 -> Microsoft.CodeAnalysis.Semantics.CaseKind
+Microsoft.CodeAnalysis.Semantics.CaseKind.Relational = 2 -> Microsoft.CodeAnalysis.Semantics.CaseKind
+Microsoft.CodeAnalysis.Semantics.CaseKind.SingleValue = 1 -> Microsoft.CodeAnalysis.Semantics.CaseKind
 Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.ConversionKind.Basic = 3 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.ConversionKind.CSharp = 4 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
@@ -372,8 +376,8 @@ Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression
 Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression.Access.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IConditionalChoiceExpression
 Microsoft.CodeAnalysis.Semantics.IConditionalChoiceExpression.Condition.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Semantics.IConditionalChoiceExpression.IfFalse.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Semantics.IConditionalChoiceExpression.IfTrue.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IConditionalChoiceExpression.IfFalseValue.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IConditionalChoiceExpression.IfTrueValue.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IConversionExpression
 Microsoft.CodeAnalysis.Semantics.IConversionExpression.ConversionKind.get -> Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.IConversionExpression.IsExplicit.get -> bool
@@ -414,8 +418,8 @@ Microsoft.CodeAnalysis.Semantics.IHasOperatorMethodExpression.OperatorMethod.get
 Microsoft.CodeAnalysis.Semantics.IHasOperatorMethodExpression.UsesOperatorMethod.get -> bool
 Microsoft.CodeAnalysis.Semantics.IIfStatement
 Microsoft.CodeAnalysis.Semantics.IIfStatement.Condition.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Semantics.IIfStatement.IfFalse.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Semantics.IIfStatement.IfTrue.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IIfStatement.IfFalseStatement.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IIfStatement.IfTrueStatement.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IIncrementExpression
 Microsoft.CodeAnalysis.Semantics.IIncrementExpression.IncrementOperationKind.get -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.Semantics.IInstanceReferenceExpression
@@ -531,14 +535,16 @@ Microsoft.CodeAnalysis.Semantics.IWithStatement
 Microsoft.CodeAnalysis.Semantics.IWithStatement.Body.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IWithStatement.Value.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
-Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind.BaseClass = 2 -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
-Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind.Explicit = 1 -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
-Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind.Implicit = 0 -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
-Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind.ThisClass = 3 -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
+Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind.BaseClass = 3 -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
+Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind.Explicit = 2 -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
+Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind.Implicit = 1 -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
+Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
+Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind.ThisClass = 4 -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
 Microsoft.CodeAnalysis.Semantics.LoopKind
-Microsoft.CodeAnalysis.Semantics.LoopKind.For = 1 -> Microsoft.CodeAnalysis.Semantics.LoopKind
-Microsoft.CodeAnalysis.Semantics.LoopKind.ForEach = 2 -> Microsoft.CodeAnalysis.Semantics.LoopKind
-Microsoft.CodeAnalysis.Semantics.LoopKind.WhileUntil = 0 -> Microsoft.CodeAnalysis.Semantics.LoopKind
+Microsoft.CodeAnalysis.Semantics.LoopKind.For = 2 -> Microsoft.CodeAnalysis.Semantics.LoopKind
+Microsoft.CodeAnalysis.Semantics.LoopKind.ForEach = 3 -> Microsoft.CodeAnalysis.Semantics.LoopKind
+Microsoft.CodeAnalysis.Semantics.LoopKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.LoopKind
+Microsoft.CodeAnalysis.Semantics.LoopKind.WhileUntil = 1 -> Microsoft.CodeAnalysis.Semantics.LoopKind
 Microsoft.CodeAnalysis.Semantics.OperationExtensions
 Microsoft.CodeAnalysis.Semantics.OperationVisitor
 Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>
@@ -594,6 +600,7 @@ Microsoft.CodeAnalysis.Semantics.UnaryOperandKind.Dynamic = 2048 -> Microsoft.Co
 Microsoft.CodeAnalysis.Semantics.UnaryOperandKind.Enum = 1792 -> Microsoft.CodeAnalysis.Semantics.UnaryOperandKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperandKind.Floating = 1024 -> Microsoft.CodeAnalysis.Semantics.UnaryOperandKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperandKind.Integer = 512 -> Microsoft.CodeAnalysis.Semantics.UnaryOperandKind
+Microsoft.CodeAnalysis.Semantics.UnaryOperandKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.UnaryOperandKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperandKind.Object = 2304 -> Microsoft.CodeAnalysis.Semantics.UnaryOperandKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperandKind.OperatorMethod = 256 -> Microsoft.CodeAnalysis.Semantics.UnaryOperandKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperandKind.Pointer = 2560 -> Microsoft.CodeAnalysis.Semantics.UnaryOperandKind

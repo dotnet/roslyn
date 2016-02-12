@@ -151,9 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IOperation IIfStatement.Condition => this.Condition;
 
-        IOperation IIfStatement.IfTrue => this.Consequence;
+        IOperation IIfStatement.IfTrueStatement => this.Consequence;
 
-        IOperation IIfStatement.IfFalse => this.AlternativeOpt;
+        IOperation IIfStatement.IfFalseStatement => this.AlternativeOpt;
 
         protected override OperationKind StatementKind => OperationKind.IfStatement;
 

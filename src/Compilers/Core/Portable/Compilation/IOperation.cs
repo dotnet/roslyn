@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
         SyntaxNode Syntax { get; }
 
         /// <summary>
-        /// Result type of the operation. Null if the operation is not a value-producing expression.
+        /// Result type of the operation, or null if the operation does not produce a result.
         /// </summary>
         ITypeSymbol Type { get; }
 

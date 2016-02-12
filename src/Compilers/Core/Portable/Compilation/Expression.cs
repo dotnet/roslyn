@@ -86,17 +86,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         public ConditionalChoice(IOperation condition, IOperation ifTrue, IOperation ifFalse, ITypeSymbol resultType, SyntaxNode syntax)
         {
             this.Condition = condition;
-            this.IfTrue = ifTrue;
-            this.IfFalse = ifFalse;
+            this.IfTrueValue = ifTrue;
+            this.IfFalseValue = ifFalse;
             this.Type = resultType;
             this.Syntax = syntax;
         }
 
         public IOperation Condition { get; }
 
-        public IOperation IfTrue { get; }
+        public IOperation IfTrueValue { get; }
 
-        public IOperation IfFalse { get; }
+        public IOperation IfFalseValue { get; }
 
         public ITypeSymbol Type { get; }
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public OperationKind Kind => OperationKind.ConditionalChoiceExpression;
 
-        public bool IsInvalid => Condition == null || Condition.IsInvalid || IfTrue == null || IfTrue.IsInvalid || IfFalse == null || IfFalse.IsInvalid;
+        public bool IsInvalid => Condition == null || Condition.IsInvalid || IfTrueValue == null || IfTrueValue.IsInvalid || IfFalseValue == null || IfFalseValue.IsInvalid;
 
         public Optional<object> ConstantValue => default(Optional<object>);
 
@@ -190,9 +190,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly CompoundAssignmentExpression _compoundAssignment;
 
-        public CompoundAssignment(IReferenceExpression target, IOperation value, BinaryOperationKind binaryKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
+        public CompoundAssignment(IReferenceExpression target, IOperation value, BinaryOperationKind binaryOperationKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
         {
-            _compoundAssignment = new CompoundAssignmentExpression(target, value, binaryKind, operatorMethod, syntax);
+            _compoundAssignment = new CompoundAssignmentExpression(target, value, binaryOperationKind, operatorMethod, syntax);
             this.Syntax = syntax;
         }
 
@@ -220,11 +220,11 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private sealed class CompoundAssignmentExpression : ICompoundAssignmentExpression
         {
-            public CompoundAssignmentExpression(IReferenceExpression target, IOperation value, BinaryOperationKind binaryKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
+            public CompoundAssignmentExpression(IReferenceExpression target, IOperation value, BinaryOperationKind binaryOperationKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
             {
                 this.Target = target;
                 this.Value = value;
-                this.BinaryOperationKind = binaryKind;
+                this.BinaryOperationKind = binaryOperationKind;
                 this.OperatorMethod = operatorMethod;
                 this.Syntax = syntax;
             }
@@ -331,9 +331,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     internal sealed class Binary : IBinaryOperatorExpression
     {
-        public Binary(BinaryOperationKind binaryKind, IOperation left, IOperation right, ITypeSymbol resultType, SyntaxNode syntax)
+        public Binary(BinaryOperationKind binaryOperationKind, IOperation left, IOperation right, ITypeSymbol resultType, SyntaxNode syntax)
         {
-            this.BinaryOperationKind = binaryKind;
+            this.BinaryOperationKind = binaryOperationKind;
             this.Left = left;
             this.Right = right;
             this.Type = resultType;

@@ -55,13 +55,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IIfTrue As IOperation Implements IIfStatement.IfTrue
+        Private ReadOnly Property IIfTrue As IOperation Implements IIfStatement.IfTrueStatement
             Get
                 Return Me.Consequence
             End Get
         End Property
 
-        Private ReadOnly Property IIfFalse As IOperation Implements IIfStatement.IfFalse
+        Private ReadOnly Property IIfFalse As IOperation Implements IIfStatement.IfFalseStatement
             Get
                 Return Me.AlternativeOpt
             End Get

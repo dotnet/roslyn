@@ -91,22 +91,24 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum CaseKind
     {
+        None = 0x0,
+
         /// <summary>
         /// Indicates case x in C# or Case x in VB.
         /// </summary>
-        SingleValue = 0x0,
+        SingleValue = 0x1,
         /// <summary>
         /// Indicates Case Is op x in VB.
         /// </summary>
-        Relational = 0x1,
+        Relational = 0x2,
         /// <summary>
         /// Indicates Case x To Y in VB.
         /// </summary>
-        Range = 0x2,
+        Range = 0x3,
         /// <summary>
         /// Indicates default in C# or Case Else in VB.
         /// </summary>
-        Default = 0x3
+        Default = 0x4
     }
 
     /// <summary>
@@ -166,11 +168,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Statement executed if the condition is true.
         /// </summary>
-        IOperation IfTrue { get; }
+        IOperation IfTrueStatement { get; }
         /// <summary>
         /// Statement executed if the condition is false.
         /// </summary>
-        IOperation IfFalse { get; }
+        IOperation IfFalseStatement { get; }
     }
 
     /// <summary>
@@ -193,18 +195,20 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum LoopKind
     {
+        None = 0x0,
+
         /// <summary>
         /// Indicates a C# while or do loop, or a VB While or Do loop.
         /// </summary>
-        WhileUntil = 0x0,
+        WhileUntil = 0x1,
         /// <summary>
         /// Indicates a C# for loop or a VB For loop.
         /// </summary>
-        For = 0x1,
+        For = 0x2,
         /// <summary>
         /// Indicates a C# foreach loop or a VB For Each loop.
         /// </summary>
-        ForEach = 0x2
+        ForEach = 0x3
     }
 
     /// <summary>
@@ -299,9 +303,10 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     public enum BranchKind
     {
-        Continue = 0x0,
-        Break = 0x1,
-        GoTo = 0x2
+        None = 0x0,
+        Continue = 0x1,
+        Break = 0x2,
+        GoTo = 0x3
     }
 
     /// <summary>

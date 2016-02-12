@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         IMethodSymbol TargetMethod { get; }
         /// <summary>
-        /// 'This' or 'Me' argument to be supplied to the method.
+        /// 'This' or 'Me' instance to be supplied to the method, or null if the method is static.
         /// </summary>
         IOperation Instance { get; }
         /// <summary>
@@ -77,22 +77,24 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum ArgumentKind
     {
+        None = 0x0,
+
         /// <summary>
         /// Argument is specified positionally and matches the parameter of the same ordinality.
         /// </summary>
-        Positional = 0x0,
+        Positional = 0x1,
         /// <summary>
         /// Argument is specified by name and matches the parameter of the same name.
         /// </summary>
-        Named = 0x1,
+        Named = 0x2,
         /// <summary>
         /// Argument becomes an element of an array that matches a trailing C# params or VB ParamArray parameter.
         /// </summary>
-        ParamArray = 0x2,
+        ParamArray = 0x3,
         /// <summary>
         /// Argument was omitted in source but has a default value supplied automatically.
         /// </summary>
-        DefaultValue = 0x3
+        DefaultValue = 0x4
     }
 
     /// <summary>
@@ -196,14 +198,15 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     public enum InstanceReferenceKind
     {
+        None = 0x0,
         /// <summary>Indicates an implicit this or Me expression.</summary>
-        Implicit = 0x0,
+        Implicit = 0x1,
         /// <summary>Indicates an explicit this or Me expression.</summary>
-        Explicit = 0x1,
+        Explicit = 0x2,
         /// <summary>Indicates an explicit base or MyBase expression.</summary>
-        BaseClass = 0x2,
+        BaseClass = 0x3,
         /// <summary>Indicates an explicit MyClass expression.</summary>
-        ThisClass = 0x3
+        ThisClass = 0x4
     }
     
     /// <summary>
@@ -357,6 +360,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     public enum UnaryOperandKind
     {
+        None = 0x0,
+
         OperatorMethod = 0x100,
         Integer = 0x200,
         Unsigned = 0x300,
@@ -499,6 +504,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     public enum BinaryOperandsKind
     {
+        None = 0x0,
+
         OperatorMethod = 0x100,
         Integer = 0x200,
         Unsigned = 0x300,
@@ -847,11 +854,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Value evaluated if the Condition is true.
         /// </summary>
-        IOperation IfTrue { get; }
+        IOperation IfTrueValue { get; }
         /// <summary>
         /// Value evaluated if the Condition is false.
         /// </summary>
-        IOperation IfFalse { get; }
+        IOperation IfFalseValue { get; }
     }
 
     /// <summary>

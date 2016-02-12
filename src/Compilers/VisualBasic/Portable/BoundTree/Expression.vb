@@ -1087,13 +1087,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IIfFalse As IOperation Implements IConditionalChoiceExpression.IfFalse
+        Private ReadOnly Property IIfFalse As IOperation Implements IConditionalChoiceExpression.IfFalseValue
             Get
                 Return Me.WhenFalse
             End Get
         End Property
 
-        Private ReadOnly Property IIfTrue As IOperation Implements IConditionalChoiceExpression.IfTrue
+        Private ReadOnly Property IIfTrue As IOperation Implements IConditionalChoiceExpression.IfTrueValue
             Get
                 Return Me.WhenTrue
             End Get

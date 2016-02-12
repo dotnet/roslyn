@@ -1111,9 +1111,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IOperation IConditionalChoiceExpression.Condition => this.Condition;
 
-        IOperation IConditionalChoiceExpression.IfTrue => this.Consequence;
+        IOperation IConditionalChoiceExpression.IfTrueValue => this.Consequence;
 
-        IOperation IConditionalChoiceExpression.IfFalse => this.Alternative;
+        IOperation IConditionalChoiceExpression.IfFalseValue => this.Alternative;
 
         protected override OperationKind ExpressionKind => OperationKind.ConditionalChoiceExpression;
 

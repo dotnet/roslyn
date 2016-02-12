@@ -86,8 +86,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitIfStatement(IIfStatement operation)
         {
             Visit(operation.Condition);
-            Visit(operation.IfTrue);
-            Visit(operation.IfFalse);
+            Visit(operation.IfTrueStatement);
+            Visit(operation.IfFalseStatement);
         }
 
         public override void VisitWhileUntilLoopStatement(IWhileUntilLoopStatement operation)
@@ -283,8 +283,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitConditionalChoiceExpression(IConditionalChoiceExpression operation)
         {
             Visit(operation.Condition);
-            Visit(operation.IfTrue);
-            Visit(operation.IfFalse);
+            Visit(operation.IfTrueValue);
+            Visit(operation.IfFalseValue);
         }
 
         public override void VisitNullCoalescingExpression(INullCoalescingExpression operation)
