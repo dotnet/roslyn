@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
         public bool IsEmpty => _previews.Count == 0;
 
-        public async Task<IList<object>> GetPreviewsAsync(DocumentId preferredDocumentId = null, ProjectId preferredProjectId = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IReadOnlyList<object>> GetPreviewsAsync(DocumentId preferredDocumentId = null, ProjectId preferredProjectId = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             AssertIsForeground();
             cancellationToken.ThrowIfCancellationRequested();
