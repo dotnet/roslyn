@@ -3171,7 +3171,9 @@ public class C : A
         [Fact]
         public void MissingAssemblyResolution_Supersession_FxUnification()
         {
-            var options = TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
+            var options = TestOptions.ReleaseDll
+                .WithReferencesSupersedeLowerVersions(true)
+                .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
             // c - "mscorlib, v4"
             //     a -> "mscorlib, v2"
