@@ -284,5 +284,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.Null(_sessionKey);
             }
         }
+
+        public class MiscTest
+        {
+            [Fact]
+            public void GetBasePipeNameSlashes()
+            {
+                var path = string.Format(@"q:{0}the{0}path", Path.DirectorySeparatorChar);
+                var name = DesktopBuildClient.GetBasePipeName(path);
+                Assert.Equal(name, DesktopBuildClient.GetBasePipeName(path));
+                Assert.Equal(name, DesktopBuildClient.GetBasePipeName(path + Path.DirectorySeparatorChar));
+                Assert.Equal(name, DesktopBuildClient.GetBasePipeName(path + Path.DirectorySeparatorChar + Path.DirectorySeparatorChar));
+            }
+        }
     }
 }

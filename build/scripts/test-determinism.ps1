@@ -11,16 +11,19 @@ try
     $rootDir = resolve-path (split-path -parent (split-path -parent $PSScriptRoot))
     $sln = join-path $rootDir "Roslyn.sln"
     $debugDir = join-path $rootDir "Binaries\Debug"
+    $errorDir = join-path $rootDir "Binaries\Determinism"
+    $errorList = @()
 
     # Create directories that may or may not exist to make the script execution below 
     # clean in either case.
     mkdir $debugDir -errorAction SilentlyContinue | out-null
     mkdir (join-path $rootDir "Binaries\Obj") -errorAction SilentlyContinue | out-null
+    mkdir $errorDir -errorAction SilentlyContinue | out-null
 
     pushd $rootDir
 
     # List of binary names that should be skipped because they have a known issue that
-    # makes them non-deterministic.
+    # makes them non-deterministic.  
     $skipList = @()
 
     $allGood = $true
@@ -32,10 +35,10 @@ try
         write-host "Cleaning the Binaries"
         rm -re -fo "Binaries\Debug" 
         rm -re -fo "Binaries\Obj"
-        & msbuild /nologo /v:m /t:clean $sln
+        & msbuild /nologo /v:m /nodeReuse:false /t:clean $sln
 
         write-host "Building the Solution"
-        & msbuild /nologo /v:m /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$buildDir /p:Features=debug-determinism /p:UseRoslynAnalyzers=false $sln
+        & msbuild /nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$buildDir /p:Features=debug-determinism /p:UseRoslynAnalyzers=false $sln
 
         pushd $debugDir
 
@@ -44,13 +47,14 @@ try
             $dllFullName = $dll.FullName
             $dllName = split-path -leaf $dllFullName
             $dllHash = (get-filehash $dll -algorithm MD5).Hash
-            $dllKeyName = $dllFullName + ".key"
+            $keyFullName = $dllFullName + ".key"
+            $keyName = split-path -leaf $keyFullName
 
             # Do not process binaries that have been explicitly skipped or do not have a key
             # file.  The lack of a key file means it's a binary that wasn't specifically 
             # built for that directory (dependency).  Only need to check the binaries we are
             # building. 
-            if ($skipList.Contains($dllName) -or -not (test-path $dllKeyName)) {
+            if ($skipList.Contains($dllName) -or -not (test-path $keyFullName)) {
                 continue;
             }
 
@@ -69,10 +73,17 @@ try
                     write-host "`tVerified $dllName"
                 }
                 else {
-                    write-host "`tERROR! $dllName changed ($dllFullName)"
-                    [IO.File]::WriteAllBytes($dllFullName + ".baseline", $data.Content)
-                    [IO.File]::WriteAllBytes($dllFullName + ".baseline.key", $data.Key)
+                    write-host "`tERROR! $dllName"
                     $allGood = $false
+                    $errorList += $dllName
+
+                    # Save out the original and baseline so Jenkins will archive them for investigation
+                    pushd $errorDir
+                    [IO.File]::WriteAllBytes((join-path $errorDir ($dllName + ".original")), $data.Content)
+                    [IO.File]::WriteAllBytes((join-path $errorDir ($keyName + ".original")), $data.Key)
+                    cp $dllFullName ($dllName + ".baseline")
+                    cp $keyFullName ($keyName + ".baseline")
+                    popd
                 }
             }
         }
@@ -92,6 +103,17 @@ try
     popd
 
     if (-not $allGood) {
+        write-host "Determinism failed for the following binaries:"
+        foreach ($name in $errorList) {
+            write-host "`t$name"
+        }
+
+        write-host "Archiving failure information"
+        $zipFile = join-path $rootDir "Binaries\determinism.zip"
+        Add-Type -Assembly "System.IO.Compression.FileSystem";
+        [System.IO.Compression.ZipFile]::CreateFromDirectory($errorDir, $zipFile, "Fastest", $true);
+
+        write-host "Please send $zipFile to compiler team for analysis"
         exit 1
     }
 
@@ -104,6 +126,8 @@ catch
 }
 finally
 {
+    write-host "Stopping VBCSCompiler"
     gps VBCSCompiler -ErrorAction SilentlyContinue | kill
+    write-host "Stopped VBCSCompiler"
 }
 

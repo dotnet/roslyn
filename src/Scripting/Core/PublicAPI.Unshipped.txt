@@ -16,5 +16,5 @@ Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.MemberDisplayFormat.set ->
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.NumberRadix.get -> int
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.NumberRadix.set -> void
 abstract Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.FormatObject(object obj, Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions options) -> string
-abstract Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.FormatUnhandledException(System.Exception e) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.FormatException(System.Exception e) -> string
 virtual Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.IsValidRadix(int radix) -> bool

@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
                 else
                 {
-                    ImportRecord importRecord = null;
+                    ImportRecord importRecord;
                     ImportScope scope = 0;
 
                     if (TryCreateImportRecordFromVisualBasicImportString(importString, out importRecord, out scope))

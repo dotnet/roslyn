@@ -1,6 +1,6 @@
 SHELL = /bin/bash
 OS_NAME = $(shell uname -s)
-NUGET_PACKAGE_NAME = nuget.future.11
+NUGET_PACKAGE_NAME = nuget.future.12
 BUILD_CONFIGURATION = Debug
 BOOTSTRAP_PATH = $(shell pwd)/Binaries/Bootstrap
 BUILD_LOG_PATH =

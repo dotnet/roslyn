@@ -62,8 +62,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 var resultNode = CodeModelService.InsertMember(
                     document, IsBatchOpen, insertionIndex, containerNode, memberNode, CancellationToken.None, out newDocument);
 
-                OnBeforeCodeElementCreated(resultNode);
-
                 return Tuple.Create(resultNode, newDocument);
             });
         }

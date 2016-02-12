@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             public override SymbolReference CreateReference<T>(SearchResult<T> searchResult)
             {
                 return new ProjectSymbolReference(
-                    searchResult.WithSymbol<INamespaceOrTypeSymbol>(searchResult.Symbol), _project.Id);
+                    searchResult.WithSymbol<INamespaceOrTypeSymbol>(searchResult.Symbol), _project);
             }
         }
 
