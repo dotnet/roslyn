@@ -84,7 +84,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         if (allSymbolReferences.Count == 0)
                         {
                             // No exact matches found.  Fall back to fuzzy searching.
-                            await FindResults(projectToAssembly, referenceToCompilation, project, allSymbolReferences, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                            // Only bother doing this for host workspaces.  We don't want this for 
+                            // things like the Interactive workspace as this will cause us to 
+                            // create expensive bktrees which we won't even be able to save for 
+                            // future use.
+                            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.Host)
+                            {
+                                await FindResults(projectToAssembly, referenceToCompilation, project, allSymbolReferences, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                            }
                         }
 
                         // Nothing found at all. No need to proceed.
