@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -2950,62 +2949,6 @@ class C4
             }
         }
 
-        private class FailingStream : Stream
-        {
-            private static readonly IOException exception = new IOException();
-            public override bool CanRead { get { return true; } }
-
-            public override bool CanSeek { get { return true; } }
-
-            public override bool CanWrite { get { return true; } }
-
-            public override long Length
-            {
-                get
-                {
-                    throw exception;
-                }
-            }
-
-            public override long Position
-            {
-                get
-                {
-                    throw exception;
-                }
-
-                set
-                {
-                    throw exception;
-                }
-            }
-
-            public override void Flush()
-            {
-                throw exception;
-            }
-
-            public override int Read(byte[] buffer, int offset, int count)
-            {
-                throw exception;
-            }
-
-            public override long Seek(long offset, SeekOrigin origin)
-            {
-                throw exception;
-            }
-
-            public override void SetLength(long value)
-            {
-                throw exception;
-            }
-
-            public override void Write(byte[] buffer, int offset, int count)
-            {
-                throw exception;
-            }
-        }
-
         [Fact]
         [WorkItem(3240, "https://github.com/dotnet/roslyn/pull/8227")]
 
@@ -3020,7 +2963,9 @@ public class X
     }
 }";
             var compilation = CreateCompilationWithMscorlib(source);
-            var result = compilation.Emit(new FailingStream());
+            var broken = new BrokenStream();
+            broken.BreakHow = 0;
+            var result = compilation.Emit(broken);
             Assert.False(result.Success);
             result.Diagnostics.Verify(
 // error CS8104: An error occurred while writing the Portable Executable file.
