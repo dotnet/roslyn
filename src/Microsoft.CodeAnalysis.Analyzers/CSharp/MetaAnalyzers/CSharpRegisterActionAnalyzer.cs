@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
@@ -17,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
 
         protected override RegisterActionCodeBlockAnalyzer GetCodeBlockAnalyzer(Compilation compilation, INamedTypeSymbol analysisContext, INamedTypeSymbol compilationStartAnalysisContext, INamedTypeSymbol codeBlockStartAnalysisContext, INamedTypeSymbol symbolKind, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
         {
-            var csharpSyntaxKind = compilation.GetTypeByMetadataName(CSharpSyntaxKindName);
-            var basicSyntaxKind = compilation.GetTypeByMetadataName(BasicSyntaxKindName);
+            INamedTypeSymbol csharpSyntaxKind = compilation.GetTypeByMetadataName(CSharpSyntaxKindName);
+            INamedTypeSymbol basicSyntaxKind = compilation.GetTypeByMetadataName(BasicSyntaxKindName);
             return new CSharpRegisterActionCodeBlockAnalyzer(csharpSyntaxKind, basicSyntaxKind, analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
         }
 

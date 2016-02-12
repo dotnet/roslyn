@@ -57,7 +57,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }";
-            var expected = new[]
+            DiagnosticResult[] expected = new[]
             {
                 GetCSharpExpectedDiagnostic(21, 13, unsupportedSymbolKind: SymbolKind.Alias),
                 GetCSharpExpectedDiagnostic(22, 13, unsupportedSymbolKind: SymbolKind.ArrayType),
@@ -119,7 +119,7 @@ Class MyAnalyzer
     End Sub
 End Class
 ";
-            var expected = new[]
+            DiagnosticResult[] expected = new[]
             {
                 GetBasicExpectedDiagnostic(18, 13, unsupportedSymbolKind: SymbolKind.Alias),
                 GetBasicExpectedDiagnostic(19, 13, unsupportedSymbolKind: SymbolKind.ArrayType),
@@ -269,7 +269,7 @@ End Class
 
         private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, SymbolKind unsupportedSymbolKind)
         {
-            var fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
+            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
             return new DiagnosticResult
             {
                 Id = DiagnosticIds.UnsupportedSymbolKindArgumentRuleId,

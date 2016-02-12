@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             protected bool HasDiagnosticAnalyzerAttribute(INamedTypeSymbol namedType)
             {
-                foreach (var attribute in namedType.GetApplicableAttributes())
+                foreach (AttributeData attribute in namedType.GetApplicableAttributes())
                 {
                     if (attribute.AttributeClass.DerivesFrom(DiagnosticAnalyzerAttribute))
                     {

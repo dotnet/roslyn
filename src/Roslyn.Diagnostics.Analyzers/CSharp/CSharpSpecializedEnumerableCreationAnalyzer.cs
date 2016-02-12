@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -42,9 +40,9 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp
 
             public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                var expressionsToAnalyze = context.Node.DescendantNodes().Where(n => ShouldAnalyzeExpression(n, context.SemanticModel));
+                System.Collections.Generic.IEnumerable<SyntaxNode> expressionsToAnalyze = context.Node.DescendantNodes().Where(n => ShouldAnalyzeExpression(n, context.SemanticModel));
 
-                foreach (var expression in expressionsToAnalyze)
+                foreach (SyntaxNode expression in expressionsToAnalyze)
                 {
                     switch (expression.Kind())
                     {
@@ -77,7 +75,7 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp
 
             private static void AnalyzeArrayCreationExpression(ArrayCreationExpressionSyntax arrayCreationExpression, Action<Diagnostic> addDiagnostic)
             {
-                var arrayType = arrayCreationExpression.Type;
+                ArrayTypeSyntax arrayType = arrayCreationExpression.Type;
                 if (arrayType.RankSpecifiers.Count == 1)
                 {
                     // Check for explicit specification of empty or singleton array

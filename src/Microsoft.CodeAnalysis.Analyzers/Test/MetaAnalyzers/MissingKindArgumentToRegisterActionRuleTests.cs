@@ -44,7 +44,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }";
-            var expected = GetCSharpExpectedDiagnostic(20, 9, isSymbolKindDiagnostic: true);
+            DiagnosticResult expected = GetCSharpExpectedDiagnostic(20, 9, isSymbolKindDiagnostic: true);
             VerifyCSharp(source, expected);
         }
 
@@ -77,7 +77,7 @@ Class MyAnalyzer
     End Sub
 End Class
 ";
-            var expected = GetBasicExpectedDiagnostic(17, 9, isSymbolKindDiagnostic: true);
+            DiagnosticResult expected = GetBasicExpectedDiagnostic(17, 9, isSymbolKindDiagnostic: true);
             VerifyBasic(source, expected);
         }
 
@@ -115,7 +115,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }";
-            var expected = GetCSharpExpectedDiagnostic(21, 9, isSymbolKindDiagnostic: false);
+            DiagnosticResult expected = GetCSharpExpectedDiagnostic(21, 9, isSymbolKindDiagnostic: false);
             VerifyCSharp(source, expected);
         }
 
@@ -148,7 +148,7 @@ Class MyAnalyzer
     End Sub
 End Class
 ";
-            var expected = GetBasicExpectedDiagnostic(17, 9, isSymbolKindDiagnostic: false);
+            DiagnosticResult expected = GetBasicExpectedDiagnostic(17, 9, isSymbolKindDiagnostic: false);
             VerifyBasic(source, expected);
         }
 
@@ -184,8 +184,8 @@ End Class
 
         private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, bool isSymbolKindDiagnostic)
         {
-            var fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            var messageArguments = isSymbolKindDiagnostic ? new object[] { "SymbolKind", "symbol" } : new object[] { "SyntaxKind", "syntax" };
+            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
+            object[] messageArguments = isSymbolKindDiagnostic ? new object[] { "SymbolKind", "symbol" } : new object[] { "SyntaxKind", "syntax" };
             return new DiagnosticResult
             {
                 Id = DiagnosticIds.MissingKindArgumentToRegisterActionRuleId,

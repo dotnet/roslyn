@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -53,7 +52,7 @@ namespace Roslyn.Diagnostics.Analyzers
             analysisContext.RegisterCompilationStartAction(
                 (context) =>
                 {
-                    var specializedCollectionsSymbol = context.Compilation.GetTypeByMetadataName(SpecializedCollectionsMetadataName);
+                    INamedTypeSymbol specializedCollectionsSymbol = context.Compilation.GetTypeByMetadataName(SpecializedCollectionsMetadataName);
                     if (specializedCollectionsSymbol == null)
                     {
                         // TODO: In the future, we may want to run this analyzer even if the SpecializedCollections
@@ -63,13 +62,13 @@ namespace Roslyn.Diagnostics.Analyzers
                         return;
                     }
 
-                    var genericEnumerableSymbol = context.Compilation.GetTypeByMetadataName(IEnumerableMetadataName);
+                    INamedTypeSymbol genericEnumerableSymbol = context.Compilation.GetTypeByMetadataName(IEnumerableMetadataName);
                     if (genericEnumerableSymbol == null)
                     {
                         return;
                     }
 
-                    var linqEnumerableSymbol = context.Compilation.GetTypeByMetadataName(LinqEnumerableMetadataName);
+                    INamedTypeSymbol linqEnumerableSymbol = context.Compilation.GetTypeByMetadataName(LinqEnumerableMetadataName);
                     if (linqEnumerableSymbol == null)
                     {
                         return;
@@ -131,7 +130,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             protected bool ShouldAnalyzeArrayCreationExpression(SyntaxNode expression, SemanticModel semanticModel)
             {
-                var typeInfo = semanticModel.GetTypeInfo(expression);
+                TypeInfo typeInfo = semanticModel.GetTypeInfo(expression);
                 var arrayType = typeInfo.Type as IArrayTypeSymbol;
 
                 return typeInfo.ConvertedType != null &&

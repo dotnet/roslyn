@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -43,15 +41,15 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         [SuppressMessage("AnalyzerPerformance", "RS1012:Start action has no registered actions.", Justification = "Method returns an analyzer that is registered by the caller.")]
         protected override DiagnosticAnalyzerSymbolAnalyzer GetDiagnosticAnalyzerSymbolAnalyzer(CompilationStartAnalysisContext compilationContext, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
         {
-            var compilation = compilationContext.Compilation;
+            Compilation compilation = compilationContext.Compilation;
 
-            var compilationType = compilation.GetTypeByMetadataName(s_compilationTypeFullName);
+            INamedTypeSymbol compilationType = compilation.GetTypeByMetadataName(s_compilationTypeFullName);
             if (compilationType == null)
             {
                 return null;
             }
 
-            var symbolType = compilation.GetTypeByMetadataName(s_symbolTypeFullName);
+            INamedTypeSymbol symbolType = compilation.GetTypeByMetadataName(s_symbolTypeFullName);
             if (symbolType == null)
             {
                 return null;
@@ -87,16 +85,16 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             protected override void AnalyzeNode(SymbolAnalysisContext symbolContext, TFieldDeclarationSyntax syntaxNode, SemanticModel semanticModel)
             {
                 // Get all the type syntax nodes within the topmost type declaration nodes for field declarations.
-                var variableTypeDeclarations = syntaxNode.DescendantNodesAndSelf().OfType<TVariableTypeDeclarationSyntax>();
-                var topMostTypeNodes = variableTypeDeclarations.SelectMany(typeDecl => typeDecl.ChildNodes().OfType<TTypeSyntax>());
-                var typeNodes = topMostTypeNodes.SelectMany(t => t.DescendantNodesAndSelf().OfType<TTypeSyntax>());
+                System.Collections.Generic.IEnumerable<TVariableTypeDeclarationSyntax> variableTypeDeclarations = syntaxNode.DescendantNodesAndSelf().OfType<TVariableTypeDeclarationSyntax>();
+                System.Collections.Generic.IEnumerable<TTypeSyntax> topMostTypeNodes = variableTypeDeclarations.SelectMany(typeDecl => typeDecl.ChildNodes().OfType<TTypeSyntax>());
+                System.Collections.Generic.IEnumerable<TTypeSyntax> typeNodes = topMostTypeNodes.SelectMany(t => t.DescendantNodesAndSelf().OfType<TTypeSyntax>());
 
-                foreach (var typeNode in typeNodes)
+                foreach (TTypeSyntax typeNode in typeNodes)
                 {
-                    var type = semanticModel.GetTypeInfo(typeNode, symbolContext.CancellationToken).Type;
+                    ITypeSymbol type = semanticModel.GetTypeInfo(typeNode, symbolContext.CancellationToken).Type;
                     if (type != null)
                     {
-                        foreach (var innerType in type.GetBaseTypesAndThis())
+                        foreach (ITypeSymbol innerType in type.GetBaseTypesAndThis())
                         {
                             if (innerType.Equals(_compilationType))
                             {
@@ -105,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                             }
                         }
 
-                        foreach (var iface in type.AllInterfaces)
+                        foreach (INamedTypeSymbol iface in type.AllInterfaces)
                         {
                             if (iface.Equals(_symbolType))
                             {
@@ -119,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             private static void ReportDiagnostic(ITypeSymbol type, TTypeSyntax typeSyntax, SymbolAnalysisContext context)
             {
-                var diagnostic = Diagnostic.Create(DoNotStorePerCompilationDataOntoFieldsRule, typeSyntax.GetLocation(), type.ToDisplayString());
+                Diagnostic diagnostic = Diagnostic.Create(DoNotStorePerCompilationDataOntoFieldsRule, typeSyntax.GetLocation(), type.ToDisplayString());
                 context.ReportDiagnostic(diagnostic);
             }
         }
