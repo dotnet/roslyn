@@ -250,9 +250,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
+            /// <summary>
+            /// This is a work around for a bug in Razor where the projection spans can get out-of-sync with the
+            /// identifiers.  When that bug is fixed this helper can be deleted.
+            /// </summary>
+            private bool AreAllReferenceSpansMappable()
+            {
+                return _referenceSpanToLinkedRenameSpanMap.Keys.All(s => ActiveTextview.GetSpanInView(_subjectBuffer.CurrentSnapshot.GetSpan(s.ToSpan())).Count != 0);
+            }
+
             internal void ApplyReplacementText(bool updateSelection = true)
             {
                 AssertIsForeground();
+
+                if (!AreAllReferenceSpansMappable())
+                {
+                    // don't dynamically update the reference spans for documents with unmappable projections
+                    return;
+                }
 
                 _session.UndoManager.ApplyCurrentState(
                     _subjectBuffer,
@@ -291,6 +306,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             internal void ApplyConflictResolutionEdits(IInlineRenameReplacementInfo conflictResolution, IEnumerable<Document> documents, CancellationToken cancellationToken)
             {
                 AssertIsForeground();
+
+                if (!AreAllReferenceSpansMappable())
+                {
+                    // don't dynamically update the reference spans for documents with unmappable projections
+                    return;
+                }
 
                 using (new SelectionTracking(this))
                 {
