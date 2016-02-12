@@ -164,9 +164,6 @@ namespace Microsoft.CodeAnalysis
             {
                 throw new ArgumentException(CodeAnalysisResources.InvalidCompilationOptions, nameof(options));
             }
-
-            // This is internal, so we don't throw if it's wrong.
-            Debug.Assert(options.ReferencesSupersedeLowerVersions);
         }
 
         /// <summary>

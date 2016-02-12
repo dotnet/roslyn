@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CSharpCompilation.CreateScriptCompilation(
                 GetUniqueName(),
                 references: (references != null) ? new[] { MscorlibRef_v4_0_30316_17626 }.Concat(references) : new[] { MscorlibRef_v4_0_30316_17626 },
-                options: options?.WithReferencesSupersedeLowerVersions(true),
+                options: options,
                 syntaxTree: Parse(code, options: parseOptions ?? TestOptions.Script),
                 previousScriptCompilation: previous,
                 returnType: returnType,

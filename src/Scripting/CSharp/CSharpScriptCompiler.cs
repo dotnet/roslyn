@@ -63,9 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
                     xmlReferenceResolver: null, // don't support XML file references in interactive (permissions & doc comment includes)
                     sourceReferenceResolver: script.Options.SourceResolver,
                     metadataReferenceResolver: script.Options.MetadataResolver,
-                    assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default)
-                    .WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes)
-                    .WithReferencesSupersedeLowerVersions(true),
+                    assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default
+                ).WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes),
                 previousSubmission,
                 script.ReturnType,
                 script.GlobalsType
