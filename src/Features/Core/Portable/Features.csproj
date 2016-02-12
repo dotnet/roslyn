@@ -146,7 +146,6 @@
     <Compile Include="CodeRefactorings\PredefinedCodeRefactoringProviderNames.cs" />
     <Compile Include="CodeRefactorings\ServicesLayerCodeActionHelpersService.cs" />
     <Compile Include="CodeRefactorings\WorkspaceServices\IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
-    <Compile Include="Common\Glyph.cs" />
     <Compile Include="Completion\AbstractCompletionService.cs" />
     <Compile Include="Completion\CommonCompletionUtilities.cs" />
     <Compile Include="Completion\CompletionFilterReason.cs" />
