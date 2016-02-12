@@ -439,5 +439,18 @@ End Class
 
             Await VerifyItemsExistAsync(text, "completionlist")
         End Function
+
+        <WorkItem(8546, "https://github.com/dotnet/roslyn/issues/8546")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestReturns() As Task
+            Dim text = "
+Class C
+    ''' <$$
+    Property P As Integer
+End Class
+"
+
+            Await VerifyItemsExistAsync(text, "returns")
+        End Function
     End Class
 End Namespace
