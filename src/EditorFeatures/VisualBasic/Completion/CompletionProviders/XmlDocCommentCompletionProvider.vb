@@ -322,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
             items.AddRange(typeParameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter("typeparam", p), GetCompletionItemRules())))
 
             If returns Then
-                items.Add(GetItem("return", span))
+                items.Add(GetItem("returns", span))
             End If
 
             Return items
