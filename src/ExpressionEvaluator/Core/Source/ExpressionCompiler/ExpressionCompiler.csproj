@@ -87,10 +87,6 @@
     <DefineConstants>$(DefineConstants);EXPRESSIONCOMPILER</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Moq, Version=4.2.1402.2112, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Users\tomat\.nuget\packages\Moq\4.2.1402.2112\lib\net40\Moq.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>
