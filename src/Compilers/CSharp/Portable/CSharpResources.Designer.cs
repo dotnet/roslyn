@@ -12444,6 +12444,60 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in argument of type &apos;{0}&apos; doesn&apos;t match target type &apos;{1}&apos; for parameter &apos;{2}&apos; in &apos;{3}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInArgument {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in argument doesn&apos;t match target type..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInArgument_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInArgument_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in value of type &apos;{0}&apos; doesn&apos;t match target type &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInAssignment {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInAssignment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in value doesn&apos;t match target type..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInAssignment_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInAssignment_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter &apos;{0}&apos; of &apos;{1}&apos; doesn&apos;t match the target delegate &apos;{2}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOfTargetDelegate {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOfTargetDelegate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter doesn&apos;t match the target delegate..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Nullability of reference types in type of parameter &apos;{0}&apos; doesn&apos;t match implemented member &apos;{1}&apos;..
         /// </summary>
         internal static string WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation {
@@ -12512,6 +12566,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_NullabilityMismatchInParameterTypeOnPartial_Title {
             get {
                 return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOnPartial_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in return type of &apos;{0}&apos; doesn&apos;t match the target delegate &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInReturnTypeOfTargetDelegate {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInReturnTypeOfTargetDelegate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in return type doesn&apos;t match the target delegate..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInReturnTypeOfTargetDelegate_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInReturnTypeOfTargetDelegate_Title", resourceCulture);
             }
         }
         

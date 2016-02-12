@@ -3569,6 +3569,59 @@ struct S1
         }
 
         [Fact]
+        public void RefOutParameters_04()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void M1(ref CL0<string> x) {}
+
+    void Test1(CL0<string?> x1)
+    {
+        M1(ref x1);
+    }
+
+    void M2(out CL0<string?> x) { throw new System.NotImplementedException(); }
+
+    void Test2(CL0<string> x2)
+    {
+        M2(out x2);
+    }
+
+    void M3(CL0<string> x) {}
+
+    void Test3(CL0<string?> x3)
+    {
+        M3(x3);
+    }
+}
+
+class CL0<T>
+{
+}
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (12,16): warning CS8220: Nullability of reference types in argument of type 'CL0<string?>' doesn't match target type 'CL0<string>' for parameter 'x' in 'void C.M1(ref CL0<string> x)'.
+    //         M1(ref x1);
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x1").WithArguments("CL0<string?>", "CL0<string>", "x", "void C.M1(ref CL0<string> x)").WithLocation(12, 16),
+    // (12,16): warning CS8219: Nullability of reference types in value of type 'CL0<string>' doesn't match target type 'CL0<string?>'.
+    //         M1(ref x1);
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("CL0<string>", "CL0<string?>").WithLocation(12, 16),
+    // (19,16): warning CS8219: Nullability of reference types in value of type 'CL0<string?>' doesn't match target type 'CL0<string>'.
+    //         M2(out x2);
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("CL0<string?>", "CL0<string>").WithLocation(19, 16),
+    // (26,12): warning CS8220: Nullability of reference types in argument of type 'CL0<string?>' doesn't match target type 'CL0<string>' for parameter 'x' in 'void C.M3(CL0<string> x)'.
+    //         M3(x3);
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x3").WithArguments("CL0<string?>", "CL0<string>", "x", "void C.M3(CL0<string> x)").WithLocation(26, 12)
+                );
+        }
+
+        [Fact]
         public void TargetingUnannotatedAPIs_01()
         {
             CSharpCompilation c0 = CreateCompilationWithMscorlib(@"
@@ -4256,7 +4309,7 @@ class B3 : IA2
         }
 
         [Fact]
-        public void ReturningValues()
+        public void ReturningValues_01()
         {
             CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
@@ -4285,6 +4338,42 @@ class CL1
     // (10,16): warning CS8203: Possible null reference return.
     //         return x1;
     Diagnostic(ErrorCode.WRN_NullReferenceReturn, "x1").WithLocation(10, 16)
+                );
+        }
+
+        [Fact]
+        public void ReturningValues_02()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    CL1<string?> Test1(CL1<string> x1)
+    {
+        return x1;
+    }
+
+    CL1<string> Test2(CL1<string?> x2)
+    {
+        return x2;
+    }
+}
+
+class CL1<T>
+{
+}
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,16): warning CS8219: Nullability of reference types in value of type 'CL1<string>' doesn't match target type 'CL1<string?>'.
+    //         return x1;
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("CL1<string>", "CL1<string?>").WithLocation(10, 16),
+    // (15,16): warning CS8219: Nullability of reference types in value of type 'CL1<string?>' doesn't match target type 'CL1<string>'.
+    //         return x2;
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("CL1<string?>", "CL1<string>").WithLocation(15, 16)
                 );
         }
 
@@ -5344,7 +5433,7 @@ class C
                 );
         }
 
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void Array_04()
         {
             CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
@@ -5384,6 +5473,37 @@ class C
     {
         CL1 [,] x9 = new [,] { {y9}, {z9} };
     }
+
+    void Test11(CL1 y11, CL1? z11)
+    {
+        CL1? [] u11;
+        CL1? [,] v11;
+
+        u11 = new [] { y11, z11 };
+        v11 = new [,] { {y11}, {z11} };
+    }
+
+    void Test13(CL1 y12, CL1? z12)
+    {
+        CL1? [] u12;
+        CL1? [,] v12;
+
+        var a12 = new [] { y12, z12 };
+        var b12 = new [,] { {y12}, {z12} };
+
+        u12 = a12;
+        v12 = b12;
+    }
+
+    void Test18(CL1 y18, CL1? z18)
+    {
+        CL1? [] x18 = new [] { y18, z18 };
+    }
+
+    void Test19(CL1 y19, CL1? z19)
+    {
+        CL1? [,] x19 = new [,] { {y19}, {z19} };
+    }
 }
 
 class CL1
@@ -5391,8 +5511,25 @@ class CL1
 }
 " }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
-            // TODO: Should probably get warnings about CL1?[] assigned to a CL1[] variable.
             c.VerifyDiagnostics(
+    // (13,14): warning CS8219: Nullability of reference types in value of type 'CL1?[]' doesn't match target type 'CL1[]'.
+    //         u1 = new [] { y1, z1 };
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new [] { y1, z1 }").WithArguments("CL1?[]", "CL1[]").WithLocation(13, 14),
+    // (14,14): warning CS8219: Nullability of reference types in value of type 'CL1?[*,*]' doesn't match target type 'CL1[*,*]'.
+    //         v1 = new [,] { {y1}, {z1} };
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new [,] { {y1}, {z1} }").WithArguments("CL1?[*,*]", "CL1[*,*]").WithLocation(14, 14),
+    // (25,14): warning CS8219: Nullability of reference types in value of type 'CL1?[]' doesn't match target type 'CL1[]'.
+    //         u2 = a2;
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a2").WithArguments("CL1?[]", "CL1[]").WithLocation(25, 14),
+    // (26,14): warning CS8219: Nullability of reference types in value of type 'CL1?[*,*]' doesn't match target type 'CL1[*,*]'.
+    //         v2 = b2;
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b2").WithArguments("CL1?[*,*]", "CL1[*,*]").WithLocation(26, 14),
+    // (31,21): warning CS8219: Nullability of reference types in value of type 'CL1?[]' doesn't match target type 'CL1[]'.
+    //         CL1 [] x8 = new [] { y8, z8 };
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new [] { y8, z8 }").WithArguments("CL1?[]", "CL1[]").WithLocation(31, 21),
+    // (36,22): warning CS8219: Nullability of reference types in value of type 'CL1?[*,*]' doesn't match target type 'CL1[*,*]'.
+    //         CL1 [,] x9 = new [,] { {y9}, {z9} };
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new [,] { {y9}, {z9} }").WithArguments("CL1?[*,*]", "CL1[*,*]").WithLocation(36, 22)
                 );
         }
 
@@ -5547,6 +5684,9 @@ class C
     // (11,14): warning CS8201: Possible null reference assignment.
     //         u1 = null;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(11, 14),
+    // (16,24): warning CS8219: Nullability of reference types in value of type 'object?[]' doesn't match target type 'object[]'.
+    //         object [] u2 = new [] { null, new object() };
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new [] { null, new object() }").WithArguments("object?[]", "object[]").WithLocation(16, 24),
     // (21,34): warning CS8201: Possible null reference assignment.
     //         var u3 = new object [] { null, new object() };
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(21, 34),
@@ -5711,6 +5851,40 @@ class C
     // (45,9): warning CS8202: Possible dereference of a null reference.
     //         u9[0][0,0].ToString();
     Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u9[0]").WithLocation(45, 9)
+                );
+        }
+
+        [Fact]
+        public void Array_09()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0<string?> x1, CL0<string> y1)
+    {
+        var u1 = new [] { x1, y1 };
+        var a1 = new [] { y1, x1 };
+        var v1 = new CL0<string?>[] { x1, y1 };
+        var w1 = new CL0<string>[] { x1, y1 };
+    }
+}
+
+class CL0<T>
+{}
+
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (12,43): warning CS8219: Nullability of reference types in value of type 'CL0<string>' doesn't match target type 'CL0<string?>'.
+    //         var v1 = new CL0<string?>[] { x1, y1 };
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y1").WithArguments("CL0<string>", "CL0<string?>").WithLocation(12, 43),
+    // (13,38): warning CS8219: Nullability of reference types in value of type 'CL0<string?>' doesn't match target type 'CL0<string>'.
+    //         var w1 = new CL0<string>[] { x1, y1 };
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("CL0<string?>", "CL0<string>").WithLocation(13, 38)
                 );
         }
 
@@ -6357,6 +6531,40 @@ class CL1
     // (14,14): warning CS8207: Expression is probably never null.
     //         x3 = new {F1 = x3}.F1 ?? x3;
     Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "new {F1 = x3}.F1").WithLocation(14, 14)
+                );
+        }
+
+        [Fact]
+        public void AnonymousTypes_04()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(CL1<string> x1, CL1<string?> y1)
+    {
+        var u1 = new { F1 = x1 };
+        var v1 = new { F1 = y1 };
+
+        u1 = v1;
+        v1 = u1;
+    }
+}
+
+class CL1<T>
+{
+}
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (12,14): warning CS8219: Nullability of reference types in value of type '<anonymous type: CL1<string?> F1>' doesn't match target type '<anonymous type: CL1<string> F1>'.
+    //         u1 = v1;
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "v1").WithArguments("<anonymous type: CL1<string?> F1>", "<anonymous type: CL1<string> F1>").WithLocation(12, 14),
+    // (13,14): warning CS8219: Nullability of reference types in value of type '<anonymous type: CL1<string> F1>' doesn't match target type '<anonymous type: CL1<string?> F1>'.
+    //         v1 = u1;
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "u1").WithArguments("<anonymous type: CL1<string> F1>", "<anonymous type: CL1<string?> F1>").WithLocation(13, 14)
                 );
         }
 
@@ -7204,15 +7412,27 @@ class CL1
     // (12,51): warning CS8201: Possible null reference assignment.
     //         System.Action<CL1?> x1 = (CL1 p1) => p1 = M1();
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M1()").WithLocation(12, 51),
+    // (12,34): warning CS8222: Nullability of reference types in type of parameter 'p1' of 'lambda expression' doesn't match the target delegate 'Action<CL1?>'.
+    //         System.Action<CL1?> x1 = (CL1 p1) => p1 = M1();
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(CL1 p1) => p1 = M1()").WithArguments("p1", "lambda expression", "System.Action<CL1?>").WithLocation(12, 34),
     // (17,59): warning CS8201: Possible null reference assignment.
     //         System.Action<CL1?> x2 = delegate (CL1 p2) { p2 = M1(); };
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M1()").WithLocation(17, 59),
+    // (17,34): warning CS8222: Nullability of reference types in type of parameter 'p2' of 'lambda expression' doesn't match the target delegate 'Action<CL1?>'.
+    //         System.Action<CL1?> x2 = delegate (CL1 p2) { p2 = M1(); };
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "delegate (CL1 p2) { p2 = M1(); }").WithArguments("p2", "lambda expression", "System.Action<CL1?>").WithLocation(17, 34),
     // (24,34): warning CS8201: Possible null reference assignment.
     //         D1 x3 = (CL1 p3) => p3 = M1();
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M1()").WithLocation(24, 34),
+    // (24,17): warning CS8222: Nullability of reference types in type of parameter 'p3' of 'lambda expression' doesn't match the target delegate 'C.D1'.
+    //         D1 x3 = (CL1 p3) => p3 = M1();
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(CL1 p3) => p3 = M1()").WithArguments("p3", "lambda expression", "C.D1").WithLocation(24, 17),
     // (29,42): warning CS8201: Possible null reference assignment.
     //         D1 x4 = delegate (CL1 p4) { p4 = M1(); };
-    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M1()").WithLocation(29, 42)
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M1()").WithLocation(29, 42),
+    // (29,17): warning CS8222: Nullability of reference types in type of parameter 'p4' of 'lambda expression' doesn't match the target delegate 'C.D1'.
+    //         D1 x4 = delegate (CL1 p4) { p4 = M1(); };
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "delegate (CL1 p4) { p4 = M1(); }").WithArguments("p4", "lambda expression", "C.D1").WithLocation(29, 17)
                 );
         }
 
@@ -7256,6 +7476,18 @@ class CL1
 " }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
+    // (12,33): warning CS8222: Nullability of reference types in type of parameter 'p1' of 'lambda expression' doesn't match the target delegate 'Action<CL1>'.
+    //         System.Action<CL1> x1 = (CL1? p1) => p1 = M1();
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(CL1? p1) => p1 = M1()").WithArguments("p1", "lambda expression", "System.Action<CL1>").WithLocation(12, 33),
+    // (17,33): warning CS8222: Nullability of reference types in type of parameter 'p2' of 'lambda expression' doesn't match the target delegate 'Action<CL1>'.
+    //         System.Action<CL1> x2 = delegate (CL1? p2) { p2 = M1(); };
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "delegate (CL1? p2) { p2 = M1(); }").WithArguments("p2", "lambda expression", "System.Action<CL1>").WithLocation(17, 33),
+    // (24,17): warning CS8222: Nullability of reference types in type of parameter 'p3' of 'lambda expression' doesn't match the target delegate 'C.D1'.
+    //         D1 x3 = (CL1? p3) => p3 = M1();
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(CL1? p3) => p3 = M1()").WithArguments("p3", "lambda expression", "C.D1").WithLocation(24, 17),
+    // (29,17): warning CS8222: Nullability of reference types in type of parameter 'p4' of 'lambda expression' doesn't match the target delegate 'C.D1'.
+    //         D1 x4 = delegate (CL1? p4) { p4 = M1(); };
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "delegate (CL1? p4) { p4 = M1(); }").WithArguments("p4", "lambda expression", "C.D1").WithLocation(29, 17)
                 );
         }
 
@@ -7359,6 +7591,78 @@ class C
     // (22,28): warning CS8203: Possible null reference return.
     //                     return null; // 2
     Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(22, 28)
+                );
+        }
+
+        [Fact]
+        public void Lambda_16()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1()
+    {
+        System.Action<CL1<string?>> x1 = (CL1<string> p1) => System.Console.WriteLine();
+    }
+
+    void Test2()
+    {
+        System.Action<CL1<string>> x2 = (CL1<string?> p2) => System.Console.WriteLine();
+    }
+}
+
+class CL1<T>
+{}
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,42): warning CS8222: Nullability of reference types in type of parameter 'p1' of 'lambda expression' doesn't match the target delegate 'Action<CL1<string?>>'.
+    //         System.Action<CL1<string?>> x1 = (CL1<string> p1) => System.Console.WriteLine();
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(CL1<string> p1) => System.Console.WriteLine()").WithArguments("p1", "lambda expression", "System.Action<CL1<string?>>").WithLocation(10, 42),
+    // (15,41): warning CS8222: Nullability of reference types in type of parameter 'p2' of 'lambda expression' doesn't match the target delegate 'Action<CL1<string>>'.
+    //         System.Action<CL1<string>> x2 = (CL1<string?> p2) => System.Console.WriteLine();
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(CL1<string?> p2) => System.Console.WriteLine()").WithArguments("p2", "lambda expression", "System.Action<CL1<string>>").WithLocation(15, 41)
+                );
+        }
+
+        [Fact]
+        public void Lambda_17()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+using System.Linq.Expressions;
+
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1()
+    {
+        Expression<System.Action<CL1<string?>>> x1 = (CL1<string> p1) => System.Console.WriteLine();
+    }
+
+    void Test2()
+    {
+        Expression<System.Action<CL1<string>>> x2 = (CL1<string?> p2) => System.Console.WriteLine();
+    }
+}
+
+class CL1<T>
+{}
+" }, new[] { SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (12,54): warning CS8222: Nullability of reference types in type of parameter 'p1' of 'lambda expression' doesn't match the target delegate 'Action<CL1<string?>>'.
+    //         Expression<System.Action<CL1<string?>>> x1 = (CL1<string> p1) => System.Console.WriteLine();
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(CL1<string> p1) => System.Console.WriteLine()").WithArguments("p1", "lambda expression", "System.Action<CL1<string?>>").WithLocation(12, 54),
+    // (17,53): warning CS8222: Nullability of reference types in type of parameter 'p2' of 'lambda expression' doesn't match the target delegate 'Action<CL1<string>>'.
+    //         Expression<System.Action<CL1<string>>> x2 = (CL1<string?> p2) => System.Console.WriteLine();
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(CL1<string?> p2) => System.Console.WriteLine()").WithArguments("p2", "lambda expression", "System.Action<CL1<string>>").WithLocation(17, 53)
                 );
         }
 
@@ -8361,6 +8665,40 @@ class C
         }
 
         [Fact]
+        public void DelegateCreation_02()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    CL0<string?> M1(CL0<string> x) { throw new System.Exception(); }
+    delegate CL0<string> D1(CL0<string?> x);
+
+    void Test1()
+    {
+        D1 x1 = new D1(M1);
+    }
+
+    CL0<string> M2(CL0<string?> x) { throw new System.Exception(); }
+    delegate CL0<string?> D2(CL0<string> x);
+
+    void Test2()
+    {
+        D2 x2 = new D2(M2);
+    }
+}
+
+class CL0<T>{}
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
         public void Base_01()
         {
             CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
@@ -9067,6 +9405,198 @@ class CL0
         }
 
         [Fact]
+        public void MethodGroupConversion_02()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void M1<T>(T x){}
+
+    void Test1()
+    {
+        System.Action<string?> u1 = M1<string>;
+    }
+
+    void Test2()
+    {
+        System.Action<string> u2 = M1<string?>;
+    }
+
+    void Test3()
+    {
+        System.Action<CL0<string?>> u3 = M1<CL0<string>>;
+    }
+
+    void Test4()
+    {
+        System.Action<CL0<string>> u4 = M1<CL0<string?>>;
+    }
+}
+
+class CL0<T>
+{
+}
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (12,37): warning CS8222: Nullability of reference types in type of parameter 'x' of 'void C.M1<string>(string x)' doesn't match the target delegate 'Action<string?>'.
+    //         System.Action<string?> u1 = M1<string>;
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "M1<string>").WithArguments("x", "void C.M1<string>(string x)", "System.Action<string?>").WithLocation(12, 37),
+    // (17,36): warning CS8222: Nullability of reference types in type of parameter 'x' of 'void C.M1<string?>(string? x)' doesn't match the target delegate 'Action<string>'.
+    //         System.Action<string> u2 = M1<string?>;
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "M1<string?>").WithArguments("x", "void C.M1<string?>(string? x)", "System.Action<string>").WithLocation(17, 36),
+    // (22,42): warning CS8222: Nullability of reference types in type of parameter 'x' of 'void C.M1<CL0<string>>(CL0<string> x)' doesn't match the target delegate 'Action<CL0<string?>>'.
+    //         System.Action<CL0<string?>> u3 = M1<CL0<string>>;
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "M1<CL0<string>>").WithArguments("x", "void C.M1<CL0<string>>(CL0<string> x)", "System.Action<CL0<string?>>").WithLocation(22, 42),
+    // (27,41): warning CS8222: Nullability of reference types in type of parameter 'x' of 'void C.M1<CL0<string?>>(CL0<string?> x)' doesn't match the target delegate 'Action<CL0<string>>'.
+    //         System.Action<CL0<string>> u4 = M1<CL0<string?>>;
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "M1<CL0<string?>>").WithArguments("x", "void C.M1<CL0<string?>>(CL0<string?> x)", "System.Action<CL0<string>>").WithLocation(27, 41)
+                );
+        }
+
+        [Fact]
+        public void MethodGroupConversion_03()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void M1<T>(T x){}
+
+    void Test1()
+    {
+        System.Action<string?> u1 = (System.Action<string?>)M1<string>;
+    }
+
+    void Test2()
+    {
+        System.Action<string> u2 = (System.Action<string>)M1<string?>;
+    }
+
+    void Test3()
+    {
+        System.Action<CL0<string?>> u3 = (System.Action<CL0<string?>>)M1<CL0<string>>;
+    }
+
+    void Test4()
+    {
+        System.Action<CL0<string>> u4 = (System.Action<CL0<string>>)M1<CL0<string?>>;
+    }
+}
+
+class CL0<T>
+{
+}
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void MethodGroupConversion_04()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    T M1<T>(){throw new System.Exception();}
+
+    void Test1()
+    {
+        System.Func<string?> u1 = M1<string>;
+    }
+
+    void Test2()
+    {
+        System.Func<string> u2 = M1<string?>;
+    }
+
+    void Test3()
+    {
+        System.Func<CL0<string?>> u3 = M1<CL0<string>>;
+    }
+
+    void Test4()
+    {
+        System.Func<CL0<string>> u4 = M1<CL0<string?>>;
+    }
+}
+
+class CL0<T>
+{
+}
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (12,35): warning CS8221: Nullability of reference types in return type of 'string C.M1<string>()' doesn't match the target delegate 'Func<string?>'.
+    //         System.Func<string?> u1 = M1<string>;
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "M1<string>").WithArguments("string C.M1<string>()", "System.Func<string?>").WithLocation(12, 35),
+    // (17,34): warning CS8221: Nullability of reference types in return type of 'string? C.M1<string?>()' doesn't match the target delegate 'Func<string>'.
+    //         System.Func<string> u2 = M1<string?>;
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "M1<string?>").WithArguments("string? C.M1<string?>()", "System.Func<string>").WithLocation(17, 34),
+    // (22,40): warning CS8221: Nullability of reference types in return type of 'CL0<string> C.M1<CL0<string>>()' doesn't match the target delegate 'Func<CL0<string?>>'.
+    //         System.Func<CL0<string?>> u3 = M1<CL0<string>>;
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "M1<CL0<string>>").WithArguments("CL0<string> C.M1<CL0<string>>()", "System.Func<CL0<string?>>").WithLocation(22, 40),
+    // (27,39): warning CS8221: Nullability of reference types in return type of 'CL0<string?> C.M1<CL0<string?>>()' doesn't match the target delegate 'Func<CL0<string>>'.
+    //         System.Func<CL0<string>> u4 = M1<CL0<string?>>;
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "M1<CL0<string?>>").WithArguments("CL0<string?> C.M1<CL0<string?>>()", "System.Func<CL0<string>>").WithLocation(27, 39)
+                );
+        }
+
+        [Fact]
+        public void MethodGroupConversion_05()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    T M1<T>(){throw new System.Exception();}
+
+    void Test1()
+    {
+        System.Func<string?> u1 = (System.Func<string?>)M1<string>;
+    }
+
+    void Test2()
+    {
+        System.Func<string> u2 = (System.Func<string>)M1<string?>;
+    }
+
+    void Test3()
+    {
+        System.Func<CL0<string?>> u3 = (System.Func<CL0<string?>>)M1<CL0<string>>;
+    }
+
+    void Test4()
+    {
+        System.Func<CL0<string>> u4 = (System.Func<CL0<string>>)M1<CL0<string?>>;
+    }
+}
+
+class CL0<T>
+{
+}
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
         public void UnaryOperator_01()
         {
             CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
@@ -9293,6 +9823,35 @@ class CL4 : CL3 {}
     // (93,22): warning CS8207: Expression is probably never null.
     //         object v16 = u16 ?? new object();
     Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u16").WithLocation(93, 22)
+                );
+        }
+
+        [Fact]
+        public void Conversion_02()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0<string?> x1)
+    {
+        CL0<string> u1 = x1;
+        CL0<string> v1 = (CL0<string>)x1;
+    }
+}
+
+class CL0<T>
+{
+}
+" }, new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,26): warning CS8219: Nullability of reference types in value of type 'CL0<string?>' doesn't match target type 'CL0<string>'.
+    //         CL0<string> u1 = x1;
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("CL0<string?>", "CL0<string>").WithLocation(10, 26)
                 );
         }
 
@@ -13059,9 +13618,15 @@ class CL6 : CL4<string?>
     // (17,34): warning CS8209: Nullability of reference types in return type doesn't match overridden member.
     //     public override CL1<string?> M1() // 2
     Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M1").WithLocation(17, 34),
+    // (19,16): warning CS8219: Nullability of reference types in value of type 'CL1<string>' doesn't match target type 'CL1<string?>'.
+    //         return base.M1();
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "base.M1()").WithArguments("CL1<string>", "CL1<string?>").WithLocation(19, 16),
     // (50,33): warning CS8209: Nullability of reference types in return type doesn't match overridden member.
     //     public override CL4<string> M4() // 6
-    Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M4").WithLocation(50, 33)
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M4").WithLocation(50, 33),
+    // (52,16): warning CS8219: Nullability of reference types in value of type 'CL4<string?>' doesn't match target type 'CL4<string>'.
+    //         return base.M4();
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "base.M4()").WithArguments("CL4<string?>", "CL4<string>").WithLocation(52, 16)
                 );
         }
 

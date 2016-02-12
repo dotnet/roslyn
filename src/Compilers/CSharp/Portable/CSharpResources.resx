@@ -4801,4 +4801,28 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NullableAttributeMissing" xml:space="preserve">
     <value>Compiler required type '{0}' cannot be found. Are you missing a reference?</value>
   </data>
+  <data name="WRN_NullabilityMismatchInAssignment" xml:space="preserve">
+    <value>Nullability of reference types in value of type '{0}' doesn't match target type '{1}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInAssignment_Title" xml:space="preserve">
+    <value>Nullability of reference types in value doesn't match target type.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInArgument" xml:space="preserve">
+    <value>Nullability of reference types in argument of type '{0}' doesn't match target type '{1}' for parameter '{2}' in '{3}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInArgument_Title" xml:space="preserve">
+    <value>Nullability of reference types in argument doesn't match target type.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate" xml:space="preserve">
+    <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate_Title" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match the target delegate.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter doesn't match the target delegate.</value>
+  </data>
 </root>

@@ -1343,6 +1343,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, slot, GetValueSlotForAssignment(value), IsByRefTarget(slot));
                 }
+
+                if (value != null && (object)value.Type != null &&
+                    targetType.TypeSymbol.Equals(value.Type, TypeSymbolEqualityOptions.SameType) &&
+                    !targetType.TypeSymbol.Equals(value.Type, 
+                                       TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes | TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny))
+                {
+                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, value.Syntax, value.Type, targetType.TypeSymbol);
+                }
             }
         }
 
@@ -1722,13 +1730,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = VisitRvalue(node.ExpressionOpt);
 
             Debug.Assert(!IsConditionalState);
-            if (node.ExpressionOpt != null && _performStaticNullChecks && this.State.Reachable && this.State.ResultIsNotNull == false)
+            if (node.ExpressionOpt != null && _performStaticNullChecks && this.State.Reachable)
             {
                 TypeSymbolWithAnnotations returnType = this.currentMethodOrLambda?.ReturnType;
 
-                if ((object)returnType != null && returnType.IsReferenceType && returnType.IsNullable == false)
+                if (this.State.ResultIsNotNull == false)
                 {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReturn, node.ExpressionOpt.Syntax);
+                    if ((object)returnType != null && returnType.IsReferenceType && returnType.IsNullable == false)
+                    {
+                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReturn, node.ExpressionOpt.Syntax);
+                    }
+                }
+
+                if ((object)node.ExpressionOpt.Type != null &&
+                    returnType.TypeSymbol.Equals(node.ExpressionOpt.Type, TypeSymbolEqualityOptions.SameType) &&
+                    !returnType.TypeSymbol.Equals(node.ExpressionOpt.Type,
+                                       TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes | TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny))
+                {
+                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, node.ExpressionOpt.Syntax, node.ExpressionOpt.Type, returnType.TypeSymbol);
                 }
             }
 
@@ -2516,12 +2535,64 @@ namespace Microsoft.CodeAnalysis.CSharp
                             WarnOnNullReferenceArgument(node.Operand, this.State.ResultIsNotNull, node.SymbolOpt.Parameters[0], expanded: false);
                         }
                         break;
+
+                    case ConversionKind.AnonymousFunction:
+                        if (!node.ExplicitCastInCode && node.Operand.Kind == BoundKind.Lambda)
+                        {
+                            var lambda = (BoundLambda)node.Operand;
+                            ReportNullabilityMismatchWithTargetDelegate(node.Operand.Syntax, node.Type.GetDelegateType(), lambda.Symbol);
+                        }
+                        break;
+
+                    case ConversionKind.MethodGroup:
+                        if (!node.ExplicitCastInCode)
+                        {
+                            ReportNullabilityMismatchWithTargetDelegate(node.Operand.Syntax, node.Type.GetDelegateType(), node.SymbolOpt);
+                        }
+                        break;
                 }
 
                 this.State.ResultIsNotNull = InferResultNullability(node.ConversionKind, node.Operand.Type, node.Type, node.SymbolOpt, this.State.ResultIsNotNull);
             }
 
             return result;
+        }
+
+        private void ReportNullabilityMismatchWithTargetDelegate(CSharpSyntaxNode syntax, NamedTypeSymbol delegateType, MethodSymbol method)
+        {
+            if ((object)delegateType == null || (object)method == null)
+            {
+                return;
+            }
+
+            MethodSymbol invoke = delegateType.DelegateInvokeMethod;
+
+            if ((object)invoke == null)
+            {
+                return;
+            }
+
+            if (!invoke.ReturnType.Equals(method.ReturnType, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes | TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny) &&
+                invoke.ReturnType.Equals(method.ReturnType, TypeSymbolEqualityOptions.SameType))
+            {
+                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, syntax,
+                    new FormattedSymbol(method, SymbolDisplayFormat.MinimallyQualifiedFormat), 
+                    delegateType);
+            }
+
+            int count = Math.Min(invoke.ParameterCount, method.ParameterCount);
+
+            for (int i = 0; i < count; i++)
+            {
+                if (!invoke.Parameters[i].Type.Equals(method.Parameters[i].Type, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes | TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny) &&
+                    invoke.Parameters[i].Type.Equals(method.Parameters[i].Type, TypeSymbolEqualityOptions.SameType))
+                {
+                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, syntax,
+                        new FormattedSymbol(method.Parameters[i], SymbolDisplayFormat.ShortFormat),
+                        new FormattedSymbol(method, SymbolDisplayFormat.MinimallyQualifiedFormat), 
+                        delegateType);
+                }
+            }
         }
 
         private bool? InferResultNullability(ConversionKind conversionKind, TypeSymbol sourceTypeOpt, TypeSymbol targetType, MethodSymbol methodOpt, bool? operandIsNotNull)
@@ -2967,10 +3038,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void WarnOnNullReferenceArgument(BoundExpression argument, bool? argumentIsNotNull, ParameterSymbol parameter, bool expanded)
         {
             Debug.Assert(_performStaticNullChecks);
+            TypeSymbolWithAnnotations paramType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(parameter);
+
             if (argumentIsNotNull == false)
             {
-                TypeSymbolWithAnnotations paramType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(parameter);
-
                 if (expanded)
                 {
                     paramType = ((ArrayTypeSymbol)parameter.Type.TypeSymbol).ElementType;
@@ -2982,6 +3053,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
                         new FormattedSymbol(parameter.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
                 }
+            }
+
+            if ((object)argument.Type != null &&
+                paramType.TypeSymbol.Equals(argument.Type, TypeSymbolEqualityOptions.SameType) &&
+                !paramType.TypeSymbol.Equals(argument.Type,
+                                             TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes | TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny))
+            {
+                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInArgument, argument.Syntax, argument.Type, paramType.TypeSymbol,
+                        new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
+                        new FormattedSymbol(parameter.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
             }
         }
 
@@ -3017,9 +3098,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(!IsConditionalState);
-            Assign(arg, value: null, 
-                   valueIsNotNull: (_performStaticNullChecks && this.State.Reachable &&
-                                    (object)parameter != null && parameter.Type.IsReferenceType) ? !GetTypeOrReturnTypeWithAdjustedNullableAnnotations(parameter).IsNullable : (bool?)null); 
+            bool? valueIsNotNull = null;
+            BoundValuePlaceholder value = null;
+
+            if ((object)parameter != null)
+            {
+                TypeSymbolWithAnnotations paramType;
+
+                if (_performStaticNullChecks && this.State.Reachable)
+                {
+                    paramType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(parameter);
+
+                    if (paramType.IsReferenceType)
+                    {
+                        valueIsNotNull = !paramType.IsNullable;
+                    }
+                }
+                else
+                {
+                    paramType = parameter.Type; 
+                }
+
+                value = new BoundValuePlaceholder(arg.Syntax, paramType.TypeSymbol) { WasCompilerGenerated = true };
+            }
+
+            Assign(arg, value, valueIsNotNull); 
 
             // Imitate Dev10 behavior: if the argument is passed by ref/out to an external method, then
             // we assume that external method may write and/or read all of its fields (recursively).

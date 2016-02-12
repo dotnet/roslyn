@@ -2121,10 +2121,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node, bestType);
             }
 
-            // Default inferred reference types to a nullable state.
-            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, 
-                                                              TypeSymbolWithAnnotations.Create(bestType, isNullableIfReferenceType: node.IsFeatureStaticNullCheckingEnabled()), 
-                                                              rank);
+            TypeSymbolWithAnnotations elementType;
+
+            if (node.IsFeatureStaticNullCheckingEnabled())
+            {
+                // For now erase all notion about nullability of reference types as the algorithm is not taking it into account yet.
+                // Default inferred reference type itself to a nullable state.
+                elementType = TypeSymbolWithAnnotations.Create(bestType.SetUnknownNullabilityForRefernceTypes(), isNullableIfReferenceType: true);
+            }
+            else
+            {
+                elementType = TypeSymbolWithAnnotations.Create(bestType);
+            }
+
+            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, elementType, rank);
             return BindArrayCreationWithInitializer(diagnostics, node, initializer, arrayType,
                 sizes: ImmutableArray<BoundExpression>.Empty, boundInitExprOpt: boundInitializerExpressions);
         }

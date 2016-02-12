@@ -1342,5 +1342,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation = 8216,
         WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation = 8217,
         ERR_NullableAttributeMissing = 8218,
+        WRN_NullabilityMismatchInAssignment = 8219,
+        WRN_NullabilityMismatchInArgument = 8220,
+        WRN_NullabilityMismatchInReturnTypeOfTargetDelegate = 8221,
+        WRN_NullabilityMismatchInParameterTypeOfTargetDelegate = 8222,
     }
 }
