@@ -211,29 +211,30 @@ class C
   IL_0000:  ldnull
   IL_0001:  ret
 }");
-            // Check return type is from runtime assembly.
-            var assemblyReference = AssemblyMetadata.CreateFromImage(result.Assembly).GetReference();
-            var compilation = CSharpCompilation.Create(
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),
-                references: runtimeReferences.Concat(ImmutableArray.Create<MetadataReference>(assemblyReference)));
-            var assembly = ImmutableArray.CreateRange(result.Assembly);
-            using (var metadata = ModuleMetadata.CreateFromImage(ImmutableArray.CreateRange(assembly)))
-            {
-                var reader = metadata.MetadataReader;
-                var typeDef = reader.GetTypeDef("<>x");
-                var methodHandle = reader.GetMethodDefHandle(typeDef, "<>m0");
-                var module = (PEModuleSymbol)compilation.GetMember("<>x").ContainingModule;
-                var metadataDecoder = new MetadataDecoder(module);
-                SignatureHeader signatureHeader;
-                BadImageFormatException metadataException;
-                var parameters = metadataDecoder.GetSignatureForMethod(methodHandle, out signatureHeader, out metadataException, allowByRefReturn: true);
-                Assert.Equal(parameters.Length, 5);
-                var actualReturnType = parameters[0].Type;
-                Assert.Equal(actualReturnType.TypeKind, TypeKind.Class); // not error
-                var expectedReturnType = compilation.GetMember("Windows.Storage.StorageFolder");
-                Assert.Equal(expectedReturnType, actualReturnType);
-                Assert.Equal(storageAssemblyName, actualReturnType.ContainingAssembly.Name);
-            }
+                // Check return type is from runtime assembly.
+                var assemblyReference = AssemblyMetadata.CreateFromImage(result.Assembly).GetReference();
+                var compilation = CSharpCompilation.Create(
+                    assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),
+                    references: runtimeReferences.Concat(ImmutableArray.Create<MetadataReference>(assemblyReference)));
+                var assembly = ImmutableArray.CreateRange(result.Assembly);
+                using (var metadata = ModuleMetadata.CreateFromImage(ImmutableArray.CreateRange(assembly)))
+                {
+                    var reader = metadata.MetadataReader;
+                    var typeDef = reader.GetTypeDef("<>x");
+                    var methodHandle = reader.GetMethodDefHandle(typeDef, "<>m0");
+                    var module = (PEModuleSymbol)compilation.GetMember("<>x").ContainingModule;
+                    var metadataDecoder = new MetadataDecoder(module);
+                    SignatureHeader signatureHeader;
+                    BadImageFormatException metadataException;
+                    var parameters = metadataDecoder.GetSignatureForMethod(methodHandle, out signatureHeader, out metadataException, allowByRefReturn: true);
+                    Assert.Equal(parameters.Length, 5);
+                    var actualReturnType = parameters[0].Type;
+                    Assert.Equal(actualReturnType.TypeKind, TypeKind.Class); // not error
+                    var expectedReturnType = compilation.GetMember("Windows.Storage.StorageFolder");
+                    Assert.Equal(expectedReturnType, actualReturnType);
+                    Assert.Equal(storageAssemblyName, actualReturnType.ContainingAssembly.Name);
+                }
+            });
         }
 
         /// <summary>

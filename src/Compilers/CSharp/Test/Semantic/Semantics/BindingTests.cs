@@ -2461,7 +2461,6 @@ class C
             CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(1078958, "DevDiv")]
         [Fact, WorkItem(1078958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078958")]
         public void Bug1078958()
         {

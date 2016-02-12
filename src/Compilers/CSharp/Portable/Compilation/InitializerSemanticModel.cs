@@ -203,6 +203,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var property = (PropertySymbol)this.MemberSymbol;
                         BoundExpression result = binder.BindVariableOrAutoPropInitializer(equalsValue, RefKind.None, property.Type, diagnostics);
+                        if (result != null)
+                        {
+                            return new BoundPropertyEqualsValue(equalsValue, property, result);
+                        }
                         break;
                     }
 
