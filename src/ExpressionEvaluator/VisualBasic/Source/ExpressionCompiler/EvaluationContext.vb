@@ -547,8 +547,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Overrides Function HasDuplicateTypesOrAssemblies(diagnostic As Diagnostic) As Boolean
             Select Case CType(diagnostic.Code, ERRID)
                 Case ERRID.ERR_DuplicateReference2,
-                     ERRID.ERR_DuplicateReferenceStrong,
-                     ERRID.ERR_AmbiguousInUnnamedNamespace1,
+                     ERRID.ERR_DuplicateReferenceStrong
+                    ' Soft assert unexpected but not problematic
+                    Debug.Assert(False, "Did not expect to see duplicate references")
+                    Return True
+                Case ERRID.ERR_AmbiguousInUnnamedNamespace1,
                      ERRID.ERR_AmbiguousInNamespace2,
                      ERRID.ERR_NoMostSpecificOverload2,
                      ERRID.ERR_AmbiguousInModules2

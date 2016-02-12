@@ -415,6 +415,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             switch ((ErrorCode)diagnostic.Code)
             {
                 case ErrorCode.ERR_DuplicateImport:
+                case ErrorCode.ERR_DuplicateImportSimple:
+                    // Soft assert: unexpected but not problematic
+                    Debug.Assert(false, "Did not expect to see duplicate references");
+                    return true;
                 case ErrorCode.ERR_SameFullNameAggAgg:
                 case ErrorCode.ERR_AmbigCall:
                     return true;
