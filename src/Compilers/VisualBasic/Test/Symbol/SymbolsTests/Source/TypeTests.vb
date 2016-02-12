@@ -3347,6 +3347,56 @@ expectedOutput:="FalseTrue112")
 
         End Sub
 
+        <Fact, WorkItem(8400, "https://github.com/dotnet/roslyn/issues/8400")>
+        Public Sub WrongModifier()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="C">
+    <file name="a.vb"><![CDATA[
+    public class AAA : IBBB
+    {
+        public static AAA MMM(Stream xamlStream)
+        {
+            // Note: create custom module catalog 
+    ]]></file>
+</compilation>)
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30481: 'Class' statement must end with a matching 'End Class'.
+public class AAA : IBBB
+~~~~~~~~~~~~~~~~
+BC30188: Declaration expected.
+public class AAA : IBBB
+                   ~~~~
+BC30035: Syntax error.
+    {
+    ~
+BC30235: 'static' is not valid on a member variable declaration.
+        public static AAA MMM(Stream xamlStream)
+               ~~~~~~
+BC30205: End of statement expected.
+        public static AAA MMM(Stream xamlStream)
+                          ~~~
+BC30035: Syntax error.
+        {
+        ~
+BC30035: Syntax error.
+            // Note: create custom module catalog
+            ~
+BC30188: Declaration expected.
+            // Note: create custom module catalog
+                     ~~~~~~
+BC31140: 'Custom' modifier can only be used immediately before an 'Event' declaration.
+            // Note: create custom module catalog
+                            ~~~~~~
+BC30617: 'Module' statements can occur only at file or namespace level.
+            // Note: create custom module catalog
+                            ~~~~~~~~~~~~~~~~~~~~~
+BC30625: 'Module' statement must end with a matching 'End Module'.
+            // Note: create custom module catalog
+                            ~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
     End Class
 
 End Namespace
