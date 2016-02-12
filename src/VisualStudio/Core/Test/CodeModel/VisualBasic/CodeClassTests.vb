@@ -3154,22 +3154,7 @@ End Class
             Await TestElement(code,
                 Sub(state, codeClass)
                     For i = 1 To 100
-                        Dim initialDocument = state.FileCodeModelObject.GetDocument()
-                        Dim variable As EnvDTE.CodeVariable
-
-                        Try
-                            variable = codeClass.AddVariable("x", "System.Int32")
-                        Catch ex As InvalidOperationException
-                            Assert.False(True,
-$"Failed to add variable in loop iteration {i}!
-
-Exception: {ex.Message}
-
-Document text:
-{initialDocument.GetTextAsync(CancellationToken.None).Result}")
-
-                            Throw ex
-                        End Try
+                        Dim variable = codeClass.AddVariable("x", "System.Int32")
 
                         ' Now, delete the variable that we just added.
                         Dim startPoint = variable.StartPoint

@@ -212,6 +212,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
             return null;
         }
 
+        public bool ContainsKey(TKey key)
+        {
+            this.AssertIsForeground();
+
+            return _table.ContainsKey(key);
+        }
+
         public bool TryGetValue(TKey key, out TValue value)
         {
             this.AssertIsForeground();
