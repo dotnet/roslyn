@@ -130,7 +130,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.AppContext.dll": {}
+          "ref/dotnet5.1/System.AppContext.dll": {}
         },
         "runtime": {
           "lib/DNXCore50/System.AppContext.dll": {}
@@ -247,7 +247,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Diagnostics.FileVersionInfo.dll": {}
+          "ref/dotnet5.1/System.Diagnostics.FileVersionInfo.dll": {}
         }
       },
       "System.Diagnostics.Process/4.1.0-beta-23504": {
@@ -267,7 +267,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Diagnostics.StackTrace.dll": {}
+          "ref/dotnet5.1/System.Diagnostics.StackTrace.dll": {}
         },
         "runtime": {
           "lib/DNXCore50/System.Diagnostics.StackTrace.dll": {}
@@ -385,7 +385,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.IO.FileSystem.Watcher.dll": {}
+          "ref/dotnet5.1/System.IO.FileSystem.Watcher.dll": {}
         }
       },
       "System.IO.Pipes/4.0.0-beta-23504": {
@@ -729,7 +729,7 @@
           "System.Security.Cryptography.Primitives": "[4.0.0-beta-23504, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Security.Cryptography.Algorithms.dll": {}
+          "ref/dotnet5.1/System.Security.Cryptography.Algorithms.dll": {}
         }
       },
       "System.Security.Cryptography.Encoding/4.0.0-beta-23504": {
@@ -737,7 +737,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Security.Cryptography.Encoding.dll": {}
+          "ref/dotnet5.1/System.Security.Cryptography.Encoding.dll": {}
         }
       },
       "System.Security.Cryptography.Primitives/4.0.0-beta-23504": {
@@ -751,7 +751,7 @@
           "System.Threading.Tasks": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Security.Cryptography.Primitives.dll": {}
+          "ref/dotnet5.1/System.Security.Cryptography.Primitives.dll": {}
         },
         "runtime": {
           "lib/dotnet5.4/System.Security.Cryptography.Primitives.dll": {}
@@ -882,7 +882,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Threading.Thread.dll": {}
+          "ref/dotnet5.1/System.Threading.Thread.dll": {}
         },
         "runtime": {
           "lib/DNXCore50/System.Threading.Thread.dll": {}
@@ -959,7 +959,7 @@
           "System.Xml.ReaderWriter": "[4.0.10, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Xml.XmlDocument.dll": {}
+          "ref/dotnet5.1/System.Xml.XmlDocument.dll": {}
         },
         "runtime": {
           "lib/dotnet5.4/System.Xml.XmlDocument.dll": {}
@@ -978,7 +978,7 @@
           "System.Xml.ReaderWriter": "[4.0.10, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Xml.XPath.dll": {}
+          "ref/dotnet5.1/System.Xml.XPath.dll": {}
         },
         "runtime": {
           "lib/dotnet5.4/System.Xml.XPath.dll": {}
@@ -997,7 +997,7 @@
           "System.Xml.XPath": "[4.0.1-beta-23504, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Xml.XPath.XDocument.dll": {}
+          "ref/dotnet5.1/System.Xml.XPath.XDocument.dll": {}
         },
         "runtime": {
           "lib/dotnet5.4/System.Xml.XPath.XDocument.dll": {}
@@ -1509,7 +1509,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.AppContext.dll": {}
+          "ref/dotnet5.1/System.AppContext.dll": {}
         },
         "runtime": {
           "lib/DNXCore50/System.AppContext.dll": {}
@@ -1612,7 +1612,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Diagnostics.FileVersionInfo.dll": {}
+          "ref/dotnet5.1/System.Diagnostics.FileVersionInfo.dll": {}
         }
       },
       "System.Diagnostics.Process/4.1.0-beta-23504": {
@@ -1632,7 +1632,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Diagnostics.StackTrace.dll": {}
+          "ref/dotnet5.1/System.Diagnostics.StackTrace.dll": {}
         },
         "runtime": {
           "lib/DNXCore50/System.Diagnostics.StackTrace.dll": {}
@@ -1750,7 +1750,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.IO.FileSystem.Watcher.dll": {}
+          "ref/dotnet5.1/System.IO.FileSystem.Watcher.dll": {}
         }
       },
       "System.IO.Pipes/4.0.0-beta-23504": {
@@ -2079,7 +2079,7 @@
           "System.Security.Cryptography.Primitives": "[4.0.0-beta-23504, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Security.Cryptography.Algorithms.dll": {}
+          "ref/dotnet5.1/System.Security.Cryptography.Algorithms.dll": {}
         }
       },
       "System.Security.Cryptography.Encoding/4.0.0-beta-23504": {
@@ -2087,7 +2087,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Security.Cryptography.Encoding.dll": {}
+          "ref/dotnet5.1/System.Security.Cryptography.Encoding.dll": {}
         }
       },
       "System.Security.Cryptography.OpenSsl/4.0.0-beta-23504": {
@@ -2123,7 +2123,7 @@
           "System.Threading.Tasks": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Security.Cryptography.Primitives.dll": {}
+          "ref/dotnet5.1/System.Security.Cryptography.Primitives.dll": {}
         },
         "runtime": {
           "lib/dotnet5.4/System.Security.Cryptography.Primitives.dll": {}
@@ -2264,7 +2264,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Threading.Thread.dll": {}
+          "ref/dotnet5.1/System.Threading.Thread.dll": {}
         },
         "runtime": {
           "lib/DNXCore50/System.Threading.Thread.dll": {}
@@ -2353,7 +2353,7 @@
           "System.Xml.ReaderWriter": "[4.0.10, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Xml.XmlDocument.dll": {}
+          "ref/dotnet5.1/System.Xml.XmlDocument.dll": {}
         },
         "runtime": {
           "lib/dotnet5.4/System.Xml.XmlDocument.dll": {}
@@ -2372,7 +2372,7 @@
           "System.Xml.ReaderWriter": "[4.0.10, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Xml.XPath.dll": {}
+          "ref/dotnet5.1/System.Xml.XPath.dll": {}
         },
         "runtime": {
           "lib/dotnet5.4/System.Xml.XPath.dll": {}
@@ -2391,7 +2391,7 @@
           "System.Xml.XPath": "[4.0.1-beta-23504, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Xml.XPath.XDocument.dll": {}
+          "ref/dotnet5.1/System.Xml.XPath.XDocument.dll": {}
         },
         "runtime": {
           "lib/dotnet5.4/System.Xml.XPath.XDocument.dll": {}
@@ -2905,7 +2905,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.AppContext.dll": {}
+          "ref/dotnet5.1/System.AppContext.dll": {}
         },
         "runtime": {
           "lib/DNXCore50/System.AppContext.dll": {}
@@ -3008,7 +3008,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Diagnostics.FileVersionInfo.dll": {}
+          "ref/dotnet5.1/System.Diagnostics.FileVersionInfo.dll": {}
         }
       },
       "System.Diagnostics.Process/4.1.0-beta-23504": {
@@ -3028,7 +3028,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Diagnostics.StackTrace.dll": {}
+          "ref/dotnet5.1/System.Diagnostics.StackTrace.dll": {}
         },
         "runtime": {
           "lib/DNXCore50/System.Diagnostics.StackTrace.dll": {}
@@ -3146,7 +3146,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.IO.FileSystem.Watcher.dll": {}
+          "ref/dotnet5.1/System.IO.FileSystem.Watcher.dll": {}
         }
       },
       "System.IO.Pipes/4.0.0-beta-23504": {
@@ -3475,7 +3475,7 @@
           "System.Security.Cryptography.Primitives": "[4.0.0-beta-23504, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Security.Cryptography.Algorithms.dll": {}
+          "ref/dotnet5.1/System.Security.Cryptography.Algorithms.dll": {}
         }
       },
       "System.Security.Cryptography.Encoding/4.0.0-beta-23504": {
@@ -3483,7 +3483,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Security.Cryptography.Encoding.dll": {}
+          "ref/dotnet5.1/System.Security.Cryptography.Encoding.dll": {}
         }
       },
       "System.Security.Cryptography.OpenSsl/4.0.0-beta-23504": {
@@ -3519,7 +3519,7 @@
           "System.Threading.Tasks": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Security.Cryptography.Primitives.dll": {}
+          "ref/dotnet5.1/System.Security.Cryptography.Primitives.dll": {}
         },
         "runtime": {
           "lib/dotnet5.4/System.Security.Cryptography.Primitives.dll": {}
@@ -3660,7 +3660,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Threading.Thread.dll": {}
+          "ref/dotnet5.1/System.Threading.Thread.dll": {}
         },
         "runtime": {
           "lib/DNXCore50/System.Threading.Thread.dll": {}
@@ -3749,7 +3749,7 @@
           "System.Xml.ReaderWriter": "[4.0.10, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Xml.XmlDocument.dll": {}
+          "ref/dotnet5.1/System.Xml.XmlDocument.dll": {}
         },
         "runtime": {
           "lib/dotnet5.4/System.Xml.XmlDocument.dll": {}
@@ -3768,7 +3768,7 @@
           "System.Xml.ReaderWriter": "[4.0.10, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Xml.XPath.dll": {}
+          "ref/dotnet5.1/System.Xml.XPath.dll": {}
         },
         "runtime": {
           "lib/dotnet5.4/System.Xml.XPath.dll": {}
@@ -3787,7 +3787,7 @@
           "System.Xml.XPath": "[4.0.1-beta-23504, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Xml.XPath.XDocument.dll": {}
+          "ref/dotnet5.1/System.Xml.XPath.XDocument.dll": {}
         },
         "runtime": {
           "lib/dotnet5.4/System.Xml.XPath.XDocument.dll": {}
@@ -4400,7 +4400,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.AppContext.dll": {}
+          "ref/dotnet5.1/System.AppContext.dll": {}
         },
         "runtime": {
           "lib/DNXCore50/System.AppContext.dll": {}
@@ -4517,7 +4517,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Diagnostics.FileVersionInfo.dll": {}
+          "ref/dotnet5.1/System.Diagnostics.FileVersionInfo.dll": {}
         }
       },
       "System.Diagnostics.Process/4.1.0-beta-23504": {
@@ -4537,7 +4537,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Diagnostics.StackTrace.dll": {}
+          "ref/dotnet5.1/System.Diagnostics.StackTrace.dll": {}
         },
         "runtime": {
           "lib/DNXCore50/System.Diagnostics.StackTrace.dll": {}
@@ -4655,7 +4655,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.IO.FileSystem.Watcher.dll": {}
+          "ref/dotnet5.1/System.IO.FileSystem.Watcher.dll": {}
         }
       },
       "System.IO.Pipes/4.0.0-beta-23504": {
@@ -5018,7 +5018,7 @@
           "System.Security.Cryptography.Primitives": "[4.0.0-beta-23504, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Security.Cryptography.Algorithms.dll": {}
+          "ref/dotnet5.1/System.Security.Cryptography.Algorithms.dll": {}
         }
       },
       "System.Security.Cryptography.Cng/4.0.0-beta-23504": {
@@ -5067,7 +5067,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Security.Cryptography.Encoding.dll": {}
+          "ref/dotnet5.1/System.Security.Cryptography.Encoding.dll": {}
         }
       },
       "System.Security.Cryptography.Primitives/4.0.0-beta-23504": {
@@ -5081,7 +5081,7 @@
           "System.Threading.Tasks": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Security.Cryptography.Primitives.dll": {}
+          "ref/dotnet5.1/System.Security.Cryptography.Primitives.dll": {}
         },
         "runtime": {
           "lib/dotnet5.4/System.Security.Cryptography.Primitives.dll": {}
@@ -5234,7 +5234,7 @@
           "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Threading.Thread.dll": {}
+          "ref/dotnet5.1/System.Threading.Thread.dll": {}
         },
         "runtime": {
           "lib/DNXCore50/System.Threading.Thread.dll": {}
@@ -5323,7 +5323,7 @@
           "System.Xml.ReaderWriter": "[4.0.10, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Xml.XmlDocument.dll": {}
+          "ref/dotnet5.1/System.Xml.XmlDocument.dll": {}
         },
         "runtime": {
           "lib/dotnet5.4/System.Xml.XmlDocument.dll": {}
@@ -5342,7 +5342,7 @@
           "System.Xml.ReaderWriter": "[4.0.10, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Xml.XPath.dll": {}
+          "ref/dotnet5.1/System.Xml.XPath.dll": {}
         },
         "runtime": {
           "lib/dotnet5.4/System.Xml.XPath.dll": {}
@@ -5361,7 +5361,7 @@
           "System.Xml.XPath": "[4.0.1-beta-23504, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.Xml.XPath.XDocument.dll": {}
+          "ref/dotnet5.1/System.Xml.XPath.XDocument.dll": {}
         },
         "runtime": {
           "lib/dotnet5.4/System.Xml.XPath.XDocument.dll": {}
@@ -6490,7 +6490,7 @@
       ]
     },
     "System.AppContext/4.0.1-beta-23504": {
-      "sha512": "FydiMGvlMoBbDr4Zi2tYFR/78ctFdDtGtghaJaye28LCuhoaercsui/Fawsx8OkNfWQjdVuujUfrpcTF+f5ghQ==",
+      "sha512": "Ev+3ukvmLZ493U1wY1jduT+qbgsp8GDrIYoQ/M5KAzuotGflPpDTcCsp90NGOMT9Gbvh7j0cbn7BtZiE28YUeQ==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -6502,18 +6502,18 @@
         "lib/netcore50/System.AppContext.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/7d3d6656da3b4f6588507de4202908fc.psmdcp",
-        "ref/dotnet5.4/de/System.AppContext.xml",
-        "ref/dotnet5.4/es/System.AppContext.xml",
-        "ref/dotnet5.4/fr/System.AppContext.xml",
-        "ref/dotnet5.4/it/System.AppContext.xml",
-        "ref/dotnet5.4/ja/System.AppContext.xml",
-        "ref/dotnet5.4/ko/System.AppContext.xml",
-        "ref/dotnet5.4/ru/System.AppContext.xml",
-        "ref/dotnet5.4/System.AppContext.dll",
-        "ref/dotnet5.4/System.AppContext.xml",
-        "ref/dotnet5.4/zh-hans/System.AppContext.xml",
-        "ref/dotnet5.4/zh-hant/System.AppContext.xml",
+        "package/services/metadata/core-properties/2f367a4dc23f4451906d28c30859e2ac.psmdcp",
+        "ref/dotnet5.1/de/System.AppContext.xml",
+        "ref/dotnet5.1/es/System.AppContext.xml",
+        "ref/dotnet5.1/fr/System.AppContext.xml",
+        "ref/dotnet5.1/it/System.AppContext.xml",
+        "ref/dotnet5.1/ja/System.AppContext.xml",
+        "ref/dotnet5.1/ko/System.AppContext.xml",
+        "ref/dotnet5.1/ru/System.AppContext.xml",
+        "ref/dotnet5.1/System.AppContext.dll",
+        "ref/dotnet5.1/System.AppContext.xml",
+        "ref/dotnet5.1/zh-hans/System.AppContext.xml",
+        "ref/dotnet5.1/zh-hant/System.AppContext.xml",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/net46/System.AppContext.dll",
@@ -6523,7 +6523,7 @@
       ]
     },
     "System.Collections/4.0.11-beta-23504": {
-      "sha512": "+5Rb2RDs+I5/kqtDvV6G6vo2DdHMTd9qfrElUxY/HLF4xje6Z6oI1aAGXW9rXjVJ3x38Jd7Gzu1uCeC663iLRg==",
+      "sha512": "PH9ho8wmgdK0gMIc+WEujxbL2dWNaJTvzvsIqy9CNuyEh4UJpz6NJGIwk6PRs7AMm/MXfYg8xTlWDWMwwX+b8A==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -6538,7 +6538,7 @@
         "lib/wpa81/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/b7f26190040248dea26530596993e88b.psmdcp",
+        "package/services/metadata/core-properties/4614294ca7514c2180973372cab9a1a4.psmdcp",
         "ref/dotnet5.1/de/System.Collections.xml",
         "ref/dotnet5.1/es/System.Collections.xml",
         "ref/dotnet5.1/fr/System.Collections.xml",
@@ -6922,7 +6922,7 @@
       ]
     },
     "System.Diagnostics.Debug/4.0.11-beta-23504": {
-      "sha512": "wuBgKPGpBmyQfl88WA6sqQ+OaOqRBNi4C4XwjVAKuhqJ4y3tgdcpX72vwhyOoPbnnkCiEaIdPaelmNEzQHAnRw==",
+      "sha512": "OI6iPQnUYPwZgckJDl5ecNjgSl3BwVPIGbFqWF7DFyAf4Q4UJz2HCwqDZNRjtCoGcvsXKXfd01x3oQqCG9envg==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -6935,7 +6935,7 @@
         "lib/wpa81/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/60e6adfa9a2a42efafcf19e3acd536c6.psmdcp",
+        "package/services/metadata/core-properties/fef82c48d568476990e382da256b2300.psmdcp",
         "ref/dotnet5.1/de/System.Diagnostics.Debug.xml",
         "ref/dotnet5.1/es/System.Diagnostics.Debug.xml",
         "ref/dotnet5.1/fr/System.Diagnostics.Debug.xml",
@@ -6982,7 +6982,7 @@
       ]
     },
     "System.Diagnostics.FileVersionInfo/4.0.0-beta-23504": {
-      "sha512": "r9KEJozT5WIxdFIlwchvl79DIoARjtCCTkpDeDOsGcCW40Ncz9RoE32qj8f0+6eSFvhO7ZCa7jp12O4yQCOZjg==",
+      "sha512": "0m8xFULQXaM++YUW/tRKkwEF4Q5+n0jiDsVZtP2W2UwvHr00rM+btiHYJoqT8JpF130MVRZ9W+qtoNjezXTwdA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -6992,18 +6992,18 @@
         "lib/net46/System.Diagnostics.FileVersionInfo.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/ec9aae5f402340f98e3e6837a7ef3d16.psmdcp",
-        "ref/dotnet5.4/de/System.Diagnostics.FileVersionInfo.xml",
-        "ref/dotnet5.4/es/System.Diagnostics.FileVersionInfo.xml",
-        "ref/dotnet5.4/fr/System.Diagnostics.FileVersionInfo.xml",
-        "ref/dotnet5.4/it/System.Diagnostics.FileVersionInfo.xml",
-        "ref/dotnet5.4/ja/System.Diagnostics.FileVersionInfo.xml",
-        "ref/dotnet5.4/ko/System.Diagnostics.FileVersionInfo.xml",
-        "ref/dotnet5.4/ru/System.Diagnostics.FileVersionInfo.xml",
-        "ref/dotnet5.4/System.Diagnostics.FileVersionInfo.dll",
-        "ref/dotnet5.4/System.Diagnostics.FileVersionInfo.xml",
-        "ref/dotnet5.4/zh-hans/System.Diagnostics.FileVersionInfo.xml",
-        "ref/dotnet5.4/zh-hant/System.Diagnostics.FileVersionInfo.xml",
+        "package/services/metadata/core-properties/d92c297b17ae4b12a582b22dd7a5614c.psmdcp",
+        "ref/dotnet5.1/de/System.Diagnostics.FileVersionInfo.xml",
+        "ref/dotnet5.1/es/System.Diagnostics.FileVersionInfo.xml",
+        "ref/dotnet5.1/fr/System.Diagnostics.FileVersionInfo.xml",
+        "ref/dotnet5.1/it/System.Diagnostics.FileVersionInfo.xml",
+        "ref/dotnet5.1/ja/System.Diagnostics.FileVersionInfo.xml",
+        "ref/dotnet5.1/ko/System.Diagnostics.FileVersionInfo.xml",
+        "ref/dotnet5.1/ru/System.Diagnostics.FileVersionInfo.xml",
+        "ref/dotnet5.1/System.Diagnostics.FileVersionInfo.dll",
+        "ref/dotnet5.1/System.Diagnostics.FileVersionInfo.xml",
+        "ref/dotnet5.1/zh-hans/System.Diagnostics.FileVersionInfo.xml",
+        "ref/dotnet5.1/zh-hant/System.Diagnostics.FileVersionInfo.xml",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/net46/System.Diagnostics.FileVersionInfo.dll",
@@ -7014,7 +7014,7 @@
       ]
     },
     "System.Diagnostics.Process/4.1.0-beta-23504": {
-      "sha512": "x2J3Sww13e9um3rXRf+iBh06z3elsh2ihbKaJyn3rT97PMY/AJUpySARe9eqvs5SnzuI9FT+4++iSdWV5Ftmgg==",
+      "sha512": "V75HdI8CYTt7uodp6OJ4jQ5/nXN8d/NvvETYkZ/mE2g6vV6GOh8jykLMgFXCKc03tqkioiUDBk1Tm6tYN40bWA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -7025,7 +7025,7 @@
         "lib/net461/System.Diagnostics.Process.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/8de02146c9524f4bab8216e3a80d95b8.psmdcp",
+        "package/services/metadata/core-properties/0f713596b625430d933d20a21bcc12cf.psmdcp",
         "ref/dotnet5.4/de/System.Diagnostics.Process.xml",
         "ref/dotnet5.4/es/System.Diagnostics.Process.xml",
         "ref/dotnet5.4/fr/System.Diagnostics.Process.xml",
@@ -7059,7 +7059,7 @@
       ]
     },
     "System.Diagnostics.StackTrace/4.0.1-beta-23504": {
-      "sha512": "aITNhWOduMAYqcgKcMzEjLxJjhh7GGYi3gGf1eKH58RjPD9Q20zwsWGUNO8WC3ahSSmjNxxjCj3bOBGVnIrFmw==",
+      "sha512": "r2CQ1FD44Xao/NYzHVD4iIQbeOF3EI+aScGROY8vDXK5XiEb9BtBlbQCb6CRRfxk6VEnjJtuTCW6eZsbPIWSOg==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -7071,18 +7071,18 @@
         "lib/netcore50/System.Diagnostics.StackTrace.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/7d2bf3b2d98742d4a6de8072e9df0805.psmdcp",
-        "ref/dotnet5.4/de/System.Diagnostics.StackTrace.xml",
-        "ref/dotnet5.4/es/System.Diagnostics.StackTrace.xml",
-        "ref/dotnet5.4/fr/System.Diagnostics.StackTrace.xml",
-        "ref/dotnet5.4/it/System.Diagnostics.StackTrace.xml",
-        "ref/dotnet5.4/ja/System.Diagnostics.StackTrace.xml",
-        "ref/dotnet5.4/ko/System.Diagnostics.StackTrace.xml",
-        "ref/dotnet5.4/ru/System.Diagnostics.StackTrace.xml",
-        "ref/dotnet5.4/System.Diagnostics.StackTrace.dll",
-        "ref/dotnet5.4/System.Diagnostics.StackTrace.xml",
-        "ref/dotnet5.4/zh-hans/System.Diagnostics.StackTrace.xml",
-        "ref/dotnet5.4/zh-hant/System.Diagnostics.StackTrace.xml",
+        "package/services/metadata/core-properties/9bd72630ea2f429bb99a83af07dd3d7e.psmdcp",
+        "ref/dotnet5.1/de/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet5.1/es/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet5.1/fr/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet5.1/it/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet5.1/ja/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet5.1/ko/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet5.1/ru/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet5.1/System.Diagnostics.StackTrace.dll",
+        "ref/dotnet5.1/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet5.1/zh-hans/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet5.1/zh-hant/System.Diagnostics.StackTrace.xml",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/net46/System.Diagnostics.StackTrace.dll",
@@ -7093,7 +7093,7 @@
       ]
     },
     "System.Diagnostics.Tools/4.0.1-beta-23504": {
-      "sha512": "deblyOnmqyQFbZqv0o4rwvp0kySJYgOyQ3HVboYhhJrw88geug2ASMg46ZcieuMKfFavDufhNnlHsi97LV0uLw==",
+      "sha512": "dotFhYofn80jihmbhrr+MViFZYLJe0bjCLhsJVeYUzUmWkUpsHyWdtvFi/rNjbmaTSkexUHaRc0jpUoWQotXcQ==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -7104,7 +7104,7 @@
         "lib/win8/_._",
         "lib/wp80/_._",
         "lib/wpa81/_._",
-        "package/services/metadata/core-properties/9b8c1475272c469c9b304955d1246236.psmdcp",
+        "package/services/metadata/core-properties/8b53414ddb834f5a8cb3318f685ecfbc.psmdcp",
         "ref/dotnet5.1/de/System.Diagnostics.Tools.xml",
         "ref/dotnet5.1/es/System.Diagnostics.Tools.xml",
         "ref/dotnet5.1/fr/System.Diagnostics.Tools.xml",
@@ -7207,7 +7207,7 @@
       ]
     },
     "System.Dynamic.Runtime/4.0.11-beta-23504": {
-      "sha512": "FSmfeomZqsQYd1/wKkZNT7Bf42tx8OZhxvjlBit5jBXwKaocinyh/hNcU4NR+vLRdj0NYjdDWtWzL/MmQvSbpQ==",
+      "sha512": "cqzbTcFA/Y/qUl8jqHiYoPl3XYlW0rssMdeLhcMRUrj8qai1UyIdig8SuW/fyH9DSi8FYkwPijx1f4ESO+RSNg==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -7222,7 +7222,7 @@
         "lib/wpa81/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/83b7502cea1d4d98812e89877ef2be81.psmdcp",
+        "package/services/metadata/core-properties/5b6cdec99821451abe92efab0939b75e.psmdcp",
         "ref/dotnet5.1/de/System.Dynamic.Runtime.xml",
         "ref/dotnet5.1/es/System.Dynamic.Runtime.xml",
         "ref/dotnet5.1/fr/System.Dynamic.Runtime.xml",
@@ -7427,7 +7427,7 @@
       ]
     },
     "System.IO.FileSystem/4.0.1-beta-23504": {
-      "sha512": "hU2pxN48TMnpxCcs7xV+kxJRCv95CWU+cY2CM3/QfPhOHWxI/XMJCCzp/itPHivAOKc3WWErTKh6flFL3zra8Q==",
+      "sha512": "H1X1Qt1QZZZll99/UpkVudkxtldMXs2VMxOG5j8JeLdtFhT1mw936EiY1Wk8Zy87eYqXLwpsSi0gNzyYyezSPw==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -7437,7 +7437,7 @@
         "lib/net46/System.IO.FileSystem.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/a7eb12348a4946fd8b6dc61e36ff1303.psmdcp",
+        "package/services/metadata/core-properties/06bf79271abb4b4b878553f114a253d3.psmdcp",
         "ref/dotnet5.4/de/System.IO.FileSystem.xml",
         "ref/dotnet5.4/es/System.IO.FileSystem.xml",
         "ref/dotnet5.4/fr/System.IO.FileSystem.xml",
@@ -7523,7 +7523,7 @@
       ]
     },
     "System.IO.FileSystem.Watcher/4.0.0-beta-23504": {
-      "sha512": "h1GNVT7jnOj6U3l6jKt5pBdIVGyAEJrUQIG1PP8xGOzkUi+I96xeXij3k/NQNNZPY/gJZ9rMiyuvkpR0xVb/DA==",
+      "sha512": "jEKU6J8iMDsIFuM/7Cp8M8yrxBG2/xuBJKCYSp233QRGyYxYx3pSxLVFpPR6qKfv3Xsl8Io3em+UCjkZr3cdHA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -7533,18 +7533,18 @@
         "lib/net46/System.IO.FileSystem.Watcher.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/3ce3fcd6896d4ddea6da174b5dd50cdc.psmdcp",
-        "ref/dotnet5.4/de/System.IO.FileSystem.Watcher.xml",
-        "ref/dotnet5.4/es/System.IO.FileSystem.Watcher.xml",
-        "ref/dotnet5.4/fr/System.IO.FileSystem.Watcher.xml",
-        "ref/dotnet5.4/it/System.IO.FileSystem.Watcher.xml",
-        "ref/dotnet5.4/ja/System.IO.FileSystem.Watcher.xml",
-        "ref/dotnet5.4/ko/System.IO.FileSystem.Watcher.xml",
-        "ref/dotnet5.4/ru/System.IO.FileSystem.Watcher.xml",
-        "ref/dotnet5.4/System.IO.FileSystem.Watcher.dll",
-        "ref/dotnet5.4/System.IO.FileSystem.Watcher.xml",
-        "ref/dotnet5.4/zh-hans/System.IO.FileSystem.Watcher.xml",
-        "ref/dotnet5.4/zh-hant/System.IO.FileSystem.Watcher.xml",
+        "package/services/metadata/core-properties/8e6164cf92f7480e97a9c92c224db201.psmdcp",
+        "ref/dotnet5.1/de/System.IO.FileSystem.Watcher.xml",
+        "ref/dotnet5.1/es/System.IO.FileSystem.Watcher.xml",
+        "ref/dotnet5.1/fr/System.IO.FileSystem.Watcher.xml",
+        "ref/dotnet5.1/it/System.IO.FileSystem.Watcher.xml",
+        "ref/dotnet5.1/ja/System.IO.FileSystem.Watcher.xml",
+        "ref/dotnet5.1/ko/System.IO.FileSystem.Watcher.xml",
+        "ref/dotnet5.1/ru/System.IO.FileSystem.Watcher.xml",
+        "ref/dotnet5.1/System.IO.FileSystem.Watcher.dll",
+        "ref/dotnet5.1/System.IO.FileSystem.Watcher.xml",
+        "ref/dotnet5.1/zh-hans/System.IO.FileSystem.Watcher.xml",
+        "ref/dotnet5.1/zh-hant/System.IO.FileSystem.Watcher.xml",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/net46/System.IO.FileSystem.Watcher.dll",
@@ -7555,13 +7555,13 @@
       ]
     },
     "System.IO.Pipes/4.0.0-beta-23504": {
-      "sha512": "XbIQixjoOg6wvxYfpmv2ydXMsTQ56nV6bb2Ajem9RnwXaPVhq/eXeGYMEMZiQ1HxmuwusgccLE6FtT3+Xf+new==",
+      "sha512": "bYrrMSlH9XVXsYGNrRJ9U5J64a3EJIrZpb56iHQ8rtVuhTB+dAPOr3n0ErGlg2vLa4F3ZfB2/sR3PBvp615J1Q==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
         "lib/net46/System.IO.Pipes.dll",
-        "package/services/metadata/core-properties/de1baccf5c034e23bb61451533c0555b.psmdcp",
+        "package/services/metadata/core-properties/6624e54736f8479f948250d50f817083.psmdcp",
         "ref/dotnet5.4/de/System.IO.Pipes.xml",
         "ref/dotnet5.4/es/System.IO.Pipes.xml",
         "ref/dotnet5.4/fr/System.IO.Pipes.xml",
@@ -7579,7 +7579,7 @@
       ]
     },
     "System.Linq/4.0.1-beta-23504": {
-      "sha512": "BEYrDR9RrBAdsE12VjjWtx8u4OuEN6Qty78DWmvjneeCeOFenl34d1Z+DMZozHWEs+fbF+rcGgF1lBPlqhj6lQ==",
+      "sha512": "f6dB50GbkZQsFMOtTiQXJnv1kGaYgVSK/e6R8nZj9cU6D9rBbsCNJKsO1AwiIRIcEIgjPygvf1BDLXPKJrgW4w==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -7590,7 +7590,7 @@
         "lib/win8/_._",
         "lib/wp80/_._",
         "lib/wpa81/_._",
-        "package/services/metadata/core-properties/b53d84d2ad5a48e1b3c50885ac70b199.psmdcp",
+        "package/services/metadata/core-properties/6446c453e744452c9bd3894b80c54d6a.psmdcp",
         "ref/dotnet5.1/de/System.Linq.xml",
         "ref/dotnet5.1/es/System.Linq.xml",
         "ref/dotnet5.1/fr/System.Linq.xml",
@@ -7716,7 +7716,7 @@
       ]
     },
     "System.Net.NameResolution/4.0.0-beta-23504": {
-      "sha512": "yM6B183+u9jJINMab9lGFlvsopA8lWYpAApHEG7VIOQZy84rJHLf0PTw1vv966Z/lG/X62pIT+ibGM1ZWytqVA==",
+      "sha512": "CW4daWsw0cwCHon9pyUkiV1Lawa1DTQkQ2DUPoMio2lYELgdeP+p6YB9XdGVXc5enKKj0DsbKTV6akXfKsBYoQ==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -7726,7 +7726,7 @@
         "lib/net46/System.Net.NameResolution.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/b783c202d07440f6bdbd20e99fc6dea5.psmdcp",
+        "package/services/metadata/core-properties/76655d5e0fb6455cb96c9159fee7f576.psmdcp",
         "ref/dotnet5.4/de/System.Net.NameResolution.xml",
         "ref/dotnet5.4/es/System.Net.NameResolution.xml",
         "ref/dotnet5.4/fr/System.Net.NameResolution.xml",
@@ -7956,12 +7956,12 @@
       ]
     },
     "System.Private.DataContractSerialization/4.1.0-beta-23504": {
-      "sha512": "b6sPssVzR0EUdXDzoV9NclUp1O+8RREfRUD8sbpiYL5XR0gi6bzAPMzQ7OxEuAOcM0U6JBetdCLv7VyYY6cdpw==",
+      "sha512": "HvbBsC0v5XMt6jMRNcPLnf9Hs2zUaHrE9zP7eRCs/jO5LimT/MOoiBPYcEr8qRWCkDF+fHvFY/eSij6HX5j0kA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
-        "package/services/metadata/core-properties/363977cdc60e4705bfcdc89cc023387b.psmdcp",
+        "package/services/metadata/core-properties/6d52d4975a9f45a79da7e97ae1386c6a.psmdcp",
         "ref/dnxcore50/_._",
         "ref/netcore50/_._",
         "runtime.json",
@@ -7997,12 +7997,12 @@
       ]
     },
     "System.Private.Uri/4.0.1-beta-23504": {
-      "sha512": "rKX89ly6HK4o4Tz+Eg6tad5RIIDYNb3QGNttQrNUUdGaAS190rxQU82HfLcZp7Y9Q+5lF6WhBmw8hFTNvCA3yw==",
+      "sha512": "vSBBt0nXCoI5j3pBwUBYn/QUblXiH6vlQunfKA3w3L6Ng0S9TkFDVxIAV2pl/WN9EV6yGEFSoAqHb5VDdVcKYg==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
-        "package/services/metadata/core-properties/afa5274fde16402f981ef4388e0c952e.psmdcp",
+        "package/services/metadata/core-properties/ae005521f9534b3283edbd5cb634e933.psmdcp",
         "ref/dnxcore50/_._",
         "ref/netcore50/_._",
         "runtime.json",
@@ -8010,7 +8010,7 @@
       ]
     },
     "System.Reflection/4.1.0-beta-23504": {
-      "sha512": "WBdLemn0GjinvASehzA89cT6kV6txw3KXLLhrK53A/5giNdZlHxMUP60f79GD/Ze2miR8F8OEpaubbPGuZjXoA==",
+      "sha512": "VD5Yqp51l+vSrhNDuSkWEZt6zPNbItGB09TGeHvkaMpZcBzB77W2tOVfbcbalOgvX9LKHvMpAxaM5VIsxLoNUg==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -8026,7 +8026,7 @@
         "lib/wpa81/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/3bb02e35bc764017ab4e78649bb0d433.psmdcp",
+        "package/services/metadata/core-properties/b0efaa3887a44f6facc9fe8a0d26c467.psmdcp",
         "ref/dotnet5.1/de/System.Reflection.xml",
         "ref/dotnet5.1/es/System.Reflection.xml",
         "ref/dotnet5.1/fr/System.Reflection.xml",
@@ -8275,7 +8275,7 @@
       ]
     },
     "System.Reflection.Primitives/4.0.1-beta-23504": {
-      "sha512": "EDgC6JH5pR12f1fVkTbthDa/wnB3ntu1IlmIlokchhYT1CszoXLQ6oX5iMc0oyjg9dgFEDMaUgcNksrrIpxHuA==",
+      "sha512": "VbEjOsYCwYdwFGzJnopfT7yeZDnVvo+vlYZ9on7h9hXa0uTSmhaoP/dYu9wcjsnge0o0cQqLXeGopelx5aVbZg==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -8286,7 +8286,7 @@
         "lib/win8/_._",
         "lib/wp80/_._",
         "lib/wpa81/_._",
-        "package/services/metadata/core-properties/9151beecbc62457fba38c4eec40aec83.psmdcp",
+        "package/services/metadata/core-properties/a84da9c26bb24da1b6d10de4b88bed98.psmdcp",
         "ref/dotnet5.1/de/System.Reflection.Primitives.xml",
         "ref/dotnet5.1/es/System.Reflection.Primitives.xml",
         "ref/dotnet5.1/fr/System.Reflection.Primitives.xml",
@@ -8386,7 +8386,7 @@
       ]
     },
     "System.Resources.ResourceManager/4.0.1-beta-23504": {
-      "sha512": "MOkuSppn4WwFJmfjqdLI+yfmmk5VT42qlTbKbQZFBy4Fp/ZoYb+jvhI43pce013KBmPSe0dGEXIGr69K5vFuUw==",
+      "sha512": "wlKzN2chH6UsFFyiLHCJ8YgLD1vWhyteSR2lwSKP4GT64R959zBg7rcnWEvBlAcmqYI6qWR6NcTvVNIUGs64mQ==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -8397,7 +8397,7 @@
         "lib/win8/_._",
         "lib/wp80/_._",
         "lib/wpa81/_._",
-        "package/services/metadata/core-properties/354fd3dc8d694628820142b5d8fcdef9.psmdcp",
+        "package/services/metadata/core-properties/c074b5a70f9046249aa1f0a744906fc6.psmdcp",
         "ref/dotnet5.1/de/System.Resources.ResourceManager.xml",
         "ref/dotnet5.1/es/System.Resources.ResourceManager.xml",
         "ref/dotnet5.1/fr/System.Resources.ResourceManager.xml",
@@ -8429,7 +8429,7 @@
       ]
     },
     "System.Runtime/4.0.21-beta-23504": {
-      "sha512": "aCPLcyPqkUAPYyHh6JUn4Hlp2WvO9y6e+X11yzwXGN9NWzP6Za7PZy/bIBTkP1Lsey16WzP42N66A9X4G7DOzQ==",
+      "sha512": "dpMUXTBjamKECqHXtPJ+4YjGSlyArqGkw7y4QeFneCiAYKBd1Y7Y8d31pv1/z4hl0q1MABRyBEBcXAOccfZ6jw==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -8444,7 +8444,7 @@
         "lib/wpa81/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/472bf95e241f45eaa6539fbe1c5643ce.psmdcp",
+        "package/services/metadata/core-properties/3e61b9201ad0441bbbd166a989926df0.psmdcp",
         "ref/dotnet5.1/de/System.Runtime.xml",
         "ref/dotnet5.1/es/System.Runtime.xml",
         "ref/dotnet5.1/fr/System.Runtime.xml",
@@ -8502,7 +8502,7 @@
       ]
     },
     "System.Runtime.Extensions/4.0.11-beta-23504": {
-      "sha512": "2yYJAQxjl25VtJI73x0NewafdeEOYp6rC2Ng953vfMEKNj/44UfgDlugZQVZXlWsP2JZ/KTlZNM6gLWz3NWAqA==",
+      "sha512": "cPM7IZmRK2AiOY1Ruvre/6dqQll0FEEXoBdsTIRutp9TvzkGa55VD6673zQeEzWMN6Vp7TvVq7ZIhCm2jums6g==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -8515,7 +8515,7 @@
         "lib/wpa81/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/8530ade9ac99448a9123ebe54c3cc1d1.psmdcp",
+        "package/services/metadata/core-properties/0a5920f5f11447ba88de641e2f841934.psmdcp",
         "ref/dotnet5.1/de/System.Runtime.Extensions.xml",
         "ref/dotnet5.1/es/System.Runtime.Extensions.xml",
         "ref/dotnet5.1/fr/System.Runtime.Extensions.xml",
@@ -8562,7 +8562,7 @@
       ]
     },
     "System.Runtime.Handles/4.0.1-beta-23504": {
-      "sha512": "jXoQoWFOAUkXMimw+727XB1UDA+Z61hhKxJkBRlKUJ5pfho+99bnNeYsuniroYnp2gPvpnrQuvhzYNU3/X8LEw==",
+      "sha512": "dMkitfNsdk1xkmaVoigjIu0XRLwmEh7M8MBDxv/JS0Oqo5vRkuhuXdEClF1nCgz/91JLHHpdfS95XkjhWzi/Qw==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -8574,7 +8574,7 @@
         "lib/netcore50/System.Runtime.Handles.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/3e630f02249448c7aa42dcf4f9a1b3a3.psmdcp",
+        "package/services/metadata/core-properties/da3eca77461141bd9bfbff8dab71d9fa.psmdcp",
         "ref/dotnet5.4/de/System.Runtime.Handles.xml",
         "ref/dotnet5.4/es/System.Runtime.Handles.xml",
         "ref/dotnet5.4/fr/System.Runtime.Handles.xml",
@@ -8596,7 +8596,7 @@
       ]
     },
     "System.Runtime.InteropServices/4.0.21-beta-23504": {
-      "sha512": "9MWR4HGPfUvt4CayFMQPP9q2OWAQMuRNy7CNz1uF2XCw7N0f2CYmbhOW9n6/+zkRZUCEq6Uz/zlnbZX0+nuEHg==",
+      "sha512": "bJ84cC5pS6wYp3E91wGl9eGZgnTr1jWCs+d261RP/T30J0vY6JYoIphsm+mPPW37XT8A5PtnjkS9RbqjtViwjA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -8610,7 +8610,7 @@
         "lib/wpa81/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/e1849b4b01564989a51ad3263114d6f4.psmdcp",
+        "package/services/metadata/core-properties/6417d3e0c5824aae8f72923684bdd9cc.psmdcp",
         "ref/dotnet5.2/de/System.Runtime.InteropServices.xml",
         "ref/dotnet5.2/es/System.Runtime.InteropServices.xml",
         "ref/dotnet5.2/fr/System.Runtime.InteropServices.xml",
@@ -8667,13 +8667,13 @@
       ]
     },
     "System.Runtime.Loader/4.0.0-beta-23504": {
-      "sha512": "STMBFl+by4dsiPD/5OB/A/+RbZzhzbLjYMVQzlLNDD2Y3I25hcSPrgjNQunZ57IZfa5pu78Y3FVMBxxW5OI6xA==",
+      "sha512": "6zkzeIpI/6nWIQpM/Fh/aZ2HbbHbr7Ra9dr6WW87YhlSfLqzYjTHnb9GzcqEoXllxWyMUVkUnsPp1QfYczrXBg==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
         "lib/DNXCore50/System.Runtime.Loader.dll",
-        "package/services/metadata/core-properties/78d7d0f7b96f4de09be0a165ab2513ac.psmdcp",
+        "package/services/metadata/core-properties/854a1e21a9804179848d51b49282fc7b.psmdcp",
         "ref/dotnet5.1/de/System.Runtime.Loader.xml",
         "ref/dotnet5.1/es/System.Runtime.Loader.xml",
         "ref/dotnet5.1/fr/System.Runtime.Loader.xml",
@@ -8689,7 +8689,7 @@
       ]
     },
     "System.Runtime.Numerics/4.0.1-beta-23504": {
-      "sha512": "pxIPbRDjhlBqZI2QXLJAQuVj3p2CmYyzUwcD6K74H0hNxLmCeBasgR81mO3X/OaFhlpBI11QVM5eCWAv3WEifg==",
+      "sha512": "9LOfwEDmZSYcwgzwifwtPiGmgwkXNfJWK37B4tzICn20nG/Eq+GzAqV7ERars4QSU6LMnKfaQrifL6vLn4oeLg==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -8699,7 +8699,7 @@
         "lib/netcore50/System.Runtime.Numerics.dll",
         "lib/win8/_._",
         "lib/wpa81/_._",
-        "package/services/metadata/core-properties/79f0cfb216ba40fc9ed315a5b535a4ae.psmdcp",
+        "package/services/metadata/core-properties/222be5b826254a6faa138805ed3f1d66.psmdcp",
         "ref/dotnet5.2/de/System.Runtime.Numerics.xml",
         "ref/dotnet5.2/es/System.Runtime.Numerics.xml",
         "ref/dotnet5.2/fr/System.Runtime.Numerics.xml",
@@ -8729,7 +8729,7 @@
       ]
     },
     "System.Runtime.Serialization.Json/4.0.1-beta-23504": {
-      "sha512": "EpAAbaumz41uGE3g7eKEDnkAmob/6uReruwq7m+4R2cNnf2r1lCsbVAEyUG5HyGx1h6CMYaHOCEP0o55LQtgxw==",
+      "sha512": "CrZ8Q/q951n6baDHlIbnIdE+en+CalVEx0RD8UHSuIBDYDRqdB0MwAIuRfTVAKAbdTMD8Izrm39432bxuuLPkg==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -8740,7 +8740,7 @@
         "lib/win8/_._",
         "lib/wp80/_._",
         "lib/wpa81/_._",
-        "package/services/metadata/core-properties/6d4377b425f34a94b9f32a1f129e5ce1.psmdcp",
+        "package/services/metadata/core-properties/a23ff67760134343b7886627cc0d84fe.psmdcp",
         "ref/dotnet5.1/de/System.Runtime.Serialization.Json.xml",
         "ref/dotnet5.1/es/System.Runtime.Serialization.Json.xml",
         "ref/dotnet5.1/fr/System.Runtime.Serialization.Json.xml",
@@ -8804,7 +8804,7 @@
       ]
     },
     "System.Security.Cryptography.Algorithms/4.0.0-beta-23504": {
-      "sha512": "rFGq4yYSz4GSvwGKjeHg7h9sdGbtedTPlh5F4bKB9W2UqLMmN0MmY97T7EfIogMXehY5XAr9ngu9HrbqI+Qorw==",
+      "sha512": "G3M5JGzTtPxObLLPEieEpEuQtuzYhQ+86CTz9TqHMmHFzUyA+kA/d2WmmFp0kjIvG6de6Zw1YzK5ImmdCf8FVg==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -8814,8 +8814,8 @@
         "lib/net46/System.Security.Cryptography.Algorithms.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/ef173bff6fbd43bcab165751afeacd4f.psmdcp",
-        "ref/dotnet5.4/System.Security.Cryptography.Algorithms.dll",
+        "package/services/metadata/core-properties/1e1370cea3b948cba812bec388cb1a81.psmdcp",
+        "ref/dotnet5.1/System.Security.Cryptography.Algorithms.dll",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/net46/System.Security.Cryptography.Algorithms.dll",
@@ -8862,7 +8862,7 @@
       ]
     },
     "System.Security.Cryptography.Encoding/4.0.0-beta-23504": {
-      "sha512": "iObsTOwqwRsvolgEy0KKOOSoqZZESRq7kc9fSYZAXx2st0nAFmq1eGLR0OdQCm/hBtXYu8qmUyEycASsCYch/g==",
+      "sha512": "Z2QaAn7ds4qKs0IMGhbA9egeAFqctV6NWKtVgmGrKawYGxMd88h11fKvc/OQ2MmWet7HRH8og5xaYr3uHECEOw==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -8872,18 +8872,18 @@
         "lib/net46/System.Security.Cryptography.Encoding.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/c77101be8d234dd8b0d3462ecc7e7f8f.psmdcp",
-        "ref/dotnet5.4/de/System.Security.Cryptography.Encoding.xml",
-        "ref/dotnet5.4/es/System.Security.Cryptography.Encoding.xml",
-        "ref/dotnet5.4/fr/System.Security.Cryptography.Encoding.xml",
-        "ref/dotnet5.4/it/System.Security.Cryptography.Encoding.xml",
-        "ref/dotnet5.4/ja/System.Security.Cryptography.Encoding.xml",
-        "ref/dotnet5.4/ko/System.Security.Cryptography.Encoding.xml",
-        "ref/dotnet5.4/ru/System.Security.Cryptography.Encoding.xml",
-        "ref/dotnet5.4/System.Security.Cryptography.Encoding.dll",
-        "ref/dotnet5.4/System.Security.Cryptography.Encoding.xml",
-        "ref/dotnet5.4/zh-hans/System.Security.Cryptography.Encoding.xml",
-        "ref/dotnet5.4/zh-hant/System.Security.Cryptography.Encoding.xml",
+        "package/services/metadata/core-properties/21b4a2db6aa240e6a33d074d0d1316d2.psmdcp",
+        "ref/dotnet5.1/de/System.Security.Cryptography.Encoding.xml",
+        "ref/dotnet5.1/es/System.Security.Cryptography.Encoding.xml",
+        "ref/dotnet5.1/fr/System.Security.Cryptography.Encoding.xml",
+        "ref/dotnet5.1/it/System.Security.Cryptography.Encoding.xml",
+        "ref/dotnet5.1/ja/System.Security.Cryptography.Encoding.xml",
+        "ref/dotnet5.1/ko/System.Security.Cryptography.Encoding.xml",
+        "ref/dotnet5.1/ru/System.Security.Cryptography.Encoding.xml",
+        "ref/dotnet5.1/System.Security.Cryptography.Encoding.dll",
+        "ref/dotnet5.1/System.Security.Cryptography.Encoding.xml",
+        "ref/dotnet5.1/zh-hans/System.Security.Cryptography.Encoding.xml",
+        "ref/dotnet5.1/zh-hant/System.Security.Cryptography.Encoding.xml",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/net46/System.Security.Cryptography.Encoding.dll",
@@ -8906,7 +8906,7 @@
       ]
     },
     "System.Security.Cryptography.Primitives/4.0.0-beta-23504": {
-      "sha512": "IeEsY14NY8P4Diq3+xByaOBqQh7T5x55p38K78q3abi7MMhebZ2ulPs9/h+q+roTiarc8ZhO6v6ewllb883nyA==",
+      "sha512": "Uvu5qYrK/cz/iqaEUgfwNa2QBeFKn8JtFcRRo3y6MtEmlMBl2f2vKLjmqvS9ebf+qSBb4NkEpy208IM/SX1Wdw==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -8917,8 +8917,8 @@
         "lib/net46/System.Security.Cryptography.Primitives.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/7882b2af8eda42d393c3ebe859584e7f.psmdcp",
-        "ref/dotnet5.4/System.Security.Cryptography.Primitives.dll",
+        "package/services/metadata/core-properties/2e1dcdc8084f420ebe8da1c9b461fed7.psmdcp",
+        "ref/dotnet5.1/System.Security.Cryptography.Primitives.dll",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/net46/System.Security.Cryptography.Primitives.dll",
@@ -8928,7 +8928,7 @@
       ]
     },
     "System.Security.Cryptography.X509Certificates/4.0.0-beta-23504": {
-      "sha512": "ukuGfOlg7hwEMSoxuUtojcoMNou6k7BR7yzPVAWD0DyActvQSbuh/Mhu4O6JRx1GsV3poZaD7SpjfLqQz651jg==",
+      "sha512": "prlz/u3mAoQmQP8bOMGrCKqUw4fjbKIFmsi3Fhp6SkyWwOba6qBF1rflbZoeiyxyn23HUJsoDSWqrbq9gx4Jnw==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -8938,7 +8938,7 @@
         "lib/net46/System.Security.Cryptography.X509Certificates.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/b02330c0b05f4bd2b90867b2521a85ed.psmdcp",
+        "package/services/metadata/core-properties/91250405fb3b407da36bcf498f0d1cad.psmdcp",
         "ref/dotnet5.4/de/System.Security.Cryptography.X509Certificates.xml",
         "ref/dotnet5.4/es/System.Security.Cryptography.X509Certificates.xml",
         "ref/dotnet5.4/fr/System.Security.Cryptography.X509Certificates.xml",
@@ -9059,7 +9059,7 @@
       ]
     },
     "System.Text.Encoding/4.0.11-beta-23504": {
-      "sha512": "nbYGswoknFhzceL6woboAO0K92vd6DO4Q97MVH1eTZ7D2dtQEuEB4niwRxYGp7j/WGfpXQSHzTL1KqRFKCMZwQ==",
+      "sha512": "lrtKlAELDq7ZLeXKb/hsUxEm7whTtXFyX0Sc0tv9FOfiZT2VUz3CGGa26rIVGT8tifHG2RvlROQbGGbNr3NbOQ==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -9074,7 +9074,7 @@
         "lib/wpa81/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/a73b25140e544bcb9cbfec421990c0d9.psmdcp",
+        "package/services/metadata/core-properties/da5ae96af88c4d21a073a0db71a4cffa.psmdcp",
         "ref/dotnet5.1/de/System.Text.Encoding.xml",
         "ref/dotnet5.1/es/System.Text.Encoding.xml",
         "ref/dotnet5.1/fr/System.Text.Encoding.xml",
@@ -9121,7 +9121,7 @@
       ]
     },
     "System.Text.Encoding.CodePages/4.0.1-beta-23504": {
-      "sha512": "ZKCiZO9jP1qlEDSsea9P/9skYFRoVg7RmxIjgTe6MhAOYu8kVjOPagRcEkK4USKhuzIkFaY0cdLCoQPSl+uv1Q==",
+      "sha512": "bwWptOMi+1FlwkDUeb3AjHqhyIrKAMeYFA7do+kRR12WovzpoZtzOAMgpOlXDdDiI5M65eiCHY9/7KUkDEDOpQ==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -9130,7 +9130,7 @@
         "lib/MonoTouch10/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/8499e039e1bf4d3f8286741e09742d27.psmdcp",
+        "package/services/metadata/core-properties/9917be0d51f34d268871a069e7d4fbc8.psmdcp",
         "ref/dotnet5.4/de/System.Text.Encoding.CodePages.xml",
         "ref/dotnet5.4/es/System.Text.Encoding.CodePages.xml",
         "ref/dotnet5.4/fr/System.Text.Encoding.CodePages.xml",
@@ -9151,7 +9151,7 @@
       ]
     },
     "System.Text.Encoding.Extensions/4.0.11-beta-23504": {
-      "sha512": "VlpSvueo1n45N5dG8b3N7zhm1LVAlEHodvwGiSMfAkcUqLG+GgXBTLA+x54sOXG4FGWR7rAZLCosXfOIt8qc/A==",
+      "sha512": "w1IbxmTlLTVulj4aqlVPyhN8CIAraUbHun03IygEbR2PMW1e7W0s2QQyhjeLxmDvQZNEO7/KiPo7tRyAHrMVzA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -9166,7 +9166,7 @@
         "lib/wpa81/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/d161a387a41445f4b69bc165aa0d1521.psmdcp",
+        "package/services/metadata/core-properties/65d4033c150b49c2aa24385691d593aa.psmdcp",
         "ref/dotnet5.1/de/System.Text.Encoding.Extensions.xml",
         "ref/dotnet5.1/es/System.Text.Encoding.Extensions.xml",
         "ref/dotnet5.1/fr/System.Text.Encoding.Extensions.xml",
@@ -9306,7 +9306,7 @@
       ]
     },
     "System.Threading/4.0.11-beta-23504": {
-      "sha512": "L9UttBrbY6uz2ZPxDvfCbmAt4yDK1eKhNMPoraxTcfsOdYTgxpeKRpyMbMbJqrozYlXJE2x7zNs24hhvmGxFPg==",
+      "sha512": "4qrwqy6fXOj4naQxDh5H8FdOQ00sYBlK3m3FzwXtOo8JlJA17owTjSfvi9H+QWRzSCnVSzGNhXRR6bb9xTPb8w==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -9319,7 +9319,7 @@
         "lib/wpa81/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/41956439abe3409b9d01c36aeb70e3df.psmdcp",
+        "package/services/metadata/core-properties/b236cf39d4944bda96fafbe55b56c05b.psmdcp",
         "ref/dotnet5.1/de/System.Threading.xml",
         "ref/dotnet5.1/es/System.Threading.xml",
         "ref/dotnet5.1/fr/System.Threading.xml",
@@ -9416,7 +9416,7 @@
       ]
     },
     "System.Threading.Tasks/4.0.11-beta-23504": {
-      "sha512": "4GDxeC8aOFF6r49Y0aLgPa3chmtieP+SqrFj7N+h58h+Wn3beAZhzFqvR9hEeJ918zNur/W78uuMho0UUTqLtw==",
+      "sha512": "blQh9NO20MQvf4xhSeNo5BwX/H1IBBhAY4x9zDmFNiahq6KSVm290whwnctuoazad6EX1oKTDyaXgmw0vwC9OA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -9431,7 +9431,7 @@
         "lib/wpa81/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/42ebb91e90ca4836b73a111f08919459.psmdcp",
+        "package/services/metadata/core-properties/e63984577a3640808039ebec4771ab01.psmdcp",
         "ref/dotnet5.1/de/System.Threading.Tasks.xml",
         "ref/dotnet5.1/es/System.Threading.Tasks.xml",
         "ref/dotnet5.1/fr/System.Threading.Tasks.xml",
@@ -9478,7 +9478,7 @@
       ]
     },
     "System.Threading.Tasks.Parallel/4.0.1-beta-23504": {
-      "sha512": "QiFGqCNgeQll8ua1mGVdAiMyEj2WIr9T54ERZXyk8xduy4/lRneMgBgqDuc4W0gSmLj9pdrYfplD9MMZnc5ZXw==",
+      "sha512": "vZAgr23M69plYg1W+hGlDjQ1jcly4Kej5IFKzWWp2PeSMhje0GS3QoBj6s7xAH8T63TED8Ij8DsFi4hQ7jzpbQ==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -9488,7 +9488,7 @@
         "lib/netcore50/System.Threading.Tasks.Parallel.dll",
         "lib/win8/_._",
         "lib/wpa81/_._",
-        "package/services/metadata/core-properties/e7ed8dcaeaea4a81b6833355b39612c5.psmdcp",
+        "package/services/metadata/core-properties/8def43d4adf44cd0bbea2459cef57a33.psmdcp",
         "ref/dotnet5.2/de/System.Threading.Tasks.Parallel.xml",
         "ref/dotnet5.2/es/System.Threading.Tasks.Parallel.xml",
         "ref/dotnet5.2/fr/System.Threading.Tasks.Parallel.xml",
@@ -9518,7 +9518,7 @@
       ]
     },
     "System.Threading.Thread/4.0.0-beta-23504": {
-      "sha512": "D3zvCZDSjODrr0TjaPErBitArzcfqnTCU2tnXodFpLXncU/7SSIaVSyir7eTb9nAsGje9IEu2C4HDNQppgStRQ==",
+      "sha512": "oyKzYRYSDOzSykuO1QASaznoHaqxSJVGJeDgRc9dOx+8Z6I3LiSw3nVMJx6pLmyjW6wMhbGKBg8pVYh/nCfRVw==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -9529,18 +9529,18 @@
         "lib/net46/System.Threading.Thread.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/0fdde02907e64bc9ac73173d7041d21b.psmdcp",
-        "ref/dotnet5.4/de/System.Threading.Thread.xml",
-        "ref/dotnet5.4/es/System.Threading.Thread.xml",
-        "ref/dotnet5.4/fr/System.Threading.Thread.xml",
-        "ref/dotnet5.4/it/System.Threading.Thread.xml",
-        "ref/dotnet5.4/ja/System.Threading.Thread.xml",
-        "ref/dotnet5.4/ko/System.Threading.Thread.xml",
-        "ref/dotnet5.4/ru/System.Threading.Thread.xml",
-        "ref/dotnet5.4/System.Threading.Thread.dll",
-        "ref/dotnet5.4/System.Threading.Thread.xml",
-        "ref/dotnet5.4/zh-hans/System.Threading.Thread.xml",
-        "ref/dotnet5.4/zh-hant/System.Threading.Thread.xml",
+        "package/services/metadata/core-properties/c97599ac63604d17a276996fab5cbde3.psmdcp",
+        "ref/dotnet5.1/de/System.Threading.Thread.xml",
+        "ref/dotnet5.1/es/System.Threading.Thread.xml",
+        "ref/dotnet5.1/fr/System.Threading.Thread.xml",
+        "ref/dotnet5.1/it/System.Threading.Thread.xml",
+        "ref/dotnet5.1/ja/System.Threading.Thread.xml",
+        "ref/dotnet5.1/ko/System.Threading.Thread.xml",
+        "ref/dotnet5.1/ru/System.Threading.Thread.xml",
+        "ref/dotnet5.1/System.Threading.Thread.dll",
+        "ref/dotnet5.1/System.Threading.Thread.xml",
+        "ref/dotnet5.1/zh-hans/System.Threading.Thread.xml",
+        "ref/dotnet5.1/zh-hant/System.Threading.Thread.xml",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/net46/System.Threading.Thread.dll",
@@ -9777,7 +9777,7 @@
       ]
     },
     "System.Xml.XmlDocument/4.0.1-beta-23504": {
-      "sha512": "69XKJvodiemWQcQ44qQOLeswvKrLO6IEaS2joixW+4ATYOO/G9cVtKrvWHNd3T7zoxHYGpAN5XHaGUKPetoW9A==",
+      "sha512": "8+3Fuwi6tglTDtg5VxRFc1QDAEp+fELVkK5iTGBME+kKM8iw+GOK1EdjBlmqCG3++yWHY3RMMVWsBXX6uCGAVA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -9788,18 +9788,18 @@
         "lib/net46/System.Xml.XmlDocument.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/102eefb28d794b809f331c538022def5.psmdcp",
-        "ref/dotnet5.4/de/System.Xml.XmlDocument.xml",
-        "ref/dotnet5.4/es/System.Xml.XmlDocument.xml",
-        "ref/dotnet5.4/fr/System.Xml.XmlDocument.xml",
-        "ref/dotnet5.4/it/System.Xml.XmlDocument.xml",
-        "ref/dotnet5.4/ja/System.Xml.XmlDocument.xml",
-        "ref/dotnet5.4/ko/System.Xml.XmlDocument.xml",
-        "ref/dotnet5.4/ru/System.Xml.XmlDocument.xml",
-        "ref/dotnet5.4/System.Xml.XmlDocument.dll",
-        "ref/dotnet5.4/System.Xml.XmlDocument.xml",
-        "ref/dotnet5.4/zh-hans/System.Xml.XmlDocument.xml",
-        "ref/dotnet5.4/zh-hant/System.Xml.XmlDocument.xml",
+        "package/services/metadata/core-properties/9008f95df97a42bcb4186d45b85de416.psmdcp",
+        "ref/dotnet5.1/de/System.Xml.XmlDocument.xml",
+        "ref/dotnet5.1/es/System.Xml.XmlDocument.xml",
+        "ref/dotnet5.1/fr/System.Xml.XmlDocument.xml",
+        "ref/dotnet5.1/it/System.Xml.XmlDocument.xml",
+        "ref/dotnet5.1/ja/System.Xml.XmlDocument.xml",
+        "ref/dotnet5.1/ko/System.Xml.XmlDocument.xml",
+        "ref/dotnet5.1/ru/System.Xml.XmlDocument.xml",
+        "ref/dotnet5.1/System.Xml.XmlDocument.dll",
+        "ref/dotnet5.1/System.Xml.XmlDocument.xml",
+        "ref/dotnet5.1/zh-hans/System.Xml.XmlDocument.xml",
+        "ref/dotnet5.1/zh-hant/System.Xml.XmlDocument.xml",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/net46/System.Xml.XmlDocument.dll",
@@ -9809,7 +9809,7 @@
       ]
     },
     "System.Xml.XPath/4.0.1-beta-23504": {
-      "sha512": "1JXVMJsqvBaajJDJiOAzLsWusiumD/sfRdcfgJTFiadxOdwVD69MGZPLg38YyY439tBBvo5Lg6LioaYaXpnu7w==",
+      "sha512": "4Z80blTUzwNZ+S3IEDx8vN/deLKPazuPv5vpBhlY4hh3e7ViYP+aKCcKPKKF1XKHLwdZ1djo8kdI/zrFHpRb4g==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -9820,18 +9820,18 @@
         "lib/net46/System.Xml.XPath.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/7ebaf7d8c58f41f7ac8e564d08bdbf19.psmdcp",
-        "ref/dotnet5.4/de/System.Xml.XPath.xml",
-        "ref/dotnet5.4/es/System.Xml.XPath.xml",
-        "ref/dotnet5.4/fr/System.Xml.XPath.xml",
-        "ref/dotnet5.4/it/System.Xml.XPath.xml",
-        "ref/dotnet5.4/ja/System.Xml.XPath.xml",
-        "ref/dotnet5.4/ko/System.Xml.XPath.xml",
-        "ref/dotnet5.4/ru/System.Xml.XPath.xml",
-        "ref/dotnet5.4/System.Xml.XPath.dll",
-        "ref/dotnet5.4/System.Xml.XPath.xml",
-        "ref/dotnet5.4/zh-hans/System.Xml.XPath.xml",
-        "ref/dotnet5.4/zh-hant/System.Xml.XPath.xml",
+        "package/services/metadata/core-properties/59aff282c0af428aa069132a0cb9c1b4.psmdcp",
+        "ref/dotnet5.1/de/System.Xml.XPath.xml",
+        "ref/dotnet5.1/es/System.Xml.XPath.xml",
+        "ref/dotnet5.1/fr/System.Xml.XPath.xml",
+        "ref/dotnet5.1/it/System.Xml.XPath.xml",
+        "ref/dotnet5.1/ja/System.Xml.XPath.xml",
+        "ref/dotnet5.1/ko/System.Xml.XPath.xml",
+        "ref/dotnet5.1/ru/System.Xml.XPath.xml",
+        "ref/dotnet5.1/System.Xml.XPath.dll",
+        "ref/dotnet5.1/System.Xml.XPath.xml",
+        "ref/dotnet5.1/zh-hans/System.Xml.XPath.xml",
+        "ref/dotnet5.1/zh-hant/System.Xml.XPath.xml",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/net46/System.Xml.XPath.dll",
@@ -9841,7 +9841,7 @@
       ]
     },
     "System.Xml.XPath.XDocument/4.0.1-beta-23504": {
-      "sha512": "wJKhwhoK6EZ055xDv16cXdt6VnSyjpHaNTWZEYwfDjWJpN76xALzkV0Sr9NPXjniM+RIWpfDJTaKYOOdDsCPNA==",
+      "sha512": "ezIVytoK/eXL59DPvT/wJPOIgQn7HN1AUWh9Xe/5PFxW92RVWIDW4QOdcKLcQYtQsMsEhBkbAREq755Fu4lHag==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -9852,18 +9852,18 @@
         "lib/net46/System.Xml.XPath.XDocument.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/d3499ee186154d50863b073700eab707.psmdcp",
-        "ref/dotnet5.4/de/System.Xml.XPath.XDocument.xml",
-        "ref/dotnet5.4/es/System.Xml.XPath.XDocument.xml",
-        "ref/dotnet5.4/fr/System.Xml.XPath.XDocument.xml",
-        "ref/dotnet5.4/it/System.Xml.XPath.XDocument.xml",
-        "ref/dotnet5.4/ja/System.Xml.XPath.XDocument.xml",
-        "ref/dotnet5.4/ko/System.Xml.XPath.XDocument.xml",
-        "ref/dotnet5.4/ru/System.Xml.XPath.XDocument.xml",
-        "ref/dotnet5.4/System.Xml.XPath.XDocument.dll",
-        "ref/dotnet5.4/System.Xml.XPath.XDocument.xml",
-        "ref/dotnet5.4/zh-hans/System.Xml.XPath.XDocument.xml",
-        "ref/dotnet5.4/zh-hant/System.Xml.XPath.XDocument.xml",
+        "package/services/metadata/core-properties/0d57bd8ad7b34572ad563f57421c8b2b.psmdcp",
+        "ref/dotnet5.1/de/System.Xml.XPath.XDocument.xml",
+        "ref/dotnet5.1/es/System.Xml.XPath.XDocument.xml",
+        "ref/dotnet5.1/fr/System.Xml.XPath.XDocument.xml",
+        "ref/dotnet5.1/it/System.Xml.XPath.XDocument.xml",
+        "ref/dotnet5.1/ja/System.Xml.XPath.XDocument.xml",
+        "ref/dotnet5.1/ko/System.Xml.XPath.XDocument.xml",
+        "ref/dotnet5.1/ru/System.Xml.XPath.XDocument.xml",
+        "ref/dotnet5.1/System.Xml.XPath.XDocument.dll",
+        "ref/dotnet5.1/System.Xml.XPath.XDocument.xml",
+        "ref/dotnet5.1/zh-hans/System.Xml.XPath.XDocument.xml",
+        "ref/dotnet5.1/zh-hant/System.Xml.XPath.XDocument.xml",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/net46/System.Xml.XPath.XDocument.dll",
