@@ -153,7 +153,7 @@ static void addStandardJob(def myJob, String jobName, String branchName, String 
   addLogRotator(myJob)
   addWrappers(myJob)
 
-  def includePattern = "Binaries/**/*.pdb,Binaries/**/*.xml,Binaries/**/*.baseline*,Binaries/**/*.original*,,Binaries/**/*.key,Binaries/**/*.log,Binaries/**/*.dmp"
+  def includePattern = "Binaries/**/*.pdb,Binaries/**/*.xml,Binaries/**/*.log,Binaries/**/*.dmp,Binaries/**/*.zip"
   def excludePattern = "Binaries/Obj/**,Binaries/Bootstrap/**"
   addArtifactArchiving(myJob, includePattern, excludePattern)
 
@@ -250,5 +250,4 @@ set TMP=%TEMP%
     addStandardJob(determinismJob, determinismJobName, branchName, "unit32", "win")
   }
 }
-
 

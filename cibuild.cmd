@@ -56,6 +56,7 @@ call :TerminateBuildProcesses
 
 if defined TestDeterminism (
     powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\test-determinism.ps1" "%bindir%\Bootstrap" || goto :BuildFailed
+    call :TerminateBuildProcesses
     exit /b 0
 )
 
