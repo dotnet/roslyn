@@ -34,7 +34,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }";
-            var expected = GetCSharpExpectedDiagnostic(7, 2, "MyAnalyzer", missingLanguageName: LanguageNames.VisualBasic);
+            DiagnosticResult expected = GetCSharpExpectedDiagnostic(7, 2, "MyAnalyzer", missingLanguageName: LanguageNames.VisualBasic);
 
             // Verify diagnostic if analyzer assembly doesn't reference C# code analysis assembly.
             VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: false, expected: expected);
@@ -65,7 +65,7 @@ Class MyAnalyzer
 	End Sub
 End Class
 ";
-            var expected = GetBasicExpectedDiagnostic(7, 2, "MyAnalyzer", missingLanguageName: LanguageNames.CSharp);
+            DiagnosticResult expected = GetBasicExpectedDiagnostic(7, 2, "MyAnalyzer", missingLanguageName: LanguageNames.CSharp);
 
             // Verify diagnostic if analyzer assembly doesn't reference VB code analysis assembly.
             VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: false, expected: expected);
@@ -200,7 +200,7 @@ End Class
 
         private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string analyzerTypeName, string missingLanguageName)
         {
-            var fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
+            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
             return new DiagnosticResult
             {
                 Id = DiagnosticIds.AddLanguageSupportToAnalyzerRuleId,

@@ -3,9 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -71,12 +69,12 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 _unshippedData = unshippedData;
 
-                foreach (var cur in shippedData.ApiList)
+                foreach (ApiLine cur in shippedData.ApiList)
                 {
                     _publicApiMap.Add(cur.Text, cur);
                 }
 
-                foreach (var cur in unshippedData.ApiList)
+                foreach (ApiLine cur in unshippedData.ApiList)
                 {
                     _publicApiMap.Add(cur.Text, cur);
                 }
@@ -84,7 +82,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             internal void OnSymbolAction(SymbolAnalysisContext symbolContext)
             {
-                var symbol = symbolContext.Symbol;
+                ISymbol symbol = symbolContext.Symbol;
 
                 var methodSymbol = symbol as IMethodSymbol;
                 if (methodSymbol != null &&
@@ -103,12 +101,12 @@ namespace Roslyn.Diagnostics.Analyzers
 
                 if (!_publicApiMap.ContainsKey(publicApiName))
                 {
-                    var errorMessageName = symbol.ToDisplayString(ShortSymbolNameFormat);
-                    var propertyBag = ImmutableDictionary<string, string>.Empty
+                    string errorMessageName = symbol.ToDisplayString(ShortSymbolNameFormat);
+                    ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty
                         .Add(PublicApiNamePropertyBagKey, publicApiName)
                         .Add(MinimalNamePropertyBagKey, errorMessageName);
 
-                    foreach (var sourceLocation in symbol.Locations.Where(loc => loc.IsInSource))
+                    foreach (Location sourceLocation in symbol.Locations.Where(loc => loc.IsInSource))
                     {
                         symbolContext.ReportDiagnostic(Diagnostic.Create(DeclareNewApiRule, sourceLocation, propertyBag, errorMessageName));
                     }
@@ -124,8 +122,8 @@ namespace Roslyn.Diagnostics.Analyzers
                     IsPublicApi(symbol.ContainingType.BaseType) &&
                     !CanTypeBeExtendedPublicly(symbol.ContainingType.BaseType))
                 {
-                    var errorMessageName = symbol.ToDisplayString(ShortSymbolNameFormat);
-                    var propertyBag = ImmutableDictionary<string, string>.Empty;
+                    string errorMessageName = symbol.ToDisplayString(ShortSymbolNameFormat);
+                    ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty;
                     symbolContext.ReportDiagnostic(Diagnostic.Create(ExposedNoninstantiableType, symbol.Locations[0], propertyBag, errorMessageName));
                 }
             }
@@ -133,11 +131,11 @@ namespace Roslyn.Diagnostics.Analyzers
             internal void OnCompilationEnd(CompilationAnalysisContext context)
             {
                 List<ApiLine> deletedApiList = GetDeletedApiList();
-                foreach (var cur in deletedApiList)
+                foreach (ApiLine cur in deletedApiList)
                 {
-                    var linePositionSpan = cur.SourceText.Lines.GetLinePositionSpan(cur.Span);
-                    var location = Location.Create(cur.Path, cur.Span, linePositionSpan);
-                    var propertyBag = ImmutableDictionary<string, string>.Empty.Add(PublicApiNamePropertyBagKey, cur.Text);
+                    LinePositionSpan linePositionSpan = cur.SourceText.Lines.GetLinePositionSpan(cur.Span);
+                    Location location = Location.Create(cur.Path, cur.Span, linePositionSpan);
+                    ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty.Add(PublicApiNamePropertyBagKey, cur.Text);
                     context.ReportDiagnostic(Diagnostic.Create(RemoveDeletedApiRule, location, propertyBag, cur.Text));
                 }
             }
@@ -149,7 +147,7 @@ namespace Roslyn.Diagnostics.Analyzers
             internal List<ApiLine> GetDeletedApiList()
             {
                 var list = new List<ApiLine>();
-                foreach (var pair in _publicApiMap)
+                foreach (KeyValuePair<string, ApiLine> pair in _publicApiMap)
                 {
                     if (_visitedApiList.Contains(pair.Key))
                     {

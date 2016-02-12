@@ -43,21 +43,21 @@ namespace Roslyn.Diagnostics.Analyzers
         protected void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var memberAccess = (TMemberAccessExpressionSyntax)context.Node;
-            var right = GetRightOfMemberAccess(memberAccess);
+            SyntaxNode right = GetRightOfMemberAccess(memberAccess);
             if (right.ToString() != nameof(Diagnostic.Descriptor))
             {
                 return;
             }
 
-            var left = GetLeftOfMemberAccess(memberAccess);
-            var leftType = context.SemanticModel.GetTypeInfo(left).Type;
+            SyntaxNode left = GetLeftOfMemberAccess(memberAccess);
+            ITypeSymbol leftType = context.SemanticModel.GetTypeInfo(left).Type;
             if (leftType != null && leftType.ToDisplayString() == s_diagnosticTypeFullName && !IsThisOrBaseOrMeOrMyBaseExpression(left))
             {
-                var nameOfMember = string.Empty;
+                string nameOfMember = string.Empty;
                 var parentMemberAccess = memberAccess.Parent as TMemberAccessExpressionSyntax;
                 if (parentMemberAccess != null)
                 {
-                    var member = GetRightOfMemberAccess(parentMemberAccess);
+                    SyntaxNode member = GetRightOfMemberAccess(parentMemberAccess);
                     nameOfMember = " '" + member.ToString() + "'";
                 }
 

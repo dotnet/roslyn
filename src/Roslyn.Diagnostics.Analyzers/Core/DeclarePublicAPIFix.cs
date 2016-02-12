@@ -29,16 +29,16 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var project = context.Document.Project;
+            Project project = context.Document.Project;
             TextDocument publicSurfaceAreaDocument = GetPublicSurfaceAreaDocument(project);
             if (publicSurfaceAreaDocument == null)
             {
                 return;
             }
 
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
-            foreach (var diagnostic in context.Diagnostics)
+            SyntaxNode root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            SemanticModel semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+            foreach (Diagnostic diagnostic in context.Diagnostics)
             {
                 string minimalSymbolName = diagnostic.Properties[DeclarePublicAPIAnalyzer.MinimalNamePropertyBagKey];
                 string publicSurfaceAreaSymbolName = diagnostic.Properties[DeclarePublicAPIAnalyzer.PublicApiNamePropertyBagKey];
@@ -58,8 +58,8 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private async Task<Solution> GetFix(TextDocument publicSurfaceAreaDocument, string newSymbolName, CancellationToken cancellationToken)
         {
-            var sourceText = await publicSurfaceAreaDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var newSourceText = AddSymbolNamesToSourceText(sourceText, new[] { newSymbolName });
+            SourceText sourceText = await publicSurfaceAreaDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            SourceText newSourceText = AddSymbolNamesToSourceText(sourceText, new[] { newSymbolName });
 
             return publicSurfaceAreaDocument.Project.Solution.WithAdditionalDocumentText(publicSurfaceAreaDocument.Id, newSourceText);
         }
@@ -68,14 +68,14 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             HashSet<string> lines = GetLinesFromSourceText(sourceText);
 
-            foreach (var name in newSymbolNames)
+            foreach (string name in newSymbolNames)
             {
                 lines.Add(name);
             }
 
-            var sortedLines = lines.OrderBy(s => s, StringComparer.Ordinal);
+            IOrderedEnumerable<string> sortedLines = lines.OrderBy(s => s, StringComparer.Ordinal);
 
-            var newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, sortedLines));
+            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, sortedLines));
             return newSourceText;
         }
 
@@ -83,9 +83,9 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             var lines = new HashSet<string>();
 
-            foreach (var textLine in sourceText.Lines)
+            foreach (TextLine textLine in sourceText.Lines)
             {
-                var text = textLine.ToString();
+                string text = textLine.ToString();
                 if (!string.IsNullOrWhiteSpace(text))
                 {
                     lines.Add(text);
@@ -97,7 +97,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static ISymbol FindDeclaration(SyntaxNode root, Location location, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            var node = root.FindNode(location.SourceSpan);
+            SyntaxNode node = root.FindNode(location.SourceSpan);
             ISymbol symbol = null;
             while (node != null)
             {
@@ -151,40 +151,40 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 var updatedPublicSurfaceAreaText = new List<KeyValuePair<DocumentId, SourceText>>();
 
-                foreach (var pair in _diagnosticsToFix)
+                foreach (KeyValuePair<Project, ImmutableArray<Diagnostic>> pair in _diagnosticsToFix)
                 {
-                    var project = pair.Key;
-                    var diagnostics = pair.Value;
+                    Project project = pair.Key;
+                    ImmutableArray<Diagnostic> diagnostics = pair.Value;
 
-                    var publicSurfaceAreaAdditionalDocument = GetPublicSurfaceAreaDocument(project);
+                    TextDocument publicSurfaceAreaAdditionalDocument = GetPublicSurfaceAreaDocument(project);
 
                     if (publicSurfaceAreaAdditionalDocument == null)
                     {
                         continue;
                     }
 
-                    var sourceText = await publicSurfaceAreaAdditionalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    SourceText sourceText = await publicSurfaceAreaAdditionalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                    var groupedDiagnostics =
+                    IEnumerable<IGrouping<SyntaxTree, Diagnostic>> groupedDiagnostics =
                         diagnostics
                             .Where(d => d.Location.IsInSource)
                             .GroupBy(d => d.Location.SourceTree);
 
                     var newSymbolNames = new List<string>();
 
-                    foreach (var grouping in groupedDiagnostics)
+                    foreach (IGrouping<SyntaxTree, Diagnostic> grouping in groupedDiagnostics)
                     {
-                        var document = project.GetDocument(grouping.Key);
+                        Document document = project.GetDocument(grouping.Key);
 
                         if (document == null)
                         {
                             continue;
                         }
 
-                        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        SyntaxNode root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                        SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                        foreach (var diagnostic in grouping)
+                        foreach (Diagnostic diagnostic in grouping)
                         {
                             string publicSurfaceAreaSymbolName = diagnostic.Properties[DeclarePublicAPIAnalyzer.PublicApiNamePropertyBagKey];
 
@@ -192,14 +192,14 @@ namespace Roslyn.Diagnostics.Analyzers
                         }
                     }
 
-                    var newSourceText = AddSymbolNamesToSourceText(sourceText, newSymbolNames);
+                    SourceText newSourceText = AddSymbolNamesToSourceText(sourceText, newSymbolNames);
 
                     updatedPublicSurfaceAreaText.Add(new KeyValuePair<DocumentId, SourceText>(publicSurfaceAreaAdditionalDocument.Id, newSourceText));
                 }
 
-                var newSolution = _solution;
+                Solution newSolution = _solution;
 
-                foreach (var pair in updatedPublicSurfaceAreaText)
+                foreach (KeyValuePair<DocumentId, SourceText> pair in updatedPublicSurfaceAreaText)
                 {
                     newSolution = newSolution.WithAdditionalDocumentText(pair.Key, pair.Value);
                 }
@@ -220,7 +220,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     case FixAllScope.Document:
                         {
-                            var diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false);
+                            ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false);
                             diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
                             title = string.Format(titleFormat, "document", fixAllContext.Document.Name);
                             break;
@@ -228,7 +228,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
                     case FixAllScope.Project:
                         {
-                            var project = fixAllContext.Project;
+                            Project project = fixAllContext.Project;
                             ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
                             diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
                             title = string.Format(titleFormat, "project", fixAllContext.Project.Name);
@@ -237,7 +237,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
                     case FixAllScope.Solution:
                         {
-                            foreach (var project in fixAllContext.Solution.Projects)
+                            foreach (Project project in fixAllContext.Solution.Projects)
                             {
                                 ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
                                 diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(project, diagnostics));

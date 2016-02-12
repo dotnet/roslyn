@@ -1,10 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Diagnostics.Analyzers;
 using Roslyn.Diagnostics.Analyzers.CSharp;
@@ -15,13 +10,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Performance
 {
     public class SpecializedEnumerableCreationAnalyzerTests : DiagnosticAnalyzerTestBase
     {
-        private string _csharpSpecializedCollectionsDefinition = @"
+        private readonly string _csharpSpecializedCollectionsDefinition = @"
 namespace Roslyn.Utilities
 {
     public class SpecializedCollections { }
 }
 ";
-        private string _basicSpecializedCollectionsDefinition = @"
+        private readonly string _basicSpecializedCollectionsDefinition = @"
 Namespace Roslyn.Utilities
     Public Class SpecializedCollections
     End Class

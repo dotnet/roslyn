@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Text.Analyzers   
+Namespace Text.Analyzers
     ''' <summary>
     ''' CA1704: Identifiers should be spelled correctly
     ''' </summary>
