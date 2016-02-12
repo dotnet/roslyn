@@ -18,8 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
             Return s_impl.FormatObject(obj, options)
         End Function
 
-        Public Overrides Function FormatUnhandledException(e As Exception) As String
-            Return s_impl.FormatUnhandledException(e)
+        Public Overrides Function FormatException(e As Exception) As String
+            Return s_impl.FormatException(e)
         End Function
     End Class
 
