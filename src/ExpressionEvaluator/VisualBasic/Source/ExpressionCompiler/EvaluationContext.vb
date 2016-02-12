@@ -336,7 +336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             [imports].Free()
             Dim fileLevelImportRecords = ImmutableArray(Of ImportRecord).Empty
 
-            Dim importRecordGroups = ImmutableArray.Create(projectLevelImportRecords, fileLevelImportRecords)
+            Dim importRecordGroups = ImmutableArray.Create(fileLevelImportRecords, projectLevelImportRecords)
 
             Return New MethodDebugInfo(Of TypeSymbol, LocalSymbol)(
                 hoistedLocalScopeRecords:=ImmutableArray(Of HoistedLocalScopeRecord).Empty,

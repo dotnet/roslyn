@@ -69,6 +69,7 @@
     <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
     <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
+    <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
@@ -146,7 +147,6 @@
     <Compile Include="CodeRefactorings\PredefinedCodeRefactoringProviderNames.cs" />
     <Compile Include="CodeRefactorings\ServicesLayerCodeActionHelpersService.cs" />
     <Compile Include="CodeRefactorings\WorkspaceServices\IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
-    <Compile Include="Common\Glyph.cs" />
     <Compile Include="Completion\AbstractCompletionService.cs" />
     <Compile Include="Completion\CommonCompletionUtilities.cs" />
     <Compile Include="Completion\CompletionFilterReason.cs" />

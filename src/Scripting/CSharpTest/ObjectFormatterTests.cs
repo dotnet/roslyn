@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Scripting;
@@ -777,6 +778,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             );
         }
 
+        [WorkItem(8542, "https://github.com/dotnet/roslyn/issues/8452")]
+        [Fact]
+        public void FormatConstructorSignature()
+        {
+            var constructor = typeof(object).GetTypeInfo().DeclaredConstructors.Single();
+            var signature = ((CommonObjectFormatter)s_formatter).FormatMethodSignature(constructor);
+            Assert.Equal("object..ctor()", signature); // Checking for exceptions, more than particular output.
+        }
+
         // The stack trace contains line numbers.  We use a #line directive
         // so that the baseline doesn't need to be updated every time this
         // file changes.
@@ -831,7 +841,7 @@ $@"Exception of type 'System.Exception' was thrown.
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method(){string.Format(ScriptingResources.AtFileLine, filePath, 10006)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_NonGeneric(){string.Format(ScriptingResources.AtFileLine, filePath, 10036)}
 ";
-                var actual = s_formatter.FormatUnhandledException(e);
+                var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
             }
         }
@@ -853,7 +863,7 @@ $@"Exception of type 'System.Exception' was thrown.
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method<U>(){string.Format(ScriptingResources.AtFileLine, filePath, 10012)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethod(){string.Format(ScriptingResources.AtFileLine, filePath, 10057)}
 ";
-                var actual = s_formatter.FormatUnhandledException(e);
+                var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
             }
         }
@@ -875,7 +885,7 @@ $@"Exception of type 'System.Exception' was thrown.
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method(){string.Format(ScriptingResources.AtFileLine, filePath, 10021)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericType(){string.Format(ScriptingResources.AtFileLine, filePath, 10079)}
 ";
-                var actual = s_formatter.FormatUnhandledException(e);
+                var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
             }
         }
@@ -897,7 +907,7 @@ $@"Exception of type 'System.Exception' was thrown.
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method<U>(){string.Format(ScriptingResources.AtFileLine, filePath, 10027)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethodInGenericType(){string.Format(ScriptingResources.AtFileLine, filePath, 10101)}
 ";
-                var actual = s_formatter.FormatUnhandledException(e);
+                var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
             }
         }

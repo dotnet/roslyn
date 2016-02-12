@@ -176,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
             if (_table.ContainsKey(key))
             {
-                throw new InvalidOperationException("Key already exists in table.");
+                throw new InvalidOperationException($"Key already exists in table: {(key != null ? key.ToString() : "<null>")}.");
             }
 
             _itemsAddedSinceLastCleanUp++;

@@ -3845,7 +3845,22 @@ class C$$
             Await TestElement(code,
                 Sub(state, codeClass)
                     For i = 1 To 100
-                        Dim variable = codeClass.AddVariable("x", "System.Int32")
+                        Dim initialDocument = state.FileCodeModelObject.GetDocument()
+                        Dim variable As EnvDTE.CodeVariable
+
+                        Try
+                            variable = codeClass.AddVariable("x", "System.Int32")
+                        Catch ex As InvalidOperationException
+                            Assert.False(True,
+$"Failed to add variable in loop iteration {i}!
+
+Exception: {ex.Message}
+
+Document text:
+{initialDocument.GetTextAsync(CancellationToken.None).Result}")
+
+                            Throw ex
+                        End Try
 
                         ' Now, delete the variable that we just added.
                         Dim startPoint = variable.StartPoint
@@ -3856,7 +3871,7 @@ class C$$
                         document = document.WithText(text)
 
                         Dim result = state.VisualStudioWorkspace.TryApplyChanges(document.Project.Solution)
-                        Assert.True(result)
+                        Assert.True(result, "Attempt to apply changes to workspace failed.")
                     Next
                 End Sub)
         End Function

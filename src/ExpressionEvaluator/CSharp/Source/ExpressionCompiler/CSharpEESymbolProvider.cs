@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public override TypeSymbol GetType(EntityHandle handle)
         {
             bool isNoPiaLocalType;
-            return _metadataDecoder.GetSymbolForTypeHandle(handle, out isNoPiaLocalType, allowTypeSpec: true, requireShortForm: false);
+            return _metadataDecoder.GetSymbolForTypeHandleOrThrow(handle, out isNoPiaLocalType, allowTypeSpec: true, requireShortForm: false);
         }
     }
 }

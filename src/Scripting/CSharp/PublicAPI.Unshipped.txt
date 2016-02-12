@@ -1,2 +1,2 @@
 override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.FormatObject(object obj, Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions options) -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.FormatUnhandledException(System.Exception e) -> string
+override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.FormatException(System.Exception e) -> string

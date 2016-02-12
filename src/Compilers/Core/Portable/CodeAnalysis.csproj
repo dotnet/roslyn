@@ -85,6 +85,7 @@
     <Compile Include="Syntax\SyntaxTreeComparer.cs" />
     <Compile Include="Syntax\ICompilationUnitSyntax.cs" />
     <Compile Include="Syntax\ISkippedTokensTriviaSyntax.cs" />
+    <Compile Include="System\Reflection\Metadata\ILOpCode.cs" />
     <Compile Include="Text\LargeTextWriter.cs" />
     <Compile Include="Text\SourceTextComparer.cs" />
     <Compile Include="Text\SourceTextWriter.cs" />
