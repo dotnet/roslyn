@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements ICompoundAssignmentExpression.BinaryKind
+        Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements ICompoundAssignmentExpression.BinaryOperationKind
             Get
                 If ExpressionKind() = OperationKind.CompoundAssignmentExpression Then
                     Dim rightBinary As BoundBinaryOperator = TryCast(Me.Right, BoundBinaryOperator)
@@ -154,15 +154,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundMeReference
         Implements IInstanceReferenceExpression
 
-        Private ReadOnly Property IIsExplicit As Boolean Implements IInstanceReferenceExpression.IsExplicit
+        Private ReadOnly Property IInstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
             Get
-                Return Not Me.WasCompilerGenerated
-            End Get
-        End Property
-
-        Private ReadOnly Property IParameter As IParameterSymbol Implements IParameterReferenceExpression.Parameter
-            Get
-                Return DirectCast(Me.ExpressionSymbol, IParameterSymbol)
+                Return If(Me.WasCompilerGenerated, InstanceReferenceKind.Implicit, InstanceReferenceKind.Explicit)
             End Get
         End Property
 
@@ -182,20 +176,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundMyBaseReference
         Implements IInstanceReferenceExpression
 
-        Private ReadOnly Property IIsExplicit As Boolean Implements IInstanceReferenceExpression.IsExplicit
+        Private ReadOnly Property IInstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
             Get
-                Return True
-            End Get
-        End Property
-
-        Private ReadOnly Property IParameter As IParameterSymbol Implements IParameterReferenceExpression.Parameter
-            Get
-                Return DirectCast(Me.ExpressionSymbol, IParameterSymbol)
+                Return InstanceReferenceKind.BaseClass
             End Get
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.BaseClassInstanceReferenceExpression
+            Return OperationKind.InstanceReferenceExpression
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
@@ -210,20 +198,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundMyClassReference
         Implements IInstanceReferenceExpression
 
-        Private ReadOnly Property IIsExplicit As Boolean Implements IInstanceReferenceExpression.IsExplicit
+        Private ReadOnly Property IInstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
             Get
-                Return True
-            End Get
-        End Property
-
-        Private ReadOnly Property IParameter As IParameterSymbol Implements IParameterReferenceExpression.Parameter
-            Get
-                Return DirectCast(Me.ExpressionSymbol, IParameterSymbol)
+                Return InstanceReferenceKind.ThisClass
             End Get
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.ClassInstanceReferenceExpression
+            Return OperationKind.InstanceReferenceExpression
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)

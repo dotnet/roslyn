@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 this.Target = target;
                 this.Value = value;
-                this.BinaryKind = binaryKind;
+                this.BinaryOperationKind = binaryKind;
                 this.OperatorMethod = operatorMethod;
                 this.Syntax = syntax;
             }
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public IExpression Value { get; }
 
-            public BinaryOperationKind BinaryKind { get; }
+            public BinaryOperationKind BinaryOperationKind { get; }
 
             public IMethodSymbol OperatorMethod { get; }
 

@@ -884,11 +884,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundBaseReference : IInstanceReferenceExpression
     {
-        bool IInstanceReferenceExpression.IsExplicit => this.Syntax.Kind() == SyntaxKind.BaseExpression;
+        InstanceReferenceKind IInstanceReferenceExpression.InstanceReferenceKind => InstanceReferenceKind.BaseClass;
 
-        IParameterSymbol IParameterReferenceExpression.Parameter => (IParameterSymbol)this.ExpressionSymbol;
-
-        protected override OperationKind ExpressionKind => OperationKind.BaseClassInstanceReferenceExpression;
+        protected override OperationKind ExpressionKind => OperationKind.InstanceReferenceExpression;
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -903,9 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundThisReference : IInstanceReferenceExpression
     {
-        bool IInstanceReferenceExpression.IsExplicit => this.Syntax.Kind() == SyntaxKind.ThisExpression;
-
-        IParameterSymbol IParameterReferenceExpression.Parameter => (IParameterSymbol)this.ExpressionSymbol;
+        InstanceReferenceKind IInstanceReferenceExpression.InstanceReferenceKind => this.Syntax.Kind() == SyntaxKind.ThisExpression ? InstanceReferenceKind.Explicit : InstanceReferenceKind.Implicit;
 
         protected override OperationKind ExpressionKind => OperationKind.InstanceReferenceExpression;
 
@@ -941,7 +937,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundCompoundAssignmentOperator : ICompoundAssignmentExpression
     {
-        BinaryOperationKind ICompoundAssignmentExpression.BinaryKind => Expression.DeriveBinaryOperationKind(this.Operator.Kind);
+        BinaryOperationKind ICompoundAssignmentExpression.BinaryOperationKind => Expression.DeriveBinaryOperationKind(this.Operator.Kind);
 
         IReferenceExpression IAssignmentExpression.Target => this.Left as IReferenceExpression;
 
@@ -966,9 +962,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundIncrementOperator : IIncrementExpression
     {
-        UnaryOperationKind IIncrementExpression.IncrementKind => Expression.DeriveUnaryOperationKind(this.OperatorKind);
+        UnaryOperationKind IIncrementExpression.IncrementOperationKind => Expression.DeriveUnaryOperationKind(this.OperatorKind);
 
-        BinaryOperationKind ICompoundAssignmentExpression.BinaryKind => Expression.DeriveBinaryOperationKind(((IIncrementExpression)this).IncrementKind);
+        BinaryOperationKind ICompoundAssignmentExpression.BinaryOperationKind => Expression.DeriveBinaryOperationKind(((IIncrementExpression)this).IncrementOperationKind);
 
         IReferenceExpression IAssignmentExpression.Target => this.Operand as IReferenceExpression;
 
@@ -1211,10 +1207,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundImplicitReceiver : IInstanceReferenceExpression
     {
-        bool IInstanceReferenceExpression.IsExplicit => false;
-
-        IParameterSymbol IParameterReferenceExpression.Parameter => (IParameterSymbol)this.ExpressionSymbol;
-
+        InstanceReferenceKind IInstanceReferenceExpression.InstanceReferenceKind => InstanceReferenceKind.Implicit;
+        
         protected override OperationKind ExpressionKind => OperationKind.InstanceReferenceExpression;
 
         public override void Accept(OperationVisitor visitor)

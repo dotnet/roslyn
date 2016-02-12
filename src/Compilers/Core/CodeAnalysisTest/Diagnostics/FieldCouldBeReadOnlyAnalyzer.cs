@@ -104,8 +104,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                     switch (fieldReference.Instance.Kind)
                     {
                         case OperationKind.InstanceReferenceExpression:
-                        case OperationKind.BaseClassInstanceReferenceExpression:
-                        case OperationKind.ClassInstanceReferenceExpression:
                             return;
                     }
                 }

@@ -73,12 +73,10 @@ Microsoft.CodeAnalysis.OperationKind.ArrayElementReferenceExpression = 29 -> Mic
 Microsoft.CodeAnalysis.OperationKind.ArrayInitializer = 69 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.AssignmentExpression = 55 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.AwaitExpression = 53 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.OperationKind.BaseClassInstanceReferenceExpression = 49 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.BinaryOperatorExpression = 40 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.BlockStatement = 2 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.BranchStatement = 12 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.CatchClause = 18 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.OperationKind.ClassInstanceReferenceExpression = 50 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.CompoundAssignmentExpression = 56 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.ConditionalAccessExpression = 64 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.ConditionalChoiceExpression = 41 -> Microsoft.CodeAnalysis.OperationKind
@@ -367,7 +365,7 @@ Microsoft.CodeAnalysis.Semantics.ICatchClause.ExceptionLocal.get -> Microsoft.Co
 Microsoft.CodeAnalysis.Semantics.ICatchClause.Filter.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.ICatchClause.Handler.get -> Microsoft.CodeAnalysis.Semantics.IBlockStatement
 Microsoft.CodeAnalysis.Semantics.ICompoundAssignmentExpression
-Microsoft.CodeAnalysis.Semantics.ICompoundAssignmentExpression.BinaryKind.get -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.ICompoundAssignmentExpression.BinaryOperationKind.get -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression
 Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression.Access.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IConditionalChoiceExpression
@@ -419,9 +417,9 @@ Microsoft.CodeAnalysis.Semantics.IIfStatement.Condition.get -> Microsoft.CodeAna
 Microsoft.CodeAnalysis.Semantics.IIfStatement.IfFalse.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IIfStatement.IfTrue.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IIncrementExpression
-Microsoft.CodeAnalysis.Semantics.IIncrementExpression.IncrementKind.get -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
+Microsoft.CodeAnalysis.Semantics.IIncrementExpression.IncrementOperationKind.get -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.Semantics.IInstanceReferenceExpression
-Microsoft.CodeAnalysis.Semantics.IInstanceReferenceExpression.IsExplicit.get -> bool
+Microsoft.CodeAnalysis.Semantics.IInstanceReferenceExpression.InstanceReferenceKind.get -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
 Microsoft.CodeAnalysis.Semantics.IInvalidStatement
 Microsoft.CodeAnalysis.Semantics.IInvocationExpression
 Microsoft.CodeAnalysis.Semantics.IInvocationExpression.ArgumentsInSourceOrder.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IArgument>
@@ -528,6 +526,11 @@ Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement.IsWhile.get -> bool
 Microsoft.CodeAnalysis.Semantics.IWithStatement
 Microsoft.CodeAnalysis.Semantics.IWithStatement.Body.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IWithStatement.Value.get -> Microsoft.CodeAnalysis.Semantics.IExpression
+Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
+Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind.BaseClass = 2 -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
+Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind.Explicit = 1 -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
+Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind.Implicit = 0 -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
+Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind.ThisClass = 3 -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
 Microsoft.CodeAnalysis.Semantics.LoopKind
 Microsoft.CodeAnalysis.Semantics.LoopKind.For = 1 -> Microsoft.CodeAnalysis.Semantics.LoopKind
 Microsoft.CodeAnalysis.Semantics.LoopKind.ForEach = 2 -> Microsoft.CodeAnalysis.Semantics.LoopKind
@@ -732,11 +735,15 @@ static Microsoft.CodeAnalysis.Semantics.OperationExtensions.DescendantsAndSelf(t
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetRootOperation(this Microsoft.CodeAnalysis.ISymbol symbol, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IOperation
 static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetBinaryOperandsKind(Microsoft.CodeAnalysis.Semantics.BinaryOperationKind kind) -> Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind
 static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetBinaryOperandsKind(this Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression binary) -> Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind
+static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetBinaryOperandsKind(this Microsoft.CodeAnalysis.Semantics.ICompoundAssignmentExpression compoundAssignment) -> Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind
 static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetSimpleBinaryOperationKind(Microsoft.CodeAnalysis.Semantics.BinaryOperationKind kind) -> Microsoft.CodeAnalysis.Semantics.SimpleBinaryOperationKind
 static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetSimpleBinaryOperationKind(this Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression binary) -> Microsoft.CodeAnalysis.Semantics.SimpleBinaryOperationKind
+static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetSimpleBinaryOperationKind(this Microsoft.CodeAnalysis.Semantics.ICompoundAssignmentExpression compoundAssignment) -> Microsoft.CodeAnalysis.Semantics.SimpleBinaryOperationKind
 static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetSimpleUnaryOperationKind(Microsoft.CodeAnalysis.Semantics.UnaryOperationKind kind) -> Microsoft.CodeAnalysis.Semantics.SimpleUnaryOperationKind
+static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetSimpleUnaryOperationKind(this Microsoft.CodeAnalysis.Semantics.IIncrementExpression increment) -> Microsoft.CodeAnalysis.Semantics.SimpleUnaryOperationKind
 static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetSimpleUnaryOperationKind(this Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression unary) -> Microsoft.CodeAnalysis.Semantics.SimpleUnaryOperationKind
 static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetUnaryOperandKind(Microsoft.CodeAnalysis.Semantics.UnaryOperationKind kind) -> Microsoft.CodeAnalysis.Semantics.UnaryOperandKind
+static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetUnaryOperandKind(this Microsoft.CodeAnalysis.Semantics.IIncrementExpression increment) -> Microsoft.CodeAnalysis.Semantics.UnaryOperandKind
 static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetUnaryOperandKind(this Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression unary) -> Microsoft.CodeAnalysis.Semantics.UnaryOperandKind
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.ConfigureGeneratedCodeAnalysis(Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags analysisMode) -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.EnableConcurrentExecution() -> void

@@ -122,9 +122,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="IArrayCreationExpression"/>.</summary>
         ArrayCreationExpression = 0x2e,
         DefaultValueExpression = 0x2f,
+        /// <summary>Indicates an <see cref="IInstanceReferenceExpression"/>.</summary>
         InstanceReferenceExpression = 0x30,
-        BaseClassInstanceReferenceExpression = 0x31,
-        ClassInstanceReferenceExpression = 0x32,
         /// <summary>Indicates an <see cref="IIsExpression"/>.</summary>
         IsExpression = 0x33,
         // TypeOperationExpression = 0x34,

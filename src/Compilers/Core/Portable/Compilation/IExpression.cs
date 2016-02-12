@@ -198,16 +198,29 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a reference to a C# this or VB Me parameter.
+    /// Represents a C# this or base expression, or a VB Me, MyClass, or MyBase expression.
     /// </summary>
-    public interface IInstanceReferenceExpression : IParameterReferenceExpression
+    public interface IInstanceReferenceExpression : IExpression
     {
+        ///
         /// <summary>
-        /// Indicates whether the reference is explicit or implicit in source.
+        /// Kind of instance reference.
         /// </summary>
-        bool IsExplicit { get; }
+        InstanceReferenceKind InstanceReferenceKind { get; }
     }
 
+    public enum InstanceReferenceKind
+    {
+        /// <summary>Indicates an implicit this or Me expression.</summary>
+        Implicit = 0x0,
+        /// <summary>Indicates an explicit this or Me expression.</summary>
+        Explicit = 0x1,
+        /// <summary>Indicates an explicit base or MyBase expression.</summary>
+        BaseClass = 0x2,
+        /// <summary>Indicates an explicit MyClass expression.</summary>
+        ThisClass = 0x3
+    }
+    
     /// <summary>
     /// Represents a reference to a member of a class, struct, or interface.
     /// </summary>
@@ -714,11 +727,27 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         /// <summary>
+        /// Get unary operation kind independent of data type.
+        /// </summary>
+        public static SimpleUnaryOperationKind GetSimpleUnaryOperationKind(this IIncrementExpression increment)
+        {
+            return GetSimpleUnaryOperationKind(increment.IncrementOperationKind);
+        }
+
+        /// <summary>
         /// Get unary operand kind.
         /// </summary>
         public static UnaryOperandKind GetUnaryOperandKind(this IUnaryOperatorExpression unary)
         {
             return GetUnaryOperandKind(unary.UnaryOperationKind);
+        }
+
+        /// <summary>
+        /// Get unary operand kind.
+        /// </summary>
+        public static UnaryOperandKind GetUnaryOperandKind(this IIncrementExpression increment)
+        {
+            return GetUnaryOperandKind(increment.IncrementOperationKind);
         }
 
         /// <summary>
@@ -730,11 +759,27 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         /// <summary>
+        /// Get binary operation kind independent of data type.
+        /// </summary>
+        public static SimpleBinaryOperationKind GetSimpleBinaryOperationKind(this ICompoundAssignmentExpression compoundAssignment)
+        {
+            return GetSimpleBinaryOperationKind(compoundAssignment.BinaryOperationKind);
+        }
+
+        /// <summary>
         /// Get binary operand kinds.
         /// </summary>
         public static BinaryOperandsKind GetBinaryOperandsKind(this IBinaryOperatorExpression binary)
         {
             return GetBinaryOperandsKind(binary.BinaryOperationKind);
+        }
+
+        /// <summary>
+        /// Get binary operand kinds.
+        /// </summary>
+        public static BinaryOperandsKind GetBinaryOperandsKind(this ICompoundAssignmentExpression compoundAssignment)
+        {
+            return GetBinaryOperandsKind(compoundAssignment.BinaryOperationKind);
         }
 
         public static SimpleUnaryOperationKind GetSimpleUnaryOperationKind(UnaryOperationKind kind)
@@ -1036,7 +1081,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of binary operation.
         /// </summary>
-        BinaryOperationKind BinaryKind { get; }
+        BinaryOperationKind BinaryOperationKind { get; }
     }
 
     /// <summary>
@@ -1047,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of increment.
         /// </summary>
-        UnaryOperationKind IncrementKind { get; }
+        UnaryOperationKind IncrementOperationKind { get; }
     }
 
     /// <summary>

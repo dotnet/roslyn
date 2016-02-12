@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                                          {
                                                              // Advance binary operation is known to involve a reference to the local used in the test and a constant.
                                                              advanceIncrement = advanceAssignment.Value;
-                                                             advanceOperationCode = advanceAssignment.BinaryKind;
+                                                             advanceOperationCode = advanceAssignment.BinaryOperationKind;
                                                          }
                                                      }
 
@@ -918,10 +918,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      IInstanceReferenceExpression instanceReference = (IInstanceReferenceExpression)operationContext.Operation;
-                     operationContext.ReportDiagnostic(Diagnostic.Create(instanceReference.IsExplicit ? ExplicitInstanceDescriptor : ImplicitInstanceDescriptor, instanceReference.Syntax.GetLocation()));
+                     operationContext.ReportDiagnostic(Diagnostic.Create(instanceReference.InstanceReferenceKind == InstanceReferenceKind.Implicit ? ImplicitInstanceDescriptor : ExplicitInstanceDescriptor, instanceReference.Syntax.GetLocation()));
                  },
-                 OperationKind.InstanceReferenceExpression,
-                 OperationKind.BaseClassInstanceReferenceExpression);
+                 OperationKind.InstanceReferenceExpression);
         }
     }
 
