@@ -386,8 +386,6 @@
     <Compile Include="ProjectSystemShim\MockRuleSetFile.vb" />
     <Compile Include="ProjectSystemShim\VisualBasicProjectTests.vb" />
     <Compile Include="Snippets\SnippetServiceWaiter.vb" />
-    <Compile Include="SolutionExplorer\FakeAnalyzersCommandHandler.vb" />
-    <Compile Include="SolutionExplorer\RuleSetDocumentExtensionsTests.vb" />
     <Compile Include="StubVsEditorAdaptersFactoryService.vb" />
     <Compile Include="Preview\PreviewChangesTests.vb" />
     <Compile Include="Progression\CallsGraphQueryTests.vb" />
@@ -431,12 +429,6 @@
     <Compile Include="Snippets\TestExpansionClient.vb" />
     <Compile Include="Snippets\VisualBasicSnippetCommandHandlerTests.vb" />
     <Compile Include="Snippets\VisualBasicSnippetExpansionClientTests.vb" />
-    <Compile Include="SolutionExplorer\AnalyzerItemsSourceTests.vb" />
-    <Compile Include="SolutionExplorer\AnalyzerItemTests.vb" />
-    <Compile Include="SolutionExplorer\AnalyzersFolderItemTests.vb" />
-    <Compile Include="SolutionExplorer\AnalyzersFolderProviderTests.vb" />
-    <Compile Include="SolutionExplorer\DiagnosticDescriptorComparerTests.vb" />
-    <Compile Include="SolutionExplorer\DiagnosticItemTests.vb" />
     <Compile Include="Venus\AbstractContainedLanguageCodeSupportTests.vb" />
     <Compile Include="Venus\ContainedDocumentTests_AdjustIndentation.vb" />
     <Compile Include="Venus\ContainedDocumentTests_UpdateText.vb" />
@@ -444,6 +436,20 @@
     <Compile Include="Venus\VisualBasicContainedLanguageSupportTests.vb" />
     <Compile Include="VisualStudioTestExportProvider.vb" />
   </ItemGroup>
+  <Choose>
+    <When Condition="$(TF_BUILD_BUILDNUMBER) == ''">
+      <ItemGroup>
+        <Compile Include="SolutionExplorer\FakeAnalyzersCommandHandler.vb" />
+        <Compile Include="SolutionExplorer\RuleSetDocumentExtensionsTests.vb" />
+        <Compile Include="SolutionExplorer\AnalyzerItemsSourceTests.vb" />
+        <Compile Include="SolutionExplorer\AnalyzerItemTests.vb" />
+        <Compile Include="SolutionExplorer\AnalyzersFolderItemTests.vb" />
+        <Compile Include="SolutionExplorer\AnalyzersFolderProviderTests.vb" />
+        <Compile Include="SolutionExplorer\DiagnosticDescriptorComparerTests.vb" />
+        <Compile Include="SolutionExplorer\DiagnosticItemTests.vb" />
+      </ItemGroup>
+    </When>
+  </Choose>  
   <ItemGroup>
     <EmbeddedResource Include="Debugging\Resources.resx">
       <CustomToolNamespace>Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debugging</CustomToolNamespace>
