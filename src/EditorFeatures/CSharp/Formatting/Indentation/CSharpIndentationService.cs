@@ -116,7 +116,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 }
 
                 var argument = node as BaseArgumentListSyntax;
-                if (argument != null && argument.Parent.Kind() != SyntaxKind.ThisConstructorInitializer)
+                if (argument != null &&
+                    argument.Parent.Kind() != SyntaxKind.ThisConstructorInitializer &&
+                    !IsBracketedArgumentListMissingBrackets(argument as BracketedArgumentListSyntax))
                 {
                     AddIndentBlockOperations(list, argument);
                     return;
@@ -151,6 +153,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                         AddIndentBlockOperations(list, constructorInitializer.ArgumentList);
                     }
                 }
+            }
+
+            private bool IsBracketedArgumentListMissingBrackets(BracketedArgumentListSyntax node)
+            {
+                return node != null && node.OpenBracketToken.IsMissing && node.CloseBracketToken.IsMissing;
             }
 
             private void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
