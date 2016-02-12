@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Initializer of the variable.
         /// </summary>
-        IExpression InitialValue { get; }
+        IOperation InitialValue { get; }
     }
 
     /// <summary>
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Value to be switched upon.
         /// </summary>
-        IExpression Value { get; }
+        IOperation Value { get; }
         /// <summary>
         /// Cases of the switch.
         /// </summary>
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Case value.
         /// </summary>
-        IExpression Value { get; }
+        IOperation Value { get; }
         /// <summary>
         /// Relational operator used to compare the switch value with the case value.
         /// </summary>
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Case value.
         /// </summary>
-        IExpression Value { get; }
+        IOperation Value { get; }
         /// <summary>
         /// Relational operator used to compare the switch value with the case value. 
         /// </summary>
@@ -147,11 +147,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Minimum value of the case range.
         /// </summary>
-        IExpression MinimumValue { get; }
+        IOperation MinimumValue { get; }
         /// <summary>
         /// Maximum value of the case range.
         /// </summary>
-        IExpression MaximumValue { get; }
+        IOperation MaximumValue { get; }
     }
 
     /// <summary>
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Condition of the if statement. For C# there is naturally one clause per if, but for VB If statements with multiple clauses are rewritten to have only one.
         /// </summary>
-        IExpression Condition { get; }
+        IOperation Condition { get; }
         /// <summary>
         /// Statement executed if the condition is true.
         /// </summary>
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Condition of the loop.
         /// </summary>
-        IExpression Condition { get; }
+        IOperation Condition { get; }
     }
 
     /// <summary>
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Collection value over which the loop iterates.
         /// </summary>
-        IExpression Collection { get; }
+        IOperation Collection { get; }
     }
 
     /// <summary>
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Value to be thrown.
         /// </summary>
-        IExpression ThrownObject { get; }
+        IOperation ThrownObject { get; }
     }
 
     /// <summary>
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Value to be returned.
         /// </summary>
-        IExpression ReturnedValue { get; }
+        IOperation ReturnedValue { get; }
     }
 
     /// <summary>
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Value to be locked.
         /// </summary>
-        IExpression LockedObject { get; }
+        IOperation LockedObject { get; }
         /// <summary>
         /// Body of the lock, to be executed while holding the lock.
         /// </summary>
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Filter expression to be executed to determine whether to handle the exception.
         /// </summary>
-        IExpression Filter { get; }
+        IOperation Filter { get; }
         /// <summary>
         /// Symbol for the local catch variable bound to the caught exception.
         /// </summary>
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Resource held by the using.
         /// </summary>
-        IExpression Value { get; }
+        IOperation Value { get; }
     }
 
     /// <summary>
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Expression of the statement.
         /// </summary>
-        IExpression Expression { get; }
+        IOperation Expression { get; }
     }
 
     /// <summary>
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Value to whose members leading-dot-qualified references within the with body bind.
         /// </summary>
-        IExpression Value { get; }
+        IOperation Value { get; }
     }
 
     /// <summary>

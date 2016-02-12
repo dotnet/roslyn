@@ -24,6 +24,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         SyntaxNode Syntax { get; }
 
+        /// <summary>
+        /// Result type of the operation. Null if the operation is not a value-producing expression.
+        /// </summary>
+        ITypeSymbol Type { get; }
+
+        /// <summary>
+        /// If the operation is an expression that evaluates to a constant value, <see cref="Optional{Object}.HasValue"/> is true and <see cref="Optional{Object}.Value"/> is the value of the expression. Otherwise, <see cref="Optional{Object}.HasValue"/> is false.
+        /// </summary>
+        Optional<object> ConstantValue { get; }
+
         void Accept(OperationVisitor visitor);
 
         TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
@@ -79,6 +89,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="IExpressionStatement"/>.</summary>
         ExpressionStatement = 0x18,
 
+        /// <summary>Indicates an <see cref="IInvalidExpression"/>.</summary>
         InvalidExpression = 0x19,
         /// <summary>Indicates an <see cref="ILiteralExpression"/>.</summary>
         LiteralExpression = 0x1a,
@@ -118,9 +129,11 @@ namespace Microsoft.CodeAnalysis
         LambdaExpression = 0x2b,
         /// <summary>Indicates an <see cref="IObjectCreationExpression"/>.</summary>
         ObjectCreationExpression = 0x2c,
+        /// <summary>Indicates an <see cref="ITypeParameterObjectCreationExpression"/>.</summary>
         TypeParameterObjectCreationExpression = 0x2d,
         /// <summary>Indicates an <see cref="IArrayCreationExpression"/>.</summary>
         ArrayCreationExpression = 0x2e,
+        /// <summary>Indicates an <see cref="IDefaultValueExpression"/>.</summary>
         DefaultValueExpression = 0x2f,
         /// <summary>Indicates an <see cref="IInstanceReferenceExpression"/>.</summary>
         InstanceReferenceExpression = 0x30,
@@ -137,6 +150,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="IParenthesizedExpression"/>.</summary>
         ParenthesizedExpression = 0x39,
 
+        /// <summary>Indicates an <see cref="IUnboundLambdaExpression"/>.</summary>
         UnboundLambdaExpression = 0x3a,
         /// <summary>Indicates an <see cref="IEventAssignmentExpression"/>.</summary>
         EventAssignmentExpression = 0x3b,
@@ -148,6 +162,7 @@ namespace Microsoft.CodeAnalysis
 
         // VB only
 
+        /// <summary>Indicates an <see cref="IOmittedArgumentExpression"/>.</summary>
         OmittedArgumentExpression = 0x3c,
         /// <summary>Indicates an <see cref="IStopStatement"/>.</summary>
         StopStatement = 0x3d,

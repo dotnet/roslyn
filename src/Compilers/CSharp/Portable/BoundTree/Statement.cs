@@ -16,6 +16,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         SyntaxNode IOperation.Syntax => this.Syntax;
 
+        ITypeSymbol IOperation.Type => null;
+
+        Optional<object> IOperation.ConstantValue => default(Optional<object>);
+
         protected abstract OperationKind StatementKind { get; }
 
         public abstract void Accept(OperationVisitor visitor);
@@ -94,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundYieldBreakStatement : IReturnStatement
     {
-        IExpression IReturnStatement.ReturnedValue => null;
+        IOperation IReturnStatement.ReturnedValue => null;
 
         protected override OperationKind StatementKind => OperationKind.YieldBreakStatement;
 
@@ -145,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundIfStatement : IIfStatement
     {
-        IExpression IIfStatement.Condition => this.Condition;
+        IOperation IIfStatement.Condition => this.Condition;
 
         IOperation IIfStatement.IfTrue => this.Consequence;
 
@@ -170,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         bool IWhileUntilLoopStatement.IsWhile => true;
 
-        IExpression IForWhileUntilLoopStatement.Condition => this.Condition;
+        IOperation IForWhileUntilLoopStatement.Condition => this.Condition;
 
         LoopKind ILoopStatement.LoopKind => LoopKind.WhileUntil;
 
@@ -195,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         bool IWhileUntilLoopStatement.IsWhile => true;
 
-        IExpression IForWhileUntilLoopStatement.Condition => this.Condition;
+        IOperation IForWhileUntilLoopStatement.Condition => this.Condition;
 
         LoopKind ILoopStatement.LoopKind => LoopKind.WhileUntil;
 
@@ -222,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ImmutableArray<ILocalSymbol> IForLoopStatement.Locals => this.OuterLocals.As<ILocalSymbol>();
 
-        IExpression IForWhileUntilLoopStatement.Condition => this.Condition;
+        IOperation IForWhileUntilLoopStatement.Condition => this.Condition;
 
         LoopKind ILoopStatement.LoopKind => LoopKind.For;
 
@@ -260,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         ILocalSymbol IForEachLoopStatement.IterationVariable => this.IterationVariable;
 
-        IExpression IForEachLoopStatement.Collection => this.Expression;
+        IOperation IForEachLoopStatement.Collection => this.Expression;
 
         LoopKind ILoopStatement.LoopKind => LoopKind.ForEach;
 
@@ -284,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly ConditionalWeakTable<BoundSwitchStatement, object> s_switchSectionsMappings =
             new ConditionalWeakTable<BoundSwitchStatement, object>();
 
-        IExpression ISwitchStatement.Value => this.BoundExpression;
+        IOperation ISwitchStatement.Value => this.BoundExpression;
 
         ImmutableArray<ISwitchCase> ISwitchStatement.Cases
         {
@@ -330,6 +334,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public SyntaxNode Syntax { get; }
 
+            public ITypeSymbol Type => null;
+
+            public Optional<object> ConstantValue => default(Optional<object>);
+
             void IOperation.Accept(OperationVisitor visitor)
             {
                 visitor.VisitSwitchCase(this);
@@ -344,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundSwitchLabel : ISingleValueCaseClause
     {
-        IExpression ISingleValueCaseClause.Value => this.ExpressionOpt;
+        IOperation ISingleValueCaseClause.Value => this.ExpressionOpt;
 
         BinaryOperationKind ISingleValueCaseClause.Equality
         {
@@ -391,6 +399,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         SyntaxNode IOperation.Syntax => this.Syntax;
 
+        ITypeSymbol IOperation.Type => null;
+
+        Optional<object> IOperation.ConstantValue => default(Optional<object>);
+
         void IOperation.Accept(OperationVisitor visitor)
         {
             visitor.VisitSingleValueCaseClause(this);
@@ -429,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ITypeSymbol ICatchClause.CaughtType => this.ExceptionTypeOpt;
 
-        IExpression ICatchClause.Filter => this.ExceptionFilterOpt;
+        IOperation ICatchClause.Filter => this.ExceptionFilterOpt;
 
         ILocalSymbol ICatchClause.ExceptionLocal => this.LocalOpt;
 
@@ -438,6 +450,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool IOperation.IsInvalid => this.Body.HasErrors || (this.ExceptionFilterOpt != null && this.ExceptionFilterOpt.HasErrors);
 
         SyntaxNode IOperation.Syntax => this.Syntax;
+
+        ITypeSymbol IOperation.Type => null;
+
+        Optional<object> IOperation.ConstantValue => default(Optional<object>);
 
         void IOperation.Accept(OperationVisitor visitor)
         {
@@ -473,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IVariableDeclarationStatement IUsingWithDeclarationStatement.Declaration => this.DeclarationsOpt;
 
-        IExpression IUsingWithExpressionStatement.Value => this.ExpressionOpt;
+        IOperation IUsingWithExpressionStatement.Value => this.ExpressionOpt;
 
         IOperation IUsingStatement.Body => this.Body;
 
@@ -501,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundThrowStatement : IThrowStatement
     {
-        IExpression IThrowStatement.ThrownObject => this.ExpressionOpt;
+        IOperation IThrowStatement.ThrownObject => this.ExpressionOpt;
 
         protected override OperationKind StatementKind => OperationKind.ThrowStatement;
 
@@ -518,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundReturnStatement : IReturnStatement
     {
-        IExpression IReturnStatement.ReturnedValue => this.ExpressionOpt;
+        IOperation IReturnStatement.ReturnedValue => this.ExpressionOpt;
 
         protected override OperationKind StatementKind => OperationKind.ReturnStatement;
 
@@ -535,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundYieldReturnStatement : IReturnStatement
     {
-        IExpression IReturnStatement.ReturnedValue => this.Expression;
+        IOperation IReturnStatement.ReturnedValue => this.Expression;
 
         protected override OperationKind StatementKind => OperationKind.YieldReturnStatement;
 
@@ -552,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundLockStatement : ILockStatement
     {
-        IExpression ILockStatement.LockedObject => this.Argument;
+        IOperation ILockStatement.LockedObject => this.Argument;
 
         IOperation ILockStatement.Body => this.Body;
 
@@ -681,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundExpressionStatement : IExpressionStatement
     {
-        IExpression IExpressionStatement.Expression => this.Expression;
+        IOperation IExpressionStatement.Expression => this.Expression;
 
         protected override OperationKind StatementKind => OperationKind.ExpressionStatement;
 

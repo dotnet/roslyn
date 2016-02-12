@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     internal sealed class ConditionalChoice : IConditionalChoiceExpression
     {
-        public ConditionalChoice(IExpression condition, IExpression ifTrue, IExpression ifFalse, ITypeSymbol resultType, SyntaxNode syntax)
+        public ConditionalChoice(IOperation condition, IOperation ifTrue, IOperation ifFalse, ITypeSymbol resultType, SyntaxNode syntax)
         {
             this.Condition = condition;
             this.IfTrue = ifTrue;
@@ -92,11 +92,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             this.Syntax = syntax;
         }
 
-        public IExpression Condition { get; }
+        public IOperation Condition { get; }
 
-        public IExpression IfTrue { get; }
+        public IOperation IfTrue { get; }
 
-        public IExpression IfFalse { get; }
+        public IOperation IfFalse { get; }
 
         public ITypeSymbol Type { get; }
 
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly AssignmentExpression _assignment;
 
-        public Assignment(IReferenceExpression target, IExpression value, SyntaxNode syntax)
+        public Assignment(IReferenceExpression target, IOperation value, SyntaxNode syntax)
         {
             _assignment = new AssignmentExpression(target, value, syntax);
             this.Syntax = syntax;
@@ -135,7 +135,11 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public bool IsInvalid => _assignment.IsInvalid;
 
-        public IExpression Expression => _assignment;
+        public IOperation Expression => _assignment;
+
+        public ITypeSymbol Type => null;
+
+        public Optional<object> ConstantValue => default(Optional<object>);
 
         public void Accept(OperationVisitor visitor)
         {
@@ -149,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private sealed class AssignmentExpression : IAssignmentExpression
         {
-            public AssignmentExpression(IReferenceExpression target, IExpression value, SyntaxNode syntax)
+            public AssignmentExpression(IReferenceExpression target, IOperation value, SyntaxNode syntax)
             {
                 this.Value = value;
                 this.Target = target;
@@ -158,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public IReferenceExpression Target { get; }
 
-            public IExpression Value { get; }
+            public IOperation Value { get; }
 
             public SyntaxNode Syntax { get; }
 
@@ -186,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly CompoundAssignmentExpression _compoundAssignment;
 
-        public CompoundAssignment(IReferenceExpression target, IExpression value, BinaryOperationKind binaryKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
+        public CompoundAssignment(IReferenceExpression target, IOperation value, BinaryOperationKind binaryKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
         {
             _compoundAssignment = new CompoundAssignmentExpression(target, value, binaryKind, operatorMethod, syntax);
             this.Syntax = syntax;
@@ -198,7 +202,11 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public bool IsInvalid => _compoundAssignment.IsInvalid;
 
-        public IExpression Expression => _compoundAssignment;
+        public IOperation Expression => _compoundAssignment;
+
+        public ITypeSymbol Type => null;
+
+        public Optional<object> ConstantValue => default(Optional<object>);
 
         public void Accept(OperationVisitor visitor)
         {
@@ -212,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private sealed class CompoundAssignmentExpression : ICompoundAssignmentExpression
         {
-            public CompoundAssignmentExpression(IReferenceExpression target, IExpression value, BinaryOperationKind binaryKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
+            public CompoundAssignmentExpression(IReferenceExpression target, IOperation value, BinaryOperationKind binaryKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
             {
                 this.Target = target;
                 this.Value = value;
@@ -223,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public IReferenceExpression Target { get; }
 
-            public IExpression Value { get; }
+            public IOperation Value { get; }
 
             public BinaryOperationKind BinaryOperationKind { get; }
 
@@ -323,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     internal sealed class Binary : IBinaryOperatorExpression
     {
-        public Binary(BinaryOperationKind binaryKind, IExpression left, IExpression right, ITypeSymbol resultType, SyntaxNode syntax)
+        public Binary(BinaryOperationKind binaryKind, IOperation left, IOperation right, ITypeSymbol resultType, SyntaxNode syntax)
         {
             this.BinaryOperationKind = binaryKind;
             this.Left = left;
@@ -334,9 +342,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public BinaryOperationKind BinaryOperationKind { get; }
 
-        public IExpression Left { get; }
+        public IOperation Left { get; }
 
-        public IExpression Right { get; }
+        public IOperation Right { get; }
 
         public bool UsesOperatorMethod => false;
 
@@ -367,17 +375,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly IArrayTypeSymbol _arrayType;
 
-        public ArrayCreation(IArrayTypeSymbol arrayType, ImmutableArray<IExpression> elementValues, SyntaxNode syntax)
+        public ArrayCreation(IArrayTypeSymbol arrayType, ImmutableArray<IOperation> elementValues, SyntaxNode syntax)
         {
             _arrayType = arrayType;
-            this.DimensionSizes = ImmutableArray.Create<IExpression>(new IntegerLiteral(elementValues.Count(), null, syntax));
+            this.DimensionSizes = ImmutableArray.Create<IOperation>(new IntegerLiteral(elementValues.Count(), null, syntax));
             this.Initializer = new ArrayInitializer(elementValues, syntax, arrayType);
             this.Syntax = syntax;
         }
 
         public ITypeSymbol Type => _arrayType;
 
-        public ImmutableArray<IExpression> DimensionSizes { get; }
+        public ImmutableArray<IOperation> DimensionSizes { get; }
 
         public ITypeSymbol ElementType => _arrayType.ElementType;
 
@@ -405,14 +413,14 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private sealed class ArrayInitializer : IArrayInitializer
         {
-            public ArrayInitializer(ImmutableArray<IExpression> elementValues, SyntaxNode syntax, ITypeSymbol arrayType)
+            public ArrayInitializer(ImmutableArray<IOperation> elementValues, SyntaxNode syntax, ITypeSymbol arrayType)
             {
                 ElementValues = elementValues;
                 Syntax = syntax;
                 Type = arrayType;
             }
 
-            public ImmutableArray<IExpression> ElementValues { get; }
+            public ImmutableArray<IOperation> ElementValues { get; }
 
             public bool IsInvalid => ElementValues.Any(v => v.IsInvalid);
 

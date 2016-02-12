@@ -208,12 +208,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
             return false;
         }
 
-        private static void AssignTo(IExpression target, Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>> localsSourceTypes, Dictionary<IFieldSymbol, HashSet<INamedTypeSymbol>> fieldsSourceTypes, IExpression sourceValue)
+        private static void AssignTo(IOperation target, Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>> localsSourceTypes, Dictionary<IFieldSymbol, HashSet<INamedTypeSymbol>> fieldsSourceTypes, IOperation sourceValue)
         {
             AssignTo(target, localsSourceTypes, fieldsSourceTypes, OriginalType(sourceValue));
         }
 
-        private static void AssignTo(IExpression target, Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>> localsSourceTypes, Dictionary<IFieldSymbol, HashSet<INamedTypeSymbol>> fieldsSourceTypes, ITypeSymbol sourceType)
+        private static void AssignTo(IOperation target, Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>> localsSourceTypes, Dictionary<IFieldSymbol, HashSet<INamedTypeSymbol>> fieldsSourceTypes, ITypeSymbol sourceType)
         {
             OperationKind targetKind = target.Kind;
             if (targetKind == OperationKind.LocalReferenceExpression)
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
             }
         }
 
-        private static void AssignTo<SymbolType>(SymbolType target, ITypeSymbol targetType, Dictionary<SymbolType, HashSet<INamedTypeSymbol>> sourceTypes, IExpression sourceValue)
+        private static void AssignTo<SymbolType>(SymbolType target, ITypeSymbol targetType, Dictionary<SymbolType, HashSet<INamedTypeSymbol>> sourceTypes, IOperation sourceValue)
         {
             AssignTo(target, targetType, sourceTypes, OriginalType(sourceValue));
         }
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
             }
         }
 
-        private static ITypeSymbol OriginalType(IExpression value)
+        private static ITypeSymbol OriginalType(IOperation value)
         {
             if (value.Kind == OperationKind.ConversionExpression)
             {

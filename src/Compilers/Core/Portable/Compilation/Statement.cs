@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 {
     internal sealed class VariableDeclaration : IVariableDeclaration
     {
-        public VariableDeclaration(ILocalSymbol variable, IExpression initialValue, SyntaxNode syntax)
+        public VariableDeclaration(ILocalSymbol variable, IOperation initialValue, SyntaxNode syntax)
         {
             Variable = variable;
             InitialValue = initialValue;
@@ -18,13 +18,17 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public ILocalSymbol Variable { get; }
 
-        public IExpression InitialValue { get; }
+        public IOperation InitialValue { get; }
 
         public bool IsInvalid => Variable == null || (InitialValue != null && InitialValue.IsInvalid);
 
         public OperationKind Kind => OperationKind.VariableDeclaration;
 
         public SyntaxNode Syntax { get; }
+
+        public ITypeSymbol Type => null;
+
+        public Optional<object> ConstantValue => default(Optional<object>);
 
         public void Accept(OperationVisitor visitor)
         {

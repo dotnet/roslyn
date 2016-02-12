@@ -11,15 +11,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class BoundExpression : IExpression
+    internal partial class BoundExpression : IOperation
     {
-        ITypeSymbol IExpression.Type => this.Type;
+        ITypeSymbol IOperation.Type => this.Type;
 
         OperationKind IOperation.Kind => this.ExpressionKind;
 
         bool IOperation.IsInvalid => this.HasErrors;
 
-        Optional<object> IExpression.ConstantValue
+        Optional<object> IOperation.ConstantValue
         {
             get
             {
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IMethodSymbol IInvocationExpression.TargetMethod => this.Method;
 
-        IExpression IInvocationExpression.Instance => this.Method.IsStatic ? null : this.ReceiverOpt;
+        IOperation IInvocationExpression.Instance => this.Method.IsStatic ? null : this.ReceiverOpt;
 
         bool IInvocationExpression.IsVirtual => (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) && !this.ReceiverOpt.SuppressVirtualCalls;
 
@@ -179,12 +179,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 });
         }
         
-        private static IExpression CreateParamArray(IParameterSymbol parameter, ImmutableArray<BoundExpression> boundArguments, int firstArgumentElementIndex, SyntaxNode invocationSyntax)
+        private static IOperation CreateParamArray(IParameterSymbol parameter, ImmutableArray<BoundExpression> boundArguments, int firstArgumentElementIndex, SyntaxNode invocationSyntax)
         {
             if (parameter.Type.TypeKind == TypeKind.Array)
             {
                 IArrayTypeSymbol arrayType = (IArrayTypeSymbol)parameter.Type;
-                ArrayBuilder<IExpression> builder = ArrayBuilder<IExpression>.GetInstance(boundArguments.Length - firstArgumentElementIndex);
+                ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance(boundArguments.Length - firstArgumentElementIndex);
 
                 for (int index = firstArgumentElementIndex; index < boundArguments.Length; index++)
                 {
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private abstract class ArgumentBase : IArgument
         {
-            public ArgumentBase(IParameterSymbol parameter, IExpression value)
+            public ArgumentBase(IParameterSymbol parameter, IOperation value)
             {
                 this.Value = value;
                 this.Parameter = parameter;
@@ -237,17 +237,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public IParameterSymbol Parameter { get; }
 
-            public IExpression Value { get; }
+            public IOperation Value { get; }
 
-            IExpression IArgument.InConversion => null;
+            IOperation IArgument.InConversion => null;
 
-            IExpression IArgument.OutConversion => null;
+            IOperation IArgument.OutConversion => null;
 
             bool IOperation.IsInvalid => this.Parameter == null || this.Value.IsInvalid;
 
             OperationKind IOperation.Kind => OperationKind.Argument;
 
             SyntaxNode IOperation.Syntax => this.Value.Syntax;
+
+            public ITypeSymbol Type => null;
+
+            public Optional<object> ConstantValue => default(Optional<object>);
 
             public abstract ArgumentKind ArgumentKind { get; }
 
@@ -264,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private sealed class SimpleArgument : ArgumentBase
         {
-            public SimpleArgument(IParameterSymbol parameter, IExpression value)
+            public SimpleArgument(IParameterSymbol parameter, IOperation value)
                 : base(parameter, value)
             { }
 
@@ -273,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private sealed class Argument : ArgumentBase
         {
-            public Argument(ArgumentKind kind, IParameterSymbol parameter, IExpression value)
+            public Argument(ArgumentKind kind, IParameterSymbol parameter, IOperation value)
                 : base(parameter, value)
             {
                 this.ArgumentKind = kind;
@@ -302,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundFieldAccess : IFieldReferenceExpression
     {
-        IExpression IMemberReferenceExpression.Instance => this.FieldSymbol.IsStatic ? null : this.ReceiverOpt;
+        IOperation IMemberReferenceExpression.Instance => this.FieldSymbol.IsStatic ? null : this.ReceiverOpt;
 
         ISymbol IMemberReferenceExpression.Member => this.FieldSymbol;
 
@@ -325,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IPropertySymbol IPropertyReferenceExpression.Property => this.PropertySymbol;
 
-        IExpression IMemberReferenceExpression.Instance => this.PropertySymbol.IsStatic ? null : this.ReceiverOpt;
+        IOperation IMemberReferenceExpression.Instance => this.PropertySymbol.IsStatic ? null : this.ReceiverOpt;
 
         ISymbol IMemberReferenceExpression.Member => this.PropertySymbol;
 
@@ -346,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IEventSymbol IEventReferenceExpression.Event => this.EventSymbol;
 
-        IExpression IMemberReferenceExpression.Instance => this.EventSymbol.IsStatic ? null : this.ReceiverOpt;
+        IOperation IMemberReferenceExpression.Instance => this.EventSymbol.IsStatic ? null : this.ReceiverOpt;
 
         ISymbol IMemberReferenceExpression.Member => this.EventSymbol;
 
@@ -367,9 +371,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IEventSymbol IEventAssignmentExpression.Event => this.Event;
 
-        IExpression IEventAssignmentExpression.EventInstance => this.Event.IsStatic ? null : this.ReceiverOpt;
+        IOperation IEventAssignmentExpression.EventInstance => this.Event.IsStatic ? null : this.ReceiverOpt;
 
-        IExpression IEventAssignmentExpression.HandlerValue => this.Argument;
+        IOperation IEventAssignmentExpression.HandlerValue => this.Argument;
 
         bool IEventAssignmentExpression.Adds => this.IsAddition;
 
@@ -388,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundDelegateCreationExpression : IMethodBindingExpression
     {
-        IExpression IMemberReferenceExpression.Instance
+        IOperation IMemberReferenceExpression.Instance
         {
             get
             {
@@ -524,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private sealed class FieldInitializer : IFieldInitializer
         {
-            public FieldInitializer(SyntaxNode syntax, IFieldSymbol initializedField, IExpression value)
+            public FieldInitializer(SyntaxNode syntax, IFieldSymbol initializedField, IOperation value)
             {
                 this.Syntax = syntax;
                 this.InitializedField = initializedField;
@@ -535,13 +539,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public ImmutableArray<IFieldSymbol> InitializedFields => ImmutableArray.Create(this.InitializedField);
 
-            public IExpression Value { get; }
+            public IOperation Value { get; }
 
             OperationKind IOperation.Kind => OperationKind.FieldInitializerInCreation;
 
             public SyntaxNode Syntax { get; }
 
             bool IOperation.IsInvalid => this.Value.IsInvalid || this.InitializedField == null;
+
+            public ITypeSymbol Type => null;
+
+            public Optional<object> ConstantValue => default(Optional<object>);
 
             void IOperation.Accept(OperationVisitor visitor)
             {
@@ -556,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private sealed class PropertyInitializer : IPropertyInitializer
         {
-            public PropertyInitializer(SyntaxNode syntax, IPropertySymbol initializedProperty, IExpression value)
+            public PropertyInitializer(SyntaxNode syntax, IPropertySymbol initializedProperty, IOperation value)
             {
                 this.Syntax = syntax;
                 this.InitializedProperty = initializedProperty;
@@ -565,13 +573,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public IPropertySymbol InitializedProperty { get; }
 
-            public IExpression Value { get; }
+            public IOperation Value { get; }
 
             OperationKind IOperation.Kind => OperationKind.PropertyInitializerInCreation;
 
             public SyntaxNode Syntax { get; }
 
             bool IOperation.IsInvalid => this.Value.IsInvalid || this.InitializedProperty == null;
+
+            public ITypeSymbol Type => null;
+
+            public Optional<object> ConstantValue => default(Optional<object>);
 
             void IOperation.Accept(OperationVisitor visitor)
             {
@@ -585,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class UnboundLambda
+    internal partial class UnboundLambda : IUnboundLambdaExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.UnboundLambdaExpression;
 
@@ -621,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundConversion : IConversionExpression, IMethodBindingExpression
     {
-        IExpression IConversionExpression.Operand => this.Operand;
+        IOperation IConversionExpression.Operand => this.Operand;
 
         Semantics.ConversionKind IConversionExpression.ConversionKind
         {
@@ -685,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        IExpression IMemberReferenceExpression.Instance
+        IOperation IMemberReferenceExpression.Instance
         {
             get
             {
@@ -726,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundAsOperator : IConversionExpression
     {
-        IExpression IConversionExpression.Operand => this.Operand;
+        IOperation IConversionExpression.Operand => this.Operand;
 
         Semantics.ConversionKind IConversionExpression.ConversionKind => Semantics.ConversionKind.TryCast;
 
@@ -751,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundIsOperator : IIsExpression
     {
-        IExpression IIsExpression.Operand => this.Operand;
+        IOperation IIsExpression.Operand => this.Operand;
 
         ITypeSymbol IIsExpression.IsType => this.TargetType.Type;
 
@@ -818,7 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        ImmutableArray<IExpression> IArrayCreationExpression.DimensionSizes => this.Bounds.As<IExpression>();
+        ImmutableArray<IOperation> IArrayCreationExpression.DimensionSizes => this.Bounds.As<IOperation>();
 
         IArrayInitializer IArrayCreationExpression.Initializer => this.InitializerOpt;
 
@@ -837,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundArrayInitialization : IArrayInitializer
     {
-        public ImmutableArray<IExpression> ElementValues => this.Initializers.As<IExpression>();
+        public ImmutableArray<IOperation> ElementValues => this.Initializers.As<IOperation>();
 
         protected override OperationKind ExpressionKind => OperationKind.ArrayInitializer;
 
@@ -852,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDefaultOperator
+    internal partial class BoundDefaultOperator : IDefaultValueExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.DefaultValueExpression;
 
@@ -920,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IReferenceExpression IAssignmentExpression.Target => this.Left as IReferenceExpression;
 
-        IExpression IAssignmentExpression.Value => this.Right;
+        IOperation IAssignmentExpression.Value => this.Right;
 
         protected override OperationKind ExpressionKind => OperationKind.AssignmentExpression;
 
@@ -941,7 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IReferenceExpression IAssignmentExpression.Target => this.Left as IReferenceExpression;
 
-        IExpression IAssignmentExpression.Value => this.Right;
+        IOperation IAssignmentExpression.Value => this.Right;
 
         bool IHasOperatorMethodExpression.UsesOperatorMethod => (this.Operator.Kind & BinaryOperatorKind.TypeMask) == BinaryOperatorKind.UserDefined;
 
@@ -968,9 +980,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IReferenceExpression IAssignmentExpression.Target => this.Operand as IReferenceExpression;
 
-        private static readonly ConditionalWeakTable<BoundIncrementOperator, IExpression> s_incrementValueMappings = new ConditionalWeakTable<BoundIncrementOperator, IExpression>();
+        private static readonly ConditionalWeakTable<BoundIncrementOperator, IOperation> s_incrementValueMappings = new ConditionalWeakTable<BoundIncrementOperator, IOperation>();
 
-        IExpression IAssignmentExpression.Value => s_incrementValueMappings.GetValue(this, (increment) => new BoundLiteral(this.Syntax, Semantics.Expression.SynthesizeNumeric(increment.Type, 1), increment.Type));
+        IOperation IAssignmentExpression.Value => s_incrementValueMappings.GetValue(this, (increment) => new BoundLiteral(this.Syntax, Semantics.Expression.SynthesizeNumeric(increment.Type, 1), increment.Type));
 
         bool IHasOperatorMethodExpression.UsesOperatorMethod => (this.OperatorKind & UnaryOperatorKind.TypeMask) == UnaryOperatorKind.UserDefined;
 
@@ -989,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundBadExpression
+    internal partial class BoundBadExpression : IInvalidExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.InvalidExpression;
 
@@ -1004,7 +1016,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundNewT
+    internal partial class BoundNewT : ITypeParameterObjectCreationExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.TypeParameterObjectCreationExpression;
 
@@ -1023,7 +1035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         UnaryOperationKind IUnaryOperatorExpression.UnaryOperationKind => Expression.DeriveUnaryOperationKind(this.OperatorKind);
 
-        IExpression IUnaryOperatorExpression.Operand => this.Operand;
+        IOperation IUnaryOperatorExpression.Operand => this.Operand;
 
         bool IHasOperatorMethodExpression.UsesOperatorMethod => (this.OperatorKind & UnaryOperatorKind.TypeMask) == UnaryOperatorKind.UserDefined;
 
@@ -1046,9 +1058,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         BinaryOperationKind IBinaryOperatorExpression.BinaryOperationKind => Expression.DeriveBinaryOperationKind(this.OperatorKind);
 
-        IExpression IBinaryOperatorExpression.Left => this.Left;
+        IOperation IBinaryOperatorExpression.Left => this.Left;
 
-        IExpression IBinaryOperatorExpression.Right => this.Right;
+        IOperation IBinaryOperatorExpression.Right => this.Right;
 
         bool IHasOperatorMethodExpression.UsesOperatorMethod => (this.OperatorKind & BinaryOperatorKind.TypeMask) == BinaryOperatorKind.UserDefined;
 
@@ -1097,11 +1109,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundConditionalOperator : IConditionalChoiceExpression
     {
-        IExpression IConditionalChoiceExpression.Condition => this.Condition;
+        IOperation IConditionalChoiceExpression.Condition => this.Condition;
 
-        IExpression IConditionalChoiceExpression.IfTrue => this.Consequence;
+        IOperation IConditionalChoiceExpression.IfTrue => this.Consequence;
 
-        IExpression IConditionalChoiceExpression.IfFalse => this.Alternative;
+        IOperation IConditionalChoiceExpression.IfFalse => this.Alternative;
 
         protected override OperationKind ExpressionKind => OperationKind.ConditionalChoiceExpression;
 
@@ -1118,9 +1130,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundNullCoalescingOperator : INullCoalescingExpression
     {
-        IExpression INullCoalescingExpression.Primary => this.LeftOperand;
+        IOperation INullCoalescingExpression.Primary => this.LeftOperand;
 
-        IExpression INullCoalescingExpression.Secondary => this.RightOperand;
+        IOperation INullCoalescingExpression.Secondary => this.RightOperand;
 
         protected override OperationKind ExpressionKind => OperationKind.NullCoalescingExpression;
 
@@ -1137,7 +1149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundAwaitExpression : IAwaitExpression
     {
-        IExpression IAwaitExpression.Upon => this.Expression;
+        IOperation IAwaitExpression.AwaitedValue => this.Expression;
 
         protected override OperationKind ExpressionKind => OperationKind.AwaitExpression;
 
@@ -1154,9 +1166,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundArrayAccess : IArrayElementReferenceExpression
     {
-        IExpression IArrayElementReferenceExpression.ArrayReference => this.Expression;
+        IOperation IArrayElementReferenceExpression.ArrayReference => this.Expression;
 
-        ImmutableArray<IExpression> IArrayElementReferenceExpression.Indices => this.Indices.As<IExpression>();
+        ImmutableArray<IOperation> IArrayElementReferenceExpression.Indices => this.Indices.As<IOperation>();
 
         protected override OperationKind ExpressionKind => OperationKind.ArrayElementReferenceExpression;
 
@@ -1173,7 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundPointerIndirectionOperator : IPointerIndirectionReferenceExpression
     {
-        IExpression IPointerIndirectionReferenceExpression.Pointer => this.Operand;
+        IOperation IPointerIndirectionReferenceExpression.Pointer => this.Operand;
 
         protected override OperationKind ExpressionKind => OperationKind.PointerIndirectionReferenceExpression;
 
@@ -1190,7 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundAddressOfOperator : IAddressOfExpression
     {
-        IReferenceExpression IAddressOfExpression.Addressed => (IReferenceExpression)this.Operand;
+        IReferenceExpression IAddressOfExpression.Reference => (IReferenceExpression)this.Operand;
 
         protected override OperationKind ExpressionKind => OperationKind.AddressOfExpression;
 
@@ -1224,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundConditionalAccess : IConditionalAccessExpression
     {
-        IExpression IConditionalAccessExpression.Access => this.AccessExpression;
+        IOperation IConditionalAccessExpression.Access => this.AccessExpression;
 
         protected override OperationKind ExpressionKind => OperationKind.ConditionalAccessExpression;
 
@@ -1241,7 +1253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundEqualsValue : ISymbolInitializer
     {
-        IExpression ISymbolInitializer.Value => this.Value;
+        IOperation ISymbolInitializer.Value => this.Value;
 
         SyntaxNode IOperation.Syntax => this.Syntax;
 
@@ -1250,6 +1262,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         OperationKind IOperation.Kind => this.OperationKind;
 
         protected abstract OperationKind OperationKind { get; }
+
+        ITypeSymbol IOperation.Type => null;
+
+        Optional<object> IOperation.ConstantValue => default(Optional<object>);
 
         public abstract void Accept(OperationVisitor visitor);
 

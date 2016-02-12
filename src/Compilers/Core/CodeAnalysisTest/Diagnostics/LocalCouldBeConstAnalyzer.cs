@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                 });
         }
 
-        private static void AssignTo(IExpression target, HashSet<ILocalSymbol> assignedToLocals, HashSet<ILocalSymbol> mightBecomeConstLocals)
+        private static void AssignTo(IOperation target, HashSet<ILocalSymbol> assignedToLocals, HashSet<ILocalSymbol> mightBecomeConstLocals)
         {
             if (target.Kind == OperationKind.LocalReferenceExpression)
             {

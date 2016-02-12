@@ -140,13 +140,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      if (loop.LoopKind == LoopKind.For)
                      {
                          IForLoopStatement forLoop = (IForLoopStatement)loop;
-                         IExpression forCondition = forLoop.Condition;
+                         IOperation forCondition = forLoop.Condition;
 
                          if (forCondition.Kind == OperationKind.BinaryOperatorExpression)
                          {
                              IBinaryOperatorExpression condition = (IBinaryOperatorExpression)forCondition;
-                             IExpression conditionLeft = condition.Left;
-                             IExpression conditionRight = condition.Right;
+                             IOperation conditionLeft = condition.Left;
+                             IOperation conditionRight = condition.Right;
 
                              if (conditionRight.ConstantValue.HasValue &&
                                  conditionRight.Type.SpecialType == SpecialType.System_Int32 &&
@@ -177,8 +177,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                                  IOperation advance = forLoop.AtLoopBottom[0];
                                                  if (advance.Kind == OperationKind.ExpressionStatement)
                                                  {
-                                                     IExpression advanceExpression = ((IExpressionStatement)advance).Expression;
-                                                     IExpression advanceIncrement = null;
+                                                     IOperation advanceExpression = ((IExpressionStatement)advance).Expression;
+                                                     IOperation advanceIncrement = null;
                                                      BinaryOperationKind advanceOperationCode = BinaryOperationKind.None;
 
                                                      if (advanceExpression.Kind == OperationKind.AssignmentExpression)
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                      {
                                          hasNonDefault = true;
                                          ISingleValueCaseClause singleValueClause = (ISingleValueCaseClause)clause;
-                                         IExpression singleValueExpression = singleValueClause.Value;
+                                         IOperation singleValueExpression = singleValueClause.Value;
                                          if (singleValueExpression != null &&
                                              singleValueExpression.ConstantValue.HasValue &&
                                              singleValueExpression.Type.SpecialType == SpecialType.System_Int32)
@@ -348,8 +348,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                      {
                                          hasNonDefault = true;
                                          IRangeCaseClause rangeClause = (IRangeCaseClause)clause;
-                                         IExpression rangeMinExpression = rangeClause.MinimumValue;
-                                         IExpression rangeMaxExpression = rangeClause.MaximumValue;
+                                         IOperation rangeMinExpression = rangeClause.MinimumValue;
+                                         IOperation rangeMaxExpression = rangeClause.MaximumValue;
                                          if (rangeMinExpression != null &&
                                              rangeMinExpression.ConstantValue.HasValue &&
                                              rangeMinExpression.Type.SpecialType == SpecialType.System_Int32 &&
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                      {
                                          hasNonDefault = true;
                                          IRelationalCaseClause relationalClause = (IRelationalCaseClause)clause;
-                                         IExpression relationalValueExpression = relationalClause.Value;
+                                         IOperation relationalValueExpression = relationalClause.Value;
                                          if (relationalValueExpression != null &&
                                              relationalValueExpression.ConstantValue.HasValue &&
                                              relationalValueExpression.Type.SpecialType == SpecialType.System_Int32)
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                          Report(operationContext, invocation.Syntax, BigParamArrayArgumentsDescriptor);
                                      }
 
-                                     foreach (IExpression element in initializer.ElementValues)
+                                     foreach (IOperation element in initializer.ElementValues)
                                      {
                                          TestAscendingArgument(operationContext, element, ref priorArgumentValue);
                                      }
@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.InvocationExpression);
         }
 
-        private static void TestAscendingArgument(OperationAnalysisContext operationContext, IExpression argument, ref long priorArgumentValue)
+        private static void TestAscendingArgument(OperationAnalysisContext operationContext, IOperation argument, ref long priorArgumentValue)
         {
             Optional<object> argumentValue = argument.ConstantValue;
             if (argumentValue.HasValue && argument.Type.SpecialType == SpecialType.System_Int32)
@@ -1265,7 +1265,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  {
                      var operation = operationContext.Operation;
                      ISymbol memberSymbol;
-                     IExpression receiver;
+                     IOperation receiver;
                      switch (operation.Kind)
                      {
                          case OperationKind.FieldReferenceExpression:

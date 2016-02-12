@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.OutConversion);
         }
 
-        public override void VisitOmittedArgumentExpression(IExpression operation)
+        public override void VisitOmittedArgumentExpression(IOmittedArgumentExpression operation)
         { }
 
         public override void VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation)
@@ -314,12 +314,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitAwaitExpression(IAwaitExpression operation)
         {
-            Visit(operation.Upon);
+            Visit(operation.AwaitedValue);
         }
 
         public override void VisitAddressOfExpression(IAddressOfExpression operation)
         {
-            Visit(operation.Addressed);
+            Visit(operation.Reference);
         }
 
         public override void VisitObjectCreationExpression(IObjectCreationExpression operation)
@@ -382,19 +382,19 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.Instance);
         }
 
-        public override void VisitUnboundLambdaExpression(IExpression operation)
+        public override void VisitUnboundLambdaExpression(IUnboundLambdaExpression operation)
         { }
 
-        public override void VisitDefaultValueExpression(IExpression operation)
+        public override void VisitDefaultValueExpression(IDefaultValueExpression operation)
         { }
 
-        public override void VisitTypeParameterObjectCreationExpression(IExpression operation)
+        public override void VisitTypeParameterObjectCreationExpression(ITypeParameterObjectCreationExpression operation)
         { }
 
         public override void VisitInvalidStatement(IInvalidStatement operation)
         { }
 
-        public override void VisitInvalidExpression(IExpression operation)
+        public override void VisitInvalidExpression(IInvalidExpression operation)
         { }
     }
 }
