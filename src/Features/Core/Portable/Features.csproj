@@ -147,6 +147,7 @@
     <Compile Include="CodeRefactorings\PredefinedCodeRefactoringProviderNames.cs" />
     <Compile Include="CodeRefactorings\ServicesLayerCodeActionHelpersService.cs" />
     <Compile Include="CodeRefactorings\WorkspaceServices\IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
+    <Compile Include="Common\Glyph.cs" />
     <Compile Include="Completion\AbstractCompletionService.cs" />
     <Compile Include="Completion\CommonCompletionUtilities.cs" />
     <Compile Include="Completion\CompletionFilterReason.cs" />
@@ -253,6 +254,7 @@
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsService.cs" />
     <Compile Include="ReplaceMethodWithProperty\ReplaceMethodWithPropertyCodeRefactoringProvider.cs" />
     <Compile Include="ReplaceMethodWithProperty\IReplaceMethodWithPropertyService.cs" />
+    <Compile Include="Shared\Extensions\ProjectExtensions.cs" />
     <Compile Include="Shared\Options\OrganizerOptionsProvider.cs" />
     <Compile Include="Shared\Options\RuntimeOptions.cs" />
     <Compile Include="Shared\Options\RuntimeOptionsProvider.cs" />

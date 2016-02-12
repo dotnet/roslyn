@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _glyph = glyph;
             }
 
-            internal override Glyph? Glyph => _glyph;
+            internal override int? Glyph => _glyph.HasValue ? (int)_glyph.Value : (int?)null;
         }
 
         private struct SearchResult<T> where T : ISymbol
