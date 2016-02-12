@@ -23,7 +23,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
                 Assert.False(pdbReader.IsAssembly);
                 Assert.True(pdbReader.DebugMetadataHeader.EntryPoint.IsNil);
 
-                AssertEx.Equal(new byte[] 
+                AssertEx.Equal(new byte[]
                 {
                     0x89, 0x03, 0x86, 0xAD, 0xFF, 0x27, 0x56, 0x46, 0x9F, 0x3F, 0xE2, 0x18, 0x4B, 0xEF, 0xFC, 0xC0, 0xBE, 0x0C, 0x52, 0xA0
                 }, pdbReader.DebugMetadataHeader.Id);

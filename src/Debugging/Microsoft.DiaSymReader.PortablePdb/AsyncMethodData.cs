@@ -23,7 +23,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
         }
 
         public AsyncMethodData(
-            MethodDefinitionHandle kickoffMethod, 
+            MethodDefinitionHandle kickoffMethod,
             int catchHandlerOffset,
             ImmutableArray<int> yieldOffsets,
             ImmutableArray<int> resumeOffsets,

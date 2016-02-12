@@ -484,6 +484,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to _Insert * at the start of new lines when writing /* */ comments.
+        /// </summary>
+        internal static string Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments {
+            get {
+                return ResourceManager.GetString("Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Add new line on enter after end of fully typed word.
         /// </summary>
         internal static string Option_InsertNewlineOnEnterWithWholeWord {
@@ -808,7 +817,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Insert space within empty argument list parentheses.
+        ///   Looks up a localized string similar to Insert space within empty parameter list parentheses.
         /// </summary>
         internal static string SpaceBetweenEmptyMethodDeclarationParentheses {
             get {
@@ -862,7 +871,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Insert space within argument list parentheses.
+        ///   Looks up a localized string similar to Insert space within parameter list parentheses.
         /// </summary>
         internal static string SpaceWithinMethodDeclarationParenthesis {
             get {

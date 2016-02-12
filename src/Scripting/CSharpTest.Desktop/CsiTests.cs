@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 {
     public class CsiTests : TestBase
     {
-        private static readonly string CompilerVersion = typeof(Csi).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+        private static readonly string s_compilerVersion = typeof(Csi).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
         private string CsiPath => typeof(Csi).GetTypeInfo().Assembly.Location;
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             var dir = Temp.CreateDirectory();
             dir.CreateFile("a.csx").WriteAllText(@"Console.Write(Environment.CurrentDirectory + ';' + typeof(C).Name);");
             dir.CreateFile("C.dll").WriteAllBytes(TestResources.General.C1);
-            
+
             var result = ProcessUtilities.Run(CsiPath, "/r:C.dll a.csx", workingDirectory: dir.Path);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(dir.Path + ";C", result.Output);
             Assert.False(result.ContainsErrors);
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             dir.CreateFile("a.csx").WriteAllText(@"int X = 1;");
             dir.CreateFile("C.dll").WriteAllBytes(TestResources.General.C1);
 
-            var result = ProcessUtilities.Run(CsiPath, "", stdInput: 
+            var result = ProcessUtilities.Run(CsiPath, "", stdInput:
 $@"#load ""a.csx""
 #r ""C.dll""
 Directory.SetCurrentDirectory(@""{dir.Path}"")
@@ -50,7 +50,7 @@ Environment.Exit(0)
 ");
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
+Microsoft (R) Visual C# Interactive Compiler version {s_compilerVersion}
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.

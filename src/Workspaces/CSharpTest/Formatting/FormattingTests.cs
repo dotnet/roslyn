@@ -4878,6 +4878,7 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
         }
 
+        [WorkItem(176345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/176345")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task TestSpacingOptionAfterControlFlowKeyword()
         {
@@ -4913,6 +4914,9 @@ class Program
 
         using (somevar)
         { }
+
+        lock (somevar)
+        { }
     }
 }";
             var expected = @"
@@ -4946,6 +4950,9 @@ class Program
         { }
 
         using(somevar)
+        { }
+
+        lock(somevar)
         { }
     }
 }";
@@ -7147,6 +7154,61 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(6905, "https://github.com/dotnet/roslyn/issues/6905")]
+        public async Task KeepConstructorBodyInSameLineAsBaseConstructorInitializer()
+        {
+            var code = @"
+class C
+{
+    public C(int s)
+        : base() { }
+    public C()
+    {
+    }
+}";
+            await AssertFormatAsync(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(6905, "https://github.com/dotnet/roslyn/issues/6905")]
+        public async Task KeepConstructorBodyInSameLineAsThisConstructorInitializer()
+        {
+            var code = @"
+class C
+{
+    public C(int s)
+        : this() { }
+    public C()
+    {
+    }
+}";
+            await AssertFormatAsync(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(6905, "https://github.com/dotnet/roslyn/issues/6905")]
+        public async Task KeepConstructorBodyInSameLineAsThisConstructorInitializerAdjustSpace()
+        {
+            await AssertFormatAsync(@"
+class C
+{
+    public C(int s)
+        : this() { }
+    public C()
+    {
+    }
+}", @"
+class C
+{
+    public C(int s)
+        : this()      { }
+    public C()
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(4720, "https://github.com/dotnet/roslyn/issues/4720")]
         public async Task OneSpaceBetweenAccessorsAndAttributes()
         {
@@ -7158,6 +7220,54 @@ class Program
 class Program
 {
     public int SomeProperty {    [SomeAttribute] get;    [SomeAttribute] private set; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(7900, "https://github.com/dotnet/roslyn/issues/7900")]
+        public async Task FormatEmbeddedStatementInsideLockStatement()
+        {
+            await AssertFormatAsync(@"
+class C
+{
+    private object _l = new object();
+    public void M()
+    {
+        lock (_l) Console.WriteLine(""d"");
+    }
+}", @"
+class C
+{
+    private object _l = new object();
+    public void M()
+    {
+        lock (_l)     Console.WriteLine(""d"");
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(7900, "https://github.com/dotnet/roslyn/issues/7900")]
+        public async Task FormatEmbeddedStatementInsideLockStatementDifferentLine()
+        {
+            await AssertFormatAsync(@"
+class C
+{
+    private object _l = new object();
+    public void M()
+    {
+        lock (_l)
+            Console.WriteLine(""d"");
+    }
+}", @"
+class C
+{
+    private object _l = new object();
+    public void M()
+    {
+        lock (_l)
+    Console.WriteLine(""d"");
+    }
 }");
         }
     }

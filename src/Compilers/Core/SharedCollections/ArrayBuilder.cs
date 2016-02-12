@@ -90,6 +90,27 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Write <paramref name="value"/> to slot <paramref name="index"/>. 
+        /// Fills in unallocated slots preceding the <paramref name="index"/>, if any.
+        /// </summary>
+        public void SetItem(int index, T value)
+        {
+            while (index > _builder.Count)
+            {
+                _builder.Add(default(T));
+            }
+
+            if (index == _builder.Count)
+            {
+                _builder.Add(value);
+            }
+            else
+            {
+                _builder[index] = value;
+            }
+        }
+
         public void Add(T item)
         {
             _builder.Add(item);

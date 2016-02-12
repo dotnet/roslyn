@@ -16,16 +16,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind>
     {
-        private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest = ImmutableArray.Create(SyntaxKind.QualifiedName,
+        private static readonly SyntaxKind[] s_kindsOfInterest = new[]
+        {
+            SyntaxKind.QualifiedName,
             SyntaxKind.AliasQualifiedName,
             SyntaxKind.GenericName,
             SyntaxKind.IdentifierName,
             SyntaxKind.SimpleMemberAccessExpression,
-            SyntaxKind.QualifiedCref);
+            SyntaxKind.QualifiedCref
+        };
 
         public override void Initialize(AnalysisContext analysisContext)
         {
-            analysisContext.RegisterSyntaxNodeAction(AnalyzeNode, s_kindsOfInterest.ToArray());
+            analysisContext.RegisterSyntaxNodeAction(AnalyzeNode, s_kindsOfInterest);
         }
 
         protected override void AnalyzeNode(SyntaxNodeAnalysisContext context)

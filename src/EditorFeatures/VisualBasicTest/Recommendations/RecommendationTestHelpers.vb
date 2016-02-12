@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
             Return keywords.Select(Function(k) k.Keyword)
         End Function
 
-        Friend Async Function VerifyRecommendationsAreExactlyAsync(testSource As XElement, ParamArray recommendations As String()) As Tasks.Task
+        Friend Async Function VerifyRecommendationsAreExactlyAsync(testSource As XElement, ParamArray recommendations As String()) As Task
             Dim source = ConvertTestSourceTag(testSource)
             Dim recommendedKeywords = (Await GetRecommendedKeywordStringsAsync(source.Replace("|", ""), source.IndexOf("|"c))) _
                                       .OrderBy(Function(recommendation) recommendation) _
@@ -43,14 +43,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
             Assert.Equal(recommendations.OrderBy(Function(recommendation) recommendation).ToArray(), recommendedKeywords)
         End Function
 
-        Friend Async Function VerifyRecommendationDescriptionTextIsAsync(testSource As XElement, keyword As String, text As String) As Tasks.Task
+        Friend Async Function VerifyRecommendationDescriptionTextIsAsync(testSource As XElement, keyword As String, text As String) As Task
             Dim source = ConvertTestSourceTag(testSource)
             Dim recommendedKeyword = (Await GetRecommendedKeywordsAsync(source.Replace("|", ""), source.IndexOf("|"c))).Single(Function(r) r.Keyword = keyword)
             Dim expectedText = text.Trim()
             Assert.Equal(expectedText, recommendedKeyword.DescriptionFactory(CancellationToken.None).GetFullText())
         End Function
 
-        Friend Async Function VerifyRecommendationsContainAsync(testSource As XElement, ParamArray recommendations As String()) As Tasks.Task
+        Friend Async Function VerifyRecommendationsContainAsync(testSource As XElement, ParamArray recommendations As String()) As Task
             Assert.NotEmpty(recommendations)
 
             Dim source = ConvertTestSourceTag(testSource)
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
             Await VerifyRecommendationsContainPartiallyTypedAsync(source, recommendations)
         End Function
 
-        Private Async Function VerifyRecommendationsContainNothingTypedAsync(source As String, ParamArray recommendations As String()) As Tasks.Task
+        Private Async Function VerifyRecommendationsContainNothingTypedAsync(source As String, ParamArray recommendations As String()) As Task
             ' Test with the | removed
             Dim recommendedKeywords = Await GetRecommendedKeywordsAsync(source.Replace("|", ""), source.IndexOf("|"c))
 
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
             Next
         End Sub
 
-        Private Async Function VerifyRecommendationsContainPartiallyTypedAsync(source As String, ParamArray recommendations As String()) As Tasks.Task
+        Private Async Function VerifyRecommendationsContainPartiallyTypedAsync(source As String, ParamArray recommendations As String()) As Task
             ' Test with the | replaced with the first character of the keywords we expect
             For Each partiallyTypedRecommendation In recommendations.Select(Function(recommendation) recommendation(0)).Distinct()
                 Dim recommendedKeywords = (Await GetRecommendedKeywordStringsAsync(source.Replace("|"c, partiallyTypedRecommendation), source.IndexOf("|"c) + 1)).ToArray()
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
             Next
         End Function
 
-        Friend Async Function VerifyRecommendationsMissingAsync(testSource As XElement, ParamArray recommendations As String()) As Tasks.Task
+        Friend Async Function VerifyRecommendationsMissingAsync(testSource As XElement, ParamArray recommendations As String()) As Task
             Assert.NotEmpty(recommendations)
 
             Dim source = ConvertTestSourceTag(testSource)
@@ -100,6 +100,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
             For Each recommendation In recommendations
                 Assert.DoesNotContain(recommendation, recommendedKeywords)
             Next
+        End Function
+
+        Friend Async Function VerifyNoRecommendationsAsync(testSource As XElement) As Task
+            Dim source = ConvertTestSourceTag(testSource)
+
+            Dim recommendedKeywords = (Await GetRecommendedKeywordStringsAsync(source.Replace("|", ""), source.IndexOf("|"c))) _
+                                      .OrderBy(Function(recommendation) recommendation) _
+                                      .ToArray()
+
+            Assert.Equal(0, recommendedKeywords.Length)
         End Function
     End Module
 End Namespace

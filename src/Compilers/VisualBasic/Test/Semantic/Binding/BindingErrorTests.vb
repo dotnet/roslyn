@@ -9067,6 +9067,30 @@ BC30567: Array initializer is missing 1 elements.
         End Sub
 
         <Fact()>
+        Public Sub BC30567ERR_InitializerTooFewElements1_2()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb">
+Class C
+    Private A() As Object = New Object(0) {}
+    Private B As Object() = New Object(2) {}
+    Private C As Object(,) = New Object(1, 0) {}
+    Private D As Object(,) = New Object(1, 0) {{}, {2}}
+    Private E As Object(,) = New Object(0, 2) {}
+    Private F()() As Object = New Object(0)() {}
+    Private G()() As Object = New Object(0)() {New Object(0) {}}
+End Class
+    </file>
+    </compilation>)
+            compilation.AssertTheseDiagnostics(
+    <expected>
+BC30567: Array initializer is missing 1 elements.
+    Private D As Object(,) = New Object(1, 0) {{}, {2}}
+                                               ~~
+</expected>)
+        End Sub
+
+        <Fact()>
         Public Sub BC30568ERR_InitializerTooManyElements1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="InitializerTooManyElements1">

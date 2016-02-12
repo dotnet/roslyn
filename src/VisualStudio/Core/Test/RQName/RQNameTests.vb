@@ -177,7 +177,6 @@ class MyClass
 
 
         <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
-        <WorkItem(7924037)>
         Public Async Function TestRQNameForAnonymousTypeReturnsNull() As Task
             Dim markup = <Text><![CDATA[
 class Program

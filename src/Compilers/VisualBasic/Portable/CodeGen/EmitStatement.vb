@@ -5,6 +5,7 @@ Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
@@ -1413,23 +1414,24 @@ OtherExpressions:
         Private Sub EmitStateMachineScope(scope As BoundStateMachineScope)
             _builder.OpenLocalScope()
 
-            'VB EE uses name mangling to match up original locals and the fields where they are hoisted
-            'The scoping information is passed by recording PDB scopes of "fake" locals named the same 
-            'as the fields. These locals are not emitted to IL.
+            If _module.EmitOptions.DebugInformationFormat = DebugInformationFormat.Pdb Then
+                'Native PDBs: VB EE uses name mangling to match up original locals and the fields where they are hoisted
+                'The scoping information is passed by recording PDB scopes of "fake" locals named the same 
+                'as the fields. These locals are not emitted to IL.
 
-            '         vb\language\debugger\procedurecontext.cpp
-            '  813                  // Since state machines lift (almost) all locals of a method, the lifted fields should
-            '  814                  // only be shown in the debugger when the original local variable was in scope.  So
-            '  815                  // we first check if there's a local by the given name and attempt to remove it from 
-            '  816                  // m_localVariableMap.  If it was present, we decode the original local's name, otherwise
-            '  817                  // we skip loading this lifted field since it is out of scope.
+                '         vb\language\debugger\procedurecontext.cpp
+                '  813                  // Since state machines lift (almost) all locals of a method, the lifted fields should
+                '  814                  // only be shown in the debugger when the original local variable was in scope.  So
+                '  815                  // we first check if there's a local by the given name and attempt to remove it from 
+                '  816                  // m_localVariableMap.  If it was present, we decode the original local's name, otherwise
+                '  817                  // we skip loading this lifted field since it is out of scope.
 
-            For Each field In scope.Fields
-                DefineUserDefinedStateMachineHoistedLocal(DirectCast(field, StateMachineFieldSymbol))
-            Next
+                For Each field In scope.Fields
+                    DefineUserDefinedStateMachineHoistedLocal(DirectCast(field, StateMachineFieldSymbol))
+                Next
+            End If
 
             EmitStatement(scope.Statement)
-
             _builder.CloseLocalScope()
         End Sub
 

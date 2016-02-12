@@ -3,6 +3,7 @@
 // References\Debugger\v2.0\Microsoft.VisualStudio.Debugger.Engine.dll
 
 #endregion
+
 using System.Collections.ObjectModel;
 using Microsoft.VisualStudio.Debugger.CallStack;
 

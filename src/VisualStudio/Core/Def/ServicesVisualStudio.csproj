@@ -63,7 +63,8 @@
     <Compile Include="Implementation\Preview\ReferenceChange.AnalyzerReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.cs" />
-    <Compile Include="Implementation\ProjectSystem\AbstractEncProject.cs" />
+    <Compile Include="Implementation\ProjectSystem\AbstractRoslynProject.cs" />
+    <Compile Include="Implementation\ProjectSystem\Interop\ICompilerOptionsHostObject.cs" />
     <Compile Include="Implementation\ProjectSystem\IVisualStudioWorkingFolder.cs" />
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioAnalyzerAssemblyLoaderService.cs" />
     <Compile Include="Implementation\ProjectSystem\RuleSets\RuleSetEventHandler.cs" />
@@ -233,6 +234,8 @@
     <InternalsVisibleToTypeScript Include="ManagedSourceCodeAnalysis" />
     <InternalsVisibleToTypeScript Include="CodeAnalysis" />
     <InternalsVisibleToTypeScript Include="StanCore" />
+    <InternalsVisibleToFSharp Include="FSharp.Editor" />
+    <InternalsVisibleToFSharp Include="FSharp.LanguageService" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -559,7 +562,7 @@
     <Compile Include="Implementation\ProjectSystem\AbstractEntryPointFinder.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractProject.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractProject_IAnalyzerHost.cs" />
-    <Compile Include="Implementation\ProjectSystem\AbstractEncProject_IVsENCRebuildableProjectCfg.cs" />
+    <Compile Include="Implementation\ProjectSystem\AbstractRoslynProject_IVsENCRebuildableProjectCfg.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractProject_IVsReportExternalErrors.cs" />
     <Compile Include="Implementation\ProjectSystem\ComEventSink.cs" />
     <Compile Include="Implementation\ProjectSystem\DocumentKey.cs" />

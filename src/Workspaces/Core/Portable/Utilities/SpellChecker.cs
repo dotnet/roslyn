@@ -167,7 +167,7 @@ namespace Roslyn.Utilities
 
             Debug.Assert(similarityWeight <= _threshold);
 
-            similarityWeight += Penalty(candidateText, this._source);
+            similarityWeight += Penalty(candidateText, _source);
             return true;
         }
 

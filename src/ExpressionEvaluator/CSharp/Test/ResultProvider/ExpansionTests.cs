@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.Debugger.Symbols;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class ExpansionTests : CSharpResultProviderTestBase
     {

@@ -292,7 +292,7 @@
     <value>The span does not include the start of a line.</value>
   </data>
   <data name="SpanDoesNotIncludeEndOfLine" xml:space="preserve">
-    <value>Then span does not include the end of a line.</value>
+    <value>The span does not include the end of a line.</value>
   </data>
   <data name="StartMustNotBeNegative" xml:space="preserve">
     <value>'start' must not be negative</value>

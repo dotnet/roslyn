@@ -15,10 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
     Public Class CommandLineRunnerTests
         Inherits TestBase
 
-        Private Shared ReadOnly CompilerVersion As String =
+        Private Shared ReadOnly s_compilerVersion As String =
             GetType(VisualBasicInteractiveCompiler).GetTypeInfo().Assembly.GetCustomAttribute(Of AssemblyFileVersionAttribute)().Version
 
-        Private Shared ReadOnly DefaultArgs As String() = {"/R:System"}
+        Private Shared ReadOnly s_defaultArgs As String() = {"/R:System"}
 
         Private Shared Function CreateRunner(
             Optional args As String() = Nothing,
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
                 responseFile,
                 If(workingDirectory, AppContext.BaseDirectory),
                 CorLightup.Desktop.TryGetRuntimeDirectory(),
-                If(args, DefaultArgs),
+                If(args, s_defaultArgs),
                 New NotImplementedAnalyzerLoader())
 
             Return New CommandLineRunner(
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
             runner.RunInteractive()
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + CompilerVersion + "
+"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
@@ -65,7 +65,7 @@ Type ""#help"" for more information.
             runner.RunInteractive()
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + CompilerVersion + "
+"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
@@ -86,7 +86,7 @@ End Class", "1").EmitToArray())
             runner.RunInteractive()
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + CompilerVersion + "
+"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
@@ -100,7 +100,7 @@ Type ""#help"" for more information.
             runner.RunInteractive()
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + CompilerVersion + "
+"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
@@ -118,7 +118,7 @@ Type ""#help"" for more information.
             runner.RunInteractive()
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + CompilerVersion + "
+"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
@@ -130,7 +130,7 @@ Type ""#help"" for more information.
         End Sub
 
         <Fact()>
-        <WorkItem(7133)>
+        <WorkItem(7133, "https://github.com/dotnet/roslyn/issues/7133")>
         Public Sub TestDisplayResultsWithCurrentUICulture()
             Dim runner = CreateRunner(args:={}, input:="Imports System.Globalization
 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
@@ -141,7 +141,7 @@ System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globaliz
             runner.RunInteractive()
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + CompilerVersion + "
+"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
@@ -165,7 +165,7 @@ System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalizat
             runner.RunInteractive()
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + CompilerVersion + "
+"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.

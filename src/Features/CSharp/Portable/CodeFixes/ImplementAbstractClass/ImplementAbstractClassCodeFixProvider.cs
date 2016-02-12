@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementAbstractClass
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateType)]
     internal class ImplementAbstractClassCodeFixProvider : CodeFixProvider
     {
-        private const string CS0534 = "CS0534"; // 'Program' does not implement inherited abstract member 'Foo.bar()'
+        private const string CS0534 = nameof(CS0534); // 'Program' does not implement inherited abstract member 'Foo.bar()'
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {

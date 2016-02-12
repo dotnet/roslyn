@@ -33,7 +33,7 @@ namespace Roslyn.Utilities
         internal static string TrimTrailingSeparators(string s)
         {
             int lastSeparator = s.Length;
-            while (lastSeparator > 0 && IsDirectorySeparator(s[lastSeparator-1]))
+            while (lastSeparator > 0 && IsDirectorySeparator(s[lastSeparator - 1]))
             {
                 lastSeparator = lastSeparator - 1;
             }

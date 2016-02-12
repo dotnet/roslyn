@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 return;
             }
 
-            var hostProject = _vsProject.VisualStudioWorkspace.GetHostProject(documentId.ProjectId) as AbstractEncProject;
+            var hostProject = _vsProject.VisualStudioWorkspace.GetHostProject(documentId.ProjectId) as AbstractRoslynProject;
             if (hostProject?.EditAndContinueImplOpt?._metadata != null)
             {
                 var projectHierarchy = _vsProject.VisualStudioWorkspace.GetHierarchy(documentId.ProjectId);
@@ -590,10 +590,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                 var flags = (ActiveStatementFlags)vsActiveStatement.ASINFO;
 
-                IVisualStudioHostDocument vsDocument = _vsProject.GetCurrentDocumentFromPath(vsActiveStatement.filename);
-                if (vsDocument != null)
+                // Finds a document id in the solution with the specified file path.
+                DocumentId documentId = solution.GetDocumentIdsWithFilePath(vsActiveStatement.filename)
+                    .Where(dId => dId.ProjectId == _vsProject.Id).SingleOrDefault();
+
+                if (documentId != null)
                 {
-                    var document = solution.GetDocument(vsDocument.Id);
+                    var document = solution.GetDocument(documentId);
                     Debug.Assert(document != null);
 
                     SourceText source = document.GetTextAsync(default(CancellationToken)).Result;
@@ -601,7 +604,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     // If the PDB is out of sync with the source we might get bad spans.
                     var sourceLines = source.Lines;
-                    if (lineSpan.End.Line >= sourceLines.Count || lineSpan.End.Character > sourceLines[sourceLines.Count - 1].EndIncludingLineBreak)
+                    if (lineSpan.End.Line >= sourceLines.Count || sourceLines.GetPosition(lineSpan.End) > sourceLines[sourceLines.Count - 1].EndIncludingLineBreak)
                     {
                         log.Write("AS out of bounds (line count is {0})", source.Lines.Count);
                         continue;

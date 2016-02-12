@@ -8,7 +8,7 @@ using System.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class DebuggerTypeProxyAttributeTests : CSharpResultProviderTestBase
     {

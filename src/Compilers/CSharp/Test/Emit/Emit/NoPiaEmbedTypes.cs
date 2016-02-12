@@ -13,6 +13,7 @@ using Xunit;
 using MemoryStream = System.IO.MemoryStream;
 using System;
 using Microsoft.CodeAnalysis.Emit;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -5685,6 +5686,84 @@ class B : IA
                     var tmp = p.ExplicitDefaultValue;
                 });
             }).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(8088, "https://github.com/dotnet/roslyn/issues/8088")]
+        public void ParametersWithoutNames()
+        {
+            var source = @"
+class Program
+{
+    public void M(I1 x)
+    {
+        x.M1(1, 2, 3);
+    }
+
+    public void M1(int value)
+    {
+    }
+
+    public void M2(int Param)
+    {
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source,
+                             references: new MetadataReference[]
+                                {
+                                    AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.NoPia.ParametersWithoutNames).
+                                        GetReference(display: "ParametersWithoutNames.dll", embedInteropTypes:true)
+                                },
+                             options: TestOptions.ReleaseDll);
+
+            AssertParametersWithoutNames(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I1").GetMember<MethodSymbol>("M1").Parameters, false);
+
+            CompileAndVerify(compilation,
+                             symbolValidator: module =>
+                             {
+                                 ((PEModuleSymbol)module).Module.PretendThereArentNoPiaLocalTypes();
+                                 AssertParametersWithoutNames(module.GlobalNamespace.GetMember<NamedTypeSymbol>("I1").GetMember<MethodSymbol>("M1").Parameters, true);
+
+                                 PEParameterSymbol p;
+                                 p = (PEParameterSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program").GetMember<MethodSymbol>("M").Parameters[0];
+                                 Assert.Equal("x", ((PEModuleSymbol)module).Module.GetParamNameOrThrow(p.Handle));
+                                 Assert.Equal("x", p.Name);
+                                 Assert.Equal("x", p.MetadataName);
+                                 p = (PEParameterSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program").GetMember<MethodSymbol>("M1").Parameters[0];
+                                 Assert.Equal("value", ((PEModuleSymbol)module).Module.GetParamNameOrThrow(p.Handle));
+                                 Assert.Equal("value", p.Name);
+                                 Assert.Equal("value", p.MetadataName);
+                                 p = (PEParameterSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program").GetMember<MethodSymbol>("M2").Parameters[0];
+                                 Assert.Equal("Param", ((PEModuleSymbol)module).Module.GetParamNameOrThrow(p.Handle));
+                                 Assert.Equal("Param", p.Name);
+                                 Assert.Equal("Param", p.MetadataName);
+                             }).VerifyDiagnostics();
+        }
+
+        private static void AssertParametersWithoutNames(ImmutableArray<ParameterSymbol> parameters, bool isEmbedded)
+        {
+            Assert.True(((PEParameterSymbol)parameters[0]).Handle.IsNil);
+
+            var p1 = (PEParameterSymbol)parameters[1];
+            Assert.True(p1.IsMetadataOptional);
+            Assert.False(p1.Handle.IsNil);
+            Assert.True(((PEModuleSymbol)p1.ContainingModule).Module.MetadataReader.GetParameter(p1.Handle).Name.IsNil);
+
+            var p2 = (PEParameterSymbol)parameters[2];
+            if (isEmbedded)
+            {
+                Assert.True(p2.Handle.IsNil);
+            }
+            else
+            {
+                Assert.True(((PEModuleSymbol)p2.ContainingModule).Module.MetadataReader.GetParameter(p2.Handle).Name.IsNil);
+            }
+
+            foreach (var p in parameters)
+            {
+                Assert.Equal("value", p.Name);
+                Assert.Equal("", p.MetadataName);
+            }
         }
     }
 }

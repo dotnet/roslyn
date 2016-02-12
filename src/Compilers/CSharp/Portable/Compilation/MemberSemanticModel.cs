@@ -794,12 +794,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            // Screen out bound nodes that aren't appropriate as IOperations.
-            if (result != null && result.Kind == BoundKind.EqualsValue)
-            {
-                result = ((BoundEqualsValue)result).Value;
-            }
-
             return result as IOperation;
         }
 

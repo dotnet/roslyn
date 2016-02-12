@@ -412,6 +412,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(lookupResult.IsClear)
 
                 Dim sourceModule = binder.Compilation.SourceModule
+
+                ' Handle a case of being able to refer to System.Int32 through System.Integer.
+                ' Same for other intrinsic types with intrinsic name different from emitted name.
+                If (options And LookupOptions.AllowIntrinsicAliases) <> 0 AndAlso arity = 0 Then
+                    Dim containingNs = container.ContainingNamespace
+
+                    If containingNs IsNot Nothing AndAlso containingNs.IsGlobalNamespace AndAlso CaseInsensitiveComparison.Equals(container.Name, "System") Then
+                        Dim specialType = GetTypeForIntrinsicAlias(name)
+
+                        If specialType <> SpecialType.None Then
+                            Dim candidate = binder.Compilation.GetSpecialType(specialType)
+
+                            ' Intrinsic alias works only if type is available
+                            If Not candidate.IsErrorType() Then
+                                lookupResult.MergeMembersOfTheSameNamespace(binder.CheckViability(candidate, arity, options, Nothing, useSiteDiagnostics), sourceModule, options)
+                            End If
+                        End If
+                    End If
+                End If
+
 #If DEBUG Then
                 Dim haveSeenNamespace As Boolean = False
 #End If
@@ -429,6 +449,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     lookupResult.MergeMembersOfTheSameNamespace(currentResult, sourceModule, options)
                 Next
             End Sub
+
+            Public Shared Function GetTypeForIntrinsicAlias(possibleAlias As String) As SpecialType
+                Dim aliasAsKeyword As SyntaxKind = SyntaxFacts.GetKeywordKind(possibleAlias)
+
+                Select Case aliasAsKeyword
+                    Case SyntaxKind.DateKeyword
+                        Return SpecialType.System_DateTime
+                    Case SyntaxKind.UShortKeyword
+                        Return SpecialType.System_UInt16
+                    Case SyntaxKind.ShortKeyword
+                        Return SpecialType.System_Int16
+                    Case SyntaxKind.UIntegerKeyword
+                        Return SpecialType.System_UInt32
+                    Case SyntaxKind.IntegerKeyword
+                        Return SpecialType.System_Int32
+                    Case SyntaxKind.ULongKeyword
+                        Return SpecialType.System_UInt64
+                    Case SyntaxKind.LongKeyword
+                        Return SpecialType.System_Int64
+                    Case Else
+                        Return SpecialType.None
+                End Select
+            End Function
 
             ''' <summary>
             ''' Lookup a member name in modules of a namespace, 

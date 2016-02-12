@@ -157,11 +157,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     return;
                 }
-                
+
                 DeclarationAnalyzerStateData state;
                 if (declarationDataMap.TryGetValue(declarationIndex, out state))
                 {
-                    FreeDeclarationAnalyzerState_NoLock(state);                    
+                    FreeDeclarationAnalyzerState_NoLock(state);
                 }
 
                 declarationDataMap[declarationIndex] = DeclarationAnalyzerStateData.FullyProcessedInstance;
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _pendingDeclarations.Remove(symbol);
                 }
             }
-            
+
             private void FreeDeclarationDataMap_NoLock(Dictionary<int, DeclarationAnalyzerStateData> declarationDataMap)
             {
                 declarationDataMap.Clear();

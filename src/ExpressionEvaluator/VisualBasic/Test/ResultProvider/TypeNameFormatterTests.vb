@@ -9,7 +9,7 @@ Imports Roslyn.Test.Utilities
 Imports Xunit
 Imports Type = Microsoft.VisualStudio.Debugger.Metadata.Type
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 
     Public Class TypeNameFormatterTests : Inherits VisualBasicResultProviderTestBase
 

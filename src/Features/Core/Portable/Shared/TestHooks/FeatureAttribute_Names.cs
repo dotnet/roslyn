@@ -4,36 +4,36 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal partial class FeatureAttribute
     {
-        public const string AutomaticEndConstructCorrection = "AutomaticEndConstructCorrection";
-        public const string AutomaticPairCompletion = "AutomaticPairCompletion";
-        public const string BraceHighlighting = "BraceHighlighting";
-        public const string CallHierarchy = "CallHierarchy";
-        public const string Classification = "Classification";
-        public const string CompletionSet = "CompletionSet";
-        public const string DesignerAttribute = "DesignerAttribute";
-        public const string ErrorSquiggles = "ErrorSquiggles";
-        public const string ErrorList = "ErrorList";
-        public const string TodoCommentList = "TodoCommentList";
-        public const string EventHookup = "EventHookup";
-        public const string GraphProvider = "GraphProvider";
-        public const string KeywordHighlighting = "KeywordHighlighting";
-        public const string LineSeparators = "LineSeparators";
-        public const string NavigateTo = "NavigateTo";
-        public const string NavigationBar = "NavigationBar";
-        public const string Outlining = "Outlining";
-        public const string QuickInfo = "QuickInfo";
-        public const string ReferenceHighlighting = "ReferenceHighlighting";
-        public const string Rename = "Rename";
-        public const string RenameTracking = "RenameTracking";
-        public const string SignatureHelp = "SignatureHelp";
-        public const string Snippets = "Snippets";
-        public const string SolutionCrawler = "SolutionCrawler";
-        public const string Workspace = "Workspace";
-        public const string LightBulb = "LightBulb";
-        public const string CodeModel = "CodeModel";
-        public const string GlobalOperation = "GlobalOperation";
-        public const string DiagnosticService = "DiagnosticService";
-        public const string RuleSetEditor = "RuleSetEditor";
-        public const string InfoBar = "InfoBar";
+        public const string AutomaticEndConstructCorrection = nameof(AutomaticEndConstructCorrection);
+        public const string AutomaticPairCompletion = nameof(AutomaticPairCompletion);
+        public const string BraceHighlighting = nameof(BraceHighlighting);
+        public const string CallHierarchy = nameof(CallHierarchy);
+        public const string Classification = nameof(Classification);
+        public const string CompletionSet = nameof(CompletionSet);
+        public const string DesignerAttribute = nameof(DesignerAttribute);
+        public const string ErrorSquiggles = nameof(ErrorSquiggles);
+        public const string ErrorList = nameof(ErrorList);
+        public const string TodoCommentList = nameof(TodoCommentList);
+        public const string EventHookup = nameof(EventHookup);
+        public const string GraphProvider = nameof(GraphProvider);
+        public const string KeywordHighlighting = nameof(KeywordHighlighting);
+        public const string LineSeparators = nameof(LineSeparators);
+        public const string NavigateTo = nameof(NavigateTo);
+        public const string NavigationBar = nameof(NavigationBar);
+        public const string Outlining = nameof(Outlining);
+        public const string QuickInfo = nameof(QuickInfo);
+        public const string ReferenceHighlighting = nameof(ReferenceHighlighting);
+        public const string Rename = nameof(Rename);
+        public const string RenameTracking = nameof(RenameTracking);
+        public const string SignatureHelp = nameof(SignatureHelp);
+        public const string Snippets = nameof(Snippets);
+        public const string SolutionCrawler = nameof(SolutionCrawler);
+        public const string Workspace = nameof(Workspace);
+        public const string LightBulb = nameof(LightBulb);
+        public const string CodeModel = nameof(CodeModel);
+        public const string GlobalOperation = nameof(GlobalOperation);
+        public const string DiagnosticService = nameof(DiagnosticService);
+        public const string RuleSetEditor = nameof(RuleSetEditor);
+        public const string InfoBar = nameof(InfoBar);
     }
 }

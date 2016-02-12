@@ -3,92 +3,93 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
+using Microsoft.DiaSymReader;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
-    internal sealed class RuntimeInstance : IDisposable
-    {
-        internal RuntimeInstance(ImmutableArray<ModuleInstance> modules)
-        {
-            this.Modules = modules;
-        }
-
-        internal readonly ImmutableArray<ModuleInstance> Modules;
-
-        void IDisposable.Dispose()
-        {
-            foreach (var module in this.Modules)
-            {
-                module.Dispose();
-            }
-        }
-    }
-
     internal sealed class ModuleInstance : IDisposable
     {
-        internal ModuleInstance(
-            MetadataReference metadataReference,
-            ModuleMetadata moduleMetadata,
-            Guid moduleVersionId,
-            byte[] fullImage,
-            byte[] metadataOnly,
-            object symReader,
-            bool includeLocalSignatures)
-        {
-            Debug.Assert((fullImage == null) || (fullImage.Length > metadataOnly.Length));
+        // Metadata are owned and disposed by the containing object:
+        private readonly Metadata _metadataOpt;
 
-            this.MetadataReference = metadataReference;
-            this.ModuleMetadata = moduleMetadata;
-            this.ModuleVersionId = moduleVersionId;
-            this.FullImage = fullImage;
-            this.MetadataOnly = metadataOnly;
-            this.MetadataHandle = GCHandle.Alloc(metadataOnly, GCHandleType.Pinned);
-            this.SymReader = symReader; // should be non-null if and only if there are symbols
-            _includeLocalSignatures = includeLocalSignatures;
-        }
+        internal readonly int MetadataLength;
+        internal readonly IntPtr MetadataAddress;
 
-        internal readonly MetadataReference MetadataReference;
-        internal readonly ModuleMetadata ModuleMetadata;
         internal readonly Guid ModuleVersionId;
-        internal readonly byte[] FullImage;
-        internal readonly byte[] MetadataOnly;
-        internal readonly GCHandle MetadataHandle;
         internal readonly object SymReader;
         private readonly bool _includeLocalSignatures;
 
-        internal IntPtr MetadataAddress
+        private ModuleInstance(
+            Metadata metadata,
+            Guid moduleVersionId,
+            int metadataLength,
+            IntPtr metadataAddress,
+            object symReader,
+            bool includeLocalSignatures)
         {
-            get { return this.MetadataHandle.AddrOfPinnedObject(); }
+            _metadataOpt = metadata;
+            ModuleVersionId = moduleVersionId;
+            MetadataLength = metadataLength;
+            MetadataAddress = metadataAddress;
+            SymReader = symReader; // should be non-null if and only if there are symbols
+            _includeLocalSignatures = includeLocalSignatures;
         }
 
-        internal int MetadataLength
+        public static ModuleInstance Create(IntPtr metadataAddress, int metadataLength, Guid moduleVersionId)
         {
-            get { return this.MetadataOnly.Length; }
+            return new ModuleInstance(
+                metadata: null,
+                moduleVersionId: moduleVersionId,
+                metadataLength: metadataLength,
+                metadataAddress: metadataAddress,
+                symReader: null,
+                includeLocalSignatures: false);
         }
 
-        internal MetadataBlock MetadataBlock
+        public unsafe static ModuleInstance Create(PortableExecutableReference reference)
         {
-            get { return new MetadataBlock(this.ModuleVersionId, Guid.Empty, this.MetadataAddress, this.MetadataLength); }
+            // make a copy of the metadata, so that we don't dispose the metadata of a reference that are shared accross tests:
+            return Create(reference.GetMetadata().Copy(), symReader: null, includeLocalSignatures: false);
         }
 
-        internal unsafe MetadataReader MetadataReader
+        public unsafe static ModuleInstance Create(ImmutableArray<byte> assemblyImage, ISymUnmanagedReader symReader, bool includeLocalSignatures = true)
         {
-            get { return new MetadataReader((byte*)MetadataHandle.AddrOfPinnedObject(), MetadataLength); }
+            // create a new instance of metadata, the resulting object takes an ownership:
+            return Create(AssemblyMetadata.CreateFromImage(assemblyImage), symReader, includeLocalSignatures);
         }
 
-        private bool _disposed;
-        public void Dispose()
+        private unsafe static ModuleInstance Create(
+            Metadata metadata,
+            object symReader,
+            bool includeLocalSignatures)
         {
-            if (!_disposed)
-            {
-                this.MetadataHandle.Free();
-                _disposed = true;
-            }
+            var assemblyMetadata = metadata as AssemblyMetadata;
+            var moduleMetadata = (assemblyMetadata == null) ? (ModuleMetadata)metadata : assemblyMetadata.GetModules()[0];
+
+            var moduleId = moduleMetadata.Module.GetModuleVersionIdOrThrow();
+            var metadataBlock = moduleMetadata.Module.PEReaderOpt.GetMetadata();
+
+            return new ModuleInstance(
+                metadata,
+                moduleId,
+                metadataBlock.Length,
+                (IntPtr)metadataBlock.Pointer,
+                symReader,
+                includeLocalSignatures);
         }
+
+        public void Dispose() => _metadataOpt?.Dispose();
+
+        public MetadataReference GetReference() => (_metadataOpt as AssemblyMetadata)?.GetReference() ?? ((ModuleMetadata)_metadataOpt).GetReference();
+
+        internal MetadataBlock MetadataBlock => new MetadataBlock(ModuleVersionId, Guid.Empty, MetadataAddress, MetadataLength);
+
+        internal unsafe MetadataReader GetMetadataReader() => new MetadataReader((byte*)MetadataAddress, MetadataLength);
 
         internal int GetLocalSignatureToken(MethodDefinitionHandle methodHandle)
         {
@@ -97,13 +98,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return 0;
             }
 
-            using (var metadata = ModuleMetadata.CreateFromImage(this.FullImage))
-            {
-                var reader = metadata.MetadataReader;
-                var methodIL = metadata.Module.GetMethodBodyOrThrow(methodHandle);
-                var localSignatureHandle = methodIL.LocalSignature;
-                return reader.GetToken(localSignatureHandle);
-            }
+            var moduleMetadata = (_metadataOpt as AssemblyMetadata)?.GetModules()[0] ?? (ModuleMetadata)_metadataOpt;
+            var methodIL = moduleMetadata.Module.GetMethodBodyOrThrow(methodHandle);
+            var localSignatureHandle = methodIL.LocalSignature;
+            return moduleMetadata.MetadataReader.GetToken(localSignatureHandle);
         }
     }
 }

@@ -8026,7 +8026,7 @@ class MyAttribute : System.Attribute
                 var program1 = m.GlobalNamespace.GetTypeMember("Program1");
                 var program2 = m.GlobalNamespace.GetTypeMember("Program2");
 
-                Assert.Equal("DebuggerHiddenAttribute is missing\nDebuggerStepperBoundaryAttribute is missing\n", 
+                Assert.Equal("DebuggerHiddenAttribute is missing\nDebuggerStepperBoundaryAttribute is missing\n",
                                                    CheckAttributePropagation(((NamedTypeSymbol)program1.GetMember<MethodSymbol>("test1").
                                                                              GetAttribute("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").
                                                                              ConstructorArguments.Single().Value)));
@@ -8036,7 +8036,7 @@ class MyAttribute : System.Attribute
                                                                              GetAttribute("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").
                                                                              ConstructorArguments.Single().Value)));
 
-                Assert.Equal("DebuggerHiddenAttribute is missing\nDebuggerStepperBoundaryAttribute is missing\n", 
+                Assert.Equal("DebuggerHiddenAttribute is missing\nDebuggerStepperBoundaryAttribute is missing\n",
                                                    CheckAttributePropagation(((NamedTypeSymbol)program1.GetMember<MethodSymbol>("Test3").
                                                                              GetAttribute("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").
                                                                              ConstructorArguments.Single().Value)));

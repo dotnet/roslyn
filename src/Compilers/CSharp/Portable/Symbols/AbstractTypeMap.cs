@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return customModifiers;
         }
-        
+
         protected virtual TypeSymbol SubstituteDynamicType()
         {
             return DynamicTypeSymbol.Instance;
