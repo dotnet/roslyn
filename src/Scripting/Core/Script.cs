@@ -142,17 +142,17 @@ namespace Microsoft.CodeAnalysis.Scripting
         internal abstract Task<ScriptState> CommonRunAsync(object globals, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Continue script execution from the specified state.
+        /// Run the script from the specified state.
         /// </summary>
         /// <param name="previousState">
         /// Previous state of the script execution.
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="ScriptState"/> that represents the state after running the script, including all declared variables and return value.</returns>
-        internal Task<ScriptState> ContinueAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken)) =>
-            CommonContinueAsync(previousState, cancellationToken);
+        public Task<ScriptState> RunFromAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken)) =>
+            CommonRunFromAsync(previousState, cancellationToken);
 
-        internal abstract Task<ScriptState> CommonContinueAsync(ScriptState previousState, CancellationToken cancellationToken);
+        internal abstract Task<ScriptState> CommonRunFromAsync(ScriptState previousState, CancellationToken cancellationToken);
 
         /// <summary>
         /// Forces the script through the compilation step.
@@ -285,8 +285,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         internal override Task<ScriptState> CommonRunAsync(object globals, CancellationToken cancellationToken) =>
             RunAsync(globals, cancellationToken).CastAsync<ScriptState<T>, ScriptState>();
 
-        internal override Task<ScriptState> CommonContinueAsync(ScriptState previousState, CancellationToken cancellationToken) =>
-            ContinueAsync(previousState, cancellationToken).CastAsync<ScriptState<T>, ScriptState>();
+        internal override Task<ScriptState> CommonRunFromAsync(ScriptState previousState, CancellationToken cancellationToken) =>
+            RunFromAsync(previousState, cancellationToken).CastAsync<ScriptState<T>, ScriptState>();
 
         /// <exception cref="CompilationErrorException">Compilation has errors.</exception>
         private Func<object[], Task<T>> GetExecutor(CancellationToken cancellationToken)
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         }
 
         /// <summary>
-        /// Continue script execution from the specified state.
+        /// Run the script from the specified state.
         /// </summary>
         /// <param name="previousState">
         /// Previous state of the script execution.
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <returns>A <see cref="ScriptState"/> that represents the state after running the script, including all declared variables and return value.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="previousState"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="previousState"/> is not a previous execution state of this script.</exception>
-        internal new Task<ScriptState<T>> ContinueAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken))
+        public new Task<ScriptState<T>> RunFromAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken))
         {
             // The following validation and executor construction may throw;
             // do so synchronously so that the exception is not wrapped in the task.

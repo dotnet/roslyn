@@ -185,7 +185,7 @@ d.Do()"
         {
             var state = await CSharpScript.RunAsync("X + Y", globals: new Globals());
 
-            await Assert.ThrowsAsync<ArgumentNullException>("previousState", () => state.Script.ContinueAsync(null));
+            await Assert.ThrowsAsync<ArgumentNullException>("previousState", () => state.Script.RunFromAsync(null));
         }
 
         [Fact]
@@ -194,7 +194,7 @@ d.Do()"
             var state1 = await CSharpScript.RunAsync("X + Y + 1", globals: new Globals());
             var state2 = await CSharpScript.RunAsync("X + Y + 2", globals: new Globals());
 
-            await Assert.ThrowsAsync<ArgumentException>("previousState", () => state1.Script.ContinueAsync(state2));
+            await Assert.ThrowsAsync<ArgumentException>("previousState", () => state1.Script.RunFromAsync(state2));
         }
 
         [Fact]

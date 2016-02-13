@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal static ImmutableArray<TypedConstant> Encode(TypeSymbol type, TypeSymbol booleanType, int customModifiersCount, RefKind refKind)
             {
                 var flagsBuilder = ArrayBuilder<bool>.GetInstance();
-                EncodeInternal(type, customModifiersCount, refKind, flagsBuilder);
+                EncodeInternal(type, customModifiersCount, refKind, flagsBuilder, addCustomModifierFlags: true);
                 Debug.Assert(flagsBuilder.Any());
                 Debug.Assert(flagsBuilder.Contains(true));
 
@@ -511,11 +511,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal static ImmutableArray<bool> Encode(TypeSymbol type, int customModifiersCount, RefKind refKind)
             {
                 var transformFlagsBuilder = ArrayBuilder<bool>.GetInstance();
-                EncodeInternal(type, customModifiersCount, refKind, transformFlagsBuilder);
+                EncodeInternal(type, customModifiersCount, refKind, transformFlagsBuilder, addCustomModifierFlags: true);
                 return transformFlagsBuilder.ToImmutableAndFree();
             }
 
-            internal static void EncodeInternal(TypeSymbol type, int customModifiersCount, RefKind refKind, ArrayBuilder<bool> transformFlagsBuilder)
+            internal static ImmutableArray<bool> EncodeWithoutCustomModifierFlags(TypeSymbol type, RefKind refKind)
+            {
+                var transformFlagsBuilder = ArrayBuilder<bool>.GetInstance();
+                EncodeInternal(type, -1, refKind, transformFlagsBuilder, addCustomModifierFlags: false);
+                return transformFlagsBuilder.ToImmutableAndFree();
+            }
+
+            private static void EncodeInternal(TypeSymbol type, int customModifiersCount, RefKind refKind, ArrayBuilder<bool> transformFlagsBuilder, bool addCustomModifierFlags)
             {
                 Debug.Assert(!transformFlagsBuilder.Any());
 
@@ -525,13 +532,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     transformFlagsBuilder.Add(false);
                 }
 
-                // Native compiler encodes an extra transform flag, always false, for each custom modifier.
-                HandleCustomModifiers(customModifiersCount, transformFlagsBuilder);
-
-                type.VisitType(s_encodeDynamicTransform, transformFlagsBuilder);
+                if (addCustomModifierFlags)
+                {
+                    // Native compiler encodes an extra transform flag, always false, for each custom modifier.
+                    HandleCustomModifiers(customModifiersCount, transformFlagsBuilder);
+                    type.VisitType((typeSymbol, builder, isNested) => AddFlags(typeSymbol, builder, isNested, addCustomModifierFlags:true), transformFlagsBuilder);
+                }
+                else
+                {
+                    type.VisitType((typeSymbol, builder, isNested) => AddFlags(typeSymbol, builder, isNested, addCustomModifierFlags:false), transformFlagsBuilder);
+                }
             }
 
-            private static readonly Func<TypeSymbol, ArrayBuilder<bool>, bool, bool> s_encodeDynamicTransform = (type, transformFlagsBuilder, isNestedNamedType) =>
+            private static bool AddFlags(TypeSymbol type, ArrayBuilder<bool> transformFlagsBuilder, bool isNestedNamedType, bool addCustomModifierFlags)
             {
                 // Encode transforms flag for this type and it's custom modifiers (if any).
                 switch (type.TypeKind)
@@ -541,12 +554,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case TypeKind.Array:
-                        HandleCustomModifiers(((ArrayTypeSymbol)type).CustomModifiers.Length, transformFlagsBuilder);
+                        if (addCustomModifierFlags)
+                        {
+                            HandleCustomModifiers(((ArrayTypeSymbol)type).CustomModifiers.Length, transformFlagsBuilder);
+                        }
+
                         transformFlagsBuilder.Add(false);
                         break;
 
                     case TypeKind.Pointer:
-                        HandleCustomModifiers(((PointerTypeSymbol)type).CustomModifiers.Length, transformFlagsBuilder);
+                        if (addCustomModifierFlags)
+                        {
+                            HandleCustomModifiers(((PointerTypeSymbol)type).CustomModifiers.Length, transformFlagsBuilder);
+                        }
+
                         transformFlagsBuilder.Add(false);
                         break;
 
@@ -569,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Continue walking types
                 return false;
-            };
+            }
 
             private static void HandleCustomModifiers(int customModifiersCount, ArrayBuilder<bool> transformFlagsBuilder)
             {

@@ -4,38 +4,8 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
-    /// <summary>
-    /// Represents a C# or VB expression.
-    /// </summary>
-    public interface IExpression : IOperation
+    public interface IHasArgumentsExpression : IOperation
     {
-        /// <summary>
-        /// Result type of the expression.
-        /// </summary>
-        ITypeSymbol ResultType { get; }
-        /// <summary>
-        /// If the expression evaluates to a constant value, <see cref="Optional{Object}.HasValue"/> is true and <see cref="Optional{Object}.Value"/> is the value of the expression, and otherwise <see cref="Optional{Object}.HasValue"/> is false.
-        /// </summary>
-        Optional<object> ConstantValue { get; }
-    }
-
-    /// <summary>
-    /// Represents a C# or VB method invocation.
-    /// </summary>
-    public interface IInvocationExpression : IExpression
-    {
-        /// <summary>
-        /// Method to be invoked.
-        /// </summary>
-        IMethodSymbol TargetMethod { get; }
-        /// <summary>
-        /// 'This' or 'Me' argument to be supplied to the method.
-        /// </summary>
-        IExpression Instance { get; }
-        /// <summary>
-        /// True if the invocation uses a virtual mechanism, and false otherwise.
-        /// </summary>
-        bool IsVirtual { get; }
         /// <summary>
         /// Arguments of the invocation, excluding the instance argument. Arguments are in parameter order,
         /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
@@ -43,17 +13,36 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         ImmutableArray<IArgument> ArgumentsInParameterOrder { get; }
         /// <summary>
+        /// Find the argument supplied for a given parameter of the target method.
+        /// </summary>
+        /// <param name="parameter">Parameter of the target method.</param>
+        /// <returns>Argument corresponding to the parameter.</returns>
+        IArgument GetArgumentMatchingParameter(IParameterSymbol parameter);
+    }
+
+    /// <summary>
+    /// Represents a C# or VB method invocation.
+    /// </summary>
+    public interface IInvocationExpression : IHasArgumentsExpression
+    {
+        /// <summary>
+        /// Method to be invoked.
+        /// </summary>
+        IMethodSymbol TargetMethod { get; }
+        /// <summary>
+        /// 'This' or 'Me' instance to be supplied to the method, or null if the method is static.
+        /// </summary>
+        IOperation Instance { get; }
+        /// <summary>
+        /// True if the invocation uses a virtual mechanism, and false otherwise.
+        /// </summary>
+        bool IsVirtual { get; }
+        /// <summary>
         /// Arguments of the invocation, excluding the instance argument. Arguments are in the order specified in source,
         /// and params/ParamArray arguments have been collected into arrays. Arguments are not present
         /// unless supplied in source.
         /// </summary>
         ImmutableArray<IArgument> ArgumentsInSourceOrder { get; }
-        /// <summary>
-        /// Find the argument supplied for a given parameter of the target method.
-        /// </summary>
-        /// <param name="parameter">Parameter of the target method.</param>
-        /// <returns>Argument corresponding to the parameter.</returns>
-        IArgument ArgumentMatchingParameter(IParameterSymbol parameter);
     }
 
     /// <summary>
@@ -72,15 +61,15 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Value supplied for the argument.
         /// </summary>
-        IExpression Value { get; }
+        IOperation Value { get; }
         /// <summary>
         /// Conversion applied to the argument value passing it into the target method. Applicable only to VB Reference arguments.
         /// </summary>
-        IExpression InConversion { get; }
+        IOperation InConversion { get; }
         /// <summary>
         /// Conversion applied to the argument value after the invocation. Applicable only to VB Reference arguments.
         /// </summary>
-        IExpression OutConversion { get; }
+        IOperation OutConversion { get; }
     }
 
     /// <summary>
@@ -88,28 +77,30 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum ArgumentKind
     {
+        None = 0x0,
+
         /// <summary>
         /// Argument is specified positionally and matches the parameter of the same ordinality.
         /// </summary>
-        Positional,
+        Positional = 0x1,
         /// <summary>
         /// Argument is specified by name and matches the parameter of the same name.
         /// </summary>
-        Named,
+        Named = 0x2,
         /// <summary>
         /// Argument becomes an element of an array that matches a trailing C# params or VB ParamArray parameter.
         /// </summary>
-        ParamArray,
+        ParamArray = 0x3,
         /// <summary>
         /// Argument was omitted in source but has a default value supplied automatically.
         /// </summary>
-        DefaultValue
+        DefaultValue = 0x4
     }
 
     /// <summary>
     /// Represents a reference, which refers to a symbol or an element of a collection.
     /// </summary>
-    public interface IReferenceExpression : IExpression
+    public interface IReferenceExpression : IOperation
     {
     }
 
@@ -121,11 +112,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Array to be indexed.
         /// </summary>
-        IExpression ArrayReference { get; }
+        IOperation ArrayReference { get; }
         /// <summary>
         /// Indices that specify an individual element.
         /// </summary>
-        ImmutableArray<IExpression> Indices { get; }
+        ImmutableArray<IOperation> Indices { get; }
     }
 
     /// <summary>
@@ -136,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Pointer to be dereferenced.
         /// </summary>
-        IExpression Pointer { get; }
+        IOperation Pointer { get; }
     }
 
     /// <summary>
@@ -173,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Statement defining the lifetime of the synthetic local.
         /// </summary>
-        IStatement ContainingStatement { get; }
+        IOperation ContainingStatement { get; }
     }
 
     /// <summary>
@@ -181,29 +172,43 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum SyntheticLocalKind
     {
-        None,
+        None = 0x0,
 
         /// <summary>
         /// Created to capture the step value of a VB for loop.
         /// </summary>
-        ForLoopStepValue,
+        ForLoopStepValue = 0x1,
         /// <summary>
         /// Created to capture the limit value of a VB for loop.
         /// </summary>
-        ForLoopLimitValue
+        ForLoopLimitValue = 0x2
     }
 
     /// <summary>
-    /// Represents a reference to a C# this or VB Me parameter.
+    /// Represents a C# this or base expression, or a VB Me, MyClass, or MyBase expression.
     /// </summary>
-    public interface IInstanceReferenceExpression : IParameterReferenceExpression
+    public interface IInstanceReferenceExpression : IOperation
     {
+        ///
         /// <summary>
-        /// Indicates whether the reference is explicit or implicit in source.
+        /// Kind of instance reference.
         /// </summary>
-        bool IsExplicit { get; }
+        InstanceReferenceKind InstanceReferenceKind { get; }
     }
 
+    public enum InstanceReferenceKind
+    {
+        None = 0x0,
+        /// <summary>Indicates an implicit this or Me expression.</summary>
+        Implicit = 0x1,
+        /// <summary>Indicates an explicit this or Me expression.</summary>
+        Explicit = 0x2,
+        /// <summary>Indicates an explicit base or MyBase expression.</summary>
+        BaseClass = 0x3,
+        /// <summary>Indicates an explicit MyClass expression.</summary>
+        ThisClass = 0x4
+    }
+    
     /// <summary>
     /// Represents a reference to a member of a class, struct, or interface.
     /// </summary>
@@ -212,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
         /// </summary>
-        IExpression Instance { get; }
+        IOperation Instance { get; }
 
         /// <summary>
         /// Referenced member.  
@@ -272,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a binding of an event.
     /// </summary>
-    public interface IEventAssignmentExpression : IExpression
+    public interface IEventAssignmentExpression : IOperation
     {
         /// <summary>
         /// Event being bound.
@@ -282,12 +287,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Instance used to refer to the event being bound.
         /// </summary>
-        IExpression EventInstance { get; }
+        IOperation EventInstance { get; }
 
         /// <summary>
         /// Handler supplied for the event.
         /// </summary>
-        IExpression HandlerValue { get; }
+        IOperation HandlerValue { get; }
 
         /// <summary>
         /// True for adding a binding, false for removing one.
@@ -298,18 +303,18 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a conditional access expression.
     /// </summary>
-    public interface IConditionalAccessExpression : IExpression
+    public interface IConditionalAccessExpression : IOperation
     {
         /// <summary>
         /// Expression subject to conditional access.
         /// </summary>
-        IExpression Access { get; }
+        IOperation Access { get; }
     }
 
     /// <summary>
     /// Represents a unary, binary, relational, or conversion operation that can use an operator method.
     /// </summary>
-    public interface IHasOperatorExpression : IExpression
+    public interface IHasOperatorMethodExpression : IOperation
     {
         /// <summary>
         /// True if and only if the operation is performed by an operator method.
@@ -318,13 +323,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Operation method used by the operation, null if the operation does not use an operator method.
         /// </summary>
-        IMethodSymbol Operator { get; }
+        IMethodSymbol OperatorMethod { get; }
     }
 
     /// <summary>
     /// Represents an operation with one operand.
     /// </summary>
-    public interface IUnaryOperatorExpression : IHasOperatorExpression
+    public interface IUnaryOperatorExpression : IHasOperatorMethodExpression
     {
         /// <summary>
         /// Kind of unary operation.
@@ -333,7 +338,40 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Single operand.
         /// </summary>
-        IExpression Operand { get; }
+        IOperation Operand { get; }
+    }
+
+    public enum SimpleUnaryOperationKind
+    {
+        None = 0x0,
+
+        BitwiseNegation = 0x1,
+        LogicalNot = 0x2,
+        PostfixIncrement = 0x3,
+        PostfixDecrement = 0x4,
+        PrefixIncrement = 0x5,
+        PrefixDecrement = 0x6,
+        Plus = 0x7,
+        Minus = 0x8,
+        True = 0x9,
+        False = 0xa,
+        BitwiseOrLogicalNot = 0xb
+    }
+
+    public enum UnaryOperandKind
+    {
+        None = 0x0,
+
+        OperatorMethod = 0x100,
+        Integer = 0x200,
+        Unsigned = 0x300,
+        Floating = 0x400,
+        Decimal = 0x500,
+        Boolean = 0x600,
+        Enum = 0x700,
+        Dynamic = 0x800,
+        Object = 0x900,
+        Pointer = 0xa00
     }
 
     /// <summary>
@@ -341,79 +379,80 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum UnaryOperationKind
     {
-        None,
+        None = 0x0,
 
-        OperatorBitwiseNegation,
-        OperatorLogicalNot,
-        OperatorPostfixIncrement,
-        OperatorPostfixDecrement,
-        OperatorPrefixIncrement,
-        OperatorPrefixDecrement,
-        OperatorPlus,
-        OperatorMinus,
-        OperatorTrue,
-        OperatorFalse,
+        OperatorMethodBitwiseNegation = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.BitwiseNegation,
+        OperatorMethodLogicalNot = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.LogicalNot,
+        OperatorMethodPostfixIncrement = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.PostfixIncrement,
+        OperatorMethodPostfixDecrement = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.PostfixDecrement,
+        OperatorMethodPrefixIncrement = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.PrefixIncrement,
+        OperatorMethodPrefixDecrement = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.PrefixDecrement,
+        OperatorMethodPlus = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.Plus,
+        OperatorMethodMinus = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.Minus,
+        OperatorMethodTrue = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.True,
+        OperatorMethodFalse = UnaryOperandKind.OperatorMethod | SimpleUnaryOperationKind.False,
 
-        IntegerBitwiseNegation,
-        IntegerPlus,
-        IntegerMinus,
-        IntegerPostfixIncrement,
-        IntegerPostfixDecrement,
-        IntegerPrefixIncrement,
-        IntegerPrefixDecrement,
+        IntegerBitwiseNegation = UnaryOperandKind.Integer | SimpleUnaryOperationKind.BitwiseNegation,
+        IntegerPlus = UnaryOperandKind.Integer | SimpleUnaryOperationKind.Plus,
+        IntegerMinus = UnaryOperandKind.Integer | SimpleUnaryOperationKind.Minus,
+        IntegerPostfixIncrement = UnaryOperandKind.Integer | SimpleUnaryOperationKind.PostfixIncrement,
+        IntegerPostfixDecrement = UnaryOperandKind.Integer | SimpleUnaryOperationKind.PostfixDecrement,
+        IntegerPrefixIncrement = UnaryOperandKind.Integer | SimpleUnaryOperationKind.PrefixIncrement,
+        IntegerPrefixDecrement = UnaryOperandKind.Integer | SimpleUnaryOperationKind.PrefixDecrement,
 
-        UnsignedPostfixIncrement,
-        UnsignedPostfixDecrement,
-        UnsignedPrefixIncrement,
-        UnsignedPrefixDecrement,
+        UnsignedPostfixIncrement = UnaryOperandKind.Unsigned | SimpleUnaryOperationKind.PostfixIncrement,
+        UnsignedPostfixDecrement = UnaryOperandKind.Unsigned | SimpleUnaryOperationKind.PostfixDecrement,
+        UnsignedPrefixIncrement = UnaryOperandKind.Unsigned | SimpleUnaryOperationKind.PrefixIncrement,
+        UnsignedPrefixDecrement = UnaryOperandKind.Unsigned | SimpleUnaryOperationKind.PrefixDecrement,
 
-        FloatingPlus,
-        FloatingMinus,
-        FloatingPostfixIncrement,
-        FloatingPostfixDecrement,
-        FloatingPrefixIncrement,
-        FloatingPrefixDecrement,
+        FloatingPlus = UnaryOperandKind.Floating | SimpleUnaryOperationKind.Plus,
+        FloatingMinus = UnaryOperandKind.Floating | SimpleUnaryOperationKind.Minus,
+        FloatingPostfixIncrement = UnaryOperandKind.Floating | SimpleUnaryOperationKind.PostfixIncrement,
+        FloatingPostfixDecrement = UnaryOperandKind.Floating | SimpleUnaryOperationKind.PostfixDecrement,
+        FloatingPrefixIncrement = UnaryOperandKind.Floating | SimpleUnaryOperationKind.PrefixIncrement,
+        FloatingPrefixDecrement = UnaryOperandKind.Floating | SimpleUnaryOperationKind.PrefixDecrement,
 
-        DecimalPlus,
-        DecimalMinus,
-        DecimalPostfixIncrement,
-        DecimalPostfixDecrement,
-        DecimalPrefixIncrement,
-        DecimalPrefixDecrement,
+        DecimalPlus = UnaryOperandKind.Decimal | SimpleUnaryOperationKind.Plus,
+        DecimalMinus = UnaryOperandKind.Decimal | SimpleUnaryOperationKind.Minus,
+        DecimalPostfixIncrement = UnaryOperandKind.Decimal | SimpleUnaryOperationKind.PostfixIncrement,
+        DecimalPostfixDecrement = UnaryOperandKind.Decimal | SimpleUnaryOperationKind.PostfixDecrement,
+        DecimalPrefixIncrement = UnaryOperandKind.Decimal | SimpleUnaryOperationKind.PrefixIncrement,
+        DecimalPrefixDecrement = UnaryOperandKind.Decimal | SimpleUnaryOperationKind.PrefixDecrement,
 
-        BooleanBitwiseNegation,
-        BooleanLogicalNot,
+        BooleanBitwiseNegation = UnaryOperandKind.Boolean | SimpleUnaryOperationKind.BitwiseNegation,
+        BooleanLogicalNot = UnaryOperandKind.Boolean | SimpleUnaryOperationKind.LogicalNot,
 
-        EnumPostfixIncrement,
-        EnumPostfixDecrement,
-        EnumPrefixIncrement,
-        EnumPrefixDecrement,
+        EnumPostfixIncrement = UnaryOperandKind.Enum | SimpleUnaryOperationKind.PostfixIncrement,
+        EnumPostfixDecrement = UnaryOperandKind.Enum | SimpleUnaryOperationKind.PostfixDecrement,
+        EnumPrefixIncrement = UnaryOperandKind.Enum | SimpleUnaryOperationKind.PrefixIncrement,
+        EnumPrefixDecrement = UnaryOperandKind.Enum | SimpleUnaryOperationKind.PrefixDecrement,
 
-        PointerPostfixIncrement,
-        PointerPostfixDecrement,
-        PointerPrefixIncrement,
-        PointerPrefixDecrement,
+        PointerPostfixIncrement = UnaryOperandKind.Pointer | SimpleUnaryOperationKind.PostfixIncrement,
+        PointerPostfixDecrement = UnaryOperandKind.Pointer | SimpleUnaryOperationKind.PostfixDecrement,
+        PointerPrefixIncrement = UnaryOperandKind.Pointer | SimpleUnaryOperationKind.PrefixIncrement,
+        PointerPrefixDecrement = UnaryOperandKind.Pointer | SimpleUnaryOperationKind.PrefixDecrement,
 
-        DynamicBitwiseNegation,
-        DynamicLogicalNot,
-        DynamicTrue,
-        DynamicFalse,
-        DynamicPlus,
-        DynamicMinus,
-        DynamicPostfixIncrement,
-        DynamicPostfixDecrement,
-        DynamicPrefixIncrement,
-        DynamicPrefixDecrement,
+        DynamicBitwiseNegation = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.BitwiseNegation,
+        DynamicLogicalNot = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.LogicalNot,
+        DynamicTrue = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.True,
+        DynamicFalse = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.False,
+        DynamicPlus = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.Plus,
+        DynamicMinus = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.Minus,
+        DynamicPostfixIncrement = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.PostfixIncrement,
+        DynamicPostfixDecrement = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.PostfixDecrement,
+        DynamicPrefixIncrement = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.PrefixIncrement,
+        DynamicPrefixDecrement = UnaryOperandKind.Dynamic | SimpleUnaryOperationKind.PrefixDecrement,
 
-        ObjectPlus,
-        ObjectMinus,
-        ObjectNot
+        ObjectPlus = UnaryOperandKind.Object | SimpleUnaryOperationKind.Plus,
+        ObjectMinus = UnaryOperandKind.Object | SimpleUnaryOperationKind.Minus,
+        ObjectNot = UnaryOperandKind.Object | SimpleUnaryOperationKind.BitwiseOrLogicalNot
     }
 
+    
     /// <summary>
     /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
     /// </summary>
-    public interface IBinaryOperatorExpression : IHasOperatorExpression
+    public interface IBinaryOperatorExpression : IHasOperatorMethodExpression
     {
         /// <summary>
         /// Kind of binary operation.
@@ -422,11 +461,66 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Left operand.
         /// </summary>
-        IExpression Left { get; }
+        IOperation Left { get; }
         /// <summary>
         /// Right operand.
         /// </summary>
-        IExpression Right { get; }
+        IOperation Right { get; }
+    }
+
+    public enum SimpleBinaryOperationKind
+    {
+        None = 0x0,
+
+        Add = 0x1,
+        Subtract = 0x2,
+        Multiply = 0x3,
+        Divide = 0x4,
+        IntegerDivide = 0x5,
+        Remainder = 0x6,
+        Power = 0x7,
+        LeftShift = 0x8,
+        RightShift = 0x9,
+        And = 0xa,
+        Or = 0xb,
+        ExclusiveOr = 0xc,
+        ConditionalAnd = 0xd,
+        ConditionalOr = 0xe,
+        Concatenate = 0xf,
+
+        // Relational operations.
+
+        Equals = 0x10,
+        ObjectValueEquals = 0x11,
+        NotEquals = 0x12,
+        ObjectValueNotEquals = 0x13,
+        LessThan = 0x14,
+        LessThanOrEqual = 0x15,
+        GreaterThanOrEqual = 0x16,
+        GreaterThan = 0x17,
+
+        Like = 0x18
+    }
+
+    public enum BinaryOperandsKind
+    {
+        None = 0x0,
+
+        OperatorMethod = 0x100,
+        Integer = 0x200,
+        Unsigned = 0x300,
+        Floating = 0x400,
+        Decimal = 0x500,
+        Boolean = 0x600,
+        Enum = 0x700,
+        Dynamic = 0x800,
+        Object = 0x900,
+        Pointer = 0xa00,
+        PointerInteger = 0xb00,
+        IntegerPointer = 0xc00,
+        String = 0xd00,
+        Delegate = 0xe00,
+        Nullable = 0xf00
     }
 
     /// <summary>
@@ -434,189 +528,282 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum BinaryOperationKind
     {
-        None,
+        None = 0x0,
 
-        OperatorAdd,
-        OperatorSubtract,
-        OperatorMultiply,
-        OperatorDivide,
-        OperatorRemainder,
-        OperatorLeftShift,
-        OperatorRightShift,
-        OperatorAnd,
-        OperatorOr,
-        OperatorExclusiveOr,
-        OperatorConditionalAnd,
-        OperatorConditionalOr,
+        OperatorMethodAdd = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Add,
+        OperatorMethodSubtract = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Subtract,
+        OperatorMethodMultiply = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Multiply,
+        OperatorMethodDivide = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Divide,
+        OperatorMethodRemainder = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Remainder,
+        OperatorMethodLeftShift = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.LeftShift,
+        OperatorMethodRightShift = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.RightShift,
+        OperatorMethodAnd = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.And,
+        OperatorMethodOr = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Or,
+        OperatorMethodExclusiveOr = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.ExclusiveOr,
+        OperatorMethodConditionalAnd = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.ConditionalAnd,
+        OperatorMethodConditionalOr = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.ConditionalOr,
 
-        IntegerAdd,
-        IntegerSubtract,
-        IntegerMultiply,
-        IntegerDivide,
-        IntegerRemainder,
-        IntegerLeftShift,
-        IntegerRightShift,
-        IntegerAnd,
-        IntegerOr,
-        IntegerExclusiveOr,
+        IntegerAdd = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.Add,
+        IntegerSubtract = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.Subtract,
+        IntegerMultiply = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.Multiply,
+        IntegerDivide = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.Divide,
+        IntegerRemainder = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.Remainder,
+        IntegerLeftShift = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.LeftShift,
+        IntegerRightShift = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.RightShift,
+        IntegerAnd = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.And,
+        IntegerOr = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.Or,
+        IntegerExclusiveOr = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.ExclusiveOr,
 
-        UnsignedAdd,
-        UnsignedSubtract,
-        UnsignedMultiply,
-        UnsignedDivide,
-        UnsignedRemainder,
-        UnsignedLeftShift,
-        UnsignedRightShift,
-        UnsignedAnd,
-        UnsignedOr,
-        UnsignedExclusiveOr,
+        UnsignedAdd = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.Add,
+        UnsignedSubtract = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.Subtract,
+        UnsignedMultiply = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.Multiply,
+        UnsignedDivide = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.Divide,
+        UnsignedRemainder = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.Remainder,
+        UnsignedLeftShift = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.LeftShift,
+        UnsignedRightShift = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.RightShift,
+        UnsignedAnd = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.And,
+        UnsignedOr = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.Or,
+        UnsignedExclusiveOr = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.ExclusiveOr,
 
-        FloatingAdd,
-        FloatingSubtract,
-        FloatingMultiply,
-        FloatingDivide,
-        FloatingRemainder,
-        FloatingPower,
+        FloatingAdd = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.Add,
+        FloatingSubtract = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.Subtract,
+        FloatingMultiply = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.Multiply,
+        FloatingDivide = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.Divide,
+        FloatingRemainder = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.Remainder,
+        FloatingPower = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.Power,
 
-        DecimalAdd,
-        DecimalSubtract,
-        DecimalMultiply,
-        DecimalDivide,
+        DecimalAdd = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.Add,
+        DecimalSubtract = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.Subtract,
+        DecimalMultiply = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.Multiply,
+        DecimalDivide = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.Divide,
 
-        BooleanAnd,
-        BooleanOr,
-        BooleanExclusiveOr,
-        BooleanConditionalAnd,
-        BooleanConditionalOr,
+        BooleanAnd = BinaryOperandsKind.Boolean | SimpleBinaryOperationKind.And,
+        BooleanOr = BinaryOperandsKind.Boolean | SimpleBinaryOperationKind.Or,
+        BooleanExclusiveOr = BinaryOperandsKind.Boolean | SimpleBinaryOperationKind.ExclusiveOr,
+        BooleanConditionalAnd = BinaryOperandsKind.Boolean | SimpleBinaryOperationKind.ConditionalAnd,
+        BooleanConditionalOr = BinaryOperandsKind.Boolean | SimpleBinaryOperationKind.ConditionalOr,
 
-        EnumAdd,
-        EnumSubtract,
-        EnumAnd,
-        EnumOr,
-        EnumExclusiveOr,
+        EnumAdd = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.Add,
+        EnumSubtract = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.Subtract,
+        EnumAnd = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.And,
+        EnumOr = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.Or,
+        EnumExclusiveOr = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.ExclusiveOr,
 
-        PointerIntegerAdd,
-        IntegerPointerAdd,
-        PointerIntegerSubtract,
-        PointerSubtract,
+        PointerIntegerAdd = BinaryOperandsKind.PointerInteger | SimpleBinaryOperationKind.Add,
+        IntegerPointerAdd = BinaryOperandsKind.IntegerPointer | SimpleBinaryOperationKind.Add,
+        PointerIntegerSubtract = BinaryOperandsKind.PointerInteger | SimpleBinaryOperationKind.Subtract,
+        PointerSubtract = BinaryOperandsKind.Pointer | SimpleBinaryOperationKind.Subtract,
 
-        DynamicAdd,
-        DynamicSubtract,
-        DynamicMultiply,
-        DynamicDivide,
-        DynamicRemainder,
-        DynamicLeftShift,
-        DynamicRightShift,
-        DynamicAnd,
-        DynamicOr,
-        DynamicExclusiveOr,
+        DynamicAdd = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.Add,
+        DynamicSubtract = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.Subtract,
+        DynamicMultiply = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.Multiply,
+        DynamicDivide = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.Divide,
+        DynamicRemainder = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.Remainder,
+        DynamicLeftShift = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.LeftShift,
+        DynamicRightShift = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.RightShift,
+        DynamicAnd = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.And,
+        DynamicOr = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.Or,
+        DynamicExclusiveOr = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.ExclusiveOr,
 
-        ObjectAdd,
-        ObjectSubtract,
-        ObjectMultiply,
-        ObjectDivide,
-        ObjectPower,
-        ObjectIntegerDivide,
-        ObjectRemainder,
-        ObjectLeftShift,
-        ObjectRightShift,
-        ObjectAnd,
-        ObjectOr,
-        ObjectExclusiveOr,
-        ObjectConditionalAnd,
-        ObjectConditionalOr,
-        ObjectConcatenation,
+        ObjectAdd = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Add,
+        ObjectSubtract = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Subtract,
+        ObjectMultiply = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Multiply,
+        ObjectDivide = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Divide,
+        ObjectIntegerDivide = BinaryOperandsKind.Object | SimpleBinaryOperationKind.IntegerDivide,
+        ObjectRemainder = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Remainder,
+        ObjectPower = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Power,
+        ObjectLeftShift = BinaryOperandsKind.Object | SimpleBinaryOperationKind.LeftShift,
+        ObjectRightShift = BinaryOperandsKind.Object | SimpleBinaryOperationKind.RightShift,
+        ObjectAnd = BinaryOperandsKind.Object | SimpleBinaryOperationKind.And,
+        ObjectOr = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Or,
+        ObjectExclusiveOr = BinaryOperandsKind.Object | SimpleBinaryOperationKind.ExclusiveOr,
+        ObjectConditionalAnd = BinaryOperandsKind.Object | SimpleBinaryOperationKind.ConditionalAnd,
+        ObjectConditionalOr = BinaryOperandsKind.Object | SimpleBinaryOperationKind.ConditionalOr,
+        ObjectConcatenate = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Concatenate,
 
-        StringConcatenation,
+        StringConcatenate = BinaryOperandsKind.String | SimpleBinaryOperationKind.Concatenate,
 
         // Relational operations.
 
-        OperatorEquals,
-        OperatorNotEquals,
-        OperatorLessThan,
-        OperatorLessThanOrEqual,
-        OperatorGreaterThanOrEqual,
-        OperatorGreaterThan,
+        OperatorMethodEquals = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Equals,
+        OperatorMethodNotEquals = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.NotEquals,
+        OperatorMethodLessThan = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.LessThan,
+        OperatorMethodLessThanOrEqual = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.LessThanOrEqual,
+        OperatorMethodGreaterThanOrEqual = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.GreaterThanOrEqual,
+        OperatorMethodGreaterThan = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.GreaterThan,
 
-        IntegerEquals,
-        IntegerNotEquals,
-        IntegerLessThan,
-        IntegerLessThanOrEqual,
-        IntegerGreaterThanOrEqual,
-        IntegerGreaterThan,
-        UnsignedLessThan,
-        UnsignedLessThanOrEqual,
-        UnsignedGreaterThanOrEqual,
-        UnsignedGreaterThan,
+        IntegerEquals = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.Equals,
+        IntegerNotEquals = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.NotEquals,
+        IntegerLessThan = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.LessThan,
+        IntegerLessThanOrEqual = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.LessThanOrEqual,
+        IntegerGreaterThanOrEqual = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.GreaterThanOrEqual,
+        IntegerGreaterThan = BinaryOperandsKind.Integer | SimpleBinaryOperationKind.GreaterThan,
 
-        FloatingEquals,
-        FloatingNotEquals,
-        FloatingLessThan,
-        FloatingLessThanOrEqual,
-        FloatingGreaterThanOrEqual,
-        FloatingGreaterThan,
+        UnsignedLessThan = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.LessThan,
+        UnsignedLessThanOrEqual = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.LessThanOrEqual,
+        UnsignedGreaterThanOrEqual = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.GreaterThanOrEqual,
+        UnsignedGreaterThan = BinaryOperandsKind.Unsigned | SimpleBinaryOperationKind.GreaterThan,
 
-        DecimalEquals,
-        DecimalNotEquals,
-        DecimalLessThan,
-        DecimalLessThanOrEqual,
-        DecimalGreaterThanOrEqual,
-        DecimalGreaterThan,
+        FloatingEquals = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.Equals,
+        FloatingNotEquals = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.NotEquals,
+        FloatingLessThan = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.LessThan,
+        FloatingLessThanOrEqual = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.LessThanOrEqual,
+        FloatingGreaterThanOrEqual = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.GreaterThanOrEqual,
+        FloatingGreaterThan = BinaryOperandsKind.Floating | SimpleBinaryOperationKind.GreaterThan,
 
-        BooleanEquals,
-        BooleanNotEquals,
+        DecimalEquals = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.Equals,
+        DecimalNotEquals = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.NotEquals,
+        DecimalLessThan = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.LessThan,
+        DecimalLessThanOrEqual = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.LessThanOrEqual,
+        DecimalGreaterThanOrEqual = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.GreaterThanOrEqual,
+        DecimalGreaterThan = BinaryOperandsKind.Decimal | SimpleBinaryOperationKind.GreaterThan,
 
-        StringEquals,
-        StringNotEquals,
-        StringLike,
+        BooleanEquals = BinaryOperandsKind.Boolean | SimpleBinaryOperationKind.Equals,
+        BooleanNotEquals = BinaryOperandsKind.Boolean | SimpleBinaryOperationKind.NotEquals,
 
-        DelegateEquals,
-        DelegateNotEquals,
+        StringEquals = BinaryOperandsKind.String | SimpleBinaryOperationKind.Equals,
+        StringNotEquals = BinaryOperandsKind.String | SimpleBinaryOperationKind.NotEquals,
+        StringLike = BinaryOperandsKind.String | SimpleBinaryOperationKind.Like,
 
-        NullableEquals,
-        NullableNotEquals,
+        DelegateEquals = BinaryOperandsKind.Delegate | SimpleBinaryOperationKind.Equals,
+        DelegateNotEquals = BinaryOperandsKind.Delegate | SimpleBinaryOperationKind.NotEquals,
 
-        ObjectEquals,
-        ObjectNotEquals,
-        ObjectVBEquals,
-        ObjectVBNotEquals,
-        ObjectLike,
-        ObjectLessThan,
-        ObjectLessThanOrEqual,
-        ObjectGreaterThanOrEqual,
-        ObjectGreaterThan,
+        NullableEquals = BinaryOperandsKind.Nullable | SimpleBinaryOperationKind.Equals,
+        NullableNotEquals = BinaryOperandsKind.Nullable | SimpleBinaryOperationKind.NotEquals,
 
-        EnumEquals,
-        EnumNotEquals,
-        EnumLessThan,
-        EnumLessThanOrEqual,
-        EnumGreaterThanOrEqual,
-        EnumGreaterThan,
+        ObjectEquals = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Equals,
+        ObjectNotEquals = BinaryOperandsKind.Object | SimpleBinaryOperationKind.NotEquals,
+        ObjectVBEquals = BinaryOperandsKind.Object | SimpleBinaryOperationKind.ObjectValueEquals,
+        ObjectVBNotEquals = BinaryOperandsKind.Object | SimpleBinaryOperationKind.ObjectValueNotEquals,
+        ObjectLike = BinaryOperandsKind.Object | SimpleBinaryOperationKind.Like,
+        ObjectLessThan = BinaryOperandsKind.Object | SimpleBinaryOperationKind.LessThan,
+        ObjectLessThanOrEqual = BinaryOperandsKind.Object | SimpleBinaryOperationKind.LessThanOrEqual,
+        ObjectGreaterThanOrEqual = BinaryOperandsKind.Object | SimpleBinaryOperationKind.GreaterThanOrEqual,
+        ObjectGreaterThan = BinaryOperandsKind.Object | SimpleBinaryOperationKind.GreaterThan,
 
-        PointerEquals,
-        PointerNotEquals,
-        PointerLessThan,
-        PointerLessThanOrEqual,
-        PointerGreaterThanOrEqual,
-        PointerGreaterThan,
+        EnumEquals = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.Equals,
+        EnumNotEquals = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.NotEquals,
+        EnumLessThan = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.LessThan,
+        EnumLessThanOrEqual = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.LessThanOrEqual,
+        EnumGreaterThanOrEqual = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.GreaterThanOrEqual,
+        EnumGreaterThan = BinaryOperandsKind.Enum | SimpleBinaryOperationKind.GreaterThan,
 
-        DynamicEquals,
-        DynamicNotEquals,
-        DynamicLessThan,
-        DynamicLessThanOrEqual,
-        DynamicGreaterThanOrEqual,
-        DynamicGreaterThan
+        PointerEquals = BinaryOperandsKind.Pointer | SimpleBinaryOperationKind.Equals,
+        PointerNotEquals = BinaryOperandsKind.Pointer | SimpleBinaryOperationKind.NotEquals,
+        PointerLessThan = BinaryOperandsKind.Pointer | SimpleBinaryOperationKind.LessThan,
+        PointerLessThanOrEqual = BinaryOperandsKind.Pointer | SimpleBinaryOperationKind.LessThanOrEqual,
+        PointerGreaterThanOrEqual = BinaryOperandsKind.Pointer | SimpleBinaryOperationKind.GreaterThanOrEqual,
+        PointerGreaterThan = BinaryOperandsKind.Pointer | SimpleBinaryOperationKind.GreaterThan,
+
+        DynamicEquals = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.Equals,
+        DynamicNotEquals = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.NotEquals,
+        DynamicLessThan = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.LessThan,
+        DynamicLessThanOrEqual = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.LessThanOrEqual,
+        DynamicGreaterThanOrEqual = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.GreaterThanOrEqual,
+        DynamicGreaterThan = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.GreaterThan
+    }
+
+    public static class UnaryAndBinaryOperationExtensions
+    {
+        const int SimpleUnaryOperationKindMask = 0xff;
+        const int UnaryOperandKindMask = 0xff00;
+        const int SimpleBinaryOperationKindMask = 0xff;
+        const int BinaryOperandsKindMask = 0xff00;
+
+        /// <summary>
+        /// Get unary operation kind independent of data type.
+        /// </summary>
+        public static SimpleUnaryOperationKind GetSimpleUnaryOperationKind(this IUnaryOperatorExpression unary)
+        {
+            return GetSimpleUnaryOperationKind(unary.UnaryOperationKind);
+        }
+
+        /// <summary>
+        /// Get unary operation kind independent of data type.
+        /// </summary>
+        public static SimpleUnaryOperationKind GetSimpleUnaryOperationKind(this IIncrementExpression increment)
+        {
+            return GetSimpleUnaryOperationKind(increment.IncrementOperationKind);
+        }
+
+        /// <summary>
+        /// Get unary operand kind.
+        /// </summary>
+        public static UnaryOperandKind GetUnaryOperandKind(this IUnaryOperatorExpression unary)
+        {
+            return GetUnaryOperandKind(unary.UnaryOperationKind);
+        }
+
+        /// <summary>
+        /// Get unary operand kind.
+        /// </summary>
+        public static UnaryOperandKind GetUnaryOperandKind(this IIncrementExpression increment)
+        {
+            return GetUnaryOperandKind(increment.IncrementOperationKind);
+        }
+
+        /// <summary>
+        /// Get binary operation kind independent of data type.
+        /// </summary>
+        public static SimpleBinaryOperationKind GetSimpleBinaryOperationKind(this IBinaryOperatorExpression binary)
+        {
+            return GetSimpleBinaryOperationKind(binary.BinaryOperationKind);
+        }
+
+        /// <summary>
+        /// Get binary operation kind independent of data type.
+        /// </summary>
+        public static SimpleBinaryOperationKind GetSimpleBinaryOperationKind(this ICompoundAssignmentExpression compoundAssignment)
+        {
+            return GetSimpleBinaryOperationKind(compoundAssignment.BinaryOperationKind);
+        }
+
+        /// <summary>
+        /// Get binary operand kinds.
+        /// </summary>
+        public static BinaryOperandsKind GetBinaryOperandsKind(this IBinaryOperatorExpression binary)
+        {
+            return GetBinaryOperandsKind(binary.BinaryOperationKind);
+        }
+
+        /// <summary>
+        /// Get binary operand kinds.
+        /// </summary>
+        public static BinaryOperandsKind GetBinaryOperandsKind(this ICompoundAssignmentExpression compoundAssignment)
+        {
+            return GetBinaryOperandsKind(compoundAssignment.BinaryOperationKind);
+        }
+
+        public static SimpleUnaryOperationKind GetSimpleUnaryOperationKind(UnaryOperationKind kind)
+        {
+            return (SimpleUnaryOperationKind)((int)kind & UnaryAndBinaryOperationExtensions.SimpleUnaryOperationKindMask);
+        }
+
+        public static UnaryOperandKind GetUnaryOperandKind(UnaryOperationKind kind)
+        {
+            return (UnaryOperandKind)((int)kind & UnaryAndBinaryOperationExtensions.UnaryOperandKindMask);
+        }
+
+        public static SimpleBinaryOperationKind GetSimpleBinaryOperationKind(BinaryOperationKind kind)
+        {
+            return (SimpleBinaryOperationKind)((int)kind & UnaryAndBinaryOperationExtensions.SimpleBinaryOperationKindMask);
+        }
+
+        public static BinaryOperandsKind GetBinaryOperandsKind(BinaryOperationKind kind)
+        {
+            return (BinaryOperandsKind)((int)kind & UnaryAndBinaryOperationExtensions.BinaryOperandsKindMask);
+        }
     }
 
     /// <summary>
     /// Represents a conversion operation.
     /// </summary>
-    public interface IConversionExpression : IHasOperatorExpression
+    public interface IConversionExpression : IHasOperatorMethodExpression
     {
         /// <summary>
         /// Value to be converted.
         /// </summary>
-        IExpression Operand { get; }
+        IOperation Operand { get; }
         /// <summary>
         /// Kind of conversion.
         /// </summary>
@@ -632,72 +819,72 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum ConversionKind
     {
-        None,
+        None = 0x0,
         /// <summary>
         /// Conversion is defined by the underlying type system and throws an exception if it fails.
         /// </summary>
-        Cast,
+        Cast = 0x1,
         /// <summary>
         /// Conversion is defined by the underlying type system and produces a null result if it fails.
         /// </summary>
-        AsCast,
+        TryCast = 0x2,
         /// <summary>
         /// Conversion has VB-specific semantics.
         /// </summary>
-        Basic,
+        Basic = 0x3,
         /// <summary>
         /// Conversion has C#-specific semantics.
         /// </summary>
-        CSharp,
+        CSharp = 0x4,
         /// <summary>
         /// Conversion is implemented by a conversion operator method.
         /// </summary>
-        Operator
+        OperatorMethod = 0x5
     }
 
     /// <summary>
     /// Represents a C# ?: or VB If expression.
     /// </summary>
-    public interface IConditionalChoiceExpression : IExpression
+    public interface IConditionalChoiceExpression : IOperation
     {
         /// <summary>
         /// Condition to be tested.
         /// </summary>
-        IExpression Condition { get; }
+        IOperation Condition { get; }
         /// <summary>
         /// Value evaluated if the Condition is true.
         /// </summary>
-        IExpression IfTrue { get; }
+        IOperation IfTrueValue { get; }
         /// <summary>
         /// Value evaluated if the Condition is false.
         /// </summary>
-        IExpression IfFalse { get; }
+        IOperation IfFalseValue { get; }
     }
 
     /// <summary>
     /// Represents a null-coalescing expression.
     /// </summary>
-    public interface INullCoalescingExpression : IExpression
+    public interface INullCoalescingExpression : IOperation
     {
         /// <summary>
         /// Value to be unconditionally evaluated.
         /// </summary>
-        IExpression Primary { get; }
+        IOperation Primary { get; }
         /// <summary>
         /// Value to be evaluated if Primary evaluates to null/Nothing.
         /// </summary>
-        IExpression Secondary { get; }
+        IOperation Secondary { get; }
     }
 
     /// <summary>
     /// Represents an expression that tests if a value is of a specific type.
     /// </summary>
-    public interface IIsExpression : IExpression
+    public interface IIsExpression : IOperation
     {
         /// <summary>
         /// Value to test.
         /// </summary>
-        IExpression Operand { get; }
+        IOperation Operand { get; }
         /// <summary>
         /// Type for which to test.
         /// </summary>
@@ -707,12 +894,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an expression operating on a type.
     /// </summary>
-    public interface ITypeOperationExpression : IExpression
+    public interface ITypeOperationExpression : IOperation
     {
-        /// <summary>
-        /// Kind of type operation.
-        /// </summary>
-        TypeOperationKind TypeOperationKind { get; }
         /// <summary>
         /// Type operand.
         /// </summary>
@@ -720,20 +903,23 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Kinds of type operations.
+    /// Represents a SizeOf expression.
     /// </summary>
-    public enum TypeOperationKind
+    public interface ISizeOfExpression : ITypeOperationExpression
     {
-        None,
+    }
 
-        SizeOf,
-        TypeOf
+    /// <summary>
+    /// Represents a TypeOf expression.
+    /// </summary>
+    public interface ITypeOfExpression : ITypeOperationExpression
+    {
     }
 
     /// <summary>
     /// Represents a lambda expression.
     /// </summary>
-    public interface ILambdaExpression : IExpression
+    public interface ILambdaExpression : IOperation
     {
         /// <summary>
         /// Signature of the lambda.
@@ -748,50 +934,45 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a textual literal numeric, string, etc. expression.
     /// </summary>
-    public interface ILiteralExpression : IExpression
+    public interface ILiteralExpression : IOperation
     {
         /// <summary>
         /// Textual representation of the literal.
         /// </summary>
-        string Spelling { get; }
+        string Text { get; }
     }
 
     /// <summary>
     /// Represents an await expression.
     /// </summary>
-    public interface IAwaitExpression : IExpression
+    public interface IAwaitExpression : IOperation
     {
         /// <summary>
         /// Value to be awaited.
         /// </summary>
-        IExpression Upon { get; }
+        IOperation AwaitedValue { get; }
     }
 
     /// <summary>
     /// Represents an expression that creates a pointer value by taking the address of a reference.
     /// </summary>
-    public interface IAddressOfExpression : IExpression
+    public interface IAddressOfExpression : IOperation
     {
         /// <summary>
         /// Addressed reference.
         /// </summary>
-        IReferenceExpression Addressed { get; }
+        IReferenceExpression Reference { get; }
     }
 
     /// <summary>
     /// Represents a new/New expression.
     /// </summary>
-    public interface IObjectCreationExpression : IExpression
+    public interface IObjectCreationExpression : IHasArgumentsExpression
     {
         /// <summary>
-        /// Constructor to be invoked for the created instance.
+        /// Constructor to be invoked on the created instance.
         /// </summary>
         IMethodSymbol Constructor { get; }
-        /// <summary>
-        /// Arguments to the constructor.
-        /// </summary>
-        ImmutableArray<IArgument> ConstructorArguments { get; }
-        IArgument ArgumentMatchingParameter(IParameterSymbol parameter);
         /// <summary>
         /// Explicitly-specified member initializers.
         /// </summary>
@@ -803,7 +984,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public interface ISymbolInitializer : IOperation
     {
-        IExpression Value { get; }
+        IOperation Value { get; }
     }
 
     /// <summary>
@@ -842,7 +1023,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents the creation of an array instance.
     /// </summary>
-    public interface IArrayCreationExpression : IExpression
+    public interface IArrayCreationExpression : IOperation
     {
         /// <summary>
         /// Element type of the created array instance.
@@ -851,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Sizes of the dimensions of the created array instance.
         /// </summary>
-        ImmutableArray<IExpression> DimensionSizes { get; }
+        ImmutableArray<IOperation> DimensionSizes { get; }
         /// <summary>
         /// Values of elements of the created array instance.
         /// </summary>
@@ -861,18 +1042,18 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents the initialization of an array instance.
     /// </summary>
-    public interface IArrayInitializer : IExpression
+    public interface IArrayInitializer : IOperation
     {
         /// <summary>
         /// Values to initialize array elements.
         /// </summary>
-        ImmutableArray<IExpression> ElementValues { get; }
+        ImmutableArray<IOperation> ElementValues { get; }
     }
 
     /// <summary>
     /// Represents an assignment expression.
     /// </summary>
-    public interface IAssignmentExpression : IExpression
+    public interface IAssignmentExpression : IOperation
     {
         /// <summary>
         /// Target of the assignment.
@@ -881,18 +1062,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Value to be assigned to the target of the assignment.
         /// </summary>
-        IExpression Value { get; }
+        IOperation Value { get; }
     }
 
     /// <summary>
     /// Represents an assignment expression that includes a binary operation.
     /// </summary>
-    public interface ICompoundAssignmentExpression : IAssignmentExpression, IHasOperatorExpression
+    public interface ICompoundAssignmentExpression : IAssignmentExpression, IHasOperatorMethodExpression
     {
         /// <summary>
         /// Kind of binary operation.
         /// </summary>
-        BinaryOperationKind BinaryKind { get; }
+        BinaryOperationKind BinaryOperationKind { get; }
     }
 
     /// <summary>
@@ -903,18 +1084,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of increment.
         /// </summary>
-        UnaryOperationKind IncrementKind { get; }
+        UnaryOperationKind IncrementOperationKind { get; }
     }
 
     /// <summary>
     /// Represents a parenthesized expression.
     /// </summary>
-    public interface IParenthesizedExpression : IExpression
+    public interface IParenthesizedExpression : IOperation
     {
         /// <summary>
         /// Operand enclosed in parentheses.
         /// </summary>
-        IExpression Operand { get; }
+        IOperation Operand { get; }
     }
 
     /// <summary>
@@ -925,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Instance used to bind the member reference.
         /// </summary>
-        IExpression Instance { get; }
+        IOperation Instance { get; }
         /// <summary>
         /// Name of the member.
         /// </summary>
@@ -933,18 +1114,25 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Defines extension methods useful for IExpression instances.
+    /// Represents an argument value that has been omitted in an invocation.
     /// </summary>
-    public static class IExpressionExtensions
+    public interface IOmittedArgumentExpression : IOperation
     {
-        /// <summary>
-        /// Tests if an invocation is to a static/shared method.
-        /// </summary>
-        /// <param name="invocation">Invocation to be tested.</param>
-        /// <returns>True if the invoked method is static/shared, false otherwise.</returns>
-        public static bool IsStatic(this IInvocationExpression invocation)
-        {
-            return invocation.TargetMethod.IsStatic;
-        }
+    }
+
+    public interface IUnboundLambdaExpression : IOperation
+    {
+    }
+
+    public interface IDefaultValueExpression : IOperation
+    {
+    }
+
+    public interface ITypeParameterObjectCreationExpression : IOperation
+    {
+    }
+
+    public interface IInvalidExpression : IOperation
+    {
     }
 }

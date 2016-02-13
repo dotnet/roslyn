@@ -6062,5 +6062,56 @@ BC30521: Overload resolution failed because no accessible 'Color' is most specif
             Assert.Equal("ReadOnly Property Program.Color([x As System.String = """"]) As Color", sortedCandidates(1).ToTestDisplayString())
             Assert.Equal(SymbolKind.Property, sortedCandidates(1).Kind)
         End Sub
+
+        <WorkItem(8401, "https://github.com/dotnet/roslyn/issues/8401")>
+        <Fact()>
+        Public Sub EventAccessorsWithOptionalParameters()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Class Program
+    Shared Sub Main()
+    End Sub
+ 
+    Custom Event E1 As System.Action(Of Object)
+        AddHandler(Optional value As System.Action(Of Object) = Nothing)
+
+        End AddHandler
+        RemoveHandler(Optional value As System.Action(Of Object) = Nothing)
+
+        End RemoveHandler
+        RaiseEvent(Optional value As Object = Nothing)
+
+        End RaiseEvent
+    End Event
+End Class
+    </file>
+</compilation>)
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC31138: 'AddHandler', 'RemoveHandler' and 'RaiseEvent' method parameters cannot be declared 'Optional'.
+        AddHandler(Optional value As System.Action(Of Object) = Nothing)
+                   ~~~~~~~~
+BC31138: 'AddHandler', 'RemoveHandler' and 'RaiseEvent' method parameters cannot be declared 'Optional'.
+        RemoveHandler(Optional value As System.Action(Of Object) = Nothing)
+                      ~~~~~~~~
+BC31138: 'AddHandler', 'RemoveHandler' and 'RaiseEvent' method parameters cannot be declared 'Optional'.
+        RaiseEvent(Optional value As Object = Nothing)
+                   ~~~~~~~~
+</expected>)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim nodes = tree.GetRoot().DescendantNodes.OfType(Of LiteralExpressionSyntax)().ToArray()
+
+            Assert.Equal(3, nodes.Length)
+            For Each literal In nodes
+                Assert.Equal("Nothing", literal.ToString())
+                Assert.Null(model.GetTypeInfo(literal).Type)
+            Next
+        End Sub
+
     End Class
 End Namespace
