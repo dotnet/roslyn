@@ -469,7 +469,7 @@ namespace Microsoft.Cci
         {
             foreach (AssemblyReferenceAlias alias in Module.GetAssemblyReferenceAliases(Context))
             {
-                UsingNamespace("Z" + alias.Name + " " + alias.Assembly.GetDisplayName(), Module);
+                UsingNamespace("Z" + alias.Name + " " + alias.Assembly.Identity.GetDisplayName(), Module);
             }
         }
 

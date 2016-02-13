@@ -51,34 +51,7 @@ namespace Microsoft.Cci
     /// </summary>
     internal interface IAssemblyReference : IModuleReference
     {
-        /// <summary>
-        /// Identifies the culture associated with the assembly reference. Typically specified for satellite assemblies with localized resources.
-        /// Empty if not specified.
-        /// </summary>
-        string Culture { get; }
-
-        /// <summary>
-        /// True if the implementation of the referenced assembly used at runtime is not expected to match the version seen at compile time.
-        /// </summary>
-        bool IsRetargetable { get; }
-
-        /// <summary>
-        /// Type of code contained in an assembly. Determines assembly binding model.
-        /// </summary>
-        AssemblyContentType ContentType { get; }
-
-        /// <summary>
-        /// The hashed 8 bytes of the public key of the referenced assembly. 
-        /// Empty if the referenced assembly does not have a public key.
-        /// </summary>
-        ImmutableArray<byte> PublicKeyToken { get; }
-
-        /// <summary>
-        /// The version of the assembly reference.
-        /// </summary>
-        Version Version { get; }
-
-        string GetDisplayName();
+        AssemblyIdentity Identity { get; }
     }
 
     /// <summary>
