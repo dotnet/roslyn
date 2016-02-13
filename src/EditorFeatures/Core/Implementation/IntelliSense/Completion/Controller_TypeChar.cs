@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return completionService.IsTriggerCharacter(previousPosition.Snapshot.AsText(), previousPosition, GetCompletionProviders(), options);
         }
 
-        private bool IsCommitCharacter(char ch)
+        private bool IsCommitCharacter(char typedChar)
         {
             AssertIsForeground();
 
@@ -327,12 +327,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var selectedItem = GetExternallyUsableCompletionItem(model.SelectedItem);
             if (selectedItem.IsBuilder)
             {
-                return char.IsLetterOrDigit(ch);
+                return char.IsLetterOrDigit(typedChar);
             }
 
             var filterText = GetCurrentFilterText(model, selectedItem);
+            var isCommitCharacter = GetCompletionRules().IsCommitCharacter(selectedItem, typedChar, filterText);
 
-            return GetCompletionRules().IsCommitCharacter(selectedItem, ch, filterText);
+            // When a character, even appears to be a commit character, was typed at the begining of the filter span when it was empty,
+            // it's most likely that the user just realized he/she forgot to do something, pressed Ctrl+Left and typed it.
+            // i.e. blah| -> |blah -> !|blah
+            // but not: A a = new | -> A a = new (|
+            // Hence we should not commit the selected item.
+            if (isCommitCharacter && filterText.Length == 1)
+            {
+                var typedText = GetCurrentFilterText(model, selectedItem, stopBeforeCaret: false);
+                if (typedText.Length != 1)
+                {
+                    return false;
+                }
+            }
+
+            return isCommitCharacter;
         }
 
         private bool IsFilterCharacter(char ch)
@@ -357,12 +372,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return GetCompletionRules().IsFilterCharacter(selectedItem, ch, filterText);
         }
 
-        private string GetCurrentFilterText(Model model, CompletionItem selectedItem)
+        private string GetCurrentFilterText(Model model, CompletionItem selectedItem, bool stopBeforeCaret = true)
         {
             var textSnapshot = this.TextView.TextSnapshot;
             var viewSpan = model.GetSubjectBufferFilterSpanInViewBuffer(selectedItem.FilterSpan);
             var filterText = model.GetCurrentTextInSnapshot(
-                viewSpan, textSnapshot, GetCaretPointInViewBuffer());
+                viewSpan, textSnapshot, endPoint: stopBeforeCaret ? (int?)GetCaretPointInViewBuffer() : null);
             return filterText;
         }
 
