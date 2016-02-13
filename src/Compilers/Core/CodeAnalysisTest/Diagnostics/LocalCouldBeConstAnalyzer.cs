@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                             (operationContext) =>
                             {
                                 IVariableDeclarationStatement declaration = (IVariableDeclarationStatement)operationContext.Operation;
-                                foreach (IVariable variable in declaration.Variables)
+                                foreach (IVariableDeclaration variable in declaration.Variables)
                                 {
                                     ILocalSymbol local = variable.Variable;
                                     if (!local.IsConst && !assignedToLocals.Contains(local))
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                 });
         }
 
-        private static void AssignTo(IExpression target, HashSet<ILocalSymbol> assignedToLocals, HashSet<ILocalSymbol> mightBecomeConstLocals)
+        private static void AssignTo(IOperation target, HashSet<ILocalSymbol> assignedToLocals, HashSet<ILocalSymbol> mightBecomeConstLocals)
         {
             if (target.Kind == OperationKind.LocalReferenceExpression)
             {
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
             else if (target.Kind == OperationKind.FieldReferenceExpression)
             {
                 IFieldReferenceExpression fieldReference = (IFieldReferenceExpression)target;
-                if (fieldReference.Instance != null && fieldReference.Instance.ResultType.IsValueType)
+                if (fieldReference.Instance != null && fieldReference.Instance.Type.IsValueType)
                 {
                     AssignTo(fieldReference.Instance, assignedToLocals, mightBecomeConstLocals);
                 }

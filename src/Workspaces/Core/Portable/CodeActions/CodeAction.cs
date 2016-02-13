@@ -47,7 +47,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal virtual bool IsInvokable => true;
 
-        internal virtual Glyph? Glyph => null;
+        /// <summary>
+        /// Will map this int to the Glyph enum in 'Features'.  Once a proper image abstration moves
+        /// to the workspace layer we can appropriately use that here instead of a raw int.
+        /// </summary>
+        internal virtual int? Glyph => null;
 
         internal virtual ImmutableArray<CodeAction> GetCodeActions()
         {

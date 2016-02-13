@@ -259,7 +259,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         // same as display text
         string ISuggestedAction.IconAutomationText => DisplayText;
 
-        ImageMoniker ISuggestedAction.IconMoniker => CodeAction.Glyph?.GetImageMoniker() ?? default(ImageMoniker);
+        ImageMoniker ISuggestedAction.IconMoniker => CodeAction.Glyph.HasValue
+            ? ((Glyph)CodeAction.Glyph.Value).GetImageMoniker()
+            : default(ImageMoniker);
 
         string ISuggestedAction.InputGestureText
         {
