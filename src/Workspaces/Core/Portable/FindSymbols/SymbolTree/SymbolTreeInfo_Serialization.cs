@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo : IObjectWritable
     {
         private const string PrefixMetadataSymbolTreeInfo = "<MetadataSymbolTreeInfoPersistence>_";
-        private const string SerializationFormat = "9";
+        private const string SerializationFormat = "10";
 
         private static bool ShouldCreateFromScratch(
             Solution solution,
@@ -123,7 +123,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 writer.WriteInt32(node.ParentIndex);
             }
 
-            _spellChecker.WriteTo(writer);
+            if (_lazySpellChecker.IsValueCreated)
+            {
+                writer.WriteBoolean(true);
+                _lazySpellChecker.Value.WriteTo(writer);
+            }
+            else
+            {
+                writer.WriteBoolean(false);
+            }
         }
 
         internal static SymbolTreeInfo ReadFrom(ObjectReader reader)
@@ -141,7 +149,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var count = reader.ReadInt32();
                 if (count == 0)
                 {
-                    return new SymbolTreeInfo(version, ImmutableArray<Node>.Empty, SpellChecker.Empty);
+                    return new SymbolTreeInfo(version, ImmutableArray<Node>.Empty);
                 }
 
                 var nodes = new Node[count];
@@ -153,7 +161,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     nodes[i] = new Node(name, parentIndex);
                 }
 
-                return new SymbolTreeInfo(version, nodes, SpellChecker.ReadFrom(reader));
+                var hasSpellChecker = reader.ReadBoolean();
+                return hasSpellChecker
+                    ? new SymbolTreeInfo(version, nodes, SpellChecker.ReadFrom(reader))
+                    : new SymbolTreeInfo(version, nodes);
             }
             catch (Exception)
             {

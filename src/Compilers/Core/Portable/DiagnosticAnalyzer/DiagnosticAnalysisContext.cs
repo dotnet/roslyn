@@ -855,6 +855,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly ImmutableArray<IOperation> _operationBlocks;
         private readonly ISymbol _owningSymbol;
+        private readonly Compilation _compilation;
         private readonly AnalyzerOptions _options;
         private readonly CancellationToken _cancellationToken;
 
@@ -869,6 +870,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ISymbol OwningSymbol => _owningSymbol;
 
         /// <summary>
+        /// <see cref="CodeAnalysis.Compilation"/> containing the operation block.
+        /// </summary>
+        public Compilation Compilation => _compilation;
+
+        /// <summary>
         /// Options specified for the analysis.
         /// </summary>
         public AnalyzerOptions Options => _options;
@@ -878,10 +884,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        protected OperationBlockStartAnalysisContext(ImmutableArray<IOperation> operationBlocks, ISymbol owningSymbol, AnalyzerOptions options, CancellationToken cancellationToken)
+        protected OperationBlockStartAnalysisContext(ImmutableArray<IOperation> operationBlocks, ISymbol owningSymbol, Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             _operationBlocks = operationBlocks;
             _owningSymbol = owningSymbol;
+            _compilation = compilation;
             _options = options;
             _cancellationToken = cancellationToken;
         }
@@ -923,7 +930,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly ImmutableArray<IOperation> _operationBlocks;
         private readonly ISymbol _owningSymbol;
-        private readonly SemanticModel _semanticModelOpt;
+        private readonly Compilation _compilation;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
@@ -940,6 +947,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ISymbol OwningSymbol => _owningSymbol;
 
         /// <summary>
+        /// <see cref="CodeAnalysis.Compilation"/> containing the operation block.
+        /// </summary>
+        public Compilation Compilation => _compilation;
+
+        /// <summary>
         /// Options specified for the analysis.
         /// </summary>
         public AnalyzerOptions Options => _options;
@@ -948,19 +960,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
-
-        internal Compilation Compilation => _semanticModelOpt?.Compilation;
-
-        public OperationBlockAnalysisContext(ImmutableArray<IOperation> operationBlocks, ISymbol owningSymbol, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
-            : this(operationBlocks, owningSymbol, options, reportDiagnostic, isSupportedDiagnostic, semanticModel: null, cancellationToken: cancellationToken)
-        {
-        }
-
-        internal OperationBlockAnalysisContext(ImmutableArray<IOperation> operationBlocks, ISymbol owningSymbol, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, SemanticModel semanticModel, CancellationToken cancellationToken)
+        
+        public OperationBlockAnalysisContext(ImmutableArray<IOperation> operationBlocks, ISymbol owningSymbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _operationBlocks = operationBlocks;
             _owningSymbol = owningSymbol;
-            _semanticModelOpt = semanticModel;
+            _compilation = compilation;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
@@ -973,7 +978,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _semanticModelOpt?.Compilation, _isSupportedDiagnostic);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, Compilation, _isSupportedDiagnostic);
             lock (_reportDiagnostic)
             {
                 _reportDiagnostic(diagnostic);

@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      if (operation.Kind == OperationKind.ConversionExpression)
                      {
                          IConversionExpression conversion = (IConversionExpression)operation;
-                         if (conversion.ResultType.IsReferenceType &&
-                             conversion.Operand.ResultType != null &&
-                             conversion.Operand.ResultType.IsValueType &&
+                         if (conversion.Type.IsReferenceType &&
+                             conversion.Operand.Type != null &&
+                             conversion.Operand.Type.IsValueType &&
                              !conversion.UsesOperatorMethod)
                          {
                              Report(operationContext, conversion.Syntax);
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          IInvocationExpression invocation = (IInvocationExpression)operation;
 
                          if (invocation.Instance != null &&
-                             invocation.Instance.ResultType.IsValueType &&
+                             invocation.Instance.Type.IsValueType &&
                              invocation.TargetMethod.ContainingType.IsReferenceType)
                          {
                              Report(operationContext, invocation.Instance.Syntax);

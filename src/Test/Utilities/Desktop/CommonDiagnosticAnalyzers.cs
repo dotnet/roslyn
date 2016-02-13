@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis
 
                     cc.RegisterOperationBlockStartAction(oc =>
                     {
-                        oc.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.Operation), Semantics.OperationKind.VariableDeclarationStatement);
+                        oc.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.Operation), OperationKind.VariableDeclarationStatement);
                         oc.RegisterOperationBlockEndAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.OperationBlockEnd));
                     });
                 });
@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (_actionKind == ActionKind.Operation)
                 {
-                    context.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, c.Operation.Syntax.GetLocation()), Semantics.OperationKind.VariableDeclarationStatement);
+                    context.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, c.Operation.Syntax.GetLocation()), OperationKind.VariableDeclarationStatement);
                 }
                 else
                 {
