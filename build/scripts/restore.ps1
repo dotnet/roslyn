@@ -1,10 +1,14 @@
-param ([string]$nugetZipUrl = $(throw "Need an URL to the NuGet zip") )
+param ([uri]$nugetZipUrl = $(throw "Need an URL to the NuGet zip") )
 
 $destination = ${env:UserProfile}
-$outFilePath = [IO.Path]::ChangeExtension([IO.Path]::GetTempFileName(), "zip")
-write-host "Downloading $nugetZipUrl -> $outFilePath"
-$client = new-object System.Net.WebClient
-$client.DownloadFile($nugetZipUrl, $outFilePath)
+# extract archive file name from download url path
+$nugetZipFilename = ($nugetZipUrl.Segments | select -Last 1)
+# download to temp under archive file name if not done already
+$outFilePath = "${env:TEMP}\$nugetZipFilename"
+if (-not(Test-Path $outFilePath)) {
+    write-host "Downloading $nugetZipUrl -> $outFilePath"
+    (New-Object System.Net.WebClient).DownloadFile($nugetZipUrl, $outFilePath)
+}
 
 # It's possible for restore to run in parallel on the test machines.  As such
 # we need to restore only new files to handle simultaneous restore scenarios.
@@ -41,4 +45,3 @@ foreach ($entry in $archive.Entries) {
 }
 
 $archive.Dispose()
-rm $outFilePath

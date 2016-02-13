@@ -4,8 +4,8 @@
           BeforeTargets="AfterCompile"
           Inputs="@(VsdConfigXml);$(IntermediateOutputPath)\$(AssemblyName).dll"
           Outputs="$(OutDir)\$(AssemblyName).vsdconfig"
-          Condition="'$(SkipGenerateVsdconfig)' != 'true'">
-    <Exec Command="&quot;$(VS140COMNTOOLS)..\..\VSSDK\VisualStudioIntegration\Tools\Bin\vsdconfigtool.exe&quot; @(VsdConfigXml) $(IntermediateOutputPath)\$(AssemblyName).dll &quot;$(OutDir)\$(AssemblyName).vsdconfig&quot;" />
+          Condition="'$(BuildingProject)' == 'true' AND '$(SkipGenerateVsdconfig)' != 'true'">
+    <Exec Command="&quot;$(VS140COMNTOOLS)..\..\VSSDK\VisualStudioIntegration\Tools\Bin\vsdconfigtool.exe&quot; &quot;@(VsdConfigXml)&quot; &quot;$(IntermediateOutputPath)\$(AssemblyName).dll&quot; &quot;$(OutDir)\$(AssemblyName).vsdconfig&quot;" />
   </Target>
   
   <Target Name="VsdConfigOutputGroup" Outputs="@(VsdConfigOutputGroupOutput)">

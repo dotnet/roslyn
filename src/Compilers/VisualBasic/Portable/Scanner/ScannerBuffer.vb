@@ -28,13 +28,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Private ReadOnly _pool As ObjectPool(Of Page)
             Private Sub New(pool As ObjectPool(Of Page))
-                Me._pageStart = -1
-                Me._arr = New Char(s_PAGE_SIZE - 1) {}
-                Me._pool = pool
+                _pageStart = -1
+                _arr = New Char(s_PAGE_SIZE - 1) {}
+                _pool = pool
             End Sub
 
             Friend Sub Free()
-                Me._pageStart = -1
+                _pageStart = -1
                 _pool.Free(Me)
             End Sub
 

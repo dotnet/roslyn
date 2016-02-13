@@ -81,7 +81,9 @@
     <Compile Include="CodeCleanup\NormalizeModifiersOrOperatorsTests.cs" />
     <Compile Include="CodeCleanup\ReduceTokenTests.cs" />
     <Compile Include="CodeCleanup\RemoveUnnecessaryLineContinuationTests.cs" />
+    <Compile Include="UtilityTest\BKTreeTests.cs" />
     <Compile Include="UtilityTest\FilePathUtilitiesTests.cs" />
+    <Compile Include="UtilityTest\SpellCheckerTests.cs" />
     <Compile Include="WorkspaceTests\CommandLineProjectTests.cs" />
     <Compile Include="WorkspaceTests\AdhocWorkspaceTests.cs" />
     <Compile Include="Differencing\MatchTests.cs" />
@@ -101,6 +103,7 @@
     <Compile Include="GeneratedCodeRecognitionTests.cs" />
     <Compile Include="WorkspaceTests\MSBuildWorkspaceTests.cs" />
     <Compile Include="WorkspaceTests\MSBuildWorkspaceTestBase.cs" />
+    <Compile Include="WorkspaceTests\WorkspaceReferenceTests.cs" />
     <Compile Include="WorkspaceTests\WorkspaceTestBase.cs" />
     <Compile Include="SolutionTests\ProjectDependencyGraphTests.cs" />
     <Compile Include="SolutionTests\ProjectInfoTests.cs" />

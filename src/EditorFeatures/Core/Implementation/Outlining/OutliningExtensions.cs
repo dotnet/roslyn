@@ -8,20 +8,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
     internal static class OutliningExtensions
     {
         public static void Add<TType, TOutliner>(
-            this ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxNodeOutliner>>.Builder builder)
+            this ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxOutliner>>.Builder builder)
             where TType : SyntaxNode
-            where TOutliner : AbstractSyntaxNodeOutliner, new()
+            where TOutliner : AbstractSyntaxOutliner, new()
         {
-            builder.Add(typeof(TType), ImmutableArray.Create<AbstractSyntaxNodeOutliner>(new TOutliner()));
+            builder.Add(typeof(TType), ImmutableArray.Create<AbstractSyntaxOutliner>(new TOutliner()));
         }
 
         public static void Add<TType, TOutliner1, TOutliner2>(
-            this ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxNodeOutliner>>.Builder builder)
+            this ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxOutliner>>.Builder builder)
             where TType : SyntaxNode
-            where TOutliner1 : AbstractSyntaxNodeOutliner, new()
-            where TOutliner2 : AbstractSyntaxNodeOutliner, new()
+            where TOutliner1 : AbstractSyntaxOutliner, new()
+            where TOutliner2 : AbstractSyntaxOutliner, new()
         {
-            builder.Add(typeof(TType), ImmutableArray.Create<AbstractSyntaxNodeOutliner>(new TOutliner1(), new TOutliner2()));
+            builder.Add(typeof(TType), ImmutableArray.Create<AbstractSyntaxOutliner>(new TOutliner1(), new TOutliner2()));
         }
     }
 }

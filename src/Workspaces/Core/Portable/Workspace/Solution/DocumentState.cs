@@ -31,9 +31,10 @@ namespace Microsoft.CodeAnalysis
             SolutionServices solutionServices,
             DocumentInfo info,
             ParseOptions options,
+            SourceText sourceTextOpt,
             ValueSource<TextAndVersion> textSource,
             ValueSource<TreeAndVersion> treeSource)
-            : base(solutionServices, info, textSource)
+            : base(solutionServices, info, sourceTextOpt, textSource)
         {
             _languageServices = languageServices;
             _options = options;
@@ -80,15 +81,23 @@ namespace Microsoft.CodeAnalysis
                 solutionServices: services,
                 info: info,
                 options: options,
+                sourceTextOpt: null,
                 textSource: textSource,
                 treeSource: treeSource);
         }
 
         // This is the string used to represent the FilePath property on a SyntaxTree object.
-        // if the document does not yet have a file path, use the document's name instead.
+        // if the document does not yet have a file path, use the document's name instead in regular code
+        // or an empty string in script code.
         private static string GetSyntaxTreeFilePath(DocumentInfo info)
         {
-            return info.FilePath ?? info.Name;
+            if (info.FilePath != null)
+            {
+                return info.FilePath;
+            }
+            return info.SourceCodeKind == SourceCodeKind.Regular
+                ? info.Name
+                : "";
         }
 
         private static ValueSource<TreeAndVersion> CreateLazyFullyParsedTree(
@@ -238,7 +247,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var newTreeSource = CreateLazyFullyParsedTree(
-                this.textSource,
+                this.textAndVersionSource,
                 this.Id.ProjectId,
                 GetSyntaxTreeFilePath(this.info),
                 options,
@@ -250,7 +259,8 @@ namespace Microsoft.CodeAnalysis
                 this.solutionServices,
                 this.info,
                 options,
-                this.textSource,
+                this.sourceTextOpt,
+                this.textAndVersionSource,
                 newTreeSource);
         }
 
@@ -271,7 +281,8 @@ namespace Microsoft.CodeAnalysis
                 this.solutionServices,
                 this.info.WithFolders(folders),
                 _options,
-                this.textSource,
+                this.sourceTextOpt,
+                this.textAndVersionSource,
                 _treeSource);
         }
 
@@ -348,18 +359,24 @@ namespace Microsoft.CodeAnalysis
                 this.solutionServices,
                 this.info,
                 _options,
-                newTextSource,
-                newTreeSource);
+                sourceTextOpt: null,
+                textSource: newTextSource,
+                treeSource: newTreeSource);
         }
 
         public new DocumentState UpdateText(TextLoader loader, PreservationMode mode)
+        {
+            return UpdateText(loader, textOpt: null, mode: mode);
+        }
+
+        internal DocumentState UpdateText(TextLoader loader, SourceText textOpt, PreservationMode mode)
         {
             if (loader == null)
             {
                 throw new ArgumentNullException(nameof(loader));
             }
 
-            var newTextSource = (mode == PreservationMode.PreserveIdentity)
+            var newTextSource = mode == PreservationMode.PreserveIdentity
                 ? CreateStrongText(loader, this.Id, this.solutionServices, reportInvalidDataException: true)
                 : CreateRecoverableText(loader, this.Id, this.solutionServices, reportInvalidDataException: true);
 
@@ -382,6 +399,7 @@ namespace Microsoft.CodeAnalysis
                 this.solutionServices,
                 this.info,
                 _options,
+                sourceTextOpt: textOpt,
                 textSource: newTextSource,
                 treeSource: newTreeSource);
         }
@@ -424,6 +442,7 @@ namespace Microsoft.CodeAnalysis
                 this.solutionServices,
                 this.info,
                 _options,
+                sourceTextOpt: null,
                 textSource: result.Item1,
                 treeSource: new ConstantValueSource<TreeAndVersion>(result.Item2));
         }
@@ -502,7 +521,7 @@ namespace Microsoft.CodeAnalysis
         private VersionStamp GetNewerVersion()
         {
             TextAndVersion textAndVersion;
-            if (this.textSource.TryGetValue(out textAndVersion))
+            if (this.textAndVersionSource.TryGetValue(out textAndVersion))
             {
                 return textAndVersion.Version.GetNewerVersion();
             }

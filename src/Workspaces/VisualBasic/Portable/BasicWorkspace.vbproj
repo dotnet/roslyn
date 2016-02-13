@@ -35,21 +35,17 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <Optimize>false</Optimize>
-    <DebugType>full</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
-    <InternalsVisibleTo Include="Roslyn.VisualBasic.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
@@ -151,6 +147,7 @@
     <Compile Include="Extensions\TypeBlockSyntaxExtensions.vb" />
     <Compile Include="Extensions\TypeSyntaxGeneratorVisitor.vb" />
     <Compile Include="Extensions\VariableDeclaratorSyntaxExtensions.vb" />
+    <Compile Include="FindSymbols\VisualBasicReferenceFinder.vb" />
     <Compile Include="Formatting\DefaultOperationProvider.vb" />
     <Compile Include="Formatting\Engine\AggregatedFormattingResult.vb" />
     <Compile Include="Formatting\Engine\FormattingResult.vb" />
@@ -238,6 +235,7 @@
     <Compile Include="Utilities\NameSyntaxIterator.vb" />
     <Compile Include="Utilities\PossibleDeclarationTypes.vb" />
     <Compile Include="Utilities\SpeculationAnalyzer.vb" />
+    <Compile Include="Utilities\SymbolExtensions.vb" />
     <Compile Include="Utilities\SyntaxKindSet.vb" />
     <Compile Include="Utilities\TokenComparer.vb" />
     <Compile Include="Utilities\TypeSyntaxComparer.vb" />

@@ -198,6 +198,7 @@
     <Compile Include="Debugging\LocationInfoGetter.cs" />
     <Compile Include="LanguageService\HACK_CSharpCreateServicesOnUIThread.cs" />
     <Compile Include="ObjectBrowser\CSharpLibraryService.cs" />
+    <Compile Include="ObjectBrowser\CSharpSyncClassViewCommandHandler.cs" />
     <Compile Include="ObjectBrowser\ListItemFactory.cs" />
     <Compile Include="Options\AdvancedOptionPageStrings.cs" />
     <Compile Include="Options\IntelliSenseOptionPageStrings.cs" />
@@ -245,7 +246,6 @@
     </Compile>
     <Compile Include="Progression\CSharpGraphProvider.cs" />
     <Compile Include="Progression\CSharpProgressionLanguageService.cs" />
-    <Compile Include="ProjectSystemShim\CSharpProject.cs" />
     <Compile Include="ProjectSystemShim\CSharpProjectShim.cs" />
     <Compile Include="ProjectSystemShim\CSharpProjectShim.ICSCompiler.cs" />
     <Compile Include="ProjectSystemShim\CSharpProjectShim.ICSCompilerConfig.cs" />

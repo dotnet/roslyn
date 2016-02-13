@@ -1,45 +1,38 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class ThrowKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ThrowInMethodBody()
-            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Throw")
-        End Sub
+        Public Async Function ThrowInMethodBodyTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "Throw")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ThrowInMultiLineLambda()
-            VerifyRecommendationsContain(<ClassDeclaration>
+        Public Async Function ThrowInMultiLineLambdaTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
 Private _member = Sub()
 |
 End Sub
                                           </ClassDeclaration>, "Throw")
 
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ThrowInSingleLineLambda()
-            VerifyRecommendationsContain(<ClassDeclaration>
+        Public Async Function ThrowInSingleLineLambdaTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
 Private _member = Sub() |
                                          </ClassDeclaration>, "Throw")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ThrowInSingleLineFunctionLambda()
-            VerifyRecommendationsMissing(<ClassDeclaration>
+        Public Async Function ThrowInSingleLineFunctionLambdaTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>
 Private _member = Function() |
                                                </ClassDeclaration>, "Throw")
-        End Sub
+        End Function
     End Class
 End Namespace

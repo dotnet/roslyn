@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,13 +22,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
             private readonly HashSet<TExpressionSyntax> _seenExpressionInferType = new HashSet<TExpressionSyntax>();
             private readonly HashSet<TExpressionSyntax> _seenExpressionGetType = new HashSet<TExpressionSyntax>();
 
-            private static readonly Func<ITypeSymbol, bool> isNotNull = t => t != null;
+            private static readonly Func<ITypeSymbol, bool> s_isNotNull = t => t != null;
 
             protected AbstractTypeInferrer(SemanticModel semanticModel, CancellationToken cancellationToken)
             {
                 this.SemanticModel = semanticModel;
                 this.CancellationToken = cancellationToken;
-                this.IsUsableTypeFunc =  t => t != null && !IsUnusableType(t);
+                this.IsUsableTypeFunc = t => t != null && !IsUnusableType(t);
             }
 
             protected abstract IEnumerable<ITypeSymbol> InferTypesWorker_DoNotCallDirectly(int position);
@@ -68,11 +70,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
 
             private IEnumerable<ITypeSymbol> Filter(IEnumerable<ITypeSymbol> types, bool filterUnusable = true)
             {
-                return types.Where(filterUnusable ? IsUsableTypeFunc : isNotNull)
+                return types.Where(filterUnusable ? IsUsableTypeFunc : s_isNotNull)
                             .Distinct()
                             .ToImmutableReadOnlyListOrEmpty();
             }
-
         }
 
         protected abstract AbstractTypeInferrer CreateTypeInferrer(SemanticModel semanticModel, CancellationToken cancellationToken);

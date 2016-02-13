@@ -194,7 +194,7 @@ class C
             Assert.Equal(((ArrayTypeSymbol)other.ReturnType).CustomModifiers.Length, 1);
         }
 
-        [WorkItem(1533)]
+        [WorkItem(1533, "https://github.com/dotnet/roslyn/issues/1533")]
         [Fact]
         public void PreviousType_ArrayType()
         {
@@ -232,7 +232,7 @@ class C
             Assert.NotNull(other);
         }
 
-        [WorkItem(1533)]
+        [WorkItem(1533, "https://github.com/dotnet/roslyn/issues/1533")]
         [Fact]
         public void NoPreviousType_ArrayType()
         {
@@ -270,7 +270,7 @@ class C
             Assert.Null(other);
         }
 
-        [WorkItem(1533)]
+        [WorkItem(1533, "https://github.com/dotnet/roslyn/issues/1533")]
         [Fact]
         public void NoPreviousType_PointerType()
         {
@@ -308,7 +308,7 @@ class C
             Assert.Null(other);
         }
 
-        [WorkItem(1533)]
+        [WorkItem(1533, "https://github.com/dotnet/roslyn/issues/1533")]
         [Fact]
         public void NoPreviousType_GenericType()
         {

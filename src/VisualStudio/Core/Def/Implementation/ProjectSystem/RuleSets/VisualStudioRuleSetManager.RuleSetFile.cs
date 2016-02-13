@@ -156,12 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _ruleSetManager.StopTrackingRuleSetFile(this);
                 UnsubscribeFromFileTrackers();
-
-                var handler = UpdatedOnDisk;
-                if (handler != null)
-                {
-                    handler(this, EventArgs.Empty);
-                }
+                UpdatedOnDisk?.Invoke(this, EventArgs.Empty);
             }
         }
     }

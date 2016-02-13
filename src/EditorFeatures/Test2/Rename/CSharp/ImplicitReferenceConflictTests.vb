@@ -5,8 +5,8 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class ImplicitReferenceConflictTests
 
-        <WorkItem(528966)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextCausesConflictInForEach()
             Using result = RenameEngineResult.Create(
                     <Workspace>
@@ -43,8 +43,8 @@ class C
             End Using
         End Sub
 
-        <WorkItem(528966)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextInVBCausesConflictInForEach()
             Using result = RenameEngineResult.Create(
                     <Workspace>
@@ -90,8 +90,8 @@ class D
             End Using
         End Sub
 
-        <WorkItem(528966)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextInVBToUpperCaseOnlyCausesConflictInCSForEach()
             Using result = RenameEngineResult.Create(
                     <Workspace>

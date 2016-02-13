@@ -33,6 +33,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         End Function
 
         <Extension()>
+        Public Function IsPreProcessorKeywordContext(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
+            Return IsPreProcessorKeywordContext(
+                syntaxTree, position,
+                syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True),
+                cancellationToken)
+        End Function
+
+        <Extension()>
+        Public Function IsPreProcessorKeywordContext(syntaxTree As SyntaxTree, position As Integer, preProcessorTokenOnLeftOfPosition As SyntaxToken, cancellationToken As CancellationToken) As Boolean
+            ' cases:
+            '  #|
+            '  #d|
+            '  # |
+            '  # d|
+
+            ' note comments are Not allowed between the # And item.
+            Dim token = preProcessorTokenOnLeftOfPosition
+            token = token.GetPreviousTokenIfTouchingWord(position)
+
+            Return token.HasAncestor(Of DirectiveTriviaSyntax)
+        End Function
+
+        <Extension()>
         Public Function IsNamespaceContext(syntaxTree As SyntaxTree, position As Integer, token As SyntaxToken, cancellationToken As CancellationToken, Optional semanticModelOpt As SemanticModel = Nothing) As Boolean
             Return syntaxTree.IsTypeContext(position, token, cancellationToken, semanticModelOpt)
         End Function

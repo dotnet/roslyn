@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 
@@ -19,8 +20,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateVariable
             End If
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
-        Public Sub TestSimpleInstanceProperty_VisualBasicToCSharp()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestSimpleInstanceProperty_VisualBasicToCSharp() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
@@ -51,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateVariable
                     }
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
     End Class
 End Namespace

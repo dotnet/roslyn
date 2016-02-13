@@ -14,12 +14,10 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         private EmptyAsyncToken()
         {
-
         }
 
         public void Dispose()
         {
-
         }
     }
 }

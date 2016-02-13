@@ -34,11 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
         internal void RaiseTaskListUpdated(object id, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> items)
         {
-            var handler = this.TodoListUpdated;
-            if (handler != null)
-            {
-                handler(this, new TodoItemsUpdatedArgs(Tuple.Create(this, id), workspace, solution, projectId, documentId, items));
-            }
+            this.TodoListUpdated?.Invoke(this, new TodoItemsUpdatedArgs(Tuple.Create(this, id), workspace, solution, projectId, documentId, items));
         }
 
         public event EventHandler<TodoItemsUpdatedArgs> TodoListUpdated;

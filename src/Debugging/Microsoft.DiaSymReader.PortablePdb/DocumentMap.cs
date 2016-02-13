@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,7 +24,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         private readonly MetadataReader _reader;
 
-        // { last part of document name -> one or many document handles that have the part in commmon }
+        // { last part of document name -> one or many document handles that have the part in common }
         private readonly IReadOnlyDictionary<string, KeyValuePair<DocumentNameAndHandle, ImmutableArray<DocumentNameAndHandle>>> _map;
 
         public DocumentMap(MetadataReader reader)
@@ -95,7 +96,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
         {
             var fileName = FileNameUtilities.GetFileName(fullPath);
 
-            KeyValuePair<DocumentNameAndHandle, ImmutableArray<DocumentNameAndHandle>> documents; 
+            KeyValuePair<DocumentNameAndHandle, ImmutableArray<DocumentNameAndHandle>> documents;
             if (!_map.TryGetValue(fileName, out documents))
             {
                 documentHandle = default(DocumentHandle);

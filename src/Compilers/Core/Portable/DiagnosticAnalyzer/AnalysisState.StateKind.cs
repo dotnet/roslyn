@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// 1. Completely unprocessed: <see cref="ReadyToProcess"/>
         /// 2. Currently being processed: <see cref="InProcess"/>
         /// 3. Partially processed by one or more older requests that was either completed or cancelled: <see cref="ReadyToProcess"/>
-        /// 4. Fully processed: We don't need a state kind to represent fully processed state as the analysis state object is discarded once fully processed.
+        /// 4. Fully processed: <see cref="FullyProcessed"/>.
         /// </summary>
         internal enum StateKind
         {
@@ -23,7 +23,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// <summary>
             /// Currently being processed.
             /// </summary>
-            InProcess
+            InProcess,
+
+            /// <summary>
+            /// Fully processed.
+            /// </summary>
+            FullyProcessed,
         }
     }
 }

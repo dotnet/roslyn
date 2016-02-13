@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -29,10 +30,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             Workspace workspace,
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
+            IWaitIndicator waitIndicator,
             CodeFix fix,
             object provider,
             Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet) :
-                base(workspace, subjectBuffer, editHandler, fix.Action, provider)
+                base(workspace, subjectBuffer, editHandler, waitIndicator, fix.Action, provider)
         {
             _fix = fix;
             _getFixAllSuggestedActionSet = getFixAllSuggestedActionSet;
@@ -67,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     var fixAllSuggestedActionSet = _getFixAllSuggestedActionSet(c);
                     nestedSuggestedActions.Add(new CodeFixSuggestedAction(
-                            this.Workspace, this.SubjectBuffer, this.EditHandler,
+                            this.Workspace, this.SubjectBuffer, this.EditHandler, this.WaitIndicator,
                             new CodeFix(_fix.Project, c, _fix.Diagnostics), c, this.Provider, fixAllSuggestedActionSet));
                 }
 

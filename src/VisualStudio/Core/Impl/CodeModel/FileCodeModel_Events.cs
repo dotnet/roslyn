@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var oldTree = _lastSyntaxTree;
             var newTree = document
                 .GetSyntaxTreeAsync(CancellationToken.None)
-                .WaitAndGetResult(CancellationToken.None);
+                .WaitAndGetResult_CodeModel(CancellationToken.None);
 
             _lastSyntaxTree = newTree;
 

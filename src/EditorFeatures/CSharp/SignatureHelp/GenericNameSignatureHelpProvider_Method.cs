@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
         {
             var result = new List<SymbolDisplayPart>();
 
-            var awaitable = method.GetOriginalUnreducedDefinition().IsAwaitable(semanticModel, position);
+            var awaitable = method.GetOriginalUnreducedDefinition().IsAwaitableNonDynamic(semanticModel, position);
             var extension = method.GetOriginalUnreducedDefinition().IsExtensionMethod();
 
             if (awaitable && extension)

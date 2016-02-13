@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             // If they both seemed just as good, but they differ on preselection, then
-            // item1 is better if it is preselected, otherwise it it worse.
+            // item1 is better if it is preselected, otherwise it is worse.
             if (item1.Preselect != item2.Preselect)
             {
                 return item1.Preselect;

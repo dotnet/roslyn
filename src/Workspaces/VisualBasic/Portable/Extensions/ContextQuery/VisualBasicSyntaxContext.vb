@@ -34,6 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public ReadOnly IsSingleLineStatementContext As Boolean
         Public ReadOnly IsMultiLineStatementContext As Boolean
 
+        Public ReadOnly IsGlobalStatementContext As Boolean
+
         Public ReadOnly IsTypeDeclarationKeywordContext As Boolean
         Public ReadOnly IsTypeMemberDeclarationKeywordContext As Boolean
         Public ReadOnly IsInterfaceMemberDeclarationKeywordContext As Boolean
@@ -56,6 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             position As Integer,
             leftToken As SyntaxToken,
             targetToken As SyntaxToken,
+            touchingToken As SyntaxToken,
             isTypeContext As Boolean,
             isNamespaceContext As Boolean,
             isPreProcessorDirectiveContext As Boolean,
@@ -98,12 +101,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Me.IsSingleLineStatementContext = isSingleLineStatementContext
             Me.IsMultiLineStatementContext = syntaxTree.IsMultiLineStatementStartContext(position, targetToken, cancellationToken)
 
+            Me.IsGlobalStatementContext = syntaxTree.IsGlobalStatementContext(position, cancellationToken)
+
             Me.IsTypeDeclarationKeywordContext = syntaxTree.IsTypeDeclarationKeywordContext(position, targetToken, cancellationToken)
             Me.IsTypeMemberDeclarationKeywordContext = syntaxTree.IsTypeMemberDeclarationKeywordContext(position, targetToken, cancellationToken)
             Me.IsInterfaceMemberDeclarationKeywordContext = syntaxTree.IsInterfaceMemberDeclarationKeywordContext(position, targetToken, cancellationToken)
 
             Me.ModifierCollectionFacts = New ModifierCollectionFacts(syntaxTree, position, targetToken, cancellationToken)
-            Me.TouchingToken = syntaxTree.GetTouchingToken(position, cancellationToken)
+            Me.TouchingToken = touchingToken
             Me.IsInLambda = isInLambda
             Me.IsPreprocessorStartContext = ComputeIsPreprocessorStartContext(position, targetToken)
             Me.IsWithinPreprocessorContext = ComputeIsWithinPreprocessorContext(position, targetToken)
@@ -121,10 +126,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Return enclosingMethod IsNot Nothing AndAlso enclosingMethod.BlockStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
         End Function
 
-        Public Shared Function CreateContext(workspace As Workspace, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As VisualBasicSyntaxContext
+        Public Shared Async Function CreateContextAsync(workspace As Workspace, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
             Dim syntaxTree = semanticModel.SyntaxTree
             Dim leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
             Dim targetToken = syntaxTree.GetTargetToken(position, cancellationToken)
+            Dim touchingToken = Await syntaxTree.GetTouchingTokenAsync(position, cancellationToken).ConfigureAwait(False)
 
             Return New VisualBasicSyntaxContext(
                 workspace,
@@ -132,6 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 position,
                 leftToken,
                 targetToken,
+                touchingToken,
                 isTypeContext:=syntaxTree.IsTypeContext(position, targetToken, cancellationToken, semanticModel),
                 isNamespaceContext:=syntaxTree.IsNamespaceContext(position, targetToken, cancellationToken, semanticModel),
                 isPreProcessorDirectiveContext:=syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken),
@@ -148,8 +155,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 cancellationToken:=cancellationToken)
         End Function
 
-        Public Shared Function CreateContext_Test(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As VisualBasicSyntaxContext
-            Return CreateContext(Nothing, semanticModel, position, cancellationToken)
+        Public Shared Function CreateContextAsync_Test(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
+            Return CreateContextAsync(Nothing, semanticModel, position, cancellationToken)
         End Function
 
         Private Function ComputeEnclosingNamedType(cancellationToken As CancellationToken) As INamedTypeSymbol

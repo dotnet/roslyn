@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports PrimitiveTypeCode = Microsoft.Cci.PrimitiveTypeCode
@@ -141,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Dim typeTo = conversion.Type
 
             If conversion.Operand.IsNothingLiteral Then
-                Debug.Assert(typeTo.IsValueType AndAlso Not typeTo.IsTypeParameter)
+                Debug.Assert(typeTo.IsValueType OrElse typeTo.IsTypeParameter)
 
                 If used Then
                     'TODO: used

@@ -12,7 +12,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
     Friend Class EditAndContinueTestHelper
 
-        Public Shared Function CreateTestWorkspace() As TestWorkspace
+        Public Shared Function CreateTestWorkspaceAsync() As Task(Of TestWorkspace)
             ' create workspace
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
                                     </Document>
                            </Project>
                        </Workspace>
-            Return TestWorkspaceFactory.CreateWorkspace(test)
+            Return TestWorkspace.CreateAsync(test)
         End Function
 
         Public Class TestDiagnosticAnalyzerService
@@ -48,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
                 Return If(includeSuppressedDiagnostics, _data, _data.WhereAsArray(Function(d) Not d.IsSuppressed))
             End Function
 
-            Public Sub Reanalyze(workspace As Workspace, Optional projectIds As IEnumerable(Of ProjectId) = Nothing, Optional documentIds As IEnumerable(Of DocumentId) = Nothing) Implements IDiagnosticAnalyzerService.Reanalyze
+            Public Sub Reanalyze(workspace As Workspace, Optional projectIds As IEnumerable(Of ProjectId) = Nothing, Optional documentIds As IEnumerable(Of DocumentId) = Nothing, Optional highPriority As Boolean = False) Implements IDiagnosticAnalyzerService.Reanalyze
             End Sub
 
             Public Function GetDiagnosticDescriptors(projectOpt As Project) As ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticDescriptor)) Implements IDiagnosticAnalyzerService.GetDiagnosticDescriptors

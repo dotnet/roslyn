@@ -166,8 +166,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             codeElement.RemoveInterface(element)
         End Sub
 
-        Protected Sub TestGetBaseName(code As XElement, expectedBaseName As String)
-            TestElement(code,
+        Protected Async Function TestGetBaseName(code As XElement, expectedBaseName As String) As Threading.Tasks.Task
+            Await TestElement(code,
                 Sub(codeClass)
                     Dim codeClassBase = TryCast(codeClass, ICodeClassBase)
                     Assert.NotNull(codeClassBase)
@@ -178,6 +178,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
                     Assert.Equal(expectedBaseName, baseName)
                 End Sub)
-        End Sub
+        End Function
     End Class
 End Namespace

@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#pragma warning disable 436 // The type 'RelativePathResolver' comflicts with imported type
+#pragma warning disable 436 // The type 'RelativePathResolver' conflicts with imported type
 
 using System;
 using System.Collections.Immutable;
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     internal sealed class RuntimeMetadataReferenceResolver : MetadataReferenceResolver, IEquatable<RuntimeMetadataReferenceResolver>
     {
         // Ideally we'd use properties with no aliases, but currently that's not possible since empty aliases mean {global}.
-        private static readonly MetadataReferenceProperties ResolvedMissingAssemblyReferenceProperties = MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("<implicit>"));
+        private static readonly MetadataReferenceProperties s_resolvedMissingAssemblyReferenceProperties = MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("<implicit>"));
 
         public static readonly RuntimeMetadataReferenceResolver Default = new RuntimeMetadataReferenceResolver(ImmutableArray<string>.Empty, baseDirectory: null);
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             PathResolver = pathResolver;
             PackageResolver = packageResolver;
             GacFileResolver = gacFileResolver;
-            _fileReferenceProvider = fileReferenceProvider ?? 
+            _fileReferenceProvider = fileReferenceProvider ??
                 new Func<string, MetadataReferenceProperties, PortableExecutableReference>((path, properties) => MetadataReference.CreateFromFile(path, properties));
         }
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         private PortableExecutableReference CreateResolvedMissingReference(string fullPath)
         {
-            return _fileReferenceProvider(fullPath, ResolvedMissingAssemblyReferenceProperties);
+            return _fileReferenceProvider(fullPath, s_resolvedMissingAssemblyReferenceProperties);
         }
 
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)

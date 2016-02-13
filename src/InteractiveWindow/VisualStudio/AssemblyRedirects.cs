@@ -2,5 +2,5 @@
 
 using Roslyn.VisualStudio.Setup;
 
-[assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.InteractiveWindow")]
-[assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.VsInteractiveWindow")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.InteractiveWindow.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.VsInteractiveWindow.dll")]

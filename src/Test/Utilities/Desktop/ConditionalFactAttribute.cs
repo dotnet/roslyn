@@ -7,7 +7,7 @@ using Microsoft.Win32;
 using Xunit;
 
 namespace Roslyn.Test.Utilities
-{   
+{
     public class WindowsOnly : ExecutionCondition
     {
         public override bool ShouldSkip { get { return Path.DirectorySeparatorChar != '\\'; } }

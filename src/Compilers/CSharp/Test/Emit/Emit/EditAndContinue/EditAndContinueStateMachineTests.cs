@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     public class EditAndContinueStateMachineTests : EditAndContinueTestBase
     {
         [Fact]
-        [WorkItem(1068894, "DevDiv"), WorkItem(1137300, "DevDiv")]
+        [WorkItem(1068894, "DevDiv"), WorkItem(1137300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1137300")]
         public void AddIteratorMethod()
         {
             var source0 =
@@ -2141,6 +2141,74 @@ class C
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
+            var baselineIL0 = @"
+{
+  // Code size      147 (0x93)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0012
+  IL_000a:  br.s       IL_000c
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_0018
+  IL_0014:  br.s       IL_003c
+  IL_0016:  ldc.i4.0
+  IL_0017:  ret
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001f:  nop
+  IL_0020:  ldarg.0
+  IL_0021:  ldc.i4.1
+  IL_0022:  box        ""int""
+  IL_0027:  stfld      ""dynamic C.<F>d__0.<x>5__1""
+  IL_002c:  ldarg.0
+  IL_002d:  ldc.i4.1
+  IL_002e:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0033:  ldarg.0
+  IL_0034:  ldc.i4.1
+  IL_0035:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_003a:  ldc.i4.1
+  IL_003b:  ret
+  IL_003c:  ldarg.0
+  IL_003d:  ldc.i4.m1
+  IL_003e:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0043:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0.<>p__0""
+  IL_0048:  brfalse.s  IL_004c
+  IL_004a:  br.s       IL_0071
+  IL_004c:  ldc.i4.s   16
+  IL_004e:  ldtoken    ""int""
+  IL_0053:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0058:  ldtoken    ""C""
+  IL_005d:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0062:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
+  IL_0067:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_006c:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0.<>p__0""
+  IL_0071:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0.<>p__0""
+  IL_0076:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target""
+  IL_007b:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0.<>p__0""
+  IL_0080:  ldarg.0
+  IL_0081:  ldfld      ""dynamic C.<F>d__0.<x>5__1""
+  IL_0086:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+  IL_008b:  call       ""void System.Console.WriteLine(int)""
+  IL_0090:  nop
+  IL_0091:  ldc.i4.0
+  IL_0092:  ret
+}
+";
+            v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL0);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
             var baselineIL = @"
 {
   // Code size      149 (0x95)
@@ -2204,12 +2272,7 @@ class C
   IL_0094:  ret
 }
 ";
-            v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "0").Replace("<<DYNAMIC_CONTAINER_NAME>>", "<>o__0"));
 
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
                 "C: {<>o__0#1, <F>d__0}",
@@ -3158,7 +3221,7 @@ class C
                 "<>u__2: System.Runtime.CompilerServices.TaskAwaiter<int>");
         }
 
-        [Fact, WorkItem(1170899, "DevDiv")]
+        [Fact, WorkItem(1170899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")]
         public void HoistedAnonymousTypes1()
         {
             var source0 = MarkedSource(@"
@@ -3293,7 +3356,7 @@ class C
             diff2.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "3"));
         }
 
-        [Fact, WorkItem(3192)]
+        [Fact, WorkItem(3192, "https://github.com/dotnet/roslyn/issues/3192")]
         public void HoistedAnonymousTypes_Nested()
         {
             var source0 = MarkedSource(@"
@@ -3439,7 +3502,7 @@ class C
             diff2.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "3"));
         }
 
-        [Fact, WorkItem(3192)]
+        [Fact, WorkItem(3192, "https://github.com/dotnet/roslyn/issues/3192")]
         public void HoistedGenericTypes()
         {
             var source0 = MarkedSource(@"
@@ -3626,6 +3689,61 @@ class C
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
+            var baselineIL0 = @"
+{
+  // Code size       87 (0x57)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0012
+  IL_000a:  br.s       IL_000c
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_0018
+  IL_0014:  br.s       IL_003d
+  IL_0016:  ldc.i4.0
+  IL_0017:  ret
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001f:  nop
+  IL_0020:  ldarg.0
+  IL_0021:  ldnull
+  IL_0022:  ldc.i4.1
+  IL_0023:  newobj     ""<>f__AnonymousType0<dynamic, int>..ctor(dynamic, int)""
+  IL_0028:  stfld      ""<anonymous type: dynamic A, int B> C.<F>d__0.<x>5__1""
+  IL_002d:  ldarg.0
+  IL_002e:  ldc.i4.1
+  IL_002f:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0034:  ldarg.0
+  IL_0035:  ldc.i4.1
+  IL_0036:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_003b:  ldc.i4.1
+  IL_003c:  ret
+  IL_003d:  ldarg.0
+  IL_003e:  ldc.i4.m1
+  IL_003f:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0044:  ldarg.0
+  IL_0045:  ldfld      ""<anonymous type: dynamic A, int B> C.<F>d__0.<x>5__1""
+  IL_004a:  callvirt   ""int <>f__AnonymousType0<dynamic, int>.B.get""
+  IL_004f:  call       ""void System.Console.WriteLine(int)""
+  IL_0054:  nop
+  IL_0055:  ldc.i4.0
+  IL_0056:  ret
+}
+";
+            v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL0);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
             var baselineIL = @"
 {
   // Code size       89 (0x59)
@@ -3676,12 +3794,6 @@ class C
   IL_0058:  ret
 }
 ";
-            v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "0"));
-
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
                 "C: {<F>d__0}",
@@ -3703,7 +3815,7 @@ class C
             diff2.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "2"));
         }
 
-        [Fact, WorkItem(3192)]
+        [Fact, WorkItem(3192, "https://github.com/dotnet/roslyn/issues/3192")]
         public void HoistedAnonymousTypes_Delete()
         {
             var source0 = MarkedSource(@"

@@ -94,19 +94,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                             newSuppressionFix.Action.GetCodeActions().OfType<IPragmaBasedCodeAction>().SingleOrDefault();
                         if (newPragmaAction != null)
                         {
-                            // Get the changed document with pragma suppression add/removals.
+                            // Get the text changes with pragma suppression add/removals.
                             // Note: We do it one token at a time to ensure we get single text change in the new document, otherwise UpdateDiagnosticSpans won't function as expected.
                             // Update the diagnostics spans based on the text changes.
-                            var startTokenChanges = await GetChangedDocumentAsync(newPragmaAction, currentDocument, diagnostics, currentDiagnosticSpans,
+                            var startTokenChanges = await GetTextChangesAsync(newPragmaAction, currentDocument, diagnostics, currentDiagnosticSpans,
                                 includeStartTokenChange: true, includeEndTokenChange: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                            var endTokenChanges = await GetChangedDocumentAsync(newPragmaAction, currentDocument, diagnostics, currentDiagnosticSpans,
+                            var endTokenChanges = await GetTextChangesAsync(newPragmaAction, currentDocument, diagnostics, currentDiagnosticSpans,
                                 includeStartTokenChange: false, includeEndTokenChange: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                             var currentText = await currentDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                             var orderedChanges = startTokenChanges.Concat(endTokenChanges).OrderBy(change => change.Span).Distinct();
                             var newText = currentText.WithChanges(orderedChanges);
                             currentDocument = currentDocument.WithText(newText);
+
+                            // Update the diagnostics spans based on the text changes.
+                            UpdateDiagnosticSpans(diagnostics, currentDiagnosticSpans, orderedChanges);
                         }
                     }
                 }
@@ -114,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 return currentDocument;
             }
 
-            private static async Task<IEnumerable<TextChange>> GetChangedDocumentAsync(
+            private static async Task<IEnumerable<TextChange>> GetTextChangesAsync(
                 IPragmaBasedCodeAction pragmaAction,
                 Document currentDocument,
                 ImmutableArray<Diagnostic> diagnostics,
@@ -124,70 +127,58 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 CancellationToken cancellationToken)
             {
                 var newDocument = await pragmaAction.GetChangedDocumentAsync(includeStartTokenChange, includeEndTokenChange, cancellationToken).ConfigureAwait(false);
-                
-                // Update the diagnostics spans based on the text changes.
-                var textChanges = await newDocument.GetTextChangesAsync(currentDocument, cancellationToken).ConfigureAwait(false);
-                foreach (var textChange in textChanges)
-                {
-                    UpdateDiagnosticSpans(diagnostics, currentDiagnosticSpans, textChange);
-                }
-
-                return textChanges;
+                return await newDocument.GetTextChangesAsync(currentDocument, cancellationToken).ConfigureAwait(false);
             }
 
-            private static async Task UpdateDiagnosticSpansAsync(Document currentDocument, Document newDocument, ImmutableArray<Diagnostic> diagnostics, Dictionary<Diagnostic, TextSpan> currentDiagnosticSpans, CancellationToken cancellationToken)
+            private static void UpdateDiagnosticSpans(ImmutableArray<Diagnostic> diagnostics, Dictionary<Diagnostic, TextSpan> currentDiagnosticSpans, IEnumerable<TextChange> textChanges)
             {
-                // Update the diagnostics spans based on the text changes.
-                var textChanges = await newDocument.GetTextChangesAsync(currentDocument, cancellationToken).ConfigureAwait(false);
-                foreach (var textChange in textChanges)
-                {
-                    UpdateDiagnosticSpans(diagnostics, currentDiagnosticSpans, textChange);
-                }
-            }
-
-            private static void UpdateDiagnosticSpans(ImmutableArray<Diagnostic> diagnostics, Dictionary<Diagnostic, TextSpan> currentDiagnosticSpans, TextChange textChange)
-            {
-                var isAdd = textChange.Span.Length == 0;
-                Func<TextSpan, bool> isPriorSpan = span => span.End <= textChange.Span.Start;
-                Func<TextSpan, bool> isFollowingSpan = span => span.Start >= textChange.Span.End;
-                Func<TextSpan, bool> isEnclosingSpan = span => span.Contains(textChange.Span);
+                Func<TextSpan, TextChange, bool> isPriorSpan = (span, textChange) => span.End <= textChange.Span.Start;
+                Func<TextSpan, TextChange, bool> isFollowingSpan = (span, textChange) => span.Start >= textChange.Span.End;
+                Func<TextSpan, TextChange, bool> isEnclosingSpan = (span, textChange) => span.Contains(textChange.Span);
 
                 foreach (var diagnostic in diagnostics)
                 {
-                    TextSpan currentSpan;
-                    if (!currentDiagnosticSpans.TryGetValue(diagnostic, out currentSpan))
+                    // We use 'originalSpan' to identify if the diagnostic is prior/following/enclosing with respect to each text change.
+                    // We use 'currentSpan' to track updates made to the originalSpan by each text change.
+                    TextSpan originalSpan;
+                    if (!currentDiagnosticSpans.TryGetValue(diagnostic, out originalSpan))
                     {
                         continue;
                     }
 
-                    if (isPriorSpan(currentSpan))
+                    var currentSpan = originalSpan;
+                    foreach (var textChange in textChanges)
                     {
-                        // Prior span, needs no update.
-                        continue;
-                    }
+                        if (isPriorSpan(originalSpan, textChange))
+                        {
+                            // Prior span, needs no update.
+                            continue;
+                        }
 
-                    var delta = textChange.NewText.Length - textChange.Span.Length;
-                    if (delta != 0)
-                    {
-                        if (isFollowingSpan(currentSpan))
+                        var delta = textChange.NewText.Length - textChange.Span.Length;
+                        if (delta != 0)
                         {
-                            // Following span.
-                            var newStart = currentSpan.Start + delta;
-                            var newSpan = new TextSpan(newStart, currentSpan.Length);
-                            currentDiagnosticSpans[diagnostic] = newSpan;
-                        }
-                        else if (isEnclosingSpan(currentSpan))
-                        {
-                            // Enclosing span.
-                            var newLength = currentSpan.Length + delta;
-                            var newSpan = new TextSpan(currentSpan.Start, newLength);
-                            currentDiagnosticSpans[diagnostic] = newSpan;
-                        }
-                        else
-                        {
-                            // Overlapping span.
-                            // Drop conflicting diagnostics.
-                            currentDiagnosticSpans.Remove(diagnostic);
+                            if (isFollowingSpan(originalSpan, textChange))
+                            {
+                                // Following span.
+                                var newStart = currentSpan.Start + delta;
+                                currentSpan = new TextSpan(newStart, currentSpan.Length);
+                                currentDiagnosticSpans[diagnostic] = currentSpan;
+                            }
+                            else if (isEnclosingSpan(originalSpan, textChange))
+                            {
+                                // Enclosing span.
+                                var newLength = currentSpan.Length + delta;
+                                currentSpan = new TextSpan(currentSpan.Start, newLength);
+                                currentDiagnosticSpans[diagnostic] = currentSpan;
+                            }
+                            else
+                            {
+                                // Overlapping span.
+                                // Drop conflicting diagnostics.
+                                currentDiagnosticSpans.Remove(diagnostic);
+                                break;
+                            }
                         }
                     }
                 }

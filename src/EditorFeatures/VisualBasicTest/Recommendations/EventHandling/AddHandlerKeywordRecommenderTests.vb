@@ -1,52 +1,54 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.EventHandling
     Public Class AddHandlerKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AddHandlerHelpText()
-            VerifyRecommendationDescriptionTextIs(<MethodBody>|</MethodBody>, "AddHandler",
+        Public Async Function AddHandlerHelpTextTest() As Task
+            Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>|</MethodBody>, "AddHandler",
 $"{VBFeaturesResources.AddhandlerStatement}
 {AssociatesAnEvent}
 AddHandler {Event1}, {Handler}")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AddHandlerInMethodBody()
-            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "AddHandler")
-        End Sub
+        Public Async Function AddHandlerInMethodBodyTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "AddHandler")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AddHandlerAfterStatement()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function AddHandlerAfterStatementTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Dim x 
 |</MethodBody>, "AddHandler")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AddHandlerMissingInClassBlock()
-            VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "AddHandler")
-        End Sub
+        Public Async Function AddHandlerMissingInClassBlockTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, "AddHandler")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AddHandlerInSingleLineLambda()
-            VerifyRecommendationsContain(<MethodBody>Dim x = Sub() |</MethodBody>, "AddHandler")
-        End Sub
+        Public Async Function AddHandlerInSingleLineLambdaTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = Sub() |</MethodBody>, "AddHandler")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AddHandlerInSingleLineFunctionLambda()
-            VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "AddHandler")
-        End Sub
+        Public Async Function AddHandlerInSingleLineFunctionLambdaTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = Function() |</MethodBody>, "AddHandler")
+        End Function
 
-        <WpfFact>
-        <WorkItem(808406)>
+        <Fact>
+        <WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AddHandlerInCustomEvent()
+        Public Async Function AddHandlerInCustomEventTest() As Task
             Dim code = <File>
 Public Class Z
     Public Custom Event E As Action
@@ -54,13 +56,13 @@ Public Class Z
     End Event
 End Class</File>
 
-            VerifyRecommendationsContain(code, "AddHandler")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "AddHandler")
+        End Function
 
-        <WpfFact>
-        <WorkItem(808406)>
+        <Fact>
+        <WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotAddHandlerInCustomEventWithAddHandler()
+        Public Async Function NotAddHandlerInCustomEventWithAddHandlerTest() As Task
             Dim code = <File>
 Public Class Z
     Public Custom Event E As Action
@@ -70,7 +72,7 @@ Public Class Z
     End Event
 End Class</File>
 
-            VerifyRecommendationsMissing(code, "AddHandler")
-        End Sub
+            Await VerifyRecommendationsMissingAsync(code, "AddHandler")
+        End Function
     End Class
 End Namespace

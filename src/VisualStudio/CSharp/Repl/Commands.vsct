@@ -24,7 +24,6 @@
         </Strings>
       </Button>
 
-      <!-- https://github.com/dotnet/roslyn/issues/4688
       <Button guid="guidCSharpInteractiveCommandSet" id="cmdidResetInteractiveFromProject" priority="0x0100" type="Button">
         <Parent guid="guidCSharpInteractiveCommandSet" id="IDG_INTERACTIVE_PROJECT"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
@@ -35,12 +34,12 @@
           <LocCanonicalName>ResetC#InteractiveFromProject</LocCanonicalName>
         </Strings>
       </Button>
-      -->
     </Buttons>
   </Commands>
   
   <VisibilityConstraints>
     <VisibilityItem context="guidCSProjectContext" guid="guidCSharpInteractiveCommandSet" id="cmdidResetInteractiveFromProject" />
+    <VisibilityItem context="guidVBProjectContext" guid="guidCSharpInteractiveCommandSet" id="cmdidResetInteractiveFromProject" />
   </VisibilityConstraints>
   
   <!-- https://github.com/dotnet/roslyn/issues/3941
@@ -61,6 +60,7 @@
     </GuidSymbol>
 
     <GuidSymbol name="guidCSProjectContext" value="{FAE04EC1-301F-11D3-BF4B-00C04F79EFBC}" />
+    <GuidSymbol name="guidVBProjectContext" value="{164B10B9-B200-11D0-8C61-00A0C91E29D5}" />
       
     <!-- TODO (https://github.com/dotnet/roslyn/issues/6078): delete this -->
     <GuidSymbol name="RoslynImageCatalogGuid" value="{ae27a6b0-e345-4288-96df-5eaf394ee369}">

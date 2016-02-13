@@ -15,11 +15,13 @@ static void addLogRotator(def myJob) {
 static void addConcurrentBuild(def myJob, String category) {
   myJob.with {
     concurrentBuild(true)
-    throttleConcurrentBuilds {
-      throttleDisabled(false)
-      maxTotal(0)
-      maxPerNode(4)
-      categories([category])
+    if (category != null)  {
+      throttleConcurrentBuilds {
+        throttleDisabled(false)
+        maxTotal(0)
+        maxPerNode(1)
+        categories([category])
+      }
     }
   }
 }
@@ -45,10 +47,25 @@ static void addWrappers(def myJob) {
   myJob.with {
     wrappers {
       timeout {
-        absolute(90)
+        absolute(120)
         abortBuild()
       }
       timestamps()
+    }
+  }
+}
+
+static void addArtifactArchiving(def myJob, String patternString, String excludeString) {
+  myJob.with {
+    publishers {
+      archiveArtifacts {
+        allowEmpty(true)
+        defaultExcludes(false)
+        exclude(excludeString)
+        fingerprint(false)
+        onlyIfSuccessful(false)
+        pattern(patternString)
+      }
     }
   }
 }
@@ -121,7 +138,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
         autoCloseFailedPullRequests(false)
         orgWhitelist('Microsoft')
         allowMembersOfWhitelistedOrgsAsAdmin(true)
-        permitAll(false)
+        permitAll(true)
         extensions {
           commitStatus {
             context(contextName.replace('_', '/').substring(7))
@@ -129,6 +146,31 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
         }
       }
     }
+  }
+}
+
+static void addStandardJob(def myJob, String jobName, String branchName, String buildTarget, String opsys) {
+  addLogRotator(myJob)
+  addWrappers(myJob)
+
+  def includePattern = "Binaries/**/*.pdb,Binaries/**/*.xml,Binaries/**/*.log,Binaries/**/*.dmp,Binaries/**/*.zip"
+  def excludePattern = "Binaries/Obj/**,Binaries/Bootstrap/**"
+  addArtifactArchiving(myJob, includePattern, excludePattern)
+
+  if (branchName == 'prtest') {
+    switch (buildTarget) {
+      case 'unit32':
+        addPullRequestTrigger(myJob, jobName, opsys, "(unit|unit32|unit\\W+32)")
+        break;
+      case 'unit64':
+        addPullRequestTrigger(myJob, jobName, opsys, '(unit|unit64|unit\\W+64)')
+        break;
+    }
+    addScm(myJob, '${sha1}', '+refs/pull/*:refs/remotes/origin/pr/*')
+  } else {
+    addPushTrigger(myJob)
+    addScm(myJob, "*/${branchName}")
+    addEmailPublisher(myJob)
   }
 }
 
@@ -149,12 +191,16 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
             switch (opsys) {
               case 'win':
                 myJob.with {
-                  label('windows-roslyn || windows-roslyn-internal')
+                  label('windows-roslyn')
                   steps {
-                    batchFile(".\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}")
+                    batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
+mkdir %TEMP%
+set TMP=%TEMP%
+.\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}""")
                   }
                 }
-                addConcurrentBuild(myJob, 'roslyn/win/unit')
+                // Generic throttling for Windows, no category
+                addConcurrentBuild(myJob, null)
                 break;
               case 'linux':
                 myJob.with {
@@ -176,29 +222,32 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
                 break;
             }
 
-            addLogRotator(myJob)
-            addWrappers(myJob)
-
             addUnitPublisher(myJob)
-
-            if (branchName == 'prtest') {
-              switch (buildTarget) {
-                case 'unit32':
-                  addPullRequestTrigger(myJob, jobName, opsys, "(unit|unit32|unit\\W+32)")
-                  break;
-                case 'unit64':
-                  addPullRequestTrigger(myJob, jobName, opsys, '(unit|unit64|unit\\W+64)')
-                  break;
-              }
-              addScm(myJob, '${sha1}', '+refs/pull/*:refs/remotes/origin/pr/*')
-            } else {
-              addPushTrigger(myJob)
-              addScm(myJob, "*/${branchName}")
-              addEmailPublisher(myJob)
-            }
+            addStandardJob(myJob, jobName, branchName, buildTarget, opsys)
           }
         }
       }
     }
   }
+
+  if (branchName != 'prtest') {
+    def determinismJobName = "roslyn_${branchName.substring(0, 6)}_determinism"
+    def determinismJob = job(determinismJobName) {
+      description('')
+    }
+
+    determinismJob.with {
+      label('windows-roslyn')
+      steps {
+        batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
+mkdir %TEMP%
+set TMP=%TEMP%
+.\\cibuild.cmd /testDeterminism""")
+      }
+    }
+
+    addConcurrentBuild(determinismJob, null)
+    addStandardJob(determinismJob, determinismJobName, branchName, "unit32", "win")
+  }
 }
+

@@ -4,10 +4,13 @@ http://EditorConfig.org
 # top-most EditorConfig file
 root = true
 
-# Default settings:
-# Use 4 spaces as indentation
+# Don't use tabs for indentation.
 [*]
 indent_style = space
+# (Please don't specify an indent_size here; that has too many unintended consequences.)
+
+# Code files
+[*.cs,*.csx,*.vb,*.vbx]
 indent_size = 4
 
 # Xml project files
@@ -16,4 +19,8 @@ indent_size = 2
 
 # Xml config files
 [*.{props,targets,ruleset,config,nuspec,resx,vsixmanifest,vsct}]
+indent_size = 2
+
+# JSON files
+[*.json]
 indent_size = 2

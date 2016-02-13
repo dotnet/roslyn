@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }
         }
 
-        [WorkItem(962219)]
+        [WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")]
         [Fact]
         public void PartialMethod()
         {
@@ -820,7 +820,7 @@ class B
             }
         }
 
-        [Fact, WorkItem(1175704, "DevDiv")]
+        [Fact, WorkItem(1175704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1175704")]
         public void EventFields()
         {
             var source0 = MarkedSource(@"
@@ -1290,7 +1290,7 @@ class B : I
             }
         }
 
-        [Fact, WorkItem(930065)]
+        [Fact, WorkItem(930065, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/930065")]
         public void ModifyConstructorBodyInPresenceOfExplicitInterfaceImplementation()
         {
             var source = @"
@@ -2562,8 +2562,8 @@ class C
 }");
         }
 
-        [WorkItem(780989, "DevDiv")]
-        [WorkItem(829353, "DevDiv")]
+        [WorkItem(780989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780989")]
+        [WorkItem(829353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829353")]
         [Fact]
         public void PrivateImplementationDetails_ArrayInitializer_FromMetadata()
         {
@@ -2713,8 +2713,8 @@ class C
 }");
         }
 
-        [WorkItem(780989, "DevDiv")]
-        [WorkItem(829353, "DevDiv")]
+        [WorkItem(780989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780989")]
+        [WorkItem(829353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829353")]
         [Fact]
         public void PrivateImplementationDetails_ArrayInitializer_FromSource()
         {
@@ -2887,7 +2887,7 @@ class C
         /// Should not generate method for string switch since
         /// the CLR only allows adding private members.
         /// </summary>
-        [WorkItem(834086, "DevDiv")]
+        [WorkItem(834086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834086")]
         [Fact]
         public void PrivateImplementationDetails_ComputeStringHash()
         {
@@ -3481,7 +3481,7 @@ class B : A<B>
         /// used by the method body, since there may be existing
         /// references to that slot, in a Watch window for instance.
         /// </summary>
-        [WorkItem(843320, "DevDiv")]
+        [WorkItem(843320, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843320")]
         [Fact]
         public void PreserveLocalTypes()
         {
@@ -3662,7 +3662,7 @@ class B : A<B>
 }");
         }
 
-        [WorkItem(779531, "DevDiv")]
+        [WorkItem(779531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/779531")]
         [Fact]
         public void ChangeLocalType()
         {
@@ -4046,7 +4046,7 @@ class C
         /// <summary>
         /// Reuse existing anonymous types.
         /// </summary>
-        [WorkItem(825903, "DevDiv")]
+        [WorkItem(825903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/825903")]
         [Fact]
         public void AnonymousTypes()
         {
@@ -5269,6 +5269,34 @@ class C
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
+            var baselineIL0 = @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (<>f__AnonymousType0<dynamic, int> V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldnull
+  IL_0002:  ldc.i4.1
+  IL_0003:  newobj     ""<>f__AnonymousType0<dynamic, int>..ctor(dynamic, int)""
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  callvirt   ""int <>f__AnonymousType0<dynamic, int>.B.get""
+  IL_000f:  call       ""void System.Console.WriteLine(int)""
+  IL_0014:  nop
+  IL_0015:  ret
+}
+";
+            v0.VerifyIL("C.F", baselineIL0);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "<>f__AnonymousType0<<A>j__TPar, <B>j__TPar>: {Equals, GetHashCode, ToString}");
+
+
             var baselineIL = @"
 {
   // Code size       24 (0x18)
@@ -5288,15 +5316,6 @@ class C
   IL_0017:  ret
 }
 ";
-            v0.VerifyIL("C.F", baselineIL.Replace("<<VALUE>>", "0"));
-
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
-
-            diff1.VerifySynthesizedMembers(
-                "<>f__AnonymousType0<<A>j__TPar, <B>j__TPar>: {Equals, GetHashCode, ToString}");
 
             diff1.VerifyIL("C.F", baselineIL.Replace("<<VALUE>>", "1"));
 
@@ -5560,7 +5579,7 @@ class C
         /// Local names array (from PDB) may have fewer slots than method
         /// signature (from metadata) when the trailing slots are unnamed.
         /// </summary>
-        [WorkItem(782270, "DevDiv")]
+        [WorkItem(782270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782270")]
         [Fact]
         public void Bug782270()
         {
@@ -5650,7 +5669,7 @@ class C
         /// <summary>
         /// Similar to above test but with no named locals in original.
         /// </summary>
-        [WorkItem(782270, "DevDiv")]
+        [WorkItem(782270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782270")]
         [Fact]
         public void Bug782270_NoNamedLocals()
         {
@@ -5796,8 +5815,8 @@ class C
 ");
         }
 
-        [WorkItem(770502, "DevDiv")]
-        [WorkItem(839565, "DevDiv")]
+        [WorkItem(770502, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770502")]
+        [WorkItem(839565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/839565")]
         [Fact]
         public void DynamicOperations()
         {
@@ -5930,7 +5949,7 @@ class C
 
             v0.VerifyIL("C.F", @"
 {
-  // Code size       84 (0x54)
+  // Code size       82 (0x52)
   .maxstack  3
   .locals init (object V_0) //x
   IL_0000:  nop
@@ -5953,11 +5972,9 @@ class C
   IL_0040:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0.<>p__0""
   IL_0045:  ldloc.0
   IL_0046:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-  IL_004b:  ldc.i4.0
-  IL_004c:  add
-  IL_004d:  call       ""void System.Console.WriteLine(int)""
-  IL_0052:  nop
-  IL_0053:  ret
+  IL_004b:  call       ""void System.Console.WriteLine(int)""
+  IL_0050:  nop
+  IL_0051:  ret
 }
 ");
 
@@ -6187,7 +6204,7 @@ class C
 ");
         }
 
-        [WorkItem(844472, "DevDiv")]
+        [WorkItem(844472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844472")]
         [Fact]
         public void MethodSignatureWithNoPIAType()
         {
@@ -6369,7 +6386,7 @@ public struct S
             }
         }
 
-        [WorkItem(844536, "DevDiv")]
+        [WorkItem(844536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844536")]
         [Fact]
         public void NoPIATypeInNamespace()
         {
@@ -6442,7 +6459,7 @@ public interface IB
         /// Should use TypeDef rather than TypeRef for unrecognized
         /// local of a type defined in the original assembly.
         /// </summary>
-        [WorkItem(910777)]
+        [WorkItem(910777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910777")]
         [Fact]
         public void UnrecognizedLocalOfTypeFromAssembly()
         {
@@ -6527,7 +6544,7 @@ class C
         /// Similar to above test but with anonymous type
         /// added in subsequent generation.
         /// </summary>
-        [WorkItem(910777)]
+        [WorkItem(910777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910777")]
         [Fact]
         public void UnrecognizedLocalOfAnonymousTypeFromAssembly()
         {
@@ -6627,7 +6644,7 @@ class C
             }
         }
 
-        [Fact, WorkItem(923492)]
+        [Fact, WorkItem(923492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923492")]
         public void SymWriterErrors()
         {
             var source0 =
@@ -6664,7 +6681,7 @@ class C
             }
         }
 
-        [WorkItem(1058058)]
+        [WorkItem(1058058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1058058")]
         [Fact]
         public void BlobContainsInvalidValues()
         {
@@ -6934,7 +6951,7 @@ public class C
             CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>o__0#2");
         }
 
-        [WorkItem(918650)]
+        [WorkItem(918650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918650")]
         [Fact]
         public void ManyGenerations()
         {

@@ -609,7 +609,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             displayType =>
                             {
                                 completionRoutine(GetResult(inspectionContext, dataItem, declaredType, declaredTypeInfo, displayName.Result, displayValue.Result, displayType.Result, parent));
-                                workList.Execute();
                             },
                             onException),
                         onException),
@@ -637,10 +636,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         onCompleted(result);
                     }
-                    catch (Exception e) when (ExpressionEvaluatorFatalError.ReportNonFatalException(e, DkmComponentManager.ReportCurrentNonFatalException))
+                    catch (Exception e)
                     {
                         onException(e);
                     }
+
+                    workList.Execute();
                 };
             if (str == null)
             {
@@ -831,7 +832,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return null;
             }
 
-            if(declaredType.IsFunctionPointer())
+            if (declaredType.IsFunctionPointer())
             {
                 // Function pointers have no expansion
                 return null;
@@ -901,7 +902,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         completionRoutine();
                     }
-                    catch (Exception e) when (ExpressionEvaluatorFatalError.ReportNonFatalException(e, DkmComponentManager.ReportCurrentNonFatalException))
+                    catch (Exception e)
                     {
                         _onException(e);
                     }

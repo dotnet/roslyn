@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -20,7 +19,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
     internal class ProjectExternalErrorReporter : IVsReportExternalErrors, IVsLanguageServiceBuildErrorReporter2
     {
-        internal static readonly ImmutableDictionary<string, string> Properties = ImmutableDictionary<string, string>.Empty.Add(WellKnownDiagnosticPropertyNames.Origin, WellKnownDiagnosticTags.Build);
         internal static readonly IReadOnlyList<string> CustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Telemetry);
         internal static readonly IReadOnlyList<string> CompilerDiagnosticCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Compiler, WellKnownDiagnosticTags.Telemetry);
 
@@ -210,7 +208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             if (id != null)
             {
                 // save error line/column (surface buffer location) as mapped line/column so that we can display
-                // right location on closed venus file.
+                // right location on closed Venus file.
                 return GetDiagnosticData(
                     id, GetErrorId(error), error.bstrText, GetDiagnosticSeverity(error),
                     null, error.iLine, error.iCol, error.iLine, error.iCol, error.bstrFileName, line, column, line, column);
@@ -257,7 +255,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 isEnabledByDefault: true,
                 warningLevel: GetWarningLevel(severity),
                 customTags: GetCustomTags(errorId),
-                properties: Properties,
+                properties: DiagnosticData.PropertiesForBuildDiagnostic,
                 workspace: _workspace,
                 projectId: _projectId,
                 location: new DiagnosticDataLocation(id,

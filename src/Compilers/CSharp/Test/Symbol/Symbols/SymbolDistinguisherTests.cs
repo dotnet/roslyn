@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
@@ -679,6 +680,28 @@ public class Test
                 // file.cs(8,9): error CS0315: The type 'C [file.cs(2)]' cannot be used as type parameter 'T' in the generic type or method 'Lib.M<T>()'. There is no boxing conversion from 'C [file.cs(2)]' to 'C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]'.
                 //         Lib.M<C>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "Lib.M<C>").WithArguments("Lib.M<T>()", "C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", "T", "C [file.cs(2)]").WithLocation(8, 9));
+        }
+
+        [WorkItem(6262, "https://github.com/dotnet/roslyn/issues/6262")]
+        [Fact]
+        public void SymbolDistinguisherEquality()
+        {
+            var source =
+@"class A { }
+class B { }
+class C { }";
+            var compilation = CreateCompilationWithMscorlib(source);
+            var sA = compilation.GetMember<NamedTypeSymbol>("A");
+            var sB = compilation.GetMember<NamedTypeSymbol>("B");
+            var sC = compilation.GetMember<NamedTypeSymbol>("C");
+            Assert.True(AreEqual(new SymbolDistinguisher(compilation, sA, sB), new SymbolDistinguisher(compilation, sA, sB)));
+            Assert.False(AreEqual(new SymbolDistinguisher(compilation, sA, sB), new SymbolDistinguisher(compilation, sA, sC)));
+            Assert.False(AreEqual(new SymbolDistinguisher(compilation, sA, sB), new SymbolDistinguisher(compilation, sC, sB)));
+        }
+
+        private static bool AreEqual(SymbolDistinguisher a, SymbolDistinguisher b)
+        {
+            return a.First.Equals(b.First) && a.Second.Equals(b.Second);
         }
     }
 }

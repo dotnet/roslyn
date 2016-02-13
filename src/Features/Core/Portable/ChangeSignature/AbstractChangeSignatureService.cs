@@ -334,13 +334,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                 var annotatedNodes = newRoot.GetAnnotatedNodes<SyntaxNode>(syntaxAnnotation: changeSignatureFormattingAnnotation);
 
-                var formattedRoot = Formatter.Format(
+                var formattedRoot = Formatter.FormatAsync(
                     newRoot,
                     changeSignatureFormattingAnnotation,
                     doc.Project.Solution.Workspace,
                     options: null,
                     rules: GetFormattingRules(doc),
-                    cancellationToken: CancellationToken.None);
+                    cancellationToken: CancellationToken.None).WaitAndGetResult(CancellationToken.None);
 
                 updatedRoots[docId] = formattedRoot;
             }

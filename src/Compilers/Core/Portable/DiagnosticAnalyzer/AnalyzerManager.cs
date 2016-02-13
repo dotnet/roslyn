@@ -32,21 +32,49 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         // This map stores the tasks to compute HostSessionStartAnalysisScope for session wide analyzer actions, i.e. AnalyzerActions registered by analyzer's Initialize method.
         // These are run only once per every analyzer.
-        private readonly ConcurrentDictionary<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>> _sessionScopeMap =
-            new ConcurrentDictionary<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>>(concurrencyLevel: 2, capacity: 5);
+        private readonly Dictionary<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>> _sessionScopeMap =
+            new Dictionary<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>>(capacity: 5);
 
         // This map stores the tasks to compute HostCompilationStartAnalysisScope for per-compilation analyzer actions, i.e. AnalyzerActions registered by analyzer's CompilationStartActions.
         // Compilation start actions will get executed once per-each AnalyzerAndOptions as user might want to return different set of custom actions for each compilation/analyzer options.
-        private readonly ConcurrentDictionary<AnalyzerAndOptions, ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>>> _compilationScopeMap =
-            new ConcurrentDictionary<AnalyzerAndOptions, ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>>>(concurrencyLevel: 2, capacity: 5);
+        private readonly Dictionary<AnalyzerAndOptions, ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>>> _compilationScopeMap =
+            new Dictionary<AnalyzerAndOptions, ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>>>(capacity: 5);
 
         /// <summary>
         /// Cache descriptors for each diagnostic analyzer. We do this since <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> is
         /// a property rather than metadata. We expect it to be cheap and immutable, but we can't force them to be so, we cache them
         /// and ask only once.
         /// </summary>
-        private readonly ConcurrentDictionary<DiagnosticAnalyzer, Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>>> _descriptorCache =
-            new ConcurrentDictionary<DiagnosticAnalyzer, Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>>>(concurrencyLevel: 2, capacity: 5);
+        private readonly Dictionary<DiagnosticAnalyzer, Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>>> _descriptorMap =
+            new Dictionary<DiagnosticAnalyzer, Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>>>(capacity: 5);
+
+        private ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>> GetOrCreateCompilationActionsCache(AnalyzerAndOptions analyzerAndOptions)
+        {
+            lock (_compilationScopeMap)
+            {
+                ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>> value;
+                if (_compilationScopeMap.TryGetValue(analyzerAndOptions, out value))
+                {
+                    return value;
+                }
+
+                value = new ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>>();
+                _compilationScopeMap.Add(analyzerAndOptions, value);
+                return value;
+            }
+        }
+
+        private void ClearCompilationScopeMap(AnalyzerAndOptions analyzerAndOptions, AnalyzerExecutor analyzerExecutor)
+        {
+            ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>> compilationActionsCache;
+            lock (_compilationScopeMap)
+            {
+                if (_compilationScopeMap.TryGetValue(analyzerAndOptions, out compilationActionsCache))
+                {
+                    compilationActionsCache.Remove(analyzerExecutor.Compilation);
+                }
+            }
+        }
 
         private Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeCoreAsync(
             AnalyzerAndOptions analyzerAndOptions,
@@ -64,8 +92,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
 
             var callback = new ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>>.CreateValueCallback(getTask);
-            var compilationActionsMap = _compilationScopeMap.GetOrAdd(analyzerAndOptions, new ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>>());
-            return compilationActionsMap.GetValue(analyzerExecutor.Compilation, callback);
+            var compilationActionsCache = GetOrCreateCompilationActionsCache(analyzerAndOptions);
+            return compilationActionsCache.GetValue(analyzerExecutor.Compilation, callback);
         }
 
         private async Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
@@ -83,32 +111,42 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // Task to compute the scope was cancelled.
                 // Clear the entry in scope map for analyzer, so we can attempt a retry.
-                ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>> compilationActionsMap;
-                if (_compilationScopeMap.TryGetValue(analyzerAndOptions, out compilationActionsMap))
-                {
-                    compilationActionsMap.Remove(analyzerExecutor.Compilation);
-                }
+                ClearCompilationScopeMap(analyzerAndOptions, analyzerExecutor);
 
                 analyzerExecutor.CancellationToken.ThrowIfCancellationRequested();
                 return await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
             }
         }
 
-        private Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeCoreAsync(
+        private Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeTask(
             DiagnosticAnalyzer analyzer,
             AnalyzerExecutor analyzerExecutor)
         {
-            Func<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>> getTask = a =>
+            lock (_sessionScopeMap)
             {
-                return Task.Run(() =>
-                {
-                    var sessionScope = new HostSessionStartAnalysisScope();
-                    analyzerExecutor.ExecuteInitializeMethod(a, sessionScope);
-                    return sessionScope;
-                }, analyzerExecutor.CancellationToken);
-            };
+                return GetSessionAnalysisScopeTask_NoLock(analyzer, analyzerExecutor);
+            }
+        }
 
-            return _sessionScopeMap.GetOrAdd(analyzer, getTask);
+        private Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeTask_NoLock(
+            DiagnosticAnalyzer analyzer,
+            AnalyzerExecutor analyzerExecutor)
+        {
+            Task<HostSessionStartAnalysisScope> task;
+            if (_sessionScopeMap.TryGetValue(analyzer, out task))
+            {
+                return task;
+            }
+
+            task = Task.Run(() =>
+            {
+                var sessionScope = new HostSessionStartAnalysisScope();
+                analyzerExecutor.ExecuteInitializeMethod(analyzer, sessionScope);
+                return sessionScope;
+            }, analyzerExecutor.CancellationToken);
+
+            _sessionScopeMap.Add(analyzer, task);
+            return task;
         }
 
         private async Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeAsync(
@@ -117,14 +155,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             try
             {
-                return await GetSessionAnalysisScopeCoreAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+                var task = GetSessionAnalysisScopeTask(analyzer, analyzerExecutor);
+                return await task.ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
                 // Task to compute the scope was cancelled.
                 // Clear the entry in scope map for analyzer, so we can attempt a retry.
-                Task<HostSessionStartAnalysisScope> cancelledTask;
-                _sessionScopeMap.TryRemove(analyzer, out cancelledTask);
+                ClearSessionScopeMap(analyzer);
 
                 analyzerExecutor.CancellationToken.ThrowIfCancellationRequested();
                 return await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
@@ -149,49 +187,103 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Returns true if the given analyzer has enabled concurrent execution by invoking <see cref="AnalysisContext.EnableConcurrentExecution"/>.
+        /// </summary>
+        public async Task<bool> IsConcurrentAnalyzerAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        {
+            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+            return sessionScope.IsConcurrentAnalyzer(analyzer);
+        }
+
+        /// <summary>
+        /// Returns <see cref="GeneratedCodeAnalysisFlags"/> for the given analyzer.
+        /// If an analyzer hasn't configured generated code analysis, returns <see cref="GeneratedCodeAnalysisFlags.Default"/>.
+        /// </summary>
+        public async Task<GeneratedCodeAnalysisFlags> GetGeneratedCodeAnalysisFlagsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        {
+            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+            return sessionScope.GetGeneratedCodeAnalysisFlags(analyzer);
+        }
+
+        /// <summary>
+        /// Compute <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> and exception handler for the given <paramref name="analyzer"/>.
+        /// </summary>
+        private static Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>> ComputeDescriptorsAndHandler(
+            DiagnosticAnalyzer analyzer,
+            AnalyzerExecutor analyzerExecutor)
+        {
+            var supportedDiagnostics = ImmutableArray<DiagnosticDescriptor>.Empty;
+
+            // Catch Exception from analyzer.SupportedDiagnostics
+            analyzerExecutor.ExecuteAndCatchIfThrows(analyzer, () =>
+            {
+                var supportedDiagnosticsLocal = analyzer.SupportedDiagnostics;
+                if (!supportedDiagnosticsLocal.IsDefaultOrEmpty)
+                {
+                    supportedDiagnostics = supportedDiagnosticsLocal;
+                }
+            });
+
+            EventHandler<Exception> handler = null;
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = analyzerExecutor.OnAnalyzerException;
+            if (onAnalyzerException != null)
+            {
+                handler = new EventHandler<Exception>((sender, ex) =>
+                {
+                    var diagnostic = AnalyzerExecutor.CreateAnalyzerExceptionDiagnostic(analyzer, ex);
+                    onAnalyzerException(ex, analyzer, diagnostic);
+                });
+
+                // Subscribe for exceptions from lazily evaluated localizable strings in the descriptors.
+                foreach (var descriptor in supportedDiagnostics)
+                {
+                    descriptor.Title.OnException += handler;
+                    descriptor.MessageFormat.OnException += handler;
+                    descriptor.Description.OnException += handler;
+                }
+            }
+
+            return Tuple.Create(supportedDiagnostics, handler);
+        }
+
+        /// <summary>
         /// Return <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>.
         /// </summary>
         public ImmutableArray<DiagnosticDescriptor> GetSupportedDiagnosticDescriptors(
             DiagnosticAnalyzer analyzer,
             AnalyzerExecutor analyzerExecutor)
         {
-            var descriptors = _descriptorCache.GetOrAdd(analyzer, key =>
+            // Check if the value has already been computed and stored.
+            Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>> value;
+            lock (_descriptorMap)
             {
-                var supportedDiagnostics = ImmutableArray<DiagnosticDescriptor>.Empty;
-
-                // Catch Exception from analyzer.SupportedDiagnostics
-                analyzerExecutor.ExecuteAndCatchIfThrows(analyzer, () =>
-                    {
-                        var supportedDiagnosticsLocal = analyzer.SupportedDiagnostics;
-                        if (!supportedDiagnosticsLocal.IsDefaultOrEmpty)
-                        {
-                            supportedDiagnostics = supportedDiagnosticsLocal;
-                        }
-                    });
-
-                EventHandler<Exception> handler = null;
-                Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = analyzerExecutor.OnAnalyzerException;
-                if (onAnalyzerException != null)
+                if (_descriptorMap.TryGetValue(analyzer, out value))
                 {
-                    handler = new EventHandler<Exception>((sender, ex) =>
-                    {
-                        var diagnostic = AnalyzerExecutor.CreateAnalyzerExceptionDiagnostic(analyzer, ex);
-                        onAnalyzerException(ex, analyzer, diagnostic);
-                    });
-
-                    // Subscribe for exceptions from lazily evaluated localizable strings in the descriptors.
-                    foreach (var descriptor in supportedDiagnostics)
-                    {
-                        descriptor.Title.OnException += handler;
-                        descriptor.MessageFormat.OnException += handler;
-                        descriptor.Description.OnException += handler;
-                    }
+                    return value.Item1;
                 }
+            }
 
-                return Tuple.Create(supportedDiagnostics, handler);
-            });
+            // Otherwise, compute the value.
+            // We do so outside the lock statement as we are calling into user code, which may be a long running operation.
+            value = ComputeDescriptorsAndHandler(analyzer, analyzerExecutor);
 
-            return descriptors.Item1;
+            lock (_descriptorMap)
+            {
+                // Check if another thread already stored the computed value.
+                Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>> storedValue;
+                if (_descriptorMap.TryGetValue(analyzer, out storedValue))
+                {
+                    // If so, we return the stored value.
+                    value = storedValue;
+                }
+                else
+                {
+                    // Otherwise, store the value computed here.
+                    _descriptorMap.Add(analyzer, value);
+                }
+            }
+
+            return value.Item1;
         }
 
         /// <summary>
@@ -202,47 +294,88 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (!analyzers.IsDefaultOrEmpty)
             {
-                foreach (var analyzer in analyzers)
-                {
-                    ClearDescriptorState(analyzer);
-                    ClearAnalysisScopeState(analyzer);
-                }
+                ClearDescriptorState(analyzers);
+                ClearAnalysisScopeState(analyzers);
             }
         }
 
-        private void ClearDescriptorState(DiagnosticAnalyzer analyzer)
+        private void ClearDescriptorState(ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
-            // Host is disposing the analyzer instance, unsubscribe analyzer exception handlers.
-            Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>> value;
-            if (_descriptorCache.TryRemove(analyzer, out value))
+            lock (_descriptorMap)
             {
-                var descriptors = value.Item1;
-                var handler = value.Item2;
-                if (handler != null)
+                foreach (var analyzer in analyzers)
                 {
-                    foreach (var descriptor in descriptors)
+                    // Host is disposing the analyzer instance, unsubscribe analyzer exception handlers.
+                    Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>> value;
+                    if (_descriptorMap.TryGetValue(analyzer, out value))
                     {
-                        descriptor.Title.OnException -= handler;
-                        descriptor.MessageFormat.OnException -= handler;
-                        descriptor.Description.OnException -= handler;
+                        var descriptors = value.Item1;
+                        var handler = value.Item2;
+                        if (handler != null)
+                        {
+                            foreach (var descriptor in descriptors)
+                            {
+                                descriptor.Title.OnException -= handler;
+                                descriptor.MessageFormat.OnException -= handler;
+                                descriptor.Description.OnException -= handler;
+                            }
+                        }
+
+                        _descriptorMap.Remove(analyzer);
                     }
                 }
             }
         }
 
-        private void ClearAnalysisScopeState(DiagnosticAnalyzer analyzer)
+        private void ClearSessionScopeMap(DiagnosticAnalyzer analyzer)
+        {
+            lock (_sessionScopeMap)
+            {
+                _sessionScopeMap.Remove(analyzer);
+            }
+        }
+
+        private void ClearAnalysisScopeState(ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             // Clear session scope.
-            Task<HostSessionStartAnalysisScope> canceledTask;
-            _sessionScopeMap.TryRemove(analyzer, out canceledTask);
+            lock (_sessionScopeMap)
+            {
+                ClearSessionScopeMap_NoLock(analyzers);
+            }
 
             // Clear compilation scope.
-            var keysToRemove = _compilationScopeMap.Keys.Where(analyzerAndOptions => analyzerAndOptions.Analyzer.Equals(analyzer)).ToImmutableArray();
+            lock (_compilationScopeMap)
+            {
+                ClearCompilationScopeMap_NoLock(analyzers);
+            }            
+        }
+
+        private void ClearSessionScopeMap_NoLock(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            foreach (var analyzer in analyzers)
+            {
+                _sessionScopeMap.Remove(analyzer);
+            }
+        }
+
+        private void ClearCompilationScopeMap_NoLock(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            var keysToRemove = ArrayBuilder<AnalyzerAndOptions>.GetInstance();
+            var analyzersSet = analyzers.ToImmutableHashSet();
+            foreach (var analyzerAndOptions in _compilationScopeMap.Keys)
+            {
+                if (analyzersSet.Contains(analyzerAndOptions.Analyzer))
+                {
+                    keysToRemove.Add(analyzerAndOptions);
+                }
+            }
+
             foreach (var analyzerAndOptions in keysToRemove)
             {
-                ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>> map;
-                _compilationScopeMap.TryRemove(analyzerAndOptions, out map);
+                _compilationScopeMap.Remove(analyzerAndOptions);
             }
+
+            keysToRemove.Free();
         }
 
         internal bool IsSupportedDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer, AnalyzerExecutor analyzerExecutor)

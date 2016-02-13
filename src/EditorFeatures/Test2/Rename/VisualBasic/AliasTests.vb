@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
     Public Class AliasTests
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleSpecialTypeAliasVariable()
             Using result = RenameEngineResult.Create(
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleSpecialTypeDoubleAliasVariable()
             Using result = RenameEngineResult.Create(
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleTypeAliasVariable()
             Using result = RenameEngineResult.Create(
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasNoConflict()
             Using result = RenameEngineResult.Create(
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToSameNameNoConflict()
             Using result = RenameEngineResult.Create(
@@ -119,8 +119,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(586743)>
+        <Fact>
+        <WorkItem(586743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586743")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameOneDuplicateAliasToNoConflict()
             Using result = RenameEngineResult.Create(
@@ -143,8 +143,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             End Using
         End Sub
 
-        <WorkItem(541393)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(541393, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541393")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameNamespaceAlias()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -166,8 +166,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             End Using
         End Sub
 
-        <WorkItem(545614)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameConstructedTypeAliasFromUse()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -189,8 +189,8 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(545614)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameConstructedTypeAliasFromDeclaration()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -213,8 +213,8 @@ End Module
         End Sub
 
 
-        <WorkItem(545614)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleTypeAliasFromUse()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -236,8 +236,8 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(545614)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleTypeAliasFromDeclaration()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -258,8 +258,8 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(546084)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(546084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546084")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictWhenRenamingAliasToSameAsGlobalTypeName()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -284,9 +284,9 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(633860)>
-        <WorkItem(632303)>
+        <Fact>
+        <WorkItem(633860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633860")>
+        <WorkItem(632303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632303")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToAttributeAndEndingWithAttributeAttribute()
             Using result = RenameEngineResult.Create(
@@ -319,9 +319,9 @@ end class
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(633860)>
-        <WorkItem(632303)>
+        <Fact>
+        <WorkItem(633860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633860")>
+        <WorkItem(632303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632303")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToAttributeAndEndingWithAttributeAttributeNoConflict1()
             Using result = RenameEngineResult.Create(
@@ -355,9 +355,9 @@ end class
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(633860)>
-        <WorkItem(632303)>
+        <Fact>
+        <WorkItem(633860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633860")>
+        <WorkItem(632303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632303")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToAttributeAndEndingWithAttributeAttributeWithConflict1()
             Using result = RenameEngineResult.Create(

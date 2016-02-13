@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.StringLiteralToken, us.Token.Kind());
         }
 
-        [WorkItem(540379, "DevDiv")]
+        [WorkItem(540379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540379")]
         [Fact]
         public void TestVerbatimLiteralExpression()
         {
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        private void TestConditionalAccessNotVersion5()
+        public void TestConditionalAccessNotVersion5()
         {
             var text = "a.b?.c.d?[1]?.e()?.f";
             var expr = this.ParseExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        private void TestConditionalAccess()
+        public void TestConditionalAccess()
         {
             var text = "a.b?.c.d?[1]?.e()?.f";
             var expr = this.ParseExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
@@ -506,6 +506,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("a", ts.Condition.ToString());
             Assert.Equal("b", ts.WhenTrue.ToString());
             Assert.Equal("c", ts.WhenFalse.ToString());
+        }
+
+        [Fact]
+        public void TestConditional02()
+        {
+            // ensure that ?: has lower precedence than assignment.
+            var text = "a ? b=c : d=e";
+            var expr = this.ParseExpression(text);
+            Assert.Equal(SyntaxKind.ConditionalExpression, expr.Kind());
+            Assert.False(expr.HasErrors);
         }
 
         [Fact]
@@ -2048,7 +2058,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("y", gs.ByExpression.ToString());
         }
 
-        [WorkItem(543075, "DevDiv")]
+        [WorkItem(543075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543075")]
         [Fact]
         public void UnterminatedRankSpecifier()
         {
@@ -2062,7 +2072,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, arrayCreation.Type.RankSpecifiers.Single().Rank);
         }
 
-        [WorkItem(543075, "DevDiv")]
+        [WorkItem(543075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543075")]
         [Fact]
         public void UnterminatedTypeArgumentList()
         {
@@ -2076,7 +2086,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, ((NameSyntax)objectCreation.Type).Arity);
         }
 
-        [WorkItem(675602, "DevDiv")]
+        [WorkItem(675602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/675602")]
         [Fact]
         public void QueryKeywordInObjectInitializer()
         {
@@ -2103,7 +2113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ElementAccessExpression, parenExp.Expression.Kind());
         }
 
-        [WorkItem(543993, "DevDiv")]
+        [WorkItem(543993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543993")]
         [Fact]
         public void ShiftOperator()
         {
@@ -2156,7 +2166,7 @@ class C
             }
         }
 
-        [WorkItem(1091974, "DevDiv")]
+        [WorkItem(1091974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091974")]
         [Fact]
         public void ParseBigExpression()
         {

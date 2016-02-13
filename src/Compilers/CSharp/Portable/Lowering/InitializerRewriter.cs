@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 hasTrailingExpression = false;
             }
-    
+
             return new BoundTypeOrInstanceInitializers(method.GetNonNullSyntaxNode(), boundStatements.ToImmutableAndFree());
         }
 

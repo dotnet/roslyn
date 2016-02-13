@@ -1,35 +1,30 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
+Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class EnumKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumInClassDeclaration()
-            VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumInClassDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>|</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumFollowsEnum()
+        Public Async Function EnumFollowsEnumTest() As Task
             Dim code =
 <File>
 Enum E
 End Enum
 |
 </File>
-            VerifyRecommendationsContain(code, "Enum")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "Enum")
+        End Function
 
-        <WpfFact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumFollowsEnumWithinClass()
+        Public Async Function EnumFollowsEnumWithinClassTest() As Task
             Dim code =
 <File>
 Class C
@@ -38,30 +33,30 @@ Class C
     |
 End Class
 </File>
-            VerifyRecommendationsContain(code, "Enum")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotInMethodDeclaration()
-            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Enum")
-        End Sub
+        Public Async Function EnumNotInMethodDeclarationTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumInNamespace()
-            VerifyRecommendationsContain(<NamespaceDeclaration>|</NamespaceDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumInNamespaceTest() As Task
+            Await VerifyRecommendationsContainAsync(<NamespaceDeclaration>|</NamespaceDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumInInterface()
-            VerifyRecommendationsContain(<InterfaceDeclaration>|</InterfaceDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumInInterfaceTest() As Task
+            Await VerifyRecommendationsContainAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Enum")
+        End Function
 
-        <WpfFact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumFollowsMismatchedEnd()
+        Public Async Function EnumFollowsMismatchedEndTest() As Task
             Dim code =
 <File>
 Interface I1
@@ -69,202 +64,202 @@ End Class
 |
 End Interface
 </File>
-            VerifyRecommendationsContain(code, "Enum")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotInEnum()
-            VerifyRecommendationsMissing(<EnumDeclaration>|</EnumDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumNotInEnumTest() As Task
+            Await VerifyRecommendationsMissingAsync(<EnumDeclaration>|</EnumDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumInStructure()
-            VerifyRecommendationsContain(<StructureDeclaration>|</StructureDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumInStructureTest() As Task
+            Await VerifyRecommendationsContainAsync(<StructureDeclaration>|</StructureDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumInModule()
-            VerifyRecommendationsContain(<ModuleDeclaration>|</ModuleDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumInModuleTest() As Task
+            Await VerifyRecommendationsContainAsync(<ModuleDeclaration>|</ModuleDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterPartial()
-            VerifyRecommendationsMissing(<File>Partial |</File>, "Enum")
-        End Sub
+        Public Async Function EnumNotAfterPartialTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Partial |</File>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumAfterPublicInFile()
-            VerifyRecommendationsContain(<File>Public |</File>, "Enum")
-        End Sub
+        Public Async Function EnumAfterPublicInFileTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>Public |</File>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumAfterPublicInClassDeclaration()
-            VerifyRecommendationsContain(<ClassDeclaration>Public |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumAfterPublicInClassDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Public |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumMissingAfterProtectedInFile()
-            VerifyRecommendationsMissing(<File>Protected |</File>, "Enum")
-        End Sub
+        Public Async Function EnumMissingAfterProtectedInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Protected |</File>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumExistsAfterProtectedInClassDeclaration()
-            VerifyRecommendationsContain(<ClassDeclaration>Protected |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumExistsAfterProtectedInClassDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Protected |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumAfterFriendInFile()
-            VerifyRecommendationsContain(<File>Friend |</File>, "Enum")
-        End Sub
+        Public Async Function EnumAfterFriendInFileTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>Friend |</File>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumAfterFriendInClassDeclaration()
-            VerifyRecommendationsContain(<ClassDeclaration>Friend |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumAfterFriendInClassDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Friend |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterPrivateInFile()
-            VerifyRecommendationsMissing(<File>Private |</File>, "Enum")
-        End Sub
+        Public Async Function EnumNotAfterPrivateInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Private |</File>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumAfterPrivateInNestedClass()
-            VerifyRecommendationsContain(<ClassDeclaration>Private |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumAfterPrivateInNestedClassTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Private |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterPrivateInNamespace()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function EnumNotAfterPrivateInNamespaceTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 Namespace Foo
     Private |
 End Namespace</File>, "Enum")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterProtectedFriendInFile()
-            VerifyRecommendationsMissing(<File>Protected Friend |</File>, "Enum")
-        End Sub
+        Public Async Function EnumNotAfterProtectedFriendInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Protected Friend |</File>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumAfterProtectedFriendInClass()
-            VerifyRecommendationsContain(<ClassDeclaration>Protected Friend |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumAfterProtectedFriendInClassTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Protected Friend |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterOverloads()
-            VerifyRecommendationsMissing(<ClassDeclaration>Overloads |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumNotAfterOverloadsTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overloads |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterOverrides()
-            VerifyRecommendationsMissing(<ClassDeclaration>Overrides |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumNotAfterOverridesTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overrides |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterOverridable()
-            VerifyRecommendationsMissing(<ClassDeclaration>Overridable |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumNotAfterOverridableTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overridable |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterNotOverridable()
-            VerifyRecommendationsMissing(<ClassDeclaration>NotOverridable |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumNotAfterNotOverridableTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotOverridable |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterMustOverride()
-            VerifyRecommendationsMissing(<ClassDeclaration>MustOverride |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumNotAfterMustOverrideTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustOverride |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterMustOverrideOverrides()
-            VerifyRecommendationsMissing(<ClassDeclaration>MustOverride Overrides |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumNotAfterMustOverrideOverridesTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustOverride Overrides |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterNotOverridableOverrides()
-            VerifyRecommendationsMissing(<ClassDeclaration>NotOverridable Overrides |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumNotAfterNotOverridableOverridesTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotOverridable Overrides |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterConst()
-            VerifyRecommendationsMissing(<ClassDeclaration>Const |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumNotAfterConstTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Const |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterDefault()
-            VerifyRecommendationsMissing(<ClassDeclaration>Default |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumNotAfterDefaultTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Default |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterMustInherit()
-            VerifyRecommendationsMissing(<ClassDeclaration>MustInherit |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumNotAfterMustInheritTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustInherit |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumAfterNotInheritable()
-            VerifyRecommendationsMissing(<ClassDeclaration>NotInheritable |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumAfterNotInheritableTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotInheritable |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterNarrowing()
-            VerifyRecommendationsMissing(<ClassDeclaration>Narrowing |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumNotAfterNarrowingTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Narrowing |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterWidening()
-            VerifyRecommendationsMissing(<ClassDeclaration>Widening |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumNotAfterWideningTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Widening |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterReadOnly()
-            VerifyRecommendationsMissing(<ClassDeclaration>ReadOnly |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumNotAfterReadOnlyTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>ReadOnly |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterWriteOnly()
-            VerifyRecommendationsMissing(<ClassDeclaration>WriteOnly |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumNotAfterWriteOnlyTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>WriteOnly |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterCustom()
-            VerifyRecommendationsMissing(<ClassDeclaration>Custom |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumNotAfterCustomTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Custom |</ClassDeclaration>, "Enum")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EnumNotAfterShared()
-            VerifyRecommendationsMissing(<ClassDeclaration>Shared |</ClassDeclaration>, "Enum")
-        End Sub
+        Public Async Function EnumNotAfterSharedTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Shared |</ClassDeclaration>, "Enum")
+        End Function
     End Class
 End Namespace

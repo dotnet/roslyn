@@ -50,20 +50,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             #endregion
-
-            public static void CheckKnownActions(CompilationTranslationAction translate)
-            {
-                if (translate != null)
-                {
-                    Contract.ThrowIfFalse(translate is ProjectAssemblyNameAction ||
-                                          translate is ProjectCompilationOptionsAction ||
-                                          translate is ProjectParseOptionsAction ||
-                                          translate is AddDocumentAction ||
-                                          translate is RemoveDocumentAction ||
-                                          translate is RemoveAllDocumentsAction ||
-                                          translate is TouchDocumentAction);
-                }
-            }
         }
     }
 }

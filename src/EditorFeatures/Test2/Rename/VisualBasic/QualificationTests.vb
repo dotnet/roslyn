@@ -4,9 +4,9 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
     Public Class QualificationTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(545576)>
+        <WorkItem(545576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545576")>
         Public Sub QualifyBackingField()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -30,9 +30,9 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(992721)>
+        <WorkItem(992721, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992721")>
         Public Sub ConflictingLocalWithFieldWithExtensionMethodInvolved()
             Using result = RenameEngineResult.Create(
             <Workspace>

@@ -1018,7 +1018,7 @@ System.Console.WriteLine(typeof(X));";
                 Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)"));
         }
 
-        [Fact, WorkItem(531108, "DevDiv")]
+        [Fact, WorkItem(531108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531108")]
         public void DynamicAttributeCtorCS1980BreakingChange()
         {
             var customDynamicAttrSource = @"
@@ -1114,18 +1114,34 @@ public class C
 }
 ";
             CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+                // (2,2): error CS0246: The type or namespace name 'dynamicAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [dynamic]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "dynamic").WithArguments("dynamicAttribute").WithLocation(2, 2),
                 // (2,2): error CS0246: The type or namespace name 'dynamic' could not be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "dynamic").WithArguments("dynamic"),
+                // [dynamic]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "dynamic").WithArguments("dynamic").WithLocation(2, 2),
+                // (6,6): error CS0246: The type or namespace name 'dynamicAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     [dynamic]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "dynamic").WithArguments("dynamicAttribute").WithLocation(6, 6),
                 // (6,6): error CS0246: The type or namespace name 'dynamic' could not be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "dynamic").WithArguments("dynamic"),
+                //     [dynamic]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "dynamic").WithArguments("dynamic").WithLocation(6, 6),
+                // (5,14): error CS0246: The type or namespace name 'dynamicAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     [return: dynamic]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "dynamic").WithArguments("dynamicAttribute").WithLocation(5, 14),
                 // (5,14): error CS0246: The type or namespace name 'dynamic' could not be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "dynamic").WithArguments("dynamic"),
+                //     [return: dynamic]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "dynamic").WithArguments("dynamic").WithLocation(5, 14),
+                // (7,26): error CS0246: The type or namespace name 'dynamicAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     public void dynamic([dynamic]dynamic dynamic) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "dynamic").WithArguments("dynamicAttribute").WithLocation(7, 26),
                 // (7,26): error CS0246: The type or namespace name 'dynamic' could not be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "dynamic").WithArguments("dynamic"));
+                //     public void dynamic([dynamic]dynamic dynamic) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "dynamic").WithArguments("dynamic").WithLocation(7, 26));
         }
 
         [Fact]
-        [WorkItem(552843, "DevDiv")]
+        [WorkItem(552843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552843")]
         public void IteratorYieldingDynamic()
         {
             string source = @"
@@ -1173,25 +1189,22 @@ class C
             var source =
 @"using System;
 
-public class C
+class C
 {
-    public static void Main()
+    static void Main()
     {
-        Func<dynamic, object> f = x => x;
-        T(f(null));
+        Func<dynamic, dynamic[], object> f = (x, y) => x;
+        f(null, null);
     }
-
-    public static void T(object o) { }
-    
 }";
 
             // Make sure we emit without errors when dynamic attributes are not present. 
             CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature(
-                    "C+<>c", 
+                    "C+<>c",
                     "<Main>b__0_0",
-                    ".method assembly hidebysig instance System.Object <Main>b__0_0(System.Object x) cil managed")
+                    ".method assembly hidebysig instance System.Object <Main>b__0_0(System.Object x, System.Object[] y) cil managed")
             });
         }
 
@@ -1202,25 +1215,54 @@ public class C
             var source =
 @"using System;
 
-public class C
+class C
 {
-    public static void Main()
+    static void Main()
     {
-        Func<dynamic, object> f = x => x;
-        T(f(null));
+        Func<dynamic, dynamic[], object> f = (x, y) => x;
+        f(null, null);
     }
-
-    public static void T(object o) { }
-    
 }";
 
             CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, expectedSignatures: new[]
             {
                 Signature(
-                    "C+<>c", 
+                    "C+<>c",
                     "<Main>b__0_0",
-                    ".method assembly hidebysig instance System.Object <Main>b__0_0([System.Runtime.CompilerServices.DynamicAttribute()] System.Object x) cil managed")
+                    ".method assembly hidebysig instance System.Object <Main>b__0_0([System.Runtime.CompilerServices.DynamicAttribute()] System.Object x, [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] System.Object[] y) cil managed")
             });
+        }
+
+        [Fact]
+        [WorkItem(6126, "https://github.com/dotnet/roslyn/issues/6126")]
+        public void DynamicLambdaParametersMissingBoolean()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object { }
+    public class ValueType { }
+    public struct Void { }
+    public struct IntPtr { }
+    public class MulticastDelegate { }
+}";
+            var source1 =
+@"delegate void D<T>(T t);
+class C
+{
+    static void Main()
+    {
+        D<dynamic[]> d = o => { };
+        d(null);
+    }
+}";
+            var comp = CreateCompilation(source0);
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+            comp = CreateCompilation(source1, references: new[] { ref0, SystemCoreRef });
+            comp.VerifyDiagnostics();
+            // Make sure we emit without errors when System.Boolean is missing.
+            CompileAndVerify(comp, verify: false);
         }
     }
 }

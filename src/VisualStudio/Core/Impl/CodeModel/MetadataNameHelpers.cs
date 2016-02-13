@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -59,6 +60,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public static string GetMetadataName(ITypeSymbol typeSymbol)
         {
+            if (typeSymbol.Kind == SymbolKind.TypeParameter)
+            {
+                throw new ArgumentException("Type parameters are not suppported", nameof(typeSymbol));
+            }
+
             var parts = new Stack<ISymbol>();
 
             ISymbol symbol = typeSymbol;

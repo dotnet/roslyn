@@ -192,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 // If we are fixing selected diagnostics in error list, then get the diagnostics from error list entry snapshots.
                 // Otherwise, get all diagnostics from the diagnostic service.
                 var diagnosticsToFixTask = selectedEntriesOnly ?
-                    _suppressionStateService.GetSelectedItemsAsync(isAddSuppression, cancellationToken):
+                    _suppressionStateService.GetSelectedItemsAsync(isAddSuppression, cancellationToken) :
                     GetAllBuildDiagnosticsAsync(shouldFixInProject, cancellationToken);
 
                 diagnosticsToFix = diagnosticsToFixTask.WaitAndGetResult(cancellationToken).ToImmutableHashSet();
@@ -382,8 +382,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             // Kick off diagnostic re-analysis for affected projects so that diagnostics gets refreshed.
             Task.Run(() =>
             {
-                var uniqueProjectIds = diagnosticsToFix.Where(d => d.ProjectId != null).Select(d => d.ProjectId).Distinct();
-                _diagnosticService.Reanalyze(_workspace, uniqueProjectIds);
+                var reanalyzeDocuments = diagnosticsToFix.Where(d => d.DocumentId != null).Select(d => d.DocumentId).Distinct();
+                _diagnosticService.Reanalyze(_workspace, documentIds: reanalyzeDocuments, highPriority: true);
             });
 
             return true;

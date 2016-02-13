@@ -1,9 +1,11 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestWinmdCSInterfaceProjection()
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestWinmdCSInterfaceProjection() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferencesWinRT="true" AssemblyName="SampleComponent">
@@ -36,11 +38,11 @@ namespace SampleComponent
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestWinmdVBInterfaceProjection()
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestWinmdVBInterfaceProjection() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferencesWinRT="true">
@@ -76,11 +78,11 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestWinmdCSCollectionProjection()
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestWinmdCSCollectionProjection() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferencesWinRT="true" AssemblyName="SampleComponent">
@@ -118,11 +120,11 @@ namespace SampleComponent
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestWinmdVBCollectionProjection()
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestWinmdVBCollectionProjection() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferencesWinRT="true">
@@ -148,11 +150,11 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestWinmdCSEventProjection()
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestWinmdCSEventProjection() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferencesWinRT="true" AssemblyName="SampleComponent">
@@ -208,11 +210,11 @@ namespace SampleComponent
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestWinmdVBEventProjection()
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestWinmdVBEventProjection() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferencesWinRT="true">
@@ -261,11 +263,11 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestWinmdCSAllIsWellTest()
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestWinmdCSAllIsWellTest() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferencesWinRT="true" AssemblyName="SampleComponent">
@@ -465,11 +467,11 @@ namespace SampleComponent
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestWinmdVBAllIsWellTest()
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestWinmdVBAllIsWellTest() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferencesWinRT="true">
@@ -629,7 +631,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
     End Class
 End Namespace

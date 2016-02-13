@@ -9,7 +9,7 @@ using System.Diagnostics;
 namespace Roslyn.Utilities
 {
     // Note that this is not threadsafe for concurrent reading and writing.
-    internal sealed class MultiDictionary<K, V> : IEnumerable<KeyValuePair<K, MultiDictionary<K,V>.ValueSet>>
+    internal sealed class MultiDictionary<K, V> : IEnumerable<KeyValuePair<K, MultiDictionary<K, V>.ValueSet>>
     {
         public struct ValueSet : IEnumerable<V>
         {

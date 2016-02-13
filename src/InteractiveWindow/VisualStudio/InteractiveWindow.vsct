@@ -202,6 +202,19 @@
         </Strings>
       </Button>
 
+      <Button guid="guidInteractiveWindowCmdSet" id="cmdidCopyCode" priority="0x0300" type="Button">
+        <Parent guid="guidInteractiveWindowCmdSet" id="ConsoleMenuEditGroup"/>
+        <Icon guid="ImageCatalogGuid" id="CopyItem" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Copy Code</ButtonText>
+          <CanonicalName>.InteractiveConsole.CopyCode</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.CopyCode</LocCanonicalName>
+        </Strings>
+      </Button>
+
       <!-- Toolbar Buttons -->
 
       <!--<Button guid="guidInteractiveWindowCmdSet" id="cmdidAbortExecution" priority="0x0300" type="Button">
@@ -218,19 +231,8 @@
             -->
 
       <!-- Text editor commands -->
-      <Button guid="guidInteractiveWindowCmdSet" id="cmdidExecuteInInteractiveWindow" priority="0x101" type="Button">
-        <Parent guid="guidInteractiveWindowCmdSet" id="TextEditorGroup" />
-        <CommandFlag>DynamicVisibility</CommandFlag>
-        <CommandFlag>DefaultInvisible</CommandFlag>
-        <Strings>
-          <ButtonText>Execute in Interactive</ButtonText>
-          <CanonicalName>.InteractiveConsole.ExecuteInInteractive</CanonicalName>
-          <LocCanonicalName>.InteractiveConsole.ExecuteInInteractive</LocCanonicalName>
-        </Strings>
-      </Button>
 
       <Button guid="guidInteractiveWindowCmdSet" id="cmdidCopyToInteractiveWindow" priority="0x102" type="Button">
-        <Parent guid="guidInteractiveWindowCmdSet" id="TextEditorGroup" />
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
@@ -281,11 +283,10 @@
     <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidBreakLine" key1="VK_RETURN" mod1="Shift" editor="guidInteractiveWindow" />
     <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidSearchHistoryNext" key1="VK_DOWN" mod1="Control Alt" editor="guidInteractiveWindow" />
     <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidSearchHistoryPrevious" key1="VK_UP" mod1="Control Alt" editor="guidInteractiveWindow" />
+    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidCopyCode" key1="C" mod1="Control Shift" editor="guidInteractiveWindow" />
 
-    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidExecuteInInteractiveWindow" editor="GUID_TextEditorFactory" mod1="Control" key1="E" mod2="Control" key2="VK_RETURN"  />
+    <KeyBinding guid="guidVSStd11" id="cmdidExecuteSelectionInInteractive" editor="guidCSharpEditorFactory" mod1="Control" key1="E" mod2="Control" key2="E" />
     <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidCopyToInteractiveWindow" editor="GUID_TextEditorFactory" mod1="Control" key1="K" mod2="Control" key2="VK_RETURN" />
-    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidExecuteInInteractiveWindow" editor="GUID_TextEditorFactory" mod1="Control" key1="VK_RETURN" />
-    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidCopyToInteractiveWindow" editor="GUID_TextEditorFactory"  mod1="Control Shift" key1="VK_RETURN" />
   </KeyBindings>
 
   <UsedCommands>
@@ -299,6 +300,9 @@
     <!-- This is the package guid. -->
     <GuidSymbol name="guidInteractiveWindowPkg" value="{F5199A4E-6A60-4F79-82E9-FC92A41C4610}" />
     <GuidSymbol name="guidInteractiveWindow" value="{2D0A56AA-9527-4B78-B6E6-EBE6E05DA749}" />
+
+    <!-- This is the guid to refer to CSharp text editor scope for keybindings. -->
+    <GuidSymbol name="guidCSharpEditorFactory" value="{a6c744a8-0e4a-4fc6-886a-064283054674}" />
 
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidInteractiveWindowCmdSet" value="{00B8868B-F9F5-4970-A048-410B05508506}">
@@ -314,6 +318,7 @@
       <IDSymbol name="cmdidSearchHistoryPrevious" value="0x010B"/>
       <IDSymbol name="cmdidExecuteInInteractiveWindow" value="0x010C"/>
       <IDSymbol name="cmdidCopyToInteractiveWindow" value="0x010D"/>
+      <IDSymbol name="cmdidCopyCode" value="0x010E"/>
 
       <!-- Groups -->
       <IDSymbol name="ConsoleMenuGroup" value="0x1050" />

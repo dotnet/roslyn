@@ -7,25 +7,26 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
+Imports System.Threading.Tasks
 
 #Disable Warning RS0007 ' Avoid zero-length array allocations. This is non-shipping test code.
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     Partial Public Class CSharpNavigationBarTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545021)>
-        Public Sub GenericTypeVariance()
-            AssertItemsAre(
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545021")>
+        Public Async Function TestGenericTypeVariance() As Task
+            Await AssertItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[interface C<in I, out O> { }]]></Document>
                     </Project>
                 </Workspace>,
                 Item("C<in I, out O>", Glyph.InterfaceInternal, children:={}))
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545284)>
-        Public Sub GenericMember()
-            AssertItemsAre(
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545284, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545284")>
+        Public Async Function TestGenericMember() As Task
+            Await AssertItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[class Program { static void Swap<T>(T lhs, T rhs) { }}]]></Document>
@@ -33,11 +34,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 </Workspace>,
                 Item("Program", Glyph.ClassInternal, children:={
                      Item("Swap<T>(T lhs, T rhs)", Glyph.MethodPrivate)}))
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545023)>
-        Public Sub NestedClasses()
-            AssertItemsAre(
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545023, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545023")>
+        Public Async Function TestNestedClasses() As Task
+            Await AssertItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>class C { class Nested { } }</Document>
@@ -45,11 +46,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 </Workspace>,
                 Item("C", Glyph.ClassInternal, children:={}),
                 Item("C.Nested", Glyph.ClassPrivate, children:={}))
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545023)>
-        Public Sub SelectedItemForNestedClass()
-            AssertSelectedItemsAre(
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545023, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545023")>
+        Public Async Function TestSelectedItemForNestedClass() As Task
+            Await AssertSelectedItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>class C { class Nested { $$ } }</Document>
@@ -57,11 +58,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 </Workspace>,
                 Item("C.Nested", Glyph.ClassPrivate), False,
                 Nothing, False)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545019)>
-        Public Sub SelectedItemForEnumAfterComma()
-            AssertSelectedItemsAre(
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545019")>
+        Public Async Function TestSelectedItemForEnumAfterComma() As Task
+            Await AssertSelectedItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>enum E { A,$$ B }</Document>
@@ -69,11 +70,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 </Workspace>,
                 Item("E", Glyph.EnumInternal), False,
                 Item("A", Glyph.EnumMember), False)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114)>
-        Public Sub SelectedItemForFieldAfterSemicolon()
-            AssertSelectedItemsAre(
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545114")>
+        Public Async Function TestSelectedItemForFieldAfterSemicolon() As Task
+            Await AssertSelectedItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>class C { int foo;$$ }</Document>
@@ -81,11 +82,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 </Workspace>,
                 Item("C", Glyph.ClassInternal), False,
                 Item("foo", Glyph.FieldPrivate), False)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114)>
-        Public Sub SelectedItemForFieldInType()
-            AssertSelectedItemsAre(
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545114")>
+        Public Async Function TestSelectedItemForFieldInType() As Task
+            Await AssertSelectedItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>class C { in$$t foo; }</Document>
@@ -93,11 +94,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 </Workspace>,
                 Item("C", Glyph.ClassInternal), False,
                 Item("foo", Glyph.FieldPrivate), False)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545267)>
-        Public Sub SelectedItemAtEndOfFile()
-            AssertSelectedItemsAre(
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545267")>
+        Public Async Function TestSelectedItemAtEndOfFile() As Task
+            Await AssertSelectedItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>class C { int foo; } $$</Document>
@@ -105,11 +106,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 </Workspace>,
                 Item("C", Glyph.ClassInternal), True,
                 Item("foo", Glyph.FieldPrivate), True)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545012)>
-        Public Sub ExplicitInterfaceImplementation()
-            AssertItemsAre(
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545012")>
+        Public Async Function TestExplicitInterfaceImplementation() As Task
+            Await AssertItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -120,11 +121,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 </Workspace>,
                 Item("C", Glyph.ClassInternal, children:={
                     Item("IDisposable.Dispose()", Glyph.MethodPrivate)}))
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545007)>
-        Public Sub RefAndOutParameters()
-            AssertItemsAre(
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545007")>
+        Public Async Function TestRefAndOutParameters() As Task
+            Await AssertItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -134,11 +135,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 </Workspace>,
                 Item("C", Glyph.ClassInternal, children:={
                     Item("M(out string foo, ref string bar)", Glyph.MethodPrivate)}))
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545001)>
-        Public Sub OptionalParameter()
-            AssertItemsAre(
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545001")>
+        Public Async Function TestOptionalParameter() As Task
+            Await AssertItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -148,11 +149,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 </Workspace>,
                 Item("C", Glyph.ClassInternal, children:={
                     Item("M(int i = 0)", Glyph.MethodPrivate)}))
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545274)>
-        Public Sub Properties()
-            AssertItemsAre(
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545274")>
+        Public Async Function TestProperties() As Task
+            Await AssertItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -162,11 +163,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 </Workspace>,
                 Item("C", Glyph.ClassInternal, children:={
                     Item("Number", Glyph.PropertyPrivate)}))
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545220)>
-        Public Sub [Enum]()
-            AssertItemsAre(
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545220")>
+        Public Async Function TestEnum() As Task
+            Await AssertItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -178,11 +179,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("A", Glyph.EnumMember),
                     Item("B", Glyph.EnumMember),
                     Item("C", Glyph.EnumMember)}))
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545220)>
-        Public Sub [Delegate]()
-            AssertItemsAre(
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545220")>
+        Public Async Function TestDelegate() As Task
+            Await AssertItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -191,11 +192,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     </Project>
                 </Workspace>,
                 Item("Foo", Glyph.DelegateInternal, children:={}))
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114)>
-        Public Sub PartialClassWithFieldInOtherFile()
-            AssertSelectedItemsAre(
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545114")>
+        Public Async Function TestPartialClassWithFieldInOtherFile() As Task
+            Await AssertSelectedItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>partial class C { $$ }</Document>
@@ -204,11 +205,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 </Workspace>,
                 Item("C", Glyph.ClassInternal), False,
                 Item("foo", Glyph.FieldPrivate, grayed:=True), True)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(578100)>
-        Public Sub PartialClassWithBothPartialMethodParts1()
-            AssertItemsAre(
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(578100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578100")>
+        Public Async Function TestPartialClassWithBothPartialMethodParts1() As Task
+            Await AssertItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>partial class C { $$partial void M(); }</Document>
@@ -218,11 +219,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("C", Glyph.ClassInternal, children:={
                     Item("M()", Glyph.MethodPrivate),
                     Item("M()", Glyph.MethodPrivate, grayed:=True)}))
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(578100)>
-        Public Sub PartialClassWithBothPartialMethodParts2()
-            AssertItemsAre(
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(578100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578100")>
+        Public Async Function TestPartialClassWithBothPartialMethodParts2() As Task
+            Await AssertItemsAreAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>partial class C { partial void M(); }</Document>
@@ -232,6 +233,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("C", Glyph.ClassInternal, children:={
                     Item("M()", Glyph.MethodPrivate),
                     Item("M()", Glyph.MethodPrivate, grayed:=True)}))
-        End Sub
+        End Function
     End Class
 End Namespace

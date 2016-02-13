@@ -7,6 +7,16 @@ Microsoft.CodeAnalysis.Host.Mef.DesktopMefHostServices
 Microsoft.CodeAnalysis.Host.Mef.MefV1HostServices
 Microsoft.CodeAnalysis.Host.Mef.MefV1HostServices.GetExports<TExtension, TMetadata>() -> System.Collections.Generic.IEnumerable<System.Lazy<TExtension, TMetadata>>
 Microsoft.CodeAnalysis.Host.Mef.MefV1HostServices.GetExports<TExtension>() -> System.Collections.Generic.IEnumerable<System.Lazy<TExtension>>
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.AssociateFileExtensionWithLanguage(string projectFileExtension, string language) -> void
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.LoadMetadataForReferencedProjects.get -> bool
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.LoadMetadataForReferencedProjects.set -> void
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.LoadProjectInfoAsync(string projectFilePath, System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ProjectId> projectPathToProjectIdMap = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ProjectInfo>>
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.LoadSolutionInfoAsync(string solutionFilePath, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.SolutionInfo>
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.MSBuildProjectLoader(Microsoft.CodeAnalysis.Workspace workspace, System.Collections.Immutable.ImmutableDictionary<string, string> properties = null) -> void
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.SkipUnrecognizedProjects.get -> bool
+Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.SkipUnrecognizedProjects.set -> void
 Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
 Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.AssociateFileExtensionWithLanguage(string projectFileExtension, string language) -> void
 Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.CloseSolution() -> void
@@ -26,6 +36,7 @@ static Microsoft.CodeAnalysis.Host.Mef.DesktopMefHostServices.DefaultServices.ge
 static Microsoft.CodeAnalysis.Host.Mef.MefV1HostServices.Create(System.Collections.Generic.IEnumerable<System.Reflection.Assembly> assemblies) -> Microsoft.CodeAnalysis.Host.Mef.MefV1HostServices
 static Microsoft.CodeAnalysis.Host.Mef.MefV1HostServices.Create(System.ComponentModel.Composition.Hosting.ExportProvider exportProvider) -> Microsoft.CodeAnalysis.Host.Mef.MefV1HostServices
 static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create() -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
+static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(Microsoft.CodeAnalysis.Host.HostServices hostServices) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
 static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(System.Collections.Generic.IDictionary<string, string> properties) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
 static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(System.Collections.Generic.IDictionary<string, string> properties, Microsoft.CodeAnalysis.Host.HostServices hostServices) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
 virtual Microsoft.CodeAnalysis.FileTextLoader.CreateText(System.IO.Stream stream, Microsoft.CodeAnalysis.Workspace workspace) -> Microsoft.CodeAnalysis.Text.SourceText

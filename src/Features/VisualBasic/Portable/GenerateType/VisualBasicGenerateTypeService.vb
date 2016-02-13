@@ -416,7 +416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return compilation.ClassifyConversion(sourceType, targetType).IsWidening
         End Function
 
-        Public Overrides Async Function GetOrGenerateEnclosingNamespaceSymbol(namedTypeSymbol As INamedTypeSymbol, containers() As String, selectedDocument As Document, selectedDocumentRoot As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Tuple(Of INamespaceSymbol, INamespaceOrTypeSymbol, Location))
+        Public Overrides Async Function GetOrGenerateEnclosingNamespaceSymbolAsync(namedTypeSymbol As INamedTypeSymbol, containers() As String, selectedDocument As Document, selectedDocumentRoot As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Tuple(Of INamespaceSymbol, INamespaceOrTypeSymbol, Location))
             Dim compilationUnit = DirectCast(selectedDocumentRoot, CompilationUnitSyntax)
             Dim semanticModel = Await selectedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
@@ -569,7 +569,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
             Dim node As SyntaxNode = expression
             While node IsNot Nothing
-                ' Types in BaseList, Type Constraint or Member Types cannot be of restricter accessibility than the declaring type
+                ' Types in BaseList, Type Constraint or Member Types cannot be of more restricted accessibility than the declaring type
                 If TypeOf node Is InheritsOrImplementsStatementSyntax AndAlso
                     node.Parent IsNot Nothing AndAlso
                     TypeOf node.Parent Is TypeBlockSyntax Then
@@ -622,7 +622,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return TypeOf expression Is SimpleNameSyntax
         End Function
 
-        Friend Overrides Function TryAddUsingsOrImportToDocument(updatedSolution As Solution, modifiedRoot As SyntaxNode, document As Document, simpleName As SimpleNameSyntax, includeUsingsOrImports As String, cancellationToken As CancellationToken) As Solution
+        Friend Overrides Async Function TryAddUsingsOrImportToDocumentAsync(updatedSolution As Solution, modifiedRoot As SyntaxNode, document As Document, simpleName As SimpleNameSyntax, includeUsingsOrImports As String, cancellationToken As CancellationToken) As Task(Of Solution)
             ' Nothing to include
             If String.IsNullOrWhiteSpace(includeUsingsOrImports) Then
                 Return updatedSolution
@@ -631,7 +631,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Dim placeSystemNamespaceFirst = document.Project.Solution.Workspace.Options.GetOption(OrganizerOptions.PlaceSystemNamespaceFirst, document.Project.Language)
             Dim root As SyntaxNode = Nothing
             If (modifiedRoot Is Nothing) Then
-                root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+                root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Else
                 root = modifiedRoot
             End If
@@ -663,7 +663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 Next
 
                 ' Check if the GFU is triggered from the namespace same as the imports namespace
-                If IsWithinTheImportingNamespace(document, simpleName.SpanStart, includeUsingsOrImports, cancellationToken) Then
+                If Await IsWithinTheImportingNamespaceAsync(document, simpleName.SpanStart, includeUsingsOrImports, cancellationToken).ConfigureAwait(False) Then
                     Return updatedSolution
                 End If
 

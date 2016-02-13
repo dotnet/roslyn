@@ -5,7 +5,7 @@
     <DisplayName>VisualStudio Interactive Components</DisplayName>
     <Description>Interactive components for Visual Studio.</Description>
   </Metadata>
-  <Installation>
+  <Installation Experimental="true">
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[14.0,]" />
     <InstallationTarget Version="[14.0,]" Id="Microsoft.VisualStudio.VSWinDesktopExpress" />
     <InstallationTarget Version="[14.0,]" Id="Microsoft.VisualStudio.VWDExpress" />

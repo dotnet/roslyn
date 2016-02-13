@@ -5,24 +5,24 @@ using System.IO;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
-    public struct OutputRedirect : IDisposable  
-    {  
-        private readonly TextWriter _oldOut;  
-        private readonly StringWriter _newOut;  
-    
-        public OutputRedirect(IFormatProvider formatProvider)  
-        {  
-            _oldOut = Console.Out;  
-            _newOut = new StringWriter(formatProvider);  
-            Console.SetOut(_newOut);  
-        }  
-    
-        public string Output => _newOut.ToString();  
-    
-        void IDisposable.Dispose()  
-        {  
-            Console.SetOut(_oldOut);  
-            _newOut.Dispose();  
+    public struct OutputRedirect : IDisposable
+    {
+        private readonly TextWriter _oldOut;
+        private readonly StringWriter _newOut;
+
+        public OutputRedirect(IFormatProvider formatProvider)
+        {
+            _oldOut = Console.Out;
+            _newOut = new StringWriter(formatProvider);
+            Console.SetOut(_newOut);
+        }
+
+        public string Output => _newOut.ToString();
+
+        void IDisposable.Dispose()
+        {
+            Console.SetOut(_oldOut);
+            _newOut.Dispose();
         }
     }
 }

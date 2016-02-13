@@ -22,6 +22,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
+    using static TestCompilationFactory;
+
     public class HostModel
     {
         public readonly int Foo;
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoPublicKey: TestResources.TestKeys.PublicKey_ce65828c82a341f2);
 
         internal static readonly Assembly HostAssembly = typeof(InteractiveSessionTests).GetTypeInfo().Assembly;
-        
+
         #region Namespaces, Types
 
         [Fact]
@@ -175,7 +177,7 @@ object.ReferenceEquals(a.GetType(), c.GetType()).ToString() + "" "" +
             Assert.Equal("True False True", script.EvaluateAsync().Result.ToString());
         }
 
-        [WorkItem(543863)]
+        [WorkItem(543863, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543863")]
         [Fact]
         public void AnonymousTypes_Redefinition()
         {
@@ -392,6 +394,18 @@ pi = i + j + k + l;
             Assert.Equal(16, script.ContinueWith<int>("pi").EvaluateAsync().Result);
         }
 
+        [WorkItem(100639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/100639")]
+        [Fact]
+        public void ExternDestructor()
+        {
+            var script = CSharpScript.Create(
+@"class C
+{
+    extern ~C();
+}");
+            Assert.Null(script.EvaluateAsync().Result);
+        }
+
         #endregion
 
         #region Chaining
@@ -406,7 +420,7 @@ pi = i + j + k + l;
         [Fact]
         public void CompilationChain_GlobalNamespaceAndUsings()
         {
-            var result = 
+            var result =
                 CSharpScript.Create("using InteractiveFixtures.C;", ScriptOptions.Default.AddReferences(HostAssembly)).
                 ContinueWith("using InteractiveFixtures.C;").
                 ContinueWith("System.Environment.ProcessorCount").
@@ -507,7 +521,7 @@ Environment.ProcessorCount
         [Fact]
         public void CompilationChain_DefinitionHidesGlobal()
         {
-            var result = 
+            var result =
                 CSharpScript.Create("int System = 1;").
                 ContinueWith("System").
                 EvaluateAsync().Result;
@@ -646,7 +660,7 @@ GetHashCode();
 ToString();
 ReferenceEquals(null, null);";
 
-            ScriptingTestHelpers.AssertCompilationError(state0, src1, 
+            ScriptingTestHelpers.AssertCompilationError(state0, src1,
                 // (2,1): error CS0103: The name 'Equals' does not exist in the current context
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Equals").WithArguments("Equals"),
                 // (3,1): error CS0103: The name 'GetHashCode' does not exist in the current context
@@ -669,7 +683,7 @@ public override string ToString() { return null; }
 
         #region Generics
 
-        [Fact, WorkItem(201759)]
+        [Fact, WorkItem(201759, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/201759")]
         public void CompilationChain_GenericTypes()
         {
             var script = CSharpScript.Create(@"
@@ -686,7 +700,7 @@ iC.method(iC.field)
             Assert.Equal(3, script.EvaluateAsync().Result);
         }
 
-        [WorkItem(529243)]
+        [WorkItem(529243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529243")]
         [Fact]
         public void RecursiveBaseType()
         {
@@ -871,7 +885,7 @@ result
         {
             var f = CSharpScript.RunAsync("using System;").
                 ContinueWith("int Sqr(int x) {return x*x;}").
-                ContinueWith<Func<int, int>>("new Func<int,int>(Sqr)").Result.ReturnValue; 
+                ContinueWith<Func<int, int>>("new Func<int,int>(Sqr)").Result.ReturnValue;
 
             Assert.Equal(4, f(2));
         }
@@ -995,8 +1009,8 @@ new object[] { x, y, z }
         /// Name of PrivateImplementationDetails type needs to be unique across submissions.
         /// The compiler should suffix it with a MVID of the current submission module so we should be fine.
         /// </summary>
-        [WorkItem(949559)]
-        [WorkItem(540237)]
+        [WorkItem(949559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949559")]
+        [WorkItem(540237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540237")]
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
         [WorkItem(2721, "https://github.com/dotnet/roslyn/issues/2721")]
         [Fact]
@@ -1084,7 +1098,7 @@ static T G<T>(T t, Func<T, Task<T>> f)
                 AddReferences(typeof(Task).GetTypeInfo().Assembly).
                 AddImports("System.Threading.Tasks");
 
-            var state = 
+            var state =
                 CSharpScript.RunAsync("int i = 0;", options).
                 ContinueWith("await Task.Delay(1); i++;").
                 ContinueWith("await Task.Delay(1); i++;").
@@ -1140,7 +1154,7 @@ new Metadata.ICSPropImpl()
             string fileName = Path.GetFileName(path);
             string dir = Path.Combine(Path.GetDirectoryName(path), "subdir");
 
-            var script = CSharpScript.Create($@"#r ""..\{fileName}""", 
+            var script = CSharpScript.Create($@"#r ""..\{fileName}""",
                 ScriptOptions.Default.WithFilePath(Path.Combine(dir, "a.csx")));
 
             script.GetCompilation().VerifyDiagnostics();
@@ -1160,7 +1174,7 @@ new Metadata.ICSPropImpl()
 
             script.GetCompilation().VerifyDiagnostics();
         }
-        
+
         [Fact, WorkItem(6457, "https://github.com/dotnet/roslyn/issues/6457")]
         public async Task MissingReferencesReuse()
         {
@@ -1182,7 +1196,7 @@ public class C
             var s0 = await CSharpScript.RunAsync("C c;", ScriptOptions.Default.WithReferences(libFile.Path));
             var s1 = await s0.ContinueWithAsync("c = new C()");
         }
-        
+
         [Fact]
         public async Task SharedLibCopy_Identical_Weak()
         {
@@ -1190,21 +1204,21 @@ public class C
             string lib1Name = "Lib1_" + Guid.NewGuid();
             string lib2Name = "Lib2_" + Guid.NewGuid();
 
-            var libBase = TestCompilationFactory.CreateCompilation(@"
+            var libBase = TestCompilationFactory.CreateCSharpCompilation(@"
 public class LibBase
 {
     public readonly int X = 1;
 }
 ", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
 
-            var lib1 = TestCompilationFactory.CreateCompilation(@"
+            var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
 ", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase.ToMetadataReference() }, lib1Name);
 
-            var lib2 = TestCompilationFactory.CreateCompilation(@"
+            var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();
@@ -1248,21 +1262,21 @@ public class Lib2
             string lib1Name = "Lib1_" + Guid.NewGuid();
             string lib2Name = "Lib2_" + Guid.NewGuid();
 
-            var libBase = TestCompilationFactory.CreateCompilation(@"
+            var libBase = TestCompilationFactory.CreateCSharpCompilation(@"
 public class LibBase
 {
     public readonly int X = 1;
 }
 ", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
 
-            var lib1 = TestCompilationFactory.CreateCompilation(@"
+            var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
 ", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase.ToMetadataReference() }, lib1Name);
 
-            var lib2 = TestCompilationFactory.CreateCompilation(@"
+            var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();
@@ -1306,28 +1320,28 @@ public class Lib2
             string lib1Name = "Lib1_" + Guid.NewGuid();
             string lib2Name = "Lib2_" + Guid.NewGuid();
 
-            var libBase1 = TestCompilationFactory.CreateCompilation(@"
+            var libBase1 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class LibBase
 {
     public readonly int X = 1;
 }
 ", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
 
-            var libBase2 = TestCompilationFactory.CreateCompilation(@"
+            var libBase2 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class LibBase
 {
     public readonly int X = 2;
 }
 ", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
 
-            var lib1 = TestCompilationFactory.CreateCompilation(@"
+            var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
 ", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
 
-            var lib2 = TestCompilationFactory.CreateCompilation(@"
+            var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();
@@ -1372,7 +1386,7 @@ public class Lib2
             string lib1Name = "Lib1_" + Guid.NewGuid();
             string lib2Name = "Lib2_" + Guid.NewGuid();
 
-            var libBase1 = TestCompilationFactory.CreateCompilation(@"
+            var libBase1 = TestCompilationFactory.CreateCSharpCompilation(@"
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
 public class LibBase
 {
@@ -1380,7 +1394,7 @@ public class LibBase
 }
 ", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
 
-            var libBase2 = TestCompilationFactory.CreateCompilation(@"
+            var libBase2 = TestCompilationFactory.CreateCSharpCompilation(@"
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
 public class LibBase
 {
@@ -1388,14 +1402,14 @@ public class LibBase
 }
 ", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
 
-            var lib1 = TestCompilationFactory.CreateCompilation(@"
+            var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
 ", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
 
-            var lib2 = TestCompilationFactory.CreateCompilation(@"
+            var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();
@@ -1440,7 +1454,7 @@ public class Lib2
             string lib1Name = "Lib1_" + Guid.NewGuid();
             string lib2Name = "Lib2_" + Guid.NewGuid();
 
-            var libBase1 = TestCompilationFactory.CreateCompilation(@"
+            var libBase1 = TestCompilationFactory.CreateCSharpCompilation(@"
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
 public class LibBase
 {
@@ -1448,7 +1462,7 @@ public class LibBase
 }
 ", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
 
-            var libBase2 = TestCompilationFactory.CreateCompilation(@"
+            var libBase2 = TestCompilationFactory.CreateCSharpCompilation(@"
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
 public class LibBase
 {
@@ -1456,14 +1470,14 @@ public class LibBase
 }
 ", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
 
-            var lib1 = TestCompilationFactory.CreateCompilation(@"
+            var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
 ", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
 
-            var lib2 = TestCompilationFactory.CreateCompilation(@"
+            var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();
@@ -1508,7 +1522,7 @@ public class Lib2
             string lib1Name = "Lib1_" + Guid.NewGuid();
             string lib2Name = "Lib2_" + Guid.NewGuid();
 
-            var libBase1 = TestCompilationFactory.CreateCompilation(@"
+            var libBase1 = TestCompilationFactory.CreateCSharpCompilation(@"
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
 public class LibBase
 {
@@ -1516,7 +1530,7 @@ public class LibBase
 }
 ", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
 
-            var libBase2 = TestCompilationFactory.CreateCompilation(@"
+            var libBase2 = TestCompilationFactory.CreateCSharpCompilation(@"
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
 public class LibBase
 {
@@ -1524,14 +1538,14 @@ public class LibBase
 }
 ", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll2);
 
-            var lib1 = TestCompilationFactory.CreateCompilation(@"
+            var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
 ", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
 
-            var lib2 = TestCompilationFactory.CreateCompilation(@"
+            var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();
@@ -1576,7 +1590,7 @@ public class Lib2
             string lib1Name = "Lib1_" + Guid.NewGuid();
             string lib2Name = "Lib2_" + Guid.NewGuid();
 
-            var libBase1 = TestCompilationFactory.CreateCompilation(@"
+            var libBase1 = TestCompilationFactory.CreateCSharpCompilation(@"
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
 public class LibBase
 {
@@ -1584,7 +1598,7 @@ public class LibBase
 }
 ", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
 
-            var libBase2 = TestCompilationFactory.CreateCompilation(@"
+            var libBase2 = TestCompilationFactory.CreateCSharpCompilation(@"
 [assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
 public class LibBase
 {
@@ -1592,14 +1606,14 @@ public class LibBase
 }
 ", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
 
-            var lib1 = TestCompilationFactory.CreateCompilation(@"
+            var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
 ", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
 
-            var lib2 = TestCompilationFactory.CreateCompilation(@"
+            var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();
@@ -1644,7 +1658,7 @@ public class Lib2
             string lib1Name = "Lib1_" + Guid.NewGuid();
             string lib2Name = "Lib2_" + Guid.NewGuid();
 
-            var libBase1 = TestCompilationFactory.CreateCompilation(@"
+            var libBase1 = TestCompilationFactory.CreateCSharpCompilation(@"
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
 public class LibBase
 {
@@ -1652,7 +1666,7 @@ public class LibBase
 }
 ", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
 
-            var libBase2 = TestCompilationFactory.CreateCompilation(@"
+            var libBase2 = TestCompilationFactory.CreateCSharpCompilation(@"
 [assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
 public class LibBase
 {
@@ -1660,14 +1674,14 @@ public class LibBase
 }
 ", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
 
-            var lib1 = TestCompilationFactory.CreateCompilation(@"
+            var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
 ", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
 
-            var lib2 = TestCompilationFactory.CreateCompilation(@"
+            var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();
@@ -1702,12 +1716,12 @@ public class Lib2
             string mainName = "Main_" + Guid.NewGuid();
             string libName = "Lib_" + Guid.NewGuid();
 
-            var libExe = TestCompilationFactory.CreateCompilationWithMscorlib(@"public class C { public string F = ""exe""; }", libName);
-            var libDll = TestCompilationFactory.CreateCompilationWithMscorlib(@"public class C { public string F = ""dll""; }", libName);
-            var libWinmd = TestCompilationFactory.CreateCompilationWithMscorlib(@"public class C { public string F = ""winmd""; }", libName);
+            var libExe = TestCompilationFactory.CreateCSharpCompilationWithMscorlib(@"public class C { public string F = ""exe""; }", libName);
+            var libDll = TestCompilationFactory.CreateCSharpCompilationWithMscorlib(@"public class C { public string F = ""dll""; }", libName);
+            var libWinmd = TestCompilationFactory.CreateCSharpCompilationWithMscorlib(@"public class C { public string F = ""winmd""; }", libName);
 
-            var main = TestCompilationFactory.CreateCompilation(
-                @"public static class M { public static readonly C X = new C(); }", 
+            var main = TestCompilationFactory.CreateCSharpCompilation(
+                @"public static class M { public static readonly C X = new C(); }",
                 new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libExe.ToMetadataReference() },
                 mainName);
 
@@ -1732,11 +1746,11 @@ public class Lib2
             string mainName = "Main_" + Guid.NewGuid();
             string libName = "Lib_" + Guid.NewGuid();
 
-            var libExe = TestCompilationFactory.CreateCompilationWithMscorlib(@"public class C { public string F = ""exe""; }", libName);
-            var libDll = TestCompilationFactory.CreateCompilationWithMscorlib(@"public class C { public string F = ""dll""; }", libName);
-            var libWinmd = TestCompilationFactory.CreateCompilationWithMscorlib(@"public class C { public string F = ""winmd""; }", libName);
+            var libExe = TestCompilationFactory.CreateCSharpCompilationWithMscorlib(@"public class C { public string F = ""exe""; }", libName);
+            var libDll = TestCompilationFactory.CreateCSharpCompilationWithMscorlib(@"public class C { public string F = ""dll""; }", libName);
+            var libWinmd = TestCompilationFactory.CreateCSharpCompilationWithMscorlib(@"public class C { public string F = ""winmd""; }", libName);
 
-            var main = TestCompilationFactory.CreateCompilation(
+            var main = TestCompilationFactory.CreateCSharpCompilation(
                 @"public static class M { public static readonly C X = new C(); }",
                 new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libExe.ToMetadataReference() },
                 mainName);
@@ -1756,7 +1770,24 @@ public class Lib2
             var r2 = CSharpScript.Create($@"#r ""{fileMain.Path}""").ContinueWith($@"M.X.F").RunAsync().Result.ReturnValue;
             Assert.Equal("dll", r2);
         }
-        
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6015")]
+        public void UsingExternalAliasesForHiding()
+        {
+            string source = @"
+namespace N { public class C { } }
+public class D { }
+public class E { }
+";
+
+            var libRef = CreateCSharpCompilationWithMscorlib(source, "lib").EmitToImageReference();
+
+            var script = CSharpScript.Create(@"new C()",
+                ScriptOptions.Default.WithReferences(libRef.WithAliases(new[] { "Hidden" })).WithImports("Hidden::N"));
+
+            script.Compile().Verify();
+        }
+
         #endregion
 
         #region UsingDeclarations
@@ -1813,7 +1844,7 @@ d
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("?2"));
 
             options = ScriptOptions.Default.AddImports("");
-            
+
             ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("1", options),
                 // error CS7088: Invalid 'Usings' value: ''.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", ""));
@@ -1940,7 +1971,7 @@ new List<ArgumentException>()
         public void HostObjectBinding_PublicClassMembers()
         {
             var c = new C();
-            
+
             var s0 = CSharpScript.RunAsync<int>("x + Y + Z()", globals: c);
             Assert.Equal(6, s0.Result.ReturnValue);
 
@@ -1965,7 +1996,7 @@ new List<ArgumentException>()
         public async Task HostObjectBinding_Interface()
         {
             var c = new C();
-            
+
             var s0 = await CSharpScript.RunAsync<int>("Z()", globals: c, globalsType: typeof(I));
             Assert.Equal(3, s0.ReturnValue);
 
@@ -1982,7 +2013,7 @@ new List<ArgumentException>()
         public void HostObjectBinding_PrivateClass()
         {
             var c = new PrivateClass();
-            
+
             ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("Z()", globals: c),
                 // (1,1): error CS0122: '<Fully Qualified Name of PrivateClass>.Z()' is inaccessible due to its protection level
                 Diagnostic(ErrorCode.ERR_BadAccess, "Z").WithArguments(typeof(PrivateClass).FullName.Replace("+", ".") + ".Z()"));
@@ -2073,7 +2104,7 @@ new List<ArgumentException>()
 
                     case "Microsoft.CodeAnalysis":
                     default:
-                        AssertEx.SetEqual(new[] { "<implicit>", "<host>" },  assemblyAndAliases.Item2);
+                        AssertEx.SetEqual(new[] { "<implicit>", "<host>" }, assemblyAndAliases.Item2);
                         break;
                 }
             }
@@ -2118,7 +2149,7 @@ new List<ArgumentException>()
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6532")]
         public void HostObjectAssemblyReference3()
         {
             string source = $@"

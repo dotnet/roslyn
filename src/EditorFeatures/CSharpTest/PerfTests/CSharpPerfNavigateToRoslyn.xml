@@ -6,6 +6,7 @@
 
   <TaoTest xmlns="http://microsoft.com/schemas/VSLanguages/TAO">
   <InitTest>
+    <EnsureCodeMarker />
     <StartTarget DontResetOptions="true" />
     <EnableClosedFileDiagnostic Enabled="true" Language="C#"/>
     <OpenProject ProjectFile="C:\Roslyn\LegacyTest\RealworldProjects\RoslynSolutions\Roslyn-CSharp.sln" DeleteSuoFileBeforeOpening="true" DeleteIDECacheBeforeOpening="true"/>

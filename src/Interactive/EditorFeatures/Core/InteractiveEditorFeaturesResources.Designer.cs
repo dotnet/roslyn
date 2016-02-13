@@ -61,6 +61,51 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Building Project.
+        /// </summary>
+        internal static string BuildingProject {
+            get {
+                return ResourceManager.GetString("BuildingProject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copying selection to Interactive Window..
+        /// </summary>
+        internal static string CopyToInteractiveDescription {
+            get {
+                return ResourceManager.GetString("CopyToInteractiveDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Executing selection in Interactive Window..
+        /// </summary>
+        internal static string ExecuteInInteractiveDescription {
+            get {
+                return ResourceManager.GetString("ExecuteInInteractiveDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Print a list of referenced assemblies..
+        /// </summary>
+        internal static string ReferencesCommandDescription {
+            get {
+                return ResourceManager.GetString("ReferencesCommandDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The references command is not supported in this Interactive Window implementation..
+        /// </summary>
+        internal static string ReferencesCommandEvaluatorError {
+            get {
+                return ResourceManager.GetString("ReferencesCommandEvaluatorError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Reset the execution environment to the initial state, keep history..
         /// </summary>
         internal static string ResetCommandDescription {
@@ -84,6 +129,24 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string ResettingExecutionEngine {
             get {
                 return ResourceManager.GetString("ResettingExecutionEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resetting Interactive.
+        /// </summary>
+        internal static string ResettingInteractive {
+            get {
+                return ResourceManager.GetString("ResettingInteractive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The CurrentWindow property may only be assigned once..
+        /// </summary>
+        internal static string WindowSetAgainException {
+            get {
+                return ResourceManager.GetString("WindowSetAgainException", resourceCulture);
             }
         }
     }

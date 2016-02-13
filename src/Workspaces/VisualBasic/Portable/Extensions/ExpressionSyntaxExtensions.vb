@@ -655,7 +655,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' We don't want to allow a variable to be introduced if the expression contains an
             ' implicit member access.  i.e. ".Blah.ToString()" as that .Blah refers to the containing
             ' object creation or anonymous type and we can't make a local for it.  So we get all the
-            ' descendents and we suppress ourselves. 
+            ' descendants and we suppress ourselves. 
 
             ' Note: if we hit a with block or an anonymous type, then we do not look deeper.  Any
             ' implicit member accesses will refer to that thing and we *can* introduce a variable
@@ -1182,7 +1182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Dim genericName = DirectCast(name, GenericNameSyntax)
                     replacementNode = SyntaxFactory.IdentifierName(genericName.Identifier).WithLeadingTrivia(genericName.GetLeadingTrivia()).WithTrailingTrivia(genericName.GetTrailingTrivia())
 
-                    issueSpan = name.Span
+                    issueSpan = genericName.TypeArgumentList.Span
                     Return name.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken)
                 End If
 
@@ -1290,20 +1290,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     ' QualifiedNames can't contain PredefinedTypeNames (although MemberAccessExpressions can).
                     ' In other words, the left side of a QualifiedName can't be a PredefinedTypeName.
                     If nameHasNoAlias AndAlso aliasInfo Is Nothing AndAlso Not name.Parent.IsKind(SyntaxKind.QualifiedName) Then
-                        If PreferPredefinedTypeKeywordInDeclarations(name, optionSet) OrElse
-                           PreferPredefinedTypeKeywordInMemberAccess(name, optionSet) Then
-                            Dim type = semanticModel.GetTypeInfo(name).Type
-                            If type IsNot Nothing Then
-                                Dim keywordKind = GetPredefinedKeywordKind(type.SpecialType)
-                                If keywordKind <> SyntaxKind.None Then
-                                    replacementNode = SyntaxFactory.PredefinedType(
-                                                        SyntaxFactory.Token(
-                                                            name.GetLeadingTrivia(),
-                                                            keywordKind,
-                                                            name.GetTrailingTrivia()))
-
+                        Dim type = semanticModel.GetTypeInfo(name).Type
+                        If type IsNot Nothing Then
+                            Dim keywordKind = GetPredefinedKeywordKind(type.SpecialType)
+                            If keywordKind <> SyntaxKind.None Then
+                                ' But do simplify to predefined type if not simplifying results in just the addition of escaping
+                                '   brackets.  E.g., even if specified otherwise, prefer `String` to `[String]`.
+                                Dim token = SyntaxFactory.Token(
+                                    name.GetLeadingTrivia(),
+                                    keywordKind,
+                                    name.GetTrailingTrivia())
+                                Dim valueText = TryCast(name, IdentifierNameSyntax)?.Identifier.ValueText
+                                If token.Text = valueText OrElse
+                                   PreferPredefinedTypeKeywordInDeclarations(name, optionSet) OrElse
+                                   PreferPredefinedTypeKeywordInMemberAccess(name, optionSet) Then
+                                    replacementNode = SyntaxFactory.PredefinedType(token)
                                     issueSpan = name.Span
-
                                     Return name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken)
                                 End If
                             End If
@@ -1386,7 +1388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             If InsideNameOfExpression(name) Then
-                ' Nullable(Of T) can't be simplified to T? in nameof expresions.
+                ' Nullable(Of T) can't be simplified to T? in nameof expressions.
                 Return False
             End If
 

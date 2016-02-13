@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var generateTypeOptions = options as GenerateTypeOptionsResult;
                 if (generateTypeOptions != null && !generateTypeOptions.IsCancelled)
                 {
-                    var semanticDocument = SemanticDocument.CreateAsync(_document, cancellationToken).WaitAndGetResult(cancellationToken);
+                    var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
                     var editor = new Editor(_service, semanticDocument, _state, true, generateTypeOptions, cancellationToken);
                     operations = await editor.GetOperationsAsync().ConfigureAwait(false);
                 }

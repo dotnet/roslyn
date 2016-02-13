@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,7 +11,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 {
@@ -25,15 +25,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             // The type we're creating a constructor for.  Will be a class or struct type.
             public INamedTypeSymbol TypeToGenerateIn { get; private set; }
 
-            public IList<ITypeSymbol> ParameterTypes { get; private set; }
             public IList<RefKind> ParameterRefKinds { get; private set; }
+            public IList<ITypeSymbol> ParameterTypes { get; private set; }
+
+            public IMethodSymbol DelegatedConstructorOpt { get; private set; }
 
             public SyntaxToken Token { get; private set; }
+
             public bool IsConstructorInitializerGeneration { get; private set; }
 
             private State()
             {
-                this.IsConstructorInitializerGeneration = false;
             }
 
             public static async Task<State> GenerateAsync(
@@ -71,6 +73,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         return false;
                     }
                 }
+                else if (service.IsClassDeclarationGeneration(document, node, cancellationToken))
+                {
+                    if (!await TryInitializeClassDeclarationGenerationAsync(service, document, node, cancellationToken).ConfigureAwait(false))
+                    {
+                        return false;
+                    }
+                }
                 else
                 {
                     return false;
@@ -82,24 +91,56 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 }
 
                 this.ParameterTypes = this.ParameterTypes ?? GetParameterTypes(service, document, cancellationToken);
-                this.ParameterRefKinds = this.Arguments.Select(service.GetRefKind).ToList();
+                this.ParameterRefKinds = this.ParameterRefKinds ?? this.Arguments.Select(service.GetRefKind).ToList();
 
-                return !ClashesWithExistingConstructor(service, document, cancellationToken);
+                return !ClashesWithExistingConstructor(document, cancellationToken);
             }
 
-            private bool ClashesWithExistingConstructor(TService service, SemanticDocument document, CancellationToken cancellationToken)
+            private bool ClashesWithExistingConstructor(SemanticDocument document, CancellationToken cancellationToken)
             {
-                var parameters = this.ParameterTypes.Zip(this.ParameterRefKinds, (t, r) => CodeGenerationSymbolFactory.CreateParameterSymbol(
-                    attributes: null,
-                    refKind: r,
-                    isParams: false,
-                    type: t,
-                    name: string.Empty)).ToList();
-
                 var destinationProvider = document.Project.Solution.Workspace.Services.GetLanguageServices(this.TypeToGenerateIn.Language);
                 var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
+                return this.TypeToGenerateIn.InstanceConstructors.Any(c => Matches(c, syntaxFacts));
+            }
 
-                return this.TypeToGenerateIn.InstanceConstructors.Any(c => SignatureComparer.Instance.HaveSameSignature(parameters, c.Parameters, compareParameterName: true, isCaseSensitive: syntaxFacts.IsCaseSensitive));
+            private bool Matches(IMethodSymbol ctor, ISyntaxFactsService service)
+            {
+                if (ctor.Parameters.Length != this.ParameterTypes.Count)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < this.ParameterTypes.Count; i++)
+                {
+                    var ctorParameter = ctor.Parameters[i];
+                    var result = SymbolEquivalenceComparer.Instance.Equals(ctorParameter.Type, this.ParameterTypes[i]) &&
+                        ctorParameter.RefKind == this.ParameterRefKinds[i];
+
+                    string parameterName = GetParameterName(service, i);
+                    if (!string.IsNullOrEmpty(parameterName))
+                    {
+                        result &= service.IsCaseSensitive
+                            ? ctorParameter.Name == parameterName
+                            : string.Equals(ctorParameter.Name, parameterName, StringComparison.OrdinalIgnoreCase);
+                    }
+
+                    if (result == false)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            private string GetParameterName(ISyntaxFactsService service, int index)
+            {
+                if (index >= this.Arguments?.Count)
+                {
+                    return string.Empty;
+                }
+
+                return service.GetNameForArgument(this.Arguments?[index]);
             }
 
             internal List<ITypeSymbol> GetParameterTypes(
@@ -151,6 +192,28 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 {
                     return false;
                 }
+
+                return await TryDetermineTypeToGenerateInAsync(document, typeToGenerateIn, cancellationToken).ConfigureAwait(false);
+            }
+
+            private async Task<bool> TryInitializeClassDeclarationGenerationAsync(
+                TService service,
+                SemanticDocument document,
+                SyntaxNode simpleName,
+                CancellationToken cancellationToken)
+            {
+                SyntaxToken token;
+                INamedTypeSymbol typeToGenerateIn;
+                IMethodSymbol constructor;
+                if (service.TryInitializeClassDeclarationGenerationState(document, simpleName, cancellationToken,
+                    out token, out constructor, out typeToGenerateIn))
+                {
+                    this.Token = token;
+                    this.DelegatedConstructorOpt = constructor;
+                    this.ParameterTypes = constructor.Parameters.Select(p => p.Type).ToList();
+                    this.ParameterRefKinds = constructor.Parameters.Select(p => p.RefKind).ToList();
+                }
+                cancellationToken.ThrowIfCancellationRequested();
 
                 return await TryDetermineTypeToGenerateInAsync(document, typeToGenerateIn, cancellationToken).ConfigureAwait(false);
             }

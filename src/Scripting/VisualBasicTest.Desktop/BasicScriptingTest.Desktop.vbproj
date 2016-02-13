@@ -12,7 +12,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>
     </RootNamespace>
-    <AssemblyName>Microsoft.CodeAnalysis.Scripting.VisualBasic.Desktop.UnitTests</AssemblyName>
+    <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>

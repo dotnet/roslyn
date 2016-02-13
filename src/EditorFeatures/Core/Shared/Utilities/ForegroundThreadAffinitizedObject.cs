@@ -1,22 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
-    internal enum ForegroundThreadDataKind
-    {
-        Wpf,
-        StaUnitTest,
-        Unknown
-    }
-
     internal sealed class ForegroundThreadData
     {
         internal readonly Thread Thread;
@@ -32,25 +25,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         internal static ForegroundThreadData CreateDefault()
         {
-            TaskScheduler taskScheduler;
-            ForegroundThreadDataKind kind;
+            var kind = ForegroundThreadDataInfo.CreateDefault();
 
-            var previousContext = SynchronizationContext.Current;
-            try
-            {
-                // None of the work posted to the foregroundTaskScheduler should block pending keyboard/mouse input from the user.
-                // So instead of using the default priority which is above user input, we use Background priority which is 1 level
-                // below user input.
-                SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher, DispatcherPriority.Background));
-                taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
-                kind = previousContext?.GetType().FullName == "System.Windows.Threading.DispatcherSynchronizationContext"
-                    ? ForegroundThreadDataKind.Wpf
-                    : ForegroundThreadDataKind.Unknown;
-            }
-            finally
-            {
-                SynchronizationContext.SetSynchronizationContext(previousContext);
-            }
+            // None of the work posted to the foregroundTaskScheduler should block pending keyboard/mouse input from the user.
+            // So instead of using the default priority which is above user input, we use Background priority which is 1 level
+            // below user input.
+            var taskScheduler = new SynchronizationContextTaskScheduler(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher, DispatcherPriority.Background));
 
             return new ForegroundThreadData(Thread.CurrentThread, taskScheduler, kind);
         }
@@ -63,18 +43,21 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     internal class ForegroundThreadAffinitizedObject
     {
         private static readonly ForegroundThreadData s_fallbackForegroundThreadData;
-        private static ForegroundThreadData s_defaultForegroundThreadData;
+        private static ForegroundThreadData s_currentForegroundThreadData;
         private readonly ForegroundThreadData _foregroundThreadData;
 
-        internal static ForegroundThreadData FallbackForegroundThreadData
+        internal static ForegroundThreadData CurrentForegroundThreadData
         {
-            get { return s_fallbackForegroundThreadData; }
-        }
+            get
+            {
+                return s_currentForegroundThreadData ?? s_fallbackForegroundThreadData;
+            }
 
-        internal static ForegroundThreadData DefaultForegroundThreadData
-        {
-            get { return s_defaultForegroundThreadData ?? s_fallbackForegroundThreadData; }
-            set { s_defaultForegroundThreadData = value; }
+            set
+            {
+                s_currentForegroundThreadData = value;
+                ForegroundThreadDataInfo.SetCurrentForegroundThreadDataKind(s_currentForegroundThreadData?.Kind);
+            }
         }
 
         internal ForegroundThreadData ForegroundThreadData
@@ -103,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public ForegroundThreadAffinitizedObject(ForegroundThreadData foregroundThreadData = null, bool assertIsForeground = false)
         {
-            _foregroundThreadData = foregroundThreadData ?? DefaultForegroundThreadData;
+            _foregroundThreadData = foregroundThreadData ?? CurrentForegroundThreadData;
 
             // For sanity's sake, ensure that our idea of "foreground" is the same as WPF's
             Contract.ThrowIfFalse(Application.Current == null || Application.Current.Dispatcher.Thread == ForegroundThread);
@@ -152,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
             else
             {
-                return Task.Factory.SafeStartNew(action, cancellationToken, ForegroundTaskScheduler); 
+                return Task.Factory.SafeStartNew(action, cancellationToken, ForegroundTaskScheduler);
             }
         }
 

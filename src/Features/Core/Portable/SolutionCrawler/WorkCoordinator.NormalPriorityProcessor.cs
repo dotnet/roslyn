@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 private sealed class NormalPriorityProcessor : GlobalOperationAwareIdleProcessor
                 {
+                    private const int MaxHighPriorityQueueCache = 29;
+
                     private readonly AsyncDocumentWorkItemQueue _workItemQueue;
 
                     private readonly Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
@@ -88,23 +90,35 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private void CheckHigherPriorityDocument(WorkItem item)
                     {
-                        if (item.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentOpened) ||
-                            item.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentClosed))
+                        if (!item.InvocationReasons.Contains(PredefinedInvocationReasons.HighPriority))
                         {
-                            AddHigherPriorityDocument(item.DocumentId);
+                            return;
                         }
+
+                        AddHigherPriorityDocument(item.DocumentId);
                     }
 
                     private void AddHigherPriorityDocument(DocumentId id)
                     {
-                        var cache = Processor.EnableCaching(id.ProjectId);
+                        var cache = GetHighPriorityQueueProjectCache(id);
                         if (!_higherPriorityDocumentsNotProcessed.TryAdd(id, cache))
                         {
                             // we already have the document in the queue.
-                            cache.Dispose();
+                            cache?.Dispose();
                         }
 
                         SolutionCrawlerLogger.LogHigherPriority(this.Processor._logAggregator, id.Id);
+                    }
+
+                    private IDisposable GetHighPriorityQueueProjectCache(DocumentId id)
+                    {
+                        // NOTE: we have one potential issue where we can cache a lot of stuff in memory 
+                        //       since we will cache all high prioirty work's projects in memory until they are processed. 
+                        //
+                        //       To mitigate that, we will turn off cache if we have too many items in high priority queue
+                        //       this shouldn't affect active file since we always enable active file cache from background compiler.
+
+                        return _higherPriorityDocumentsNotProcessed.Count <= MaxHighPriorityQueueCache ? Processor.EnableCaching(id.ProjectId) : null;
                     }
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
@@ -260,7 +274,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             }
                         }
 
-                        // Any other opened documents
+                        // Any other high priority documents
                         foreach (var documentId in _higherPriorityDocumentsNotProcessed.Keys)
                         {
                             yield return documentId;

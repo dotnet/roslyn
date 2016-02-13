@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         // document worker coordinator
         private ISolutionCrawlerRegistrationService _registrationService;
 
-        private readonly ForegroundThreadAffinitizedObject foregroundObject = new ForegroundThreadAffinitizedObject();
+        private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
 
         public VisualStudioWorkspaceImpl(
             SVsServiceProvider serviceProvider,
@@ -676,7 +676,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(documentId));
             }
 
-            if (!foregroundObject.IsForeground())
+            if (!_foregroundObject.IsForeground())
             {
                 throw new InvalidOperationException(ServicesVSResources.ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread);
             }
@@ -706,7 +706,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var itemId = document.GetItemId();
             if (itemId == (uint)VSConstants.VSITEMID.Nil)
             {
-                // If the ItemId is Nil, then then IVsProject would not be able to open the 
+                // If the ItemId is Nil, then IVsProject would not be able to open the 
                 // document using its ItemId. Thus, we must use OpenDocumentViaProject, which only 
                 // depends on the file path.
 

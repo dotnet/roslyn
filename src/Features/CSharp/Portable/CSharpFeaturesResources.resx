@@ -237,9 +237,6 @@
   <data name="AwaitableExtension" xml:space="preserve">
     <value>awaitable, extension</value>
   </data>
-  <data name="Await" xml:space="preserve">
-    <value>await</value>
-  </data>
   <data name="OrganizeUsings" xml:space="preserve">
     <value>Organize Usings</value>
   </data>
@@ -436,5 +433,8 @@
   </data>
   <data name="HideBase" xml:space="preserve">
     <value>Hide base member</value>
+  </data>
+  <data name="DelegateInvocationCanBeSimplified" xml:space="preserve">
+    <value>Delegate invocation can be simplified.</value>
   </data>
 </root>

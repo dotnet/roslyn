@@ -22,8 +22,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
                 return;
             }
 
+            var diagnostic = context.Diagnostics.First();
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var names = GetTargetNodes(root, context.Span);
+            var names = GetTargetNodes(root, context.Span, diagnostic);
             foreach (var name in names)
             {
                 var codeActions = await GetCodeActionsAsync(context.Document, name, context.CancellationToken).ConfigureAwait(false);
@@ -44,12 +45,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
             return node;
         }
 
-        protected virtual bool IsCandidate(SyntaxNode node)
+        protected virtual bool IsCandidate(SyntaxNode node, Diagnostic diagnostic)
         {
             return false;
         }
 
-        protected virtual IEnumerable<SyntaxNode> GetTargetNodes(SyntaxNode root, TextSpan span)
+        protected virtual IEnumerable<SyntaxNode> GetTargetNodes(SyntaxNode root, TextSpan span, Diagnostic diagnostic)
         {
             var token = root.FindToken(span.Start);
             if (!token.Span.IntersectsWith(span))
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
                 yield break;
             }
 
-            var nodes = token.GetAncestors<SyntaxNode>().Where(IsCandidate);
+            var nodes = token.GetAncestors<SyntaxNode>().Where(n => IsCandidate(n, diagnostic));
             foreach (var node in nodes)
             {
                 var name = GetTargetNode(node);

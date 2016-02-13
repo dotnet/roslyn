@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // The null pointer is represented as 0u.
                     _builder.EmitIntConstant(0);
                     _builder.EmitOpCode(ILOpCode.Conv_u);
+                    EmitPopIfUnused(used);
                     return;
             }
 

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 
                 var compiler = new CSharpInteractiveCompiler(
                     responseFile: responseFile,
-                    baseDirectory: Directory.GetCurrentDirectory(), 
+                    baseDirectory: Directory.GetCurrentDirectory(),
                     sdkDirectoryOpt: CorLightup.Desktop.TryGetRuntimeDirectory(),
                     args: args,
                     analyzerLoader: new NotImplementedAnalyzerLoader());

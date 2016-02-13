@@ -1,8 +1,4 @@
 {
-  "supports": {
-    "net46.app": {},
-    "dnxcore50.app": {}
-  },
   "dependencies": {},
   "frameworks": {
     "dotnet": {

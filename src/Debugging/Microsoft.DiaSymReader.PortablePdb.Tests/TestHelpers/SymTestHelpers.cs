@@ -16,7 +16,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
     {
         public static ISymUnmanagedReader CreateSymReaderFromResource(KeyValuePair<byte[], byte[]> peAndPdb)
         {
-            return SymReaderFactory.CreateReader(new MemoryStream(peAndPdb.Value), new SymMetadataImport(new MemoryStream(peAndPdb.Key)));
+            return SymReaderFactory.CreateReaderImpl(new MemoryStream(peAndPdb.Value), metadataImporter: new SymMetadataImport(new MemoryStream(peAndPdb.Key)));
         }
 
         public static void ValidateDocumentUrl(ISymUnmanagedDocument document, string url)
@@ -293,8 +293,8 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
 
         public static int[] GetILOffsetForEachLine(
             ISymUnmanagedReader symReader,
-            int methodToken, 
-            ISymUnmanagedDocument document, 
+            int methodToken,
+            ISymUnmanagedDocument document,
             int minLine, int maxLine)
         {
             Assert.True(minLine >= 1);
@@ -388,7 +388,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             Assert.True(maxLine >= minLine);
 
             var result = new List<int>();
-                     
+
             for (int line = minLine; line <= maxLine; line++)
             {
                 int closestLine;

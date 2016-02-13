@@ -43,8 +43,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         ''' <summary>
         ''' We need to check for EOL trivia not preceded by LineContinuation trivia.
         ''' 
-        ''' This is slightly complicated since we need to get TrailingTrivia from missing tokens 
-        ''' and then get LeadingTrivia for the next non-missing token
+        ''' This is slightly complicated since we need to get TrailingTrivia from missing tokens
+        ''' and then get LeadingTrivia for the next non-missing token.
+        ''' 
+        ''' Note that this is even more complicated in the case that we're in structured trivia
+        ''' because we might be part of the leading trivia to the next non-missing token.
         ''' </summary>
         <Extension>
         Friend Function HasNonContinuableEndOfLineBeforePosition(token As SyntaxToken, position As Integer, Optional checkForSecondEol As Boolean = False) As Boolean
@@ -55,6 +58,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Dim allowsImplicitLineContinuation = token.Parent IsNot Nothing AndAlso
                                                  SyntaxFacts.AllowsTrailingImplicitLineContinuation(token)
 
+            Dim originalToken = token
+
             Do
                 If CheckTrivia(token.TrailingTrivia, position, checkForSecondEol, allowsImplicitLineContinuation) Then
                     Return True
@@ -63,7 +68,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 token = token.GetNextToken(includeZeroWidth:=True)
             Loop While token.IsMissing
 
-            Return CheckTrivia(token.LeadingTrivia, position, checkForSecondEol, allowsImplicitLineContinuation)
+            ' If our our original token was in structured trivia (such as preprocesser), it's entirely possible that the
+            ' leading trivia of the next non-missing token might contain it. If that's the case, we don't want to check
+            ' its leading trivia before it might have trivia that appear *before* the original token.
+            '
+            ' Consider the following example:
+            '
+            '   Class C
+            '
+            '     #Region $$
+            '   End Class
+            '
+            ' In the code above, the original token is "Region", but the leading trivia to the next non-missing token ("End")
+            ' includes the structured trivia containing the original token plus the trivia before it. In that case, we don't
+            ' want to check the leading trivia of the "End".
+
+            If Not token.LeadingTrivia.Span.Contains(originalToken.Span) Then
+                Return CheckTrivia(token.LeadingTrivia, position, checkForSecondEol, allowsImplicitLineContinuation)
+            Else
+                Return False
+            End If
         End Function
 
         <Extension>

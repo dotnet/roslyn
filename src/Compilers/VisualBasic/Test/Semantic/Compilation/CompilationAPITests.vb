@@ -28,8 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.NotNull(arg.ToString())
         End Sub
 
-        <WorkItem(538778, "DevDiv")>
-        <WorkItem(537623, "DevDiv")>
+        <WorkItem(538778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538778")>
+        <WorkItem(537623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537623")>
         <Fact>
         Public Sub CompilationName()
             ' report an error, rather then silently ignoring the directory
@@ -346,7 +346,7 @@ End Namespace
             Assert.Equal(0, compCollection.References.Count)
         End Sub
 
-        <WorkItem(537826, "DevDiv")>
+        <WorkItem(537826, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537826")>
         <Fact>
         Public Sub SyntreeAPITest()
 
@@ -574,7 +574,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem(713356, "DevDiv")>
+        <WorkItem(713356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")>
         <Fact()>
         Public Sub MissedModuleA()
             Dim netModule1 = CreateCompilationWithMscorlibAndVBRuntime(
@@ -625,7 +625,7 @@ End Class
             CompileAndVerify(assembly)
         End Sub
 
-        <WorkItem(713356, "DevDiv")>
+        <WorkItem(713356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")>
         <Fact()>
         Public Sub MissedModuleB_OneError()
             Dim netModule1 = CreateCompilationWithMscorlibAndVBRuntime(
@@ -679,8 +679,8 @@ BC37221: Reference to 'a1.netmodule' netmodule missing.
 </errors>)
         End Sub
 
-        <WorkItem(718500, "DevDiv")>
-        <WorkItem(716762, "DevDiv")>
+        <WorkItem(718500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718500")>
+        <WorkItem(716762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716762")>
         <Fact()>
         Public Sub MissedModuleB_NoErrorForUnmanagedModules()
             Dim netModule1 = CreateCompilationWithMscorlibAndVBRuntime(
@@ -710,7 +710,7 @@ End Class
             assembly.AssertNoDiagnostics()
         End Sub
 
-        <WorkItem(715872, "DevDiv")>
+        <WorkItem(715872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715872")>
         <Fact()>
         Public Sub MissedModuleC()
             Dim netModule1 = CreateCompilationWithMscorlibAndVBRuntime(
@@ -896,7 +896,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         '' Get nonexistent Referenced Assembly Symbol
-        <WorkItem(537637, "DevDiv")>
+        <WorkItem(537637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537637")>
         <Fact>
         Public Sub NegReference1()
             Dim comp = VisualBasicCompilation.Create("Compilation")
@@ -908,7 +908,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         '' Add already existing item 
-        <WorkItem(537617, "DevDiv")>
+        <WorkItem(537617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537617")>
         <Fact>
         Public Sub NegReference2()
             Dim comp = VisualBasicCompilation.Create("Compilation")
@@ -935,7 +935,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         '' Add a new invalid item 
-        <WorkItem(537575, "DevDiv")>
+        <WorkItem(537575, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537575")>
         <Fact>
         Public Sub NegReference3()
             Dim comp = VisualBasicCompilation.Create("Compilation")
@@ -953,7 +953,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         '' Replace an non-existing item with null
-        <WorkItem(537567, "DevDiv")>
+        <WorkItem(537567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537567")>
         <Fact>
         Public Sub NegReference4()
             Dim opt = TestOptions.ReleaseExe
@@ -973,7 +973,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         '' Replace an non-existing item with another valid item
-        <WorkItem(537566, "DevDiv")>
+        <WorkItem(537566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537566")>
         <Fact>
         Public Sub NegReference5()
             Dim comp = VisualBasicCompilation.Create("Compilation")
@@ -996,7 +996,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         '' Throw exception when add Nothing references
-        <WorkItem(537618, "DevDiv")>
+        <WorkItem(537618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537618")>
         <Fact>
         Public Sub NegReference6()
             Dim opt = TestOptions.ReleaseExe
@@ -1005,7 +1005,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         '' Throw exception when remove Nothing references
-        <WorkItem(537621, "DevDiv")>
+        <WorkItem(537621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537621")>
         <Fact>
         Public Sub NegReference7()
             Dim opt = TestOptions.ReleaseExe
@@ -1014,7 +1014,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         '' Add already existing item
-        <WorkItem(537576, "DevDiv")>
+        <WorkItem(537576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537576")>
         <Fact>
         Public Sub NegSyntaxTree1()
             Dim opt = TestOptions.ReleaseExe
@@ -1025,7 +1025,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         ' Throw exception when the parameter of ContainsSyntaxTrees is null
-        <WorkItem(527256, "DevDiv")>
+        <WorkItem(527256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527256")>
         <Fact>
         Public Sub NegContainsSyntaxTrees()
             Dim opt = TestOptions.ReleaseExe
@@ -1034,7 +1034,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         ' Throw exception when the parameter of AddReferences is CSharpCompilationReference
-        <WorkItem(537778, "DevDiv")>
+        <WorkItem(537778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537778")>
         <Fact>
         Public Sub NegGetSymbol()
             Dim opt = TestOptions.ReleaseExe
@@ -1056,7 +1056,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         '' Throw exception when the parameter of GetSpecialType is 'SpecialType.None' 
-        <WorkItem(537784, "DevDiv")>
+        <WorkItem(537784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537784")>
         <Fact>
         Public Sub NegGetSpecialType()
             Dim comp = VisualBasicCompilation.Create("Compilation")
@@ -1170,7 +1170,7 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         End Sub
 
         <Fact()>
-        <WorkItem(543211, "DevDiv")>
+        <WorkItem(543211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543211")>
         Public Sub TreeDiagnosticsShouldNotIncludeEntryPointDiagnostics()
             Dim code1 = "Module M : Sub Main : End Sub : End Module"
             Dim code2 = "  "
@@ -1186,7 +1186,7 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         End Sub
 
         <Fact()>
-        <WorkItem(543292, "DevDiv")>
+        <WorkItem(543292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543292")>
         Public Sub CompilationStackOverflow()
             Dim compilation = VisualBasicCompilation.Create("HelloWorld")
             Assert.Throws(Of NotSupportedException)(Function() compilation.DynamicType)
@@ -1284,7 +1284,7 @@ End Class
             Assert.Equal("ModuleAssemblyName", c.Assembly.Identity.Name)
         End Sub
 
-        <WorkItem(3719)>
+        <WorkItem(3719, "https://github.com/dotnet/roslyn/issues/3719")>
         <Fact()>
         Public Sub GetEntryPoint_Script()
             Dim source = <![CDATA[System.Console.WriteLine(1)]]>
@@ -1496,6 +1496,7 @@ End Class
             Dim a = VisualBasicCompilation.Create("c", syntaxTrees:={ta})
 
             ' add:
+
             Dim ab = a.AddSyntaxTrees(tb)
             Assert.True(a.ReferenceManagerEquals(ab))
 
@@ -1503,39 +1504,41 @@ End Class
             Assert.True(a.ReferenceManagerEquals(ac))
 
             Dim ar = a.AddSyntaxTrees(tr)
-            Assert.True(a.ReferenceManagerEquals(ar))
+            Assert.False(a.ReferenceManagerEquals(ar))
 
             Dim arc = ar.AddSyntaxTrees(tc)
             Assert.True(ar.ReferenceManagerEquals(arc))
 
             ' remove:
+
             Dim ar2 = arc.RemoveSyntaxTrees(tc)
             Assert.True(arc.ReferenceManagerEquals(ar2))
 
             Dim c = arc.RemoveSyntaxTrees(ta, tr)
-            Assert.True(arc.ReferenceManagerEquals(c))
+            Assert.False(arc.ReferenceManagerEquals(c))
 
             Dim none1 = c.RemoveSyntaxTrees(tc)
             Assert.True(c.ReferenceManagerEquals(none1))
 
             Dim none2 = arc.RemoveAllSyntaxTrees()
-            Assert.True(arc.ReferenceManagerEquals(none2))
+            Assert.False(arc.ReferenceManagerEquals(none2))
 
             Dim none3 = ac.RemoveAllSyntaxTrees()
             Assert.True(ac.ReferenceManagerEquals(none3))
 
             ' replace:
+
             Dim asc = arc.ReplaceSyntaxTree(tr, ts)
-            Assert.True(arc.ReferenceManagerEquals(asc))
+            Assert.False(arc.ReferenceManagerEquals(asc))
 
             Dim brc = arc.ReplaceSyntaxTree(ta, tb)
             Assert.True(arc.ReferenceManagerEquals(brc))
 
             Dim abc = arc.ReplaceSyntaxTree(tr, tb)
-            Assert.True(arc.ReferenceManagerEquals(abc))
+            Assert.False(arc.ReferenceManagerEquals(abc))
 
             Dim ars = arc.ReplaceSyntaxTree(tc, ts)
-            Assert.True(arc.ReferenceManagerEquals(ars))
+            Assert.False(arc.ReferenceManagerEquals(ars))
         End Sub
 
         Private Class EvolvingTestReference
@@ -1605,7 +1608,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(797640, "DevDiv")>
+        <WorkItem(797640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797640")>
         Public Sub GetMetadataReferenceAPITest()
             Dim comp = VisualBasicCompilation.Create("Compilation")
             Dim metadata = TestReferences.NetFx.v4_0_30319.mscorlib

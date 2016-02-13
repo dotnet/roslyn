@@ -31,11 +31,7 @@ namespace Roslyn.Hosting.Diagnostics.VenusMargin
 
         private void RaiseSelectionChanged(EventArgs args)
         {
-            var changed = SelectionChanged;
-            if (changed != null)
-            {
-                changed(this, args);
-            }
+            SelectionChanged?.Invoke(this, args);
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

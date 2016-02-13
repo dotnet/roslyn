@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(newDocText, treeText);
         }
 
-        [WorkItem(1174396, "DevDiv")]
+        [WorkItem(1174396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174396")]
         [Fact]
         public void TestUpdateCSharpLanguageVersion()
         {

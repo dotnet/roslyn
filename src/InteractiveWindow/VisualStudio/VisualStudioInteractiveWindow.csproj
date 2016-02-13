@@ -118,14 +118,11 @@
     <Reference Include="System.XML" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(OfficialBuild)' == 'true'">
-    <DefineConstants>$(DefineConstants);OFFICIAL_BUILD</DefineConstants>
-  </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\VisualStudio\Setup\ProvideRoslynBindingRedirection.cs">
       <Link>ProvideRoslynBindingRedirection.cs</Link>
     </Compile>
-    <Compile Include="AssemblyRedirects.cs" Condition="('$(AssemblyVersion)' == '42.42.42.42') or ('$(OfficialBuild)' == 'true')" />
+    <Compile Include="AssemblyRedirects.cs" />
     <Compile Include="CommandIds.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="VsInteractiveWindowEditorFactoryService.cs" />

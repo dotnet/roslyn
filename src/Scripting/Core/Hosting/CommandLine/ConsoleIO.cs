@@ -26,15 +26,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         public virtual ConsoleColor ForegroundColor
         {
-            get
-            {
-                return ConsoleShims.ForegroundColor;
-            }
-
             set
             {
                 ConsoleShims.ForegroundColor = value;
             }
         }
+
+        public virtual void ResetColor() => ConsoleShims.ResetColor();
     }
 }

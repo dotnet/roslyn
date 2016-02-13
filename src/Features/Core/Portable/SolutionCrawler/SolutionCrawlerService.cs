@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         [ExportWorkspaceService(typeof(ISolutionCrawlerService), ServiceLayer.Default), Shared]
         internal class SolutionCrawlerService : ISolutionCrawlerService
         {
-            public void Reanalyze(Workspace workspace, IIncrementalAnalyzer analyzer, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null)
+            public void Reanalyze(Workspace workspace, IIncrementalAnalyzer analyzer, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null, bool highPriority = false)
             {
                 // if solution crawler doesn't exist for the given workspace. don't do anything
                 var registration = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
                 if (registration != null)
                 {
-                    registration.Reanalyze(workspace, analyzer, projectIds, documentIds);
+                    registration.Reanalyze(workspace, analyzer, projectIds, documentIds, highPriority);
                 }
             }
 

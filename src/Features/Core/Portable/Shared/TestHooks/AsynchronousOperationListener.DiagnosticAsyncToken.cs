@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             public Task Task { get; set; }
 
             public DiagnosticAsyncToken(
-                AsynchronousOperationListener listener, 
-                string name, 
+                AsynchronousOperationListener listener,
+                string name,
                 object tag,
                 string filePath,
                 int lineNumber)
                 : base(listener)
             {
-                Name = Name;
+                Name = name;
                 Tag = tag;
                 FilePath = filePath;
                 LineNumber = lineNumber;

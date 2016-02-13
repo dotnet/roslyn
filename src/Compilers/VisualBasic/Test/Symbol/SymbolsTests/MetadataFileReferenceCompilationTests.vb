@@ -10,7 +10,7 @@ Imports Roslyn.Test.Utilities
 Public Class MetadataFileReferenceCompilationTests
     Inherits BasicTestBase
 
-    <WorkItem(539480, "DevDiv")>
+    <WorkItem(539480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539480")>
     <WorkItem(1037628, "DevDiv")>
     <Fact(Skip:="1037628")>
     Public Sub BC31011ERR_BadRefLib1()
@@ -47,8 +47,8 @@ BC31007: Unable to load module file 'Foo.dll': Image is too small.
         CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
     End Sub
 
-    <WorkItem(538349, "DevDiv")>
-    <WorkItem(545062, "DevDiv")>
+    <WorkItem(538349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538349")>
+    <WorkItem(545062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545062")>
     <Fact>
     Public Sub DuplicateReferences()
         Dim mscorlibMetadata = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib)

@@ -4,8 +4,8 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class AliasTests
-        <WorkItem(543759)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(543759, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543759")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameNamespaceAlias()
             Using result = RenameEngineResult.Create(
                     <Workspace>
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameNamespaceAndAlias()
             Using result = RenameEngineResult.Create(
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameNamespaceButNotDifferentlyNamedAlias()
             Using result = RenameEngineResult.Create(
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameConstructedTypeAliasFromUse()
             Using result = RenameEngineResult.Create(
@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameConstructedTypeAliasFromDeclaration()
             Using result = RenameEngineResult.Create(
@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameConstructedTypeAliasFromDeclaration2()
             Using result = RenameEngineResult.Create(
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleTypeAliasFromUse()
             Using result = RenameEngineResult.Create(
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleTypeAliasFromDeclaration()
             Using result = RenameEngineResult.Create(
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleSpecialTypeAliasVariable()
             Using result = RenameEngineResult.Create(
@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleSpecialTypeDoubleAliasVariable()
             Using result = RenameEngineResult.Create(
@@ -224,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleTypeAliasVariable()
             Using result = RenameEngineResult.Create(
@@ -246,7 +246,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasNoConflict()
             Using result = RenameEngineResult.Create(
@@ -279,7 +279,7 @@ public class C3
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToSameNameNoConflict()
             Using result = RenameEngineResult.Create(
@@ -306,8 +306,8 @@ public class C3
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(586743)>
+        <Fact>
+        <WorkItem(586743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586743")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameOneDuplicateAliasToNoConflict()
             Using result = RenameEngineResult.Create(
@@ -335,8 +335,8 @@ public class C3
         End Sub
 
 
-        <WpfFact>
-        <WorkItem(542693)>
+        <Fact>
+        <WorkItem(542693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542693")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameOuterAliasWithNestedAlias()
             Using result = RenameEngineResult.Create(
@@ -361,7 +361,7 @@ namespace N
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(10028, "DevDiv_Projects/Roslyn")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameConflictWithAlias()
@@ -391,8 +391,8 @@ class C1
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(579200)>
+        <Fact>
+        <WorkItem(579200, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579200")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug579200_RenameNestedAliasTarget()
             Using result = RenameEngineResult.Create(
@@ -419,8 +419,8 @@ namespace N
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(579214)>
+        <Fact>
+        <WorkItem(579214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579214")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug579214_RenameAttributeNamedDynamic()
             Using result = RenameEngineResult.Create(
@@ -436,8 +436,8 @@ class C : [|$$dynamic|]::Object { }
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(629695)>
+        <Fact>
+        <WorkItem(629695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629695")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug629695_DetectConflictWithAliasInSameBlockCompUnit()
             Using result = RenameEngineResult.Create(
@@ -481,8 +481,8 @@ class Program
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(629695)>
+        <Fact>
+        <WorkItem(629695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629695")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug629695_DetectConflictWithAliasInSameBlockNSDecl()
             Using result = RenameEngineResult.Create(
@@ -529,8 +529,8 @@ namespace X
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(629695)>
+        <Fact>
+        <WorkItem(629695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629695")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug629695_DetectConflictWithAliasInSameBlockWithEscaping()
             Using result = RenameEngineResult.Create(
@@ -577,8 +577,8 @@ namespace X
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(603365), WorkItem(745833)>
+        <Fact>
+        <WorkItem(603365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/603365"), WorkItem(745833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/745833")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug603365_RenameAliasToClassNameOnlyFixesAliasUsages_1()
             Using result = RenameEngineResult.Create(
@@ -605,8 +605,8 @@ namespace N
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(603365)>
+        <Fact>
+        <WorkItem(603365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/603365")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug603365_RenameAliasToClassNameOnlyFixesAliasUsages_2()
             Using result = RenameEngineResult.Create(
@@ -634,9 +634,9 @@ namespace N
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(633860)>
-        <WorkItem(632303)>
+        <Fact>
+        <WorkItem(633860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633860")>
+        <WorkItem(632303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632303")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToAttributeAndEndingWithAttributeAttribute()
             Using result = RenameEngineResult.Create(
@@ -669,9 +669,9 @@ class Program
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(633860)>
-        <WorkItem(632303)>
+        <Fact>
+        <WorkItem(633860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633860")>
+        <WorkItem(632303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632303")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToAttributeAndEndingWithAttributeAttributeWithResolvedConflict()
             Using result = RenameEngineResult.Create(
@@ -707,8 +707,8 @@ class Program
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(529531)>
+        <Fact>
+        <WorkItem(529531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529531")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToNullableWithResolvedConflict()
             Using result = RenameEngineResult.Create(

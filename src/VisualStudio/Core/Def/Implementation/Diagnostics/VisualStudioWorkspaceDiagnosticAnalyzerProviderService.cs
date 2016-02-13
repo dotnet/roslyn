@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private static string GetContentLocation(string shellFolder, string rootFolder, string installPath, string relativePath)
         {
-            // extension manager should expose an API that doesnt require this.
+            // extension manager should expose an API that doesn't require this.
             const string ShellFolderToken = "$ShellFolder$";
             const string RootFolderToken = "$RootFolder$";
 
@@ -140,14 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private static string GetProperty(IVsExtensionManager extensionManager, string propertyName)
         {
-            try
-            {
-                return (string)extensionManager.GetType().GetProperty(propertyName, BindingFlags.NonPublic | BindingFlags.Instance).GetValue(extensionManager);
-            }
-            catch
-            {
-                return null;
-            }
+            return (string)extensionManager.GetType().GetProperty(propertyName, BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(extensionManager);
         }
 
         private static bool ShouldInclude(IExtensionContent content)

@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
             var ptr = Marshal.GetIUnknownForObject(managedObject);
             try
             {
-                // This asks the CLR to return the RCW correspoding to the
+                // This asks the CLR to return the RCW corresponding to the
                 // aggregator object.
                 object wrapper = Marshal.GetObjectForIUnknown(ptr);
 

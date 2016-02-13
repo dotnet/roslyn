@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         ''' <summary>
-        ''' Returns true if is a given token is a child token of of a certain type of parent node.
+        ''' Returns true if is a given token is a child token of a certain type of parent node.
         ''' </summary>
         ''' <typeparam name="TParent">The type of the parent node.</typeparam>
         ''' <param name="token">The token that we are testing.</param>
@@ -288,21 +288,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             token As SyntaxToken,
             trivia As IEnumerable(Of SyntaxTrivia)) As SyntaxToken
             Return token.WithAppendedTrailingTrivia(trivia.ToSyntaxTriviaList())
-        End Function
-
-        <Extension>
-        Public Function GetNextTokenOrEndOfFile(
-            token As SyntaxToken,
-            Optional includeZeroWidth As Boolean = False,
-            Optional includeSkipped As Boolean = False,
-            Optional includeDirectives As Boolean = False,
-            Optional includeDocumentationComments As Boolean = False) As SyntaxToken
-
-            Dim nextToken = token.GetNextToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments)
-
-            Return If(nextToken.Kind = SyntaxKind.None,
-                      token.GetAncestor(Of CompilationUnitSyntax).EndOfFileToken,
-                      nextToken)
         End Function
 
         <Extension>

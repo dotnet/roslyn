@@ -16,5 +16,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
         SearchHistoryPrevious = 0x010B,
         ExecuteInInteractiveWindow = 0x010C,
         CopyToInteractiveWindow = 0x010D,
+        CopyCode = 0x010E,
     }
 }

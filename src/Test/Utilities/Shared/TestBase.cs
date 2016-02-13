@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -53,7 +54,7 @@ namespace Roslyn.Test.Utilities
         private static MetadataReference[] s_lazyDefaultVbReferences;
         private static MetadataReference[] s_lazyLatestVbReferences;
 
-        public static MetadataReference[] DefaultVbReferences => s_lazyDefaultVbReferences ?? 
+        public static MetadataReference[] DefaultVbReferences => s_lazyDefaultVbReferences ??
             (s_lazyDefaultVbReferences = new[] { MscorlibRef, SystemRef, SystemCoreRef, MsvbRef });
 
         public static MetadataReference[] LatestVbReferences = s_lazyLatestVbReferences ??
@@ -119,11 +120,10 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-
         /// <summary>
         /// Reference to an assembly that defines Expression Trees.
         /// </summary>
-        public static MetadataReference ExpressionAssemblyRef => SystemCoreRef;
+        public static MetadataReference ExpressionAssemblyRef => SystemCoreRef_v46;
 
         /// <summary>
         /// Reference to an assembly that defines LINQ operators.
@@ -134,6 +134,20 @@ namespace Roslyn.Test.Utilities
         /// Reference to an assembly that defines ExtensionAttribute.
         /// </summary>
         public static MetadataReference ExtensionAssemblyRef => SystemCoreRef;
+
+        private static MetadataReference s_systemCoreRef;
+        public static MetadataReference SystemCoreRef
+        {
+            get
+            {
+                if (s_systemCoreRef == null)
+                {
+                    s_systemCoreRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Core).GetReference(display: "System.Core.v4_0_30319.dll");
+                }
+
+                return s_systemCoreRef;
+            }
+        }
 
         private static MetadataReference s_systemCoreRef_v4_0_30319_17929;
         public static MetadataReference SystemCoreRef_v4_0_30319_17929
@@ -149,17 +163,17 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private static MetadataReference s_systemCoreRef;
-        public static MetadataReference SystemCoreRef
+        private static MetadataReference s_systemCoreRef_v46;
+        public static MetadataReference SystemCoreRef_v46
         {
             get
             {
-                if (s_systemCoreRef == null)
+                if (s_systemCoreRef_v46 == null)
                 {
-                    s_systemCoreRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Core).GetReference(display: "System.Core.v4_0_30319.dll");
+                    s_systemCoreRef_v46 = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_6_1038_0.System_Core).GetReference(display: "System.Core.v4_6_1038_0.dll");
                 }
 
-                return s_systemCoreRef;
+                return s_systemCoreRef_v46;
             }
         }
 
@@ -262,6 +276,20 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        private static MetadataReference s_mscorlibRef_v20;
+        public static MetadataReference MscorlibRef_v20
+        {
+            get
+            {
+                if (s_mscorlibRef_v20 == null)
+                {
+                    s_mscorlibRef_v20 = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v2_0_50727.mscorlib).GetReference(display: "mscorlib.v2.0.50727.dll");
+                }
+
+                return s_mscorlibRef_v20;
+            }
+        }
+
         private static MetadataReference s_mscorlibRef_v4_0_30316_17626;
         public static MetadataReference MscorlibRef_v4_0_30316_17626
         {
@@ -276,17 +304,17 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private static MetadataReference s_mscorlibRef_v20;
-        public static MetadataReference MscorlibRef_v20
+        private static MetadataReference s_mscorlibRef_v46;
+        public static MetadataReference MscorlibRef_v46
         {
             get
             {
-                if (s_mscorlibRef_v20 == null)
+                if (s_mscorlibRef_v46 == null)
                 {
-                    s_mscorlibRef_v20 = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v2_0_50727.mscorlib).GetReference(display: "mscorlib.v2.0.50727.dll");
+                    s_mscorlibRef_v46 = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_6_1038_0.mscorlib).GetReference(display: "mscorlib.v4_6_1038_0.dll", filePath: @"Z:\FxReferenceAssembliesUri");
                 }
 
-                return s_mscorlibRef_v20;
+                return s_mscorlibRef_v46;
             }
         }
 
@@ -539,23 +567,23 @@ namespace Roslyn.Test.Utilities
         #region Diagnostics
 
         internal static DiagnosticDescription Diagnostic(
-            object code, 
-            string squiggledText = null, 
+            object code,
+            string squiggledText = null,
             object[] arguments = null,
-            LinePosition? startLocation = null, 
+            LinePosition? startLocation = null,
             Func<SyntaxNode, bool> syntaxNodePredicate = null,
             bool argumentOrderDoesNotMatter = false)
         {
-            Debug.Assert(code is ErrorCode || code is ERRID || code is string);
+            Debug.Assert(code is ErrorCode || code is ERRID || code is int || code is string);
 
             return new DiagnosticDescription(
-                (code is ErrorCode || code is ERRID) ? (int)code : code, 
+                code as string ?? (object)(int)code,
                 false,
                 squiggledText,
-                arguments, 
-                startLocation, 
-                syntaxNodePredicate, 
-                argumentOrderDoesNotMatter, 
+                arguments,
+                startLocation,
+                syntaxNodePredicate,
+                argumentOrderDoesNotMatter,
                 code.GetType());
         }
 
@@ -569,8 +597,8 @@ namespace Roslyn.Test.Utilities
         {
             return Diagnostic(
                 code,
-                NormalizeDiagnosticString(squiggledText.Value), 
-                arguments, 
+                NormalizeDiagnosticString(squiggledText.Value),
+                arguments,
                 startLocation,
                 syntaxNodePredicate,
                 argumentOrderDoesNotMatter);
@@ -582,10 +610,10 @@ namespace Roslyn.Test.Utilities
             {
                 return inputString.Replace("\n", "\r\n");
             }
-            
+
             return inputString;
         }
 
-#endregion
+        #endregion
     }
 }

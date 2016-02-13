@@ -31,13 +31,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             protected readonly IEnumerable<IFormattingRule> Rules;
             protected readonly BottomUpBaseIndentationFinder Finder;
 
-            private static readonly Func<SyntaxToken, bool> _tokenHasDirective = tk => tk.ContainsDirectives &&
+            private static readonly Func<SyntaxToken, bool> s_tokenHasDirective = tk => tk.ContainsDirectives &&
                                                   (tk.LeadingTrivia.Any(tr => tr.IsDirective) || tk.TrailingTrivia.Any(tr => tr.IsDirective));
 
-            public AbstractIndenter(Document document, IEnumerable<IFormattingRule> rules, OptionSet optionSet, ITextSnapshotLine lineToBeIndented, CancellationToken cancellationToken)
+            public AbstractIndenter(SyntacticDocument document, IEnumerable<IFormattingRule> rules, OptionSet optionSet, ITextSnapshotLine lineToBeIndented, CancellationToken cancellationToken)
             {
                 this.OptionSet = optionSet;
-                this.Document = SyntacticDocument.CreateAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+                this.Document = document;
                 this.LineToBeIndented = lineToBeIndented;
                 this.TabSize = this.OptionSet.GetOption(FormattingOptions.TabSize, this.Document.Root.Language);
                 this.CancellationToken = cancellationToken;
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                     }
 
                     // This line is inside an inactive region. Examine the 
-                    // first preceeding line not in an inactive region.
+                    // first preceding line not in an inactive region.
                     var disabledSpan = syntaxFacts.GetInactiveRegionSpanAroundPosition(this.Tree, actualLine.Extent.Start, CancellationToken);
                     if (disabledSpan != default(TextSpan))
                     {
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 
                     // A preprocessor directive starts on this line.
                     if (HasPreprocessorCharacter(actualLine) &&
-                        root.DescendantTokens(actualLine.Extent.Span.ToTextSpan(), tk => tk.FullWidth() > 0).Any(_tokenHasDirective))
+                        root.DescendantTokens(actualLine.Extent.Span.ToTextSpan(), tk => tk.FullWidth() > 0).Any(s_tokenHasDirective))
                     {
                         lineNumber--;
                         continue;

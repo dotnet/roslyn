@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
             {
-                _diagnostics.Add(ErrorCode.ERR_InsufficientStack, 
+                _diagnostics.Add(ErrorCode.ERR_InsufficientStack,
                                  BoundTreeVisitor.CancelledByStackGuardException.GetTooLongOrComplexExpressionErrorLocation(expression));
                 throw new EmitCancelledException();
             }
@@ -1597,7 +1598,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             var containingType = method.ContainingType;
-            return containingType.IsIntrinsicType() || containingType.IsRestrictedType();
+            // overrides in structs that are special types can be caled directly.
+            // we can assume that special types will not be removing oiverrides
+            return containingType.SpecialType != SpecialType.None;
         }
 
         /// <summary>
@@ -2484,15 +2487,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             if (used)
             {
-                var constantValue = type.GetDefaultValue();
-                if (constantValue != null)
+                // default type parameter values must be emitted as 'initobj' regardless of constraints
+                if (!type.IsTypeParameter())
                 {
-                    _builder.EmitConstantValue(constantValue);
+                    var constantValue = type.GetDefaultValue();
+                    if (constantValue != null)
+                    {
+                        _builder.EmitConstantValue(constantValue);
+                        return;
+                    }
                 }
-                else
-                {
-                    EmitInitObj(type, true, syntaxNode);
-                }
+
+                EmitInitObj(type, true, syntaxNode);
             }
         }
 

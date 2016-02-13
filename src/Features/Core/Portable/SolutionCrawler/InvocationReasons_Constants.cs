@@ -39,10 +39,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                     PredefinedInvocationReasons.DocumentRemoved));
 
         public static readonly InvocationReasons DocumentOpened =
-            new InvocationReasons(PredefinedInvocationReasons.DocumentOpened);
+            new InvocationReasons(
+                ImmutableHashSet.Create<string>(
+                                    PredefinedInvocationReasons.DocumentOpened,
+                                    PredefinedInvocationReasons.HighPriority));
 
         public static readonly InvocationReasons DocumentClosed =
-            new InvocationReasons(PredefinedInvocationReasons.DocumentClosed);
+            new InvocationReasons(
+                ImmutableHashSet.Create<string>(
+                                    PredefinedInvocationReasons.DocumentClosed,
+                                    PredefinedInvocationReasons.HighPriority));
 
         public static readonly InvocationReasons DocumentChanged =
             new InvocationReasons(
@@ -68,5 +74,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public static readonly InvocationReasons Reanalyze =
             new InvocationReasons(PredefinedInvocationReasons.Reanalyze);
+
+        public static readonly InvocationReasons ReanalyzeHighPriority =
+            Reanalyze.With(PredefinedInvocationReasons.HighPriority);
     }
 }

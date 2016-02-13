@@ -2,6 +2,7 @@
 
 Imports System.Linq
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Text
@@ -13,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Return snapshot.Projects.Single(Function(p) p.AssemblyName = assemblyName)
         End Function
 
-        <WpfFact>
-        Public Sub FindTypeInCSharpToVisualBasicProject()
+        <Fact>
+        Public Async Function TestFindTypeInCSharpToVisualBasicProject() As Task
             Dim workspaceDefinition =
 <Workspace>
     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
@@ -38,9 +39,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Dim snapshot = workspace.CurrentSolution
-                Dim Type = GetProject(snapshot, "CSharpAssembly").GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("CSClass").Single()
+                Dim Type = (Await GetProject(snapshot, "CSharpAssembly").GetCompilationAsync()).GlobalNamespace.GetTypeMembers("CSClass").Single()
 
                 Dim field = DirectCast(Type.GetMembers("field").Single(), IFieldSymbol)
                 Dim fieldType = field.Type
@@ -48,16 +49,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 Assert.Equal(LanguageNames.CSharp, fieldType.Language)
                 Assert.True(fieldType.Locations.All(Function(Loc) Loc.IsInMetadata))
 
-                Dim mappedType = SymbolFinder.FindSourceDefinitionAsync(fieldType, snapshot, CancellationToken.None).Result
+                Dim mappedType = Await SymbolFinder.FindSourceDefinitionAsync(fieldType, snapshot, CancellationToken.None)
                 Assert.NotNull(mappedType)
 
                 Assert.Equal(LanguageNames.VisualBasic, mappedType.Language)
                 Assert.True(mappedType.Locations.All(Function(Loc) Loc.IsInSource))
             End Using
-        End Sub
+        End Function
 
-        <WpfFact>
-        Public Sub FindTypeInVisualBasicToCSharpProject()
+        <Fact>
+        Public Async Function TestFindTypeInVisualBasicToCSharpProject() As Task
             Dim workspaceDefinition =
 <Workspace>
     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
@@ -82,9 +83,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Dim snapshot = workspace.CurrentSolution
-                Dim Type = GetProject(snapshot, "VBAssembly").GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("VBClass").Single()
+                Dim Type = (Await GetProject(snapshot, "VBAssembly").GetCompilationAsync()).GlobalNamespace.GetTypeMembers("VBClass").Single()
 
                 Dim field = DirectCast(Type.GetMembers("field").Single(), IFieldSymbol)
                 Dim fieldType = field.Type
@@ -92,17 +93,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 Assert.Equal(LanguageNames.VisualBasic, fieldType.Language)
                 Assert.True(fieldType.Locations.All(Function(Loc) Loc.IsInMetadata))
 
-                Dim mappedType = SymbolFinder.FindSourceDefinitionAsync(fieldType, snapshot, CancellationToken.None).Result
+                Dim mappedType = Await SymbolFinder.FindSourceDefinitionAsync(fieldType, snapshot)
                 Assert.NotNull(mappedType)
 
                 Assert.Equal(LanguageNames.CSharp, mappedType.Language)
                 Assert.True(mappedType.Locations.All(Function(Loc) Loc.IsInSource))
             End Using
-        End Sub
+        End Function
 
-        <WpfFact>
-        <WorkItem(1068631)>
-        Public Sub FindMethodInVisualBasicToCSharpPortableProject()
+        <Fact>
+        <WorkItem(1068631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068631")>
+        Public Async Function TestFindMethodInVisualBasicToCSharpPortableProject() As Task
             Dim workspaceDefinition =
 <Workspace>
     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferencesPortable="true">
@@ -123,24 +124,24 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceDefinition)
-                Dim compilation = GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync().Result
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
+                Dim compilation = Await GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync()
                 Dim member = compilation.GlobalNamespace.GetMembers("N").Single().GetTypeMembers("CSClass").Single().GetMembers("M").Single()
 
                 Assert.Equal(LanguageNames.VisualBasic, member.Language)
                 Assert.True(member.Locations.All(Function(Loc) Loc.IsInMetadata))
 
-                Dim mappedMember = SymbolFinder.FindSourceDefinitionAsync(member, workspace.CurrentSolution, CancellationToken.None).Result
+                Dim mappedMember = Await SymbolFinder.FindSourceDefinitionAsync(member, workspace.CurrentSolution)
                 Assert.NotNull(mappedMember)
 
                 Assert.Equal(LanguageNames.CSharp, mappedMember.Language)
                 Assert.True(mappedMember.Locations.All(Function(Loc) Loc.IsInSource))
             End Using
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
-        Public Sub FindMethodInVisualBasicToCSharpProject_RefKindRef()
+        Public Async Function TestFindMethodInVisualBasicToCSharpProject_RefKindRef() As Task
             Dim workspaceDefinition =
 <Workspace>
     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
@@ -161,24 +162,24 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceDefinition)
-                Dim compilation = GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync().Result
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
+                Dim compilation = Await GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync()
                 Dim member = compilation.GlobalNamespace.GetMembers("N").Single().GetTypeMembers("CSClass").Single().GetMembers("M").Single()
 
                 Assert.Equal(LanguageNames.VisualBasic, member.Language)
                 Assert.True(member.Locations.All(Function(Loc) Loc.IsInMetadata))
 
-                Dim mappedMember = SymbolFinder.FindSourceDefinitionAsync(member, workspace.CurrentSolution, CancellationToken.None).Result
+                Dim mappedMember = Await SymbolFinder.FindSourceDefinitionAsync(member, workspace.CurrentSolution)
                 Assert.NotNull(mappedMember)
 
                 Assert.Equal(LanguageNames.CSharp, mappedMember.Language)
                 Assert.True(mappedMember.Locations.All(Function(Loc) Loc.IsInSource))
             End Using
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
-        Public Sub FindMethodInVisualBasicToCSharpProject_RefKindOut()
+        Public Async Function TestFindMethodInVisualBasicToCSharpProject_RefKindOut() As Task
             Dim workspaceDefinition =
 <Workspace>
     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
@@ -199,19 +200,56 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceDefinition)
-                Dim compilation = GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync().Result
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
+                Dim compilation = Await GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync()
                 Dim member = compilation.GlobalNamespace.GetMembers("N").Single().GetTypeMembers("CSClass").Single().GetMembers("M").Single()
 
                 Assert.Equal(LanguageNames.VisualBasic, member.Language)
                 Assert.True(member.Locations.All(Function(Loc) Loc.IsInMetadata))
 
-                Dim mappedMember = SymbolFinder.FindSourceDefinitionAsync(member, workspace.CurrentSolution, CancellationToken.None).Result
+                Dim mappedMember = Await SymbolFinder.FindSourceDefinitionAsync(member, workspace.CurrentSolution)
                 Assert.NotNull(mappedMember)
 
                 Assert.Equal(LanguageNames.CSharp, mappedMember.Language)
                 Assert.True(mappedMember.Locations.All(Function(Loc) Loc.IsInSource))
             End Using
-        End Sub
+        End Function
+
+
+        <Fact>
+        Public Async Function TestFindRetargetedClass() As Task
+            Dim workspaceDefinition =
+<Workspace>
+    <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferencesPortable="true">
+        <Document>
+            namespace N
+            {
+                public class CSClass
+                {
+                }
+            }
+        </Document>
+    </Project>
+    <Project Language="C#" AssemblyName="CSharpAssembly2" CommonReferences="true">
+        <ProjectReference>CSharpAssembly</ProjectReference>
+    </Project>
+</Workspace>
+
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
+                Dim retargetedCompilation = Await GetProject(workspace.CurrentSolution, "CSharpAssembly").GetCompilationAsync()
+                Dim originalClass = retargetedCompilation.GlobalNamespace.GetMembers("N").Single().GetTypeMembers("CSClass").Single()
+                Dim retargetingCompilation = Await GetProject(workspace.CurrentSolution, "CSharpAssembly2").GetCompilationAsync()
+                Dim retargetedClass = retargetingCompilation.GlobalNamespace.GetMembers("N").Single().GetTypeMembers("CSClass").Single()
+
+                ' The retargeted class should not have the same assembly identity as the originating assembly, but
+                ' should come through the compilation reference
+                Assert.NotEqual(retargetedClass.ContainingAssembly, retargetedCompilation.Assembly)
+                Assert.IsAssignableFrom(Of CompilationReference)(retargetingCompilation.GetMetadataReference(retargetedClass.ContainingAssembly))
+
+                Dim mappedMember = Await SymbolFinder.FindSourceDefinitionAsync(retargetedClass, workspace.CurrentSolution)
+
+                Assert.Equal(Of ISymbol)(originalClass, mappedMember)
+            End Using
+        End Function
     End Class
 End Namespace

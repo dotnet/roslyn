@@ -303,9 +303,6 @@
   <data name="AwaitableExtension" xml:space="preserve">
     <value>Awaitable, Extension</value>
   </data>
-  <data name="Await" xml:space="preserve">
-    <value>Await</value>
-  </data>
   <data name="NewVariable" xml:space="preserve">
     <value>&lt;new variable&gt;</value>
   </data>
@@ -1200,5 +1197,8 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="AddOverloadsKeyword" xml:space="preserve">
     <value>Add Overloads</value>
+  </data>
+  <data name="ReferenceKeywordTooltip" xml:space="preserve">
+    <value>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</value>
   </data>
 </root>

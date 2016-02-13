@@ -2,16 +2,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio.Imaging;
-using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -218,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public string SearchInStrings { get { return EditorFeaturesResources.SearchInStrings; } }
         public string ApplyRename { get { return EditorFeaturesResources.ApplyRename; } }
         public string PreviewChanges { get { return EditorFeaturesResources.RenamePreviewChanges; } }
-        public string RenameInstructions {  get { return EditorFeaturesResources.InlineRenameInstructions; } }
+        public string RenameInstructions { get { return EditorFeaturesResources.InlineRenameInstructions; } }
         public string ApplyToolTip { get { return EditorFeaturesResources.RenameApplyToolTip + " (Enter)"; } }
         public string CancelToolTip { get { return EditorFeaturesResources.RenameCancelToolTip + " (Esc)"; } }
 

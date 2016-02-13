@@ -236,7 +236,7 @@ abstract class AbstractFoo : IFoo
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("AbstractFoo.IFoo.this[long, int, long, int].set"));
         }
 
-        [Fact, WorkItem(542158, "DevDiv")]
+        [Fact, WorkItem(542158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542158")]
         public void TestModifiersOnExplicitEventImpl()
         {
             var text = @"
@@ -4521,7 +4521,7 @@ public class Derived1 : Base
             });
         }
 
-        [WorkItem(540185, "DevDiv")]
+        [WorkItem(540185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540185")]
         [Fact]
         public void TestChangeVirtualPropertyAccessorAccessibilityWithinAssembly()
         {
@@ -4955,7 +4955,7 @@ class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.this[int, string, string, string].set").WithLocation(17, 15));
         }
 
-        [WorkItem(539162, "DevDiv")]
+        [WorkItem(539162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539162")]
         [Fact]
         public void TestAbstractTypeMember()
         {
@@ -5011,7 +5011,7 @@ public class Derived1 : Base
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "set").WithArguments("Derived1.this[int].set"));
         }
 
-        [WorkItem(540221, "DevDiv")]
+        [WorkItem(540221, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540221")]
         [Fact]
         public void AbstractOverrideOnePropertyAccessor()
         {
@@ -5457,7 +5457,7 @@ class NS4
                 Diagnostic(ErrorCode.ERR_CantOverrideNonFunction, "Method").WithArguments("NS3.Derived.Method<U>(System.Collections.Generic.List<int>)", "NS3.Base2.Method<T>"));
         }
 
-        [WorkItem(540348, "DevDiv")]
+        [WorkItem(540348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540348")]
         [Fact]
         public void TestOverridingBrokenTypes()
         {
@@ -5777,7 +5777,7 @@ class C2 : C1, I1, I2
             comp.VerifyDiagnostics(DiagnosticDescription.None);
             Assert.True(c2Type.Interfaces.All(iface => iface.Name == "I1" || iface.Name == "I2"));
         }
-        [WorkItem(540451, "DevDiv")]
+        [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         [Fact]
         public void TestImplicitImplSignatureMismatches()
         {
@@ -6016,7 +6016,7 @@ class Class7 : Base7, Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class5", "Interface.Method<T>(long, int)").WithLocation(44, 16));
         }
 
-        [WorkItem(540470, "DevDiv")]
+        [WorkItem(540470, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540470")]
         [Fact]
         public void TestExplicitImplSignatureMismatches2()
         {
@@ -7138,7 +7138,7 @@ class Test
         }
         [Fact]
 
-        private void TestErrorsOverridingImplementingMember()
+        public void TestErrorsOverridingImplementingMember()
         {
             // Tests:
             // Members that implement interface members are usually marked as virtual sealed -
@@ -7237,7 +7237,7 @@ class Test
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(542361, "DevDiv")]
+        [WorkItem(542361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542361")]
         [Fact]
         public void TestTypeParameterExplicitMethodImplementation()
         {
@@ -7258,7 +7258,7 @@ class A<T> : global::T
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "global::T").WithArguments("A<T>", "T.T<S>()"));
         }
 
-        [WorkItem(542361, "DevDiv")]
+        [WorkItem(542361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542361")]
         [Fact]
         public void TestTypeParameterExplicitPropertyImplementation()
         {
@@ -7279,7 +7279,7 @@ class A<T> : global::T
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "global::T").WithArguments("A<T>", "T.T"));
         }
 
-        [WorkItem(542361, "DevDiv")]
+        [WorkItem(542361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542361")]
         [Fact]
         public void TestTypeParameterExplicitEventImplementation()
         {
@@ -7321,7 +7321,7 @@ class A<T> : global::T
         }
 
         [Fact]
-        [WorkItem(1016693, "DevDiv")]
+        [WorkItem(1016693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016693")]
         public void Bug1016693()
         {
             const string source = @"

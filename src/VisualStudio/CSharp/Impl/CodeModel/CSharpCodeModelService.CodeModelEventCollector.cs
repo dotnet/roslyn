@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -27,36 +28,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
             }
 
-            private static IReadOnlyList<TNode> GetValidMembers<TNode>(SyntaxList<TNode> members)
-                where TNode : SyntaxNode
+            private IReadOnlyList<MemberDeclarationSyntax> GetValidMembers(SyntaxNode node)
             {
-                var builder = ImmutableArray.CreateBuilder<TNode>(initialCapacity: members.Count);
-
-                foreach (var member in members)
-                {
-                    if (member != null && !member.IsKind(SyntaxKind.IncompleteMember))
-                    {
-                        builder.Add(member);
-                    }
-                }
-
-                return builder.ToImmutable();
-            }
-
-            private static IReadOnlyList<TNode> GetValidMembers<TNode>(SeparatedSyntaxList<TNode> members)
-                where TNode : SyntaxNode
-            {
-                var builder = ImmutableArray.CreateBuilder<TNode>(initialCapacity: members.Count);
-
-                foreach (var member in members)
-                {
-                    if (member != null && !member.IsKind(SyntaxKind.IncompleteMember))
-                    {
-                        builder.Add(member);
-                    }
-                }
-
-                return builder.ToImmutable();
+                return CSharpCodeModelService
+                    .GetChildMemberNodes(node)
+                    .Where(n => !n.IsKind(SyntaxKind.IncompleteMember))
+                    .ToArray();
             }
 
             private void CompareCompilationUnits(
@@ -70,8 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
                 CompareChildren(
                     CompareNamespacesOrTypes,
-                    GetValidMembers(oldCompilationUnit.Members),
-                    GetValidMembers(newCompilationUnit.Members),
+                    GetValidMembers(oldCompilationUnit),
+                    GetValidMembers(newCompilationUnit),
                     (SyntaxNode)null,
                     CodeModelEventType.Unknown,
                     eventQueue);
@@ -508,8 +485,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 {
                     var change = CompareRenamedDeclarations(
                         CompareNamespacesOrTypes,
-                        GetValidMembers(oldNamespace.Members),
-                        GetValidMembers(newNamespace.Members),
+                        GetValidMembers(oldNamespace),
+                        GetValidMembers(newNamespace),
                         oldNamespace,
                         newNamespace,
                         newNodeParent,
@@ -525,8 +502,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
                 return CompareChildren(
                     CompareNamespacesOrTypes,
-                    GetValidMembers(oldNamespace.Members),
-                    GetValidMembers(newNamespace.Members),
+                    GetValidMembers(oldNamespace),
+                    GetValidMembers(newNamespace),
                     newNamespace,
                     CodeModelEventType.Unknown,
                     eventQueue);
@@ -556,13 +533,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     var oldType = (BaseTypeDeclarationSyntax)oldMember;
                     var newType = (BaseTypeDeclarationSyntax)newMember;
 
-                    var oldMembers = oldType is TypeDeclarationSyntax
-                        ? GetValidMembers(((TypeDeclarationSyntax)oldType).Members)
-                        : GetValidMembers(((EnumDeclarationSyntax)oldType).Members);
-
-                    var newMembers = newType is TypeDeclarationSyntax
-                        ? GetValidMembers(((TypeDeclarationSyntax)newType).Members)
-                        : GetValidMembers(((EnumDeclarationSyntax)newType).Members);
+                    var oldMembers = GetValidMembers(oldType);
+                    var newMembers = GetValidMembers(newType);
 
                     bool same = true;
 
@@ -570,7 +542,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     // In that case, we shouldn't do any other checks and instead return immediately.
                     if (!StringComparer.Ordinal.Equals(oldType.Identifier.ToString(), newType.Identifier.ToString()))
                     {
-                        var change = CompareRenamedDeclarations(CompareMemberDeclarations, oldMembers, newMembers, oldType, newType, newNodeParent, eventQueue);
+                        var change = CompareRenamedDeclarations(
+                            CompareMemberDeclarations,
+                            oldMembers,
+                            newMembers,
+                            oldType,
+                            newType,
+                            newNodeParent,
+                            eventQueue);
+
                         if (change == DeclarationChange.WholeDeclaration)
                         {
                             return false;
@@ -600,7 +580,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         CodeModelEventType.Unknown,
                         eventQueue);
 
-                    same &= CompareChildren(CompareMemberDeclarations, oldMembers, newMembers, newType, CodeModelEventType.Unknown, eventQueue);
+                    same &= CompareChildren(
+                        CompareMemberDeclarations,
+                        oldMembers,
+                        newMembers,
+                        newType,
+                        CodeModelEventType.Unknown,
+                        eventQueue);
 
                     return same;
                 }

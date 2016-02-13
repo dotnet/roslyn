@@ -95,14 +95,20 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
         private static bool HasGetPrefix(string text)
         {
-            return text.StartsWith(GetPrefix) && text.Length > GetPrefix.Length && !char.IsLower(text[GetPrefix.Length]);
+            return HasPrefix(text, GetPrefix);
+        }
+        private static bool HasPrefix(string text, string prefix)
+        {
+            return text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && text.Length > prefix.Length && !char.IsLower(text[prefix.Length]);
         }
 
         private IMethodSymbol FindSetMethod(IMethodSymbol getMethod)
         {
             var containingType = getMethod.ContainingType;
-            var setMethod = containingType.GetMembers("Set" + getMethod.Name.Substring(GetPrefix.Length))
+            var setMethodName = "Set" + getMethod.Name.Substring(GetPrefix.Length);
+            var setMethod = containingType.GetMembers()
                                           .OfType<IMethodSymbol>()
+                                          .Where(m => setMethodName.Equals(m.Name, StringComparison.OrdinalIgnoreCase))
                                           .Where(m => IsValidSetMethod(m, getMethod))
                                           .FirstOrDefault();
 
@@ -210,9 +216,9 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         }
 
         private static void ReplaceGetReferences(
-            string propertyName, bool nameChanged, 
-            IEnumerable<ReferenceLocation> getReferences, 
-            SyntaxNode root, SyntaxEditor editor, 
+            string propertyName, bool nameChanged,
+            IEnumerable<ReferenceLocation> getReferences,
+            SyntaxNode root, SyntaxEditor editor,
             IReplaceMethodWithPropertyService service,
             CancellationToken cancellationToken)
         {
@@ -242,7 +248,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         private static void ReplaceSetReferences(
             string propertyName, bool nameChanged,
             IEnumerable<ReferenceLocation> setReferences,
-            SyntaxNode root, SyntaxEditor editor, 
+            SyntaxNode root, SyntaxEditor editor,
             IReplaceMethodWithPropertyService service,
             CancellationToken cancellationToken)
         {
@@ -351,8 +357,8 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         private async Task<List<GetAndSetMethods>> GetGetSetPairsAsync(
             Solution updatedSolution,
             Compilation compilation,
-            DocumentId documentId, 
-            MultiDictionary<DocumentId, IMethodSymbol>.ValueSet originalDefinitions, 
+            DocumentId documentId,
+            MultiDictionary<DocumentId, IMethodSymbol>.ValueSet originalDefinitions,
             bool updateSetMethod,
             CancellationToken cancellationToken)
         {
@@ -397,8 +403,8 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         }
 
         private async Task<MultiDictionary<DocumentId, IMethodSymbol>> GetDefinitionsByDocumentIdAsync(
-            Solution originalSolution, 
-            IEnumerable<ReferencedSymbol> referencedSymbols, 
+            Solution originalSolution,
+            IEnumerable<ReferencedSymbol> referencedSymbols,
             CancellationToken cancellationToken)
         {
             var result = new MultiDictionary<DocumentId, IMethodSymbol>();

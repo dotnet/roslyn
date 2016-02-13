@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -23,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Important: The classification should not consider the context the text exists in, and how
         /// that may affect the final classifications.  This may result in incorrect classification
         /// (i.e. identifiers being classified as keywords).  These incorrect results will be patched
-        /// up when the lexical results are superceded by the calls to AddSyntacticClassifications.
+        /// up when the lexical results are superseded by the calls to AddSyntacticClassifications.
         /// </summary>
         void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken);
 
@@ -49,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// but a character was added that would make it into a keyword, then indicate that here.
         /// 
         /// This allows the classified to quickly fix up old classifications as the user types.  These
-        /// adjustments are allowed to be incorrect as they will be superceded by calls to get the
+        /// adjustments are allowed to be incorrect as they will be superseded by calls to get the
         /// syntactic and semantic classifications for this version later.
         /// </summary>
         ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan);

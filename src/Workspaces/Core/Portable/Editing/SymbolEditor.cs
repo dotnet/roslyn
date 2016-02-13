@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public delegate Task AsyncDeclarationEditAction(DocumentEditor editor, SyntaxNode declaration, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Enables editting the definition of one of the symbol's declarations.
+        /// Enables editing the definition of one of the symbol's declarations.
         /// Partial types and methods may have more than one declaration.
         /// </summary>
         /// <param name="symbol">The symbol to edit.</param>
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
-        /// Enables editting the definition of one of the symbol's declarations.
+        /// Enables editing the definition of one of the symbol's declarations.
         /// Partial types and methods may have more than one declaration.
         /// </summary>
         /// <param name="symbol">The symbol to edit.</param>
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
-        /// Enables editting the definition of one of the symbol's declarations.
+        /// Enables editing the definition of one of the symbol's declarations.
         /// Partial types and methods may have more than one declaration.
         /// </summary>
         /// <param name="symbol">The symbol to edit.</param>
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
-        /// Enables editting the definition of one of the symbol's declarations.
+        /// Enables editing the definition of one of the symbol's declarations.
         /// Partial types and methods may have more than one declaration.
         /// </summary>
         /// <param name="symbol">The symbol to edit.</param>
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
-        /// Enables editting the symbol's declaration where the member is also declared.
+        /// Enables editing the symbol's declaration where the member is also declared.
         /// Partial types and methods may have more than one declaration.
         /// </summary>
         /// <param name="symbol">The symbol to edit.</param>
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
-        /// Enables editting the symbol's declaration where the member is also declared.
+        /// Enables editing the symbol's declaration where the member is also declared.
         /// Partial types and methods may have more than one declaration.
         /// </summary>
         /// <param name="symbol">The symbol to edit.</param>
@@ -454,10 +454,10 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
-        /// Enables editting all the symbol's declarations. 
+        /// Enables editing all the symbol's declarations. 
         /// Partial types and methods may have more than one declaration.
         /// </summary>
-        /// <param name="symbol">The symbol to be editted.</param>
+        /// <param name="symbol">The symbol to be edited.</param>
         /// <param name="editAction">The action that makes edits to the declaration.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/>.</param>
         /// <returns>The new symbol including the changes.</returns>
@@ -512,10 +512,10 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
-        /// Enables editting all the symbol's declarations. 
+        /// Enables editing all the symbol's declarations. 
         /// Partial types and methods may have more than one declaration.
         /// </summary>
-        /// <param name="symbol">The symbol to be editted.</param>
+        /// <param name="symbol">The symbol to be edited.</param>
         /// <param name="editAction">The action that makes edits to the declaration.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/>.</param>
         /// <returns>The new symbol including the changes.</returns>

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Versions;
 using Roslyn.Utilities;
@@ -161,13 +162,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            public void Reanalyze(IIncrementalAnalyzer analyzer, IEnumerable<DocumentId> documentIds)
+            public void Reanalyze(IIncrementalAnalyzer analyzer, IEnumerable<DocumentId> documentIds, bool highPriority = false)
             {
                 var asyncToken = _listener.BeginAsyncOperation("Reanalyze");
                 _eventProcessingQueue.ScheduleTask(
-                    () => EnqueueWorkItemAsync(analyzer, documentIds), _shutdownToken).CompletesAsyncOperation(asyncToken);
+                    () => EnqueueWorkItemAsync(analyzer, documentIds, highPriority), _shutdownToken).CompletesAsyncOperation(asyncToken);
 
-                SolutionCrawlerLogger.LogReanalyze(CorrelationId, analyzer, documentIds);
+                SolutionCrawlerLogger.LogReanalyze(CorrelationId, analyzer, documentIds, highPriority);
             }
 
             private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
@@ -329,6 +330,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void OnSolutionAdded(Solution solution)
             {
+                // first make sure full solution analysis is on.
+                _optionService.SetOptions(solution.Workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysis, true));
+
                 var asyncToken = _listener.BeginAsyncOperation("OnSolutionAdded");
                 _eventProcessingQueue.ScheduleTask(() =>
                 {
@@ -435,7 +439,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            private async Task EnqueueWorkItemAsync(IIncrementalAnalyzer analyzer, IEnumerable<DocumentId> documentIds)
+            private async Task EnqueueWorkItemAsync(IIncrementalAnalyzer analyzer, IEnumerable<DocumentId> documentIds, bool highPriority)
             {
                 var solution = _registration.CurrentSolution;
                 foreach (var documentId in documentIds)
@@ -449,8 +453,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     var priorityService = document.GetLanguageService<IWorkCoordinatorPriorityService>();
                     var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(document, _shutdownToken).ConfigureAwait(false);
 
+                    var invocationReasons = highPriority ? InvocationReasons.ReanalyzeHighPriority : InvocationReasons.Reanalyze;
+
                     _documentAndProjectWorkerProcessor.Enqueue(
-                        new WorkItem(documentId, document.Project.Language, InvocationReasons.Reanalyze,
+                        new WorkItem(documentId, document.Project.Language, invocationReasons,
                         isLowPriority, analyzer, _listener.BeginAsyncOperation("WorkItem")));
                 }
             }

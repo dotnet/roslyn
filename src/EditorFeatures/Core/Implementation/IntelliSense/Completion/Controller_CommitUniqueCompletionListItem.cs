@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // Note: Dev10 behavior seems to be that if there is no unique item that filtering is
             // turned off.  However, i do not know if this is desirable behavior, or merely a bug
-            // with how that convoluted code worked.  So i'm not maintaining that behavior here.  If
+            // with how that convoluted code worked.  So I'm not maintaining that behavior here.  If
             // we do want it through, it would be easy to get again simply by asking the model
             // computation to remove all filtering.
 

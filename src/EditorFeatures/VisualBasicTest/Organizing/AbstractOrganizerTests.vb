@@ -14,12 +14,12 @@ Imports Microsoft.CodeAnalysis.Text
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
     Public MustInherit Class AbstractOrganizerTests
 
-        Protected Sub Check(initial As XElement, final As XElement)
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(initial.NormalizedValue)
+        Protected Async Function CheckAsync(initial As XElement, final As XElement) As System.Threading.Tasks.Task
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(initial.NormalizedValue)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
-                Dim newRoot = OrganizingService.OrganizeAsync(document).Result.GetSyntaxRootAsync().Result
+                Dim newRoot = Await (Await OrganizingService.OrganizeAsync(document)).GetSyntaxRootAsync()
                 Assert.Equal(final.NormalizedValue, newRoot.ToFullString())
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

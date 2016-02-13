@@ -56,10 +56,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         private void Update()
         {
-            if (_updateActionOpt != null)
-            {
-                _updateActionOpt(_completedItems, _totalItems);
-            }
+            _updateActionOpt?.Invoke(_completedItems, _totalItems);
         }
     }
 }

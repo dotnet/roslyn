@@ -3,6 +3,7 @@
 // References\Debugger\v2.0\Microsoft.VisualStudio.Debugger.Engine.dll
 
 #endregion
+
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
@@ -98,7 +99,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             }
         }
 
-        public Type GetLmrType()
+        public virtual Type GetLmrType()
         {
             return _lmrType;
         }

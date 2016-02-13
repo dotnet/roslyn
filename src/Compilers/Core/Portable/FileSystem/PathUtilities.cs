@@ -33,7 +33,7 @@ namespace Roslyn.Utilities
         internal static string TrimTrailingSeparators(string s)
         {
             int lastSeparator = s.Length;
-            while (lastSeparator > 0 && IsDirectorySeparator(s[lastSeparator-1]))
+            while (lastSeparator > 0 && IsDirectorySeparator(s[lastSeparator - 1]))
             {
                 lastSeparator = lastSeparator - 1;
             }
@@ -61,9 +61,9 @@ namespace Roslyn.Utilities
             return FileNameUtilities.ChangeExtension(path, extension: null);
         }
 
-        internal static string GetFileName(string path)
+        internal static string GetFileName(string path, bool includeExtension = true)
         {
-            return FileNameUtilities.GetFileName(path);
+            return FileNameUtilities.GetFileName(path, includeExtension);
         }
 
         /// <summary>

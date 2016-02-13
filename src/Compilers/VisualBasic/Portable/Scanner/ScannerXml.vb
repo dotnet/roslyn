@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Function ScanXmlContent() As SyntaxToken
             ' SHIM
-            If Me.IsScanningXmlDoc Then
+            If IsScanningXmlDoc Then
                 Return ScanXmlContentInXmlDoc()
             End If
 

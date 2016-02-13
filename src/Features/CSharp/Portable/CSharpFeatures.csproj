@@ -270,8 +270,8 @@
     <Compile Include="Diagnostics\Analyzers\CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpSimplifyTypeNamesDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\CSharpAnalyzerDriverService.cs" />
-    <Compile Include="DocumentationCommentFormatting\CSharpDocumentationCommentFormattingService.cs" />
-    <Compile Include="DocumentationCommentFormatting\DocumentationCommentUtilities.cs" />
+    <Compile Include="DocumentationComments\CSharpDocumentationCommentFormattingService.cs" />
+    <Compile Include="DocumentationComments\DocumentationCommentUtilities.cs" />
     <Compile Include="EditAndContinue\BreakpointSpans.cs" />
     <Compile Include="EditAndContinue\CSharpEditAndContinueAnalyzer.cs" />
     <Compile Include="EditAndContinue\StatementSyntaxComparer.cs" />
@@ -319,10 +319,13 @@
     <Compile Include="IntroduceVariable\CSharpIntroduceVariableService_IntroduceField.cs" />
     <Compile Include="IntroduceVariable\CSharpIntroduceVariableService_IntroduceLocal.cs" />
     <Compile Include="IntroduceVariable\CSharpIntroduceVariableService_IntroduceQueryLocal.cs" />
+    <Compile Include="InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessAnalyzer.cs" />
+    <Compile Include="InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessCodeFixProvider.cs" />
     <Compile Include="LanguageServices\CSharpAnonymousTypeDisplayService.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDisplayService.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDisplayService.SymbolDescriptionBuilder.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDisplayServiceFactory.cs" />
+    <Compile Include="MakeMethodSynchronous\CSharpMakeMethodSynchronousCodeFixProvider.cs" />
     <Compile Include="MetadataAsSource\CSharpMetadataAsSourceService.cs" />
     <Compile Include="MetadataAsSource\CSharpMetadataAsSourceServiceFactory.cs" />
     <Compile Include="OrganizeImports\CSharpOrganizeImportsService.cs" />

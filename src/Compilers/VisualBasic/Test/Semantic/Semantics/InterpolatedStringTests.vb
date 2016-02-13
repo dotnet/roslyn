@@ -188,11 +188,11 @@ Imports System.Console
 Module Program
     Sub Main()
         Dim arr As Object() = {}
-        Write($"Solution: {{ { If(arr.Length > 0, String.Join("", "", arr), "Ø") } }}")
+        Write($"Solution: {{ { If(arr.Length > 0, String.Join("", "", arr), "Ã˜") } }}")
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="Solution: { Ø }")
+</compilation>, expectedOutput:="Solution: { Ã˜ }")
 
         End Sub
 
@@ -206,15 +206,15 @@ Imports System.Console
 
 Module Program
     Sub Main()
-        Write($"{{Ø}}")
+        Write($"{{Ã˜}}")
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="{Ø}")
+</compilation>, expectedOutput:="{Ã˜}")
 
         End Sub
 
-        <Fact, WorkItem(1102783)>
+        <Fact, WorkItem(1102783, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1102783")>
         Public Sub SmartQuotes()
 
             CompileAndVerify(
@@ -242,7 +242,7 @@ End Module    </file>
 
         End Sub
 
-        <Fact, WorkItem(1102800)>
+        <Fact, WorkItem(1102800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1102800")>
         Public Sub FullwidthDelimiters()
 
             ' Any combination of fullwidth and ASCII curly braces of the same direction is an escaping sequence for the corresponding ASCII curly brace.
@@ -582,8 +582,7 @@ End Module
     </file>
 </compilation>, expectedOutput:="1,51,51,51.5")
 
-            Debug.Assert(Threading.Thread.CurrentThread.CurrentCulture Is previousCulture)
-
+            Assert.Equal(previousCulture, Threading.Thread.CurrentThread.CurrentCulture)
         End Sub
 
         <Fact>

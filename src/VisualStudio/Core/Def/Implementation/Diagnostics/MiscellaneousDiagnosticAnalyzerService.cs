@@ -59,11 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs state)
         {
-            var handler = this.DiagnosticsUpdated;
-            if (handler != null)
-            {
-                handler(this, state);
-            }
+            this.DiagnosticsUpdated?.Invoke(this, state);
         }
 
         private class SyntaxOnlyDiagnosticAnalyzer : IIncrementalAnalyzer
@@ -80,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             public async Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
             {
                 // if closed file diagnostic is off and document is not opened, then don't do anything
-                if (!_workspace.Options.GetOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, document.Project.Language) && !document.IsOpen())
+                if (!CheckOptions(document))
                 {
                     return;
                 }
@@ -105,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
                 // no closed file diagnostic and file is not opened, remove any existing diagnostics
-                if (!_workspace.Options.GetOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, document.Project.Language) && !document.IsOpen())
+                if (!CheckOptions(document))
                 {
                     RaiseEmptyDiagnosticUpdated(document.Id);
                 }
@@ -152,6 +148,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             public void RemoveProject(ProjectId projectId)
             {
+            }
+
+            private bool CheckOptions(Document document)
+            {
+                if (_workspace.Options.GetOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, document.Project.Language) &&
+                    _workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
+                {
+                    return true;
+                }
+
+                return document.IsOpen();
             }
 
             private class MiscUpdateArgsId : BuildToolId.Base<DocumentId>, ISupportLiveUpdate

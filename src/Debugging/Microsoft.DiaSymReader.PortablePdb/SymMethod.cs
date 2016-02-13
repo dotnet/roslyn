@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -58,7 +59,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetNamespace([MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedNamespace @namespace)
         {
-            // SymReader doesn't support namspaces
+            // SymReader doesn't support namespaces
             @namespace = null;
             return HResult.E_NOTIMPL;
         }
@@ -80,7 +81,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 return HResult.E_INVALIDARG;
             }
 
-            // DiaSymReader uses DiaSession::findLinesByLinenum, which results in bad results for lines shared accross multiple methods
+            // DiaSymReader uses DiaSession::findLinesByLinenum, which results in bad results for lines shared across multiple methods
             // and for lines outside of the current method.
 
             var spReader = GetSequencePointEnumerator();
@@ -88,9 +89,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
             while (spReader.MoveNext())
             {
-                if (!spReader.Current.IsHidden && 
-                    spReader.Current.Document == documentHandle && 
-                    line >= spReader.Current.StartLine && 
+                if (!spReader.Current.IsHidden &&
+                    spReader.Current.Document == documentHandle &&
+                    line >= spReader.Current.StartLine &&
                     line <= spReader.Current.EndLine)
                 {
                     // Return the first matching IL offset. In common cases there will be a single one 
@@ -105,8 +106,8 @@ namespace Microsoft.DiaSymReader.PortablePdb
         }
 
         public int GetParameters(
-            int bufferLength, 
-            out int count, 
+            int bufferLength,
+            out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]ISymUnmanagedVariable[] parameters)
         {
             // SymReader doesn't support parameter access. 
@@ -115,10 +116,10 @@ namespace Microsoft.DiaSymReader.PortablePdb
         }
 
         public int GetRanges(
-            ISymUnmanagedDocument document, 
-            int line, 
-            int column, 
-            int bufferLength, 
+            ISymUnmanagedDocument document,
+            int line,
+            int column,
+            int bufferLength,
             out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3), Out]int[] ranges)
         {
@@ -137,7 +138,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 return HResult.E_INVALIDARG;
             }
 
-            // DiaSymReader uses DiaSession::findLinesByLinenum, which results in bad results for lines shared accross multiple methods.
+            // DiaSymReader uses DiaSession::findLinesByLinenum, which results in bad results for lines shared across multiple methods.
 
             var spReader = GetSequencePointEnumerator();
             var documentHandle = symDocument.Handle;
@@ -152,9 +153,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
                     setEndOffset = false;
                 }
 
-                if (!spReader.Current.IsHidden && 
-                    spReader.Current.Document == documentHandle && 
-                    line >= spReader.Current.StartLine && 
+                if (!spReader.Current.IsHidden &&
+                    spReader.Current.Document == documentHandle &&
+                    line >= spReader.Current.StartLine &&
                     line <= spReader.Current.EndLine)
                 {
                     if (i + 1 < bufferLength)
@@ -207,10 +208,10 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetSequencePoints(
             int bufferLength,
-            out int count, 
+            out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]int[] offsets,
-            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]ISymUnmanagedDocument[] documents, 
-            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]int[] startLines, 
+            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]ISymUnmanagedDocument[] documents,
+            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]int[] startLines,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]int[] startColumns,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]int[] endLines,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]int[] endColumns)
@@ -271,9 +272,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
         }
 
         public int GetSourceStartEnd(
-            ISymUnmanagedDocument[] documents, 
-            [In, MarshalAs(UnmanagedType.LPArray), Out]int[] lines, 
-            [In, MarshalAs(UnmanagedType.LPArray), Out]int[] columns, 
+            ISymUnmanagedDocument[] documents,
+            [In, MarshalAs(UnmanagedType.LPArray), Out]int[] lines,
+            [In, MarshalAs(UnmanagedType.LPArray), Out]int[] columns,
             out bool defined)
         {
             // This symbol reader doesn't support source start/end for methods.
@@ -353,10 +354,10 @@ namespace Microsoft.DiaSymReader.PortablePdb
             }
 
             return new AsyncMethodData(
-                kickoffMethod, 
+                kickoffMethod,
                 (int)(catchHandlerOffset - 1),
-                yieldOffsets.ToImmutable(), 
-                resultOffsets.ToImmutable(), 
+                yieldOffsets.ToImmutable(),
+                resultOffsets.ToImmutable(),
                 resumeMethods.ToImmutable());
         }
 
@@ -417,9 +418,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
         public int GetAsyncStepInfo(
             int bufferLength,
             out int count,
-            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]int[] yieldOffsets,
-            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]int[] breakpointOffsets,
-            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]int[] breakpointMethods)
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]int[] yieldOffsets,
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]int[] breakpointOffsets,
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]int[] breakpointMethods)
         {
             if (AsyncMethodData.IsNone)
             {
@@ -453,7 +454,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
         #region ISymEncUnmanagedMethod
 
         /// <summary>
-        /// Get the file name for the line associated with speficied offset.
+        /// Get the file name for the line associated with specified offset.
         /// </summary>
         public int GetFileNameFromOffset(
             int offset,

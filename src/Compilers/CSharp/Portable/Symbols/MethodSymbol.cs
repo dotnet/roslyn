@@ -754,12 +754,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (typeArguments.Any(TypeSymbolIsNullFunction))
             {
-                throw new ArgumentException(CSharpResources.TypeArgumentCannotBeNull, "typeArguments");
+                throw new ArgumentException(CSharpResources.TypeArgumentCannotBeNull, nameof(typeArguments));
             }
 
             if (typeArguments.Length != this.Arity)
             {
-                throw new ArgumentException(CSharpResources.WrongNumberOfTypeArguments, "typeArguments");
+                throw new ArgumentException(CSharpResources.WrongNumberOfTypeArguments, nameof(typeArguments));
             }
 
             if (TypeParametersMatchTypeArguments(this.TypeParameters, typeArguments))

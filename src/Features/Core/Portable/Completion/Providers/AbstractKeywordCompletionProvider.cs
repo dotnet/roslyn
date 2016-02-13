@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var keywords = recommender.RecommendKeywords(position, context, cancellationToken);
+                var keywords = await recommender.RecommendKeywordsAsync(position, context, cancellationToken).ConfigureAwait(false);
                 if (keywords != null)
                 {
                     set.AddRange(keywords);

@@ -179,7 +179,7 @@ End Class
 
         End Sub
 
-        <WorkItem(729235, "DevDiv")>
+        <WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")>
         <Fact>
         Public Sub NormalizedPath_Tree()
             Dim source = <![CDATA[
@@ -212,7 +212,7 @@ End Class
 </symbols>)
         End Sub
 
-        <WorkItem(729235, "DevDiv")>
+        <WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")>
         <Fact>
         Public Sub NormalizedPath_ExternalSource()
             Dim source = <![CDATA[
@@ -269,7 +269,7 @@ End Class
 </symbols>)
         End Sub
 
-        <WorkItem(729235, "DevDiv")>
+        <WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")>
         <Fact>
         Public Sub NormalizedPath_ExternalChecksum()
             Dim source = <![CDATA[
@@ -333,7 +333,7 @@ End Class
 </symbols>)
         End Sub
 
-        <WorkItem(729235, "DevDiv")>
+        <WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")>
         <Fact>
         Public Sub NormalizedPath_NoBaseDirectory()
             Dim source = <![CDATA[

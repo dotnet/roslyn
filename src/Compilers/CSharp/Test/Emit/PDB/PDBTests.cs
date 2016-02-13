@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 </symbols>", options: PdbToXmlOptions.ExcludeMethods);
         }
 
-        [Fact, WorkItem(846584, "DevDiv")]
+        [Fact, WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")]
         public void RelativePathForExternalSource_Sha1()
         {
             var text1 = @"
@@ -244,7 +244,7 @@ public class C
 </symbols>");
         }
 
-        [Fact, WorkItem(1067635)]
+        [Fact, WorkItem(1067635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067635")]
         public void SuppressDynamicAndEncCDIForWinRT()
         {
             var source = @"
@@ -572,6 +572,136 @@ class C
 </symbols>");
         }
 
+        [WorkItem(7244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/7244")]
+        [Fact]
+        public void ConstructorsWithoutInitializers()
+        {
+            var source =
+@"class C
+{
+    C()
+    {
+        object o;
+    }
+    C(object x)
+    {
+        object y = x;
+    }
+}";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb("C..ctor",
+@"<symbols>
+  <methods>
+    <method containingType=""C"" name="".ctor"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""18"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""3"" startColumn=""5"" endLine=""3"" endColumn=""8"" />
+        <entry offset=""0x7"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" />
+        <entry offset=""0x8"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x9"">
+        <scope startOffset=""0x7"" endOffset=""0x9"">
+          <local name=""o"" il_index=""0"" il_start=""0x7"" il_end=""0x9"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+    <method containingType=""C"" name="".ctor"" parameterNames=""x"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName="".ctor"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""18"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""16"" />
+        <entry offset=""0x7"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
+        <entry offset=""0x8"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""22"" />
+        <entry offset=""0xa"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xb"">
+        <scope startOffset=""0x7"" endOffset=""0xb"">
+          <local name=""y"" il_index=""0"" il_start=""0x7"" il_end=""0xb"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [WorkItem(7244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/7244")]
+        [Fact]
+        public void ConstructorsWithInitializers()
+        {
+            var source =
+@"class C
+{
+    static object G = 1;
+    object F = G;
+    C()
+    {
+        object o;
+    }
+    C(object x)
+    {
+        object y = x;
+    }
+}";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb("C..ctor",
+@"<symbols>
+  <methods>
+    <method containingType=""C"" name="".ctor"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""18"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""18"" />
+        <entry offset=""0xb"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""8"" />
+        <entry offset=""0x12"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
+        <entry offset=""0x13"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x14"">
+        <scope startOffset=""0x12"" endOffset=""0x14"">
+          <local name=""o"" il_index=""0"" il_start=""0x12"" il_end=""0x14"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+    <method containingType=""C"" name="".ctor"" parameterNames=""x"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName="".ctor"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""18"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""18"" />
+        <entry offset=""0xb"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""16"" />
+        <entry offset=""0x12"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
+        <entry offset=""0x13"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""22"" />
+        <entry offset=""0x15"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x16"">
+        <scope startOffset=""0x12"" endOffset=""0x16"">
+          <local name=""y"" il_index=""0"" il_start=""0x12"" il_end=""0x16"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
         /// <summary>
         /// Although the debugging info attached to DebuggerHidden method is not used by the debugger 
         /// (the debugger doesn't ever stop in the method) Dev11 emits the info and so do we.
@@ -682,7 +812,7 @@ class Program
         /// the method must have a sequence point at
         /// offset 0 for correct stepping behavior.
         /// </summary>
-        [WorkItem(804681, "DevDiv")]
+        [WorkItem(804681, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/804681")]
         [Fact]
         public void SequencePointAtOffset0()
         {
@@ -1246,7 +1376,7 @@ class C
 
         #region WhileStatement
 
-        [WorkItem(538299, "DevDiv")]
+        [WorkItem(538299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538299")]
         [Fact]
         public void WhileStatement()
         {
@@ -1608,7 +1738,7 @@ public class C
 </symbols>");
         }
 
-        [WorkItem(544937, "DevDiv")]
+        [WorkItem(544937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]
         [Fact]
         public void ForEachStatement_MultiDimensionalArray()
         {
@@ -1701,7 +1831,7 @@ public class C
 ", sequencePoints: "C.Main");
         }
 
-        [WorkItem(544937, "DevDiv")]
+        [WorkItem(544937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]
         [Fact]
         public void ForEachStatement_MultiDimensionalArrayBreakAndContinue()
         {
@@ -1910,7 +2040,7 @@ public class C
 ", sequencePoints: "C.Main");
         }
 
-        [WorkItem(718501, "DevDiv")]
+        [WorkItem(718501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718501")]
         [Fact]
         public void ForEachNops()
         {
@@ -2100,7 +2230,7 @@ public class SeqPointForWhile
 
         #region Constructor
 
-        [WorkItem(538317, "DevDiv")]
+        [WorkItem(538317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538317")]
         [Fact]
         public void ConstructorSequencePoints1()
         {
@@ -2494,7 +2624,7 @@ public partial class C
 </symbols>");
         }
 
-        [WorkItem(543313, "DevDiv")]
+        [WorkItem(543313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543313")]
         [Fact]
         public void TestFieldInitializerExpressionLambda()
         {
@@ -2565,7 +2695,7 @@ class C
 
         #region Auto-Property
 
-        [Fact, WorkItem(820806, "DevDiv")]
+        [Fact, WorkItem(820806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820806")]
         public void BreakpointForAutoImplementedProperty()
         {
             var source = @"
@@ -2718,7 +2848,7 @@ public class C
 </symbols>");
         }
 
-        [WorkItem(538298, "DevDiv")]
+        [WorkItem(538298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538298")]
         [Fact]
         public void RegressSeqPtEndOfMethodAfterReturn()
         {
@@ -2887,7 +3017,7 @@ public class SeqPointAfterReturn
 
         #region Exception Handling
 
-        [WorkItem(542064, "DevDiv")]
+        [WorkItem(542064, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542064")]
         [Fact]
         public void ExceptionHandling()
         {
@@ -3360,7 +3490,7 @@ class Test
 </symbols>");
         }
 
-        [WorkItem(778655, "DevDiv")]
+        [WorkItem(778655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/778655")]
         [Fact]
         public void BranchToStartOfTry()
         {
@@ -4121,7 +4251,7 @@ unsafe class C
 </symbols>");
         }
 
-        [WorkItem(544917, "DevDiv")]
+        [WorkItem(544917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
         [Fact]
         public void DisabledLineDirective()
         {
@@ -4327,7 +4457,7 @@ public class T
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [Fact, WorkItem(546862, "DevDiv")]
+        [Fact, WorkItem(546862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546862")]
         public void Constant_InvalidUnicodeString()
         {
             var source = @"
@@ -4922,7 +5052,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem(2501)]
+        [WorkItem(2501, "https://github.com/dotnet/roslyn/issues/2501")]
         [Fact]
         public void ImportsInAsyncLambda()
         {

@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#pragma warning disable 436 // The type 'RelativePathResolver' comflicts with imported type
+#pragma warning disable 436 // The type 'RelativePathResolver' conflicts with imported type
 
 using System;
 using System.Collections.Generic;
@@ -9,8 +9,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
@@ -141,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
 
             return new ScriptOptions(
-                filePath: scriptPathOpt ?? "", 
+                filePath: scriptPathOpt ?? "",
                 references: ImmutableArray.CreateRange(resolvedReferences),
                 namespaces: CommandLineHelpers.GetImports(arguments),
                 metadataResolver: metadataResolver,
@@ -276,22 +274,15 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 var task = (state == null) ?
                     newScript.RunAsync(globals, cancellationToken) :
-                    newScript.ContinueAsync(state, cancellationToken);
+                    newScript.RunFromAsync(state, cancellationToken);
 
                 state = task.GetAwaiter().GetResult();
             }
             catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
             {
-                var oldColor = _console.ForegroundColor;
-                try
-                {
-                    _console.ForegroundColor = ConsoleColor.Red;
-                    _console.Out.WriteLine(e.InnerException.Message);
-                }
-                finally
-                {
-                    _console.ForegroundColor = oldColor;
-                }
+                _console.ForegroundColor = ConsoleColor.Red;
+                _console.Out.WriteLine(e.InnerException.Message);
+                _console.ResetColor();
 
                 return false;
             }
@@ -330,69 +321,15 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         private void DisplayException(Exception e)
         {
-            var oldColor = _console.ForegroundColor;
             try
             {
                 _console.ForegroundColor = ConsoleColor.Red;
-                _console.Out.WriteLine(e.Message);
-
-                _console.ForegroundColor = ConsoleColor.DarkRed;
-
-                var trace = new StackTrace(e, needFileInfo: true);
-                foreach (var frame in trace.GetFrames())
-                {
-                    if (!frame.HasMethod())
-                    {
-                        continue;
-                    }
-
-                    var method = frame.GetMethod();
-                    var type = method.DeclaringType;
-
-                    if (type == typeof(CommandLineRunner))
-                    {
-                        break;
-                    }
-
-                    string methodDisplay = _objectFormatter.FormatMethodSignature(method);
-
-                    // TODO: we don't want to include awaiter helpers, shouldn't they be marked by DebuggerHidden in FX?
-                    if (methodDisplay == null || IsTaskAwaiter(type) || IsTaskAwaiter(type.DeclaringType))
-                    {
-                        continue;
-                    }
-
-                    _console.Out.Write("  + ");
-                    _console.Out.Write(methodDisplay);
-
-                    if (frame.HasSource())
-                    {
-                        _console.Out.Write(string.Format(CultureInfo.CurrentUICulture, ScriptingResources.AtFileLine, frame.GetFileName(), frame.GetFileLineNumber()));
-                    }
-
-                    _console.Out.WriteLine();
-                }
+                _console.Out.Write(_objectFormatter.FormatException(e));
             }
             finally
             {
-                _console.ForegroundColor = oldColor;
+                _console.ResetColor();
             }
-        }
-
-        private static bool IsTaskAwaiter(Type type)
-        {
-            if (type == typeof(TaskAwaiter) || type == typeof(ConfiguredTaskAwaitable))
-            {
-                return true;
-            }
-
-            if (type?.GetTypeInfo().IsGenericType == true)
-            {
-                var genericDef = type.GetTypeInfo().GetGenericTypeDefinition();
-                return genericDef == typeof(TaskAwaiter<>) || type == typeof(ConfiguredTaskAwaitable<>);
-            }
-
-            return false;
         }
 
         private static bool IsHelpCommand(string text)
@@ -413,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             const int MaxDisplayCount = 5;
 
             var errorsAndWarnings = diagnostics.ToArray();
-           
+
             // by severity, then by location
             var ordered = errorsAndWarnings.OrderBy((d1, d2) =>
             {
@@ -421,7 +358,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 return (delta != 0) ? delta : d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start;
             });
 
-            var oldColor = _console.ForegroundColor;
             try
             {
                 foreach (var diagnostic in ordered.Take(MaxDisplayCount))
@@ -439,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
             finally
             {
-                _console.ForegroundColor = oldColor;
+                _console.ResetColor();
             }
         }
     }

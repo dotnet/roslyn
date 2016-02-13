@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Argument {0} should not be passed with the &apos;{1}&apos; keyword.
+        ///   Looks up a localized string similar to Argument {0} may not be passed with the &apos;{1}&apos; keyword.
         /// </summary>
         internal static string ERR_BadArgExtraRef {
             get {
@@ -5246,7 +5246,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The pathmap option was incorrectly formatted.
+        ///   Looks up a localized string similar to The pathmap option was incorrectly formatted..
         /// </summary>
         internal static string ERR_InvalidPathMap {
             get {
@@ -5278,6 +5278,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_InvalidQM {
             get {
                 return ResourceManager.GetString("ERR_InvalidQM", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid real literal..
+        /// </summary>
+        internal static string ERR_InvalidReal {
+            get {
+                return ResourceManager.GetString("ERR_InvalidReal", resourceCulture);
             }
         }
         
@@ -7199,6 +7208,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Public signing was specified and requires a public key, but no public key was specified..
+        /// </summary>
+        internal static string ERR_PublicSignButNoKey {
+            get {
+                return ResourceManager.GetString("ERR_PublicSignButNoKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The range variable &apos;{0}&apos; has already been declared.
         /// </summary>
         internal static string ERR_QueryDuplicateRangeVariable {
@@ -8104,6 +8122,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_TooManyLocals {
             get {
                 return ResourceManager.GetString("ERR_TooManyLocals", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals..
+        /// </summary>
+        internal static string ERR_TooManyUserStrings {
+            get {
+                return ResourceManager.GetString("ERR_TooManyUserStrings", resourceCulture);
             }
         }
         
@@ -9747,6 +9774,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Syntax tree should be created from a submission..
+        /// </summary>
+        internal static string SyntaxTreeIsNotASubmission {
+            get {
+                return ResourceManager.GetString("SyntaxTreeIsNotASubmission", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SyntaxTree &apos;{0}&apos; not found to remove.
         /// </summary>
         internal static string SyntaxTreeNotFoundTo {
@@ -9819,7 +9855,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use Roslyn.Compilers.CSharp.Syntax.Literal to create numeric literal tokens..
+        ///   Looks up a localized string similar to Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create numeric literal tokens..
         /// </summary>
         internal static string UseLiteralForNumeric {
             get {
@@ -9828,7 +9864,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use Roslyn.Compilers.CSharp.Syntax.Literal to create character literal tokens..
+        ///   Looks up a localized string similar to Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create character literal tokens..
         /// </summary>
         internal static string UseLiteralForTokens {
             get {
@@ -9837,7 +9873,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use Roslyn.Compilers.CSharp.Syntax.Identifier or Roslyn.Compilers.CSharp.Syntax.VerbatimIdentifier to create identifier tokens..
+        ///   Looks up a localized string similar to Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Identifier or Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VerbatimIdentifier to create identifier tokens..
         /// </summary>
         internal static string UseVerbatimIdentifier {
             get {
@@ -11702,7 +11738,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not a recognized attribute location. All attributes in this block will be ignored..
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a recognized attribute location. Valid attribute locations for this declaration are &apos;{1}&apos;. All attributes in this block will be ignored..
         /// </summary>
         internal static string WRN_InvalidAttributeLocation {
             get {

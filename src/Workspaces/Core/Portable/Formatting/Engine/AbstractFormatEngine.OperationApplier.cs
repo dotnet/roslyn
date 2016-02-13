@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return true;
                 }
 
-                // delegate to normal singleline space applier
+                // delegate to normal single-line space applier
                 return ApplySpaceIfSingleLine(operation, pairIndex);
             }
 
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 Dictionary<SyntaxToken, int> previousChangesMap,
                 CancellationToken cancellationToken)
             {
-                // if baseToken is not in the stream, then it is guaranteeded to be not moved.
+                // if baseToken is not in the stream, then it is guaranteed to be not moved.
                 var tokenWithIndex = baseToken;
                 if (tokenWithIndex.IndexInStream < 0)
                 {

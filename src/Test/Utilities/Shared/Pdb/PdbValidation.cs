@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool expectedIsXmlLiteral)
         {
             Assert.NotEqual(DebugInformationFormat.Embedded, format);
-            
+
             if (format == 0 || format == DebugInformationFormat.Pdb)
             {
                 XElement actualNativePdb = XElement.Parse(GetPdbXml(compilation, debugEntryPoint, options, qualifiedMethodName, portable: false));
@@ -143,14 +143,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static void RemoveEmptyScopes(XElement pdb)
         {
-            var emptyScopes = from e in pdb.DescendantsAndSelf()
-                              where e.Name == "scope" && !e.HasElements
-                              select e;
+            XElement[] emptyScopes;
 
-            foreach (var e in emptyScopes.ToArray())
+            do
             {
-                e.Remove();
+                emptyScopes = (from e in pdb.DescendantsAndSelf()
+                               where e.Name == "scope" && !e.HasElements
+                               select e).ToArray();
+
+                foreach (var e in emptyScopes)
+                {
+                    e.Remove();
+                }
             }
+            while (emptyScopes.Any());
         }
 
         private static void RemoveEmptySequencePoints(XElement pdb)
@@ -190,7 +196,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                             e.Name == "type" ||
                                             e.Name == "defunct" ||
                                             e.Name == "extern" ||
-                                            e.Name == "externinfo"
+                                            e.Name == "externinfo" ||
+                                            e.Name == "local" && e.Attributes().Any(a => a.Name.LocalName == "name" && a.Value.StartsWith("$VB$ResumableLocal_"))
                                       select e;
 
             foreach (var e in nonPortableElements.ToArray())
@@ -245,9 +252,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(0, debugDirectory.Size % 0x1c);
             Assert.True(entries == 1 || entries == 2);
             bool hasDebug = entries == 2;
-
-            byte[] buffer = new byte[debugDirectory.Size];
-            peStream.Read(buffer, 0, buffer.Length); // TODO: this is not guaranteed to read buffer.Length of data
 
             peStream.Position = position;
             var reader = new BinaryReader(peStream);

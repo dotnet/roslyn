@@ -17,8 +17,8 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.FindResults
     Public Class FindResultsTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(1138943)>
-        Public Sub ConstructorReferencesShouldNotAppearUnderClassNodeInCSharp()
+        <WorkItem(1138943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1138943")>
+        Public Async Function ConstructorReferencesShouldNotAppearUnderClassNodeInCSharp() As System.Threading.Tasks.Task
             Dim markup = <Text><![CDATA[
 class $$C
 {
@@ -45,12 +45,12 @@ class $$C
                         TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (13, 17) : var c = C.z;"))
                 }
 
-            Verify(markup, LanguageNames.CSharp, expectedResults)
-        End Sub
+            Await VerifyAsync(markup, LanguageNames.CSharp, expectedResults)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(1138943)>
-        Public Sub ConstructorReferencesShouldNotAppearUnderClassNodeInVisualBasic()
+        <WorkItem(1138943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1138943")>
+        Public Async Function ConstructorReferencesShouldNotAppearUnderClassNodeInVisualBasic() As System.Threading.Tasks.Task
             Dim markup = <Text><![CDATA[
 Class C$$
     Const z = 1
@@ -78,11 +78,11 @@ End Class"]]></Text>
                         TestFindResult.CreateReference("VisualBasicAssembly1\Test1.vb - (13, 21) : Dim b = New C(5)"))
                 }
 
-            Verify(markup, LanguageNames.VisualBasic, expectedResults)
-        End Sub
+            Await VerifyAsync(markup, LanguageNames.VisualBasic, expectedResults)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestSourceNamespace()
+        Public Async Function TestSourceNamespace() As System.Threading.Tasks.Task
             Dim markup = <Text><![CDATA[
 namespace NS$$
 {
@@ -100,11 +100,11 @@ namespace NS
                         TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (6, 11) : namespace NS"))
                 }
 
-            Verify(markup, LanguageNames.CSharp, expectedResults)
-        End Sub
+            Await VerifyAsync(markup, LanguageNames.CSharp, expectedResults)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestMetadataNamespace()
+        Public Async Function TestMetadataNamespace() As System.Threading.Tasks.Task
             Dim markup = <Text><![CDATA[
 using System$$;
 using System.Threading;
@@ -117,8 +117,8 @@ using System.Threading;
                         TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (3, 7) : using System.Threading;"))
                 }
 
-            Verify(markup, LanguageNames.CSharp, expectedResults)
-        End Sub
+            Await VerifyAsync(markup, LanguageNames.CSharp, expectedResults)
+        End Function
 
 
         Private Shared ReadOnly s_exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
@@ -126,7 +126,7 @@ using System.Threading;
                 GetType(MockDocumentNavigationServiceProvider),
                 GetType(MockSymbolNavigationServiceProvider)))
 
-        Private Sub Verify(markup As XElement, languageName As String, expectedResults As IList(Of AbstractTreeItem))
+        Private Async Function VerifyAsync(markup As XElement, languageName As String, expectedResults As IList(Of AbstractTreeItem)) As System.Threading.Tasks.Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= languageName %> CommonReferences="true">
@@ -134,18 +134,19 @@ using System.Threading;
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml, exportProvider:=s_exportProvider)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml, exportProvider:=s_exportProvider)
                 Dim doc = workspace.Documents.Single()
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
                 If Not doc.CursorPosition.HasValue Then
                     Assert.True(False, "Missing caret location in document.")
                 End If
 
-                Dim symbol = SymbolFinder.FindSymbolAtPositionAsync(workspaceDoc, doc.CursorPosition.Value, CancellationToken.None).Result
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(workspaceDoc, doc.CursorPosition.Value, CancellationToken.None)
                 Assert.NotNull(symbol)
 
-                Dim result = SymbolFinder.FindReferencesAsync(symbol, workspace.CurrentSolution, CancellationToken.None).Result
+                Dim result = Await SymbolFinder.FindReferencesAsync(symbol, workspace.CurrentSolution, CancellationToken.None)
 
+                WpfTestCase.RequireWpfFact($"The {NameOf(Implementation.Library.FindResults.LibraryManager)} assumes it's on the VS UI thread and thus uses WaitAndGetResult")
                 Dim libraryManager = New LibraryManager(New MockServiceProvider(New MockComponentModel(workspace.ExportProvider)))
                 Dim findReferencesTree = libraryManager.CreateFindReferencesItems(workspace.CurrentSolution, result)
 
@@ -155,7 +156,7 @@ using System.Threading;
 
                 VerifyResultsTree(expectedResults, findReferencesTree)
             End Using
-        End Sub
+        End Function
 
         Private Sub VerifyResultsTree(expectedResults As IList(Of AbstractTreeItem), findReferencesTree As IList(Of AbstractTreeItem))
             Assert.True(expectedResults.Count = findReferencesTree.Count, $"Unexpected number of results. Expected: {expectedResults.Count} Actual: {findReferencesTree.Count}

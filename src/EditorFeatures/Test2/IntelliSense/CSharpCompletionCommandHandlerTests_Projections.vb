@@ -26,8 +26,8 @@ public override void Execute() {
 }]]></Document>)
 
                 state.SendTypeChars(".Curr")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                Await state.AssertSelectedCompletionItem(displayText:="CurrentDomain").ConfigureAwait(True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem(displayText:="CurrentDomain")
                 state.SendTab()
                 Assert.Contains("__o = AppDomain.CurrentDomain", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -64,11 +64,11 @@ class C
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer(".", view, buffer)
-                Await state.AssertCompletionSession().ConfigureAwait(True)
+                Await state.AssertCompletionSession()
 
                 state.SendTypeCharsToSpecificViewAndBuffer("Cons", view, buffer)
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                Await state.AssertSelectedCompletionItem(displayText:="Console").ConfigureAwait(True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem(displayText:="Console")
             End Using
         End Function
 
@@ -103,12 +103,12 @@ class C
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer(" ", view, buffer)
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                Await state.AssertSelectedCompletionItem(displayText:="string", isHardSelected:=True).ConfigureAwait(True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem(displayText:="string", isHardSelected:=True)
             End Using
         End Function
 
-        <WorkItem(771761)>
+        <WorkItem(771761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestRegionCompletionCommitFormatting() As System.Threading.Tasks.Task
             Using state = TestState.CreateCSharpTestState(
@@ -140,8 +140,8 @@ class C
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer("#reg", view, buffer)
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                Await state.AssertSelectedCompletionItem(displayText:="region", shouldFormatOnCommit:=True).ConfigureAwait(True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem(displayText:="region", shouldFormatOnCommit:=True)
 
             End Using
         End Function

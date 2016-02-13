@@ -14,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
 
 #Region "No change to symbol"
 
-        <WorkItem(528864)>
-        <WpfFact>
+        <WorkItem(528864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528864")>
+        <Fact>
         Public Sub C2CTypeSymbolUnchanged01()
 
             Dim src1 = <compilation name="C2CTypeSymbolUnchanged01">
@@ -79,7 +79,7 @@ End Namespace
             ResolveAndVerifySymbolList(newSymbols, comp2, originalSymbols, comp1)
         End Sub
 
-        <WpfFact, WorkItem(530198)>
+        <Fact, WorkItem(530198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530198")>
         Public Sub C2CTypeSymbolCaseChangeOnly()
 
             Dim src1 = <compilation name="C2CTypeSymbolCaseChangeOnly">
@@ -131,7 +131,7 @@ End Namespace
 
 #Region "Change to symbol but same ID"
 
-        <WpfFact>
+        <Fact>
         Public Sub C2CTypeSymbolChanged01()
 
             Dim src1 = <compilation name="C2CTypeSymbolChanged01">
@@ -201,7 +201,7 @@ End Namespace
             ResolveAndVerifySymbolList(newSymbols, comp2, originalSymbols, comp1)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub C2CAssemblySymbolChanged01()
 
             Dim src1 = <compilation name="C2CAssemblySymbolChanged01">
@@ -234,7 +234,7 @@ End Class
             ResolveAndVerifySymbol(sym2, comp2, sym1, comp1, SymbolIdComparison.CaseInsensitive Or SymbolIdComparison.IgnoreAssemblyIds)
         End Sub
 
-        <WpfFact, WorkItem(530170)>
+        <Fact, WorkItem(530170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530170")>
         Public Sub C2CAssemblySymbolChanged02()
 
             Dim src1 = <compilation name="C2CAssemblySymbolChanged01">

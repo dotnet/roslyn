@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlighting
@@ -10,9 +11,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New ForLoopBlockHighlighter()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForLoop1()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForLoop1() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 {|Cursor:[|For|]|} i = 2 [|To|] 10 [|Step|] 2
@@ -24,11 +25,11 @@ Sub M()
 [|Next|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForLoop2()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForLoop2() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|For|] i = 2 {|Cursor:[|To|]|} 10 [|Step|] 2
@@ -40,11 +41,11 @@ Sub M()
 [|Next|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForLoop3()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForLoop3() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|For|] i = 2 [|To|] 10 {|Cursor:[|Step|]|} 2
@@ -56,11 +57,11 @@ Sub M()
 [|Next|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForLoop5()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForLoop5() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|For|] i = 2 [|To|] 10 [|Step|] 2
@@ -72,11 +73,11 @@ Sub M()
 [|Next|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForLoop6()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForLoop6() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|For|] i = 2 [|To|] 10 [|Step|] 2
@@ -88,11 +89,11 @@ Sub M()
 [|Next|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForLoop4()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForLoop4() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|For|] i = 2 [|To|] 10 [|Step|] 2
@@ -104,11 +105,11 @@ Sub M()
 {|Cursor:[|Next|]|}
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForEachLoop1()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForEachLoop1() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 {|Cursor:[|For Each|]|} x [|In|] a
@@ -120,11 +121,11 @@ Sub M()
 [|Next|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForEachLoop2()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForEachLoop2() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|For Each|] x {|Cursor:[|In|]|} a
@@ -136,11 +137,11 @@ Sub M()
 [|Next|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForEachLoop3()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForEachLoop3() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|For Each|] x [|In|] a
@@ -152,11 +153,11 @@ Sub M()
 [|Next|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForEachLoop4()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForEachLoop4() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|For Each|] x [|In|] a
@@ -168,11 +169,11 @@ Sub M()
 [|Next|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForEachLoop5()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForEachLoop5() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|For Each|] x [|In|] a
@@ -184,11 +185,11 @@ Sub M()
 {|Cursor:[|Next|]|}
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, WorkItem(541628), WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForNestedLoop1()
-            Test(<Text>
+        <Fact, WorkItem(541628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541628"), WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961"), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForNestedLoop1() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 {|Cursor:[|For|]|} i = 1 [|To|] 10
@@ -196,11 +197,11 @@ Sub M()
 [|Next|] j, i
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForNestedLoop2()
-            Test(<Text>
+        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961"), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForNestedLoop2() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 For i = 1 To 10
@@ -208,11 +209,11 @@ For i = 1 To 10
 [|Next|] j, i
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, WorkItem(541628), WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForNestedLoop3()
-            Test(<Text>
+        <Fact, WorkItem(541628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541628"), WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961"), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForNestedLoop3() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|For|] i = 1 [|To|] 10
@@ -220,36 +221,36 @@ Sub M()
 [|{|Cursor:Next|}|] j, i
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForNestedLoop_ForMatchesNextWithSingleElementIdentifierList()
-            Test(<Text>
+        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961"), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForNestedLoop_ForMatchesNextWithSingleElementIdentifierList() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|{|Cursor:For|}|] a = 1 [|To|] 2
 [|Next|] a
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForNestedLoop_ForMatchesCorrectNextWithSingleElementIdentifierList()
-            Test(<Text>
+        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961"), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForNestedLoop_ForMatchesCorrectNextWithSingleElementIdentifierList() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|For|] a = 1 [|To|] 2
 [|{|Cursor:Next|}|] a
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForNestedLoop_ForMatchesNextOfCorrectSinglyNestedFor()
+        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961"), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForNestedLoop_ForMatchesNextOfCorrectSinglyNestedFor() As Task
             ' Outer for blocks closed by a Next <identifier list> must go through their children for
             ' blocks to find the one that closes it (always the last such nested for block if found
             ' at the first nested level)
-            Test(<Text>
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|{|Cursor:For|}|] a = 1 [|To|] 2
@@ -259,11 +260,11 @@ For b = 1 To 2
 [|Next|] b, a
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForNestedLoop_ForMatchesNextAtCorrectNestingLevel()
-            Test(<Text>
+        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961"), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForNestedLoop_ForMatchesNextAtCorrectNestingLevel() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()For a = 1 To 2
 For b = 1 To 2
@@ -276,14 +277,14 @@ Next f, e
 Next b, a
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForNestedLoop_ForMatchesNextOfCorrectDoublyNestedFor()
+        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961"), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForNestedLoop_ForMatchesNextOfCorrectDoublyNestedFor() As Task
             ' Outer for blocks closed by a Next <identifier list> must go through their children,
             ' grandchildren, etc. for blocks to find the one that closes it (always the last nested
             ' block in the last nested block (... etc.) if ever found)
-            Test(<Text>
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|{|Cursor:For|}|] a = 1 [|To|] 2
@@ -297,13 +298,13 @@ For c = 1 To 2
 [|Next|] c, b, a
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForNestedLoop_ForNotMatchesNextOfIncorrectNestedFor()
+        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961"), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForNestedLoop_ForNotMatchesNextOfIncorrectNestedFor() As Task
             ' Outer for blocks without a Next should not match the Next of a nested for block unless
             ' the next block actually closes the outer for.
-            Test(<Text>
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|{|Cursor:For|}|] a = 1 [|To|] 2
@@ -313,13 +314,13 @@ For b = 1 To 2
 Next b
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForNestedLoop_NextMatchesCorrectForIgnoringLoopIdentifierNames()
+        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961"), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForNestedLoop_NextMatchesCorrectForIgnoringLoopIdentifierNames() As Task
             ' The choice of For loop to highlight based on a Next <identifier list> statement should
             ' be based on structure, not identifier name matches.
-            Test(<Text>
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|For|] a = 0 [|To|] 2
@@ -327,13 +328,13 @@ For b = 0 To 3
 [|{|Cursor:Next|}|] z, y
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForNestedLoop_ForMatchesCorrectNextIgnoringLoopIdentifierNames()
+        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961"), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForNestedLoop_ForMatchesCorrectNextIgnoringLoopIdentifierNames() As Task
             ' The choice of Next <identifier list> to highlight statement should be based on
             ' structure, not identifier name matches.
-            Test(<Text>
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|For|] a = 0 [|To|] 2
@@ -341,11 +342,11 @@ For b = 0 To 3
 [|{|Cursor:Next|}|] z, y
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestForNestedLoop_NextMatchesOutermostForIfNextClosesMoreForsThanExist()
-            Test(<Text>
+        <Fact, WorkItem(544961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544961"), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestForNestedLoop_NextMatchesOutermostForIfNextClosesMoreForsThanExist() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|For|] a = 1 [|To|] 2
@@ -353,6 +354,6 @@ Sub M()
 [|{|Cursor:Next|}|] z, b, a
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
     End Class
 End Namespace

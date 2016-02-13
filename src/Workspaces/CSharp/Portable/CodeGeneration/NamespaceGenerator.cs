@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CompilationUnitSyntax destination,
             INamespaceSymbol @namespace,
             CodeGenerationOptions options,
-            IList<bool> availableIndices, 
+            IList<bool> availableIndices,
             CancellationToken cancellationToken)
         {
             var declaration = GenerateNamespaceDeclaration(service, @namespace, options, cancellationToken);

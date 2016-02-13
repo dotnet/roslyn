@@ -19,9 +19,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateConstructo
             End If
         End Function
 
-        <WorkItem(546671)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        Public Sub Test_CSharpToVisualBasic1()
+        <WorkItem(546671, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546671")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function Test_CSharpToVisualBasic1() As System.Threading.Tasks.Task
             Dim input =
         <Workspace>
             <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true">
@@ -56,8 +56,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateConstructo
                     End Class
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
     End Class
 End Namespace

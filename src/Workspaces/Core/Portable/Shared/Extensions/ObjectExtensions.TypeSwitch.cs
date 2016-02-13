@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction1((TDerivedType1)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction2((TDerivedType2)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction3((TDerivedType3)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -85,9 +85,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction4((TDerivedType4)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -118,9 +118,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction5((TDerivedType5)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -156,9 +156,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction6((TDerivedType6)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -199,9 +199,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction7((TDerivedType7)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -247,9 +247,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction8((TDerivedType8)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -300,9 +300,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction9((TDerivedType9)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -358,9 +358,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction10((TDerivedType10)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -421,9 +421,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction11((TDerivedType11)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -489,9 +489,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction12((TDerivedType12)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -562,9 +562,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction13((TDerivedType13)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -640,9 +640,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction14((TDerivedType14)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -723,9 +723,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction15((TDerivedType15)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -811,9 +811,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction16((TDerivedType16)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -904,9 +904,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction17((TDerivedType17)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -1002,9 +1002,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction18((TDerivedType18)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -1105,9 +1105,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction19((TDerivedType19)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -1213,9 +1213,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction20((TDerivedType20)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -1326,9 +1326,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction21((TDerivedType21)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -1444,9 +1444,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction22((TDerivedType22)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -1567,9 +1567,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction23((TDerivedType23)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -1695,9 +1695,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction24((TDerivedType24)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -1828,9 +1828,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction25((TDerivedType25)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -1966,9 +1966,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction26((TDerivedType26)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -2109,9 +2109,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction27((TDerivedType27)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -2257,9 +2257,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction28((TDerivedType28)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -2410,9 +2410,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction29((TDerivedType29)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -2568,9 +2568,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction30((TDerivedType30)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -2731,9 +2731,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction31((TDerivedType31)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -2899,9 +2899,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction32((TDerivedType32)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 
@@ -3072,9 +3072,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 matchAction33((TDerivedType33)obj);
             }
-            else if (defaultAction != null)
+            else
             {
-                defaultAction(obj);
+                defaultAction?.Invoke(obj);
             }
         }
 

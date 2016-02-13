@@ -5,15 +5,13 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace APISampleUnitTestsCS
 {
-    [TestClass]
     public class SyntaxTrees
     {
-        [TestMethod]
+        [Fact]
         public void FindNodeUsingMembers()
         {
             string text = "class C { void M(int i) { } }";
@@ -23,10 +21,10 @@ namespace APISampleUnitTestsCS
             var methodDeclaration = (MethodDeclarationSyntax)typeDeclaration.Members[0];
             ParameterSyntax parameter = methodDeclaration.ParameterList.Parameters[0];
             SyntaxToken parameterName = parameter.Identifier;
-            Assert.AreEqual("i", parameterName.ValueText);
+            Assert.Equal("i", parameterName.ValueText);
         }
 
-        [TestMethod]
+        [Fact]
         public void FindNodeUsingQuery()
         {
             string text = "class C { void M(int i) { } }";
@@ -35,10 +33,10 @@ namespace APISampleUnitTestsCS
                 .DescendantNodes()
                 .OfType<ParameterSyntax>()
                 .First();
-            Assert.AreEqual("i", parameterDeclaration.Identifier.ValueText);
+            Assert.Equal("i", parameterDeclaration.Identifier.ValueText);
         }
 
-        [TestMethod]
+        [Fact]
         public void UpdateNode()
         {
             string text = "class C { void M() { } }";
@@ -62,10 +60,10 @@ namespace APISampleUnitTestsCS
 
             root = root.ReplaceNode(method, newMethod);
             tree = tree.WithRootAndOptions(root, tree.Options);
-            Assert.AreEqual("class C { void NewMethodName() { } }", tree.GetText().ToString());
+            Assert.Equal("class C { void NewMethodName() { } }", tree.GetText().ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void InsertNode()
         {
             string text = "class C { void M() { } }";
@@ -93,7 +91,7 @@ namespace APISampleUnitTestsCS
 
             root = root.ReplaceNode(classNode, newClass);
             tree = tree.WithRootAndOptions(root, tree.Options);
-            Assert.AreEqual(@"class C
+            Assert.Equal(@"class C
 {
     void M()
     {
@@ -105,27 +103,27 @@ namespace APISampleUnitTestsCS
 }", tree.GetText().ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void WalkTreeUsingSyntaxWalker()
         {
             string text = "class Class { void Method1() { } struct S { } void Method2() { } }";
             SyntaxNode node = SyntaxFactory.ParseCompilationUnit(text);
             FileContentsDumper visitor = new FileContentsDumper();
             visitor.Visit(node);
-            Assert.AreEqual(@"class Class
+            Assert.Equal(@"class Class
   Method1
 struct S
   Method2
 ", visitor.ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void TransformTreeUsingSyntaxRewriter()
         {
             string text = "class C { void M() { } int field; }";
             SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text);
             SyntaxNode newRoot = new RemoveMethodsRewriter().Visit(tree.GetRoot());
-            Assert.AreEqual("class C { int field; }", newRoot.ToFullString());
+            Assert.Equal("class C { int field; }", newRoot.ToFullString());
         }
 
         private class RemoveMethodsRewriter : CSharpSyntaxRewriter

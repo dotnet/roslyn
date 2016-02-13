@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -93,12 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 var previousSession = _activeRenameSession;
                 _activeRenameSession = value;
-
-                var sessionChanged = ActiveSessionChanged;
-                if (sessionChanged != null)
-                {
-                    sessionChanged(this, new ActiveSessionChangedEventArgs(previousSession));
-                }
+                ActiveSessionChanged?.Invoke(this, new ActiveSessionChangedEventArgs(previousSession));
             }
         }
 

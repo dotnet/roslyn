@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void FindFieldReferencesInSingleDocumentProject()
+        public async Task FindFieldReferencesInSingleDocumentProject()
         {
             var text = @"
 public class C {
@@ -45,15 +46,15 @@ public class C {
 ";
             var solution = GetSingleDocumentSolution(text);
             var project = solution.Projects.First();
-            var symbol = project.GetCompilationAsync().Result.GetTypeByMetadataName("C").GetMembers("X").First();
+            var symbol = (await project.GetCompilationAsync()).GetTypeByMetadataName("C").GetMembers("X").First();
 
-            var result = SymbolFinder.FindReferencesAsync(symbol, solution).Result.ToList();
+            var result = (await SymbolFinder.FindReferencesAsync(symbol, solution)).ToList();
             Assert.Equal(1, result.Count); // 1 symbol found
             Assert.Equal(3, result[0].Locations.Count()); // 3 locations found
         }
 
         [Fact]
-        public void FindTypeReference_DuplicateMetadataReferences()
+        public async Task FindTypeReference_DuplicateMetadataReferences()
         {
             var text = @"
 public class C {
@@ -69,9 +70,9 @@ public class C {
                            .AddDocument(did, "foo.cs", SourceText.From(text));
 
             var project = solution.Projects.First();
-            var symbol = (IFieldSymbol)project.GetCompilationAsync().Result.GetTypeByMetadataName("C").GetMembers("X").First();
+            var symbol = (IFieldSymbol)(await project.GetCompilationAsync()).GetTypeByMetadataName("C").GetMembers("X").First();
 
-            var result = SymbolFinder.FindReferencesAsync(symbol.Type, solution).Result.ToList();
+            var result = (await SymbolFinder.FindReferencesAsync(symbol.Type, solution)).ToList();
             Assert.Equal(9, result.Count);
 
             var typeSymbol = result.Where(@ref => @ref.Definition.Kind == SymbolKind.NamedType).Single();
@@ -79,7 +80,7 @@ public class C {
         }
 
         [Fact]
-        public void PinvokeMethodReferences_VB()
+        public async Task PinvokeMethodReferences_VB()
         {
             var tree = Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(
                 @"
@@ -112,14 +113,14 @@ Module Module1
             ProjectId prj1Id = ProjectId.CreateNewId();
             DocumentId docId = DocumentId.CreateNewId(prj1Id);
 
-            Microsoft.CodeAnalysis.Solution sln = new AdhocWorkspace().CurrentSolution
+            Solution sln = new AdhocWorkspace().CurrentSolution
                 .AddProject(prj1Id, "testDeclareReferences", "testAssembly", LanguageNames.VisualBasic)
                 .AddMetadataReference(prj1Id, MscorlibRef)
                 .AddDocument(docId, "testFile", tree.GetText());
 
-            Microsoft.CodeAnalysis.Project prj = sln.GetProject(prj1Id).WithCompilationOptions(new VisualBasic.VisualBasicCompilationOptions(OutputKind.ConsoleApplication, embedVbCoreRuntime: true));
-            tree = prj.GetDocument(docId).GetSyntaxTreeAsync().Result;
-            Compilation comp = prj.GetCompilationAsync().Result;
+            Project prj = sln.GetProject(prj1Id).WithCompilationOptions(new VisualBasic.VisualBasicCompilationOptions(OutputKind.ConsoleApplication, embedVbCoreRuntime: true));
+            tree = await prj.GetDocument(docId).GetSyntaxTreeAsync();
+            Compilation comp = await prj.GetCompilationAsync();
 
             SemanticModel semanticModel = comp.GetSemanticModel(tree);
 
@@ -128,17 +129,17 @@ Module Module1
 
             // declared method calls
             var symbol = semanticModel.GetDeclaredSymbol(declareMethod);
-            var references = SymbolFinder.FindReferencesAsync(symbol, prj.Solution).Result;
+            var references = await SymbolFinder.FindReferencesAsync(symbol, prj.Solution);
             Assert.Equal(expected: 2, actual: references.ElementAt(0).Locations.Count());
 
             // normal method calls
             symbol = semanticModel.GetDeclaredSymbol(normalMethod);
-            references = SymbolFinder.FindReferencesAsync(symbol, prj.Solution).Result;
+            references = await SymbolFinder.FindReferencesAsync(symbol, prj.Solution);
             Assert.Equal(expected: 2, actual: references.ElementAt(0).Locations.Count());
         }
 
         [Fact]
-        public void PinvokeMethodReferences_CS()
+        public async Task PinvokeMethodReferences_CS()
         {
             var tree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(
                 @"
@@ -188,9 +189,9 @@ static class Module1
                 .AddMetadataReference(prj1Id, MscorlibRef)
                 .AddDocument(docId, "testFile", tree.GetText());
 
-            Microsoft.CodeAnalysis.Project prj = sln.GetProject(prj1Id).WithCompilationOptions(new CSharp.CSharpCompilationOptions(OutputKind.ConsoleApplication));
-            tree = prj.GetDocument(docId).GetSyntaxTreeAsync().Result;
-            Compilation comp = prj.GetCompilationAsync().Result;
+            Project prj = sln.GetProject(prj1Id).WithCompilationOptions(new CSharp.CSharpCompilationOptions(OutputKind.ConsoleApplication));
+            tree = await prj.GetDocument(docId).GetSyntaxTreeAsync();
+            Compilation comp = await prj.GetCompilationAsync();
 
             SemanticModel semanticModel = comp.GetSemanticModel(tree);
 
@@ -200,17 +201,17 @@ static class Module1
 
             // pinvoke method calls
             var symbol = semanticModel.GetDeclaredSymbol(declareMethod);
-            var references = SymbolFinder.FindReferencesAsync(symbol, prj.Solution).Result;
+            var references = await SymbolFinder.FindReferencesAsync(symbol, prj.Solution);
             Assert.Equal(2, references.ElementAt(0).Locations.Count());
 
             // normal method calls
             symbol = semanticModel.GetDeclaredSymbol(normalMethod);
-            references = SymbolFinder.FindReferencesAsync(symbol, prj.Solution).Result;
+            references = await SymbolFinder.FindReferencesAsync(symbol, prj.Solution);
             Assert.Equal(2, references.ElementAt(0).Locations.Count());
         }
 
-        [Fact, WorkItem(537936, "DevDiv")]
-        public void FindReferences_InterfaceMapping()
+        [Fact, WorkItem(537936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537936")]
+        public async Task FindReferences_InterfaceMapping()
         {
             var text = @"
 abstract class C
@@ -231,12 +232,12 @@ class B : C, A
 ";
             var solution = GetSingleDocumentSolution(text);
             var project = solution.Projects.First();
-            var comp = project.GetCompilationAsync().Result;
+            var comp = await project.GetCompilationAsync();
 
             // Find references on definition B.Boo()
             var typeB = comp.GetTypeByMetadataName("B");
             var boo = typeB.GetMembers("Boo").First();
-            var result = SymbolFinder.FindReferencesAsync(boo, solution).Result.ToList();
+            var result = (await SymbolFinder.FindReferencesAsync(boo, solution)).ToList();
             Assert.Equal(2, result.Count); // 2 symbols found
 
             HashSet<int> expectedMatchedLines = new HashSet<int> { 3, 13, 14 };
@@ -247,7 +248,7 @@ class B : C, A
             // Find references on definition C.Boo()
             var typeC = comp.GetTypeByMetadataName("C");
             boo = typeC.GetMembers("Boo").First();
-            result = SymbolFinder.FindReferencesAsync(boo, solution).Result.ToList();
+            result = (await SymbolFinder.FindReferencesAsync(boo, solution)).ToList();
             Assert.Equal(2, result.Count); // 2 symbols found
 
             expectedMatchedLines = new HashSet<int> { 3, 13, 14 };
@@ -258,7 +259,7 @@ class B : C, A
             // Find references on definition A.Boo()
             var typeA = comp.GetTypeByMetadataName("A");
             boo = typeA.GetMembers("Boo").First();
-            result = SymbolFinder.FindReferencesAsync(boo, solution).Result.ToList();
+            result = (await SymbolFinder.FindReferencesAsync(boo, solution)).ToList();
             Assert.Equal(2, result.Count); // 2 symbols found
 
             expectedMatchedLines = new HashSet<int> { 7, 12 };

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         /// command line were resolved against.
         /// </remarks>
         public string BaseDirectory { get; internal set; }
-        
+
         /// <summary>
         /// A list of pairs of paths. This stores the value of the command-line compiler
         /// option /pathMap:X1=Y1;X2=Y2... which causes a prefix of X1 followed by a path
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis
         public string ErrorLogPath { get; internal set; }
 
         /// <summary>
-        /// An absolute path of the App.config file or null if not specified.
+        /// An absolute path of the app.config file or null if not specified.
         /// </summary>
         public string AppConfigPath { get; internal set; }
 

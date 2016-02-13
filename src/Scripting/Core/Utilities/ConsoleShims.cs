@@ -40,14 +40,10 @@ namespace Microsoft.CodeAnalysis.Scripting
         private static readonly PropertyInfo s_OutProperty = s_ConsoleType.GetTypeInfo().GetDeclaredProperty("Out");
         private static readonly PropertyInfo s_InProperty = s_ConsoleType.GetTypeInfo().GetDeclaredProperty("In");
         private static readonly PropertyInfo s_ErrorProperty = s_ConsoleType.GetTypeInfo().GetDeclaredProperty("Error");
+        private static readonly Action s_resetColor = s_ConsoleType.GetTypeInfo().GetDeclaredMethod("ResetColor").CreateDelegate<Action>();
 
         public static ConsoleColor ForegroundColor
         {
-            get
-            {
-                return (ConsoleColor)(int)s_ForegroundColorProperty.GetValue(null);
-            }
-
             set
             {
                 s_ForegroundColorProperty.SetValue(null, Enum.ToObject(s_ConsoleColorType, (int)value));
@@ -57,5 +53,6 @@ namespace Microsoft.CodeAnalysis.Scripting
         public static TextReader In => (TextReader)s_InProperty.GetValue(null);
         public static TextWriter Out => (TextWriter)s_OutProperty.GetValue(null);
         public static TextWriter Error => (TextWriter)s_ErrorProperty.GetValue(null);
+        public static void ResetColor() => s_resetColor();
     }
 }

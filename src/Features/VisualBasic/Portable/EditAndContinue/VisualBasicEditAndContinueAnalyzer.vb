@@ -1702,7 +1702,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
 #End Region
 
-#Region "Top-level Syntatic Rude Edits"
+#Region "Top-level Syntactic Rude Edits"
         Private Structure EditClassifier
 
             Private ReadOnly _analyzer As VisualBasicEditAndContinueAnalyzer

@@ -167,8 +167,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim nestedNamespaces As IEnumerable(Of KeyValuePair(Of String, IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle)))) = Nothing
 
             'TODO: Perhaps there is a cheaper way to calculate the length of the name without actually building it with ToDisplayString.
+            Dim isGlobalNamespace As Boolean = Me.IsGlobalNamespace
+
             MetadataHelpers.GetInfoForImmediateNamespaceMembers(
-                ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat).Length,
+                isGlobalNamespace,
+                If(isGlobalNamespace, 0, ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat).Length),
                 typesByNS,
                 CaseInsensitiveComparison.Comparer,
                 nestedTypes, nestedNamespaces)

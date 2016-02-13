@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -15,23 +16,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
     {
         internal abstract IHighlighter CreateHighlighter();
         protected abstract IEnumerable<ParseOptions> GetOptions();
-        protected abstract TestWorkspace CreateWorkspaceFromFile(string code, ParseOptions options);
+        protected abstract Task<TestWorkspace> CreateWorkspaceFromFileAsync(string code, ParseOptions options);
 
-        protected void Test(
+        protected async Task TestAsync(
             string code)
         {
             foreach (var option in GetOptions())
             {
-                Test(code, option);
+                await TestAsync(code, option);
             }
         }
 
-        private void Test(
+        private async Task TestAsync(
             string markup,
             ParseOptions options,
             bool optionIsEnabled = true)
         {
-            using (var workspace = CreateWorkspaceFromFile(markup, options))
+            using (var workspace = await CreateWorkspaceFromFileAsync(markup, options))
             {
                 var testDocument = workspace.Documents.Single();
                 var expectedHighlightSpans = testDocument.SelectedSpans ?? new List<TextSpan>();
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                 // ancestor node.
                 var highlighter = CreateHighlighter();
 
-                var root = document.GetSyntaxRootAsync().Result;
+                var root = await document.GetSyntaxRootAsync();
 
                 for (int i = 0; i <= cursorSpan.Length; i++)
                 {

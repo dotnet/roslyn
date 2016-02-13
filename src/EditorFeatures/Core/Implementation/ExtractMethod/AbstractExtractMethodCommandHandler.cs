@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                         EditorFeaturesResources.ExtractMethodFailedReasons + Environment.NewLine + Environment.NewLine +
                         string.Join(Environment.NewLine, result.Reasons),
                         title: EditorFeaturesResources.ExtractMethod,
-                        severity:NotificationSeverity.Error);
+                        severity: NotificationSeverity.Error);
                 }
 
                 return true;

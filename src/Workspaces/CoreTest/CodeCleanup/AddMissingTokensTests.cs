@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
     {
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void MultipleLineIfStatementThen()
+        public async Task MultipleLineIfStatementThen()
         {
             var code = @"[|
         If True
@@ -27,12 +28,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             Dim a = 1
         End If";
 
-            Verify(CreateMethod(code), CreateMethod(expected));
+            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TypeArgumentOf()
+        public async Task TypeArgumentOf()
         {
             var code = @"[|
         Dim a As List(Integer)|]";
@@ -40,12 +41,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             var expected = @"
         Dim a As List(Of Integer)";
 
-            Verify(CreateMethod(code), CreateMethod(expected));
+            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TypeParameterOf()
+        public async Task TypeParameterOf()
         {
             var code = @"[|Class A(T)
 End Class|]";
@@ -53,12 +54,12 @@ End Class|]";
             var expected = @"Class A(Of T)
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void MethodDeclaration()
+        public async Task MethodDeclaration()
         {
             var code = @"Class A
     [|Sub Test
@@ -70,13 +71,13 @@ End Class";
     End Sub
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(544318, "DevDiv")]
+        [WorkItem(544318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544318")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void MethodInvocation_TypeArgParens()
+        public async Task MethodInvocation_TypeArgParens()
         {
             var code = @"[|Imports System
 Imports System.Collections.Generic
@@ -100,12 +101,12 @@ Module Program
 
     End Sub";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void MethodInvocation_Sub()
+        public async Task MethodInvocation_Sub()
         {
             var code = @"Class A
     Sub Test
@@ -119,12 +120,12 @@ End Class";
     End Sub
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void MethodInvocation_Function()
+        public async Task MethodInvocation_Function()
         {
             var code = @"Class A
     Function Test() As Integer
@@ -140,12 +141,12 @@ End Class";
     End Function
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void IdentifierMethod_Return()
+        public async Task IdentifierMethod_Return()
         {
             var code = @"Class A
     Function Test() As Integer
@@ -167,12 +168,12 @@ End Class";
     End Function
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void IdentifierMethod_Assign()
+        public async Task IdentifierMethod_Assign()
         {
             var code = @"Class A
     Function Test() As Integer
@@ -196,12 +197,12 @@ End Class";
     End Function
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void IdentifierMethod_DotName_DontAdd()
+        public async Task IdentifierMethod_DotName_DontAdd()
         {
             var code = @"Class A
     Function Test() As Integer
@@ -225,12 +226,12 @@ End Class";
     End Function
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void MethodInvocation_DotName()
+        public async Task MethodInvocation_DotName()
         {
             var code = @"Class A
     Function Test() As Integer
@@ -254,12 +255,12 @@ End Class";
     End Function
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void MethodInvocation_Generic()
+        public async Task MethodInvocation_Generic()
         {
             var code = @"Class A
     Function Test() As Integer
@@ -283,12 +284,12 @@ End Class";
     End Function
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void MethodInvocation_Call()
+        public async Task MethodInvocation_Call()
         {
             var code = @"Class A
     Function Test() As Integer
@@ -312,12 +313,12 @@ End Class";
     End Function
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void EventHandler_AddressOf1()
+        public async Task EventHandler_AddressOf1()
         {
             var code = @"Class A
     Sub EventMethod()
@@ -335,12 +336,12 @@ End Class";
     Public Event TestEvent()
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void EventHandler_AddressOf2()
+        public async Task EventHandler_AddressOf2()
         {
             var code = @"Class A
     Sub EventMethod()
@@ -358,12 +359,12 @@ End Class";
     Public Event TestEvent()
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void Delegate_AddressOf()
+        public async Task Delegate_AddressOf()
         {
             var code = @"Class A
     Sub Method()
@@ -377,12 +378,12 @@ End Class";
     End Sub
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void EventDeclaration()
+        public async Task EventDeclaration()
         {
             var code = @"Class A
     Sub EventMethod()
@@ -400,12 +401,12 @@ End Class";
     Public Event TestEvent()
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void RaiseEvent()
+        public async Task RaiseEvent()
         {
             var code = @"Class A
     Sub EventMethod()
@@ -423,12 +424,12 @@ End Class";
     Public Event TestEvent()
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void DelegateInvocation()
+        public async Task DelegateInvocation()
         {
             var code = @"
         Dim a As Action
@@ -438,12 +439,12 @@ End Class";
         Dim a As Action
         a()";
 
-            Verify(CreateMethod(code), CreateMethod(expected));
+            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void Attribute()
+        public async Task Attribute()
         {
             var code = @"[|<Obsolete>
 Class C(Of T)
@@ -459,12 +460,12 @@ Class C(Of T)
     End Sub
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void ObjectCreation()
+        public async Task ObjectCreation()
         {
             var code = @"[|Module Program
     Sub Main(args As String())
@@ -496,12 +497,12 @@ End Class
 Class ClassInNewFile
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void Constructor()
+        public async Task Constructor()
         {
             var code = @"[|Class C
     Sub New
@@ -513,12 +514,12 @@ End Class|]";
     End Sub
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void DeclareStatement()
+        public async Task DeclareStatement()
         {
             var code = @"[|Class C
     Declare Function getUserName Lib ""advapi32.dll"" Alias ""GetUserNameA"" 
@@ -528,12 +529,12 @@ End Class|]";
     Declare Function getUserName Lib ""advapi32.dll"" Alias ""GetUserNameA"" ()
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void DelegateStatement()
+        public async Task DelegateStatement()
         {
             var code = @"[|Class C
     Delegate Sub Test
@@ -543,12 +544,12 @@ End Class|]";
     Delegate Sub Test()
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void MethodStatementWithComment()
+        public async Task MethodStatementWithComment()
         {
             var code = @"[|Class C
     [|Sub Test ' test
@@ -560,12 +561,12 @@ End Class|]";
     End Sub
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void MultipleLineIfStatementThenWithComment()
+        public async Task MultipleLineIfStatementThenWithComment()
         {
             var code = @"[|
         If True ' test
@@ -577,12 +578,12 @@ End Class";
             Dim a = 1
         End If";
 
-            Verify(CreateMethod(code), CreateMethod(expected));
+            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TypeArgumentOf_Comment_DontAdd()
+        public async Task TypeArgumentOf_Comment_DontAdd()
         {
             var code = @"[|
         Dim a As List( ' test
@@ -593,12 +594,12 @@ End Class";
                       Integer)";
 
             // parser doesn't recognize the broken list as Type Argument List
-            Verify(CreateMethod(code), CreateMethod(expected));
+            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TypeParameterOf_Comment()
+        public async Task TypeParameterOf_Comment()
         {
             var code = @"[|Class A( ' test
                                    T)
@@ -608,12 +609,12 @@ End Class|]";
                                    T)
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void MethodInvocation_Function_Comment()
+        public async Task MethodInvocation_Function_Comment()
         {
             var code = @"Class A
     Function Test() As Integer
@@ -629,12 +630,12 @@ End Class";
     End Function
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void IdentifierMethod_Return_Comment()
+        public async Task IdentifierMethod_Return_Comment()
         {
             var code = @"Class A
     Function Test() As Integer
@@ -656,12 +657,12 @@ End Class";
     End Function
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void ImplementsClause()
+        public async Task ImplementsClause()
         {
             var code = @"Class Program
     Implements I
@@ -683,12 +684,12 @@ Interface I
     Sub Method()
 End Interface";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void OperatorStatement()
+        public async Task OperatorStatement()
         {
             var code = @"[|Public Structure abc
     Public Shared Operator And(ByVal x As abc, ByVal y As abc) As abc
@@ -706,12 +707,12 @@ End Structure|]";
     End Operator
 End Structure";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void PropertyAndAccessorStatement()
+        public async Task PropertyAndAccessorStatement()
         {
             var code = @"[|Class Class1
     Private propertyValue As String
@@ -737,12 +738,12 @@ End Class|]";
     End Property
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void LambdaExpression()
+        public async Task LambdaExpression()
         {
             var code = @"[|Class Class1
     Dim f as Action = Sub()
@@ -754,13 +755,13 @@ End Class|]";
                       End Sub
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(544225, "DevDiv")]
+        [WorkItem(544225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544225")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void StructuredTrivia_Expression_DontCrash()
+        public async Task StructuredTrivia_Expression_DontCrash()
         {
             var code = @"[|#Const Foo1 = 1
 #Const Foo2 = 2
@@ -774,13 +775,13 @@ End Class";
 #ElseIf Foo2 Then
 #Else
 #End If";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(544169, "DevDiv")]
+        [WorkItem(544169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544169")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void EventStatement_AsClause()
+        public async Task EventStatement_AsClause()
         {
             var code = @"[|Imports System.ComponentModel
 Class Foo
@@ -791,13 +792,13 @@ Class Foo
     Public Event PropertyChanged As PropertyChangedEventHandler
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(544167, "DevDiv")]
+        [WorkItem(544167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544167")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void InvocationExpression_NoParenthesesForPredefinedCastExpression()
+        public async Task InvocationExpression_NoParenthesesForPredefinedCastExpression()
         {
             var code = @"[|Class Program
     Sub Main(args As String())
@@ -810,14 +811,14 @@ End Class|]";
     End Sub
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(544178, "DevDiv")]
-        [WorkItem(544317, "DevDiv")]
+        [WorkItem(544178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544178")]
+        [WorkItem(544317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544317")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void ObjectCreationExpression()
+        public async Task ObjectCreationExpression()
         {
             var code = @"[|Class C
     Function F() As C
@@ -830,13 +831,13 @@ End Class|]";
     End Function
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(544317, "DevDiv")]
+        [WorkItem(544317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544317")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void ObjectCreationExpression_Initializer()
+        public async Task ObjectCreationExpression_Initializer()
         {
             var code = @"[|Public Class SomeClass
     Public foo As Integer
@@ -853,13 +854,13 @@ End Class|]";
     End Sub
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(544178, "DevDiv")]
+        [WorkItem(544178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544178")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void ObjectCreationExpression_GenericName()
+        public async Task ObjectCreationExpression_GenericName()
         {
             var code = @"[|Imports System
 
@@ -877,13 +878,13 @@ Module Program
     End Sub
 End Module";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(544178, "DevDiv")]
+        [WorkItem(544178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544178")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void ObjectCreationExpression_AsNewClause()
+        public async Task ObjectCreationExpression_AsNewClause()
         {
             var code = @"[|Class C
     Dim a As New C
@@ -892,13 +893,13 @@ End Class|]";
     Dim a As New C
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(544301, "DevDiv")]
+        [WorkItem(544301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544301")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void ContinueStatement_While()
+        public async Task ContinueStatement_While()
         {
             var code = @"Module M
     Sub S()
@@ -915,13 +916,13 @@ End Module";
     End Sub
 End Module";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(544301, "DevDiv")]
+        [WorkItem(544301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544301")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void ContinueStatement_For()
+        public async Task ContinueStatement_For()
         {
             var code = @"Module M
     Sub S()
@@ -938,13 +939,13 @@ End Module";
     End Sub
 End Module";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(544380, "DevDiv")]
+        [WorkItem(544380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544380")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void IfDirective()
+        public async Task IfDirective()
         {
             var code = @"[|#If VBC_VER >= 9.0
 
@@ -955,13 +956,13 @@ End Class|]";
 Class C
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(544386, "DevDiv")]
+        [WorkItem(544386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544386")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void NamedFieldInitializer()
+        public async Task NamedFieldInitializer()
         {
             var code = @"[|Class S
     Public Sub Foo()
@@ -980,13 +981,13 @@ End Class|]";
     End Sub
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(544526, "DevDiv")]
+        [WorkItem(544526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544526")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void DontCrash_ImplementsStatement()
+        public async Task DontCrash_ImplementsStatement()
         {
             var code = @"[|Class C
     Sub Main() 
@@ -999,13 +1000,13 @@ End Class|]";
     End Sub
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(544525, "DevDiv")]
+        [WorkItem(544525, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544525")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void AccessorStatement_AddRemoveHandler_RaiseEvent()
+        public async Task AccessorStatement_AddRemoveHandler_RaiseEvent()
         {
             var code = @"[|Class C
     Public Custom Event E1 As Action
@@ -1028,13 +1029,13 @@ End Class|]";
     End Event
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(545176, "DevDiv")]
+        [WorkItem(545176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545176")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void CallStatement_Lambda()
+        public async Task CallStatement_Lambda()
         {
             var code = @"[|Module Program
     Sub Main()
@@ -1047,13 +1048,13 @@ End Module|]";
     End Sub
 End Module";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(545256, "DevDiv")]
+        [WorkItem(545256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545256")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void HandlesClauseItem_DontAddParentheses()
+        public async Task HandlesClauseItem_DontAddParentheses()
         {
             var code = @"[|Structure s1
     Sub Foo() Handles Me.Foo
@@ -1066,13 +1067,13 @@ End Structure|]";
     End Sub
 End Structure";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(545380, "DevDiv")]
+        [WorkItem(545380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545380")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void DontAddParenthesesInForEachControlVariable()
+        public async Task DontAddParenthesesInForEachControlVariable()
         {
             var code = @"[|Module Module1
     Sub Main()
@@ -1091,13 +1092,13 @@ End Module|]";
     End Sub
 End Module";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(545380, "DevDiv")]
+        [WorkItem(545380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545380")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void DontAddParenthesesInForControlVariable()
+        public async Task DontAddParenthesesInForControlVariable()
         {
             var code = @"[|Module Module1
     Sub Main()
@@ -1116,26 +1117,26 @@ End Module|]";
     End Sub
 End Module";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(545483, "DevDiv")]
+        [WorkItem(545483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545483")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void DontAddParenthesesForMissingName()
+        public async Task DontAddParenthesesForMissingName()
         {
             var code = @"[|Class C
     Public Overrides Function|]";
             var expected = @"Class C
     Public Overrides Function";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(545483, "DevDiv")]
+        [WorkItem(545483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545483")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void CombinedDelegates()
+        public async Task CombinedDelegates()
         {
             var code = @"[|Imports System
 Class A
@@ -1156,51 +1157,51 @@ Class A
     End Sub
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(546581, "DevDiv")]
+        [WorkItem(546581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546581")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void ThenOmittedWithSurroundingErrors()
+        public async Task ThenOmittedWithSurroundingErrors()
         {
             var code = @"[|
         If True OrElse|]";
             var expected = @"
         If True OrElse";
 
-            Verify(CreateMethod(code), CreateMethod(expected));
+            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
         [Fact]
-        [WorkItem(546581, "DevDiv")]
+        [WorkItem(546581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546581")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void ThenOmittedWithSurroundingErrors1()
+        public async Task ThenOmittedWithSurroundingErrors1()
         {
             var code = @"[|
         If True|]";
             var expected = @"
         If True Then";
 
-            Verify(CreateMethod(code), CreateMethod(expected));
+            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
         [Fact]
-        [WorkItem(546797, "DevDiv")]
+        [WorkItem(546797, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546797")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void ParenthesisWithLineContinuation()
+        public async Task ParenthesisWithLineContinuation()
         {
             var code = @"[|
             System.Diagnostics.Debug.Assert _ (True)|]";
             var expected = @"
         System.Diagnostics.Debug.Assert _ (True)";
-            Verify(CreateMethod(code), CreateMethod(expected));
+            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
         [Fact]
-        [WorkItem(546806, "DevDiv")]
+        [WorkItem(546806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546806")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void ThenWithLineContinuation()
+        public async Task ThenWithLineContinuation()
         {
             var code = @"[|
 #If Condition _ Then
@@ -1210,13 +1211,13 @@ End Class";
 #If Condition _ Then
         ' blah
 #End If";
-            Verify(CreateMethod(code), CreateMethod(expected));
+            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
         }
 
         [Fact]
-        [WorkItem(531278, "DevDiv")]
+        [WorkItem(531278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531278")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void ThenInIfDirective()
+        public async Task ThenInIfDirective()
         {
             var code = @"#Const ccConst = 0
 [|#If ccConst
@@ -1238,13 +1239,13 @@ Module Program
     Sub Main(args As String())
     End Sub
 End Module";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(607792, "DevDiv")]
+        [WorkItem(607792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607792")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void CaseKeywordInSelectStatement()
+        public async Task CaseKeywordInSelectStatement()
         {
             var code = @"
 Module Program
@@ -1280,13 +1281,13 @@ Module Program
     End Sub
 End Module";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(530789, "DevDiv")]
+        [WorkItem(530789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530789")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void Bug530789()
+        public async Task Bug530789()
         {
             var code = @"Imports System
 Module Program
@@ -1302,13 +1303,13 @@ Module Program
     End Sub
 End Module";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(530039, "DevDiv")]
+        [WorkItem(530039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530039")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestArraySyntax()
+        public async Task TestArraySyntax()
         {
             var code = @"[|Module TestMod
 Sub Main()
@@ -1324,13 +1325,13 @@ End Module|]";
     End Sub
 End Module";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(602932, "DevDiv")]
+        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestAsyncFunctionWithoutAsClause()
+        public async Task TestAsyncFunctionWithoutAsClause()
         {
             var code = @"[|
 Interface I
@@ -1412,13 +1413,13 @@ Class Test
 
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(602932, "DevDiv")]
+        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestAsyncFunctionWithoutAsClause_WithAddedImports()
+        public async Task TestAsyncFunctionWithoutAsClause_WithAddedImports()
         {
             var code = @"[|
 Imports System
@@ -1506,13 +1507,13 @@ Class Test
 
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(602932, "DevDiv")]
+        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestIteratorFunctionWithoutAsClause()
+        public async Task TestIteratorFunctionWithoutAsClause()
         {
             var code = @"[|
 Interface I
@@ -1588,13 +1589,13 @@ Class Test
 
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(602932, "DevDiv")]
+        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestIteratorFunctionWithoutAsClause_WithAddedImports()
+        public async Task TestIteratorFunctionWithoutAsClause_WithAddedImports()
         {
             var code = @"[|
 Imports System
@@ -1678,13 +1679,13 @@ Class Test
 
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(602932, "DevDiv")]
+        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestAsyncFunctionWithAsClause()
+        public async Task TestAsyncFunctionWithAsClause()
         {
             var code = @"[|
 Interface I
@@ -1848,13 +1849,13 @@ Class Test(Of T)
 
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(602932, "DevDiv")]
+        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestAsyncFunctionWithAsClause_WithAddedImports()
+        public async Task TestAsyncFunctionWithAsClause_WithAddedImports()
         {
             var code = @"[|
 Imports System
@@ -2024,13 +2025,13 @@ Class Test(Of T)
 
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(602932, "DevDiv")]
+        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestIteratorFunctionWithAsClause()
+        public async Task TestIteratorFunctionWithAsClause()
         {
             var code = @"[|
 Interface I
@@ -2220,13 +2221,13 @@ Class Test(Of T)
 
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(602932, "DevDiv")]
+        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestIteratorFunctionWithAsClause_WithAddedImports()
+        public async Task TestIteratorFunctionWithAsClause_WithAddedImports()
         {
             var code = @"[|
 Imports System
@@ -2422,13 +2423,13 @@ Class Test(Of T)
 
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(602932, "DevDiv")]
+        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestAsyncFunctionWithAliasedReturnType()
+        public async Task TestAsyncFunctionWithAliasedReturnType()
         {
             var code = @"[|
 Imports System
@@ -2452,13 +2453,13 @@ Class Test
     Async Function Bar() As Y.Tasks.Task
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(602932, "DevDiv")]
+        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestIteratorFunctionWithAliasedReturnType()
+        public async Task TestIteratorFunctionWithAliasedReturnType()
         {
             var code = @"[|
 Imports System
@@ -2482,13 +2483,13 @@ Class Test
     Iterator Function Bar() As Y.IEnumerable
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(602932, "DevDiv")]
+        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestAsyncFunctionWithAliasedReturnType_2()
+        public async Task TestAsyncFunctionWithAliasedReturnType_2()
         {
             var code = @"[|
 Imports System
@@ -2510,13 +2511,13 @@ Class Test
     End Function
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(602932, "DevDiv")]
+        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestIteratorFunctionWithAliasedReturnType_2()
+        public async Task TestIteratorFunctionWithAliasedReturnType_2()
         {
             var code = @"[|
 Imports System
@@ -2538,13 +2539,13 @@ Class Test
     End Function
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(602932, "DevDiv")]
+        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestAsyncFunctionWithQualifiedNameReturnType()
+        public async Task TestAsyncFunctionWithQualifiedNameReturnType()
         {
             var code = @"[|
 Imports System
@@ -2564,13 +2565,13 @@ Class Test
     End Function
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(602932, "DevDiv")]
+        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestIteratorFunctionWithQualifiedNameReturnType()
+        public async Task TestIteratorFunctionWithQualifiedNameReturnType()
         {
             var code = @"[|
 Imports System
@@ -2590,13 +2591,13 @@ Class Test
     End Function
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(602932, "DevDiv")]
+        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestAsyncLambdaFunction()
+        public async Task TestAsyncLambdaFunction()
         {
             var code = @"[|
 Imports System
@@ -2658,13 +2659,13 @@ Class Test
                    End Function
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
-        [WorkItem(602932, "DevDiv")]
+        [WorkItem(602932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602932")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestIteratorLambdaFunction()
+        public async Task TestIteratorLambdaFunction()
         {
             var code = @"[|
 Imports System
@@ -2726,12 +2727,12 @@ Class Test
                    End Function
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestNoParenthesesForArgument()
+        public async Task TestNoParenthesesForArgument()
         {
             // making roslyn behavior same as dev12
             // also, this is one of most expensive one to check whether
@@ -2765,12 +2766,12 @@ Class Test
     End Sub
 End Class";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestNoParenthesesForNameOf()
+        public async Task TestNoParenthesesForNameOf()
         {
             var code = @"[|
 Module M
@@ -2786,40 +2787,40 @@ Module M
     End Sub
 End Module";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void OptionExplicitOn()
+        public async Task OptionExplicitOn()
         {
             var code = @"[|Option Explicit|]";
             var expected = @"Option Explicit On
 ";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void OptionInferOn()
+        public async Task OptionInferOn()
         {
             var code = @"[|Option Infer|]";
             var expected = @"Option Infer On
 ";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void OptionStrictOn()
+        public async Task OptionStrictOn()
         {
             var code = @"[|Option Strict|]";
             var expected = @"Option Strict On
 ";
 
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         private string CreateMethod(string body)
@@ -2831,7 +2832,7 @@ Class C
 End Class";
         }
 
-        private void Verify(string codeWithMarker, string expectedResult)
+        private async Task VerifyAsync(string codeWithMarker, string expectedResult)
         {
             var codeWithoutMarker = default(string);
             var textSpans = (IList<TextSpan>)new List<TextSpan>();
@@ -2840,9 +2841,9 @@ End Class";
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
             var codeCleanups = CodeCleaner.GetDefaultProviders(document).Where(p => p.Name == PredefinedCodeCleanupProviderNames.AddMissingTokens || p.Name == PredefinedCodeCleanupProviderNames.Format || p.Name == PredefinedCodeCleanupProviderNames.Simplification);
 
-            var cleanDocument = CodeCleaner.CleanupAsync(document, textSpans[0], codeCleanups).Result;
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], codeCleanups);
 
-            Assert.Equal(expectedResult, cleanDocument.GetSyntaxRootAsync().Result.ToFullString());
+            Assert.Equal(expectedResult, (await cleanDocument.GetSyntaxRootAsync()).ToFullString());
         }
 
         private static Document CreateDocument(string code, string language)

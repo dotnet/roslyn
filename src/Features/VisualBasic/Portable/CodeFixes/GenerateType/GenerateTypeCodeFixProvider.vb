@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateType
             Return service.GenerateTypeAsync(document, node, cancellationToken)
         End Function
 
-        Protected Overrides Function IsCandidate(node As SyntaxNode) As Boolean
+        Protected Overrides Function IsCandidate(node As SyntaxNode, diagnostic As Diagnostic) As Boolean
             Dim qualified = TryCast(node, QualifiedNameSyntax)
             If qualified IsNot Nothing Then
                 Return True

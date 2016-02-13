@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlighting
@@ -10,9 +11,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New TryBlockHighlighter()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestTryBlock1()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestTryBlock1() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 {|Cursor:[|Try|]|}
@@ -25,11 +26,11 @@ Sub M()
 [|End Try|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestTryBlock2()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestTryBlock2() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|Try|]
@@ -42,11 +43,11 @@ Sub M()
 [|End Try|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestTryBlock3()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestTryBlock3() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|Try|]
@@ -59,11 +60,11 @@ Sub M()
 [|End Try|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestTryBlock4()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestTryBlock4() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|Try|]
@@ -76,11 +77,11 @@ Sub M()
 [|End Try|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestTryBlock5()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestTryBlock5() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|Try|]
@@ -93,11 +94,11 @@ Sub M()
 [|End Try|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestTryBlock6()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestTryBlock6() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|Try|]
@@ -110,11 +111,11 @@ Sub M()
 {|Cursor:[|End Try|]|}
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestExitTryInCatchBlock()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestExitTryInCatchBlock() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|Try|]
@@ -127,11 +128,11 @@ Sub M()
 {|Cursor:[|End Try|]|}
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestExitTryInCatchBlock2()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestExitTryInCatchBlock2() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|Try|]
@@ -144,11 +145,11 @@ Sub M()
 [|End Try|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub NegativeTestExitTryInNestedTry()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function NegativeTestExitTryInNestedTry() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 {|Cursor:[|Try|]|}
@@ -160,6 +161,6 @@ Sub M()
 [|End Try|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
     End Class
 End Namespace

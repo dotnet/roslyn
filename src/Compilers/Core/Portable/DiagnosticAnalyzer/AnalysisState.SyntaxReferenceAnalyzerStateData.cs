@@ -2,6 +2,9 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.Semantics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -15,16 +18,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// <summary>
             /// Partial analysis state for code block actions executed on the declaration.
             /// </summary>
-            public CodeBlockAnalyzerStateData CodeBlockAnalysisState { get; set; }
+            public CodeBlockAnalyzerStateData CodeBlockAnalysisState { get; }
+
+            /// <summary>
+            /// Partial analysis state for operation block actions executed on the declaration.
+            /// </summary>
+            public OperationBlockAnalyzerStateData OperationBlockAnalysisState { get; }
+
+            public static readonly DeclarationAnalyzerStateData FullyProcessedInstance = CreateFullyProcessedInstance();
 
             public DeclarationAnalyzerStateData()
             {
                 CodeBlockAnalysisState = new CodeBlockAnalyzerStateData();
+                OperationBlockAnalysisState = new OperationBlockAnalyzerStateData();
+            }
+
+            private static DeclarationAnalyzerStateData CreateFullyProcessedInstance()
+            {
+                var instance = new DeclarationAnalyzerStateData();
+                instance.SetStateKind(StateKind.FullyProcessed);
+                return instance;
             }
 
             public override void SetStateKind(StateKind stateKind)
             {
                 CodeBlockAnalysisState.SetStateKind(stateKind);
+                OperationBlockAnalysisState.SetStateKind(stateKind);
                 base.SetStateKind(stateKind);
             }
 
@@ -32,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 base.Free();
                 CodeBlockAnalysisState.Free();
+                OperationBlockAnalysisState.Free();
             }
         }
 
@@ -40,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         internal class SyntaxNodeAnalyzerStateData : AnalyzerStateData
         {
-            public HashSet<SyntaxNode> ProcessedNodes { get; set; }
+            public HashSet<SyntaxNode> ProcessedNodes { get; }
             public SyntaxNode CurrentNode { get; set; }
 
             public SyntaxNodeAnalyzerStateData()
@@ -64,20 +84,50 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Stores the partial analysis state for code block actions executed on the declaration.
+        /// Stores the partial analysis state for operation actions executed on the declaration.
         /// </summary>
-        internal sealed class CodeBlockAnalyzerStateData : AnalyzerStateData
+        internal class OperationAnalyzerStateData : AnalyzerStateData
         {
-            public SyntaxNodeAnalyzerStateData ExecutableNodesAnalysisState { get; }
+            public HashSet<IOperation> ProcessedOperations { get; }
+            public IOperation CurrentOperation { get; set; }
 
-            public ImmutableHashSet<AnalyzerAction> CurrentCodeBlockEndActions { get; set; }
-            public ImmutableHashSet<AnalyzerAction> CurrentCodeBlockNodeActions { get; set; }
-
-            public CodeBlockAnalyzerStateData()
+            public OperationAnalyzerStateData()
             {
-                ExecutableNodesAnalysisState = new SyntaxNodeAnalyzerStateData();
-                CurrentCodeBlockEndActions = null;
-                CurrentCodeBlockNodeActions = null;
+                CurrentOperation = null;
+                ProcessedOperations = new HashSet<IOperation>();
+            }
+
+            public void ClearNodeAnalysisState()
+            {
+                CurrentOperation = null;
+                ProcessedActions.Clear();
+            }
+
+            public override void Free()
+            {
+                base.Free();
+                CurrentOperation = null;
+                ProcessedOperations.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Stores the partial analysis state for code block actions or operation block actions executed on the declaration.
+        /// </summary>
+        internal abstract class BlockAnalyzerStateData<TBlockAction, TNodeStateData> : AnalyzerStateData
+            where TBlockAction : AnalyzerAction
+            where TNodeStateData : AnalyzerStateData, new()
+        {
+            public TNodeStateData ExecutableNodesAnalysisState { get; }
+
+            public ImmutableHashSet<TBlockAction> CurrentBlockEndActions { get; set; }
+            public ImmutableHashSet<AnalyzerAction> CurrentBlockNodeActions { get; set; }
+
+            public BlockAnalyzerStateData()
+            {
+                ExecutableNodesAnalysisState = new TNodeStateData();
+                CurrentBlockEndActions = null;
+                CurrentBlockNodeActions = null;
             }
 
             public override void SetStateKind(StateKind stateKind)
@@ -90,9 +140,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 base.Free();
                 ExecutableNodesAnalysisState.Free();
-                CurrentCodeBlockEndActions = null;
-                CurrentCodeBlockNodeActions = null;
+                CurrentBlockEndActions = null;
+                CurrentBlockNodeActions = null;
             }
+        }
+
+        /// <summary>
+        /// Stores the partial analysis state for code block actions executed on the declaration.
+        /// </summary>
+        internal sealed class CodeBlockAnalyzerStateData : BlockAnalyzerStateData<CodeBlockAnalyzerAction, SyntaxNodeAnalyzerStateData>
+        {
+        }
+
+        /// <summary>
+        /// Stores the partial analysis state for operation block actions executed on the declaration.
+        /// </summary>
+        internal sealed class OperationBlockAnalyzerStateData : BlockAnalyzerStateData<OperationBlockAnalyzerAction, OperationAnalyzerStateData>
+        {
         }
     }
 }

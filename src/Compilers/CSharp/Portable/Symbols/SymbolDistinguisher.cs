@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -152,7 +151,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         private static string GetLocationString(Compilation compilation, Symbol unwrappedSymbol)
         {
             Debug.Assert((object)unwrappedSymbol == UnwrapSymbol(unwrappedSymbol));
@@ -198,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyDescriptions[index];
         }
 
-        private class Description : IMessageSerializable
+        private sealed class Description : IMessageSerializable
         {
             private readonly SymbolDistinguisher _distinguisher;
             private readonly int _index;
@@ -207,6 +205,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _distinguisher = distinguisher;
                 _index = index;
+            }
+
+            private Symbol GetSymbol()
+            {
+                return (_index == 0) ? _distinguisher._symbol0 : _distinguisher._symbol1;
+            }
+
+            public override bool Equals(object obj)
+            {
+                var other = obj as Description;
+                return other != null &&
+                    _distinguisher._compilation == other._distinguisher._compilation &&
+                    GetSymbol() == other.GetSymbol();
+            }
+
+            public override int GetHashCode()
+            {
+                return Hash.Combine(
+                    _distinguisher._compilation.GetHashCode(),
+                    GetSymbol().GetHashCode());
             }
 
             public override string ToString()

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // Bug 5535: By default the standard editor caret is set to have positive affinity.  This
             // means that if text is added right at the caret then the caret moves to the right and
             // is placed after the added text.  However, we don't want that.  Instead, we want the
-            // caret to stay where it started at. So we store the caret position here and and
+            // caret to stay where it started at. So we store the caret position here and
             // restore it afterwards.
             private readonly EventHandler<CaretPositionChangedEventArgs> _caretPositionChangedHandler;
             private readonly IList<Tuple<IWpfTextView, IMappingPoint>> _caretPositions;

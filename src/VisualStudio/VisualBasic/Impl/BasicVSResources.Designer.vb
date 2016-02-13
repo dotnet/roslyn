@@ -110,7 +110,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Show diagnostics for closed _files.
+        '''  Looks up a localized string similar to Enable full solution _analysis.
         '''</summary>
         Friend Shared ReadOnly Property Option_ClosedFileDiagnostics() As String
             Get

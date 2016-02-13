@@ -131,14 +131,14 @@ namespace Roslyn.Test.MetadataUtilities
 
         private static ulong ReadUInt64(ImmutableArray<byte> buffer, ref int pos)
         {
-            ulong result = 
-                buffer[pos] | 
-                (ulong)buffer[pos + 1] << 8 | 
-                (ulong)buffer[pos + 2] << 16 | 
-                (ulong)buffer[pos + 3] << 24 | 
+            ulong result =
+                buffer[pos] |
+                (ulong)buffer[pos + 1] << 8 |
+                (ulong)buffer[pos + 2] << 16 |
+                (ulong)buffer[pos + 3] << 24 |
                 (ulong)buffer[pos + 4] << 32 |
-                (ulong)buffer[pos + 5] << 40 | 
-                (ulong)buffer[pos + 6] << 48 | 
+                (ulong)buffer[pos + 5] << 40 |
+                (ulong)buffer[pos + 6] << 48 |
                 (ulong)buffer[pos + 7] << 56;
 
             pos += sizeof(ulong);
@@ -159,7 +159,7 @@ namespace Roslyn.Test.MetadataUtilities
 
         private static ushort ReadUInt16(ImmutableArray<byte> buffer, ref int pos)
         {
-            ushort result = (ushort)(buffer[pos]| buffer[pos + 1] << 8);
+            ushort result = (ushort)(buffer[pos] | buffer[pos + 1] << 8);
             pos += sizeof(ushort);
             return result;
         }

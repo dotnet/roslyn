@@ -1,9 +1,14 @@
 ﻿{
   "dependencies": {
     "Microsoft.Composition": "1.0.27",
+    "System.Reflection.Metadata": "1.2.0-rc3-23811",
     "System.Collections.Immutable": "1.1.37"
   },
   "frameworks": {
     "net452": {}
+  },
+  "runtimes": {
+    "win7": {},
+    "win7-anycpu": {}
   }
 }

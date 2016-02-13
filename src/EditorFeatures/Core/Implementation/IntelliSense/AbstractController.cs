@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -137,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             // have even shown ui yet.
             var handledCommand = sessionOpt.InitialUnfilteredModel != null;
 
-            // In the presense of an escape, we always stop what we're doing.
+            // In the presence of an escape, we always stop what we're doing.
             this.StopModelComputation();
 
             return handledCommand;

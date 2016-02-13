@@ -270,19 +270,34 @@ namespace Roslyn.Utilities
             return sequence.SelectMany(s => s);
         }
 
-        public static IEnumerable<T> OrderBy<T>(this IEnumerable<T> source, IComparer<T> comparer)
+        public static IOrderedEnumerable<T> OrderBy<T>(this IEnumerable<T> source, IComparer<T> comparer)
         {
             return source.OrderBy(Functions<T>.Identity, comparer);
         }
 
-        public static IEnumerable<T> OrderBy<T>(this IEnumerable<T> source, Comparison<T> compare)
+        public static IOrderedEnumerable<T> OrderBy<T>(this IEnumerable<T> source, Comparison<T> compare)
         {
             return source.OrderBy(new ComparisonComparer<T>(compare));
         }
 
-        public static IEnumerable<T> Order<T>(this IEnumerable<T> source) where T : IComparable<T>
+        public static IOrderedEnumerable<T> Order<T>(this IEnumerable<T> source) where T : IComparable<T>
         {
             return source.OrderBy(Comparisons<T>.Comparer);
+        }
+
+        public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source, IComparer<T> comparer)
+        {
+            return source.ThenBy(Functions<T>.Identity, comparer);
+        }
+
+        public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source, Comparison<T> compare)
+        {
+            return source.ThenBy(new ComparisonComparer<T>(compare));
+        }
+
+        public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source) where T : IComparable<T>
+        {
+            return source.ThenBy(Comparisons<T>.Comparer);
         }
 
         private static class Comparisons<T> where T : IComparable<T>

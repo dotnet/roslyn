@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             private readonly Diagnostic _diagnostic;
             private readonly bool _forFixMultipleContext;
 
-            public static async Task<RemoveSuppressionCodeAction> CreateAsync(                
+            public static async Task<RemoveSuppressionCodeAction> CreateAsync(
                 SuppressionTargetInfo suppressionTargetInfo,
                 Document documentOpt,
                 Project project,
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 Diagnostic diagnostic,
                 AbstractSuppressionCodeFixProvider fixer,
                 bool forFixMultipleContext = false)
-                : base (fixer, title: string.Format(FeaturesResources.RemoveSuppressionForId, diagnostic.Id))
+                : base(fixer, title: string.Format(FeaturesResources.RemoveSuppressionForId, diagnostic.Id))
             {
                 _diagnostic = diagnostic;
                 _forFixMultipleContext = forFixMultipleContext;

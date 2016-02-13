@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Utilities;
 using Xunit;
 using System.Collections.Concurrent;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -29,19 +30,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return _analyzerAndFixerMap.GetOrAdd(workspace, CreateDiagnosticProviderAndFixer);
         }
 
-        internal override IEnumerable<Diagnostic> GetDiagnostics(TestWorkspace workspace)
+        internal async override Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(TestWorkspace workspace)
         {
             var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace);
 
             var provider = providerAndFixer.Item1;
             TextSpan span;
             var document = GetDocumentAndSelectSpan(workspace, out span);
-            var allDiagnostics = DiagnosticProviderTestUtilities.GetAllDiagnostics(provider, document, span);
+            var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(provider, document, span);
             AssertNoAnalyzerExceptionDiagnostics(allDiagnostics);
             return allDiagnostics;
         }
 
-        internal override IEnumerable<Tuple<Diagnostic, CodeFixCollection>> GetDiagnosticAndFixes(TestWorkspace workspace, string fixAllActionId)
+        internal override async Task<IEnumerable<Tuple<Diagnostic, CodeFixCollection>>> GetDiagnosticAndFixesAsync(TestWorkspace workspace, string fixAllActionId)
         {
             var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace);
 
@@ -56,13 +57,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             using (var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider))
             {
-                var diagnostics = testDriver.GetAllDiagnostics(provider, document, span);
+                var diagnostics = await testDriver.GetAllDiagnosticsAsync(provider, document, span);
                 AssertNoAnalyzerExceptionDiagnostics(diagnostics);
 
                 var fixer = providerAndFixer.Item2;
                 var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
                 var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
-                return GetDiagnosticAndFixes(dxs, provider, fixer, testDriver, document, span, annotation, fixAllActionId);
+                return await GetDiagnosticAndFixesAsync(dxs, provider, fixer, testDriver, document, span, annotation, fixAllActionId);
             }
         }
 
@@ -70,12 +71,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         /// The internal method <see cref="AnalyzerExecutor.IsAnalyzerExceptionDiagnostic(Diagnostic)"/> does
         /// essentially this, but due to linked files between projects, this project cannot have internals visible
         /// access to the Microsoft.CodeAnalysis project without the cascading effect of many extern aliases, so it
-        /// is re-implemented here in a way that is potentially overly agressive with the knowledge that if this method
+        /// is re-implemented here in a way that is potentially overly aggressive with the knowledge that if this method
         /// starts failing on non-analyzer exception diagnostics, it can be appropriately tuned or re-evaluated.
         /// </summary>
         private void AssertNoAnalyzerExceptionDiagnostics(IEnumerable<Diagnostic> diagnostics)
         {
-            Assert.Equal(0, diagnostics.Count(diag => diag.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.AnalyzerException)));
+            var analyzerExceptionDiagnostics = diagnostics.Where(diag => diag.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.AnalyzerException));
+            AssertEx.Empty(analyzerExceptionDiagnostics, "Found analyzer exception diagnostics");
         }
     }
 }

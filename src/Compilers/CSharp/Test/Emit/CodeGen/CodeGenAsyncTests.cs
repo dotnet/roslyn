@@ -1284,7 +1284,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(638261, "DevDiv")]
+        [WorkItem(638261, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638261")]
         public void Await15()
         {
             var source = @"
@@ -1920,75 +1920,8 @@ class Driver
             CompileAndVerify(source, "0");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4300")]
-        public void Return07_2()
-        {
-            var source = @"
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-class TestCase
-{
-    unsafe struct S
-    {
-        public int value;
-        public S* next;
-    }
-
-    public async void Run()
-    {
-        int test = 0;
-        int result = 0;
-        Func<Task<dynamic>> func, func2 = null;
-
-        try
-        {
-            test++;
-            S s = new S();
-            S s1 = new S();
-            unsafe
-            {
-                S* head = &s;
-                s.next = &s1;
-                func = async () => { (*(head->next)).value = 1; result++; return head->next->value; };
-                func2 = async () => (*(head->next));
-            }
-
-            var x = await func();
-            if (x != 1)
-                result--;
-            var xx = await func2();
-            if (xx.value != 1)
-                result--;
-        }
-        finally
-        {
-            Driver.Result = test - result;
-            Driver.CompleteSignal.Set();
-        }
-    }
-}
-
-class Driver
-{
-    static public AutoResetEvent CompleteSignal = new AutoResetEvent(false);
-    public static int Result = -1;
-    public static void Main()
-    {
-        TestCase tc = new TestCase();
-        tc.Run();
-        CompleteSignal.WaitOne();
-
-        Console.WriteLine(Result);
-    }
-}";
-            var options = new CSharpCompilationOptions(OutputKind.ConsoleApplication, allowUnsafe: true);
-            CompileAndVerify(source, "0", options: options);
-        }
-
         [Fact]
-        [WorkItem(625282, "DevDiv")]
+        [WorkItem(625282, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/625282")]
         public void Generic05()
         {
             var source = @"
@@ -2201,7 +2134,7 @@ class Test
             var expected = @"
 42
 ";
-            var c = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe ,expectedOutput: expected);
+            var c = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe, expectedOutput: expected);
 
             c.VerifyIL("Test.F", @"
 {
@@ -2776,7 +2709,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(564036, "DevDiv")]
+        [WorkItem(564036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/564036")]
         public void InferFromAsyncLambda()
         {
             var source =
@@ -2812,7 +2745,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(620987, "DevDiv")]
+        [WorkItem(620987, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/620987")]
         public void PrematureNull()
         {
             var source =
@@ -2877,7 +2810,7 @@ done!";
         }
 
         [Fact]
-        [WorkItem(621705, "DevDiv")]
+        [WorkItem(621705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/621705")]
         public void GenericAsyncLambda()
         {
             var source =
@@ -2930,7 +2863,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(602028, "DevDiv")]
+        [WorkItem(602028, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602028")]
         public void BetterConversionFromAsyncLambda()
         {
             var source =
@@ -2953,7 +2886,7 @@ class TestCase
         }
 
         [Fact]
-        [WorkItem(602206, "DevDiv")]
+        [WorkItem(602206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602206")]
         public void ExtensionAddMethod()
         {
             var source =
@@ -3005,7 +2938,7 @@ Add 3";
         }
 
         [Fact]
-        [WorkItem(748527, "DevDiv")]
+        [WorkItem(748527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/748527")]
         public void Bug748527()
         {
             var source = @"using System.Threading.Tasks;
@@ -3043,7 +2976,7 @@ namespace A
         }
 
         [Fact]
-        [WorkItem(602216, "DevDiv")]
+        [WorkItem(602216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602216")]
         public void AsyncMethodOnlyWritesToEnclosingStruct()
         {
             var source =
@@ -3071,7 +3004,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem(602246, "DevDiv")]
+        [WorkItem(602246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602246")]
         public void Bug602246()
         {
             var source =
@@ -3099,7 +3032,7 @@ public class TestCase
             CompileAndVerify(source, expectedOutput: expected);
         }
 
-        [WorkItem(628654, "DevDiv")]
+        [WorkItem(628654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628654")]
         [Fact]
         public void AsyncWithDynamic01()
         {
@@ -3125,7 +3058,7 @@ System.Int32[]
             CompileAndVerify(source, expectedOutput: expected);
         }
 
-        [WorkItem(640282, "DevDiv")]
+        [WorkItem(640282, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640282")]
         [Fact]
         public void CustomAsyncWithDynamic01()
         {
@@ -3189,7 +3122,7 @@ class Driver
             CompileAndVerify(source, expectedOutput: expected);
         }
 
-        [WorkItem(840843, "DevDiv")]
+        [WorkItem(840843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840843")]
         [Fact]
         public void MissingAsyncMethodBuilder()
         {
@@ -3213,7 +3146,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(868822, "DevDiv")]
+        [WorkItem(868822, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/868822")]
         public void AsyncDelegates()
         {
             var source =
@@ -3660,7 +3593,7 @@ System.Console.WriteLine(x);";
         /// since the static initialization of the class must be
         /// handled synchronously in the .cctor.
         /// </summary>
-        [WorkItem(5787)]
+        [WorkItem(5787, "https://github.com/dotnet/roslyn/issues/5787")]
         [Fact]
         public void AwaitInScriptStaticInitializer()
         {
@@ -3843,6 +3776,176 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(comp);
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe));
+        }
+
+        [Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")]
+        public void HoistUsing001()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(M(0).Result);
+    }
+
+    class D : IDisposable
+    {
+        public void Dispose()
+        {
+            Console.WriteLine(""disposed"");
+        }
+    }
+
+    static async Task<string> M(int input)
+    {
+        Console.WriteLine(""Pre"");
+        var window = new D();
+        try
+        {
+            Console.WriteLine(""show"");
+
+            for (int i = 0; i < 2; i++)
+            {
+                await Task.Delay(100);
+            }
+        }
+        finally
+        {
+            window.Dispose();
+        }
+
+        Console.WriteLine(""Post"");
+        return ""result"";
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+
+            var expectedOutput = @"Pre
+show
+disposed
+Post
+result";
+
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe), expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")]
+        public void HoistUsing002()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(M(0).Result);
+    }
+
+    class D : IDisposable
+    {
+        public void Dispose()
+        {
+            Console.WriteLine(""disposed"");
+        }
+    }
+
+    static async Task<string> M(int input)
+    {
+        Console.WriteLine(""Pre"");
+
+        using (var window = new D())
+        {
+            Console.WriteLine(""show"");
+
+            for (int i = 0; i < 2; i++)
+            {
+                await Task.Delay(100);
+            }
+        }
+
+        Console.WriteLine(""Post"");
+        return ""result"";
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+
+            var expectedOutput = @"Pre
+show
+disposed
+Post
+result";
+
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe), expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")]
+        public void HoistUsing003()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(M(0).Result);
+    }
+
+    class D : IDisposable
+    {
+        public void Dispose()
+        {
+            Console.WriteLine(""disposed"");
+        }
+    }
+
+    static async Task<string> M(int input)
+    {
+        Console.WriteLine(""Pre"");
+
+        using (var window1 = new D())
+        {
+            Console.WriteLine(""show"");
+
+            using (var window = new D())
+            {
+                Console.WriteLine(""show"");
+
+                for (int i = 0; i < 2; i++)
+                {
+                    await Task.Delay(100);
+                }
+            }
+        }
+
+        Console.WriteLine(""Post"");
+        return ""result"";
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+
+            var expectedOutput = @"Pre
+show
+show
+disposed
+disposed
+Post
+result";
+
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe), expectedOutput: expectedOutput);
         }
     }
 }

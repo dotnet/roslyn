@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Text;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -30,9 +29,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         string IDkmClrFormatter.GetValueString(DkmClrValue value, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers)
         {
-            var options = ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoQuotes) == 0) ?
-                ObjectDisplayOptions.UseQuotes :
-                ObjectDisplayOptions.None;
+            var useQuotes = (inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoQuotes) == 0;
+            var options = useQuotes
+                ? ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters
+                : ObjectDisplayOptions.None;
             return GetValueString(value, inspectionContext, options, GetValueFlags.IncludeObjectId);
         }
 

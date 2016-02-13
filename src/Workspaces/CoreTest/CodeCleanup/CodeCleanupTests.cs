@@ -38,49 +38,50 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 #endif
 
         [Fact]
-        public void CodeCleaners_NoSpans()
+        public async Task CodeCleaners_NoSpans()
         {
             var document = CreateDocument("class C { }", LanguageNames.CSharp);
-            var cleanDocument = CodeCleaner.CleanupAsync(document, SpecializedCollections.EmptyEnumerable<TextSpan>()).Result;
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, SpecializedCollections.EmptyEnumerable<TextSpan>());
 
             Assert.Equal(document, cleanDocument);
         }
 
         [Fact]
-        public void CodeCleaners_Document()
+        public async Task CodeCleaners_Document()
         {
             var document = CreateDocument("class C { }", LanguageNames.CSharp);
-            var cleanDocument = CodeCleaner.CleanupAsync(document).Result;
+            var cleanDocument = await CodeCleaner.CleanupAsync(document);
 
             Assert.Equal(document, cleanDocument);
         }
 
         [Fact]
-        public void CodeCleaners_Span()
+        public async Task CodeCleaners_Span()
         {
             var document = CreateDocument("class C { }", LanguageNames.CSharp);
-            var cleanDocument = CodeCleaner.CleanupAsync(document, document.GetSyntaxRootAsync().Result.FullSpan).Result;
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, (await document.GetSyntaxRootAsync()).FullSpan);
 
             Assert.Equal(document, cleanDocument);
         }
 
         [Fact]
-        public void CodeCleaners_Spans()
+        public async Task CodeCleaners_Spans()
         {
             var document = CreateDocument("class C { }", LanguageNames.CSharp);
-            var cleanDocument = CodeCleaner.CleanupAsync(document, SpecializedCollections.SingletonEnumerable(document.GetSyntaxRootAsync().Result.FullSpan)).Result;
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, SpecializedCollections.SingletonEnumerable(
+                (await document.GetSyntaxRootAsync()).FullSpan));
 
             Assert.Equal(document, cleanDocument);
         }
 
         [Fact]
-        public void CodeCleaners_Annotation()
+        public async Task CodeCleaners_Annotation()
         {
             var document = CreateDocument("class C { }", LanguageNames.CSharp);
             var annotation = new SyntaxAnnotation();
-            document = document.WithSyntaxRoot(document.GetSyntaxRootAsync().Result.WithAdditionalAnnotations(annotation));
+            document = document.WithSyntaxRoot((await document.GetSyntaxRootAsync()).WithAdditionalAnnotations(annotation));
 
-            var cleanDocument = CodeCleaner.CleanupAsync(document, annotation).Result;
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, annotation);
 
             Assert.Equal(document, cleanDocument);
         }
@@ -217,8 +218,8 @@ Imports System.Diagnostics
         }
 
         [Fact]
-        [WorkItem(774295, "DevDiv")]
-        public void DontCrash_VB_2()
+        [WorkItem(774295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774295")]
+        public async Task DontCrash_VB_2()
         {
             var code = @"
 Public Class Class1
@@ -234,27 +235,27 @@ Public Class Class1
 End Class
 ";
             var document = CreateDocument(code, LanguageNames.VisualBasic);
-            var semanticModel = document.GetSemanticModelAsync().Result;
-            var root = document.GetSyntaxRootAsync().Result;
+            var semanticModel = await document.GetSemanticModelAsync();
+            var root = await document.GetSyntaxRootAsync();
             var accessor = root.DescendantNodes().OfType<VisualBasic.Syntax.AccessorBlockSyntax>().Last();
             var factory = new SemanticModelWorkspaceServiceFactory();
             var service = (ISemanticModelService)factory.CreateService(document.Project.Solution.Workspace.Services);
-            var newSemanticModel = service.GetSemanticModelForNodeAsync(document, accessor, CancellationToken.None).Result;
+            var newSemanticModel = await service.GetSemanticModelForNodeAsync(document, accessor, CancellationToken.None);
             Assert.NotNull(newSemanticModel);
             var newDocument = CreateDocument(code, LanguageNames.VisualBasic);
-            var newRoot = newDocument.GetSyntaxRootAsync().Result;
+            var newRoot = await newDocument.GetSyntaxRootAsync();
             var newAccessor = newRoot.DescendantNodes().OfType<VisualBasic.Syntax.AccessorBlockSyntax>().Last();
             root = root.ReplaceNode(accessor, newAccessor);
             document = document.WithSyntaxRoot(root);
             accessor = root.DescendantNodes().OfType<VisualBasic.Syntax.AccessorBlockSyntax>().Last();
-            newSemanticModel = service.GetSemanticModelForNodeAsync(document, accessor, CancellationToken.None).Result;
+            newSemanticModel = await service.GetSemanticModelForNodeAsync(document, accessor, CancellationToken.None);
             Assert.NotNull(newSemanticModel);
-            var cleanDocument = CodeCleaner.CleanupAsync(document).Result;
+            var cleanDocument = await CodeCleaner.CleanupAsync(document);
             Assert.Equal(document, cleanDocument);
         }
 
         [Fact]
-        [WorkItem(547075, "DevDiv")]
+        [WorkItem(547075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547075")]
         public void TestCodeCleanupWithinNonStructuredTrivia()
         {
             var code = @"

@@ -3,14 +3,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class DebuggerDisplayAttributeTests : CSharpResultProviderTestBase
     {
@@ -549,7 +551,7 @@ class B : A<int> { }
                 EvalResult("b", "Type={B}", "B", "b", DkmEvaluationResultFlags.None));
         }
 
-        [WorkItem(1016895)]
+        [WorkItem(1016895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016895")]
         [Fact]
         public void RootVersusInternal()
         {
@@ -615,7 +617,7 @@ class B
         }
 
         [Fact]
-        public void Exception()
+        public void UnhandledException()
         {
             var source =
 @"using System.Diagnostics;
@@ -631,6 +633,42 @@ class A
             var result = FormatResult("a", CreateDkmClrValue(instanceA));
             Verify(result,
                 EvalFailedResult("a", "Unmatched closing brace in 'Value}'", null, null, DkmEvaluationResultFlags.None));
+        }
+
+        [Fact, WorkItem(171123, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv")]
+        public void ExceptionDuringEvaluate()
+        {
+            var source = @"
+using System.Diagnostics;
+[DebuggerDisplay(""Make it throw."")]
+public class Picard { }
+";
+            var assembly = GetAssembly(source);
+            var picard = assembly.GetType("Picard");
+            var jeanLuc = picard.Instantiate();
+            var result = FormatResult("says", CreateDkmClrValue(jeanLuc), declaredType: new BadType(picard));
+            Verify(result,
+                EvalFailedResult("says", BadType.Exception.Message, null, null, DkmEvaluationResultFlags.None));
+        }
+
+        private class BadType : DkmClrType
+        {
+            public static readonly Exception Exception = new TargetInvocationException(new DkmException(DkmExceptionCode.E_PROCESS_DESTROYED));
+
+            public BadType(System.Type innerType)
+                : base((TypeImpl)innerType)
+            {
+            }
+
+            public override VisualStudio.Debugger.Metadata.Type GetLmrType()
+            {
+                if (Environment.StackTrace.Contains("Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.GetTypeName"))
+                {
+                    throw Exception;
+                }
+
+                return base.GetLmrType();
+            }
         }
 
         private IReadOnlyList<DkmEvaluationResult> DepthFirstSearch(DkmEvaluationResult root, int maxDepth)

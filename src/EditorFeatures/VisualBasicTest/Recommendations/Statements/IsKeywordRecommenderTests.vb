@@ -1,32 +1,25 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class IsKeywordRecommenderTests
 
-        <WpfFact>
-        <WorkItem(543384)>
+        <Fact>
+        <WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IsInCaseClause()
-            VerifyRecommendationsContain(
+        Public Async Function IsInCaseClauseTest() As Task
+            Await VerifyRecommendationsContainAsync(
                 <MethodBody>        
                     Select Case 5
                          Case |
                     End Select
                 </MethodBody>, "Is")
-        End Sub
+        End Function
 
-        <WpfFact>
-        <WorkItem(543384)>
+        <Fact>
+        <WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoIsKeywordAfterCaseAfterCaseElse()
-            VerifyRecommendationsMissing(
+        Public Async Function NoIsKeywordAfterCaseAfterCaseElseTest() As Task
+            Await VerifyRecommendationsMissingAsync(
                 <MethodBody>
                     Select Case 5
                         Case Else
@@ -34,66 +27,66 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
                         Case |
                     End Select
                 </MethodBody>, "Is")
-        End Sub
+        End Function
 
-        <WpfFact>
-        <WorkItem(543384)>
+        <Fact>
+        <WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IsInMiddleCaseClause()
-            VerifyRecommendationsContain(
+        Public Async Function IsInMiddleCaseClauseTest() As Task
+            Await VerifyRecommendationsContainAsync(
                 <MethodBody>
                     Select Case 5
                         Case 4, |, Is > 7
                     End Select
                 </MethodBody>, "Is")
-        End Sub
+        End Function
 
-        <WpfFact>
-        <WorkItem(543384)>
+        <Fact>
+        <WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IsInFinalCaseClause()
-            VerifyRecommendationsContain(
+        Public Async Function IsInFinalCaseClauseTest() As Task
+            Await VerifyRecommendationsContainAsync(
                 <MethodBody>
                     Select Case 5
                         Case 4, Is > 5, |
                     End Select
                 </MethodBody>, "Is")
-        End Sub
+        End Function
 
-        <WpfFact>
-        <WorkItem(543384)>
+        <Fact>
+        <WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IsInExistingIsClause()
-            VerifyRecommendationsContain(
+        Public Async Function IsInExistingIsClauseTest() As Task
+            Await VerifyRecommendationsContainAsync(
                 <MethodBody>
                     Select Case 5
                         Case |Is > 5
                     End Select
                 </MethodBody>, "Is")
-        End Sub
+        End Function
 
-        <WorkItem(530953)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotAfterEol()
-            VerifyRecommendationsMissing(
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NotAfterEolTest() As Task
+            Await VerifyRecommendationsMissingAsync(
 <MethodBody>
     Select Case 5
         Case 
 |
     End Select
 </MethodBody>, "Is")
-        End Sub
+        End Function
 
-        <WorkItem(530953)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterExplicitLineContinuation()
-            VerifyRecommendationsContain(
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTest() As Task
+            Await VerifyRecommendationsContainAsync(
 <MethodBody>
     Select Case 5
         Case _
 |
     End Select
 </MethodBody>, "Is")
-        End Sub
+        End Function
     End Class
 End Namespace

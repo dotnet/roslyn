@@ -52,10 +52,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
         public Task<ExecutionResult> ExecuteCodeAsync(string text)
         {
-            if (OnExecute != null)
-            {
-                OnExecute(this, text);
-            }
+            OnExecute?.Invoke(this, text);
             return Task.FromResult(ExecutionResult.Success);
         }
 

@@ -321,7 +321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> 
         ''' Creates a new compilation that can be used in scripting. 
         ''' </summary>
-        Friend Shared Function CreateScriptCompilation(
+        Public Shared Function CreateScriptCompilation(
             assemblyName As String,
             Optional syntaxTree As SyntaxTree = Nothing,
             Optional references As IEnumerable(Of MetadataReference) = Nothing,
@@ -768,8 +768,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Get a read-only list of the syntax trees that this compilation was created with.
-        ''' The ordering of the trees is arbitrary and may be different than the order the
-        ''' trees were supplied to the compilation.
         ''' </summary>
         Public Shadows ReadOnly Property SyntaxTrees As ImmutableArray(Of SyntaxTree)
             Get
@@ -785,7 +783,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 If _lazyAllSyntaxTrees.IsDefault Then
                     Dim builder = ArrayBuilder(Of SyntaxTree).GetInstance()
-                    builder.AddRange(_rootNamespaces.Keys)
+                    builder.AddRange(_syntaxTrees)
                     For Each embeddedTree In _embeddedTrees
                         Dim tree = embeddedTree.Tree.Value
                         If tree IsNot Nothing Then
@@ -2083,7 +2081,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), analyzerManager As AnalyzerManager) As AnalyzerDriver
             Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.Kind
-            Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, analyzerManager)
+            Dim isComment As Func(Of SyntaxTrivia, Boolean) = Function(trivia As SyntaxTrivia) trivia.Kind() = SyntaxKind.CommentTrivia
+            Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, analyzerManager, isComment)
         End Function
 
 #End Region
@@ -2682,12 +2681,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If current.Kind = DeclarationKind.Namespace Then
                     If includeNamespace AndAlso predicate(current.Name) Then
                         Dim container = GetSpineSymbol(spine)
-                        [set].Add(GetSymbol(container, current))
+                        Dim symbol = GetSymbol(container, current)
+                        If symbol IsNot Nothing Then
+                            [set].Add(symbol)
+                        End If
                     End If
                 Else
                     If includeType AndAlso predicate(current.Name) Then
                         Dim container = GetSpineSymbol(spine)
-                        [set].Add(GetSymbol(container, current))
+                        Dim symbol = GetSymbol(container, current)
+                        If symbol IsNot Nothing Then
+                            [set].Add(symbol)
+                        End If
                     End If
 
                     If includeMember Then
@@ -2720,7 +2725,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For Each name In mergedType.MemberNames
                     If predicate(name) Then
                         container = If(container, GetSpineSymbol(spine))
-                        [set].UnionWith(container.GetMembers(name))
+                        If container IsNot Nothing Then
+                            [set].UnionWith(container.GetMembers(name))
+                        End If
                     End If
                 Next
 

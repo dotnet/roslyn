@@ -5,13 +5,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    // For the purposes of lambda error reporting we wish to compare 
-    // diagnostics for equality only considering their code and location,
-    // but not other factors such as the values supplied for the 
-    // parameters of the diagnostic.
-
     internal sealed class CommonDiagnosticComparer : IEqualityComparer<Diagnostic>
     {
+        internal static readonly CommonDiagnosticComparer Instance = new CommonDiagnosticComparer();
+
+        private CommonDiagnosticComparer()
+        {
+        }
+
         public bool Equals(Diagnostic x, Diagnostic y)
         {
             if (object.ReferenceEquals(x, y))

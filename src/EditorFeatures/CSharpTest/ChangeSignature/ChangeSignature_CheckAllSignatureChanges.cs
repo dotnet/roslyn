@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
 using Roslyn.Test.Utilities;
@@ -10,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public void TestAllSignatureChanges_1This_3Regular_2Default_1Params()
+        public async Task TestAllSignatureChanges_1This_3Regular_2Default_1Params()
         {
             var markup = @"
 static class Ext
@@ -54,11 +55,11 @@ static class Ext
     }
 }";
             var signaturePartCounts = new[] { 1, 3, 2, 1 };
-            TestAllSignatureChanges(LanguageNames.CSharp, markup, signaturePartCounts);
+            await TestAllSignatureChangesAsync(LanguageNames.CSharp, markup, signaturePartCounts);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public void TestAllSignatureChanges_OnDelegate_3Regular()
+        public async Task TestAllSignatureChanges_OnDelegate_3Regular()
         {
             var markup = @"
 using System;
@@ -148,7 +149,7 @@ class C
     void Foo5(int a, string b, bool c) { }
 }";
             var signaturePartCounts = new[] { 0, 3, 0, 0 };
-            TestAllSignatureChanges(LanguageNames.CSharp, markup, signaturePartCounts);
+            await TestAllSignatureChangesAsync(LanguageNames.CSharp, markup, signaturePartCounts);
         }
     }
 }

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public ImmutableArray<string> ExceptionTypes { get; private set; }
 
         /// <summary>
-        /// The item named named in the &lt;completionlist&gt; tag's cref attribute.
+        /// The item named in the &lt;completionlist&gt; tag's cref attribute.
         /// Null if the tag or cref attribute didn't exist.
         /// </summary>
         public string CompletionListCref { get; private set; }

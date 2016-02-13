@@ -116,15 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to await.
-        /// </summary>
-        internal static string Await {
-            get {
-                return ResourceManager.GetString("Await", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to awaitable.
         /// </summary>
         internal static string Awaitable {
@@ -229,6 +220,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ConversionOperator {
             get {
                 return ResourceManager.GetString("ConversionOperator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delegate invocation can be simplified..
+        /// </summary>
+        internal static string DelegateInvocationCanBeSimplified {
+            get {
+                return ResourceManager.GetString("DelegateInvocationCanBeSimplified", resourceCulture);
             }
         }
         

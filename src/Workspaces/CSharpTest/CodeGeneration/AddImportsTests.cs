@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
@@ -30,34 +31,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
             return _emptyProject.AddDocument("test.cs", code);
         }
 
-        private void Test(string initialText, string importsAddedText, string simplifiedText, OptionSet options = null)
+        private async Task TestAsync(string initialText, string importsAddedText, string simplifiedText, OptionSet options = null)
         {
             var doc = GetDocument(initialText);
             options = options ?? doc.Project.Solution.Workspace.Options;
 
-            var imported = ImportAdder.AddImportsAsync(doc, options).Result;
+            var imported = await ImportAdder.AddImportsAsync(doc, options);
 
             if (importsAddedText != null)
             {
-                var formatted = Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, options).Result;
-                var actualText = formatted.GetTextAsync().Result.ToString();
+                var formatted = await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, options);
+                var actualText = (await formatted.GetTextAsync()).ToString();
                 Assert.Equal(importsAddedText, actualText);
             }
 
             if (simplifiedText != null)
             {
-                var reduced = Simplifier.ReduceAsync(imported, options).Result;
-                var formatted = Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, options).Result;
+                var reduced = await Simplifier.ReduceAsync(imported, options);
+                var formatted = await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, options);
 
-                var actualText = formatted.GetTextAsync().Result.ToString();
+                var actualText = (await formatted.GetTextAsync()).ToString();
                 Assert.Equal(simplifiedText, actualText);
             }
         }
 
         [Fact]
-        public void TestAddImport()
+        public async Task TestAddImport()
         {
-            Test(
+            await TestAsync(
 @"class C 
 {
    public System.Collections.Generic.List<int> F;
@@ -79,9 +80,9 @@ class C
         }
 
         [Fact]
-        public void TestAddSystemImportFirst()
+        public async Task TestAddSystemImportFirst()
         {
-            Test(
+            await TestAsync(
 @"using N;
 
 class C 
@@ -107,9 +108,9 @@ class C
         }
 
         [Fact]
-        public void TestDontAddSystemImportFirst()
+        public async Task TestDontAddSystemImportFirst()
         {
-            Test(
+            await TestAsync(
 @"using N;
 
 class C 
@@ -137,9 +138,9 @@ class C
         }
 
         [Fact]
-        public void TestAddImportsInOrder()
+        public async Task TestAddImportsInOrder()
         {
-            Test(
+            await TestAsync(
 @"using System.Collections;
 using System.Diagnostics;
 
@@ -168,9 +169,9 @@ class C
         }
 
         [Fact]
-        public void TestAddMultipleImportsInOrder()
+        public async Task TestAddMultipleImportsInOrder()
         {
-            Test(
+            await TestAsync(
 @"class C 
 {
    public System.Collections.Generic.List<int> F;
@@ -197,9 +198,9 @@ class C
         }
 
         [Fact]
-        public void TestImportNotRedundantlyAdded()
+        public async Task TestImportNotRedundantlyAdded()
         {
-            Test(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class C 
@@ -223,9 +224,9 @@ class C
         }
 
         [Fact]
-        public void TestUnusedAddedImportIsRemovedBySimplifier()
+        public async Task TestUnusedAddedImportIsRemovedBySimplifier()
         {
-            Test(
+            await TestAsync(
 @"class C 
 {
    public System.Int32 F;
@@ -245,9 +246,9 @@ class C
         }
 
         [Fact]
-        public void TestImportNotAddedForNamespaceDeclarations()
+        public async Task TestImportNotAddedForNamespaceDeclarations()
         {
-            Test(
+            await TestAsync(
 @"namespace N
 {
 }",
@@ -262,9 +263,9 @@ class C
         }
 
         [Fact]
-        public void TestImportAddedAndRemovedForReferencesInsideNamespaceDeclarations()
+        public async Task TestImportAddedAndRemovedForReferencesInsideNamespaceDeclarations()
         {
-            Test(
+            await TestAsync(
 @"namespace N
 {
     class C
@@ -293,9 +294,9 @@ namespace N
         }
 
         [Fact]
-        public void TestImportAddedAndRemovedForReferencesMatchingNestedImports()
+        public async Task TestImportAddedAndRemovedForReferencesMatchingNestedImports()
         {
-            Test(
+            await TestAsync(
 @"namespace N
 {
     using System.Collections.Generic;
@@ -330,12 +331,12 @@ namespace N
         }
 
         [Fact]
-        public void TestImportRemovedIfItMakesReferenceAmbiguous()
+        public async Task TestImportRemovedIfItMakesReferenceAmbiguous()
         {
             // this is not really an artifact of the AddImports feature, it is due
             // to Simplifier not reducing the namespace reference because it would 
             // become ambiguous, thus leaving an unused using directive
-            Test(
+            await TestAsync(
     @"
 namespace N { class C { } }
 

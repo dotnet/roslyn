@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             public override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(AbstractTableEntriesSource<DiagnosticData> source, int version, ImmutableArray<TableItem<DiagnosticData>> items, ImmutableArray<ITrackingPoint> trackingPoints)
             {
-                // Build doens't support tracking point.
+                // Build doesn't support tracking point.
                 return new TableEntriesSnapshot((DiagnosticTableEntriesSource)source, version, items);
             }
 
@@ -232,6 +232,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         case ProjectGuids:
                             content = item.ProjectGuids;
                             return ((Guid[])content).Length > 0;
+                        case SuppressionStateColumnDefinition.ColumnName:
+                            // Build doesn't report suppressed diagnostics.
+                            Contract.ThrowIfTrue(data.IsSuppressed);
+                            content = ServicesVSResources.SuppressionStateActive;
+                            return true;
                         default:
                             content = null;
                             return false;
@@ -252,8 +257,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         return false;
                     }
 
-                    return TryNavigateTo(item.Workspace, item.DocumentId,
+                    return TryNavigateTo(item.Workspace, GetProperDocumentId(item),
                                          item.DataLocation?.OriginalStartLine ?? 0, item.DataLocation?.OriginalStartColumn ?? 0, previewTab);
+                }
+
+                private DocumentId GetProperDocumentId(DiagnosticData data)
+                {
+                    // check whether documentId still exist. it might have changed if project it belong to has reloaded.
+                    var solution = data.Workspace.CurrentSolution;
+                    if (solution.GetDocument(data.DocumentId) != null)
+                    {
+                        return data.DocumentId;
+                    }
+
+                    // okay, documentId no longer exist in current solution, find it by file path.
+                    if (string.IsNullOrWhiteSpace(data.DataLocation?.OriginalFilePath))
+                    {
+                        // we don't have filepath
+                        return null;
+                    }
+
+                    var documentIds = solution.GetDocumentIdsWithFilePath(data.DataLocation.OriginalFilePath);
+                    foreach (var id in documentIds)
+                    {
+                        // found right documentId;
+                        if (id.ProjectId == data.ProjectId)
+                        {
+                            return id;
+                        }
+                    }
+
+                    // okay, there is no right one, take the first one if there is any
+                    return documentIds.FirstOrDefault();
                 }
 
                 protected override bool IsEquivalent(DiagnosticData item1, DiagnosticData item2)

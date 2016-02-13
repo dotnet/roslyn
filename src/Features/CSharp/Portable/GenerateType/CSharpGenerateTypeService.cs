@@ -576,7 +576,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return compilation.ClassifyConversion(sourceType, targetType).IsImplicit;
         }
 
-        public override async Task<Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location>> GetOrGenerateEnclosingNamespaceSymbol(INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken)
+        public override async Task<Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location>> GetOrGenerateEnclosingNamespaceSymbolAsync(
+            INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken)
         {
             var compilationUnit = (CompilationUnitSyntax)selectedDocumentRoot;
             var semanticModel = await selectedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -739,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
             while (node != null)
             {
-                // Types in BaseList, Type Constraint or Member Types cannot be of restricter accessibility than the declaring type
+                // Types in BaseList, Type Constraint or Member Types cannot be of more restricted accessibility than the declaring type
                 if ((node is BaseListSyntax || node is TypeParameterConstraintClauseSyntax) &&
                     node.Parent != null &&
                     node.Parent is TypeDeclarationSyntax)
@@ -817,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return expression is SimpleNameSyntax;
         }
 
-        internal override Solution TryAddUsingsOrImportToDocument(Solution updatedSolution, SyntaxNode modifiedRoot, Document document, SimpleNameSyntax simpleName, string includeUsingsOrImports, CancellationToken cancellationToken)
+        internal override async Task<Solution> TryAddUsingsOrImportToDocumentAsync(Solution updatedSolution, SyntaxNode modifiedRoot, Document document, SimpleNameSyntax simpleName, string includeUsingsOrImports, CancellationToken cancellationToken)
         {
             // Nothing to include
             if (string.IsNullOrWhiteSpace(includeUsingsOrImports))
@@ -830,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             SyntaxNode root = null;
             if (modifiedRoot == null)
             {
-                root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -851,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 }
 
                 // Check if the GFU is triggered from the namespace same as the usings namespace
-                if (IsWithinTheImportingNamespace(document, simpleName.SpanStart, includeUsingsOrImports, cancellationToken))
+                if (await IsWithinTheImportingNamespaceAsync(document, simpleName.SpanStart, includeUsingsOrImports, cancellationToken).ConfigureAwait(false))
                 {
                     return updatedSolution;
                 }

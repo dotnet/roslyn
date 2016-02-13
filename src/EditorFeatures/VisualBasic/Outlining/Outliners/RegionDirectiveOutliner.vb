@@ -20,11 +20,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
         End Function
 
         Protected Overrides Sub CollectOutliningSpans(regionDirective As RegionDirectiveTriviaSyntax, spans As List(Of OutliningSpan), cancellationToken As CancellationToken)
-            Dim match = regionDirective.GetMatchingStartOrEndDirective(cancellationToken)
-            If match IsNot Nothing Then
+            Dim matchingDirective = regionDirective.GetMatchingStartOrEndDirective(cancellationToken)
+            If matchingDirective IsNot Nothing Then
                 spans.Add(
-                    VisualBasicOutliningHelpers.CreateRegion(
-                        TextSpan.FromBounds(regionDirective.SpanStart, match.Span.End),
+                    CreateRegion(
+                        TextSpan.FromBounds(regionDirective.SpanStart, matchingDirective.Span.End),
                         GetBannerText(regionDirective),
                         autoCollapse:=False,
                         isDefaultCollapsed:=True))

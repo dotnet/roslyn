@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.DocumentationCommentFormatting;
+using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.VisualBasic.DocumentationCommentFormatting;
+using Microsoft.CodeAnalysis.VisualBasic.DocumentationComments;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             Assert.Equal(expectedVB, vbFormattedComment);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void Summary()
         {
             var comment = "<summary>This is a summary.</summary>";
@@ -42,7 +42,7 @@ $@"{FeaturesResources.Summary}
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void Wrapping1()
         {
             var comment = "<summary>I am the very model of a modern major general. This is a very long comment. And getting longer by the minute.</summary>";
@@ -55,7 +55,7 @@ $@"{FeaturesResources.Summary}
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void Wrapping2()
         {
             var comment = "<summary>I amtheverymodelofamodernmajorgeneral.Thisisaverylongcomment.Andgettinglongerbythe minute.</summary>";
@@ -67,7 +67,7 @@ $@"{FeaturesResources.Summary}
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void Exception()
         {
             var comment = @"<exception cref=""T:System.NotImplementedException"">throws NotImplementedException</exception>";
@@ -80,7 +80,7 @@ $@"{FeaturesResources.Exceptions}
             TestFormat(comment, expected);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void MultipleExceptionTags()
         {
@@ -99,7 +99,7 @@ $@"{FeaturesResources.Exceptions}
             TestFormat(comment, expected);
         }
 
-        [WpfFact, WorkItem(530760)]
+        [Fact, WorkItem(530760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530760")]
         [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void MultipleExceptionTagsWithSameType()
         {
@@ -122,7 +122,7 @@ $@"{FeaturesResources.Exceptions}
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void Returns()
         {
             var comment = @"<returns>A string is returned</returns>";
@@ -134,7 +134,7 @@ $@"{FeaturesResources.Returns}
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void SummaryAndParams()
         {
             var comment =
@@ -156,7 +156,7 @@ $@"{FeaturesResources.Summary}
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TypeParameters()
         {
             var comment =
@@ -174,7 +174,7 @@ $@"{FeaturesResources.TypeParameters}
             TestFormat(comment, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void FormatEverything()
         {
             var comment =

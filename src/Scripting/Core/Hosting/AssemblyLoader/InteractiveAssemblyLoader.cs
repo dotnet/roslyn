@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     {
         private class LoadedAssembly
         {
-            public bool LoadedExplicitly { get; set; }
-
             /// <summary>
             /// The original path of the assembly before it was shadow-copied.
             /// For GAC'd assemblies, this is equal to Assembly.Location no matter what path was used to load them.
@@ -153,40 +151,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         }
 
         /// <summary>
-        /// Loads an assembly from path.
-        /// </summary>
-        /// <param name="path">Absolute assembly file path.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="path"/> is not an existing path.</exception>
-        /// <exception cref="ArgumentException"><paramref name="path"/> is not an existing assembly file path.</exception>
-        /// <exception cref="TargetInvocationException">The assembly resolver threw an exception.</exception>
-        internal AssemblyLoadResult LoadFromPath(string path)
-        {
-            if (path == null)
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-
-            if (!PathUtilities.IsAbsolute(path))
-            {
-                throw new ArgumentException(ScriptingResources.AbsolutePathExpected, nameof(path));
-            }
-
-            try
-            {
-                return LoadFromPathInternal(FileUtilities.NormalizeAbsolutePath(path));
-            }
-            catch (TargetInvocationException)
-            {
-                throw;
-            }
-            catch (Exception e)
-            {
-                throw new ArgumentException(e.Message, nameof(path), e);
-            }
-        }
-
-        /// <summary>
         /// Notifies the assembly loader about a dependency that might be loaded in future.
         /// </summary>
         /// <param name="dependency">Assembly identity.</param>
@@ -237,36 +201,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private AssemblyLoadResult LoadFromPathInternal(string fullPath)
-        {
-            AssemblyAndLocation assembly;
-            lock (_referencesLock)
-            {
-                if (_assembliesLoadedFromLocationByFullPath.TryGetValue(fullPath, out assembly))
-                {
-                    LoadedAssembly loadedAssembly = _assembliesLoadedFromLocation[assembly.Assembly];
-                    if (loadedAssembly.LoadedExplicitly)
-                    {
-                        return AssemblyLoadResult.CreateAlreadyLoaded(assembly.Location, loadedAssembly.OriginalPath);
-                    }
-                    else
-                    {
-                        loadedAssembly.LoadedExplicitly = true;
-                        return AssemblyLoadResult.CreateSuccessful(assembly.Location, loadedAssembly.OriginalPath);
-                    }
-                }
-            }
-
-            AssemblyLoadResult result;
-            assembly = ShadowCopyAndLoadAssembly(fullPath, out result);
-            if (assembly.IsDefault)
-            {
-                throw new FileNotFoundException(message: null, fileName: fullPath);
-            }
-
-            return result;
-        }
-
         private void RegisterLoadedAssemblySimpleNameNoLock(Assembly assembly, string locationOpt)
         {
             var identity = AssemblyIdentity.FromAssemblyDefinition(assembly);
@@ -309,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             lock (_referencesLock)
             {
                 LoadedAssembly loadedAssembly;
-                if (requestingAssemblyOpt != null && 
+                if (requestingAssemblyOpt != null &&
                     _assembliesLoadedFromLocation.TryGetValue(requestingAssemblyOpt, out loadedAssembly))
                 {
                     loadDirectoryOpt = Path.GetDirectoryName(loadedAssembly.OriginalPath);
@@ -354,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                             conflictingLoadedAssemblyOpt = loadedInfos.FirstOrDefault(info => !info.Identity.IsStrongName);
                         }
 
-                        loadedAssemblyWithEqualNameAndVersionOpt = loadedInfos.FirstOrDefault(info => 
+                        loadedAssemblyWithEqualNameAndVersionOpt = loadedInfos.FirstOrDefault(info =>
                             AssemblyIdentityComparer.SimpleNameComparer.Equals(info.Identity.Name, identity.Name) &&
                             info.Identity.Version == identity.Version);
                     }
@@ -497,23 +431,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return assembly;
         }
 
-        private AssemblyAndLocation ShadowCopyAndLoadAssembly(string originalPath, out AssemblyLoadResult result)
-        {
-            return ShadowCopyAndLoadAndAddEntry(originalPath, out result, explicitLoad: true);
-        }
-
         private AssemblyAndLocation ShadowCopyAndLoadDependency(string originalPath)
-        {
-            AssemblyLoadResult result;
-            return ShadowCopyAndLoadAndAddEntry(originalPath, out result, explicitLoad: false);
-        }
-
-        private AssemblyAndLocation ShadowCopyAndLoadAndAddEntry(string originalPath, out AssemblyLoadResult result, bool explicitLoad)
         {
             AssemblyAndLocation assemblyAndLocation = Load(originalPath);
             if (assemblyAndLocation.IsDefault)
             {
-                result = default(AssemblyLoadResult);
                 return default(AssemblyAndLocation);
             }
 
@@ -525,31 +447,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 LoadedAssembly loadedAssembly;
                 if (_assembliesLoadedFromLocation.TryGetValue(assemblyAndLocation.Assembly, out loadedAssembly))
                 {
-                    // The same assembly may have been loaded from a different path already,
-                    // or the assembly has been loaded while we were copying the file and loading the copy;
-                    // Use the existing assembly record.
-                    if (loadedAssembly.LoadedExplicitly)
-                    {
-                        result = AssemblyLoadResult.CreateAlreadyLoaded(assemblyAndLocation.Location, loadedAssembly.OriginalPath);
-                    }
-                    else
-                    {
-                        loadedAssembly.LoadedExplicitly = explicitLoad;
-                        result = AssemblyLoadResult.CreateSuccessful(assemblyAndLocation.Location, loadedAssembly.OriginalPath);
-                    }
-
                     return assemblyAndLocation;
                 }
-                else
-                {
-                    result = AssemblyLoadResult.CreateSuccessful(
-                        assemblyAndLocation.Location,
-                        assemblyAndLocation.GlobalAssemblyCache ? assemblyAndLocation.Location : originalPath);
 
-                    _assembliesLoadedFromLocation.Add(
-                        assemblyAndLocation.Assembly,
-                        new LoadedAssembly { LoadedExplicitly = explicitLoad, OriginalPath = result.OriginalPath });
-                }
+                _assembliesLoadedFromLocation.Add(
+                    assemblyAndLocation.Assembly,
+                    new LoadedAssembly { OriginalPath = assemblyAndLocation.GlobalAssemblyCache ? assemblyAndLocation.Location : originalPath });
 
                 RegisterLoadedAssemblySimpleNameNoLock(assemblyAndLocation.Assembly, assemblyAndLocation.Location);
             }
