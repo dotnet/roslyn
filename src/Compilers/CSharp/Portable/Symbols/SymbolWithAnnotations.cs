@@ -233,6 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Adjust types in signatures coming from metadata.
         /// </summary>
         public abstract TypeSymbolWithAnnotations AsNullableReferenceType();
+        public abstract TypeSymbolWithAnnotations AsNotNullableReferenceType();
 
         public abstract TypeSymbolWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers);
 
@@ -485,6 +486,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     result = result.AsNullableReferenceType();
                 }
+                else
+                {
+                    result = result.AsNotNullableReferenceType();
+                }
 
                 return true;
             }
@@ -563,6 +568,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return new NullableReferenceTypeWithoutCustomModifiers(_typeSymbol);
             }
+
+            public override TypeSymbolWithAnnotations AsNotNullableReferenceType()
+            {
+                return this;
+            }
         }
 
         private class NullableReferenceTypeWithoutCustomModifiers : TypeSymbolWithAnnotations
@@ -612,6 +622,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return this;
             }
+
+            public override TypeSymbolWithAnnotations AsNotNullableReferenceType()
+            {
+                return new WithoutCustomModifiers(_typeSymbol);
+            }
         }
 
         private class ReferenceTypeUnknownNullabilityWithoutCustomModifiers : TypeSymbolWithAnnotations
@@ -660,6 +675,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override TypeSymbolWithAnnotations AsNullableReferenceType()
             {
                 return new NullableReferenceTypeWithoutCustomModifiers(_typeSymbol);
+            }
+
+            public override TypeSymbolWithAnnotations AsNotNullableReferenceType()
+            {
+                return new WithoutCustomModifiers(_typeSymbol);
             }
         }
 
@@ -762,6 +782,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override TypeSymbolWithAnnotations AsNullableReferenceType() => this;
 
+            public override TypeSymbolWithAnnotations AsNotNullableReferenceType()
+            {
+                if (_underlying.TypeSymbol.IsReferenceType)
+                {
+                    return _underlying;
+                }
+
+                return this;
+            }
+
             public override TypeSymbolWithAnnotations SubstituteType(AbstractTypeMap typeMap)
             {
                 if ((object)_resolved != null)
@@ -855,6 +885,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return new NullableReferenceTypeWithCustomModifiers(_typeSymbol, _customModifiers);
             }
+
+            public override TypeSymbolWithAnnotations AsNotNullableReferenceType()
+            {
+                return this;
+            }
         }
 
         private class NullableReferenceTypeWithCustomModifiers : NullableReferenceTypeWithoutCustomModifiers
@@ -884,6 +919,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(this.CustomModifiers.IsEmpty);
                 return base.AsTypeSymbolOnly();
+            }
+
+            public override TypeSymbolWithAnnotations AsNotNullableReferenceType()
+            {
+                return new WithCustomModifiers(_typeSymbol, _customModifiers);
             }
         }
 
@@ -919,6 +959,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override TypeSymbolWithAnnotations AsNullableReferenceType()
             {
                 return new NullableReferenceTypeWithCustomModifiers(_typeSymbol, _customModifiers);
+            }
+
+            public override TypeSymbolWithAnnotations AsNotNullableReferenceType()
+            {
+                return new WithCustomModifiers(_typeSymbol, _customModifiers); ;
             }
         }
     }

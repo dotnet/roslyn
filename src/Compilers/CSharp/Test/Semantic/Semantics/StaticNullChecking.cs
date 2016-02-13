@@ -2147,6 +2147,126 @@ class B : A
         }
 
         [Fact]
+        public void Overriding_25()
+        {
+            var ilSource = @"
+.assembly extern mscorlib
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+
+.assembly '<<GeneratedFileName>>'
+{
+}
+
+.module '<<GeneratedFileName>>.dll'
+.custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor() = ( 01 00 00 00 ) 
+
+.class public auto ansi beforefieldinit C`2<T,S>
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C`2::.ctor
+
+} // end of class C`2
+
+.class public abstract auto ansi beforefieldinit A
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig newslot abstract virtual 
+          instance class C`2<string modopt([mscorlib]System.Runtime.CompilerServices.IsConst),string> 
+          M1() cil managed
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(bool[]) = ( 01 00 03 00 00 00 00 01 00 00 00 ) 
+  } // end of method A::M1
+
+  .method family hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method A::.ctor
+
+} // end of class A
+
+.class public auto ansi beforefieldinit System.Runtime.CompilerServices.NullableAttribute
+       extends [mscorlib]System.Attribute
+{
+  .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = ( 01 00 86 6B 00 00 01 00 54 02 0D 41 6C 6C 6F 77   // ...k....T..Allow
+                                                                                                                         4D 75 6C 74 69 70 6C 65 00 )                      // Multiple.
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       9 (0x9)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Attribute::.ctor()
+    IL_0006:  nop
+    IL_0007:  nop
+    IL_0008:  ret
+  } // end of method NullableAttribute::.ctor
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor(bool[] transformFlags) cil managed
+  {
+    // Code size       9 (0x9)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Attribute::.ctor()
+    IL_0006:  nop
+    IL_0007:  nop
+    IL_0008:  ret
+  } // end of method NullableAttribute::.ctor
+
+} // end of class System.Runtime.CompilerServices.NullableAttribute
+";
+
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+class B : A
+{
+    public override C<string, string?> M1()
+    {
+        return new C<string, string?>();
+    } 
+}
+";
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, new[] { CompileIL(ilSource, appendDefaultHeader:false) },
+                                                            options: TestOptions.ReleaseDll, 
+                                                            parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            var m1 = compilation.GetTypeByMetadataName("B").GetMember<MethodSymbol>("M1");
+            Assert.Equal("C<System.String? modopt(System.Runtime.CompilerServices.IsConst), System.String>", m1.OverriddenMethod.ReturnType.ToTestDisplayString());
+            Assert.Equal("C<System.String modopt(System.Runtime.CompilerServices.IsConst), System.String?>", m1.ReturnType.ToTestDisplayString());
+
+            compilation.VerifyDiagnostics(
+    // (11,40): warning CS8209: Nullability of reference types in return type doesn't match overridden member.
+    //     public override C<string, string?> M1()
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M1").WithLocation(11, 40)
+                );
+        }
+
+        [Fact]
         public void Implementing_07()
         {
             var source = @"
