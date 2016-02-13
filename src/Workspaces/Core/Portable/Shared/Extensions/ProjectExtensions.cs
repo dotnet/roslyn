@@ -38,13 +38,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return version.GetNewerVersion(latestVersion);
         }
-
-        public static Glyph GetGlyph(this Project project)
-        {
-            // TODO: Get the glyph from the hierarchy
-            return project.Language == LanguageNames.CSharp      ? Glyph.CSharpProject :
-                   project.Language == LanguageNames.VisualBasic ? Glyph.BasicProject :
-                                                                   Glyph.Assembly;
-        }
     }
 }
