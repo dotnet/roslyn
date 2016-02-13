@@ -1409,7 +1409,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Friend Partial Class BoundPropertyAccess
-        Implements IPropertyReferenceExpression
+        Implements IIndexedPropertyReferenceExpression
 
         Private ReadOnly Property IInstance As IOperation Implements IMemberReferenceExpression.Instance
             Get
@@ -1433,16 +1433,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property IArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
+            Get
+                Return BoundCall.DeriveArguments(Me.Arguments, Me.PropertySymbol.Parameters)
+            End Get
+        End Property
+
+        Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
+            Return BoundCall.ArgumentMatchingParameter(Me.Arguments, parameter, Me.PropertySymbol.Parameters)
+        End Function
+
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.PropertyReferenceExpression
+            Return If(Me.Arguments.Length > 0, OperationKind.IndexedPropertyReferenceExpression, OperationKind.PropertyReferenceExpression)
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitPropertyReferenceExpression(Me)
+            visitor.VisitIndexedPropertyReferenceExpression(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitPropertyReferenceExpression(Me, argument)
+            Return visitor.VisitIndexedPropertyReferenceExpression(Me, argument)
         End Function
     End Class
 
@@ -1569,9 +1579,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundConditionalAccess
         Implements IConditionalAccessExpression
 
-        Private ReadOnly Property IAccess As IOperation Implements IConditionalAccessExpression.Access
+        Private ReadOnly Property IValue As IOperation Implements IConditionalAccessExpression.Value
             Get
                 Return Me.AccessExpression
+            End Get
+        End Property
+
+        Private ReadOnly Property IConditionalInstance As IOperation Implements IConditionalAccessExpression.ConditionalInstance
+            Get
+                Return Me.Receiver
             End Get
         End Property
 
@@ -1585,6 +1601,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
             Return visitor.VisitConditionalAccessExpression(Me, argument)
+        End Function
+    End Class
+
+    Partial Friend Class BoundConditionalAccessReceiverPlaceholder
+        Implements IConditionalAccessInstanceExpression
+
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.ConditionalAccessInstanceExpression
+        End Function
+
+        Public Overrides Sub Accept(visitor As OperationVisitor)
+            visitor.VisitConditionalAccessInstanceExpression(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitConditionalAccessInstanceExpression(Me, argument)
         End Function
     End Class
 
@@ -2709,20 +2741,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Friend Partial Class BoundMidResult
-        Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
-    End Class
-
-    Friend Partial Class BoundConditionalAccessReceiverPlaceholder
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function

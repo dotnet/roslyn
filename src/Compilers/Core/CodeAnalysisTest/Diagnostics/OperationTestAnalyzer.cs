@@ -1564,19 +1564,27 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
     }
 
-    public class NullCoalescingOperationTestAnalyzer : DiagnosticAnalyzer
+    public class ConditionalAccessOperationTestAnalyzer : DiagnosticAnalyzer
     {
-        public static readonly DiagnosticDescriptor NullCoalescingOperationDescriptor = new DiagnosticDescriptor(
-            "NullCoalescingOperation",
-            "Null coalescing operation found",
-            "Null coalescing operation was found",
-            "Testing",
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true);
+        public static readonly DiagnosticDescriptor ConditionalAccessOperationDescriptor = new DiagnosticDescriptor(
+           "ConditionalAccessOperation",
+           "Conditional access operation found",
+           "Conditional access operation was found",
+           "Testing",
+           DiagnosticSeverity.Warning,
+           isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor ConditionalAccessInstanceOperationDescriptor = new DiagnosticDescriptor(
+           "ConditionalAccessInstanceOperation",
+           "Conditional access instance operation found",
+           "Conditional access instance operation was found",
+           "Testing",
+           DiagnosticSeverity.Warning,
+           isEnabledByDefault: true);
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
-            get { return ImmutableArray.Create(NullCoalescingOperationDescriptor); }
+            get { return ImmutableArray.Create(ConditionalAccessOperationDescriptor, ConditionalAccessInstanceOperationDescriptor); }
         }
 
         public sealed override void Initialize(AnalysisContext context)
@@ -1584,10 +1592,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterOperationAction(
                  (operationContext) =>
                  {
-                     INullCoalescingExpression coalescing = (INullCoalescingExpression)operationContext.Operation;
-                     operationContext.ReportDiagnostic(Diagnostic.Create(NullCoalescingOperationDescriptor, coalescing.Syntax.GetLocation()));
+                     IConditionalAccessExpression conditionalAccess = (IConditionalAccessExpression)operationContext.Operation;
+                     if (conditionalAccess.Value != null && conditionalAccess.ConditionalInstance != null)
+                     {
+                         operationContext.ReportDiagnostic(Diagnostic.Create(ConditionalAccessOperationDescriptor, conditionalAccess.Syntax.GetLocation()));
+                     }
                  },
-                 OperationKind.NullCoalescingExpression);
+                 OperationKind.ConditionalAccessExpression);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     IConditionalAccessInstanceExpression conditionalAccessInstance = (IConditionalAccessInstanceExpression)operationContext.Operation;
+                     operationContext.ReportDiagnostic(Diagnostic.Create(ConditionalAccessInstanceOperationDescriptor, conditionalAccessInstance.Syntax.GetLocation()));
+                 },
+                 OperationKind.ConditionalAccessInstanceExpression);
         }
     }
 }

@@ -113,6 +113,8 @@ namespace Microsoft.CodeAnalysis
         MethodBindingExpression = 0x23,
         /// <summary>Indicates an <see cref="IPropertyReferenceExpression"/>.</summary>
         PropertyReferenceExpression = 0x24,
+        /// <summary>Indicates an <see cref="IIndexedPropertyReferenceExpression"/>.</summary>
+        IndexedPropertyReferenceExpression = 0x4f,
         /// <summary>Indicates an <see cref="IEventReferenceExpression"/>.</summary>
         EventReferenceExpression = 0x25,
         /// <summary>Indicates an <see cref="ILateBoundMemberReferenceExpression"/>.</summary>
@@ -175,6 +177,9 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>Indicates an <see cref="IConditionalAccessExpression"/>.</summary>
         ConditionalAccessExpression = 0x40,
+        /// <summary>Indicates an <see cref="IConditionalAccessInstanceExpression"/>.</summary>
+        ConditionalAccessInstanceExpression = 0x4e,
+
         /// <summary>Indicates an <see cref="IIncrementExpression"/>.</summary>
         IncrementExpression = 0x41,
 

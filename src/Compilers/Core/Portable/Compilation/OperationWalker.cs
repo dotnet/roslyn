@@ -261,7 +261,18 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitConditionalAccessExpression(IConditionalAccessExpression operation)
         {
-            Visit(operation.Access);
+            Visit(operation.Value);
+            Visit(operation.ConditionalInstance);
+        }
+
+        public override void VisitConditionalAccessInstanceExpression(IConditionalAccessInstanceExpression operation)
+        {
+        }
+
+        public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
+        {
+            Visit(operation.Instance);
+            VisitArray(operation.ArgumentsInParameterOrder);
         }
 
         public override void VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)

@@ -264,6 +264,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a reference to an indexed property.
+    /// </summary>
+    public interface IIndexedPropertyReferenceExpression : IPropertyReferenceExpression, IHasArgumentsExpression
+    {
+    }
+
+    /// <summary>
     /// Represents a reference to an event.
     /// </summary>
     public interface IEventReferenceExpression : IMemberReferenceExpression
@@ -306,9 +313,20 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IConditionalAccessExpression : IOperation
     {
         /// <summary>
-        /// Expression subject to conditional access.
+        /// Expression containing the conditional access.
         /// </summary>
-        IOperation Access { get; }
+        IOperation Value { get; }
+        /// <summary>
+        /// Expresson that is conditionally accessed.
+        /// </summary>
+        IOperation ConditionalInstance { get; }
+    }
+
+    /// <summary>
+    /// Represents the value of a conditionally-accessed expression within an expression containing a conditional access.
+    /// </summary>
+    public interface IConditionalAccessInstanceExpression : IOperation
+    {
     }
 
     /// <summary>
