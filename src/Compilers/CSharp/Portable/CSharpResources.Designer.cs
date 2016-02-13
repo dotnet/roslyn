@@ -3806,6 +3806,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Explicit application of &apos;System.Runtime.CompilerServices.NullableAttribute&apos; is not allowed..
+        /// </summary>
+        internal static string ERR_ExplicitNullableAttribute {
+            get {
+                return ResourceManager.GetString("ERR_ExplicitNullableAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Do not use &apos;System.ParamArrayAttribute&apos;. Use the &apos;params&apos; keyword instead..
         /// </summary>
         internal static string ERR_ExplicitParamArray {
