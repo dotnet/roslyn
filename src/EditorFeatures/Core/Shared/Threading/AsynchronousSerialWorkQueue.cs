@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Threading
     //
     // 1) Background actions are run serially.  This allows you to enqueue a whole host of background
     // work to do, without having to worry about those same background tasks running simultaneously 
-    // and mungeing each other inappropriately.
+    // and colliding with each other.
     //
     // 2) You can start a 'chain' of actions starting with an action that fires after a delay. After
     // that point you can continue adding actions to that chain.  You can then ask to wait until that

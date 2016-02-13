@@ -5,6 +5,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.UseAutoProperty
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -18,7 +19,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
             Return Utilities.GetNodeToRemove(identifier)
         End Function
 
-        Protected Overrides Async Function UpdatePropertyAsync(project As Project,
+        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of IFormattingRule)
+            Return Nothing
+        End Function
+
+        Protected Overrides Async Function UpdatePropertyAsync(propertyDocument As Document,
                                                          compilation As Compilation,
                                                          fieldSymbol As IFieldSymbol,
                                                          propertySymbol As IPropertySymbol,
@@ -27,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
                                                          cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim statement = propertyDeclaration.PropertyStatement
             If Not isWrittenToOutsideOfConstructor AndAlso Not propertyDeclaration.Accessors.Any(SyntaxKind.SetAccessorBlock) Then
-                Dim generator = SyntaxGenerator.GetGenerator(project)
+                Dim generator = SyntaxGenerator.GetGenerator(propertyDocument.Project)
                 statement = DirectCast(generator.WithModifiers(statement, DeclarationModifiers.ReadOnly), PropertyStatementSyntax)
             End If
 

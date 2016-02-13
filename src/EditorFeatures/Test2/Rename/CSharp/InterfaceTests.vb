@@ -2,8 +2,8 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class InterfaceTests
-        <WorkItem(546205)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(546205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546205")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameExplicitlyImplementedInterfaceMemberFromDefinition()
             Using result = RenameEngineResult.Create(
                     <Workspace>
@@ -25,8 +25,8 @@ class C : I
             End Using
         End Sub
 
-        <WorkItem(546205)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(546205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546205")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameExplicitlyImplementedInterfaceMemberFromImplementation()
             Using result = RenameEngineResult.Create(
                     <Workspace>
@@ -48,8 +48,8 @@ class C : I
             End Using
         End Sub
 
-        <WorkItem(546205)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(546205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546205")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameExplicitlyImplementedInterfaceMemberWithInterfaceInNamespace()
             Using result = RenameEngineResult.Create(
                     <Workspace>
@@ -74,7 +74,7 @@ class C : N.I
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInterfaceForExplicitlyImplementedInterfaceMemberWithInterfaceInNamespace()
             Using result = RenameEngineResult.Create(
                     <Workspace>

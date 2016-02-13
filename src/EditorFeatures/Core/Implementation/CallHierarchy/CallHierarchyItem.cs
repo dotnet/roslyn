@@ -8,7 +8,6 @@ using System.Threading;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
 using Microsoft.VisualStudio.Language.CallHierarchy;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 {

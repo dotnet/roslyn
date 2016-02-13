@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary> 
         /// <remarks>
         /// If multiple script variables are defined in the script (in distinct submissions) returns the last one.
-        /// Namve lookup is case sensitive in C# scripts and case insensitive in VB scripts.
+        /// Name lookup is case sensitive in C# scripts and case insensitive in VB scripts.
         /// </remarks>
         /// <returns><see cref="ScriptVariable"/> or null, if no variable of the specified <paramref name="name"/> is defined in the script.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="name"/> is null.</exception>
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         public Task<ScriptState<TResult>> ContinueWithAsync<TResult>(string code, ScriptOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Script.ContinueWith<TResult>(code, options).ContinueAsync(this, cancellationToken);
+            return Script.ContinueWith<TResult>(code, options).RunFromAsync(this, cancellationToken);
         }
 
         // How do we resolve overloads? We should use the language semantics.
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         public new T ReturnValue { get; }
         internal override object GetReturnValue() => ReturnValue;
 
-        internal ScriptState(ScriptExecutionState executionState, T value, Script script) 
+        internal ScriptState(ScriptExecutionState executionState, T value, Script script)
             : base(executionState, script)
         {
             ReturnValue = value;

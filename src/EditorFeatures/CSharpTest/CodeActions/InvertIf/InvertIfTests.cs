@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -11,11 +12,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
 {
     public class InvertIfTests : AbstractCSharpCodeActionTest
     {
-        private void TestFixOne(
+        private async Task TestFixOneAsync(
             string initial,
             string expected)
         {
-            Test(CreateTreeText(initial), CreateTreeText(expected), index: 0);
+            await TestAsync(CreateTreeText(initial), CreateTreeText(expected), index: 0);
         }
 
         protected override object CreateCodeRefactoringProvider(Workspace workspace)
@@ -35,218 +36,218 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
 }";
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestIdentifier()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestIdentifier()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (a) { a(); } else { b(); }",
 @"if (!a) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestNotIdentifier()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestNotIdentifier()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (!a) { a(); } else { b(); }",
 @"if (a) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestEqualsEquals()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestEqualsEquals()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (a == b) { a(); } else { b(); }",
 @"if (a != b) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestNotEquals()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestNotEquals()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (a != b) { a(); } else { b(); }",
 @"if (a == b) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestGreaterThan()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestGreaterThan()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (a > b) { a(); } else { b(); }",
 @"if (a <= b) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestGreaterThanEquals()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestGreaterThanEquals()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (a >= b) { a(); } else { b(); }",
 @"if (a < b) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestLessThan()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestLessThan()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (a < b) { a(); } else { b(); }",
 @"if (a >= b) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestLessThanEquals()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestLessThanEquals()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (a <= b) { a(); } else { b(); }",
 @"if (a > b) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestParens()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestParens()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if ((a)) { a(); } else { b(); }",
 @"if (!a) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestIs()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestIs()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (a is Foo) { a(); } else { b(); }",
 @"if (!(a is Foo)) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestCall()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestCall()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (a.Foo()) { a(); } else { b(); }",
 @"if (!a.Foo()) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestOr()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestOr()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (a || b) { a(); } else { b(); }",
 @"if (!a && !b) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestOr2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestOr2()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (!a || !b) { a(); } else { b(); }",
 @"if (a && b) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestAnd()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestAnd()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (a && b) { a(); } else { b(); }",
 @"if (!a || !b) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestAnd2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestAnd2()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (!a && !b) { a(); } else { b(); }",
 @"if (a || b) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestParenthesizeAndForPrecedence()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestParenthesizeAndForPrecedence()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (a && b || c) { a(); } else { b(); }",
 @"if ((!a || !b) && !c) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestPlus()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestPlus()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (a + b) { a(); } else { b(); }",
 @"if (!(a + b)) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestTrue()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestTrue()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (true) { a(); } else { b(); }",
 @"if (false) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestFalse()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestFalse()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (false) { a(); } else { b(); }",
 @"if (true) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestTrueAndFalse()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestTrueAndFalse()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (true && false) { a(); } else { b(); }",
 @"if (false || true) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestCurlies1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestCurlies1()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (a) a(); else b();",
 @"if (!a) b(); else a();");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestCurlies2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestCurlies2()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (a) { a(); } else b();",
 @"if (!a) b(); else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestCurlies3()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestCurlies3()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (a) a(); else { b(); }",
 @"if (!a) { b(); } else a();");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestIfElseIf()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestIfElseIf()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (a) { a(); } else if (b) { b(); }",
 @"if (!a) { if (b) { b(); } } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestIfElseIf2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestIfElseIf2()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (a) { a(); } else if (b) { b(); } else { c(); }",
 @"if (!a) { if (b) { b(); } else { c(); } } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestNested()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestNested()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (((a == b) && (c != d)) || ((e < f) && (!g))) { a(); } else { b(); }",
 @"if ((a != b || c == d) && (e >= f || g)) { b(); } else { a(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestKeepTriviaWithinExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestKeepTriviaWithinExpression()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"[||]if (a ||
     b &&
     c < // comment
@@ -271,17 +272,17 @@ else
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestMissingOnNonEmptySpan()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestMissingOnNonEmptySpan()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class C { void F() { [|if (a) { a(); } else { b(); }|] } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestOverlapsHiddenPosition1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestOverlapsHiddenPosition1()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"
 class C 
 {
@@ -294,10 +295,10 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestOverlapsHiddenPosition2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestOverlapsHiddenPosition2()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"
 class C 
 {
@@ -317,10 +318,10 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestOverlapsHiddenPosition3()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestOverlapsHiddenPosition3()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"
 class C 
 {
@@ -340,10 +341,10 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestOverlapsHiddenPosition4()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestOverlapsHiddenPosition4()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"
 class C 
 {
@@ -363,10 +364,10 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestOverlapsHiddenPosition5()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestOverlapsHiddenPosition5()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"
 class C 
 {
@@ -386,10 +387,10 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestOverlapsHiddenPosition6()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestOverlapsHiddenPosition6()
         {
-            Test(
+            await TestAsync(
 @"
 #line hidden
 class C 
@@ -427,10 +428,10 @@ class C
 }", compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestOverlapsHiddenPosition7()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestOverlapsHiddenPosition7()
         {
-            Test(
+            await TestAsync(
 @"
 #line hidden
 class C 
@@ -472,113 +473,113 @@ class C
 #line default", compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestSimplifyToLengthEqualsZero()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestSimplifyToLengthEqualsZero()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"string x; [||]if (x.Length > 0) { GreaterThanZero(); } else { EqualsZero(); } } } ",
 @"string x; if (x.Length == 0) { EqualsZero(); } else { GreaterThanZero(); } } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestSimplifyToLengthEqualsZero2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestSimplifyToLengthEqualsZero2()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"string[] x; [||]if (x.Length > 0) { GreaterThanZero(); } else { EqualsZero(); } } } ",
 @"string[] x; if (x.Length == 0) { EqualsZero(); } else { GreaterThanZero(); } } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestSimplifyToLengthEqualsZero3()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestSimplifyToLengthEqualsZero3()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"string x; [||]if (x.Length > 0x0) { a(); } else { b(); } } } ",
 @"string x; if (x.Length == 0x0) { b(); } else { a(); } } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestSimplifyToLengthEqualsZero4()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestSimplifyToLengthEqualsZero4()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"string x; [||]if (0 < x.Length) { a(); } else { b(); } } } ",
 @"string x; if (0 == x.Length) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestSimplifyToLengthEqualsZero5()
+        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestSimplifyToLengthEqualsZero5()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"byte x = 1; [||]if (0 < x) { a(); } else { b(); } } } ",
 @"byte x = 1; if (0 == x) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestSimplifyToLengthEqualsZero6()
+        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestSimplifyToLengthEqualsZero6()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"ushort x = 1; [||]if (0 < x) { a(); } else { b(); } } } ",
 @"ushort x = 1; if (0 == x) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestSimplifyToLengthEqualsZero7()
+        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestSimplifyToLengthEqualsZero7()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"uint x = 1; [||]if (0 < x) { a(); } else { b(); } } } ",
 @"uint x = 1; if (0 == x) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestSimplifyToLengthEqualsZero8()
+        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestSimplifyToLengthEqualsZero8()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"ulong x = 1; [||]if (0 < x) { a(); } else { b(); } } } ",
 @"ulong x = 1; if (0 == x) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestSimplifyToLengthEqualsZero9()
+        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestSimplifyToLengthEqualsZero9()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"ulong x = 1; [||]if (0 == x) { a(); } else { b(); } } } ",
 @"ulong x = 1; if (0 < x) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestSimplifyToLengthEqualsZero10()
+        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestSimplifyToLengthEqualsZero10()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"ulong x = 1; [||]if (x == 0) { a(); } else { b(); } } } ",
 @"ulong x = 1; if (x > 0) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(530505)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestSimplifyToLengthEqualsZero11()
+        [WorkItem(530505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530505")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestSimplifyToLengthEqualsZero11()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"string[] x; [||]if (x.LongLength > 0) { GreaterThanZero(); } else { EqualsZero(); } } } ",
 @"string[] x; if (x.LongLength == 0) { EqualsZero(); } else { GreaterThanZero(); } } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestDoesNotSimplifyToLengthEqualsZero()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestDoesNotSimplifyToLengthEqualsZero()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"string x; [||]if (x.Length >= 0) { a(); } else { b(); } } } ",
 @"string x; if (x.Length < 0) { b(); } else { a(); } } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public void TestDoesNotSimplifyToLengthEqualsZero2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestDoesNotSimplifyToLengthEqualsZero2()
         {
-            TestFixOne(
+            await TestFixOneAsync(
 @"string x; [||]if (x.Length > 0.0f) { GreaterThanZero(); } else { EqualsZero(); } } } ",
 @"string x; if (x.Length <= 0.0f) { EqualsZero(); } else { GreaterThanZero(); } } } ");
         }

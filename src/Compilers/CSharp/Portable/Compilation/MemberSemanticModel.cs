@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -767,6 +768,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return _root.SyntaxTree;
             }
+        }
+
+        internal override IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
+        {
+            CSharpSyntaxNode bindableNode;
+
+            BoundNode lowestBoundNode;
+            BoundNode highestBoundNode;
+            BoundNode boundParent;
+
+            GetBoundNodes(node, out bindableNode, out lowestBoundNode, out highestBoundNode, out boundParent);
+            BoundNode result;
+            switch (options)
+            {
+                case GetOperationOptions.Parent:
+                    result = boundParent;
+                    break;
+                case GetOperationOptions.Highest:
+                    result = highestBoundNode;
+                    break;
+                case GetOperationOptions.Lowest:
+                default:
+                    result = lowestBoundNode;
+                    break;
+            }
+
+            return result as IOperation;
         }
 
         internal override SymbolInfo GetSymbolInfoWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))

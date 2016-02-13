@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -30,22 +31,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return new CrefCompletionProvider();
         }
 
-        protected override void VerifyWorker(string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence, bool experimental, int? glyph)
+        protected override async Task VerifyWorkerAsync(string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence, bool experimental, int? glyph)
         {
-            VerifyAtPosition(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
-            VerifyAtEndOfFile(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
+            await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
+            await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
 
             // Items cannot be partially written if we're checking for their absence,
             // or if we're verifying that the list will show up (without specifying an actual item)
             if (!checkForAbsence && expectedItemOrNull != null)
             {
-                VerifyAtPosition_ItemPartiallyWritten(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
-                VerifyAtEndOfFile_ItemPartiallyWritten(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
+                await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
+                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NameCref()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NameCref()
         {
             var text = @"using System;
 namespace Foo
@@ -55,11 +56,11 @@ namespace Foo
     {
     }
 }";
-            VerifyItemExists(text, "AccessViolationException");
+            await VerifyItemExistsAsync(text, "AccessViolationException");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void QualifiedCref()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task QualifiedCref()
         {
             var text = @"using System;
 namespace Foo
@@ -71,11 +72,11 @@ namespace Foo
         void foo() { }
     }
 }";
-            VerifyItemExists(text, "foo");
+            await VerifyItemExistsAsync(text, "foo");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CrefArgumentList()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CrefArgumentList()
         {
             var text = @"using System;
 namespace Foo
@@ -87,12 +88,12 @@ namespace Foo
         void foo(int i) { }
     }
 }";
-            VerifyItemIsAbsent(text, "foo(int)");
-            VerifyItemExists(text, "int");
+            await VerifyItemIsAbsentAsync(text, "foo(int)");
+            await VerifyItemExistsAsync(text, "int");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CrefTypeParameterInArgumentList()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CrefTypeParameterInArgumentList()
         {
             var text = @"using System;
 namespace Foo
@@ -104,11 +105,11 @@ namespace Foo
         void foo(T i) { }
     }
 }";
-            VerifyItemExists(text, "Q");
+            await VerifyItemExistsAsync(text, "Q");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion), WorkItem(530887)]
-        public void PrivateMember()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion), WorkItem(530887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530887")]
+        public async Task PrivateMember()
         {
             var text = @"using System;
 namespace Foo
@@ -124,11 +125,11 @@ namespace Foo
         public int Public;
     }
 }";
-            VerifyItemExists(text, "Private");
+            await VerifyItemExistsAsync(text, "Private");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void AfterSingleQuote()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterSingleQuote()
         {
             var text = @"using System;
 namespace Foo
@@ -138,24 +139,24 @@ namespace Foo
     {
     }
 }";
-            VerifyItemExists(text, "Exception");
+            await VerifyItemExistsAsync(text, "Exception");
         }
 
-        [WorkItem(531315)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void EscapePredefinedTypeName()
+        [WorkItem(531315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531315")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EscapePredefinedTypeName()
         {
             var text = @"using System;
 /// <see cref=""@vo$$""/>
 class @void { }
 ";
-            VerifyItemExists(text, "@void");
+            await VerifyItemExistsAsync(text, "@void");
         }
 
-        [WorkItem(531345)]
-        [WorkItem(598159)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void ShowParameterNames()
+        [WorkItem(531345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531345")]
+        [WorkItem(598159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598159")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ShowParameterNames()
         {
             var text = @"/// <see cref=""C.$$""/>
 class C
@@ -166,14 +167,14 @@ class C
 }
 
 ";
-            VerifyItemExists(text, "M(int)");
-            VerifyItemExists(text, "M(ref long)");
-            VerifyItemExists(text, "M{T}(T)");
+            await VerifyItemExistsAsync(text, "M(int)");
+            await VerifyItemExistsAsync(text, "M(ref long)");
+            await VerifyItemExistsAsync(text, "M{T}(T)");
         }
 
-        [WorkItem(531345)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void ShowTypeParameterNames()
+        [WorkItem(531345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531345")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ShowTypeParameterNames()
         {
             var text = @"/// <see cref=""C$$""/>
 class C<TFoo>
@@ -184,12 +185,12 @@ class C<TFoo>
 }
 
 ";
-            VerifyItemExists(text, "C{TFoo}");
+            await VerifyItemExistsAsync(text, "C{TFoo}");
         }
 
-        [WorkItem(531156)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void ShowConstructors()
+        [WorkItem(531156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531156")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ShowConstructors()
         {
             var text = @"using System;
 
@@ -204,14 +205,14 @@ class C<T>
 }
 
 ";
-            VerifyItemExists(text, "C");
-            VerifyItemExists(text, "C(T)");
-            VerifyItemExists(text, "C(int)");
+            await VerifyItemExistsAsync(text, "C");
+            await VerifyItemExistsAsync(text, "C(T)");
+            await VerifyItemExistsAsync(text, "C(int)");
         }
 
-        [WorkItem(598679)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NoParamsModifier()
+        [WorkItem(598679, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598679")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NoParamsModifier()
         {
             var text = @"/// <summary>
 /// <see cref=""C.$$""/>
@@ -224,24 +225,24 @@ class C
 
 
 ";
-            VerifyItemExists(text, "M(long[])");
+            await VerifyItemExistsAsync(text, "M(long[])");
         }
 
-        [WorkItem(607773)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void UnqualifiedTypes()
+        [WorkItem(607773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607773")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task UnqualifiedTypes()
         {
             var text = @"
 using System.Collections.Generic;
 /// <see cref=""List{T}.$$""/>
 class C { }
 ";
-            VerifyItemExists(text, "Enumerator");
+            await VerifyItemExistsAsync(text, "Enumerator");
         }
 
-        [WorkItem(607773)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CommitUnqualifiedTypes()
+        [WorkItem(607773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607773")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitUnqualifiedTypes()
         {
             var text = @"
 using System.Collections.Generic;
@@ -254,12 +255,12 @@ using System.Collections.Generic;
 /// <see cref=""List{T}.Enumerator ""/>
 class C { }
 ";
-            VerifyProviderCommit(text, "Enumerator", expected, ' ', "Enum");
+            await VerifyProviderCommitAsync(text, "Enumerator", expected, ' ', "Enum");
         }
 
-        [WorkItem(642285)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SuggestOperators()
+        [WorkItem(642285, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642285")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SuggestOperators()
         {
             var text = @"
 class Test
@@ -283,15 +284,15 @@ class Test
     }
 }
 ";
-            VerifyItemExists(text, "operator !(Test)");
-            VerifyItemExists(text, "operator +(Test, Test)");
-            VerifyItemExists(text, "operator true(Test)");
-            VerifyItemExists(text, "operator false(Test)");
+            await VerifyItemExistsAsync(text, "operator !(Test)");
+            await VerifyItemExistsAsync(text, "operator +(Test, Test)");
+            await VerifyItemExistsAsync(text, "operator true(Test)");
+            await VerifyItemExistsAsync(text, "operator false(Test)");
         }
 
-        [WorkItem(641096)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SuggestIndexers()
+        [WorkItem(641096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641096")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SuggestIndexers()
         {
             var text = @"
 /// <see cref=""thi$$""/>
@@ -305,12 +306,12 @@ class Program
     }
 }
 ";
-            VerifyItemExists(text, "this[int]");
+            await VerifyItemExistsAsync(text, "this[int]");
         }
 
-        [WorkItem(531315)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CommitEscapedPredefinedTypeName()
+        [WorkItem(531315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531315")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitEscapedPredefinedTypeName()
         {
             var text = @"using System;
 /// <see cref=""@vo$$""/>
@@ -321,12 +322,12 @@ class @void { }
 /// <see cref=""@void ""/>
 class @void { }
 ";
-            VerifyProviderCommit(text, "@void", expected, ' ', "@vo");
+            await VerifyProviderCommitAsync(text, "@void", expected, ' ', "@vo");
         }
 
-        [WorkItem(598159)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void RefOutModifiers()
+        [WorkItem(598159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598159")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RefOutModifiers()
         {
             var text = @"/// <summary>
 /// <see cref=""C.$$""/>
@@ -338,13 +339,13 @@ class C
 }
 
 ";
-            VerifyItemExists(text, "M(ref int)");
-            VerifyItemExists(text, "M(out long)");
+            await VerifyItemExistsAsync(text, "M(ref int)");
+            await VerifyItemExistsAsync(text, "M(out long)");
         }
 
-        [WorkItem(673587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NestedNamespaces()
+        [WorkItem(673587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673587")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NestedNamespaces()
         {
             var text = @"namespace N
 {
@@ -368,13 +369,13 @@ class Program
 
     }
 }";
-            VerifyItemExists(text, "N");
-            VerifyItemExists(text, "C");
+            await VerifyItemExistsAsync(text, "N");
+            await VerifyItemExistsAsync(text, "C");
         }
 
-        [WorkItem(730338)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void PermitTypingTypeParameters()
+        [WorkItem(730338, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730338")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PermitTypingTypeParameters()
         {
             var text = @"
 using System.Collections.Generic;
@@ -387,12 +388,12 @@ using System.Collections.Generic;
 /// <see cref=""List{""/>
 class C { }
 ";
-            VerifyProviderCommit(text, "List{T}", expected, '{', "List");
+            await VerifyProviderCommitAsync(text, "List{T}", expected, '{', "List");
         }
 
-        [WorkItem(730338)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void PermitTypingParameterTypes()
+        [WorkItem(730338, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730338")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PermitTypingParameterTypes()
         {
             var text = @"
 using System.Collections.Generic;
@@ -411,11 +412,11 @@ class C
     public void foo(int x) { }
 }
 ";
-            VerifyProviderCommit(text, "foo(int)", expected, '(', "foo");
+            await VerifyProviderCommitAsync(text, "foo(int)", expected, '(', "foo");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CrefCompletionSpeculatesOutsideTrivia()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CrefCompletionSpeculatesOutsideTrivia()
         {
             var text = @"
 /// <see cref=""$$
@@ -423,7 +424,7 @@ class C
 {
 }";
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(PickySemanticFactsService)));
-            using (var workspace = TestWorkspaceFactory.CreateWorkspaceFromFiles(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, exportProvider))
+            using (var workspace = await TestWorkspace.CreateAsync(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, exportProvider))
             {
                 // This test uses MEF to compose in an ISyntaxFactsService that 
                 // asserts it isn't asked to speculate on nodes inside documentation trivia.
@@ -433,7 +434,7 @@ class C
                 var provider = new CrefCompletionProvider();
                 var hostDocument = workspace.DocumentWithCursor;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var completionList = GetCompletionList(provider, document, hostDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
+                var completionList = await GetCompletionListAsync(provider, document, hostDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
             }
         }
 
@@ -906,6 +907,11 @@ class C
             }
 
             public TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+
+            public string GetNameForArgument(SyntaxNode argument)
             {
                 throw new NotImplementedException();
             }

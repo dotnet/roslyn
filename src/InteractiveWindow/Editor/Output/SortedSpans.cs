@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 // If span is not found in _span, BinarySearch returns a negative number that is the 
                 // bitwise complement of the index of the next span with larger starting index, or if
                 // there is no such span, the bitwise complement of _span.Count.   
-                
+
                 // Try get the span before the one with next larger starting index on in the list,
                 // unless the first span is the next larger one, then we just get the first one. 
                 if (startIndex < 0)

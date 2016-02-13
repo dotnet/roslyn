@@ -215,7 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         /// </summary>
         /// <param name="container">The <see cref="SyntaxNode"/> from which to retrieve members.</param>
         /// <param name="includeSelf">If true, the container is returned as well.</param>
-        /// <param name="recursive">If true, members are recursed to return descendent members as well
+        /// <param name="recursive">If true, members are recursed to return descendant members as well
         /// as immediate children. For example, a namespace would return the namespaces and types within.
         /// However, if <paramref name="recursive"/> is true, members with the namespaces and types would
         /// also be returned.</param>
@@ -549,7 +549,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var optionSet = workspace.Services.GetService<IOptionService>().GetOptions();
 
             // Rename symbol.
-            var newSolution = Renamer.RenameSymbolAsync(solution, symbol, newName, optionSet).WaitAndGetResult(CancellationToken.None);
+            var newSolution = Renamer.RenameSymbolAsync(solution, symbol, newName, optionSet).WaitAndGetResult_CodeModel(CancellationToken.None);
             var changedDocuments = newSolution.GetChangedDocuments(solution);
 
             // Notify third parties of the coming rename operation and let exceptions propagate out
@@ -647,7 +647,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 if (location.IsInSource)
                 {
-                    compilation = compilation ?? project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                    compilation = compilation ?? project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None);
 
                     if (compilation.ContainsSyntaxTree(location.SourceTree))
                     {
@@ -1151,7 +1151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private Document FormatAnnotatedNode(Document document, SyntaxAnnotation annotation, IEnumerable<IFormattingRule> additionalRules, CancellationToken cancellationToken)
         {
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult_CodeModel(cancellationToken);
             var annotatedNode = root.GetAnnotatedNodesAndTokens(annotation).Single().AsNode();
             var formattingSpan = GetSpanToFormat(root, annotatedNode.FullSpan);
 
@@ -1166,7 +1166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 new TextSpan[] { formattingSpan },
                 options: null,
                 rules: formattingRules,
-                cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+                cancellationToken: cancellationToken).WaitAndGetResult_CodeModel(cancellationToken);
         }
 
         private SyntaxNode InsertNode(
@@ -1179,7 +1179,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             CancellationToken cancellationToken,
             out Document newDocument)
         {
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult_CodeModel(cancellationToken);
 
             // Annotate the member we're inserting so we can get back to it.
             var annotation = new SyntaxAnnotation();
@@ -1199,7 +1199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (!batchMode)
             {
-                document = Simplifier.ReduceAsync(document, annotation, optionSet: null, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+                document = Simplifier.ReduceAsync(document, annotation, optionSet: null, cancellationToken: cancellationToken).WaitAndGetResult_CodeModel(cancellationToken);
             }
 
             document = FormatAnnotatedNode(document, annotation, new[] { _lineAdjustmentFormattingRule, _endRegionFormattingRule }, cancellationToken);
@@ -1209,7 +1209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // new node
             return document
-                .GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+                .GetSyntaxRootAsync(cancellationToken).WaitAndGetResult_CodeModel(cancellationToken)
                 .GetAnnotatedNodesAndTokens(annotation)
                 .Single()
                 .AsNode();
@@ -1233,7 +1233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // REVIEW: how simplifier ever worked for code model? nobody added simplifier.Annotation before?
             var annotatedNode = newNode.WithAdditionalAnnotations(annotation, Simplifier.Annotation);
 
-            var oldRoot = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var oldRoot = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult_CodeModel(cancellationToken);
             var newRoot = oldRoot.ReplaceNode(node, annotatedNode);
 
             document = document.WithSyntaxRoot(newRoot);
@@ -1367,28 +1367,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public virtual IList<string> GetHandledEventNames(SyntaxNode method, SemanticModel semanticModel)
         {
-            // descendents may override (particularly VB).
+            // descendants may override (particularly VB).
 
             return SpecializedCollections.EmptyList<string>();
         }
 
         public virtual bool HandlesEvent(string eventName, SyntaxNode method, SemanticModel semanticModel)
         {
-            // descendents may override (particularly VB).
+            // descendants may override (particularly VB).
 
             return false;
         }
 
         public virtual Document AddHandlesClause(Document document, string eventName, SyntaxNode method, CancellationToken cancellationToken)
         {
-            // descendents may override (particularly VB).
+            // descendants may override (particularly VB).
 
             return document;
         }
 
         public virtual Document RemoveHandlesClause(Document document, string eventName, SyntaxNode method, CancellationToken cancellationToken)
         {
-            // descendents may override (particularly VB).
+            // descendants may override (particularly VB).
 
             return document;
         }

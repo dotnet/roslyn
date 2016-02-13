@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -7,133 +8,133 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     public class IfKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AtRoot_Interactive()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAtRoot_Interactive()
         {
-            VerifyKeyword(SourceCodeKind.Script,
+            await VerifyKeywordAsync(SourceCodeKind.Script,
 @"$$");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterClass_Interactive()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterClass_Interactive()
         {
-            VerifyKeyword(SourceCodeKind.Script,
+            await VerifyKeywordAsync(SourceCodeKind.Script,
 @"class C { }
 $$");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterGlobalStatement_Interactive()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalStatement_Interactive()
         {
-            VerifyKeyword(SourceCodeKind.Script,
+            await VerifyKeywordAsync(SourceCodeKind.Script,
 @"System.Console.WriteLine();
 $$");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterGlobalVariableDeclaration_Interactive()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalVariableDeclaration_Interactive()
         {
-            VerifyKeyword(SourceCodeKind.Script,
+            await VerifyKeywordAsync(SourceCodeKind.Script,
 @"int i = 0;
 $$");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInUsingAlias()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInUsingAlias()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"using Foo = $$");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInPreprocessor1()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInPreprocessor1()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 "#if $$"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void EmptyStatement()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestEmptyStatement()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterHash()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterHash()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"#$$");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterHashFollowedBySkippedTokens()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterHashFollowedBySkippedTokens()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"#$$
 aeu");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterHashAndSpace()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterHashAndSpace()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"# $$");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InsideMethod()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInsideMethod()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void BeforeStatement()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeStatement()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"$$
 return true;"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterStatement()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterStatement()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"return true;
 $$"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterBlock()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterBlock()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"if (true) {
 }
 $$"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotAfterIf()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterIf()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"if $$"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InCase()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInCase()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"switch (true) {
   case 0:
     $$
 }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InCaseBlock()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInCaseBlock()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"switch (true) {
   case 0: {
     $$
@@ -141,20 +142,20 @@ $$"));
 }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InDefaultCase()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInDefaultCase()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"switch (true) {
   default:
     $$
 }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InDefaultCaseBlock()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInDefaultCaseBlock()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"switch (true) {
   default: {
     $$
@@ -162,80 +163,80 @@ $$"));
 }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterLabel()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterLabel()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"label:
   $$"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotAfterDoBlock()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterDoBlock()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"do {
 }
 $$"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InActiveRegion1()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInActiveRegion1()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"#if true
 $$"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InActiveRegion2()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInActiveRegion2()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"#if true
 
 $$"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterElse()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterElse()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"if (foo) {
 } else $$"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterCatch()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterCatch()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"try {} catch $$"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterCatchDeclaration1()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterCatchDeclaration1()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"try {} catch (Exception) $$"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterCatchDeclaration2()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterCatchDeclaration2()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"try {} catch (Exception e) $$"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterCatchDeclarationEmpty()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterCatchDeclarationEmpty()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"try {} catch () $$"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotAfterTryBlock()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterTryBlock()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"try {} $$"));
         }
     }

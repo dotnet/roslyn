@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             // <prompt span><lang span 2>
             // 
             // In the case where the prompts are in the margin we have an insertion conflict between the two language spans.  But because
-            // lang span 1 includes the new line in order to be oun the boundary we need to be on lang span 2's line.
+            // lang span 1 includes the new line in order to be on the boundary we need to be on lang span 2's line.
             // 
             // This works the same way w/ our input buffer where the input buffer present instead of <lang span 2>.
 

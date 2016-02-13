@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Completion
         public OptionSet Options { get; }
         public CancellationToken CancellationToken { get; }
 
-        public CompletionItem Builder => this._builder;
-        public bool IsExclusive => this._isExclusive;
+        public CompletionItem Builder => _builder;
+        public bool IsExclusive => _isExclusive;
 
         public CompletionListContext(
             Document document,
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion
             this.Options = options;
             this.CancellationToken = cancellationToken;
 
-            this._itemsBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
+            _itemsBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
         }
 
         public void AddItem(CompletionItem item)
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public ImmutableArray<CompletionItem> GetItems()
         {
-            return this._itemsBuilder.AsImmutable();
+            return _itemsBuilder.AsImmutable();
         }
 
         public void RegisterBuilder(CompletionItem builder)

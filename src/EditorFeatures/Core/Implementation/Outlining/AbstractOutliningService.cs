@@ -6,19 +6,18 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 {
     internal abstract class AbstractOutliningService : IOutliningService
     {
-        private readonly ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxNodeOutliner>> _nodeOutlinerMap;
-        private readonly ImmutableDictionary<int, ImmutableArray<AbstractSyntaxTriviaOutliner>> _triviaOutlinerMap;
+        private readonly ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxOutliner>> _nodeOutlinerMap;
+        private readonly ImmutableDictionary<int, ImmutableArray<AbstractSyntaxOutliner>> _triviaOutlinerMap;
 
         protected AbstractOutliningService(
-            ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxNodeOutliner>> defaultNodeOutlinerMap,
-            ImmutableDictionary<int, ImmutableArray<AbstractSyntaxTriviaOutliner>> defaultTriviaOutlinerMap)
+            ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxOutliner>> defaultNodeOutlinerMap,
+            ImmutableDictionary<int, ImmutableArray<AbstractSyntaxOutliner>> defaultTriviaOutlinerMap)
         {
             _nodeOutlinerMap = defaultNodeOutlinerMap;
             _triviaOutlinerMap = defaultTriviaOutlinerMap;

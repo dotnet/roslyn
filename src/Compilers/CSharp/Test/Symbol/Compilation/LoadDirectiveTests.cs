@@ -66,12 +66,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var code = "#load \"b.csx\"";
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create<string, object>("a.csx", new byte[] { 0xd8, 0x00, 0x00 }),
+                KeyValuePair.Create<string, object>("a.csx", new byte[] { 0xd8, 0x00, 0x00, 0x00 }),
                 KeyValuePair.Create<string, object>("b.csx", "#load \"a.csx\""));
             var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
             var compilation = CreateCompilationWithMscorlib45(code, sourceFileName: "external1.csx", options: options, parseOptions: TestOptions.Script);
             var external1 = compilation.SyntaxTrees.Last();
-            var external2 = Parse(code, filename: "external2.csx", options: TestOptions.Script);
+            var external2 = Parse(code, "external2.csx", TestOptions.Script);
             compilation = compilation.AddSyntaxTrees(external2);
 
             Assert.Equal(3, compilation.SyntaxTrees.Length);
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // #load "a.csx"
                 Diagnostic(ErrorCode.ERR_BinaryFile, @"""a.csx""").WithArguments("a.csx").WithLocation(1, 7));
 
-            var external4 = Parse("#load \"a.csx\"", filename: "external4.csx", options: TestOptions.Script);
+            var external4 = Parse("#load \"a.csx\"", "external4.csx", TestOptions.Script);
             compilation = compilation.ReplaceSyntaxTree(external3, external4);
 
             Assert.Equal(3, compilation.SyntaxTrees.Length);
@@ -126,6 +126,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,1): error CS8099: Source file references are not supported.
                 // #load "test"
                 Diagnostic(ErrorCode.ERR_SourceFileReferencesNotSupported, @"#load ""test""").WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(6439, "https://github.com/dotnet/roslyn/issues/6439")]
+        public void ErrorInInactiveRegion()
+        {
+            var code = @"
+#if undefined
+#load nothing
+#endif";
+            var compilation = CreateCompilationWithMscorlib45(code, parseOptions: TestOptions.Script);
+
+            Assert.Single(compilation.SyntaxTrees);
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(6698, "https://github.com/dotnet/roslyn/issues/6698")]
+        public void Cycles()
+        {
+            var code = "#load \"a.csx\"";
+            var resolver = TestSourceReferenceResolver.Create(KeyValuePair.Create("a.csx", code));
+            var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
+            var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
+
+            Assert.Equal(2, compilation.SyntaxTrees.Length);
+            compilation.VerifyDiagnostics();
+
+            var newTree = Parse(code, "a.csx", TestOptions.Script);
+            compilation = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.Last(), newTree);
+
+            Assert.Equal(2, compilation.SyntaxTrees.Length);
+            compilation.VerifyDiagnostics();
+
+            compilation = compilation.RemoveSyntaxTrees(newTree);
+
+            Assert.Empty(compilation.SyntaxTrees);
+            compilation.VerifyDiagnostics();
+
+            resolver = TestSourceReferenceResolver.Create(
+                KeyValuePair.Create("a.csx", "#load \"b.csx\""),
+                KeyValuePair.Create("b.csx", code));
+            options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
+            compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
+
+            Assert.Equal(3, compilation.SyntaxTrees.Length);
+            compilation.VerifyDiagnostics();
+
+            newTree = Parse(code, "a.csx", TestOptions.Script);
+            compilation = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.Last(), newTree);
+
+            Assert.Equal(3, compilation.SyntaxTrees.Length);
+            compilation.VerifyDiagnostics();
+
+            compilation = compilation.RemoveSyntaxTrees(newTree);
+
+            Assert.Empty(compilation.SyntaxTrees);
+            compilation.VerifyDiagnostics();
         }
     }
 }

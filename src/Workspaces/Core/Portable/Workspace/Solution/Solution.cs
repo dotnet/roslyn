@@ -1652,13 +1652,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution WithDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
+            return WithDocumentTextLoader(documentId, loader, textOpt: null, mode: mode);
+        }
+
+        internal Solution WithDocumentTextLoader(DocumentId documentId, TextLoader loader, SourceText textOpt, PreservationMode mode)
+        {
             CheckContainsDocument(documentId);
 
             var oldDocument = this.GetDocumentState(documentId);
 
             // assumes that text has changed. user could have closed a doc without saving and we are loading text from closed file with
             // old content. also this should make sure we don't re-use latest doc version with data associated with opened document.
-            return this.WithDocumentState(oldDocument.UpdateText(loader, mode), textChanged: true, recalculateDependentVersions: true);
+            return this.WithDocumentState(oldDocument.UpdateText(loader, textOpt, mode), textChanged: true, recalculateDependentVersions: true);
         }
 
         /// <summary>
@@ -1754,9 +1759,6 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<string, ImmutableArray<DocumentId>> newLinkedFilesMap = null,
             bool forkTracker = true)
         {
-            // make sure we are getting only known translate actions
-            CompilationTranslationAction.CheckKnownActions(translate);
-
             var projectId = newProjectState.Id;
 
             var newStateMap = _projectIdToProjectStateMap.SetItem(projectId, newProjectState);
@@ -2018,6 +2020,13 @@ namespace Microsoft.CodeAnalysis
                 : SpecializedTasks.Default<Compilation>();
         }
 
+        internal Task<bool> HasCompleteReferencesAsync(Project project, CancellationToken cancellationToken)
+        {
+            return project.SupportsCompilation
+                ? this.GetCompilationTracker(project.Id).HasCompleteReferencesAsync(this, cancellationToken)
+                : SpecializedTasks.False;
+        }
+
         private static readonly ConditionalWeakTable<MetadataReference, ProjectId> s_metadataReferenceToProjectMap =
             new ConditionalWeakTable<MetadataReference, ProjectId>();
 
@@ -2120,7 +2129,7 @@ namespace Microsoft.CodeAnalysis
                 return result.Value;
             }
 
-            // it looks like declaration compilation doesnt exist yet. we have to build full compilation
+            // it looks like declaration compilation doesn't exist yet. we have to build full compilation
             var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
             if (compilation == null)
             {
@@ -2131,7 +2140,7 @@ namespace Microsoft.CodeAnalysis
             return compilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
         }
 
-        internal async Task<IEnumerable<Document>> GetDocumentsWithName(ProjectId id, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        internal async Task<IEnumerable<Document>> GetDocumentsWithNameAsync(ProjectId id, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
         {
             // this will be used to find documents that contain declaration information in IDE cache such as DeclarationSyntaxTreeInfo for "NavigateTo"
             var trees = GetCompilationTracker(id).GetSyntaxTreesWithNameFromDeclarationOnlyCompilation(predicate, filter, cancellationToken);
@@ -2140,7 +2149,7 @@ namespace Microsoft.CodeAnalysis
                 return ConvertTreesToDocuments(id, trees);
             }
 
-            // it looks like declaration compilation doesnt exist yet. we have to build full compilation
+            // it looks like declaration compilation doesn't exist yet. we have to build full compilation
             var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
             if (compilation == null)
             {

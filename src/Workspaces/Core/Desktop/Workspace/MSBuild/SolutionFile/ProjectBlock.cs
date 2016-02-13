@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var projectTypeGuid = Guid.Parse(scanner.ReadUpToAndEat("\")"));
 
-            // Read chars upto next quote, must contain "=" with optional leading/trailing whitespaces.
+            // Read chars up to next quote, must contain "=" with optional leading/trailing whitespaces.
             if (scanner.ReadUpToAndEat("\"").Trim() != "=")
             {
                 throw new Exception(WorkspacesResources.InvalidProjectBlockInSolutionFile);
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var projectName = scanner.ReadUpToAndEat("\"");
 
-            // Read chars upto next quote, must contain "," with optional leading/trailing whitespaces.
+            // Read chars up to next quote, must contain "," with optional leading/trailing whitespaces.
             if (scanner.ReadUpToAndEat("\"").Trim() != ",")
             {
                 throw new Exception(WorkspacesResources.InvalidProjectBlockInSolutionFile2);
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var projectPath = scanner.ReadUpToAndEat("\"");
 
-            // Read chars upto next quote, must contain "," with optional leading/trailing whitespaces.
+            // Read chars up to next quote, must contain "," with optional leading/trailing whitespaces.
             if (scanner.ReadUpToAndEat("\"").Trim() != ",")
             {
                 throw new Exception(WorkspacesResources.InvalidProjectBlockInSolutionFile3);

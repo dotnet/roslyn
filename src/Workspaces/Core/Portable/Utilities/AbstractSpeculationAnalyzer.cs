@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// the syntax replacement doesn't break the semantics of any parenting nodes of the original expression.
     /// </summary>
     internal abstract class AbstractSpeculationAnalyzer<TSyntaxNode, TExpressionSyntax, TTypeSyntax, TAttributeSyntax,
-        TArgumentSyntax, TForEachStatementSyntax, TThrowStatementSyntax, TSemanticModel>
+        TArgumentSyntax, TForEachStatementSyntax, TThrowStatementSyntax, TSemanticModel, TConversion>
         where TSyntaxNode : SyntaxNode
         where TExpressionSyntax : TSyntaxNode
         where TTypeSyntax : TExpressionSyntax
@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         where TForEachStatementSyntax : TSyntaxNode
         where TThrowStatementSyntax : TSyntaxNode
         where TSemanticModel : SemanticModel
+        where TConversion : struct
     {
         private readonly TExpressionSyntax _expression;
         private readonly TExpressionSyntax _newExpressionForReplace;
@@ -379,10 +380,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 {
                     var type = methodSymbol.ContainingType;
                     var newType = newMethodSymbol.ContainingType;
-                    if ((type != null && type.IsEnumType() &&
-                         type.EnumUnderlyingType != null && type.EnumUnderlyingType.SpecialType == newType.SpecialType) ||
-                        (newType != null && newType.IsEnumType() &&
-                         newType.EnumUnderlyingType != null && newType.EnumUnderlyingType.SpecialType == type.SpecialType))
+                    if ((type != null && newType != null) &&
+                        (
+                            type.IsEnumType() &&
+                            type.EnumUnderlyingType != null &&
+                            type.EnumUnderlyingType.SpecialType == newType.SpecialType) ||
+                        (
+                            newType.IsEnumType() &&
+                            newType.EnumUnderlyingType != null &&
+                            newType.EnumUnderlyingType.SpecialType == type.SpecialType))
                     {
                         return true;
                     }
@@ -396,7 +402,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         /// <summary>
         /// Determines whether performing the given syntax replacement will change the semantics of any parenting expressions
-        /// by performing a bottom up walk from the <see cref="OriginalExpression"/> upto <see cref="SemanticRootOfOriginalExpression"/>
+        /// by performing a bottom up walk from the <see cref="OriginalExpression"/> up to <see cref="SemanticRootOfOriginalExpression"/>
         /// in the original tree and simultaneously walking bottom up from <see cref="ReplacedExpression"/> up to <see cref="SemanticRootOfReplacedExpression"/>
         /// in the speculated syntax tree and performing appropriate semantic comparisons.
         /// </summary>
@@ -1041,5 +1047,41 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             return true;
         }
+
+        protected void GetConversions(
+            TExpressionSyntax originalExpression,
+            ITypeSymbol originalTargetType,
+            TExpressionSyntax newExpression,
+            ITypeSymbol newTargetType,
+            out TConversion? originalConversion,
+            out TConversion? newConversion)
+        {
+            originalConversion = null;
+            newConversion = null;
+
+            if (this.OriginalSemanticModel.GetTypeInfo(originalExpression).Type != null &&
+                this.SpeculativeSemanticModel.GetTypeInfo(newExpression).Type != null)
+            {
+                originalConversion = ClassifyConversion(this.OriginalSemanticModel, originalExpression, originalTargetType);
+                newConversion = ClassifyConversion(this.SpeculativeSemanticModel, newExpression, newTargetType);
+            }
+            else
+            {
+                var originalConvertedTypeSymbol = this.OriginalSemanticModel.GetTypeInfo(originalExpression).ConvertedType;
+                if (originalConvertedTypeSymbol != null)
+                {
+                    originalConversion = ClassifyConversion(this.OriginalSemanticModel, originalConvertedTypeSymbol, originalTargetType);
+                }
+
+                var newConvertedTypeSymbol = this.SpeculativeSemanticModel.GetTypeInfo(newExpression).ConvertedType;
+                if (newConvertedTypeSymbol != null)
+                {
+                    newConversion = ClassifyConversion(this.SpeculativeSemanticModel, newConvertedTypeSymbol, newTargetType);
+                }
+            }
+        }
+
+        protected abstract TConversion ClassifyConversion(TSemanticModel model, TExpressionSyntax expression, ITypeSymbol targetType);
+        protected abstract TConversion ClassifyConversion(TSemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType);
     }
 }

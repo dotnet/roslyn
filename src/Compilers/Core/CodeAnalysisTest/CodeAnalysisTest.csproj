@@ -18,7 +18,7 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
-    <Compile Include="..\..\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
+    <Compile Include="..\..\Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>FusionAssemblyIdentity.cs</Link>
     </Compile>
     <Compile Include="AnalyzerFileReferenceTests.cs" />
@@ -27,7 +27,15 @@
     <Compile Include="Collections\ArrayBuilderTests.cs" />
     <Compile Include="Collections\BoxesTest.cs" />
     <Compile Include="Collections\ByteSequenceComparerTests.cs" />
+    <Compile Include="CryptoBlobParserTests.cs" />
+    <Compile Include="Diagnostics\AnalysisContextInfoTests.cs" />
+    <Compile Include="Diagnostics\BoxingOperationAnalyzer.cs" />
+    <Compile Include="Diagnostics\CouldHaveMoreSpecificTypeAnalyzer.cs" />
     <Compile Include="Diagnostics\DiagnosticLocalizationTests.cs" />
+    <Compile Include="Diagnostics\EmptyArrayAnalyzer.cs" />
+    <Compile Include="Diagnostics\LocalCouldBeConstAnalyzer.cs" />
+    <Compile Include="Diagnostics\OperationTestAnalyzer.cs" />
+    <Compile Include="Diagnostics\FieldCouldBeReadOnlyAnalyzer.cs" />
     <Compile Include="Emit\EmitOptionsTests.cs" />
     <Compile Include="Emit\CustomDebugInfoTests.cs" />
     <Compile Include="InternalUtilities\StreamExtensionsTests.cs" />
@@ -35,9 +43,11 @@
     <Compile Include="MetadataReferences\AssemblyIdentityExtensions.cs" />
     <Compile Include="PEWriter\BlobUtilitiesTests.cs" />
     <Compile Include="PEWriter\BlobTests.cs" />
+    <Compile Include="PEWriter\UsedNamespaceOrTypeTests.cs" />
     <Compile Include="RealParserTests.cs" />
     <Compile Include="SimpleAnalyzerAssemblyLoaderTests.cs" />
-    <Compile Include="Text\LargeEncodedTextTests.cs" />
+    <Compile Include="SourceFileResolverTest.cs" />
+    <Compile Include="Text\LargeTextTests.cs" />
     <Compile Include="Text\SourceTextStreamTests.cs" />
     <Compile Include="XmlDocumentationCommentTextReaderTests.cs" />
   </ItemGroup>
@@ -141,7 +151,7 @@
     </Compile>
     <Compile Include="StringTableTests.cs" />
     <Compile Include="StrongNameProviderTests.cs" />
-    <Compile Include="Text\EncodedStringTextTests.cs" />
+    <Compile Include="Text\StringTextDecodingTests.cs" />
     <Compile Include="Text\SourceTextTests.cs" />
     <Compile Include="Text\StringText_LineTest.cs" />
     <Compile Include="Text\StringTextTest.cs" />

@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -369,7 +370,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.IncompleteMember,
                      SyntaxKind.InheritsStatement,
                      SyntaxKind.ImplementsStatement,
-                     SyntaxKind.ImportsStatement
+                     SyntaxKind.ImportsStatement,
+                     SyntaxKind.EnumMemberDeclaration
                     Return False
 
                 Case Else
@@ -779,6 +781,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return GetSymbolInfoForNode(options, GetBoundNodeSummary(node), binderOpt:=Nothing)
+        End Function
+
+        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
+            Dim summary = GetBoundNodeSummary(node)
+            Dim result As BoundNode
+            Select Case options
+                Case GetOperationOptions.Highest
+                    result = summary.HighestBoundNode
+                Case GetOperationOptions.Parent
+                    result = summary.LowestBoundNodeOfSyntacticParent
+                Case Else
+                    result = summary.LowestBoundNode
+            End Select
+
+            Return TryCast(result, IOperation)
         End Function
 
         Friend Overrides Function GetExpressionTypeInfo(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo

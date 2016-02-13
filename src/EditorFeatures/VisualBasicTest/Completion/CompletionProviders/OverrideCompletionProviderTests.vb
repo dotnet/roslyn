@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
@@ -8,22 +9,23 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProviders
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
 
-Public Class OverrideCompletionProviderTests
-    Inherits AbstractVisualBasicCompletionProviderTests
+Namespace Tests
+    Public Class OverrideCompletionProviderTests
+        Inherits AbstractVisualBasicCompletionProviderTests
 
-    Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-        MyBase.New(workspaceFixture)
-    End Sub
+        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+            MyBase.New(workspaceFixture)
+        End Sub
 
-    Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
-        Return New OverrideCompletionProvider(TestWaitIndicator.Default)
-    End Function
+        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
+            Return New OverrideCompletionProvider(TestWaitIndicator.Default)
+        End Function
 
 #Region "CompletionItem tests"
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub NotOfferedBaseClassMember()
-        Dim text = <a>MustInherit Class Base
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNotOfferedBaseClassMember() As Task
+            Dim text = <a>MustInherit Class Base
     Public MustOverride Sub Foo()
 End Class
 
@@ -38,12 +40,12 @@ Class SomeClass
     Overrides $$
 End Class</a>
 
-        VerifyItemIsAbsent(text.Value, "Foo()", "Sub Base.Foo()")
-    End Sub
+            Await VerifyItemIsAbsentAsync(text.Value, "Foo()", "Sub Base.Foo()")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub IntermediateClassOverriddenMember()
-        Dim text = <a>MustInherit Class Base
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestIntermediateClassOverriddenMember() As Task
+            Dim text = <a>MustInherit Class Base
     Public MustOverride Sub Foo()
 End Class
 
@@ -58,23 +60,23 @@ Class SomeClass
     Overrides $$
 End Class</a>
 
-        VerifyItemExists(text.Value, "Foo()", "Sub Derived.Foo()")
-    End Sub
+            Await VerifyItemExistsAsync(text.Value, "Foo()", "Sub Derived.Foo()")
+        End Function
 
-    <WorkItem(543807)>
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub HideFinalize()
-        Dim text = <a>Class foo
+        <WorkItem(543807, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543807")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestHideFinalize() As Task
+            Dim text = <a>Class foo
     Overrides $$
 End Class</a>
 
-        VerifyItemIsAbsent(text.Value, "Finalize()")
-    End Sub
+            Await VerifyItemIsAbsentAsync(text.Value, "Finalize()")
+        End Function
 
-    <WorkItem(543807)>
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub ShowShadowingFinalize()
-        Dim text = <a>Class foo
+        <WorkItem(543807, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543807")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestShowShadowingFinalize() As Task
+            Dim text = <a>Class foo
     Overridable Shadows Sub Finalize()
     End Sub
 End Class
@@ -85,24 +87,24 @@ Class bar
     overrides $$
 End class</a>
 
-        VerifyItemIsAbsent(text.Value, "foo.Finalize()")
-    End Sub
+            Await VerifyItemIsAbsentAsync(text.Value, "foo.Finalize()")
+        End Function
 
-    <WorkItem(543806)>
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub ShowObjectOverrides()
-        Dim text = <a>Class foo
+        <WorkItem(543806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543806")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestShowObjectOverrides() As Task
+            Dim text = <a>Class foo
     Overrides $$
 End Class</a>
 
-        VerifyItemExists(text.Value, "Equals(obj As Object)")
-        VerifyItemExists(text.Value, "ToString()")
-        VerifyItemExists(text.Value, "GetHashCode()")
-    End Sub
+            Await VerifyItemExistsAsync(text.Value, "Equals(obj As Object)")
+            Await VerifyItemExistsAsync(text.Value, "ToString()")
+            Await VerifyItemExistsAsync(text.Value, "GetHashCode()")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub InheritedOverridableSub()
-        Dim text = <a>Public Class a
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInheritedOverridableSub() As Task
+            Dim text = <a>Public Class a
     Public Overridable Sub foo()
     End Sub
 End Class
@@ -112,12 +114,12 @@ Public Class b
     Overrides $$
 End Class</a>
 
-        VerifyItemExists(text.Value, "foo()")
-    End Sub
+            Await VerifyItemExistsAsync(text.Value, "foo()")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub InheritedOverridableFunction()
-        Dim text = <a>Public Class a
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInheritedOverridableFunction() As Task
+            Dim text = <a>Public Class a
     Public Overridable Function foo() As Integer
         Return 0
     End Function
@@ -128,12 +130,12 @@ Public Class b
     Overrides $$
 End Class</a>
 
-        VerifyItemExists(text.Value, "foo()")
-    End Sub
+            Await VerifyItemExistsAsync(text.Value, "foo()")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub InheritedMustOverrideFunction()
-        Dim text = <a>Public Class a
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInheritedMustOverrideFunction() As Task
+            Dim text = <a>Public Class a
     Public MustOverride Sub foo()
     End Sub
 End Class
@@ -143,12 +145,12 @@ Public Class b
     Overrides $$
 End Class</a>
 
-        VerifyItemExists(text.Value, "foo()")
-    End Sub
+            Await VerifyItemExistsAsync(text.Value, "foo()")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub MatchSub()
-        Dim text = <a>Public Class a
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchSub() As Task
+            Dim text = <a>Public Class a
     Public Overridable Sub foo()
     End Sub
 
@@ -162,13 +164,13 @@ Public Class b
     Overrides Sub $$
 End Class</a>
 
-        VerifyItemExists(text.Value, "foo()")
-        VerifyItemIsAbsent(text.Value, "bar()")
-    End Sub
+            Await VerifyItemExistsAsync(text.Value, "foo()")
+            Await VerifyItemIsAbsentAsync(text.Value, "bar()")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub MatchFunction()
-        Dim text = <a>Public Class a
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchFunction() As Task
+            Dim text = <a>Public Class a
     Public Overridable Sub foo()
     End Sub
 
@@ -182,13 +184,13 @@ Public Class b
     Overrides Function $$
 End Class</a>
 
-        VerifyItemExists(text.Value, "bar()")
-        VerifyItemIsAbsent(text.Value, "foo()")
-    End Sub
+            Await VerifyItemExistsAsync(text.Value, "bar()")
+            Await VerifyItemIsAbsentAsync(text.Value, "foo()")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub DontFilterIfNothingMatchesReturnTypeVoidness()
-        Dim text = <a>MustInherit Class Base
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestDontFilterIfNothingMatchesReturnTypeVoidness() As Task
+            Dim text = <a>MustInherit Class Base
     MustOverride Function Foo() As String
     Protected NotOverridable Overrides Sub Finalize()
         MyBase.Finalize()
@@ -200,13 +202,13 @@ Class Derived
     Overrides Sub $$
 End Class</a>
 
-        ' Show Foo() even though it's a Function
-        VerifyItemExists(text.Value, "Foo()")
-    End Sub
+            ' Show Foo() even though it's a Function
+            Await VerifyItemExistsAsync(text.Value, "Foo()")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub NotAlreadyImplemented()
-        Dim text = <a>Public Class a
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNotAlreadyImplemented() As Task
+            Dim text = <a>Public Class a
     Public Overridable Sub foo()
     End Sub
 End Class
@@ -220,12 +222,12 @@ Public Class b
     Overrides $$
 End Class</a>
 
-        VerifyItemIsAbsent(text.Value, "foo()")
-    End Sub
+            Await VerifyItemIsAbsentAsync(text.Value, "foo()")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub NotShowNotInheritable()
-        Dim text = <a>Public Class a
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNotShowNotInheritable() As Task
+            Dim text = <a>Public Class a
     Public NotInheritable Sub foo()
     End Sub
 End Class
@@ -236,12 +238,12 @@ Public Class b
     Overrides $$
 End Class</a>
 
-        VerifyItemIsAbsent(text.Value, "foo()")
-    End Sub
+            Await VerifyItemIsAbsentAsync(text.Value, "foo()")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub NotShowNotOverridable()
-        Dim text = <a>Public Class a
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNotShowNotOverridable() As Task
+            Dim text = <a>Public Class a
     Public Sub foo()
     End Sub
 End Class
@@ -252,12 +254,12 @@ Public Class b
     Overrides $$
 End Class</a>
 
-        VerifyItemIsAbsent(text.Value, "foo()")
-    End Sub
+            Await VerifyItemIsAbsentAsync(text.Value, "foo()")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub NotIfTextAfterPosition()
-        Dim text = <a>Public Class a
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNotIfTextAfterPosition() As Task
+            Dim text = <a>Public Class a
     Public Overridable Function foo() As Integer
         Return 0
     End Function
@@ -268,12 +270,12 @@ Public Class b
     Overrides $$ Function
 End Class</a>
 
-        VerifyItemIsAbsent(text.Value, "foo()")
-    End Sub
+            Await VerifyItemIsAbsentAsync(text.Value, "foo()")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub NotIfDeclaringShared()
-        Dim text = <a>Public Class a
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNotIfDeclaringShared() As Task
+            Dim text = <a>Public Class a
     Public Overridable Function foo() As Integer
         Return 0
     End Function
@@ -284,12 +286,12 @@ Public Class b
     Shared Overrides $$
 End Class</a>
 
-        VerifyItemIsAbsent(text.Value, "foo()")
-    End Sub
+            Await VerifyItemIsAbsentAsync(text.Value, "foo()")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub SuggestProperty()
-        Dim text = <a>Public Class a
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSuggestProperty() As Task
+            Dim text = <a>Public Class a
     Public Overridable Property foo As String
 End Class
 
@@ -298,12 +300,12 @@ Public Class b
     Public Overrides $$
 End Class</a>
 
-        VerifyItemExists(text.Value, "foo")
-    End Sub
+            Await VerifyItemExistsAsync(text.Value, "foo")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub ShowAllAccessibilitiesIfNoneTyped()
-        Dim text = <a>Public Class a
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestShowAllAccessibilitiesIfNoneTyped() As Task
+            Dim text = <a>Public Class a
     Public Overridable Sub r1()
     End Sub
     Private Overridable Sub s1()
@@ -319,15 +321,15 @@ Public Class b
     Overrides $$
 End Class</a>
 
-        VerifyItemExists(text.Value, "r1()")
-        VerifyItemExists(text.Value, "t1()")
-        VerifyItemExists(text.Value, "u1()")
-        VerifyItemIsAbsent(text.Value, "s1()")
-    End Sub
+            Await VerifyItemExistsAsync(text.Value, "r1()")
+            Await VerifyItemExistsAsync(text.Value, "t1()")
+            Await VerifyItemExistsAsync(text.Value, "u1()")
+            Await VerifyItemIsAbsentAsync(text.Value, "s1()")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub FilterPublic()
-        Dim text = <a>Public Class a
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestFilterPublic() As Task
+            Dim text = <a>Public Class a
     Public Overridable Sub r1()
     End Sub
     Private Overridable Sub s1()
@@ -343,15 +345,15 @@ Public Class b
     Public Overrides $$
 End Class</a>
 
-        VerifyItemExists(text.Value, "r1()")
-        VerifyItemIsAbsent(text.Value, "s1()")
-        VerifyItemIsAbsent(text.Value, "t1()")
-        VerifyItemIsAbsent(text.Value, "u1()")
-    End Sub
+            Await VerifyItemExistsAsync(text.Value, "r1()")
+            Await VerifyItemIsAbsentAsync(text.Value, "s1()")
+            Await VerifyItemIsAbsentAsync(text.Value, "t1()")
+            Await VerifyItemIsAbsentAsync(text.Value, "u1()")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub FilterProtected()
-        Dim text = <a>Public Class a
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestFilterProtected() As Task
+            Dim text = <a>Public Class a
     Public Overridable Sub r1()
     End Sub
     Private Overridable Sub s1()
@@ -367,15 +369,15 @@ Public Class b
     Protected Overrides $$
 End Class</a>
 
-        VerifyItemExists(text.Value, "t1()")
-        VerifyItemIsAbsent(text.Value, "r1()")
-        VerifyItemIsAbsent(text.Value, "s1()")
-        VerifyItemIsAbsent(text.Value, "u1()")
-    End Sub
+            Await VerifyItemExistsAsync(text.Value, "t1()")
+            Await VerifyItemIsAbsentAsync(text.Value, "r1()")
+            Await VerifyItemIsAbsentAsync(text.Value, "s1()")
+            Await VerifyItemIsAbsentAsync(text.Value, "u1()")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub FilterFriend()
-        Dim text = <a>Public Class a
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestFilterFriend() As Task
+            Dim text = <a>Public Class a
     Public Overridable Sub r1()
     End Sub
     Private Overridable Sub s1()
@@ -391,15 +393,15 @@ Public Class b
     Friend Overrides $$
 End Class</a>
 
-        VerifyItemExists(text.Value, "u1()")
-        VerifyItemIsAbsent(text.Value, "r1()")
-        VerifyItemIsAbsent(text.Value, "s1()")
-        VerifyItemIsAbsent(text.Value, "t1()")
-    End Sub
+            Await VerifyItemExistsAsync(text.Value, "u1()")
+            Await VerifyItemIsAbsentAsync(text.Value, "r1()")
+            Await VerifyItemIsAbsentAsync(text.Value, "s1()")
+            Await VerifyItemIsAbsentAsync(text.Value, "t1()")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub FilterProtectedFriend()
-        Dim text = <a>Public Class a
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestFilterProtectedFriend() As Task
+            Dim text = <a>Public Class a
     Public Overridable Sub r1()
     End Sub
     Private Overridable Sub s1()
@@ -417,16 +419,16 @@ Public Class b
     Protected Friend Overrides $$
 End Class</a>
 
-        VerifyItemExists(text.Value, "v1()")
-        VerifyItemIsAbsent(text.Value, "u1()")
-        VerifyItemIsAbsent(text.Value, "r1()")
-        VerifyItemIsAbsent(text.Value, "s1()")
-        VerifyItemIsAbsent(text.Value, "t1()")
-    End Sub
+            Await VerifyItemExistsAsync(text.Value, "v1()")
+            Await VerifyItemIsAbsentAsync(text.Value, "u1()")
+            Await VerifyItemIsAbsentAsync(text.Value, "r1()")
+            Await VerifyItemIsAbsentAsync(text.Value, "s1()")
+            Await VerifyItemIsAbsentAsync(text.Value, "t1()")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub GenericTypeNameSubstitutedForGenericInDerivedClass1()
-        Dim markup = <a>Public MustInherit Class Base(Of T)
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestGenericTypeNameSubstitutedForGenericInDerivedClass1() As Task
+            Dim markup = <a>Public MustInherit Class Base(Of T)
     Public MustOverride Sub Foo(t As T)
 End Class
 
@@ -435,13 +437,13 @@ Public Class SomeClass(Of X)
     Overrides $$
 End Class</a>
 
-        VerifyItemExists(markup.Value, "Foo(t As X)")
-        VerifyItemIsAbsent(markup.Value, "Foo(t As T)")
-    End Sub
+            Await VerifyItemExistsAsync(markup.Value, "Foo(t As X)")
+            Await VerifyItemIsAbsentAsync(markup.Value, "Foo(t As T)")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub GenericTypeNameSubstitutedForGenericInDerivedClass2()
-        Dim markup = <a>Public MustInherit Class Base(Of T)
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestGenericTypeNameSubstitutedForGenericInDerivedClass2() As Task
+            Dim markup = <a>Public MustInherit Class Base(Of T)
     Public MustOverride Sub Foo(t As T)
 End Class
 
@@ -450,13 +452,13 @@ Public Class SomeClass(Of X, Y, Z)
     Overrides $$
 End Class</a>
 
-        VerifyItemExists(markup.Value, "Foo(t As Y)")
-        VerifyItemIsAbsent(markup.Value, "Foo(t As T)")
-    End Sub
+            Await VerifyItemExistsAsync(markup.Value, "Foo(t As Y)")
+            Await VerifyItemIsAbsentAsync(markup.Value, "Foo(t As T)")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub GenericTypeNameSubstitutedForGenericInDerivedClass3()
-        Dim markup = <a>Public MustInherit Class Base(Of T, S)
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestGenericTypeNameSubstitutedForGenericInDerivedClass3() As Task
+            Dim markup = <a>Public MustInherit Class Base(Of T, S)
     Public MustOverride Sub Foo(t As T, s As S)
 End Class
 
@@ -465,13 +467,13 @@ Public Class SomeClass(Of X, Y, Z)
     Overrides $$
 End Class</a>
 
-        VerifyItemExists(markup.Value, "Foo(t As Y, s As Z)")
-        VerifyItemIsAbsent(markup.Value, "Foo(t As T, s As S)")
-    End Sub
+            Await VerifyItemExistsAsync(markup.Value, "Foo(t As Y, s As Z)")
+            Await VerifyItemIsAbsentAsync(markup.Value, "Foo(t As T, s As S)")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub GenericTypeNameSubstitutedForNonGenericInDerivedClass1()
-        Dim markup = <a>Public MustInherit Class Base(Of T)
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestGenericTypeNameSubstitutedForNonGenericInDerivedClass1() As Task
+            Dim markup = <a>Public MustInherit Class Base(Of T)
     Public MustOverride Sub Foo(t As T)
 End Class
 
@@ -480,13 +482,13 @@ Public Class SomeClass
     Overrides $$
 End Class</a>
 
-        VerifyItemExists(markup.Value, "Foo(t As Integer)")
-        VerifyItemIsAbsent(markup.Value, "Foo(t As T)")
-    End Sub
+            Await VerifyItemExistsAsync(markup.Value, "Foo(t As Integer)")
+            Await VerifyItemIsAbsentAsync(markup.Value, "Foo(t As T)")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub GenericTypeNameSubstitutedForNonGenericInDerivedClass2()
-        Dim markup = <a>Public MustInherit Class Base(Of T)
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestGenericTypeNameSubstitutedForNonGenericInDerivedClass2() As Task
+            Dim markup = <a>Public MustInherit Class Base(Of T)
     Public MustOverride Sub Foo(t As T)
 End Class
 
@@ -495,13 +497,13 @@ Public Class SomeClass(Of X, Y, Z)
     Overrides $$
 End Class</a>
 
-        VerifyItemExists(markup.Value, "Foo(t As Integer)")
-        VerifyItemIsAbsent(markup.Value, "Foo(t As T)")
-    End Sub
+            Await VerifyItemExistsAsync(markup.Value, "Foo(t As Integer)")
+            Await VerifyItemIsAbsentAsync(markup.Value, "Foo(t As T)")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub GenericTypeNameSubstitutedForNonGenericInDerivedClass3()
-        Dim markup = <a>Imports System
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestGenericTypeNameSubstitutedForNonGenericInDerivedClass3() As Task
+            Dim markup = <a>Imports System
 
 Public MustInherit Class Base(Of T, S)
     Public MustOverride Sub Foo(t As T, s As S)
@@ -512,14 +514,14 @@ Public Class SomeClass
     Overrides $$
 End Class</a>
 
-        VerifyItemExists(markup.Value, "Foo(t As Integer, s As Exception)")
-        VerifyItemIsAbsent(markup.Value, "Foo(t As T, s As S)")
-    End Sub
+            Await VerifyItemExistsAsync(markup.Value, "Foo(t As Integer, s As Exception)")
+            Await VerifyItemIsAbsentAsync(markup.Value, "Foo(t As T, s As S)")
+        End Function
 
-    <WorkItem(529714)>
-    <WpfFact(Skip:="529714"), Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub GenericMethodTypeParametersRenamed()
-        Dim text = <a>Class CFoo
+        <WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")>
+        <WpfFact(Skip:="529714"), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestGenericMethodTypeParametersRenamed() As Task
+            Dim text = <a>Class CFoo
     Overridable Function Something(Of X)(arg As X) As X
     End Function
 End Class
@@ -530,13 +532,13 @@ Class Derived(Of X)
     Overrides $$
 End Class</a>
 
-        VerifyItemExists(text.Value, "Something(Of X1)(arg As X1)")
-        VerifyItemIsAbsent(text.Value, "Something(Of X)(arg As X)")
-    End Sub
+            Await VerifyItemExistsAsync(text.Value, "Something(Of X1)(arg As X1)")
+            Await VerifyItemIsAbsentAsync(text.Value, "Something(Of X)(arg As X)")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub ParameterTypeSimplified()
-        Dim text = <a>Imports System
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParameterTypeSimplified() As Task
+            Dim text = <a>Imports System
 
 Class CBase
     Public Overridable Sub foo(e As System.Exception)
@@ -549,12 +551,12 @@ Class CDerived
     Overrides $$
 End Class</a>
 
-        VerifyItemExists(text.Value, "foo(e As Exception)")
-    End Sub
+            Await VerifyItemExistsAsync(text.Value, "foo(e As Exception)")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub EscapedMethodNameInIntelliSenseList()
-        Dim markup = <a>Class CBase
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEscapedMethodNameInIntelliSenseList() As Task
+            Dim markup = <a>Class CBase
     Public Overridable Sub [Class]()
     End Sub
 End Class
@@ -565,16 +567,16 @@ Class CDerived
     Overrides $$
 End Class</a>.Value
 
-        Dim code As String = Nothing
-        Dim position As Integer
-        MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), code, position)
+            Dim code As String = Nothing
+            Dim position As Integer
+            MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), code, position)
 
-        BaseVerifyWorker(code, position, "[Class]()", "Sub CBase.Class()", SourceCodeKind.Regular, False, False, Nothing, experimental:=False)
-    End Sub
+            Await BaseVerifyWorkerAsync(code, position, "[Class]()", "Sub CBase.Class()", SourceCodeKind.Regular, False, False, Nothing, experimental:=False)
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub EscapedPropertyNameInIntelliSenseList()
-        Dim markup = <a>Class CBase
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEscapedPropertyNameInIntelliSenseList() As Task
+            Dim markup = <a>Class CBase
     Public Overridable Property [Class] As Integer
 End Class
 
@@ -584,16 +586,16 @@ Class CDerived
     Overrides $$
 End Class</a>.Value
 
-        Dim code As String = Nothing
-        Dim position As Integer
-        MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), code, position)
+            Dim code As String = Nothing
+            Dim position As Integer
+            MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), code, position)
 
-        BaseVerifyWorker(code, position, "[Class]", "Property CBase.Class As Integer", SourceCodeKind.Regular, False, False, Nothing, experimental:=False)
-    End Sub
+            Await BaseVerifyWorkerAsync(code, position, "[Class]", "Property CBase.Class As Integer", SourceCodeKind.Regular, False, False, Nothing, experimental:=False)
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub EscapedParameterNameInIntelliSenseList()
-        Dim markup = <a>Class CBase
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEscapedParameterNameInIntelliSenseList() As Task
+            Dim markup = <a>Class CBase
     Public Overridable Sub Foo([Integer] As Integer)
     End Sub
 End Class
@@ -604,49 +606,49 @@ Class CDerived
     Overrides $$
 End Class</a>
 
-        VerifyItemExists(markup.Value, "Foo([Integer] As Integer)", "Sub CBase.Foo([Integer] As Integer)")
-    End Sub
+            Await VerifyItemExistsAsync(markup.Value, "Foo([Integer] As Integer)", "Sub CBase.Foo([Integer] As Integer)")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub HideKeywords()
-        Dim text = <a>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestHideKeywords() As Task
+            Dim text = <a>
 Class Program
     Overrides $$
 End Class</a>
 
-        VerifyItemExists(text.Value, "ToString()")
-        VerifyItemIsAbsent(text.Value, "Function")
-    End Sub
+            Await VerifyItemExistsAsync(text.Value, "ToString()")
+            Await VerifyItemIsAbsentAsync(text.Value, "Function")
+        End Function
 
 #End Region
 
 #Region "Commit tests"
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitInEmptyClass()
-        Dim markupBeforeCommit = <a>Class c
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitInEmptyClass() As Task
+            Dim markupBeforeCommit = <a>Class c
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Class c
+            Dim expectedCode = <a>Class c
     Public Overrides Function GetHashCode() As Integer
         Return MyBase.GetHashCode()$$
     End Function
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "GetHashCode()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "GetHashCode()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitSubBeforeSub()
-        Dim markupBeforeCommit = <a>Class c
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitSubBeforeSub() As Task
+            Dim markupBeforeCommit = <a>Class c
     Overrides $$
     
         Sub bar()
     End Sub
 End Class</a>
 
-        Dim expectedCode = <a>Class c
+            Dim expectedCode = <a>Class c
     Public Overrides Function GetHashCode() As Integer
         Return MyBase.GetHashCode()$$
     End Function
@@ -655,18 +657,18 @@ End Class</a>
     End Sub
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "GetHashCode()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "GetHashCode()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitSubAfterSub()
-        Dim markupBeforeCommit = <a>Class c
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitSubAfterSub() As Task
+            Dim markupBeforeCommit = <a>Class c
     Sub bar()
     End Sub
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Class c
+            Dim expectedCode = <a>Class c
     Sub bar()
     End Sub
     Public Overrides Function GetHashCode() As Integer
@@ -674,12 +676,12 @@ End Class</a>
     End Function
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "GetHashCode()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "GetHashCode()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitFunction()
-        Dim markupBeforeCommit = <a>Public Class c
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitFunction() As Task
+            Dim markupBeforeCommit = <a>Public Class c
     Public Overridable Function foo() As Integer
         Return 0
     End Function
@@ -690,7 +692,7 @@ Public Class d
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Public Class c
+            Dim expectedCode = <a>Public Class c
     Public Overridable Function foo() As Integer
         Return 0
     End Function
@@ -703,12 +705,12 @@ Public Class d
     End Function
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitFunctionWithParams()
-        Dim markupBeforeCommit = <a>Public Class c
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitFunctionWithParams() As Task
+            Dim markupBeforeCommit = <a>Public Class c
     Public Overridable Function foo(x As Integer) As Integer
         Return x
     End Function
@@ -719,7 +721,7 @@ Public Class d
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Public Class c
+            Dim expectedCode = <a>Public Class c
     Public Overridable Function foo(x As Integer) As Integer
         Return x
     End Function
@@ -732,12 +734,12 @@ Public Class d
     End Function
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(x As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(x As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitSubWithParams()
-        Dim markupBeforeCommit = <a>Public Class c
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitSubWithParams() As Task
+            Dim markupBeforeCommit = <a>Public Class c
     Public Overridable Sub foo(x As Integer)
     End Sub
 End Class
@@ -747,7 +749,7 @@ Public Class d
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Public Class c
+            Dim expectedCode = <a>Public Class c
     Public Overridable Sub foo(x As Integer)
     End Sub
 End Class
@@ -759,12 +761,12 @@ Public Class d
     End Sub
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(x As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(x As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitProtected()
-        Dim markupBeforeCommit = <a>Public Class c
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitProtected() As Task
+            Dim markupBeforeCommit = <a>Public Class c
     Protected Overridable Sub foo()
     End Sub
 End Class
@@ -774,7 +776,7 @@ Public Class d
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Public Class c
+            Dim expectedCode = <a>Public Class c
     Protected Overridable Sub foo()
     End Sub
 End Class
@@ -786,12 +788,12 @@ Public Class d
     End Sub
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitFriend()
-        Dim markupBeforeCommit = <a>Public Class c
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitFriend() As Task
+            Dim markupBeforeCommit = <a>Public Class c
     Friend Overridable Sub foo()
     End Sub
 End Class
@@ -801,7 +803,7 @@ Public Class d
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Public Class c
+            Dim expectedCode = <a>Public Class c
     Friend Overridable Sub foo()
     End Sub
 End Class
@@ -813,12 +815,12 @@ Public Class d
     End Sub
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitProtectedFriend()
-        Dim markupBeforeCommit = <a>Public Class c
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitProtectedFriend() As Task
+            Dim markupBeforeCommit = <a>Public Class c
     Protected Friend Overridable Sub foo()
     End Sub
 End Class
@@ -828,7 +830,7 @@ Public Class d
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Public Class c
+            Dim expectedCode = <a>Public Class c
     Protected Friend Overridable Sub foo()
     End Sub
 End Class
@@ -840,12 +842,12 @@ Public Class d
     End Sub
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitAbstractThrows()
-        Dim markupBeforeCommit = <a>Public MustInherit Class c
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitAbstractThrows() As Task
+            Dim markupBeforeCommit = <a>Public MustInherit Class c
     Public MustOverride Sub foo()
 End Class
 
@@ -854,7 +856,7 @@ Public Class d
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Imports System
+            Dim expectedCode = <a>Imports System
 
 Public MustInherit Class c
     Public MustOverride Sub foo()
@@ -867,12 +869,12 @@ Public Class d
     End Sub
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitRetainMustOverride()
-        Dim markupBeforeCommit = <a>Public Class c
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitRetainMustOverride() As Task
+            Dim markupBeforeCommit = <a>Public Class c
     Public Overridable Sub foo()
     End Sub
 End Class
@@ -882,7 +884,7 @@ Public Class d
     MustOverride Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Public Class c
+            Dim expectedCode = <a>Public Class c
     Public Overridable Sub foo()
     End Sub
 End Class
@@ -892,12 +894,12 @@ Public Class d
     Public MustOverride Overrides Sub foo()$$
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitRetainNotOverridable()
-        Dim markupBeforeCommit = <a>Public Class c
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitRetainNotOverridable() As Task
+            Dim markupBeforeCommit = <a>Public Class c
     Public Overridable Sub foo()
     End Sub
 End Class
@@ -908,7 +910,7 @@ Public Class d
     NotOverridable Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Public Class c
+            Dim expectedCode = <a>Public Class c
     Public Overridable Sub foo()
     End Sub
 End Class
@@ -921,12 +923,12 @@ Public Class d
     End Sub
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitProperty()
-        Dim markupBeforeCommit = <a>Public Class base
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitProperty() As Task
+            Dim markupBeforeCommit = <a>Public Class base
     Public Overridable Property foo As String
 End Class
 
@@ -937,7 +939,7 @@ Public Class derived
 End Class</a>
 
 
-        Dim expectedCode = <a>Public Class base
+            Dim expectedCode = <a>Public Class base
     Public Overridable Property foo As String
 End Class
 
@@ -954,12 +956,12 @@ Public Class derived
     End Property
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitWriteOnlyProperty()
-        Dim markupBeforeCommit = <a>Public Class base
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitWriteOnlyProperty() As Task
+            Dim markupBeforeCommit = <a>Public Class base
     Public Overridable WriteOnly Property foo As String
         Set(value As String)
 
@@ -973,7 +975,7 @@ Class derived
     Public Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Public Class base
+            Dim expectedCode = <a>Public Class base
     Public Overridable WriteOnly Property foo As String
         Set(value As String)
 
@@ -991,12 +993,12 @@ Class derived
     End Property
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitReadOnlyProperty()
-        Dim markupBeforeCommit = <a>Public Class base
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitReadOnlyProperty() As Task
+            Dim markupBeforeCommit = <a>Public Class base
     Public Overridable ReadOnly Property foo As String
         Get
 
@@ -1010,7 +1012,7 @@ Class derived
     Public Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Public Class base
+            Dim expectedCode = <a>Public Class base
     Public Overridable ReadOnly Property foo As String
         Get
 
@@ -1028,13 +1030,13 @@ Class derived
     End Property
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WorkItem(543937)>
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitOptionalKeywordAndParameterValuesAreGenerated()
-        Dim markupBeforeCommit = <a><![CDATA[Class CBase
+        <WorkItem(543937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543937")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitOptionalKeywordAndParameterValuesAreGenerated() As Task
+            Dim markupBeforeCommit = <a><![CDATA[Class CBase
     Public Overridable Sub foo(Optional x As Integer = 42)
 
     End Sub
@@ -1047,7 +1049,7 @@ Class CDerived
 
 End Class]]></a>
 
-        Dim expectedCode = <a><![CDATA[Class CBase
+            Dim expectedCode = <a><![CDATA[Class CBase
     Public Overridable Sub foo(Optional x As Integer = 42)
 
     End Sub
@@ -1062,12 +1064,12 @@ Class CDerived
 
 End Class]]></a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(x As Integer = 42)", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(x As Integer = 42)", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitAttributesAreNotGenerated()
-        Dim markupBeforeCommit = <a><![CDATA[Imports System
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitAttributesAreNotGenerated() As Task
+            Dim markupBeforeCommit = <a><![CDATA[Imports System
 
 Class CBase
     <Obsolete()>
@@ -1081,7 +1083,7 @@ Class CDerived
     Overrides $$
 End Class]]></a>
 
-        Dim expectedCode = <a><![CDATA[Imports System
+            Dim expectedCode = <a><![CDATA[Imports System
 
 Class CBase
     <Obsolete()>
@@ -1097,12 +1099,12 @@ Class CDerived
     End Sub
 End Class]]></a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitGenericMethod()
-        Dim markupBeforeCommit = <a>Class CBase
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitGenericMethod() As Task
+            Dim markupBeforeCommit = <a>Class CBase
     Public Overridable Sub foo(Of T)(x As T)
     End Sub
 End Class
@@ -1113,7 +1115,7 @@ Class CDerived
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Class CBase
+            Dim expectedCode = <a>Class CBase
     Public Overridable Sub foo(Of T)(x As T)
     End Sub
 End Class
@@ -1126,13 +1128,13 @@ Class CDerived
     End Sub
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(Of T)(x As T)", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(Of T)(x As T)", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WorkItem(545627)>
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitGenericMethodOnArraySubstitutedGenericType()
-        Dim markupBeforeCommit = <a>Class A(Of T)
+        <WorkItem(545627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545627")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitGenericMethodOnArraySubstitutedGenericType() As Task
+            Dim markupBeforeCommit = <a>Class A(Of T)
     Public Overridable Sub M(Of U As T)()
     End Sub
 End Class
@@ -1142,7 +1144,7 @@ Class B
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Class A(Of T)
+            Dim expectedCode = <a>Class A(Of T)
     Public Overridable Sub M(Of U As T)()
     End Sub
 End Class
@@ -1154,12 +1156,12 @@ Class B
     End Sub
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "M(Of U)()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "M(Of U)()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitFormats()
-        Dim markupBeforeCommit = <a>Class CBase
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitFormats() As Task
+            Dim markupBeforeCommit = <a>Class CBase
     Public Overridable Sub foo()
     End Sub
 End Class
@@ -1170,7 +1172,7 @@ Class CDerived
 overrides         $$
 End Class</a>
 
-        Dim expectedCode = <a>Class CBase
+            Dim expectedCode = <a>Class CBase
     Public Overridable Sub foo()
     End Sub
 End Class
@@ -1183,12 +1185,12 @@ Class CDerived
     End Sub
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitSimplifiesParameterTypes()
-        Dim markupBeforeCommit = <a>Imports System
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitSimplifiesParameterTypes() As Task
+            Dim markupBeforeCommit = <a>Imports System
 Class CBase
     Public Overridable Sub foo(e As System.Exception)
     End Sub
@@ -1200,7 +1202,7 @@ Class CDerived
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Imports System
+            Dim expectedCode = <a>Imports System
 Class CBase
     Public Overridable Sub foo(e As System.Exception)
     End Sub
@@ -1214,12 +1216,12 @@ Class CDerived
     End Sub
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(e As Exception)", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(e As Exception)", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitSimplifiesReturnType()
-        Dim markupBeforeCommit = <a>Imports System
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitSimplifiesReturnType() As Task
+            Dim markupBeforeCommit = <a>Imports System
 Class CBase
     Public Overridable Function foo() As System.Exception
         Return 0
@@ -1232,7 +1234,7 @@ Class CDerived
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Imports System
+            Dim expectedCode = <a>Imports System
 Class CBase
     Public Overridable Function foo() As System.Exception
         Return 0
@@ -1247,12 +1249,12 @@ Class CDerived
     End Function
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitEscapedMethodName()
-        Dim markupBeforeCommit = <a>Class CBase
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitEscapedMethodName() As Task
+            Dim markupBeforeCommit = <a>Class CBase
     Public Overridable Sub [Class]()
     End Sub
 End Class
@@ -1263,7 +1265,7 @@ Class CDerived
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Class CBase
+            Dim expectedCode = <a>Class CBase
     Public Overridable Sub [Class]()
     End Sub
 End Class
@@ -1276,12 +1278,12 @@ Class CDerived
     End Sub
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "[Class]()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "[Class]()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitEscapedPropertyName()
-        Dim markupBeforeCommit = <a>Class CBase
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitEscapedPropertyName() As Task
+            Dim markupBeforeCommit = <a>Class CBase
     Public Overridable Property [Class] As Integer
 End Class
 
@@ -1291,7 +1293,7 @@ Class CDerived
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Class CBase
+            Dim expectedCode = <a>Class CBase
     Public Overridable Property [Class] As Integer
 End Class
 
@@ -1308,12 +1310,12 @@ Class CDerived
     End Property
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "[Class]", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "[Class]", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitEscapedParameterName()
-        Dim markupBeforeCommit = <a>Class CBase
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitEscapedParameterName() As Task
+            Dim markupBeforeCommit = <a>Class CBase
     Public Overridable Sub Foo([Integer] As Integer)
     End Sub
 End Class
@@ -1324,7 +1326,7 @@ Class CDerived
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Class CBase
+            Dim expectedCode = <a>Class CBase
     Public Overridable Sub Foo([Integer] As Integer)
     End Sub
 End Class
@@ -1337,12 +1339,12 @@ Class CDerived
     End Sub
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo([Integer] As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo([Integer] As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitByRef()
-        Dim markupBeforeCommit = <a>Class CBase
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitByRef() As Task
+            Dim markupBeforeCommit = <a>Class CBase
     Public Overridable Sub foo(ByRef x As Integer, y As String)
     End Sub
 End Class
@@ -1353,7 +1355,7 @@ Class CDerived
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Class CBase
+            Dim expectedCode = <a>Class CBase
     Public Overridable Sub foo(ByRef x As Integer, y As String)
     End Sub
 End Class
@@ -1366,13 +1368,13 @@ Class CDerived
     End Sub
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(ByRef x As Integer, y As String)", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(ByRef x As Integer, y As String)", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WorkItem(529714)>
-    <WpfFact(Skip:="529714"), Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitGenericMethodTypeParametersRenamed()
-        Dim markupBeforeCommit = <a>Class CFoo
+        <WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")>
+        <WpfFact(Skip:="529714"), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitGenericMethodTypeParametersRenamed() As Task
+            Dim markupBeforeCommit = <a>Class CFoo
     Overridable Function Something(Of X)(arg As X) As X
     End Function
 End Class
@@ -1383,7 +1385,7 @@ Class Derived(Of X)
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Class CFoo
+            Dim expectedCode = <a>Class CFoo
     Overridable Function Something(Of X)(arg As X) As X
     End Function
 End Class
@@ -1396,12 +1398,12 @@ Class Derived(Of X)
     End Function
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Something(Of X1)(arg As X1)", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Something(Of X1)(arg As X1)", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub AddsImports()
-        Dim markupBeforeCommit = <a>MustInherit Class CBase
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAddsImports() As Task
+            Dim markupBeforeCommit = <a>MustInherit Class CBase
     MustOverride Sub Foo()
 End Class
 
@@ -1411,7 +1413,7 @@ Class Derived
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Imports System
+            Dim expectedCode = <a>Imports System
 
 MustInherit Class CBase
     MustOverride Sub Foo()
@@ -1425,13 +1427,13 @@ Class Derived
     End Sub
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WorkItem(543937)>
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub OptionalArguments()
-        Dim markupBeforeCommit = <a>Class CBase
+        <WorkItem(543937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543937")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestOptionalArguments() As Task
+            Dim markupBeforeCommit = <a>Class CBase
     Public Overridable Sub foo(Optional x As Integer = 42)
 
     End Sub
@@ -1443,7 +1445,7 @@ Class CDerived
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Class CBase
+            Dim expectedCode = <a>Class CBase
     Public Overridable Sub foo(Optional x As Integer = 42)
 
     End Sub
@@ -1457,13 +1459,13 @@ Class CDerived
     End Sub
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(x As Integer = 42)", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(x As Integer = 42)", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WorkItem(636706)>
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub ParameterizedProperty()
-        Dim markupBeforeCommit = <a>Public Class Foo
+        <WorkItem(636706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636706")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParameterizedProperty() As Task
+            Dim markupBeforeCommit = <a>Public Class Foo
     Public Overridable Property Bar(bay As Integer) As Integer
         Get
             Return 23
@@ -1480,7 +1482,7 @@ Public Class Foo3
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Public Class Foo
+            Dim expectedCode = <a>Public Class Foo
     Public Overridable Property Bar(bay As Integer) As Integer
         Get
             Return 23
@@ -1504,13 +1506,13 @@ Public Class Foo3
     End Property
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Bar(bay As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Bar(bay As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WorkItem(529737)>
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub OverrideDefaultPropertiesByName()
-        Dim markupBeforeCommit = <a>Class A
+        <WorkItem(529737, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529737")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestOverrideDefaultPropertiesByName() As Task
+            Dim markupBeforeCommit = <a>Class A
     Default Overridable ReadOnly Property Foo(x As Integer) As Object
         Get
         End Get
@@ -1524,7 +1526,7 @@ Class B
 End Class
 </a>
 
-        Dim expectedCode = <a>Class A
+            Dim expectedCode = <a>Class A
     Default Overridable ReadOnly Property Foo(x As Integer) As Object
         Get
         End Get
@@ -1542,16 +1544,16 @@ Class B
 End Class
 </a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo(x As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo(x As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 #End Region
 
 #Region "Commit: With Trivia"
 
-    <WorkItem(529216)>
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitSurroundingTriviaDirective()
-        Dim markupBeforeCommit = <a>Class Base
+        <WorkItem(529216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529216")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitSurroundingTriviaDirective() As Task
+            Dim markupBeforeCommit = <a>Class Base
     Public Overridable Sub Foo()
     End Sub
 End Class
@@ -1563,7 +1565,7 @@ Class Derived
 #End If
 End Class</a>
 
-        Dim expectedCode = <a>Class Base
+            Dim expectedCode = <a>Class Base
     Public Overridable Sub Foo()
     End Sub
 End Class
@@ -1577,12 +1579,12 @@ Class Derived
 #End If
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitBeforeTriviaDirective()
-        Dim markupBeforeCommit = <a>Class Base
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitBeforeTriviaDirective() As Task
+            Dim markupBeforeCommit = <a>Class Base
     Public Overridable Sub Foo()
     End Sub
 End Class
@@ -1594,7 +1596,7 @@ Class Derived
 #End If
 End Class</a>
 
-        Dim expectedCode = <a>Class Base
+            Dim expectedCode = <a>Class Base
     Public Overridable Sub Foo()
     End Sub
 End Class
@@ -1608,13 +1610,13 @@ Class Derived
 #End If
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WorkItem(529216)>
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitAfterTriviaDirective()
-        Dim markupBeforeCommit = <a>Class Base
+        <WorkItem(529216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529216")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitAfterTriviaDirective() As Task
+            Dim markupBeforeCommit = <a>Class Base
     Public Overridable Sub Foo()
     End Sub
 End Class
@@ -1626,7 +1628,7 @@ Class Derived
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Class Base
+            Dim expectedCode = <a>Class Base
     Public Overridable Sub Foo()
     End Sub
 End Class
@@ -1640,12 +1642,12 @@ Class Derived
     End Sub
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitBeforeComment()
-        Dim markupBeforeCommit = <a>Class Base
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitBeforeComment() As Task
+            Dim markupBeforeCommit = <a>Class Base
     Public Overridable Sub Foo()
     End Sub
 End Class
@@ -1657,7 +1659,7 @@ Class Derived
     'SomeComment
 End Class</a>
 
-        Dim expectedCode = <a>Class Base
+            Dim expectedCode = <a>Class Base
     Public Overridable Sub Foo()
     End Sub
 End Class
@@ -1671,13 +1673,13 @@ Class Derived
     'SomeComment
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 
-    <WorkItem(529216)>
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub CommitAfterComment()
-        Dim markupBeforeCommit = <a>Class Base
+        <WorkItem(529216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529216")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitAfterComment() As Task
+            Dim markupBeforeCommit = <a>Class Base
     Public Overridable Sub Foo()
     End Sub
 End Class
@@ -1688,7 +1690,7 @@ Class Derived
     Overrides $$
 End Class</a>
 
-        Dim expectedCode = <a>Class Base
+            Dim expectedCode = <a>Class Base
     Public Overridable Sub Foo()
     End Sub
 End Class
@@ -1701,14 +1703,14 @@ Class Derived
     End Sub
 End Class</a>
 
-        VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
-    End Sub
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
 #End Region
 
-    <WorkItem(529572)>
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub WitheventsFieldNotOffered()
-        Dim text = <a>Public Class C1
+        <WorkItem(529572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529572")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestWitheventsFieldNotOffered() As Task
+            Dim text = <a>Public Class C1
     Public WithEvents w As C1 = Me
 End Class
 Class C2 : Inherits C1
@@ -1716,24 +1718,24 @@ Class C2 : Inherits C1
 End Class
 </a>
 
-        VerifyItemIsAbsent(text.Value, "w")
-    End Sub
+            Await VerifyItemIsAbsentAsync(text.Value, "w")
+        End Function
 
-    <WorkItem(715, "https://github.com/dotnet/roslyn/issues/715")>
-    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub EventsNotOffered()
-        Dim text = <Workspace>
-                       <Project Language="Visual Basic" CommonReferences="true">
-                           <ProjectReference>CSProject</ProjectReference>
-                           <Document FilePath="VBDocument">
+        <WorkItem(715, "https://github.com/dotnet/roslyn/issues/715")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEventsNotOffered() As Task
+            Dim text = <Workspace>
+                           <Project Language="Visual Basic" CommonReferences="true">
+                               <ProjectReference>CSProject</ProjectReference>
+                               <Document FilePath="VBDocument">
 Class D
     Inherits C
 
     overrides $$
 End Class</Document>
-                       </Project>
-                       <Project Language="C#" CommonReferences="true" AssemblyName="CSProject">
-                           <Document FilePath="CSDocument">
+                           </Project>
+                           <Project Language="C#" CommonReferences="true" AssemblyName="CSProject">
+                               <Document FilePath="CSDocument">
 using System;
 
 public class C
@@ -1741,17 +1743,18 @@ public class C
     public virtual event EventHandler e;
 }
         </Document>
-                       </Project>
-                   </Workspace>
+                           </Project>
+                       </Workspace>
 
-        Using workspace = TestWorkspaceFactory.CreateWorkspace(text)
-            Dim hostDocument = workspace.Documents.First()
-            Dim caretPosition = hostDocument.CursorPosition.Value
-            Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-            Dim triggerInfo = CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo()
+            Using workspace = Await TestWorkspace.CreateAsync(text)
+                Dim hostDocument = workspace.Documents.First()
+                Dim caretPosition = hostDocument.CursorPosition.Value
+                Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
+                Dim triggerInfo = CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo()
 
-            Dim completionList = GetCompletionList(document, caretPosition, triggerInfo)
-            Assert.False(completionList.Items.Any(Function(c) c.DisplayText = "e"))
-        End Using
-    End Sub
-End Class
+                Dim completionList = Await GetCompletionListAsync(document, caretPosition, triggerInfo)
+                Assert.False(completionList.Items.Any(Function(c) c.DisplayText = "e"))
+            End Using
+        End Function
+    End Class
+End Namespace

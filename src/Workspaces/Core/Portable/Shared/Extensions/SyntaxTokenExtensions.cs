@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -86,6 +87,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return token;
+        }
+
+        public static SyntaxToken GetNextTokenOrEndOfFile(
+            this SyntaxToken token,
+            bool includeZeroWidth = false,
+            bool includeSkipped = false,
+            bool includeDirectives = false,
+            bool includeDocumentationComments = false)
+        {
+            var nextToken = token.GetNextToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
+
+            return nextToken.RawKind == 0
+                ? ((ICompilationUnitSyntax)token.Parent.SyntaxTree.GetRoot(CancellationToken.None)).EndOfFileToken
+                : nextToken;
         }
     }
 }

@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Inter
     internal interface ICSharpVenusProjectSite
     {
         /// <summary>
-        /// This function should not be used by any new code; it is now superceded by AddReferenceToCodeDirectoryEx. The
+        /// This function should not be used by any new code; it is now superseded by AddReferenceToCodeDirectoryEx. The
         /// function has not been removed due to the hard-dependency on this particular signature in Venus' templates.
         /// </summary>
         [Obsolete]

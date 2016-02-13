@@ -4,9 +4,9 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class LocalConflictTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(539939)>
+        <WorkItem(539939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539939")>
         Public Sub ConflictingLocalWithLocal()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -29,9 +29,9 @@ class Program
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(539939)>
+        <WorkItem(539939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539939")>
         Public Sub ConflictingLocalWithParameter()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -53,7 +53,7 @@ class Program
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictingLocalWithForEachRangeVariable()
             Using result = RenameEngineResult.Create(
@@ -78,7 +78,7 @@ class Program
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictingLocalWithForLoopVariable()
             Using result = RenameEngineResult.Create(
@@ -103,7 +103,7 @@ class Program
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictingLocalWithUsingBlockVariable()
             Using result = RenameEngineResult.Create(
@@ -128,7 +128,7 @@ class Program : IDisposable
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictingLocalWithSimpleLambdaParameter()
             Using result = RenameEngineResult.Create(
@@ -154,7 +154,7 @@ class Program
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictingLocalWithParenthesizedLambdaParameter()
             Using result = RenameEngineResult.Create(
@@ -180,7 +180,7 @@ class Program
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictingFromClauseWithLetClause()
             Using result = RenameEngineResult.Create(
@@ -211,8 +211,8 @@ class C
         End Sub
 
 
-        <WpfFact>
-        <WorkItem(543407)>
+        <Fact>
+        <WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLabelsInSameMethod()
             Using result = RenameEngineResult.Create(
@@ -239,8 +239,8 @@ public class C
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(543407)>
+        <Fact>
+        <WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLabelInMethodAndLambda()
             Using result = RenameEngineResult.Create(
@@ -267,8 +267,8 @@ public class C
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(543407)>
+        <Fact>
+        <WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLabelsInLambda()
             Using result = RenameEngineResult.Create(
@@ -294,8 +294,8 @@ public class C
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(543407)>
+        <Fact>
+        <WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictBetweenLabelsInTwoNonNestedLambdas()
             Using result = RenameEngineResult.Create(
@@ -320,9 +320,9 @@ public class C
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(545468)>
+        <WorkItem(545468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545468")>
         Public Sub NoConflictsWithCatchBlockWithoutExceptionVariable()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -349,9 +349,9 @@ class Test
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(1081066)>
+        <WorkItem(1081066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081066")>
         Public Sub NoConflictsBetweenCatchClauses()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -374,9 +374,9 @@ class Test
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(1081066)>
+        <WorkItem(1081066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081066")>
         Public Sub ConflictsWithinCatchClause()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -400,9 +400,9 @@ class Test
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(546163)>
+        <WorkItem(546163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546163")>
         Public Sub NoConflictsWithCatchExceptionWithoutDeclaration()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -429,9 +429,9 @@ class Test
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(992721)>
+        <WorkItem(992721, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992721")>
         Public Sub ConflictingLocalWithFieldWithExtensionMethodInvolved()
             Using result = RenameEngineResult.Create(
             <Workspace>

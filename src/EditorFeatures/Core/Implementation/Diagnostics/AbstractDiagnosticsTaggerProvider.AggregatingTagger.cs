@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             private readonly AbstractDiagnosticsTaggerProvider<TTag> _owner;
             private readonly ITextBuffer _subjectBuffer;
 
-            private int refCount;
+            private int _refCount;
             private bool _disposed;
 
             private readonly Dictionary<object, ValueTuple<TaggerProvider, IAccurateTagger<TTag>>> _idToProviderAndTagger = new Dictionary<object, ValueTuple<TaggerProvider, IAccurateTagger<TTag>>>();
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 // Register to hear about diagnostics changing.  When we're notified about new
                 // diagnostics (and those diagnostics are for our buffer), we'll ensure that
-                // we have an underlying tagger responsible for asynchrounously handling diagnostics
+                // we have an underlying tagger responsible for asynchronously handling diagnostics
                 // from the owner of that diagnostic update.
                 _owner._diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
 
@@ -72,21 +74,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             public void OnTaggerCreated()
             {
                 this.AssertIsForeground();
-                Debug.Assert(refCount >= 0);
+                Debug.Assert(_refCount >= 0);
                 Debug.Assert(!_disposed);
 
-                refCount++;
+                _refCount++;
             }
 
             public void Dispose()
             {
                 this.AssertIsForeground();
-                Debug.Assert(refCount > 0);
+                Debug.Assert(_refCount > 0);
                 Debug.Assert(!_disposed);
 
-                refCount--;
+                _refCount--;
 
-                if (refCount == 0)
+                if (_refCount == 0)
                 {
                     _disposed = true;
 
@@ -291,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     tagger.TagsChanged += OnUnderlyingTaggerTagsChanged;
                 }
 
-                // Let the provier know that there are new diagnostics.  It will then
+                // Let the provider know that there are new diagnostics.  It will then
                 // handle all the async processing of those diagnostics.
                 providerAndTagger.Item1.OnDiagnosticsUpdated(e, sourceText, editorSnapshot);
             }
@@ -303,12 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 {
                     return;
                 }
-
-                var tagsChanged = this.TagsChanged;
-                if (tagsChanged != null)
-                {
-                    tagsChanged(sender, args);
-                }
+                this.TagsChanged?.Invoke(sender, args);
             }
 
             public IEnumerable<ITagSpan<TTag>> GetAllTags(NormalizedSnapshotSpanCollection spans, CancellationToken cancel)

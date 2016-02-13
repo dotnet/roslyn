@@ -1,0 +1,11 @@
+
+The CI restore works by downloading the contents of the packages directory from Azure directly.  Hence if a package is updated  this zip will need to be rebuilt.  
+
+This is done by executing the following on a Windows box.  
+
+- Change to the root of the enlistment.
+- delete the contents of the `~\.nuget\packages`
+- Run Restore.cmd
+- Zip the `~\.nuget` directory (via explorer) and name it nuget.X.zip (where X is one higher than the previous number)
+- Use [azcopy](https://azure.microsoft.com/en-us/documentation/articles/storage-use-azcopy) to upload to https://dotnetci.blob.core.windows.net/roslyn
+- Change cibuild.sh and cibuild.cmd to reference the new package. 

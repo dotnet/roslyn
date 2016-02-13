@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             Compilation newCompilation;
-            var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, AnalyzerManager.Instance, onAnalyzerException, false, out newCompilation, CancellationToken.None);
+            var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, AnalyzerManager.Instance, onAnalyzerException, null, false, out newCompilation, CancellationToken.None);
             var discarded = newCompilation.GetDiagnostics();
             diagnostics = driver.GetDiagnosticsAsync(newCompilation).Result.AddRange(exceptionDiagnostics);
 
@@ -292,16 +292,17 @@ namespace Microsoft.CodeAnalysis
         {
             var expectedToolName = compiler.GetToolName();
             var expectedProductVersion = compiler.GetAssemblyVersion().ToString(fieldCount: 3);
-            var fileVersion = compiler.GetAssemblyFileVersion();
-            var expectedFileVersion = fileVersion.Substring(0, fileVersion.LastIndexOf('.'));
+            var expectedFileVersion = compiler.GetAssemblyFileVersion();
 
             return string.Format(@"{{
   ""version"": ""{0}"",
-  ""toolInfo"": {{
-    ""toolName"": ""{1}"",
-    ""productVersion"": ""{2}"",
-    ""fileVersion"": ""{3}""
-  }},", ErrorLogger.OutputFormatVersion, expectedToolName, expectedProductVersion, expectedFileVersion);
+  ""runLogs"": [
+    {{
+      ""toolInfo"": {{
+        ""name"": ""{1}"",
+        ""version"": ""{2}"",
+        ""fileVersion"": ""{3}""
+      }},", ErrorLogger.OutputFormatVersion, expectedToolName, expectedProductVersion, expectedFileVersion);
         }
 
         public static string Stringize(this Diagnostic e)

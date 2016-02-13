@@ -9,9 +9,9 @@ Supported Platforms:
 - .NET Framework 4.5
     </description>
     <dependencies>
-      <dependency id="Microsoft.DiaSymReader" version="1.0.1-rc2" />
-      <dependency id="System.Reflection.Metadata" version="1.1.0-alpha-00001" />
-      <dependency id="System.Collections.Immutable" version="1.1.33-beta" />
+      <dependency id="Microsoft.DiaSymReader" version="1.0.7" />
+      <dependency id="System.Reflection.Metadata" version="1.2.0-rc3-23811" />
+      <dependency id="System.Collections.Immutable" version="1.1.37" />
     </dependencies>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
@@ -19,10 +19,12 @@ Supported Platforms:
     <authors>Microsoft</authors>
     <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=394369</licenseUrl>
     <projectUrl>http://msdn.com/roslyn</projectUrl>
-    <releaseNotes>Preview of DiaSymReader interop library</releaseNotes>
-    <tags>DiaSymReader ISymUnmanagedReader PortablePDB COM interop debugging</tags>
+    <releaseNotes>Implementation of Microsoft DiaSymReader interfaces that reads debug information from Portable PDB format</releaseNotes>
+    <tags>DiaSymReader ISymUnmanagedReader Portable PDB COM interop debugging</tags>
   </metadata>
   <files>
+    <file src="Microsoft.DiaSymReader.PortablePdb.dll" target="lib\portable-net45+win8" />
+    <file src="Microsoft.DiaSymReader.PortablePdb.xml" target="lib\portable-net45+win8" />
     <file src="Microsoft.DiaSymReader.PortablePdb.dll" target="lib\net45" />
     <file src="Microsoft.DiaSymReader.PortablePdb.xml" target="lib\net45" />
   </files>

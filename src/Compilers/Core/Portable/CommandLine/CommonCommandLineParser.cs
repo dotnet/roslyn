@@ -405,34 +405,36 @@ namespace Microsoft.CodeAnalysis
         /// Only defined if errors were encountered.
         /// The error message for the encountered error.
         /// </param>
+        /// <param name="sessionKey">
+        /// Only specified if <paramref name="containsShared"/> is true and the session key
+        /// was provided.  Can be null
+        /// </param>
         internal static bool TryParseClientArgs(
             IEnumerable<string> args,
             out List<string> parsedArgs,
             out bool containsShared,
             out string keepAliveValue,
+            out string sessionKey,
             out string errorMessage)
         {
-            const string keepAlive = "/keepalive";
-            const string shared = "/shared";
             containsShared = false;
             keepAliveValue = null;
             errorMessage = null;
             parsedArgs = null;
+            sessionKey = null;
             var newArgs = new List<string>();
             foreach (var arg in args)
             {
-                var prefixLength = keepAlive.Length;
-                if (arg.StartsWith(keepAlive, StringComparison.OrdinalIgnoreCase))
+                bool hasValue;
+                string value;
+                if (IsClientArgsOption(arg, "/keepalive", out hasValue, out value))
                 {
-                    if (arg.Length < prefixLength + 2 ||
-                        arg[prefixLength] != ':' &&
-                        arg[prefixLength] != '=')
+                    if (string.IsNullOrEmpty(value))
                     {
                         errorMessage = CodeAnalysisResources.MissingKeepAlive;
                         return false;
                     }
 
-                    var value = arg.Substring(prefixLength + 1).Trim('"');
                     int intValue;
                     if (int.TryParse(value, out intValue))
                     {
@@ -451,11 +453,23 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                if (string.Equals(arg, shared, StringComparison.OrdinalIgnoreCase))
+                if (IsClientArgsOption(arg, "/shared", out hasValue, out value))
                 {
+                    if (hasValue)
+                    {
+                        if (string.IsNullOrEmpty(value))
+                        {
+                            errorMessage = CodeAnalysisResources.SharedArgumentMissing;
+                            return false;
+                        }
+
+                        sessionKey = value;
+                    }
+
                     containsShared = true;
                     continue;
                 }
+
                 newArgs.Add(arg);
             }
 
@@ -469,6 +483,30 @@ namespace Microsoft.CodeAnalysis
                 parsedArgs = newArgs;
                 return true;
             }
+        }
+
+        internal static bool IsClientArgsOption(string arg, string optionName, out bool hasValue, out string optionValue)
+        {
+            hasValue = false;
+            optionValue = null;
+
+            if (!arg.StartsWith(optionName, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (arg.Length > optionName.Length && !(arg[optionName.Length] == ':' || arg[optionName.Length] == '='))
+            {
+                return false;
+            }
+
+            if (arg.Length > optionName.Length)
+            {
+                hasValue = true;
+                optionValue = arg.Substring(optionName.Length + 1).Trim('"');
+            }
+
+            return true;
         }
 
         internal static string MismatchedVersionErrorText => CodeAnalysisResources.MismatchedVersion;

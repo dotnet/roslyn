@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -8,11 +10,14 @@ using System.Windows.Navigation;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Text.Differencing;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 {
     internal partial class PreviewPane : UserControl, IDisposable
     {
+        private const double DefaultWidth = 400;
+
         private static readonly string s_dummyThreeLineTitle = "A" + Environment.NewLine + "A" + Environment.NewLine + "A";
         private static readonly Size s_infiniteSize = new Size(double.PositiveInfinity, double.PositiveInfinity);
 
@@ -23,8 +28,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         private double _heightForThreeLineTitle;
         private IWpfDifferenceViewer _previewDiffViewer;
 
-        public PreviewPane(Image severityIcon, string id, string title, string description, Uri helpLink, string helpLinkToolTipText,
-            object previewContent, bool logIdVerbatimInTelemetry)
+        public PreviewPane(
+            Image severityIcon,
+            string id,
+            string title,
+            string description,
+            Uri helpLink,
+            string helpLinkToolTipText,
+            IReadOnlyList<object> previewContent,
+            bool logIdVerbatimInTelemetry)
         {
             InitializeComponent();
 
@@ -59,23 +71,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             InitializePreviewElement(previewContent);
         }
 
-        private void InitializePreviewElement(object previewContent)
+        private void InitializePreviewElement(IReadOnlyList<object> previewItems)
         {
-            FrameworkElement previewElement = null;
-            if (previewContent is IWpfDifferenceViewer)
-            {
-                _previewDiffViewer = previewContent as IWpfDifferenceViewer;
-                previewElement = _previewDiffViewer.VisualElement;
-                PreviewDockPanel.Background = _previewDiffViewer.InlineView.Background;
-            }
-            else if (previewContent is string)
-            {
-                previewElement = GetPreviewForString(previewContent as string);
-            }
-            else if (previewContent is FrameworkElement)
-            {
-                previewElement = previewContent as FrameworkElement;
-            }
+            var previewElement = CreatePreviewElement(previewItems);
 
             if (previewElement != null)
             {
@@ -95,6 +93,57 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             AdjustWidthAndHeight(previewElement);
         }
 
+        private FrameworkElement CreatePreviewElement(IReadOnlyList<object> previewItems)
+        {
+            if (previewItems == null || previewItems.Count == 0)
+            {
+                return null;
+            }
+
+            const int MaxItems = 3;
+            if (previewItems.Count > MaxItems)
+            {
+                previewItems = previewItems.Take(MaxItems).Concat("...").ToList();
+            }
+
+            var grid = new Grid();
+
+            for (var i = 0; i < previewItems.Count; i++)
+            {
+                var previewItem = previewItems[i];
+
+                FrameworkElement previewElement = null;
+                if (previewItem is IWpfDifferenceViewer)
+                {
+                    _previewDiffViewer = (IWpfDifferenceViewer)previewItem;
+                    previewElement = _previewDiffViewer.VisualElement;
+                    PreviewDockPanel.Background = _previewDiffViewer.InlineView.Background;
+                }
+                else if (previewItem is string)
+                {
+                    previewElement = GetPreviewForString((string)previewItem, createBorder: previewItems.Count == 0);
+                }
+                else if (previewItem is FrameworkElement)
+                {
+                    previewElement = (FrameworkElement)previewItem;
+                }
+
+                var rowDefinition = i == 0 ? new RowDefinition() : new RowDefinition() { Height = GridLength.Auto };
+                grid.RowDefinitions.Add(rowDefinition);
+
+                Grid.SetRow(previewElement, grid.RowDefinitions.IndexOf(rowDefinition));
+                grid.Children.Add(previewElement);
+
+                if (i == 0)
+                {
+                    grid.Width = previewElement.Width;
+                }
+            }
+
+            var preview = grid.Children.Count == 0 ? (FrameworkElement)grid.Children[0] : grid;
+            return preview;
+        }
+
         private void InitializeHyperlinks(Uri helpLink, string helpLinkToolTipText)
         {
             IdHyperlink.SetVSHyperLinkStyle();
@@ -110,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             LearnMoreHyperlink.ToolTip = helpLinkToolTipText;
         }
 
-        public static Border GetPreviewForString(string previewContent, bool useItalicFontStyle = false, bool centerAlignTextHorizontally = false)
+        public static FrameworkElement GetPreviewForString(string previewContent, bool useItalicFontStyle = false, bool centerAlignTextHorizontally = false, bool createBorder = false)
         {
             var textBlock = new TextBlock()
             {
@@ -130,12 +179,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 textBlock.TextAlignment = TextAlignment.Center;
             }
 
-            var preview = new Border()
+            FrameworkElement preview = textBlock;
+            if (createBorder)
             {
-                Width = 400,
-                MinHeight = 75,
-                Child = textBlock
-            };
+                preview = new Border()
+                {
+                    Width = DefaultWidth,
+                    MinHeight = 75,
+                    Child = textBlock
+                };
+            }
 
             return preview;
         }
@@ -158,7 +211,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             }
             else
             {
-                PreviewDockPanel.Measure(availableSize: new Size(previewElement.Width, double.PositiveInfinity));
+                PreviewDockPanel.Measure(availableSize: new Size(
+                    double.IsNaN(previewElement.Width) ? DefaultWidth : previewElement.Width,
+                    double.PositiveInfinity));
                 headerStackPanelWidth = PreviewDockPanel.DesiredSize.Width;
                 if (IsNormal(headerStackPanelWidth))
                 {

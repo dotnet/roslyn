@@ -118,6 +118,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReferenceEqualityComparer.cs">
       <Link>InternalUtilities\ReferenceEqualityComparer.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs">
+      <Link>InternalUtilities\SemaphoreSlimExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs">
       <Link>InternalUtilities\SpecializedCollections.cs</Link>
     </Compile>
@@ -324,6 +327,7 @@
     <Compile Include="Diagnostics\Extensions.cs" />
     <Compile Include="Diagnostics\InternalDiagnosticsOptions.cs" />
     <Compile Include="Diagnostics\IWorkspaceVenusSpanMappingService.cs" />
+    <Compile Include="Diagnostics\WellKnownDiagnosticPropertyNames.cs" />
     <Compile Include="Editing\DeclarationKind.cs" />
     <Compile Include="Editing\DocumentEditor.cs" />
     <Compile Include="CodeGeneration\ICodeGenerationService.cs" />
@@ -333,6 +337,7 @@
     <Compile Include="Editing\GenerationOptionsProvider.cs" />
     <Compile Include="Editing\ImportAdder.cs" />
     <Compile Include="Editing\ImportAdderService.cs" />
+    <Compile Include="Editing\OperatorKind.cs" />
     <Compile Include="Editing\SolutionEditor.cs" />
     <Compile Include="Editing\SymbolEditor.cs" />
     <Compile Include="Editing\SymbolEditorExtensions.cs" />
@@ -377,6 +382,12 @@
     <Compile Include="Differencing\SequenceEdit.cs" />
     <Compile Include="ExtensionManager\IErrorReportingService.cs" />
     <Compile Include="FindSymbols\DeclaredSymbolInfo.cs" />
+    <Compile Include="FindSymbols\FindReferences\Finders\ILanguageServiceReferenceFinder.cs" />
+    <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfoCacheService.cs" />
+    <Compile Include="FindSymbols\FindReferences\MetadataUnifyingEquivalenceComparer.cs" />
+    <Compile Include="Shared\Glyph.cs" />
+    <Compile Include="Utilities\ArraySlice.cs" />
+    <Compile Include="Utilities\BKTree.cs" />
     <Compile Include="FindSymbols\SyntaxTree\AbstractSyntaxTreeInfo.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeDeclarationInfo.cs" />
     <Compile Include="Formatting\FormattingOptionsProvider.cs" />
@@ -409,7 +420,12 @@
     <Compile Include="Shared\Utilities\XmlFragmentParser.cs" />
     <Compile Include="Simplification\SimplificationOptionProvider.cs" />
     <Compile Include="Simplification\SimplifyTypeNameCodeAction.cs" />
+    <Compile Include="Utilities\BKTree.Edge.cs" />
+    <Compile Include="Utilities\BKTree.Node.cs" />
+    <Compile Include="Utilities\BKTree.Serialization.cs" />
+    <Compile Include="Utilities\ForegroundThreadDataKind.cs" />
     <Compile Include="Utilities\IReadOnlyDictionaryExtensions.cs" />
+    <Compile Include="Utilities\SpellChecker.cs" />
     <Compile Include="Utilities\ValuesSources\CachedWeakValueSource.cs" />
     <Compile Include="Utilities\WeakEventHandler.cs" />
     <Compile Include="Versions\Extensions.cs" />
@@ -728,7 +744,6 @@
     <Compile Include="Shared\Utilities\ExtensionOrderer.cs" />
     <Compile Include="Shared\Utilities\ExtensionOrderer.Graph.cs" />
     <Compile Include="Shared\Utilities\ExtensionOrderer.Node.cs" />
-    <Compile Include="Shared\Utilities\FindTokenHelper.cs" />
     <Compile Include="Shared\Utilities\IntegerUtilities.cs" />
     <Compile Include="Shared\Utilities\Matcher.ChoiceMatcher.cs" />
     <Compile Include="Shared\Utilities\Matcher.cs" />
@@ -805,7 +820,6 @@
     <Compile Include="Utilities\LazyInitialization.cs" />
     <Compile Include="Utilities\ObjectPools\Extensions.cs" />
     <Compile Include="Utilities\ObjectPools\SharedPools.cs" />
-    <Compile Include="Utilities\SemaphoreSlimExtensions.cs" />
     <Compile Include="Utilities\SerializableBytes.cs" />
     <Compile Include="Utilities\SimpleTaskQueue.cs" />
     <Compile Include="Utilities\SpecializedTasks.cs" />
@@ -942,6 +956,7 @@
       <SubType>
       </SubType>
     </None>
+    <Compile Include="Utilities\BKTree.Builder.cs" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>

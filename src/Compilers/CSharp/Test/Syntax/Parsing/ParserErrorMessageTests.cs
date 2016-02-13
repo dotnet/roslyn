@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region "Targeted Error Tests - please arrange tests in the order of error code"
 
-        [WorkItem(536666, "DevDiv")]
+        [WorkItem(536666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536666")]
         [Fact]
         public void CS0071ERR_ExplicitEventFieldImpl()
         {
@@ -91,7 +91,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(3, 9));
         }
 
-        [WorkItem(527827, "DevDiv")]
+        [WorkItem(527827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527827")]
         [Fact]
         public void CS0080ERR_ConstraintOnlyAllowedOnGenericDecl_2()
         {
@@ -124,7 +124,7 @@ public class C
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadMemberProtection, "internal"));
         }
 
-        [Fact, WorkItem(543622, "DevDiv")]
+        [Fact, WorkItem(543622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543622")]
         public void CS0116ERR__NamespaceUnexpected()
         {
             var test = @"{
@@ -178,7 +178,7 @@ namespace x
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ConstValueRequired, "i"));
         }
 
-        [WorkItem(536667, "DevDiv")]
+        [WorkItem(536667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536667")]
         [Fact]
         public void CS0150ERR_ConstantExpected()
         {
@@ -366,7 +366,7 @@ class Foo
     Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist"));
         }
 
-        [WorkItem(536668, "DevDiv")]
+        [WorkItem(536668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536668")]
         [Fact]
         public void CS0267ERR_PartialMisplaced()
         {
@@ -778,7 +778,7 @@ public class MyClass
     Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "6"));
         }
 
-        [Fact, WorkItem(535883, "DevDiv")]
+        [Fact, WorkItem(535883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535883")]
         public void CS0687ERR_AliasQualAsExpression()
         {
             var test = @"
@@ -798,7 +798,7 @@ class Test
                 );
         }
 
-        [WorkItem(542478, "DevDiv")]
+        [WorkItem(542478, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542478")]
         [Fact]
         public void CS0706ERR_BadConstraintType()
         {
@@ -1028,7 +1028,7 @@ class C
     Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"));
         }
 
-        [WorkItem(535915, "DevDiv")]
+        [WorkItem(535915, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535915")]
         [Fact]
         public void CS0839ERR_MissingArgument()
         {
@@ -1074,7 +1074,7 @@ public class clx
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpected, ""));
         }
 
-        [Fact, WorkItem(542408, "DevDiv")]
+        [Fact, WorkItem(542408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542408")]
         public void CS1001ERR_IdentifierExpected_2()
         {
             var test = @"
@@ -1087,7 +1087,7 @@ Diagnostic(ErrorCode.ERR_LbraceExpected, ""),
 Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [Fact, WorkItem(542408, "DevDiv")]
+        [Fact, WorkItem(542408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542408")]
         public void CS1001ERR_IdentifierExpected_5()
         {
             var test = @"
@@ -1101,7 +1101,7 @@ Diagnostic(ErrorCode.ERR_LbraceExpected, ""),
 Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [Fact, WorkItem(542416, "DevDiv")]
+        [Fact, WorkItem(542416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542416")]
         public void CS1001ERR_IdentifierExpected_3()
         {
             var test = @"
@@ -1125,7 +1125,7 @@ class NamedExample
     Diagnostic(ErrorCode.ERR_SyntaxError, "1").WithArguments(",", ""));
         }
 
-        [Fact, WorkItem(542416, "DevDiv")]
+        [Fact, WorkItem(542416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542416")]
         public void CS1001ERR_IdentifierExpected_4()
         {
             var test = @"
@@ -1150,7 +1150,7 @@ class NamedExample
     Diagnostic(ErrorCode.ERR_IdentifierExpected, ","));
         }
 
-        [Fact, WorkItem(542416, "DevDiv")]
+        [Fact, WorkItem(542416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542416")]
         public void CS1001ERR_IdentifierExpected_6()
         {
             var test = @"
@@ -1184,6 +1184,29 @@ class Program
         }
 
         [Fact]
+        public void CS1001ERR_IdentifierExpected_7()
+        {
+            var test = @"
+using System;
+class C
+{
+  void M()
+  {
+    DateTime
+    M();
+  }
+}
+";
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (7,13): error CS1001: Identifier expected
+                //     DateTime
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(7, 13),
+                // (7,13): error CS1002: ; expected
+                //     DateTime
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 13));
+        }
+
+        [Fact]
         public void CS1002ERR_SemicolonExpected()
         {
             var test = @"
@@ -1202,7 +1225,7 @@ namespace x {
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_SemicolonExpected, ""));
         }
 
-        [WorkItem(528008, "DevDiv")]
+        [WorkItem(528008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528008")]
         [Fact]
         public void CS1002ERR_SemicolonExpected_2()
         {
@@ -1228,7 +1251,7 @@ class Program
     Diagnostic(ErrorCode.ERR_RbraceExpected, ","));
         }
 
-        [WorkItem(527944, "DevDiv")]
+        [WorkItem(527944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527944")]
         [Fact]
         public void CS1002ERR_SemicolonExpected_3()
         {
@@ -1439,13 +1462,13 @@ enum N : decimal { A }
                     Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "decimal").WithLocation(10, 10));
         }
 
-        [Fact, WorkItem(667303)]
+        [Fact, WorkItem(667303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667303")]
         public void CS1008ERR_IntegralTypeExpected03()
         {
             ParseAndValidate(@"enum E : byt { A, B }"); // no *parser* errors. This is a semantic error now.
         }
 
-        [Fact, WorkItem(540117, "DevDiv")]
+        [Fact, WorkItem(540117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540117")]
         public void CS1009ERR_IllegalEscape_Strings()
         {
             var text = @"
@@ -1486,7 +1509,7 @@ class Program
             );
         }
 
-        [Fact, WorkItem(528100, "DevDiv")]
+        [Fact, WorkItem(528100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528100")]
         public void CS1009ERR_IllegalEscape_Identifiers()
         {
             var text = @"using System;
@@ -1573,7 +1596,7 @@ class Program
             );
         }
 
-        [WorkItem(535921, "DevDiv")]
+        [WorkItem(535921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535921")]
         [Fact]
         public void CS1013ERR_InvalidNumber()
         {
@@ -1756,7 +1779,7 @@ namespace x
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ThisOrBaseExpected, "{"));
         }
 
-        [WorkItem(535924, "DevDiv")]
+        [WorkItem(535924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535924")]
         [Fact]
         public void CS1019ERR_OvlUnaryOperatorExpected()
         {
@@ -1987,7 +2010,7 @@ public class Test
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ErrorDirective, "(12345)").WithArguments("(12345)"));
         }
 
-        [WorkItem(541954, "DevDiv")]
+        [WorkItem(541954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541954")]
         [Fact]
         public void CS1029ERR_ErrorDirectiveppNonLatin()
         {
@@ -1998,7 +2021,7 @@ public class Test
             Assert.Equal("error CS1029: #error: '\u0444\u0430\u0439\u043B'", CSharpDiagnosticFormatter.Instance.Format(error.WithLocation(Location.None), EnsureEnglishUICulture.PreferredOrNull));
         }
 
-        [Fact(), WorkItem(526991, "DevDiv")]
+        [Fact(), WorkItem(526991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/526991")]
         public void CS1031ERR_TypeExpected01()
         {
             // Diff error - CS1003
@@ -2071,7 +2094,7 @@ namespace x
              );
         }
 
-        [WorkItem(541347, "DevDiv")]
+        [WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
         [Fact]
         public void CS1031ERR_TypeExpected03()
         {
@@ -2160,7 +2183,7 @@ class Test
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_EndRegionDirectiveExpected, ""));
         }
 
-        [Fact, WorkItem(535926, "DevDiv")]
+        [Fact, WorkItem(535926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535926")]
         public void CS1041ERR_IdentifierExpectedKW()
         {
             // Diff errors
@@ -2202,7 +2225,7 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "const"),
 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly"));
         }
 
-        [Fact, WorkItem(541347, "DevDiv")]
+        [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
         public void CS1041ERR_IdentifierExpectedKW02()
         {
             var test =
@@ -2214,7 +2237,7 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly")
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this"));
         }
 
-        [Fact, WorkItem(541347, "DevDiv")]
+        [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
         public void CS1041ERR_IdentifierExpectedKW03()
         {
             var test =
@@ -2228,7 +2251,7 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly")
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this"));
         }
 
-        [Fact, WorkItem(541347, "DevDiv")]
+        [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
         public void CS1041ERR_IdentifierExpectedKW04()
         {
             var test = @"delegate void D(this object o);";
@@ -2236,7 +2259,7 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly")
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this"));
         }
 
-        [Fact, WorkItem(541347, "DevDiv")]
+        [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
         public void CS1041ERR_IdentifierExpectedKW05()
         {
             var test =
@@ -2263,7 +2286,7 @@ class C
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 38));
         }
 
-        [Fact, WorkItem(541347, "DevDiv")]
+        [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
         public void CS1041ERR_IdentifierExpectedKW06()
         {
             var test =
@@ -2404,7 +2427,7 @@ return 1;
     Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"));
         }
 
-        [WorkItem(536956, "DevDiv")]
+        [WorkItem(536956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536956")]
         [Fact]
         public void CS1065ERR_DefaultValueNotAllowed()
         {
@@ -2433,7 +2456,7 @@ class A
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "="));
         }
 
-        [WorkItem(540251, "DevDiv")]
+        [WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
         [Fact]
         public void CS7014ERR_AttributesNotAllowed()
         {
@@ -2591,7 +2614,7 @@ Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
 Diagnostic(ErrorCode.ERR_BadParamModThis, "params"));
         }
 
-        [Fact, WorkItem(535930, "DevDiv")]
+        [Fact, WorkItem(535930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535930")]
         public void CS1107ERR_DupParamMod()
         {
             // Diff errors
@@ -2742,7 +2765,7 @@ namespace x
    Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
         }
 
-        [WorkItem(535932, "DevDiv")]
+        [WorkItem(535932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535932")]
         [Fact]
         public void CS1515ERR_InExpected()
         {
@@ -3020,7 +3043,7 @@ namespace nms
     Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [WorkItem(540245, "DevDiv")]
+        [WorkItem(540245, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540245")]
         [Fact]
         public void CS1525RegressVoidInfiniteLoop()
         {
@@ -3098,7 +3121,7 @@ Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?"));
     Diagnostic(ErrorCode.ERR_RbraceExpected, ","));
         }
 
-        [WorkItem(542229, "DevDiv")]
+        [WorkItem(542229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542229")]
         [Fact]
         public void CS1525ERR_InvalidExprTerm_FromInExprInQuery()
         {
@@ -3409,7 +3432,7 @@ public class MyClass {
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadArraySyntax, "["));
         }
 
-        [Fact, WorkItem(535933, "DevDiv")] // ?
+        [Fact, WorkItem(535933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535933")] // ?
         public void CS1553ERR_BadOperatorSyntax()
         {
             // Extra errors
@@ -3444,7 +3467,7 @@ public class MainClass
     Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator"));
         }
 
-        [Fact(), WorkItem(526995, "DevDiv")]
+        [Fact(), WorkItem(526995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/526995")]
         public void CS1554ERR_BadOperatorSyntax2()
         {
             // Diff errors: CS1003, 1031 etc. (8 errors)
@@ -3464,7 +3487,7 @@ public class MainClass
             ParseAndValidateFirst(test, Diagnostic(ErrorCode.ERR_TypeExpected, "operator"));
         }
 
-        [Fact, WorkItem(536673, "DevDiv")]
+        [Fact, WorkItem(536673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536673")]
         public void CS1575ERR_BadStackAllocExpr()
         {
             // Diff errors
@@ -3519,7 +3542,7 @@ public class Test
     Diagnostic(ErrorCode.ERR_InvalidLineNumber, "0"));
         }
 
-        [WorkItem(541952, "DevDiv")]
+        [WorkItem(541952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541952")]
         [Fact]
         public void CS1576ERR_InvalidLineNumber02()
         {
@@ -3537,7 +3560,7 @@ public class Test
     Diagnostic(ErrorCode.ERR_ErrorDirective, "").WithArguments(""));
         }
 
-        [WorkItem(536689, "DevDiv")]
+        [WorkItem(536689, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536689")]
         [Fact]
         public void CS1578ERR_MissingPPFile()
         {
@@ -3604,7 +3627,7 @@ Diagnostic(ErrorCode.ERR_MissingArraySize, "[]"),
 Diagnostic(ErrorCode.ERR_MissingArraySize, "[]"));
         }
 
-        [Fact, WorkItem(535935, "DevDiv")]
+        [Fact, WorkItem(535935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535935")]
         public void CS1597ERR_UnexpectedSemicolon()
         {
             // Diff error: CS1519
@@ -3807,7 +3830,7 @@ class Test
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_GlobalAttributesNotFirst, "assembly"));
         }
 
-        [Fact(), WorkItem(527039, "DevDiv")]
+        [Fact(), WorkItem(527039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527039")]
         public void CS1732ERR_ParameterExpected()
         {
             var test = @"
@@ -3832,7 +3855,7 @@ static class Test
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"));
         }
 
-        [WorkItem(536674, "DevDiv")]
+        [WorkItem(536674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536674")]
         [Fact]
         public void CS1733ERR_ExpressionExpected()
         {
@@ -3852,7 +3875,7 @@ static class Test
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ExpressionExpected, "}"));
         }
 
-        [WorkItem(536674, "DevDiv")]
+        [WorkItem(536674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536674")]
         [Fact]
         public void CS1733ERR_ExpressionExpected_02()
         {
@@ -3983,7 +4006,7 @@ public class Test
     Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "this"));
         }
 
-        [Fact, WorkItem(546212, "DevDiv")]
+        [Fact, WorkItem(546212, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546212")]
         public void InvalidQueryExpression()
         {
             var text = @"
@@ -4291,7 +4314,7 @@ class MyClass
             ParseAndValidate(test, Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"));
         }
 
-        [Fact, WorkItem(529895, "DevDiv")]
+        [Fact, WorkItem(529895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529895")]
         public void AttributeInMethodBody()
         {
             var test = @"
@@ -4402,7 +4425,7 @@ class C
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello + {other}""").WithArguments("interpolated strings", "6").WithLocation(7, 16));
         }
 
-        [WorkItem(529870, "DevDiv")]
+        [WorkItem(529870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529870")]
         [Fact]
         public void AsyncBeforeCSharp5()
         {
@@ -4422,7 +4445,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "async").WithArguments("async function", "5"));
         }
 
-        [WorkItem(529870, "DevDiv")]
+        [WorkItem(529870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529870")]
         [Fact]
         public void AsyncWithOtherModifiersBeforeCSharp5()
         {
@@ -4798,7 +4821,7 @@ class Test
         }
 
         [ClrOnlyFact]
-        [WorkItem(1085618, "DevDiv")]
+        [WorkItem(1085618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085618")]
         public void TooDeepDelegateDeclaration()
         {
             var builder = new StringBuilder();
@@ -4885,7 +4908,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(1085618, "DevDiv")]
+        [WorkItem(1085618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085618")]
         public void MismatchedBracesAndDelegateDeclaration()
         {
             var source = @"

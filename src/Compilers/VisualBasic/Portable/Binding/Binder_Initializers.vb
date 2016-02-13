@@ -178,13 +178,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 End If
                             End If
 
-                            initializerBinder.BindFieldInitializer(initializer.FieldsOrProperties,
+                            initializerBinder.BindFieldInitializer(initializer.FieldsOrProperties.Cast(Of FieldSymbol).ToImmutableArray(),
                                                                    initializerNode,
                                                                    boundInitializers,
                                                                    diagnostics)
                         End If
                     Else
-                        initializerBinder.BindPropertyInitializer(initializer.FieldsOrProperties,
+                        initializerBinder.BindPropertyInitializer(initializer.FieldsOrProperties.Cast(Of PropertySymbol).ToImmutableArray(),
                                                                   initializerNode,
                                                                   boundInitializers,
                                                                   diagnostics)
@@ -239,10 +239,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundFieldAccessExpression = New BoundFieldAccess(syntax, boundReceiver, fieldSymbol, True, fieldSymbol.Type)
             boundFieldAccessExpression.SetWasCompilerGenerated()
 
-            Dim initializer = New BoundFieldOrPropertyInitializer(syntax,
-                                                                  ImmutableArray.Create(Of Symbol)(fieldSymbol),
-                                                                  boundFieldAccessExpression,
-                                                                  arrayCreation)
+            Dim initializer = New BoundFieldInitializer(syntax,
+                                                        ImmutableArray.Create(Of FieldSymbol)(fieldSymbol),
+                                                        boundFieldAccessExpression,
+                                                        arrayCreation)
 
             initializer.SetWasCompilerGenerated()
             boundInitializers.Add(initializer)
@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="boundInitializers">The array of bound initializers to add the newly bound ones to.</param>
         ''' <param name="diagnostics">The diagnostics.</param>
         Friend Sub BindFieldInitializer(
-            fieldSymbols As ImmutableArray(Of Symbol),
+            fieldSymbols As ImmutableArray(Of FieldSymbol),
             equalsValueOrAsNewSyntax As VisualBasicSyntaxNode,
             boundInitializers As ArrayBuilder(Of BoundInitializer),
             diagnostics As DiagnosticBag,
@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            boundInitializers.Add(New BoundFieldOrPropertyInitializer(
+            boundInitializers.Add(New BoundFieldInitializer(
                 equalsValueOrAsNewSyntax,
                 fieldSymbols,
                 If(fieldSymbols.Length = 1, fieldAccess, Nothing),
@@ -322,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Sub BindPropertyInitializer(
-            propertySymbols As ImmutableArray(Of Symbol),
+            propertySymbols As ImmutableArray(Of PropertySymbol),
             initValueOrAsNewNode As VisualBasicSyntaxNode,
             boundInitializers As ArrayBuilder(Of BoundInitializer),
             diagnostics As DiagnosticBag
@@ -369,10 +369,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                Nothing,
                                                                                diagnostics)
 
-            boundInitializers.Add(New BoundFieldOrPropertyInitializer(initValueOrAsNewNode,
-                                                                      propertySymbols,
-                                                                      If(propertySymbols.Length = 1, boundPropertyOrFieldAccess, Nothing),
-                                                                      boundInitExpression))
+            boundInitializers.Add(New BoundPropertyInitializer(initValueOrAsNewNode,
+                                                               propertySymbols,
+                                                               If(propertySymbols.Length = 1, boundPropertyOrFieldAccess, Nothing),
+                                                               boundInitExpression))
 
         End Sub
 
@@ -460,10 +460,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       constantValue,
                                                       fieldSymbol.Type)
 
-                boundInitializers.Add(New BoundFieldOrPropertyInitializer(equalsValueOrAsNewSyntax,
-                                                                          ImmutableArray.Create(Of Symbol)(fieldSymbol),
-                                                                          boundFieldAccessExpr,
-                                                                          boundInitValue))
+                boundInitializers.Add(New BoundFieldInitializer(equalsValueOrAsNewSyntax,
+                                                                ImmutableArray.Create(Of FieldSymbol)(fieldSymbol),
+                                                                boundFieldAccessExpr,
+                                                                boundInitValue))
             End If
         End Sub
 

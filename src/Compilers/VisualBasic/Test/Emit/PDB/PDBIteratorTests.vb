@@ -71,7 +71,7 @@ End Class
 ", sequencePoints:="C+VB$StateMachine_1_F.MoveNext")
         End Sub
 
-        <Fact, WorkItem(651996, "DevDiv")>
+        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         Public Sub IteratorLambdaWithForEach()
             Dim source =
 <compilation>
@@ -126,7 +126,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(651996, "DevDiv"), WorkItem(789705, "DevDiv")>
+        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996"), WorkItem(789705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789705")>
         Public Sub IteratorWithLiftedMultipleSameNameLocals()
             Dim source =
 <compilation>
@@ -219,7 +219,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
+        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
         Public Sub LocalCapturedAndHoisted()
             Dim source =
 <compilation>
@@ -273,7 +273,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
+        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
         Public Sub LocalCapturedAndNotHoisted()
             Dim source =
 <compilation>
@@ -322,7 +322,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
+        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
         Public Sub LocalHoistedAndNotCapture()
             Dim source =
 <compilation>
@@ -372,7 +372,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
+        <Fact(), WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
         Public Sub LocalNotHoistedAndNotCaptured()
             Dim source =
 <compilation>
@@ -422,7 +422,7 @@ End Class
         ''' Sequence points of MoveNext method shall not be affected by DebuggerHidden attribute. 
         ''' The method contains user code that can be edited during debugging and might need remapping.
         ''' </summary>
-        <Fact, WorkItem(667579, "DevDiv")>
+        <Fact, WorkItem(667579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667579")>
         Public Sub DebuggerHiddenIterator()
             Dim source =
 <compilation>

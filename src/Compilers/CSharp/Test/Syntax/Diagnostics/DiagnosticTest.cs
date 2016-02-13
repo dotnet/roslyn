@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("OtherSymbol", (d3.Info as CustomErrorInfo).OtherSymbol);
         }
 
-        [WorkItem(537801, "DevDiv")]
+        [WorkItem(537801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537801")]
         [Fact]
         public void MissingNamespaceOpenBracket()
         {
@@ -74,7 +74,7 @@ End namespace
             Assert.InRange(actualErrors.Count(), 1, int.MaxValue);
         }
 
-        [WorkItem(540086, "DevDiv")]
+        [WorkItem(540086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540086")]
         [Fact]
         public void ErrorApplyIndexingToMethod()
         {
@@ -111,7 +111,7 @@ public class A
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadIndexLHS, Line = 10, Column = 34 });
         }
 
-        [WorkItem(540329, "DevDiv")]
+        [WorkItem(540329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540329")]
         [Fact]
         public void ErrorMemberAccessOnLiteralToken()
         {
@@ -132,7 +132,7 @@ class X
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, @"null.Length").WithArguments(".", "<null>"));
         }
 
-        [WorkItem(542911, "DevDiv")]
+        [WorkItem(542911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542911")]
         [Fact]
         public void WarningLevel_1()
         {
@@ -153,7 +153,7 @@ class X
             }
         }
 
-        [WorkItem(542911, "DevDiv")]
+        [WorkItem(542911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542911")]
         [Fact]
         public void WarningLevel_2()
         {
@@ -1895,7 +1895,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_IdentifierOrNumericLiteralExpected, ","));
         }
 
-        [WorkItem(546814, "DevDiv")]
+        [WorkItem(546814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546814")]
         [Fact]
         public void PragmaWarning_NoValidationForErrorCodes4()
         {
@@ -1918,7 +1918,7 @@ class Program
             CreateCompilationWithMscorlib(text, options: commonoption).VerifyDiagnostics();
         }
 
-        [WorkItem(546814, "DevDiv")]
+        [WorkItem(546814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546814")]
         [Fact]
         public void PragmaWarning_NoValidationForErrorCodes5()
         {
@@ -1993,7 +1993,7 @@ class Program
             Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "var y").Start));
         }
 
-        [WorkItem(545407, "DevDiv")]
+        [WorkItem(545407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545407")]
         [Fact]
         public void PragmaWarningDirectiveMapAtTheFirstLine()
         {
@@ -2017,7 +2017,7 @@ class Program
             return new TextSpan(index, textToFind.Length);
         }
 
-        [WorkItem(543705, "DevDiv")]
+        [WorkItem(543705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543705")]
         [Fact]
         public void GetDiagnosticsCalledTwice()
         {
@@ -2059,6 +2059,77 @@ public class Test
 
             // (8,10): error CS0119: 'Console' is a type, which is not valid in the given context
             AssertEx.Equal(CreateCompilationWithMscorlib(tree).GetDiagnostics(), CreateCompilationWithMscorlib(tree).GetDiagnostics());
+        }
+
+        /// <summary>
+        /// Test that invalid type argument lists produce clean error messages
+        /// with minimal noise
+        /// </summary>
+        [WorkItem(7177, "https://github.com/dotnet/roslyn/issues/7177")]
+        [Fact]
+        public void InvalidTypeArgumentList()
+        {
+            var text = @"using System;
+public class A
+{
+    static void Main(string[] args)
+    {
+        // Invalid type arguments
+        object a1 = typeof(Action<0>);
+        object a2 = typeof(Action<static>);
+
+        // Valid type arguments
+        object a3 = typeof(Action<string>);
+        object a4 = typeof(Action<>);
+
+        // Invalid with multiple types
+        object a5 = typeof(Func<0,1>);
+        object a6 = typeof(Func<0,bool>);
+        object a7 = typeof(Func<static,bool>);
+
+        // Valid with multiple types
+        object a8 = typeof(Func<string,bool>);
+        object a9 = typeof(Func<,>);
+
+        // Invalid with nested types
+        object a10 = typeof(Action<Action<0>>);
+        object a11 = typeof(Action<Action<static>>);
+        object a12 = typeof(Action<Action<>>);
+
+        // Valid with nested types
+        object a13 = typeof(Action<Action<string>>);
+    }
+}";
+
+            CSharpCompilationOptions options = TestOptions.ReleaseExe;
+            CreateCompilationWithMscorlib(text, options: options).VerifyDiagnostics(
+                // (7,35): error CS1031: Type expected
+                //         object a1 = typeof(Action<0>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "0").WithLocation(7, 35),
+                // (8,35): error CS1031: Type expected
+                //         object a2 = typeof(Action<static>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(8, 35),
+                // (15,33): error CS1031: Type expected
+                //         object a5 = typeof(Func<0,1>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "0").WithLocation(15, 33),
+                // (15,35): error CS1031: Type expected
+                //         object a5 = typeof(Func<0,1>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "1").WithLocation(15, 35),
+                // (16,33): error CS1031: Type expected
+                //         object a6 = typeof(Func<0,bool>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "0").WithLocation(16, 33),
+                // (17,33): error CS1031: Type expected
+                //         object a7 = typeof(Func<static,bool>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(17, 33),
+                // (24,43): error CS1031: Type expected
+                //         object a10 = typeof(Action<Action<0>>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "0").WithLocation(24, 43),
+                // (25,43): error CS1031: Type expected
+                //         object a11 = typeof(Action<Action<static>>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(25, 43),
+                // (26,36): error CS7003: Unexpected use of an unbound generic name
+                //         object a12 = typeof(Action<Action<>>);
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "Action<>").WithLocation(26, 36));
         }
 
         #region Mocks

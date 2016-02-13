@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableHashSet<DiagnosticData>> _analyzerHostDiagnosticsMap =
             ImmutableDictionary<DiagnosticAnalyzer, ImmutableHashSet<DiagnosticData>>.Empty;
 
-        internal abstract Workspace Workspace { get; }
+        public abstract Workspace Workspace { get; }
 
         public bool SupportGetDiagnostics
         {
@@ -37,11 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
         {
-            var updated = this.DiagnosticsUpdated;
-            if (updated != null)
-            {
-                updated(this, args);
-            }
+            this.DiagnosticsUpdated?.Invoke(this, args);
         }
 
         internal void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace, ProjectId projectIdOpt)
@@ -53,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // check whether we are reporting project specific diagnostic or workspace wide diagnostic
             var project = projectIdOpt != null ? workspace.CurrentSolution.GetProject(projectIdOpt) : null;
-            
+
             // check whether project the diagnostic belong to still exist
             if (projectIdOpt != null && project == null)
             {
@@ -167,8 +163,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public HostArgsId(AbstractHostDiagnosticUpdateSource source, DiagnosticAnalyzer analyzer, ProjectId projectIdOpt) : base(analyzer)
             {
-                this._source = source;
-                this._projectIdOpt = projectIdOpt;
+                _source = source;
+                _projectIdOpt = projectIdOpt;
             }
 
             public override bool Equals(object obj)

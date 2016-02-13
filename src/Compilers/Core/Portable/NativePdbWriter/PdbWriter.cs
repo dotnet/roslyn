@@ -97,7 +97,7 @@ namespace Microsoft.Cci
                 }
                 else
                 {
-                   _hashAlgorithm.TransformBlock(segment.Array, segment.Offset, segment.Count);
+                    _hashAlgorithm.TransformBlock(segment.Array, segment.Offset, segment.Count);
                 }
             }
 
@@ -232,7 +232,7 @@ namespace Microsoft.Cci
         private readonly Func<object> _symWriterFactory;
         private ComMemoryStream _pdbStream;
         private MetadataWriter _metadataWriter;
-        private ISymUnmanagedWriter2 _symWriter;
+        private ISymUnmanagedWriter5 _symWriter;
 
         private readonly Dictionary<DebugSourceDocument, ISymUnmanagedDocumentWriter> _documentMap = new Dictionary<DebugSourceDocument, ISymUnmanagedDocumentWriter>();
 
@@ -805,7 +805,7 @@ namespace Microsoft.Cci
         {
             try
             {
-                var symWriter = (ISymUnmanagedWriter2)(_symWriterFactory != null ? _symWriterFactory() : CreateSymWriterWorker());
+                var symWriter = (ISymUnmanagedWriter5)(_symWriterFactory != null ? _symWriterFactory() : CreateSymWriterWorker());
 
                 // Correctness: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
                 // and the resulting PDB has Age = existing_age + 1.
@@ -813,12 +813,12 @@ namespace Microsoft.Cci
 
                 if (_deterministic)
                 {
-                    if (!(symWriter is ISymUnmanagedWriter7 || symWriter is ISymUnmanagedWriter100))
+                    if (!(symWriter is ISymUnmanagedWriter7))
                     {
                         throw new NotSupportedException(CodeAnalysisResources.SymWriterNotDeterministic);
                     }
 
-                    ((ISymUnmanagedWriter6)symWriter).InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);
+                    ((ISymUnmanagedWriter7)symWriter).InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);
                 }
                 else
                 {
@@ -843,18 +843,6 @@ namespace Microsoft.Cci
 
                 try
                 {
-                    // TODO: remove once we can rely on the presence of ISymUnmanagedWriter7
-                    var writer100 = _symWriter as ISymUnmanagedWriter100;
-                    if (writer100 != null)
-                    {
-                        var id = ContentId.FromHash(ImmutableArray.CreateRange(hash));
-
-                        Debug.Assert(BitConverter.IsLittleEndian);
-                        writer100.SetSignature(BitConverter.ToUInt32(id.Stamp, 0), new Guid(id.Guid));
-
-                        return id;
-                    }
-                    
                     fixed (byte* hashPtr = &hash[0])
                     {
                         ((ISymUnmanagedWriter7)_symWriter).UpdateSignatureByHashingContent(hashPtr, hash.Length);
@@ -1235,7 +1223,7 @@ namespace Microsoft.Cci
             {
                 try
                 {
-                    _symWriter.DefineConstant2(name, value, constantSignatureToken);
+                    DefineLocalConstantImpl(name, value, constantSignatureToken);
                     if (_callLogger.LogOperation(OP.DefineConstant2))
                     {
                         _callLogger.LogArgument(name);
@@ -1248,6 +1236,13 @@ namespace Microsoft.Cci
                     throw new PdbWritingException(ex);
                 }
             }
+        }
+
+        private unsafe void DefineLocalConstantImpl(string name, object value, uint sigToken)
+        {
+            VariantStructure variant = new VariantStructure();
+            Marshal.GetNativeVariantForObject(value, new IntPtr(&variant));
+            _symWriter.DefineConstant2(name, variant, sigToken);
         }
 
         private void DefineLocalStringConstant(string name, string value, uint constantSignatureToken)
@@ -1268,7 +1263,7 @@ namespace Microsoft.Cci
 
             try
             {
-                _symWriter.DefineConstant2(name, value, constantSignatureToken);
+                DefineLocalConstantImpl(name, value, constantSignatureToken);
                 if (_callLogger.LogOperation(OP.DefineConstant2))
                 {
                     _callLogger.LogArgument(name);

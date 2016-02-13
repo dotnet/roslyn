@@ -147,7 +147,7 @@ class Program
             CompileAndVerify(csSource, expectedOutput: "hello");
         }
 
-        [WorkItem(544427, "DevDiv")]
+        [WorkItem(544427, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544427")]
         [Fact]
         public void WrongOrderConversion()
         {
@@ -181,7 +181,7 @@ public class Test
 }");
         }
 
-        [WorkItem(602009, "DevDiv")]
+        [WorkItem(602009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602009")]
         [Fact]
         public void DefaultParameterValue_DateTimeConstant()
         {
@@ -282,7 +282,7 @@ null
             CompileAndVerify(comp2, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(602009, "DevDiv")]
+        [WorkItem(602009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602009")]
         [Fact]
         public void DefaultParameterValue_DecimalConstant()
         {
@@ -380,7 +380,7 @@ null
             CompileAndVerify(comp2, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(659424, "DevDiv")]
+        [WorkItem(659424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/659424")]
         [Fact]
         public void FloatConversion001()
         {
@@ -411,7 +411,7 @@ public class Program
 }");
         }
 
-        [WorkItem(659424, "DevDiv")]
+        [WorkItem(659424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/659424")]
         [Fact]
         public void FloatConversion002()
         {
@@ -459,7 +459,7 @@ class Program
 }");
         }
 
-        [WorkItem(659424, "DevDiv")]
+        [WorkItem(659424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/659424")]
         [Fact]
         public void FloatConversion003()
         {
@@ -507,7 +507,7 @@ class Program
 }");
         }
 
-        [WorkItem(448900, "DevDiv")]
+        [WorkItem(448900, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/448900")]
         [Fact]
         public void Regress448900()
         {
@@ -568,7 +568,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(448900, "DevDiv")]
+        [WorkItem(448900, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/448900")]
         [Fact]
         public void Regress448900_Optimized()
         {
@@ -617,7 +617,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(448900, "DevDiv")]
+        [WorkItem(448900, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/448900")]
         [Fact]
         public void Regress448900_Folded()
         {
@@ -657,7 +657,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(674803, "DevDiv")]
+        [WorkItem(674803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674803")]
         [Fact]
         public void CastFrom0ToExplicitConversionViaEnum01()
         {
@@ -678,7 +678,7 @@ class C
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [WorkItem(844635, "DevDiv")]
+        [WorkItem(844635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844635")]
         [Fact]
         public void RuntimeTypeCheckForGenericEnum()
         {
@@ -727,8 +727,8 @@ class G<T>
 }");
         }
 
-        [WorkItem(864605, "DevDiv")]
-        [WorkItem(864740, "DevDiv")]
+        [WorkItem(864605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864605")]
+        [WorkItem(864740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864740")]
         [Fact]
         public void MethodGroupIsExpression()
         {
@@ -751,7 +751,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(1084278, "DevDiv")]
+        [WorkItem(1084278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084278")]
         public void NullableConversionFromConst()
         {
             var source =
@@ -951,7 +951,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(1210529, "DevDiv")]
+        [WorkItem(1210529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1210529")]
         public void LiftedIntToIntPtr()
         {
             var source =
@@ -994,7 +994,6 @@ class C
   IL_002b:  call       ""void C.Use(System.IntPtr?)""
   IL_0030:  ret
 }");
-
         }
     }
 }

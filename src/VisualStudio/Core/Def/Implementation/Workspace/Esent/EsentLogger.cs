@@ -8,8 +8,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
 {
     internal class EsentLogger
     {
-        private const string Kind = "Kind";
-        private const string Reason = "Reason";
+        private const string Kind = nameof(Kind);
+        private const string Reason = nameof(Reason);
 
         private static readonly ConcurrentDictionary<Type, object> s_set = new ConcurrentDictionary<Type, object>(concurrencyLevel: 2, capacity: 10);
 

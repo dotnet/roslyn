@@ -58,16 +58,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 assemblyName: "DeterminismTest", references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(true));
             var compilationNonDeterministic = CreateCompilation(
-                source, 
-                assemblyName: "DeterminismTest", 
+                source,
+                assemblyName: "DeterminismTest",
                 references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(false));
 
             var resultDeterministic = compilationDeterministic.Emit(Stream.Null, Stream.Null);
             var resultNonDeterministic = compilationNonDeterministic.Emit(Stream.Null, Stream.Null);
 
-            Assert.False(resultDeterministic.Success);   
-            Assert.True(resultNonDeterministic.Success);   
+            Assert.False(resultDeterministic.Success);
+            Assert.True(resultNonDeterministic.Success);
         }
 
         [Fact, WorkItem(372, "https://github.com/dotnet/roslyn/issues/372")]
@@ -126,10 +126,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             }
         }
 
-        [Fact, WorkItem(926)]
+        [Fact, WorkItem(926, "https://github.com/dotnet/roslyn/issues/926")]
         public void CompareAllBytesEmitted_Debug()
         {
-            foreach (var pdbFormat in new[] 
+            foreach (var pdbFormat in new[]
             {
                 DebugInformationFormat.Pdb,
                 DebugInformationFormat.PortablePdb,
@@ -161,6 +161,75 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                                                        new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithDeterministic(true));
             var output = new WriteOnlyStream();
             compilation.Emit(output);
+        }
+
+        [Fact]
+        public void TestPartialPartsDeterministic()
+        {
+            var x1 =
+@"partial class Partial : I1
+{
+    public static int a = D.Init(1, ""Partial.a"");
+}";
+            var x2 =
+@"partial class Partial : I2
+{
+    public static int c, b = D.Init(2, ""Partial.b"");
+    static Partial()
+    {
+                c = D.Init(3, ""Partial.c"");
+            }
+        }";
+            var x3 =
+@"class D
+{
+    public static void Main(string[] args)
+    {
+        foreach (var i in typeof(Partial).GetInterfaces())
+        {
+            System.Console.WriteLine(i.Name);
+        }
+        System.Console.WriteLine($""Partial.a = {Partial.a}"");
+        System.Console.WriteLine($""Partial.b = {Partial.b}"");
+        System.Console.WriteLine($""Partial.c = {Partial.c}"");
+    }
+    public static int Init(int value, string message)
+    {
+        System.Console.WriteLine(message);
+        return value;
+    }
+}
+
+interface I1 { }
+interface I2 { }
+";
+            var expectedOutput1 =
+@"I1
+I2
+Partial.a
+Partial.b
+Partial.c
+Partial.a = 1
+Partial.b = 2
+Partial.c = 3";
+            var expectedOutput2 =
+@"I2
+I1
+Partial.b
+Partial.a
+Partial.c
+Partial.a = 1
+Partial.b = 2
+Partial.c = 3";
+            // we run more than once to increase the chance of observing a problem due to nondeterminism
+            for (int i = 0; i < 2; i++)
+            {
+                var cv = CompileAndVerify(sources: new string[] { x1, x2, x3 }, expectedOutput: expectedOutput1);
+                var trees = cv.Compilation.SyntaxTrees.ToArray();
+                var comp2 = cv.Compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(trees[1], trees[0], trees[2]);
+                CompileAndVerify(comp2, expectedOutput: expectedOutput2);
+                CompileAndVerify(sources: new string[] { x2, x1, x3 }, expectedOutput: expectedOutput2);
+            }
         }
 
         private class WriteOnlyStream : Stream

@@ -5,7 +5,7 @@ using System;
 namespace Microsoft.CodeAnalysis.CodeActions
 {
     /// <summary>
-    /// Apply this annotation to a SyntaxNode to indicate a conflict may exist that requires user understanding and acknowledgement before taking action.
+    /// Apply this annotation to a SyntaxNode to indicate a conflict may exist that requires user understanding and acknowledgment before taking action.
     /// </summary>
     public static class ConflictAnnotation
     {

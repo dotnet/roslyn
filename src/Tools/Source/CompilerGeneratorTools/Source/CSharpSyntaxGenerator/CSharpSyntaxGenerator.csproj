@@ -28,21 +28,26 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractFileWriter.cs" />
-    <Compile Include="AbstractNode.cs" />
-    <Compile Include="Comment.cs" />
-    <Compile Include="Field.cs" />
-    <Compile Include="Kind.cs" />
-    <Compile Include="Node.cs" />
-    <Compile Include="PredefinedNode.cs" />
+    <Compile Include="Model\AbstractNode.cs" />
+    <Compile Include="Model\Comment.cs" />
+    <Compile Include="Model\Field.cs" />
+    <Compile Include="Model\Kind.cs" />
+    <Compile Include="Model\Node.cs" />
+    <Compile Include="Model\PredefinedNode.cs" />
+    <Compile Include="Model\Tree.cs" />
+    <Compile Include="Model\TreeType.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="SignatureWriter.cs" />
     <Compile Include="SourceWriter.cs" />
     <Compile Include="TestWriter.cs" />
-    <Compile Include="Tree.cs" />
-    <Compile Include="TreeType.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\Syntax.xml">
+      <Link>Syntax.xml</Link>
+    </Content>
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\..\..\build\Targets\VSL.Imports.targets" />

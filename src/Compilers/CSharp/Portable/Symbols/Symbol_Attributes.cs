@@ -462,6 +462,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return isOwner;
             }
 
+            AttributeLocation allowedTargets = attributesOwner.AllowedAttributeLocations;
+
             AttributeLocation explicitTarget = targetOpt.GetAttributeLocation();
             if (explicitTarget == AttributeLocation.None)
             {
@@ -470,13 +472,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     //NOTE: ValueText so that we accept targets like "@return", to match dev10 (DevDiv #2591).
                     diagnostics.Add(ErrorCode.WRN_InvalidAttributeLocation,
-                        targetOpt.Identifier.GetLocation(), targetOpt.Identifier.ValueText);
+                        targetOpt.Identifier.GetLocation(), targetOpt.Identifier.ValueText, allowedTargets.ToDisplayString());
                 }
 
                 return false;
             }
 
-            AttributeLocation allowedTargets = attributesOwner.AllowedAttributeLocations;
             if ((explicitTarget & allowedTargets) == 0)
             {
                 // error: invalid target for symbol
@@ -654,7 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Given attribute can't be specified more than once if AllowMultiple is false.
             if (!uniqueAttributeTypes.Add(attributeType) && !attributeUsageInfo.AllowMultiple)
             {
-                diagnostics.Add(ErrorCode.ERR_DuplicateAttribute, node.Name.Location, node.Name);
+                diagnostics.Add(ErrorCode.ERR_DuplicateAttribute, node.Name.Location, node.GetErrorDisplayName());
                 return false;
             }
 
@@ -674,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((attributeTarget & attributeUsageInfo.ValidTargets) == 0)
             {
                 // generate error
-                diagnostics.Add(ErrorCode.ERR_AttributeOnBadSymbolType, node.Name.Location, node.Name, attributeUsageInfo.GetValidTargetsErrorArgument());
+                diagnostics.Add(ErrorCode.ERR_AttributeOnBadSymbolType, node.Name.Location, node.GetErrorDisplayName(), attributeUsageInfo.GetValidTargetsErrorArgument());
                 return false;
             }
 

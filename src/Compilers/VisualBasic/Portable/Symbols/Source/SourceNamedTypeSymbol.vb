@@ -463,10 +463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Check that the node's fully qualified name is not too long. Only check declarations that create types.
 
             Dim id As SyntaxToken = GetTypeIdentifierToken(node)
-
             binder.DisallowTypeCharacter(id, diagBag)
-
-            Dim _6thArg As Object = Me.ContainingSymbol.ToErrorMessageArgument()
 
             Dim thisTypeIsEmbedded As Boolean = Me.IsEmbedded
 
@@ -551,7 +548,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     CType(container, SourceMemberContainerTypeSymbol).IsPartial) Then
                                 Binder.ReportDiagnostic(diagBag, id, ERRID.ERR_TypeConflict6,
                                                         Me.GetKindText(), id.ToString, _3rdArg, s.Name,
-                                                        container.GetKindText(), _6thArg)
+                                                        container.GetKindText(), Me.ContainingSymbol.ToErrorMessageArgument(ERRID.ERR_TypeConflict6))
                             End If
 
                         End If
@@ -662,21 +659,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If (foundModifiers And DeclarationModifiers.Partial) = 0 Then
 
+                Dim errorCode = If(foundPartial, ERRID.WRN_TypeConflictButMerged6, ERRID.ERR_TypeConflict6)
+
                 ' Ensure multiple class declarations all have partial.  Report a warning if more than 2 declarations are missing partial.
                 ' VB allows one class declaration with partial and one declaration without partial because designer generated code
                 ' may not have specified partial. This allows user-code to force it. However, VB does not allow more than one declaration
                 ' to not have partial as this would (erroneously) make what would have been a error (duplicate declarations) compile.
-                Dim _6thArg As Object = Me.ContainingSymbol.ToErrorMessageArgument()
+                Dim _6thArg As Object = Me.ContainingSymbol.ToErrorMessageArgument(errorCode)
 
                 Dim identifier As String = GetTypeIdentifierToken(firstNode).ToString
-
                 Dim nodeKindText = Me.GetKindText()
 
-                Binder.ReportDiagnostic(diagBag, id, If(foundPartial, ERRID.WRN_TypeConflictButMerged6, ERRID.ERR_TypeConflict6),
-                                             nodeKindText, id.ToString,
-                                             nodeKindText, identifier,
-                                             Me.ContainingSymbol.GetKindText(),
-                                             _6thArg)
+                Binder.ReportDiagnostic(diagBag, id, errorCode,
+                                            nodeKindText, id.ToString,
+                                            nodeKindText, identifier,
+                                            Me.ContainingSymbol.GetKindText(),
+                                            _6thArg)
             End If
 
         End Sub
@@ -1014,7 +1012,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub MakeDeclaredInterfacesInPart(tree As SyntaxTree,
                                                 syntaxNode As VisualBasicSyntaxNode,
-                                                interfaces As HashSet(Of NamedTypeSymbol),
+                                                interfaces As SetWithInsertionOrder(Of NamedTypeSymbol),
                                                 basesBeingResolved As ConsList(Of Symbol),
                                                 diagBag As DiagnosticBag)
 
@@ -1142,7 +1140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Sub ValidateInheritedInterfaces(baseSyntax As SyntaxList(Of InheritsStatementSyntax),
-                                                basesInOtherPartials As HashSet(Of NamedTypeSymbol),
+                                                basesInOtherPartials As SetWithInsertionOrder(Of NamedTypeSymbol),
                                                 basesBeingResolved As ConsList(Of Symbol),
                                                 binder As Binder,
                                                 diagBag As DiagnosticBag)
@@ -1203,7 +1201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Private Sub ValidateImplementedInterfaces(baseSyntax As SyntaxList(Of ImplementsStatementSyntax),
-                                                  basesInOtherPartials As HashSet(Of NamedTypeSymbol),
+                                                  basesInOtherPartials As SetWithInsertionOrder(Of NamedTypeSymbol),
                                                   basesBeingResolved As ConsList(Of Symbol),
                                                   binder As Binder,
                                                   diagBag As DiagnosticBag)
@@ -1301,7 +1299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 containingSourceType.GetDeclaredBaseInterfacesSafe(If(basesBeingResolved, ConsList(Of Symbol).Empty).Prepend(Me))
             End If
 
-            Dim interfaces As New HashSet(Of NamedTypeSymbol)
+            Dim interfaces As New SetWithInsertionOrder(Of NamedTypeSymbol)
 
             ' Go through all the parts of this type, and declare the information in that part, 
             ' reporting errors appropriately.
@@ -1309,7 +1307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 MakeDeclaredInterfacesInPart(syntaxRef.SyntaxTree, syntaxRef.GetVisualBasicSyntax(), interfaces, basesBeingResolved, diagnostics)
             Next
 
-            Return interfaces.AsImmutable
+            Return interfaces.InInsertionOrder.AsImmutable
         End Function
 
         Private Function GetInheritsLocation(base As NamedTypeSymbol) As Location

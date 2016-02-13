@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var selectedItem = bestFilterMatch ?? allFilteredItems.First();
 
                 // If we have a best item, then we want to hard select it.  Otherwise we want
-                // softselection.  However, no hard selection if there's a builder.
+                // soft selection.  However, no hard selection if there's a builder.
                 var hardSelection = IsHardSelection(model, bestFilterMatch, textSnapshot, completionRules, model.TriggerInfo, filterReason);
 
                 var result = model.WithFilteredItems(allFilteredItems)

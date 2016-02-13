@@ -11,45 +11,52 @@
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <RunTestArgs Condition="'$(ManualTest)' == ''">$(RunTestArgs) -xml</RunTestArgs>
     <RunTestArgs Condition="'$(Test64)' == 'true'">$(RunTestArgs) -test64</RunTestArgs>
+    <RunTestArgs Condition="'$(Trait)' != ''">$(RunTestArgs) -trait:$(Trait)</RunTestArgs>
+    <RunTestArgs Condition="'$(NoTrait)' != ''">$(RunTestArgs) -notrait:$(NoTrait)</RunTestArgs>
     <IncludePattern Condition="'$(IncludePattern)' == ''">*.UnitTests*.dll</IncludePattern>
     <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
     <NuGetPackageRoot>$(UserProfile)\.nuget\packages</NuGetPackageRoot>
     <XunitVersion>2.1.0</XunitVersion>
+    <MSBuildCommonProperties>
+      RestorePackages=false;
+      TreatWarningsAsErrors=true;
+      DeployExtension=false;
+    </MSBuildCommonProperties>
   </PropertyGroup>
 
   <Target Name="Build">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
-             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
+             Properties="$(MSBuildCommonProperties)"
              Targets="Build"/>
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
-             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
+             Properties="$(MSBuildCommonProperties)"
              Targets="Build"/>
   </Target>
 
   <Target Name="Clean">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
-             Properties="RestorePackages=false"
+             Properties="$(MSBuildCommonProperties)"
              Targets="Clean"/>
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
-             Properties="RestorePackages=false"
+             Properties="$(MSBuildCommonProperties)"
              Targets="Clean"/>
   </Target>
 
   <Target Name="Rebuild">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
-             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
+             Properties="$(MSBuildCommonProperties)"
              Targets="Rebuild"/>
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
-             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
+             Properties="$(MSBuildCommonProperties)"
              Targets="Rebuild"/>
   </Target>
 
@@ -68,12 +75,11 @@
 
       <!-- MakeConst unit tests tracked by https://github.com/dotnet/roslyn/issues/5918 -->
       <TestAssemblies Condition="'$(Test64)' != 'true'" 
-                      Include="$(OutputDirectory)\**\$(IncludePattern)"
-                      Exclude="$(OutputDirectory)\**\MakeConst*" />
+                      Include="$(OutputDirectory)\**\$(IncludePattern)" />
 
       <TestAssemblies Condition="'$(Test64)' == 'true'" 
                       Include="$(OutputDirectory)\**\$(IncludePattern)" 
-                      Exclude="$(OutputDirectory)\**\Roslyn.Interactive*;$(OutputDirectory)\**\MakeConst*" />
+                      Exclude="$(OutputDirectory)\**\Roslyn.Interactive*" />
     </ItemGroup>
 
     <Exec Command="Binaries\$(Configuration)\RunTests.exe $(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')" />

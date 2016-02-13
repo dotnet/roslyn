@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SingleLineDocumentationCommentTrivia, trivia[0].Kind());
         }
 
-        [WorkItem(537500, "DevDiv")]
+        [WorkItem(537500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537500")]
         [Fact]
         [Trait("Feature", "Comments")]
         public void TestSingleLineDocCommentFollowedBySlash()
@@ -1404,8 +1404,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
         }
 
-        [WorkItem(547238, "DevDiv")]
-        [Fact, WorkItem(547238, "DevDiv")]
+        [WorkItem(547238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547238")]
+        [Fact, WorkItem(547238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547238")]
         [Trait("Feature", "Literals")]
         public void TestNumericLiteralWithExponentAndDecimalSpecifier04()
         {
@@ -1416,7 +1416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
-            Assert.Equal((int)ErrorCode.ERR_FloatOverflow, errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_InvalidReal, errors[0].Code);
             Assert.Equal(text, token.Text);
         }
 
@@ -2383,7 +2383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// Earlier identifier syntax "[0-9]+#" not supported.
         /// </summary>
-        [WorkItem(1071347)]
+        [WorkItem(1071347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1071347")]
         [Fact]
         public void TestDebuggerAliasIdentifiers()
         {
@@ -2584,7 +2584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(LexerCache.MaxKeywordLength, max);
         }
 
-        [WorkItem(545781, "DevDiv")]
+        [WorkItem(545781, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545781")]
         [Fact]
         public void DecimalLiteralsOtherCulture()
         {

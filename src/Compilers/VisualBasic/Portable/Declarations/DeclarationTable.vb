@@ -31,13 +31,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Partial Friend Class DeclarationTable
         Public Shared ReadOnly Empty As DeclarationTable = New DeclarationTable(
-                                                           ImmutableHashSet.Create(Of DeclarationTableEntry)(),
+                                                           ImmutableSetWithInsertionOrder(Of DeclarationTableEntry).Empty,
                                                            latestLazyRootDeclaration:=Nothing,
                                                            cache:=Nothing)
 
         ' All our root declarations.  We split these so we can separate out the unchanging 'older'
         ' declarations from the constantly changing 'latest' declaration.
-        Private ReadOnly _allOlderRootDeclarations As ImmutableHashSet(Of DeclarationTableEntry)
+        Private ReadOnly _allOlderRootDeclarations As ImmutableSetWithInsertionOrder(Of DeclarationTableEntry)
         Private ReadOnly _latestLazyRootDeclaration As DeclarationTableEntry
 
         ' The cache of computed values for the old declarations.
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private _lazyAllRootDeclarations As ImmutableArray(Of RootSingleNamespaceDeclaration)
 
-        Private Sub New(allOlderRootDeclarations As ImmutableHashSet(Of DeclarationTableEntry),
+        Private Sub New(allOlderRootDeclarations As ImmutableSetWithInsertionOrder(Of DeclarationTableEntry),
                         latestLazyRootDeclaration As DeclarationTableEntry,
                         cache As Cache)
             Me._allOlderRootDeclarations = allOlderRootDeclarations
@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Sub GetOlderNamespaces(builder As ArrayBuilder(Of RootSingleNamespaceDeclaration))
-            For Each olderRootDeclaration In _allOlderRootDeclarations
+            For Each olderRootDeclaration In _allOlderRootDeclarations.InInsertionOrder
                 Dim declOpt = olderRootDeclaration.Root.Value
                 If declOpt IsNot Nothing Then
                     builder.Add(declOpt)
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function SelectManyFromOlderDeclarationsNoEmbedded(Of T)(selector As Func(Of RootSingleNamespaceDeclaration, ImmutableArray(Of T))) As ImmutableArray(Of T)
-            Return _allOlderRootDeclarations.Where(Function(d) Not d.IsEmbedded AndAlso d.Root.Value IsNot Nothing).SelectMany(Function(d) selector(d.Root.Value)).AsImmutable()
+            Return _allOlderRootDeclarations.InInsertionOrder.Where(Function(d) Not d.IsEmbedded AndAlso d.Root.Value IsNot Nothing).SelectMany(Function(d) selector(d.Root.Value)).AsImmutable()
         End Function
 
         ' The merged-tree-reuse story goes like this. We have a "forest" of old declarations, and

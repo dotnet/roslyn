@@ -9,11 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -266,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             projectItems = documents.Select(d =>
                 new NavigationBarProjectItem(
                     d.Project.Name,
-                    GetProjectGlyph(d.Project),
+                    d.Project.GetGlyph(),
                     workspace: d.Project.Solution.Workspace,
                     documentId: d.Id,
                     language: d.Project.Language)).OrderBy(projectItem => projectItem.Text).ToList();
@@ -277,12 +273,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             selectedProjectItem = document != null
                 ? projectItems.FirstOrDefault(p => p.Text == document.Project.Name) ?? projectItems.First()
                 : projectItems.First();
-        }
-
-        private Glyph GetProjectGlyph(Project project)
-        {
-            // TODO: Get the glyph from the hierarchy
-            return project.Language == LanguageNames.CSharp ? Glyph.CSharpProject : Glyph.BasicProject;
         }
 
         /// <summary>

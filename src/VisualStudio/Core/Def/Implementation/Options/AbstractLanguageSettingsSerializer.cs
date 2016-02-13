@@ -218,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
             else
             {
-                Task.Factory.StartNew(this.SetUserPreferences, CancellationToken.None, TaskCreationOptions.None, ForegroundThreadAffinitizedObject.DefaultForegroundThreadData.TaskScheduler);
+                Task.Factory.StartNew(this.SetUserPreferences, CancellationToken.None, TaskCreationOptions.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler);
             }
         }
 

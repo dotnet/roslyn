@@ -26,11 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
-            ' ,,
-            If previousToken.Kind = SyntaxKind.CommaToken AndAlso currentToken.Kind = SyntaxKind.CommaToken Then
-                Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
-            End If
-
             ' ( < case
             If previousToken.Kind = SyntaxKind.OpenParenToken AndAlso
                FormattingHelpers.IsLessThanInAttribute(currentToken) Then
@@ -260,7 +255,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' * .
             ' * :=
             Select Case currentToken.Kind
-                Case SyntaxKind.CloseBraceToken, SyntaxKind.CloseParenToken, SyntaxKind.CommaToken, SyntaxKind.ColonEqualsToken
+                Case SyntaxKind.CloseParenToken, SyntaxKind.CommaToken
+                    Return If(previousToken.Kind = SyntaxKind.EmptyToken AndAlso PrecedingTriviaContainsLineBreak(previousToken),
+                        CreateAdjustSpacesOperation(0, AdjustSpacesOption.PreserveSpaces),
+                        CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine))
+
+                Case SyntaxKind.CloseBraceToken, SyntaxKind.ColonEqualsToken
                     Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
 
                 Case SyntaxKind.DotToken
@@ -350,6 +350,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             Return nextFunc.Invoke()
+        End Function
+
+        Private Function PrecedingTriviaContainsLineBreak(previousToken As SyntaxToken) As Boolean
+            Return ContainsLineBreak(previousToken.LeadingTrivia) OrElse ContainsLineBreak(previousToken.GetPreviousToken(includeZeroWidth:=True).TrailingTrivia)
+        End Function
+
+        Private Function ContainsLineBreak(triviaList As SyntaxTriviaList) As Boolean
+            Return triviaList.Any(Function(t) t.Kind = SyntaxKind.EndOfLineTrivia)
         End Function
     End Class
 End Namespace

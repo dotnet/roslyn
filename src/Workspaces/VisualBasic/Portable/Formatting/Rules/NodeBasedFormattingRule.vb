@@ -499,7 +499,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return node.GetLastToken(includeZeroWidth:=True)
             End If
 
-            ' get all enclosing forblock statements
+            ' get all enclosing for block statements
             Dim forBlocks = nextStatement.GetAncestors(Of ForOrForEachBlockSyntax)()
 
             ' get count of the for blocks

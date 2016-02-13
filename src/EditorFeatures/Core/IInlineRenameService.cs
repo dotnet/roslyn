@@ -2,7 +2,6 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
 {

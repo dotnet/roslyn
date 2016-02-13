@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DebugInformationFormat debugInformationFormat = DebugInformationFormat.Pdb;
             bool debugPlus = false;
             string pdbPath = null;
-            bool noStdLib = false;
+            bool noStdLib = IsScriptRunner; // don't add mscorlib from sdk dir when running scripts
             string outputDirectory = baseDirectory;
             ImmutableArray<KeyValuePair<string, string>> pathMap = ImmutableArray<KeyValuePair<string, string>>.Empty;
             string outputFileName = null;
@@ -114,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sqmSessionGuid = Guid.Empty;
             bool optionsEnded = false;
             bool interactiveMode = false;
+            bool publicSign = false;
 
             // Process ruleset files first so that diagnostic severity settings specified on the command line via
             // /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -546,7 +547,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), name);
                                     continue;
                                 }
-                                switch (value.ToLower()) {
+                                switch (value.ToLower())
+                                {
                                     case "full":
                                     case "pdbonly":
                                         debugInformationFormat = DebugInformationFormat.Pdb;
@@ -777,6 +779,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             delaySignSetting = false;
+                            continue;
+
+                        case "publicsign":
+                        case "publicsign+":
+                            if (value != null)
+                            {
+                                break;
+                            }
+
+                            publicSign = true;
+                            continue;
+
+                        case "publicsign-":
+                            if (value != null)
+                            {
+                                break;
+                            }
+
+                            publicSign = false;
                             continue;
 
                         case "keyfile":
@@ -1136,7 +1157,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 generalDiagnosticOption: generalDiagnosticOption,
                 warningLevel: warningLevel,
                 specificDiagnosticOptions: diagnosticOptions,
-                reportSuppressedDiagnostics: reportSuppressedDiagnostics
+                reportSuppressedDiagnostics: reportSuppressedDiagnostics,
+                publicSign: publicSign
             );
 
             if (debugPlus)

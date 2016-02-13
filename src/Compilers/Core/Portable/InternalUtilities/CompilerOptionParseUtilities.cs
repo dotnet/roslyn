@@ -12,7 +12,7 @@ namespace Roslyn.Utilities
         /// Parse the value provided to an MSBuild Feature option into a list of entries.  This will 
         /// leave name=value in their raw form.
         /// </summary>
-        public  static IList<string> ParseFeatureFromMSBuild(string features)
+        public static IList<string> ParseFeatureFromMSBuild(string features)
         {
             if (string.IsNullOrEmpty(features))
             {

@@ -1,15 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
@@ -30,14 +29,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 
         public int? GetDesiredIndentation(ITextSnapshotLine line)
         {
-            return GetDesiredIndentation(line, CancellationToken.None);
+            return GetDesiredIndentationAsync(line).WaitAndGetResult(CancellationToken.None);
+        }
+
+        internal Task<int?> GetDesiredIndentationAsync(ITextSnapshotLine line)
+        {
+            return GetDesiredIndentationAsync(line, CancellationToken.None);
         }
 
         public void Dispose()
         {
         }
 
-        private int? GetDesiredIndentation(ITextSnapshotLine lineToBeIndented, CancellationToken cancellationToken)
+        private async Task<int?> GetDesiredIndentationAsync(ITextSnapshotLine lineToBeIndented, CancellationToken cancellationToken)
         {
             if (lineToBeIndented == null)
             {
@@ -58,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                     return null;
                 }
 
-                var result = service.GetDesiredIndentationAsync(document, lineToBeIndented.LineNumber, cancellationToken).WaitAndGetResult(cancellationToken);
+                var result = await service.GetDesiredIndentationAsync(document, lineToBeIndented.LineNumber, cancellationToken).ConfigureAwait(false);
                 if (result == null)
                 {
                     return null;

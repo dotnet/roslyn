@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             public readonly Service Service;
             private readonly int _processId;
 
-            // output pumping threads (stream output from stdout/stderror of the host process to the output/errorOutput writers)
+            // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
             private Thread _readOutputThread;           // nulled on dispose
             private Thread _readErrorOutputThread;      // nulled on dispose
             private InteractiveHost _host;       // nulled on dispose

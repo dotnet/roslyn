@@ -1,16 +1,20 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
     Friend Module VisualBasicOutliningHelpers
         Public Const Ellipsis = "..."
+        Public Const SpaceEllipsis = " " & Ellipsis
         Public Const MaxXmlDocCommentBannerLength = 120
 
+        Private Function GetNodeBannerText(node As SyntaxNode) As String
+            Return node.ConvertToSingleLine().ToString() & SpaceEllipsis
+        End Function
+
         Private Function GetCommentBannerText(comment As SyntaxTrivia) As String
-            Return "' " & comment.ToString().Substring(1).Trim() & " " & Ellipsis
+            Return "' " & comment.ToString().Substring(1).Trim() & SpaceEllipsis
         End Function
 
         Private Function CreateCommentsRegion(startComment As SyntaxTrivia, endComment As SyntaxTrivia) As OutliningSpan
@@ -66,12 +70,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
             CollectCommentsRegions(triviaList, spans)
         End Sub
 
-        Friend Function CreateRegion(textSpan As TextSpan, bannerText As String, autoCollapse As Boolean, Optional isDefaultCollapsed As Boolean = False) As OutliningSpan
-            Return New OutliningSpan(textSpan, bannerText, autoCollapse, isDefaultCollapsed)
+        Friend Function CreateRegion(span As TextSpan, bannerText As String, autoCollapse As Boolean, Optional isDefaultCollapsed As Boolean = False) As OutliningSpan
+            Return New OutliningSpan(span, bannerText, autoCollapse, isDefaultCollapsed)
         End Function
 
-        Friend Function CreateRegionFromBlock(node As SyntaxNode, bannerText As String, autoCollapse As Boolean) As OutliningSpan
-            Return CreateRegion(node.Span, bannerText, autoCollapse)
+        Friend Function CreateRegionFromBlock(blockNode As SyntaxNode, bannerText As String, autoCollapse As Boolean) As OutliningSpan
+            Return CreateRegion(blockNode.Span, bannerText, autoCollapse)
+        End Function
+
+        Friend Function CreateRegionFromBlock(blockNode As SyntaxNode, bannerNode As SyntaxNode, autoCollapse As Boolean) As OutliningSpan
+            Return CreateRegion(blockNode.Span, GetNodeBannerText(bannerNode), autoCollapse)
         End Function
 
         Friend Function CreateRegion(syntaxList As IEnumerable(Of SyntaxNode), bannerText As String, autoCollapse As Boolean) As OutliningSpan

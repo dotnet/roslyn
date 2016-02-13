@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return info;
             }
 
-            // check whether we can get it from peristence service
+            // check whether we can get it from persistence service
             info = await LoadAsync(document, persistenceName, serializationFormat, reader, cancellationToken).ConfigureAwait(false);
             if (info != null)
             {

@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private Task RaiseEvent(string eventName)
             {
-                // this method name doesnt have Async since it should work as async void.
+                // this method name doesn't have Async since it should work as async void.
                 var ev = _eventMap.GetEventHandlers<EventHandler>(eventName);
                 if (ev.HasHandlers)
                 {

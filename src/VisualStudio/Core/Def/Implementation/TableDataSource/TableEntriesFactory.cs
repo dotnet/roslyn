@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
@@ -153,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return _sources.Primary.GetItems();
                 }
 
-                // flatten items from multiple soures and group them by deduplication identity
+                // flatten items from multiple sources and group them by deduplication identity
                 // merge duplicated items into de-duplicated item list
                 var items = _sources.GetSources()
                                     .SelectMany(s => s.GetItems())
@@ -185,7 +186,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return _tableSource.CreateSnapshot(_sources.Primary, version, items, trackingPoints);
                 }
 
-                return _tableSource.CreateSnapshot(_sources.GetSources().First(), version, items, trackingPoints);
+                // we can be called back from error list while all sources are removed but before error list know about it yet 
+                // since notification is pending in the queue.
+                var source = _sources.GetSources().FirstOrDefault();
+                if (source == null)
+                {
+                    return new EmptySnapshot(version);
+                }
+
+                return _tableSource.CreateSnapshot(source, version, items, trackingPoints);
+            }
+
+            private class EmptySnapshot : AbstractTableEntriesSnapshot<TData>
+            {
+                public EmptySnapshot(int version) :
+                    base(version, ImmutableArray<TableItem<TData>>.Empty, ImmutableArray<ITrackingPoint>.Empty)
+                {
+                }
+
+                protected override bool IsEquivalent(TData item1, TData item2) => false;
+                public override bool TryNavigateTo(int index, bool previewTab) => false;
+
+                public override bool TryGetValue(int index, string columnName, out object content)
+                {
+                    content = null;
+                    return false;
+                }
             }
 
             private class EntriesSourceCollections
@@ -195,6 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public EntriesSourceCollections(AbstractTableEntriesSource<TData> primary)
                 {
+                    Contract.ThrowIfNull(primary);
                     _primary = primary;
                 }
 

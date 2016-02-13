@@ -229,11 +229,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
 
                 Assert.Equal(typeof(TException), e.GetType());
-
-                if (checker != null)
-                {
-                    checker((TException)e);
-                }
+                checker?.Invoke((TException)e);
             }
         }
 

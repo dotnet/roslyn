@@ -1,10 +1,9 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         public SnapshotPoint? CaretPosition { get; }
 
         /// <summary>
-        /// The text that has changed between the last successfull tagging and this new request to
+        /// The text that has changed between the last successful tagging and this new request to
         /// produce tags.  In order to be passed this value, <see cref="TaggerTextChangeBehavior.TrackTextChanges"/> 
         /// must be specified in <see cref="AbstractAsynchronousTaggerProvider{TTag}.TextChangeBehavior"/>.
         /// </summary>
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             SnapshotPoint? caretPosition = null,
             TextChangeRange? textChangeRange = null,
             CancellationToken cancellationToken = default(CancellationToken))
-            : this(null, new[] { new DocumentSnapshotSpan(document, snapshot.GetFullSpan()) }, 
+            : this(null, new[] { new DocumentSnapshotSpan(document, snapshot.GetFullSpan()) },
                   caretPosition, textChangeRange, null, cancellationToken)
         {
         }

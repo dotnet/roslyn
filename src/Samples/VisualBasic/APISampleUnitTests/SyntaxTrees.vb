@@ -2,14 +2,13 @@
 
 Imports System.Text
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Xunit
 
-<TestClass()>
 Public Class SyntaxTrees
 
-    <TestMethod()>
+    <Fact>
     Public Sub FindNodeUsingMembers()
         Dim code =
 <code>
@@ -25,10 +24,10 @@ End Class
         Dim methodBlock = CType(typeBlock.Members(0), MethodBlockSyntax)
         Dim parameter = methodBlock.SubOrFunctionStatement.ParameterList.Parameters(0)
         Dim parameterName = parameter.Identifier.Identifier
-        Assert.AreEqual("i", parameterName.ValueText)
+        Assert.Equal("i", parameterName.ValueText)
     End Sub
 
-    <TestMethod()>
+    <Fact>
     Public Sub FindNodeUsingQuery()
         Dim code =
 <code>
@@ -40,10 +39,10 @@ End Class
 
         Dim root As SyntaxNode = SyntaxFactory.ParseCompilationUnit(code)
         Dim parameter = root.DescendantNodes().OfType(Of ParameterSyntax)().First()
-        Assert.AreEqual("i", parameter.Identifier.Identifier.ValueText)
+        Assert.Equal("i", parameter.Identifier.Identifier.ValueText)
     End Sub
 
-    <TestMethod()>
+    <Fact>
     Public Sub UpdateNode()
         Dim code =
 <code>
@@ -80,7 +79,7 @@ Class C
 End Class
 </code>.GetCode()
 
-        Assert.AreEqual(newCode, newTree.GetText().ToString())
+        Assert.Equal(newCode, newTree.GetText().ToString())
     End Sub
 
     Private Class FileContentsDumper
@@ -113,7 +112,7 @@ End Class
         End Function
     End Class
 
-    <TestMethod()>
+    <Fact>
     Public Sub WalkTreeUsingSyntaxWalker()
         Dim code =
 <code>
@@ -138,7 +137,7 @@ End Class
                            "Structure S" & vbCrLf &
                            "  M2" & vbCrLf
 
-        Assert.AreEqual(expectedText, visitor.ToString())
+        Assert.Equal(expectedText, visitor.ToString())
     End Sub
 
     Private Class RemoveMethodsRewriter
@@ -151,7 +150,7 @@ End Class
     End Class
 
 
-    <TestMethod()>
+    <Fact>
     Public Sub TransformTreeUsingSyntaxRewriter()
         Dim code =
 <code>
@@ -174,7 +173,7 @@ Class C
 End Class
 </code>.GetCode()
 
-        Assert.AreEqual(expectedCode, newRoot.ToFullString())
+        Assert.Equal(expectedCode, newRoot.ToFullString())
     End Sub
 
 End Class

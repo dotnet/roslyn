@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 
@@ -19,8 +20,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateMethod
             End If
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestSimpleInstanceMethod_CSharpToVisualBasic()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestSimpleInstanceMethod_CSharpToVisualBasic() As System.Threading.Tasks.Task
             Dim input =
         <Workspace>
             <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true">
@@ -54,11 +55,11 @@ public class VBClass
 end class
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestSimpleStaticMethod_CSharpToVisualBasic()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestSimpleStaticMethod_CSharpToVisualBasic() As System.Threading.Tasks.Task
             Dim input =
         <Workspace>
             <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true">
@@ -91,11 +92,11 @@ public class VBClass
 end class
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestParameters_CSharpToVisualBasic()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestParameters_CSharpToVisualBasic() As System.Threading.Tasks.Task
             Dim input =
         <Workspace>
             <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true">
@@ -133,11 +134,11 @@ public class VBClass
 end class
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestExplicitInterface_CSharpToVisualBasic()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestExplicitInterface_CSharpToVisualBasic() As Task
             Dim input =
         <Workspace>
             <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true">
@@ -167,11 +168,11 @@ end class
                     end interface
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestDelegate_CSharpToVisualBasic()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestDelegate_CSharpToVisualBasic() As Task
             Dim input =
         <Workspace>
             <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true">
@@ -209,11 +210,11 @@ end class
                     end class
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestAbstractMethod_CSharpToVisualBasic()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestAbstractMethod_CSharpToVisualBasic() As Task
             Dim input =
         <Workspace>
             <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true">
@@ -245,11 +246,11 @@ end class
                     end class
                 </text>.Value.Trim()
 
-            Test(input, expected, codeActionIndex:=1)
-        End Sub
+            Await TestAsync(input, expected, codeActionIndex:=1)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestSimpleInstanceMethod_VisualBasicToCSharp()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestSimpleInstanceMethod_VisualBasicToCSharp() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
@@ -284,11 +285,11 @@ end class
                     }
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestIntoNestedType_CSharpToVisualBasic()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestIntoNestedType_CSharpToVisualBasic() As Task
             Dim input =
         <Workspace>
             <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true">
@@ -325,11 +326,11 @@ end class
                     end class
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestIntoNestedGenericType_CSharpToVisualBasic()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestIntoNestedGenericType_CSharpToVisualBasic() As Task
             Dim input =
         <Workspace>
             <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true">
@@ -366,11 +367,11 @@ end class
     end class
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestIntoNestedType_VisualBasicToCSharp()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestIntoNestedType_VisualBasicToCSharp() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
@@ -411,11 +412,11 @@ end class
                     }
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestIntoNestedGenericType_VisualBasicToCSharp()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestIntoNestedGenericType_VisualBasicToCSharp() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
@@ -456,12 +457,12 @@ end class
                     }]]>
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
-        <WorkItem(608827)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub GenerateMethodUsingTypeConstraint_SingleNamedType()
+        <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function GenerateMethodUsingTypeConstraint_SingleNamedType() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
@@ -511,12 +512,12 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
-        <WorkItem(608827)>
+        <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub GenerateMethodUsingTypeConstraint_2BaseTypeConstraints()
+        Public Async Function GenerateMethodUsingTypeConstraint_2BaseTypeConstraints() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
@@ -581,12 +582,12 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
-        <WorkItem(608827)>
+        <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub GenerateMethodUsingTypeConstraint_2BaseTypeConstraints_Interfaces()
+        Public Async Function GenerateMethodUsingTypeConstraint_2BaseTypeConstraints_Interfaces() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
@@ -651,12 +652,12 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
-        <WorkItem(608827)>
+        <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_NoCommonDerived()
+        Public Async Function GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_NoCommonDerived() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
@@ -731,10 +732,10 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
-        Public Sub GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_CommonDerived()
+        Public Async Function GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_CommonDerived() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
@@ -819,12 +820,12 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
-        <WorkItem(608827)>
+        <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_CommonDerivedNestedType()
+        Public Async Function GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_CommonDerivedNestedType() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
@@ -904,12 +905,12 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
-        <WorkItem(608827)>
+        <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_CommonDerivedInstantiatedTypes()
+        Public Async Function GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_CommonDerivedInstantiatedTypes() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
@@ -996,12 +997,12 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
-        <WorkItem(608827)>
+        <WorkItem(608827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub GenerateMethodUsingTypeConstraint_InstantiatedGenerics()
+        Public Async Function GenerateMethodUsingTypeConstraint_InstantiatedGenerics() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
@@ -1069,14 +1070,14 @@ Module Program
 End Module]]>
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
 #Region "Normal tests"
 
         <WorkItem(144843, "Generate method stub generates into *.Designer.cs")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub PreferNormalFileOverAutoGeneratedFile_CSharp()
+        Public Async Function PreferNormalFileOverAutoGeneratedFile_CSharp() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1129,12 +1130,12 @@ partial class UserControl1
 </Text>.Value.Trim()}
                 }
 
-            Test(input, fileNameToExpected:=expectedFileWithText)
-        End Sub
+            Await TestAsync(input, fileNameToExpected:=expectedFileWithText)
+        End Function
 
         <WorkItem(144843, "Generate method stub generates into *.Designer.cs")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub IntoAutoGeneratedFileIfNoBetterLocationExists_CSharp()
+        Public Async Function IntoAutoGeneratedFileIfNoBetterLocationExists_CSharp() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1173,12 +1174,12 @@ partial class UserControl1
 }
 </Text>.Value.Trim()}}
 
-            Test(input, fileNameToExpected:=expectedFileWithText)
-        End Sub
+            Await TestAsync(input, fileNameToExpected:=expectedFileWithText)
+        End Function
 
         <WorkItem(144843, "Generate method stub generates into *.Designer.cs")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub InAutoGeneratedFiles_CSharp()
+        Public Async Function InAutoGeneratedFiles_CSharp() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1216,12 +1217,12 @@ class Form1
 }
 </Text>.Value.Trim()}}
 
-            Test(input, fileNameToExpected:=expectedFileWithText)
-        End Sub
+            Await TestAsync(input, fileNameToExpected:=expectedFileWithText)
+        End Function
 
         <WorkItem(144843, "Generate method stub generates into *.Designer.cs")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub PreferNormalFileOverAutoGeneratedFile_Basic()
+        Public Async Function PreferNormalFileOverAutoGeneratedFile_Basic() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1266,12 +1267,12 @@ End Class
 </Text>.Value.Trim()}
                 }
 
-            Test(input, fileNameToExpected:=expectedFileWithText)
-        End Sub
+            Await TestAsync(input, fileNameToExpected:=expectedFileWithText)
+        End Function
 
         <WorkItem(144843, "Generate method stub generates into *.Designer.cs")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub IntoAutoGeneratedFileIfNoBetterLocationExists_Basic()
+        Public Async Function IntoAutoGeneratedFileIfNoBetterLocationExists_Basic() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1304,12 +1305,12 @@ Partial Class UserControl1
 End Class
 </Text>.Value.Trim()}}
 
-            Test(input, fileNameToExpected:=expectedFileWithText)
-        End Sub
+            Await TestAsync(input, fileNameToExpected:=expectedFileWithText)
+        End Function
 
         <WorkItem(144843, "Generate method stub generates into *.Designer.cs")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub InAutoGeneratedFiles_Basic()
+        Public Async Function InAutoGeneratedFiles_Basic() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1337,8 +1338,8 @@ Class Form1
 End Class
 </Text>.Value.Trim()}}
 
-            Test(input, fileNameToExpected:=expectedFileWithText)
-        End Sub
+            Await TestAsync(input, fileNameToExpected:=expectedFileWithText)
+        End Function
 
 #End Region
 

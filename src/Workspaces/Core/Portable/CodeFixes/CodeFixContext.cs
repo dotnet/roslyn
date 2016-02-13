@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             bool verifyArguments,
             CancellationToken cancellationToken)
-            : this (document, document.Project, span, diagnostics, registerCodeFix, verifyArguments, cancellationToken)
+            : this(document, document.Project, span, diagnostics, registerCodeFix, verifyArguments, cancellationToken)
         {
         }
 

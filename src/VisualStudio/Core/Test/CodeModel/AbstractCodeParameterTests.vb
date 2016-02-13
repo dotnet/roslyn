@@ -63,42 +63,42 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return codeElement.AddAttribute(data.Name, data.Value, data.Position)
         End Function
 
-        Protected Sub TestParameterKind(code As XElement, kind As vsCMParameterKind)
-            TestElement(code,
+        Protected Async Function TestParameterKind(code As XElement, kind As vsCMParameterKind) As Threading.Tasks.Task
+            Await TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(kind, codeElement.ParameterKind)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Sub TestDefaultValue(code As XElement, expectedValue As String)
-            TestElement(code,
+        Protected Async Function TestDefaultValue(code As XElement, expectedValue As String) As Threading.Tasks.Task
+            Await TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expectedValue, codeElement.DefaultValue)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Sub TestSetParameterKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMParameterKind)
-            TestSetParameterKind(code, expectedCode, kind, NoThrow(Of EnvDTE80.vsCMParameterKind)())
-        End Sub
+        Protected Async Function TestSetParameterKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMParameterKind) As Threading.Tasks.Task
+            Await TestSetParameterKind(code, expectedCode, kind, NoThrow(Of EnvDTE80.vsCMParameterKind)())
+        End Function
 
-        Protected Sub TestSetParameterKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMParameterKind, action As SetterAction(Of EnvDTE80.vsCMParameterKind))
-            TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetParameterKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMParameterKind, action As SetterAction(Of EnvDTE80.vsCMParameterKind)) As Threading.Tasks.Task
+            Await TestElementUpdate(code, expectedCode,
                 Sub(codeElement)
                     Dim parameterKindSetter = GetParameterKindSetter(codeElement)
                     action(kind, parameterKindSetter)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Sub TestSetDefaultValue(code As XElement, expected As XElement, defaultValue As String)
-            TestSetDefaultValue(code, expected, defaultValue, NoThrow(Of String)())
-        End Sub
+        Protected Async Function TestSetDefaultValue(code As XElement, expected As XElement, defaultValue As String) As Threading.Tasks.Task
+            Await TestSetDefaultValue(code, expected, defaultValue, NoThrow(Of String)())
+        End Function
 
-        Protected Sub TestSetDefaultValue(code As XElement, expectedCode As XElement, defaultValue As String, action As SetterAction(Of String))
-            TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetDefaultValue(code As XElement, expectedCode As XElement, defaultValue As String, action As SetterAction(Of String)) As Threading.Tasks.Task
+            Await TestElementUpdate(code, expectedCode,
                 Sub(codeElement)
                     Dim defaultValueSetter = GetDefaultValueSetter(codeElement)
                     action(defaultValue, defaultValueSetter)
                 End Sub)
-        End Sub
+        End Function
     End Class
 End Namespace

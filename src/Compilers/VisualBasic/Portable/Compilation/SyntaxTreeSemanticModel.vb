@@ -7,6 +7,7 @@ Imports System.Collections.ObjectModel
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -133,10 +134,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' PERF: These shared variables avoid repeated allocation of Func(Of Binder, MemberSemanticModel) in GetMemberSemanticModel
-        Private Shared ReadOnly s_methodBodySemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) MethodBodySemanticModel.Create(DirectCast(key.Item1, MethodBodyBinder), key.Item2)
+        Private Shared ReadOnly s_methodBodySemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) MethodBodySemanticModel.Create(DirectCast(key.Item1, SubOrFunctionBodyBinder), key.Item2)
         Private Shared ReadOnly s_initializerSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) InitializerSemanticModel.Create(DirectCast(key.Item1, DeclarationInitializerBinder), key.Item2)
         Private Shared ReadOnly s_attributeSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) AttributeSemanticModel.Create(DirectCast(key.Item1, AttributeBinder), key.Item2)
-        Private Shared ReadOnly s_topLevelCodeSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) New TopLevelCodeSemanticModel(DirectCast(key.Item1, TopLevelCodeBinder), key.Item2)
 
         Public Function GetMemberSemanticModel(binder As Binder) As MemberSemanticModel
 
@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If TypeOf binder Is TopLevelCodeBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), s_topLevelCodeSemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), s_methodBodySemanticModelCreator)
             End If
 
             Return Nothing
@@ -345,6 +345,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If model IsNot Nothing Then
                 Return model.GetExpressionConstantValue(node, cancellationToken)
+            Else
+                Return Nothing
+            End If
+        End Function
+
+        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
+            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+
+            If model IsNot Nothing Then
+                Return model.GetOperationWorker(node, options, cancellationToken)
             Else
                 Return Nothing
             End If
@@ -955,7 +965,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Delegate declarations are a subclass of MethodBaseSyntax syntax-wise, but they are
             ' more like a type declaration, so we need to special case here.
             If declarationSyntax.Kind = SyntaxKind.DelegateFunctionStatement OrElse
-                    declarationSyntax.Kind = SyntaxKind.DelegateSubStatement Then
+                declarationSyntax.Kind = SyntaxKind.DelegateSubStatement Then
                 Return GetDeclaredSymbol(DirectCast(declarationSyntax, DelegateStatementSyntax), cancellationToken)
             End If
 
@@ -1014,10 +1024,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' We are asserting what we know so far. If this assert fails, this is not a bug, we either need to remove this assert or relax the assert. 
                         Debug.Assert(statementSyntax.Kind = SyntaxKind.NamespaceBlock AndAlso
-                                         (TypeOf (declarationSyntax) Is AccessorStatementSyntax OrElse
-                                          TypeOf (declarationSyntax) Is EventStatementSyntax OrElse
-                                          TypeOf (declarationSyntax) Is MethodStatementSyntax OrElse
-                                          TypeOf (declarationSyntax) Is PropertyStatementSyntax))
+                                     (TypeOf (declarationSyntax) Is AccessorStatementSyntax OrElse
+                                      TypeOf (declarationSyntax) Is EventStatementSyntax OrElse
+                                      TypeOf (declarationSyntax) Is MethodStatementSyntax OrElse
+                                      TypeOf (declarationSyntax) Is PropertyStatementSyntax))
 
                         Return Nothing
                 End Select
@@ -1302,7 +1312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not String.IsNullOrEmpty(aliasName) Then
                 Dim sourceFile = Me._sourceModule.GetSourceFile(Me.SyntaxTree)
 
-                Dim aliasImports As Dictionary(Of String, AliasAndImportsClausePosition) = sourceFile.AliasImports
+                Dim aliasImports As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition) = sourceFile.AliasImportsOpt
                 Dim symbol As AliasAndImportsClausePosition = Nothing
 
                 If aliasImports IsNot Nothing AndAlso aliasImports.TryGetValue(aliasName, symbol) Then

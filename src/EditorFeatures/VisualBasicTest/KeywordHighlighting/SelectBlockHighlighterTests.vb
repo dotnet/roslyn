@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlighting
@@ -10,9 +11,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New SelectBlockHighlighter()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestSelectBlock1()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestSelectBlock1() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 {|Cursor:[|Select Case|]|} x
@@ -25,11 +26,11 @@ Sub M()
 [|End Select|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestSelectBlock2()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestSelectBlock2() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|Select Case|] x
@@ -42,11 +43,11 @@ Sub M()
 [|End Select|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestSelectBlock3()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestSelectBlock3() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|Select Case|] x
@@ -59,11 +60,11 @@ Sub M()
 [|End Select|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestSelectBlock4()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestSelectBlock4() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|Select Case|] x
@@ -76,11 +77,11 @@ Sub M()
 [|End Select|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestSelectBlock5()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestSelectBlock5() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|Select Case|] x
@@ -93,11 +94,11 @@ Sub M()
 [|End Select|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestSelectBlock6()
-            Test(<Text>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Async Function TestSelectBlock6() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|Select Case|] x
@@ -110,6 +111,6 @@ Sub M()
 {|Cursor:[|End Select|]|}
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
     End Class
 End Namespace

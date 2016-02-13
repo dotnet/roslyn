@@ -71,7 +71,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If catchBlocks.IsDefaultOrEmpty AndAlso finallyBlockOpt Is Nothing Then
-                    Return tryBlock
+                    If exitLabelOpt Is Nothing Then
+                        Return tryBlock
+                    Else
+                        ' Ensure implicit label statement is materialized
+                        Return New BoundStatementList(syntaxNode,
+                                                      ImmutableArray.Create(Of BoundStatement)(tryBlock,
+                                                      New BoundLabelStatement(syntaxNode, exitLabelOpt)))
+                    End If
                 End If
             End If
 

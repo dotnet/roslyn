@@ -15,11 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// </summary>
         public void FlushCaches()
         {
-            var handler = this.CacheFlushRequested;
-            if (handler != null)
-            {
-                handler(this, EventArgs.Empty);
-            }
+            this.CacheFlushRequested?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>

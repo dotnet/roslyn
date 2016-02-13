@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class VisualBasicSignatureHelpCommandHandlerTests
 
-        <WorkItem(544551)>
+        <WorkItem(544551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544551")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestFilterOnNamedParameters1() As Task
             Using state = TestState.CreateVisualBasicTestState(
@@ -29,25 +29,25 @@ End Class
                               </Document>)
 
                 state.SendInvokeSignatureHelp()
-                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
-                Await state.AssertSelectedSignatureHelpItem("C.M(third As Integer)").ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("C.M(third As Integer)")
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
 
                 state.SendTypeChars(":=")
-                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
-                Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)").ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)")
                 Assert.Equal(1, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
 
                 ' Keep the same item selected when the colon is deleted, but now both items are
                 ' available again.
                 state.SendBackspace()
-                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
-                Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)").ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)")
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
             End Using
         End Function
 
-        <WorkItem(544551)>
+        <WorkItem(544551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544551")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestFilterOnNamedParameters2() As Task
             Using state = TestState.CreateVisualBasicTestState(
@@ -69,23 +69,23 @@ End Class
                               </Document>)
 
                 state.SendInvokeSignatureHelp()
-                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
-                Await state.AssertSelectedSignatureHelpItem("C.M(third As Integer)").ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("C.M(third As Integer)")
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
 
                 state.SendTypeChars(":=")
-                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
-                Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)").ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)")
                 Assert.Equal(1, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
 
                 state.SendTypeChars("0,")
-                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
-                Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)").ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)")
                 Assert.Equal(1, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
             End Using
         End Function
 
-        <WorkItem(539100), WorkItem(530081)>
+        <WorkItem(539100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539100"), WorkItem(530081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530081")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestSigHelpShowsOnBackspace() As Task
             Using state = TestState.CreateVisualBasicTestState(
@@ -99,10 +99,10 @@ End Module
                               </Document>)
 
                 state.SendInvokeSignatureHelp()
-                Await state.AssertNoSignatureHelpSession().ConfigureAwait(True)
+                Await state.AssertNoSignatureHelpSession()
 
                 state.SendBackspace()
-                Await state.AssertNoSignatureHelpSession().ConfigureAwait(True)
+                Await state.AssertNoSignatureHelpSession()
             End Using
         End Function
 
@@ -137,15 +137,15 @@ End Class
                 Dim linkDocument = documents.Single(Function(d) d.IsLinkFile)
 
                 state.SendInvokeSignatureHelp()
-                Await state.AssertSelectedSignatureHelpItem("C.M2(x As Integer)").ConfigureAwait(True)
+                Await state.AssertSelectedSignatureHelpItem("C.M2(x As Integer)")
                 state.SendEscape()
                 state.Workspace.SetDocumentContext(linkDocument.Id)
                 state.SendInvokeSignatureHelp()
-                Await state.AssertSelectedSignatureHelpItem("C.M2(x As String)").ConfigureAwait(True)
+                Await state.AssertSelectedSignatureHelpItem("C.M2(x As String)")
             End Using
         End Function
 
-        <WorkItem(1060850)>
+        <WorkItem(1060850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1060850")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestSigHelpNotDismissedAfterQuote() As Task
             Using state = TestState.CreateVisualBasicTestState(
@@ -161,14 +161,14 @@ End Class
 ]]></Document>)
 
                 state.SendInvokeSignatureHelp()
-                Await state.AssertSelectedSignatureHelpItem("C.M()").ConfigureAwait(True)
+                Await state.AssertSelectedSignatureHelpItem("C.M()")
                 state.SendTypeChars("""")
-                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
-                Await state.AssertSelectedSignatureHelpItem("C.M(s As String)").ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("C.M(s As String)")
             End Using
         End Function
 
-        <WorkItem(1060850)>
+        <WorkItem(1060850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1060850")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestSigHelpDismissedAfterComment() As Task
             Using state = TestState.CreateVisualBasicTestState(
@@ -184,13 +184,13 @@ End Class
 ]]></Document>)
 
                 state.SendInvokeSignatureHelp()
-                Await state.AssertSelectedSignatureHelpItem("C.M()").ConfigureAwait(True)
+                Await state.AssertSelectedSignatureHelpItem("C.M()")
                 state.SendTypeChars("'")
-                Await state.AssertNoSignatureHelpSession().ConfigureAwait(True)
+                Await state.AssertNoSignatureHelpSession()
             End Using
         End Function
 
-        <WorkItem(1082128)>
+        <WorkItem(1082128, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082128")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestSigHelpNotDismissedAfterSpace() As Task
             Using state = TestState.CreateVisualBasicTestState(
@@ -204,7 +204,7 @@ End Class
 
                 state.SendInvokeSignatureHelp()
                 state.SendTypeChars(" ")
-                Await state.AssertSelectedSignatureHelpItem("C.M(a As String, b As String)").ConfigureAwait(True)
+                Await state.AssertSelectedSignatureHelpItem("C.M(a As String, b As String)")
             End Using
         End Function
 
@@ -224,7 +224,7 @@ End Class
 ]]></Document>)
 
                 state.SendTypeChars("(")
-                Await state.AssertSelectedSignatureHelpItem($"<{Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)").ConfigureAwait(True)
+                Await state.AssertSelectedSignatureHelpItem($"<{Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
             End Using
         End Function
 
@@ -244,7 +244,7 @@ End Class
 ]]></Document>)
 
                 state.SendTypeChars("(")
-                Await state.AssertSelectedSignatureHelpItem($"<{Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)").ConfigureAwait(True)
+                Await state.AssertSelectedSignatureHelpItem($"<{Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
             End Using
         End Function
 
@@ -264,7 +264,7 @@ End Class
 ]]></Document>)
 
                 state.SendTypeChars("(")
-                Await state.AssertSelectedSignatureHelpItem($"<{Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)").ConfigureAwait(True)
+                Await state.AssertSelectedSignatureHelpItem($"<{Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
             End Using
         End Function
 
@@ -283,11 +283,11 @@ End Class
                 ' disable implicit sig help then type a trigger character -> no session should be available
                 state.Workspace.Options = state.Workspace.Options.WithChangedOption(SignatureHelpOptions.ShowSignatureHelp, "Visual Basic", False)
                 state.SendTypeChars("(")
-                Await state.AssertNoSignatureHelpSession().ConfigureAwait(True)
+                Await state.AssertNoSignatureHelpSession()
 
                 ' force-invoke -> session should be available
                 state.SendInvokeSignatureHelp()
-                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession()
             End Using
         End Function
     End Class

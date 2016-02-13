@@ -271,6 +271,7 @@ Microsoft.CodeAnalysis.Editing.SyntaxEditor.InsertBefore(Microsoft.CodeAnalysis.
 Microsoft.CodeAnalysis.Editing.SyntaxEditor.InsertBefore(Microsoft.CodeAnalysis.SyntaxNode node, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> newNodes) -> void
 Microsoft.CodeAnalysis.Editing.SyntaxEditor.OriginalRoot.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxEditor.RemoveNode(Microsoft.CodeAnalysis.SyntaxNode node) -> void
+Microsoft.CodeAnalysis.Editing.SyntaxEditor.RemoveNode(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.SyntaxRemoveOptions options) -> void
 Microsoft.CodeAnalysis.Editing.SyntaxEditor.ReplaceNode(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.SyntaxNode newNode) -> void
 Microsoft.CodeAnalysis.Editing.SyntaxEditor.ReplaceNode(Microsoft.CodeAnalysis.SyntaxNode node, System.Func<Microsoft.CodeAnalysis.SyntaxNode, Microsoft.CodeAnalysis.Editing.SyntaxGenerator, Microsoft.CodeAnalysis.SyntaxNode> computeReplacement) -> void
 Microsoft.CodeAnalysis.Editing.SyntaxEditor.SyntaxEditor(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.Workspace workspace) -> void
@@ -524,6 +525,7 @@ Microsoft.CodeAnalysis.Project.GetLatestDocumentVersionAsync(System.Threading.Ca
 Microsoft.CodeAnalysis.Project.GetSemanticVersionAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.VersionStamp>
 Microsoft.CodeAnalysis.Project.HasDocuments.get -> bool
 Microsoft.CodeAnalysis.Project.Id.get -> Microsoft.CodeAnalysis.ProjectId
+Microsoft.CodeAnalysis.Project.IsSubmission.get -> bool
 Microsoft.CodeAnalysis.Project.Language.get -> string
 Microsoft.CodeAnalysis.Project.LanguageServices.get -> Microsoft.CodeAnalysis.Host.HostLanguageServices
 Microsoft.CodeAnalysis.Project.MetadataReferences.get -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.MetadataReference>
@@ -786,6 +788,7 @@ Microsoft.CodeAnalysis.Workspace.ScheduleTask<T>(System.Func<T> func, string tas
 Microsoft.CodeAnalysis.Workspace.Services.get -> Microsoft.CodeAnalysis.Host.HostWorkspaceServices
 Microsoft.CodeAnalysis.Workspace.SetCurrentSolution(Microsoft.CodeAnalysis.Solution solution) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Workspace.UnregisterText(Microsoft.CodeAnalysis.Text.SourceTextContainer textContainer) -> void
+Microsoft.CodeAnalysis.Workspace.UpdateReferencesAfterAdd() -> void
 Microsoft.CodeAnalysis.Workspace.Workspace(Microsoft.CodeAnalysis.Host.HostServices host, string workspaceKind) -> void
 Microsoft.CodeAnalysis.Workspace.WorkspaceChanged -> System.EventHandler<Microsoft.CodeAnalysis.WorkspaceChangeEventArgs>
 Microsoft.CodeAnalysis.Workspace.WorkspaceFailed -> System.EventHandler<Microsoft.CodeAnalysis.WorkspaceDiagnosticEventArgs>
@@ -853,6 +856,8 @@ abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AddBaseType(Microsoft.Co
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AddExpression(Microsoft.CodeAnalysis.SyntaxNode left, Microsoft.CodeAnalysis.SyntaxNode right) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AddInterfaceType(Microsoft.CodeAnalysis.SyntaxNode declaration, Microsoft.CodeAnalysis.SyntaxNode interfaceType) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.Argument(string name, Microsoft.CodeAnalysis.RefKind refKind, Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ArrayCreationExpression(Microsoft.CodeAnalysis.SyntaxNode elementType, Microsoft.CodeAnalysis.SyntaxNode size) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ArrayCreationExpression(Microsoft.CodeAnalysis.SyntaxNode elementType, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> elements) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ArrayTypeExpression(Microsoft.CodeAnalysis.SyntaxNode type) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AsPrivateInterfaceImplementation(Microsoft.CodeAnalysis.SyntaxNode declaration, Microsoft.CodeAnalysis.SyntaxNode interfaceType, string interfaceMemberName) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AsPublicInterfaceImplementation(Microsoft.CodeAnalysis.SyntaxNode declaration, Microsoft.CodeAnalysis.SyntaxNode interfaceType, string interfaceMemberName) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -1140,6 +1145,7 @@ static Microsoft.CodeAnalysis.Editing.SyntaxEditorExtensions.SetTypeConstraint(t
 static Microsoft.CodeAnalysis.Editing.SyntaxEditorExtensions.SetTypeParameters(this Microsoft.CodeAnalysis.Editing.SyntaxEditor editor, Microsoft.CodeAnalysis.SyntaxNode declaration, System.Collections.Generic.IEnumerable<string> typeParameters) -> void
 static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
 static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.GetGenerator(Microsoft.CodeAnalysis.Document document) -> Microsoft.CodeAnalysis.Editing.SyntaxGenerator
+static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.GetGenerator(Microsoft.CodeAnalysis.Project project) -> Microsoft.CodeAnalysis.Editing.SyntaxGenerator
 static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.GetGenerator(Microsoft.CodeAnalysis.Workspace workspace, string language) -> Microsoft.CodeAnalysis.Editing.SyntaxGenerator
 static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.PreserveTrivia<TNode>(TNode node, System.Func<TNode, Microsoft.CodeAnalysis.SyntaxNode> nodeChanger) -> Microsoft.CodeAnalysis.SyntaxNode
 static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.RemoveRange<TNode>(Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode> list, int offset, int count) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>
@@ -1258,6 +1264,7 @@ virtual Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.GetSupportedFixAllScopes
 virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.InsertNodesAfter(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.SyntaxNode node, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> newDeclarations) -> Microsoft.CodeAnalysis.SyntaxNode
 virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.InsertNodesBefore(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.SyntaxNode node, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> newDeclarations) -> Microsoft.CodeAnalysis.SyntaxNode
 virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.RemoveNode(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.SyntaxNode node) -> Microsoft.CodeAnalysis.SyntaxNode
+virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.RemoveNode(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.SyntaxRemoveOptions options) -> Microsoft.CodeAnalysis.SyntaxNode
 virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ReplaceNode(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.SyntaxNode newDeclaration) -> Microsoft.CodeAnalysis.SyntaxNode
 virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.GetLanguageServices(string languageName) -> Microsoft.CodeAnalysis.Host.HostLanguageServices
 virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.IsSupported(string languageName) -> bool

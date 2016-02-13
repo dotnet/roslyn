@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Implementation.FindReferences;
 using Microsoft.CodeAnalysis.Editor.Navigation;
@@ -20,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     public class FindReferencesCommandHandlerTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
-        public void TestFindReferencesSynchronousCall()
+        public async Task TestFindReferencesSynchronousCall()
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines("class C { C() { new C(); } }"))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync("class C { C() { new C(); } }"))
             {
                 var findReferencesPresenter = new MockReferencedSymbolsPresenter();
 

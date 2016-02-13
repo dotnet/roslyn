@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     return changes;
                 }
 
-                // in case of a venus, when format document command is issued, venus will call format API with each script block spans.
+                // in case of a Venus, when format document command is issued, Venus will call format API with each script block spans.
                 // in that case, we need to make sure formatter doesn't overstep other script blocks content. in actual format selection case,
                 // we need to format more than given selection otherwise, we will not adjust indentation of first token of the given selection.
                 foreach (var visibleSpan in containedDocument.GetEditorVisibleSpans())

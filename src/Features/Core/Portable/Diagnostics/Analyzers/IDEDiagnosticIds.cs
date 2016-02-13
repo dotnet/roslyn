@@ -15,5 +15,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string AnalyzerDependencyConflictId = "IDE1002";
         public const string MissingAnalyzerReferenceId = "IDE1003";
         public const string ErrorReadingRulesetId = "IDE1004";
+        public const string InvokeDelegateWithConditionalAccessId = "IDE1005";
     }
 }

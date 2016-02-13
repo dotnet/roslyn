@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         }
 
         [Fact]
-        [WorkItem(946954)]
+        [WorkItem(946954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946954")]
         public void CompilerBinariesAreAnyCPU()
         {
             Assert.Equal(ProcessorArchitecture.MSIL, AssemblyName.GetAssemblyName(s_CSharpCompilerExecutable).ProcessorArchitecture);
@@ -277,8 +277,8 @@ d.cs
             Assert.Equal("решения.Class1", args.CompilationOptions.MainTypeName);
         }
 
-        [WorkItem(546009, "DevDiv")]
-        [WorkItem(545991, "DevDiv")]
+        [WorkItem(546009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546009")]
+        [WorkItem(545991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545991")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void SourceFiles_Patterns2()
         {
@@ -352,7 +352,7 @@ d.cs
             f.WriteAllText("");
         }
 
-        [Fact, WorkItem(546023, "DevDiv")]
+        [Fact, WorkItem(546023, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546023")]
         public void Win32ResourceArguments()
         {
             string[] args = new string[]
@@ -1164,7 +1164,7 @@ d.cs
         }
 
         [Fact]
-        [WorkItem(546961, "DevDiv")]
+        [WorkItem(546961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546961")]
         public void Define()
         {
             var parsedArgs = DefaultParse(new[] { "a.cs" }, _baseDirectory);
@@ -1328,6 +1328,7 @@ d.cs
         public void Pdb()
         {
             var parsedArgs = DefaultParse(new[] { "/pdb:something", "a.cs" }, _baseDirectory);
+            Assert.Equal(Path.Combine(_baseDirectory, "something.pdb"), parsedArgs.PdbPath);
 
             // No pdb
             parsedArgs = DefaultParse(new[] { @"/debug", "a.cs" }, _baseDirectory);
@@ -1487,7 +1488,7 @@ d.cs
         [Fact]
         public void Deterministic()
         {
-            var parsedArgs = DefaultParse(new [] { "a.cs" }, _baseDirectory);
+            var parsedArgs = DefaultParse(new[] { "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.CompilationOptions.Deterministic);
 
@@ -1727,7 +1728,7 @@ class C
             }
         }
 
-        [WorkItem(892467, "DevDiv")]
+        [WorkItem(892467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/892467")]
         [Fact]
         public void Analyzers_Found()
         {
@@ -1789,7 +1790,7 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(912906)]
+        [WorkItem(912906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912906")]
         [Fact]
         public void Analyzers_CommandLineOverridesRuleset1()
         {
@@ -2173,7 +2174,7 @@ class C
             Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions["Test001"]);
         }
 
-        [WorkItem(912906)]
+        [WorkItem(912906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912906")]
         [Fact]
         public void Analyzers_CommandLineOverridesRuleset2()
         {
@@ -2321,7 +2322,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
                 itemSeparator: "\r\n");
         }
 
-        [WorkItem(540891, "DevDiv")]
+        [WorkItem(540891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540891")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void ParseOut()
         {
@@ -2546,8 +2547,8 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             Assert.Equal(".netmodule", parsedArgs.CompilationOptions.ModuleName);
         }
 
-        [WorkItem(546012, "DevDiv")]
-        [WorkItem(546007, "DevDiv")]
+        [WorkItem(546012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546012")]
+        [WorkItem(546007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546007")]
         [Fact]
         public void ParseOut2()
         {
@@ -2835,14 +2836,15 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
         {
             var srcFile = Temp.CreateFile().WriteAllText(@"class A { static void Main(string[] args) { } }");
             var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+            string root = Path.GetPathRoot(srcDirectory); // Make sure we pick a drive that exists and is plugged in to avoid 'Drive not ready'
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = new MockCSharpCompiler(null, srcDirectory,
                 new[] { "/nologo", "/preferreduilang:en",
-                        @"/appconfig:I:\DoesNotExist\NOwhere\bonobo.exe.config" ,
+                        $@"/appconfig:{root}DoesNotExist\NOwhere\bonobo.exe.config" ,
                         srcFile.Path }).Run(outWriter);
             Assert.NotEqual(0, exitCode);
-            Assert.Equal(@"error CS7093: Cannot read config file 'I:\DoesNotExist\NOwhere\bonobo.exe.config' -- 'Could not find a part of the path 'I:\DoesNotExist\NOwhere\bonobo.exe.config'.'", outWriter.ToString().Trim());
+            Assert.Equal($@"error CS7093: Cannot read config file '{root}DoesNotExist\NOwhere\bonobo.exe.config' -- 'Could not find a part of the path '{root}DoesNotExist\NOwhere\bonobo.exe.config'.'", outWriter.ToString().Trim());
 
             CleanupAllGeneratedFiles(srcFile.Path);
         }
@@ -2946,7 +2948,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
         }
 
         [Fact]
-        private void ModuleName001()
+        public void ModuleName001()
         {
             var dir = Temp.CreateDirectory();
 
@@ -3034,10 +3036,10 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             Assert.Equal(Platform.AnyCpu, parsedArgs.CompilationOptions.Platform);  //anycpu is default
         }
 
-        [WorkItem(546016, "DevDiv")]
-        [WorkItem(545997, "DevDiv")]
-        [WorkItem(546019, "DevDiv")]
-        [WorkItem(546029, "DevDiv")]
+        [WorkItem(546016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546016")]
+        [WorkItem(545997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545997")]
+        [WorkItem(546019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546019")]
+        [WorkItem(546029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546029")]
         [Fact]
         public void ParseBaseAddress()
         {
@@ -3148,7 +3150,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             var lib3 = dir.CreateDirectory("lib3");
 
             var parsedArgs = DefaultParse(new[] { @"/lib:lib1", @"/libpath:lib2", @"/libpaths:lib3", "a.cs" }, dir.Path);
-            AssertEx.Equal(new[] 
+            AssertEx.Equal(new[]
             {
                 s_defaultSdkDirectory,
                 lib1.Path,
@@ -3207,7 +3209,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<path list>", "lib"));
         }
 
-        [Fact, WorkItem(546005, "DevDiv")]
+        [Fact, WorkItem(546005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546005")]
         public void SdkPathAndLibEnvVariable_Relative_csc()
         {
             var tempFolder = Temp.CreateDirectory();
@@ -3598,7 +3600,30 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             Assert.Null(parsedArgs.CompilationOptions.DelaySign);
         }
 
-        [WorkItem(546301, "DevDiv")]
+        [Fact]
+        public void PublicSign()
+        {
+            var parsedArgs = DefaultParse(new[] { "/publicsign", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.CompilationOptions.PublicSign);
+
+            parsedArgs = DefaultParse(new[] { "/publicsign+", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.CompilationOptions.PublicSign);
+
+            parsedArgs = DefaultParse(new[] { "/PUBLICsign-", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.CompilationOptions.PublicSign);
+
+            parsedArgs = DefaultParse(new[] { "/publicsign:-", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2007: Unrecognized option: '/publicsign:-'
+                Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/publicsign:-").WithLocation(1, 1));
+
+            Assert.False(parsedArgs.CompilationOptions.PublicSign);
+        }
+
+        [WorkItem(546301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546301")]
         [Fact]
         public void SubsystemVersionTests()
         {
@@ -3805,7 +3830,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("/ADDMODULE:"));
         }
 
-        [Fact, WorkItem(530751, "DevDiv")]
+        [Fact, WorkItem(530751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530751")]
         public void CS7061fromCS0647_ModuleWithCompilationRelaxations()
         {
             string source1 = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
@@ -3855,7 +3880,7 @@ class Test { static void Main() {} }").Path;
             CleanupAllGeneratedFiles(source);
         }
 
-        [Fact, WorkItem(530780, "DevDiv")]
+        [Fact, WorkItem(530780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530780")]
         public void AddModuleWithExtensionMethod()
         {
             string source1 = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"public static class Extensions { public static bool EB(this bool b) { return b; } }").Path;
@@ -3875,7 +3900,7 @@ class Test { static void Main() {} }").Path;
             CleanupAllGeneratedFiles(source2);
         }
 
-        [Fact, WorkItem(546297, "DevDiv")]
+        [Fact, WorkItem(546297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546297")]
         public void OLDCS0013FTL_MetadataEmitFailureSameModAndRes()
         {
             string source1 = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"class Mod { }").Path;
@@ -3942,7 +3967,7 @@ class Test { static void Main() {} }").Path;
             CleanupAllGeneratedFiles(tempOut.Path);
         }
 
-        [WorkItem(546653, "DevDiv")]
+        [WorkItem(546653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546653")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void NoSourcesWithModule()
         {
@@ -3962,7 +3987,7 @@ class Test { static void Main() {} }").Path;
             CleanupAllGeneratedFiles(aCs.Path);
         }
 
-        [WorkItem(546653, "DevDiv")]
+        [WorkItem(546653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546653")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void NoSourcesWithResource()
         {
@@ -3976,7 +4001,7 @@ class Test { static void Main() {} }").Path;
             CleanupAllGeneratedFiles(aCs.Path);
         }
 
-        [WorkItem(546653, "DevDiv")]
+        [WorkItem(546653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546653")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void NoSourcesWithLinkResource()
         {
@@ -4060,7 +4085,7 @@ class Test { static void Main() {} }").Path;
             Assert.Equal("b", parsedArgs.CompilationOptions.CryptoKeyContainer);
         }
 
-        [Fact, WorkItem(554551, "DevDiv")]
+        [Fact, WorkItem(554551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554551")]
         public void CS1698WRN_AssumedMatchThis()
         {
             // compile with: /target:library /keyfile:mykey.snk
@@ -4127,8 +4152,9 @@ public class CS1698_a {}
         }
 
 
-        [WorkItem(530221, "DevDiv")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [WorkItem(530221, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530221")]
+        [WorkItem(5660, "https://github.com/dotnet/roslyn/issues/5660")]
+        [ConditionalFact(typeof(WindowsOnly), typeof(IsEnglishLocal))]
         public void Bug15538()
         {
             // Several Jenkins VMs are still running with local systems permissions.  This suite won't run properly
@@ -4165,7 +4191,7 @@ public class CS1698_a {}
             CleanupAllGeneratedFiles(source);
         }
 
-        [WorkItem(545832, "DevDiv")]
+        [WorkItem(545832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545832")]
         [Fact]
         public void ResponseFilesWithEmptyAliasReference()
         {
@@ -4207,7 +4233,7 @@ class myClass
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [WorkItem(545832, "DevDiv")]
+        [WorkItem(545832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545832")]
         [Fact]
         public void ResponseFilesWithEmptyAliasReference2()
         {
@@ -4332,7 +4358,7 @@ class myClass
         }
 
         [Fact]
-        private void ResponseFileSplitting()
+        public void ResponseFileSplitting()
         {
             string[] responseFile;
 
@@ -4390,7 +4416,7 @@ class myClass
             AssertEx.Equal(new[] { @"d:\abc def\baz.cs", @"c:\abc de.cs" }, args.SourceFiles.Select(file => file.Path));
         }
 
-        [WorkItem(544441, "DevDiv")]
+        [WorkItem(544441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
         [Fact]
         public void OutputFileName1()
         {
@@ -4413,7 +4439,7 @@ class B
                 expectedOutputName: "p.dll");
         }
 
-        [WorkItem(544441, "DevDiv")]
+        [WorkItem(544441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
         [Fact]
         public void OutputFileName2()
         {
@@ -4436,7 +4462,7 @@ class B
                 expectedOutputName: "r.dll");
         }
 
-        [WorkItem(544441, "DevDiv")]
+        [WorkItem(544441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
         [Fact]
         public void OutputFileName3()
         {
@@ -4459,7 +4485,7 @@ class B
                 expectedOutputName: "q.exe");
         }
 
-        [WorkItem(544441, "DevDiv")]
+        [WorkItem(544441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
         [Fact]
         public void OutputFileName4()
         {
@@ -4482,7 +4508,7 @@ class B
                 expectedOutputName: "r.exe");
         }
 
-        [WorkItem(544441, "DevDiv")]
+        [WorkItem(544441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
         [Fact]
         public void OutputFileName5()
         {
@@ -4506,7 +4532,7 @@ class B
                 expectedOutputName: "p.exe");
         }
 
-        [WorkItem(544441, "DevDiv")]
+        [WorkItem(544441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
         [Fact]
         public void OutputFileName6()
         {
@@ -4530,7 +4556,7 @@ class B
                 expectedOutputName: "q.exe");
         }
 
-        [WorkItem(544441, "DevDiv")]
+        [WorkItem(544441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
         [Fact]
         public void OutputFileName7()
         {
@@ -4554,7 +4580,7 @@ partial class A
                 expectedOutputName: "p.exe");
         }
 
-        [WorkItem(544441, "DevDiv")]
+        [WorkItem(544441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544441")]
         [Fact]
         public void OutputFileName8()
         {
@@ -4666,7 +4692,7 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [Fact, WorkItem(1093063, "DevDiv")]
+        [Fact, WorkItem(1093063, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1093063")]
         public void VerifyDiagnosticSeverityNotLocalized()
         {
             string source = @"
@@ -4803,7 +4829,7 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(545025, "DevDiv")]
+        [WorkItem(545025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545025")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void CompilationWithWarnAsError_01()
         {
@@ -4830,7 +4856,7 @@ public class C
             Assert.Equal(0, exitCode);
         }
 
-        [WorkItem(545025, "DevDiv")]
+        [WorkItem(545025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545025")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void CompilationWithWarnAsError_02()
         {
@@ -4877,7 +4903,7 @@ public class C
             return exitCode;
         }
 
-        [WorkItem(545247, "DevDiv")]
+        [WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void CompilationWithNonExistingOutPath()
         {
@@ -4903,7 +4929,7 @@ public class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(545247, "DevDiv")]
+        [WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")]
         [Fact]
         public void CompilationWithWrongOutPath_01()
         {
@@ -4931,7 +4957,7 @@ public class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(545247, "DevDiv")]
+        [WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")]
         [Fact]
         public void CompilationWithWrongOutPath_02()
         {
@@ -4959,7 +4985,7 @@ public class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(545247, "DevDiv")]
+        [WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void CompilationWithWrongOutPath_03()
         {
@@ -4985,7 +5011,7 @@ public class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(545247, "DevDiv")]
+        [WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")]
         [Fact]
         public void CompilationWithWrongOutPath_04()
         {
@@ -5431,7 +5457,7 @@ class C
             FreeLibrary(lib);
         }
 
-        [WorkItem(544926, "DevDiv")]
+        [WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
         [ClrOnlyFact]
         public void ResponseFilesWithNoconfig_01()
         {
@@ -5479,7 +5505,7 @@ public class C
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [WorkItem(544926, "DevDiv")]
+        [WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void ResponseFilesWithNoconfig_02()
         {
@@ -5513,7 +5539,7 @@ public class C
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [WorkItem(544926, "DevDiv")]
+        [WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
         [ClrOnlyFact]
         public void ResponseFilesWithNoconfig_03()
         {
@@ -5547,7 +5573,7 @@ public class C
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [WorkItem(544926, "DevDiv")]
+        [WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void ResponseFilesWithNoconfig_04()
         {
@@ -5581,7 +5607,7 @@ public class C
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [Fact, WorkItem(530024, "DevDiv")]
+        [Fact, WorkItem(530024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530024")]
         public void NoStdLib()
         {
             var src = Temp.CreateFile("a.cs");
@@ -5614,10 +5640,10 @@ public class C
             return Temp.CreateFile().WriteAllBytes(CommandLineTestResources.csc_rsp).Path;
         }
 
-        [Fact, WorkItem(530359, "DevDiv")]
+        [Fact, WorkItem(530359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530359")]
         public void NoStdLib02()
         {
-#region "source"
+            #region "source"
             var source = @"
 // <Title>A collection initializer can be declared with a user-defined IEnumerable that is declared in a user-defined System.Collections</Title>
 using System.Collections;
@@ -5736,7 +5762,7 @@ namespace System
     }
 }
 ";
-#endregion
+            #endregion
 
             var src = Temp.CreateFile("NoStdLib02.cs");
             src.WriteAllText(source + mslib);
@@ -5763,7 +5789,7 @@ namespace System
             CleanupAllGeneratedFiles(src.Path);
         }
 
-        [Fact, WorkItem(546018, "DevDiv"), WorkItem(546020, "DevDiv"), WorkItem(546024, "DevDiv"), WorkItem(546049, "DevDiv")]
+        [Fact, WorkItem(546018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546018"), WorkItem(546020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546020"), WorkItem(546024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546024"), WorkItem(546049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546049")]
         public void InvalidDefineSwitch()
         {
             var src = Temp.CreateFile("a.cs");
@@ -5820,7 +5846,7 @@ warning CS2029: Invalid value for '/define'; 'TRACE=TRUE' is not a valid identif
             CleanupAllGeneratedFiles(src.Path);
         }
 
-        [WorkItem(733242, "DevDiv")]
+        [WorkItem(733242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/733242")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void Bug733242()
         {
@@ -5864,7 +5890,7 @@ class C {} ");
             CleanupAllGeneratedFiles(xml.Path);
         }
 
-        [WorkItem(768605, "DevDiv")]
+        [WorkItem(768605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768605")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void Bug768605()
         {
@@ -6092,7 +6118,7 @@ public class C
             }, StringComparer.OrdinalIgnoreCase);
         }
 
-        [Fact, WorkItem(545954, "DevDiv")]
+        [Fact, WorkItem(545954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545954")]
         public void TestFilterParseDiagnostics()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
@@ -6126,7 +6152,7 @@ static void Main() {
             CleanupAllGeneratedFiles(source);
         }
 
-        [Fact, WorkItem(546058, "DevDiv")]
+        [Fact, WorkItem(546058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546058")]
         public void TestNoWarnParseDiagnostics()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
@@ -6155,7 +6181,7 @@ class Test
             CleanupAllGeneratedFiles(source);
         }
 
-        [Fact, WorkItem(546076, "DevDiv")]
+        [Fact, WorkItem(546076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546076")]
         public void TestWarnAsError_CS1522()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
@@ -6188,7 +6214,7 @@ public class Test
             CleanupAllGeneratedFiles(source);
         }
 
-        [Fact(), WorkItem(546025, "DevDiv")]
+        [Fact(), WorkItem(546025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546025")]
         public void TestWin32ResWithBadResFile_CS1583ERR_BadWin32Res()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"class Test { static void Main() {} }").Path;
@@ -6213,7 +6239,7 @@ public class Test
             CleanupAllGeneratedFiles(badres);
         }
 
-        [Fact, WorkItem(546114, "DevDiv")]
+        [Fact, WorkItem(546114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546114")]
         public void TestFilterCommandLineDiagnostics()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
@@ -6233,7 +6259,7 @@ static void Main() { }
             CleanupAllGeneratedFiles(source);
         }
 
-        [Fact, WorkItem(546452, "DevDiv")]
+        [Fact, WorkItem(546452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546452")]
         public void CS1691WRN_BadWarningNumber_Bug15905()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
@@ -6433,7 +6459,7 @@ class Program
 } ").Path;
         }
 
-        [Fact, WorkItem(546452, "DevDiv")]
+        [Fact, WorkItem(546452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546452")]
         public void CS1691WRN_BadWarningNumber_AllErrorCodes()
         {
             const int jump = 200;
@@ -6537,7 +6563,7 @@ public class C { }
             CleanupAllGeneratedFiles(xmlPath);
         }
 
-        [WorkItem(546468, "DevDiv")]
+        [WorkItem(546468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546468")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void CS2002WRN_FileAlreadyIncluded()
         {
@@ -6810,7 +6836,7 @@ using System*
             Assert.True(text.StartsWith("http://foo.bar/baz.aspx", StringComparison.Ordinal));
         }
 
-        [WorkItem(1119609, "DevDiv")]
+        [WorkItem(1119609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119609")]
         [Fact]
         public void PreferredUILang()
         {
@@ -6850,7 +6876,7 @@ using System*
             Assert.DoesNotContain("CS2038", outWriter.ToString(), StringComparison.Ordinal);
         }
 
-        [WorkItem(531263, "DevDiv")]
+        [WorkItem(531263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531263")]
         [Fact]
         public void EmptyFileName()
         {
@@ -6862,7 +6888,7 @@ using System*
             Assert.Contains("CS2021", outWriter.ToString(), StringComparison.Ordinal);
         }
 
-        [WorkItem(747219, "DevDiv")]
+        [WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
         [Fact]
         public void NoInfoDiagnostics()
         {
@@ -6908,7 +6934,7 @@ using System.Diagnostics; // Unused.
             Assert.Equal(ModuleMetadata.CreateFromImage(comp.EmitToArray(new EmitOptions(runtimeMetadataVersion: "_+@%#*^"))).Module.MetadataVersion, "_+@%#*^");
         }
 
-        [WorkItem(715339, "DevDiv")]
+        [WorkItem(715339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715339")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void WRN_InvalidSearchPathDir()
         {
@@ -6937,7 +6963,7 @@ using System.Diagnostics; // Unused.
             CleanupAllGeneratedFiles(sourceFile.Path);
         }
 
-        [WorkItem(650083, "DevDiv")]
+        [WorkItem(650083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/650083")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void ReservedDeviceNameAsFileName()
         {
@@ -7150,7 +7176,7 @@ using System.Diagnostics; // Unused.
             return output;
         }
 
-        [WorkItem(899050)]
+        [WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")]
         [Fact]
         public void NoWarnAndWarnAsError_AnalyzerDriverWarnings()
         {
@@ -7166,9 +7192,11 @@ using System.Diagnostics; // Unused.
 
             // TEST: Verify that compiler warning CS8032 can be suppressed via /warn:0.
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warn:0" });
+            Assert.True(string.IsNullOrEmpty(output));
 
             // TEST: Verify that compiler warning CS8032 can be individually suppressed via /nowarn:.
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:CS8032" });
+            Assert.True(string.IsNullOrEmpty(output));
 
             // TEST: Verify that compiler warning CS8032 can be promoted to an error via /warnaserror.
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror" }, expectedErrorCount: 1);
@@ -7181,9 +7209,9 @@ using System.Diagnostics; // Unused.
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(899050)]
-        [WorkItem(981677)]
-        [WorkItem(1021115)]
+        [WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")]
+        [WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")]
+        [WorkItem(1021115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021115")]
         [Fact]
         public void NoWarnAndWarnAsError_HiddenDiagnostic()
         {
@@ -7201,6 +7229,7 @@ using System.Diagnostics; // Unused.
 
             // TEST: Verify that /warn:0 has no impact on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warn:0" });
+            Assert.True(string.IsNullOrEmpty(output));
 
             // TEST: Verify that /nowarn: has no impact on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:Hidden01" }, expectedWarningCount: 1);
@@ -7208,6 +7237,7 @@ using System.Diagnostics; // Unused.
 
             // TEST: Verify that /warnaserror+ has no impact on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+", "/nowarn:8032" });
+            Assert.True(string.IsNullOrEmpty(output));
 
             // TEST: Verify that /warnaserror- has no impact on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-" }, expectedWarningCount: 1);
@@ -7240,9 +7270,11 @@ using System.Diagnostics; // Unused.
 
             // TEST: Verify that /warn:0 has no impact on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warn:0", "/warnaserror:Hidden01" });
+            Assert.True(string.IsNullOrEmpty(output));
 
             // TEST: Verify that /warn:0 has no impact on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror:Hidden01", "/warn:0" });
+            Assert.True(string.IsNullOrEmpty(output));
 
             // TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+:Hidden01", "/warnaserror-:Hidden01" }, expectedWarningCount: 1);
@@ -7268,6 +7300,7 @@ using System.Diagnostics; // Unused.
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+:Hidden01", "/warnaserror+", "/nowarn:8032" });
+            Assert.True(string.IsNullOrEmpty(output));
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+:Hidden01", "/warnaserror-" }, expectedWarningCount: 1);
@@ -7275,6 +7308,7 @@ using System.Diagnostics; // Unused.
 
             // TEST: Verify that last one wins between /warnaserror[+/-] and /warnaserror[+/-]:.
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror+", "/warnaserror-:Hidden01", "/nowarn:8032" });
+            Assert.True(string.IsNullOrEmpty(output));
 
             // TEST: Verify that last one wins between /warnaserror[+/-]: and /warnaserror[+/-].
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warnaserror-:Hidden01", "/warnaserror-" }, expectedWarningCount: 1);
@@ -7287,9 +7321,9 @@ using System.Diagnostics; // Unused.
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(899050)]
-        [WorkItem(981677)]
-        [WorkItem(1021115)]
+        [WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")]
+        [WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")]
+        [WorkItem(1021115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021115")]
         [Fact]
         public void NoWarnAndWarnAsError_InfoDiagnostic()
         {
@@ -7416,11 +7450,11 @@ using System.Diagnostics; // Unused.
             return output;
         }
 
-        [WorkItem(899050)]
-        [WorkItem(981677)]
-        [WorkItem(998069)]
-        [WorkItem(998724)]
-        [WorkItem(1021115)]
+        [WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")]
+        [WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")]
+        [WorkItem(998069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998069")]
+        [WorkItem(998724, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998724")]
+        [WorkItem(1021115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021115")]
         [Fact]
         public void NoWarnAndWarnAsError_WarningDiagnostic()
         {
@@ -7446,6 +7480,7 @@ class C
 
             // TEST: Verify that compiler warning CS0168 as well as custom warning diagnostic Warning01 can be suppressed via /warn:0.
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/warn:0" });
+            Assert.True(string.IsNullOrEmpty(output));
 
             // TEST: Verify that compiler warning CS0168 as well as custom warning diagnostic Warning01 can be individually suppressed via /nowarn:.
             output = VerifyOutput(dir, file, additionalFlags: new[] { "/nowarn:0168,Warning01,58000" }, expectedWarningCount: 1);
@@ -7610,8 +7645,8 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(899050)]
-        [WorkItem(981677)]
+        [WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")]
+        [WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")]
         [Fact]
         public void NoWarnAndWarnAsError_ErrorDiagnostic()
         {
@@ -7694,7 +7729,7 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(981677)]
+        [WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")]
         [Fact]
         public void NoWarnAndWarnAsError_CompilerErrorDiagnostic()
         {
@@ -7750,7 +7785,7 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(1021115)]
+        [WorkItem(1021115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021115")]
         [Fact]
         public void WarnAsError_LastOneWins1()
         {
@@ -7775,7 +7810,7 @@ public class C
                     .WithWarningAsError(true));
         }
 
-        [WorkItem(1021115)]
+        [WorkItem(1021115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021115")]
         [Fact]
         public void WarnAsError_LastOneWins2()
         {
@@ -7800,7 +7835,7 @@ public class C
                     .WithWarningAsError(false));
         }
 
-        [WorkItem(1091972, "DevDiv")]
+        [WorkItem(1091972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091972")]
         [WorkItem(444, "CodePlex")]
         [ConditionalFact(typeof(WindowsOnly))]
         public void Bug1091972()
@@ -7941,7 +7976,7 @@ class C {
             //AssertEx.Equal(new[] { "--" }, args.ScriptArguments);
         }
 
-        [WorkItem(1211823, "DevDiv")]
+        [WorkItem(127403, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/127403")]
         [Fact]
         public void ParseSeparatedPaths_QuotedComma()
         {
@@ -7954,32 +7989,32 @@ class C {
         [Fact]
         public void PathMapParser()
         {
-            var parsedArgs = DefaultParse(new [] { "/pathmap:", "a.cs" }, _baseDirectory);
+            var parsedArgs = DefaultParse(new[] { "/pathmap:", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(ImmutableArray.Create<KeyValuePair<string, string>>(), parsedArgs.PathMap);
 
-            parsedArgs = DefaultParse(new [] { "/pathmap:K1=V1", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/pathmap:K1=V1", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(KeyValuePair.Create("K1", "V1"), parsedArgs.PathMap[0]);
 
-            parsedArgs = DefaultParse(new [] { "/pathmap:K1=V1,K2=V2", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/pathmap:K1=V1,K2=V2", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(KeyValuePair.Create("K1", "V1"), parsedArgs.PathMap[0]);
             Assert.Equal(KeyValuePair.Create("K2", "V2"), parsedArgs.PathMap[1]);
 
-            parsedArgs = DefaultParse(new [] { "/pathmap:,,,", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/pathmap:,,,", "a.cs" }, _baseDirectory);
             Assert.Equal(4, parsedArgs.Errors.Count());
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[1].Code);
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[2].Code);
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[3].Code);
 
-            parsedArgs = DefaultParse(new [] { "/pathmap:k=,=v", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/pathmap:k=,=v", "a.cs" }, _baseDirectory);
             Assert.Equal(2, parsedArgs.Errors.Count());
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[1].Code);
 
-            parsedArgs = DefaultParse(new [] { "/pathmap:k=v=bad", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/pathmap:k=v=bad", "a.cs" }, _baseDirectory);
             Assert.Equal(1, parsedArgs.Errors.Count());
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
         }

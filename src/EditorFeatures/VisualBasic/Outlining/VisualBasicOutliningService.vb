@@ -1,9 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Threading
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -14,11 +11,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
     Friend Class VisualBasicOutliningService
         Inherits AbstractOutliningService
 
-        Private Shared ReadOnly s_defaultNodeOutlinerMap As ImmutableDictionary(Of Type, ImmutableArray(Of AbstractSyntaxNodeOutliner)) = CreateDefaultNodeOutlinerMap()
-        Private Shared ReadOnly s_defaultTriviaOutlinerMap As ImmutableDictionary(Of Integer, ImmutableArray(Of AbstractSyntaxTriviaOutliner)) = CreateDefaultTriviaOutlinerMap()
+        Private Shared ReadOnly s_defaultNodeOutlinerMap As ImmutableDictionary(Of Type, ImmutableArray(Of AbstractSyntaxOutliner)) = CreateDefaultNodeOutlinerMap()
+        Private Shared ReadOnly s_defaultTriviaOutlinerMap As ImmutableDictionary(Of Integer, ImmutableArray(Of AbstractSyntaxOutliner)) = CreateDefaultTriviaOutlinerMap()
 
-        Public Shared Function CreateDefaultNodeOutlinerMap() As ImmutableDictionary(Of Type, ImmutableArray(Of AbstractSyntaxNodeOutliner))
-            Dim builder = ImmutableDictionary.CreateBuilder(Of Type, ImmutableArray(Of AbstractSyntaxNodeOutliner))()
+        Public Shared Function CreateDefaultNodeOutlinerMap() As ImmutableDictionary(Of Type, ImmutableArray(Of AbstractSyntaxOutliner))
+            Dim builder = ImmutableDictionary.CreateBuilder(Of Type, ImmutableArray(Of AbstractSyntaxOutliner))()
 
             builder.Add(Of AccessorStatementSyntax, AccessorDeclarationOutliner)()
             builder.Add(Of ClassStatementSyntax, TypeDeclarationOutliner, MetadataAsSource.TypeDeclarationOutliner)()
@@ -49,10 +46,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
             Return builder.ToImmutable()
         End Function
 
-        Public Shared Function CreateDefaultTriviaOutlinerMap() As ImmutableDictionary(Of Integer, ImmutableArray(Of AbstractSyntaxTriviaOutliner))
-            Dim builder = ImmutableDictionary.CreateBuilder(Of Integer, ImmutableArray(Of AbstractSyntaxTriviaOutliner))()
+        Public Shared Function CreateDefaultTriviaOutlinerMap() As ImmutableDictionary(Of Integer, ImmutableArray(Of AbstractSyntaxOutliner))
+            Dim builder = ImmutableDictionary.CreateBuilder(Of Integer, ImmutableArray(Of AbstractSyntaxOutliner))()
 
-            builder.Add(SyntaxKind.DisabledTextTrivia, ImmutableArray.Create(Of AbstractSyntaxTriviaOutliner)(New DisabledTextTriviaOutliner()))
+            builder.Add(SyntaxKind.DisabledTextTrivia, ImmutableArray.Create(Of AbstractSyntaxOutliner)(New DisabledTextTriviaOutliner()))
 
             Return builder.ToImmutable()
         End Function

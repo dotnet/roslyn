@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
 
 #Region "Metadata vs. Source"
 
-        <WpfFact>
+        <Fact>
         Public Sub M2SNamedTypeSymbols01()
 
             Dim src1 = <compilation name="M2SNamedTypeSymbols01">
@@ -95,7 +95,7 @@ End Class
             ResolveAndVerifySymbol(mtSym04, comp2, originalSymbols(4), comp1, SymbolIdComparison.CaseInsensitive)
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub M2SNonTypeMemberSymbols01()
 
             Dim src1 = <compilation name="M2SNonTypeMemberSymbols01">
@@ -182,7 +182,7 @@ End Class
 
 #Region "Metadata vs. Metadata"
 
-        <WpfFact>
+        <Fact>
         Public Sub M2MMultiTargetingMsCorLib01()
 
             Dim src1 = <compilation name="M2MMultiTargetingMsCorLib01">
@@ -255,8 +255,8 @@ End Class
 
         End Sub
 
-        <WorkItem(542725)>
-        <WpfFact>
+        <WorkItem(542725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542725")>
+        <Fact>
         Public Sub M2MMultiTargetingMsCorLib02()
 
             Dim src1 = <compilation name="M2MMultiTargetingMsCorLib02">
@@ -330,8 +330,8 @@ End Class
 
         End Sub
 
-        <WorkItem(542992)>
-        <WpfFact>
+        <WorkItem(542992, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542992")>
+        <Fact>
         Public Sub M2MMultiTargetingMsCorLib03()
 
             Dim src1 = <compilation name="M2MMultiTargetingMsCorLib03">

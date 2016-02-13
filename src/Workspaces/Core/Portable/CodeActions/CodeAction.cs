@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         public abstract string Title { get; }
 
+        internal virtual string Message => Title;
+
         /// <summary>
         /// Two code actions are treated as equivalent if they have equal non-null <see cref="EquivalenceKey"/> values and were generated
         /// by the same <see cref="CodeFixProvider"/> or <see cref="CodeRefactoringProvider"/>.
@@ -44,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal virtual bool HasCodeActions => false;
 
         internal virtual bool IsInvokable => true;
+
+        internal virtual Glyph? Glyph => null;
 
         internal virtual ImmutableArray<CodeAction> GetCodeActions()
         {
@@ -329,9 +333,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 return Task.FromResult<Document>(null);
             }
 
-            private static string ComputeEquivalenceKey(IEnumerable<CodeAction> nestedActions)
+            private static string ComputeEquivalenceKey(ImmutableArray<CodeAction> nestedActions)
             {
-                if (nestedActions == null)
+                if (nestedActions.IsDefault)
                 {
                     return null;
                 }
@@ -341,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 {
                     foreach (var action in nestedActions)
                     {
-                        equivalenceKey.Append(action.EquivalenceKey ?? action.GetHashCode().ToString() + ";");
+                        equivalenceKey.Append((action.EquivalenceKey ?? action.GetHashCode().ToString()) + ";");
                     }
 
                     return equivalenceKey.Length > 0 ? equivalenceKey.ToString() : null;

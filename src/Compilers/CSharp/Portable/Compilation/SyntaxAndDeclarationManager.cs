@@ -181,8 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var path = (string)fileToken.Value;
                 if (path == null)
                 {
-                    // If there is no path, the parser should have some Diagnostics to report.
-                    Debug.Assert(tree.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error));
+                    // If there is no path, the parser should have some Diagnostics to report (if we're in an active region).
+                    Debug.Assert(!directive.IsActive || tree.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error));
                     continue;
                 }
 
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (directive.ResolvedPath != null)
                 {
                     SyntaxTree loadedTree;
-                    if (TryGetLoadedSyntaxTree(loadedSyntaxTreeMap, directive, out loadedTree))
+                    if (TryGetLoadedSyntaxTree(loadedSyntaxTreeMap, directive, out loadedTree) && removeSet.Add(loadedTree))
                     {
                         ImmutableArray<LoadDirective> nestedLoadDirectives;
                         if (loadDirectiveMap.TryGetValue(loadedTree, out nestedLoadDirectives))
@@ -413,8 +413,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(!nestedLoadDirectives.IsEmpty);
                             GetRemoveSetForLoadedTrees(nestedLoadDirectives, loadDirectiveMap, loadedSyntaxTreeMap, removeSet);
                         }
-
-                        removeSet.Add(loadedTree);
                     }
                 }
             }

@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -13,20 +14,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class Extensions
     {
-        private static readonly CultureInfo USCultureInfo = new CultureInfo("en-US");
+        private static readonly CultureInfo s_USCultureInfo = new CultureInfo("en-US");
 
         public static string GetBingHelpMessage(this Diagnostic diagnostic, Workspace workspace = null)
         {
             var option = GetCustomTypeInBingSearchOption(workspace);
 
             // We use the ENU version of the message for bing search.
-            return option ? diagnostic.GetMessage(USCultureInfo) : diagnostic.Descriptor.GetBingHelpMessage();
+            return option ? diagnostic.GetMessage(s_USCultureInfo) : diagnostic.Descriptor.GetBingHelpMessage();
         }
 
         public static string GetBingHelpMessage(this DiagnosticDescriptor descriptor)
         {
             // We use the ENU version of the message for bing search.
-            return descriptor.MessageFormat.ToString(USCultureInfo);
+            return descriptor.MessageFormat.ToString(s_USCultureInfo);
         }
 
         private static bool GetCustomTypeInBingSearchOption(Workspace workspace)
@@ -55,6 +56,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (diagnostic.Location.IsInSource)
             {
                 return DiagnosticData.Create(project.GetDocument(diagnostic.Location.SourceTree), diagnostic);
+            }
+
+            if (diagnostic.Location.Kind == LocationKind.ExternalFile)
+            {
+                var document = project.Documents.FirstOrDefault(d => d.FilePath == diagnostic.Location.GetLineSpan().Path);
+                if (document != null)
+                {
+                    return DiagnosticData.Create(document, diagnostic);
+                }
             }
 
             return DiagnosticData.Create(project, diagnostic);

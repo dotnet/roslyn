@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             public static readonly Cache<T> Instance = new Cache<T>();
 
-            private static readonly Func<T, object> _boxer = v => (object)v;
+            private static readonly Func<T, object> s_boxer = v => (object)v;
 
             // this will be never released, must be used only for fixed size set
             private readonly ConcurrentDictionary<T, object> _map =
@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             public object GetOrCreate(T value)
             {
-                return _map.GetOrAdd(value, _boxer);
+                return _map.GetOrAdd(value, s_boxer);
             }
         }
     }

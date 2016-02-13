@@ -136,7 +136,7 @@ class C
         End Sub
 #End If
 
-        <WorkItem(529101, "DevDiv")>
+        <WorkItem(529101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529101")>
         <Fact()>
         Public Sub TestLocalConstantsTypes()
             Dim source = <compilation>

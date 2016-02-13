@@ -175,42 +175,62 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.Bind(binder, node, diagnostics);
         }
 
-        private BoundNode BindEqualsValue(Binder binder, EqualsValueClauseSyntax equalsValue, DiagnosticBag diagnostics)
+        private BoundEqualsValue BindEqualsValue(Binder binder, EqualsValueClauseSyntax equalsValue, DiagnosticBag diagnostics)
         {
             switch (this.MemberSymbol.Kind)
             {
                 case SymbolKind.Field:
                     {
-                        var enumField = this.MemberSymbol as SourceEnumConstantSymbol;
+                        var field = (FieldSymbol)this.MemberSymbol;
+                        var enumField = field as SourceEnumConstantSymbol;
+                        BoundExpression result;
                         if ((object)enumField != null)
                         {
-                            return binder.BindEnumConstantInitializer(enumField, equalsValue.Value, diagnostics);
+                            result = binder.BindEnumConstantInitializer(enumField, equalsValue.Value, diagnostics);
                         }
-
-                        var fieldType = ((FieldSymbol)this.MemberSymbol).GetFieldType(binder.FieldsBeingBound);
-                        return binder.BindVariableOrAutoPropInitializer(equalsValue, fieldType, diagnostics);
+                        else
+                        {
+                            result = binder.BindVariableOrAutoPropInitializer(equalsValue, field.GetFieldType(binder.FieldsBeingBound), diagnostics);
+                        }
+                        if (result != null)
+                        {
+                            return new BoundFieldEqualsValue(equalsValue, field, result);
+                        }
+                        break;
                     }
 
                 case SymbolKind.Property:
                     {
-                        var propertyType = ((PropertySymbol)this.MemberSymbol).Type;
-                        return binder.BindVariableOrAutoPropInitializer(equalsValue, propertyType, diagnostics);
+                        var property = (PropertySymbol)this.MemberSymbol;
+                        BoundExpression result = binder.BindVariableOrAutoPropInitializer(equalsValue, property.Type, diagnostics);
+                        if (result != null)
+                        {
+                            return new BoundPropertyEqualsValue(equalsValue, property, result);
+                        }
+                        break;
                     }
 
                 case SymbolKind.Parameter:
                     {
                         BoundExpression unusedValueBeforeConversion; // not needed.
                         var parameter = (ParameterSymbol)this.MemberSymbol;
-                        return binder.BindParameterDefaultValue(
+                        BoundExpression result = binder.BindParameterDefaultValue(
                             equalsValue,
                             parameter.Type,
                             diagnostics,
                             out unusedValueBeforeConversion);
+                        if (result != null)
+                        {
+                            return new BoundParameterEqualsValue(equalsValue, parameter, result);
+                        }
+                        break;
                     }
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(this.MemberSymbol.Kind);
             }
+
+            return null;
         }
 
         private bool IsBindableInitializer(CSharpSyntaxNode node)

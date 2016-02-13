@@ -1,262 +1,142 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public class TypeDeclarationOutlinerTests :
-        AbstractOutlinerTests<TypeDeclarationSyntax>
+    public class TypeDeclarationOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<TypeDeclarationSyntax>
     {
-        internal override IEnumerable<OutliningSpan> GetRegions(TypeDeclarationSyntax typeDecl)
+        internal override AbstractSyntaxOutliner CreateOutliner() => new TypeDeclarationOutliner();
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestClass()
         {
-            var outliner = new TypeDeclarationOutliner();
-            return outliner.GetOutliningSpans(typeDecl, CancellationToken.None).WhereNotNull();
+            const string code = @"
+{|hint:$$class C{|collapse:
+{
+}|}|}";
+
+            await VerifyRegionsAsync(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestClass()
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestClassWithLeadingComments()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "}");
+            const string code = @"
+{|span1:// Foo
+// Bar|}
+{|hint2:$$class C{|collapse2:
+{
+}|}|}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-
-            var actualRegion = GetRegion(typeDecl);
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(7, 13),
-                TextSpan.FromBounds(0, 13),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: false);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("span1", "// Foo ...", autoCollapse: true),
+                Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestClassWithLeadingComments()
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestClassWithNestedComments()
         {
-            var tree = ParseLines("// Foo",
-                                        "// Bar",
-                                        "class C",
-                                        "{",
-                                        "}");
+            const string code = @"
+{|hint1:$$class C{|collapse1:
+{
+    {|span2:// Foo
+    // Bar|}
+}|}|}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-
-            var actualRegions = GetRegions(typeDecl).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(0, 14),
-                "// Foo ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(23, 29),
-                TextSpan.FromBounds(16, 29),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: false);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
+            await VerifyRegionsAsync(code,
+                Region("collapse1", "hint1", CSharpOutliningHelpers.Ellipsis, autoCollapse: false),
+                Region("span2", "// Foo ...", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestClassWithNestedComments()
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestInterface()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  // Foo",
-                                        "  // Bar",
-                                        "}");
+            const string code = @"
+{|hint:$$interface I{|collapse:
+{
+}|}|}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-
-            var actualRegions = GetRegions(typeDecl).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(7, 33),
-                TextSpan.FromBounds(0, 33),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: false);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(14, 30),
-                "// Foo ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
+            await VerifyRegionsAsync(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestInterface()
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestInterfaceWithLeadingComments()
         {
-            var tree = ParseLines("interface I",
-                                        "{",
-                                        "}");
+            const string code = @"
+{|span1:// Foo
+// Bar|}
+{|hint2:$$interface I{|collapse2:
+{
+}|}|}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-
-            var actualRegion = GetRegion(typeDecl);
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(11, 17),
-                TextSpan.FromBounds(0, 17),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: false);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("span1", "// Foo ...", autoCollapse: true),
+                Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestInterfaceWithLeadingComments()
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestInterfaceWithNestedComments()
         {
-            var tree = ParseLines("// Foo",
-                                        "// Bar",
-                                        "interface I",
-                                        "{",
-                                        "}");
+            const string code = @"
+{|hint1:$$interface I{|collapse1:
+{
+    {|span2:// Foo
+    // Bar|}
+}|}|}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-
-            var actualRegions = GetRegions(typeDecl).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(0, 14),
-                "// Foo ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(27, 33),
-                TextSpan.FromBounds(16, 33),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: false);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
+            await VerifyRegionsAsync(code,
+                Region("collapse1", "hint1", CSharpOutliningHelpers.Ellipsis, autoCollapse: false),
+                Region("span2", "// Foo ...", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestInterfaceWithNestedComments()
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestStruct()
         {
-            var tree = ParseLines("interface I",
-                                        "{",
-                                        "  // Foo",
-                                        "  // Bar",
-                                        "}");
+            const string code = @"
+{|hint:$$struct S{|collapse:
+{
+}|}|}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-
-            var actualRegions = GetRegions(typeDecl).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(11, 37),
-                TextSpan.FromBounds(0, 37),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: false);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(18, 34),
-                "// Foo ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
+            await VerifyRegionsAsync(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestStruct()
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestStructWithLeadingComments()
         {
-            var tree = ParseLines("struct S",
-                                        "{",
-                                        "}");
+            const string code = @"
+{|span1:// Foo
+// Bar|}
+{|hint2:$$struct S{|collapse2:
+{
+}|}|}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-
-            var actualRegion = GetRegion(typeDecl);
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(8, 14),
-                TextSpan.FromBounds(0, 14),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: false);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("span1", "// Foo ...", autoCollapse: true),
+                Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestStructWithLeadingComments()
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestStructWithNestedComments()
         {
-            var tree = ParseLines("// Foo",
-                                        "// Bar",
-                                        "struct S",
-                                        "{",
-                                        "}");
+            const string code = @"
+{|hint1:$$struct S{|collapse1:
+{
+    {|span2:// Foo
+    // Bar|}
+}|}|}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-
-            var actualRegions = GetRegions(typeDecl).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(0, 14),
-                "// Foo ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(24, 30),
-                TextSpan.FromBounds(16, 30),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: false);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestStructWithNestedComments()
-        {
-            var tree = ParseLines("struct S",
-                                        "{",
-                                        "  // Foo",
-                                        "  // Bar",
-                                        "}");
-
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-
-            var actualRegions = GetRegions(typeDecl).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(8, 34),
-                TextSpan.FromBounds(0, 34),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: false);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(15, 31),
-                "// Foo ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
+            await VerifyRegionsAsync(code,
+                Region("collapse1", "hint1", CSharpOutliningHelpers.Ellipsis, autoCollapse: false),
+                Region("span2", "// Foo ...", autoCollapse: true));
         }
     }
 }

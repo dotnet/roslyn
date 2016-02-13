@@ -19,7 +19,6 @@ Public Module ReadTree
     Public Function TryReadTheTree(fileName As String, <Out> ByRef tree As ParseTree) As Boolean
 
         tree = Nothing
-        Console.WriteLine("Reading input file ""{0}""...", fileName)
 
         Dim validationError As Boolean = False
         Dim xDoc = GetXDocument(fileName, validationError)

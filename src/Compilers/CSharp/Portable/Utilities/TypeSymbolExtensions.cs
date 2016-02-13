@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.ArrayType:
                     {
                         var array = (ArrayTypeSymbol)type;
-                        return array.CustomModifiers.Any() || array.ElementType.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds) || 
+                        return array.CustomModifiers.Any() || array.ElementType.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds) ||
                                (flagNonDefaultArraySizesOrLowerBounds && !array.HasDefaultSizesAndLowerBounds);
                     }
                 case SymbolKind.PointerType:

@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
 {
     internal class DiagnosticAnalyzerLogger
     {
-        private const string Id = "Id";
-        private const string AnalyzerCount = "AnalyzerCount";
+        private const string Id = nameof(Id);
+        private const string AnalyzerCount = nameof(AnalyzerCount);
         private const string AnalyzerName = "Analyzer.Name";
         private const string AnalyzerHashCode = "Analyzer.NameHashCode";
         private const string AnalyzerCrashCount = "Analyzer.CrashCount";

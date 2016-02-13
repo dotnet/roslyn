@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Text
     {
         private const int CharBufferSize = 32 * 1024;
         private const int CharBufferCount = 5;
-        private const int LargeObjectHeapLimitInChars = 40 * 1024; // 40KB
+        internal const int LargeObjectHeapLimitInChars = 40 * 1024; // 40KB
 
         private static readonly ObjectPool<char[]> s_charArrayPool = new ObjectPool<char[]>(() => new char[CharBufferSize], CharBufferCount);
 
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Text
             // If the resulting string would end up on the large object heap, then use LargeEncodedText.
             if (encoding.GetMaxCharCount((int)stream.Length) >= LargeObjectHeapLimitInChars)
             {
-                return LargeEncodedText.Decode(stream, encoding, checksumAlgorithm, throwIfBinaryDetected);
+                return LargeText.Decode(stream, encoding, checksumAlgorithm, throwIfBinaryDetected);
             }
 
             string text = Decode(stream, encoding, out encoding);
@@ -281,6 +281,25 @@ namespace Microsoft.CodeAnalysis.Text
         public abstract int Length { get; }
 
         /// <summary>
+        /// The size of the storage representation of the text (in characters).
+        /// This can differ from length when storage buffers are reused to represent fragments/subtext.
+        /// </summary>
+        internal virtual int StorageSize
+        {
+            get { return this.Length; }
+        }
+
+        internal virtual ImmutableArray<SourceText> Segments
+        {
+            get { return ImmutableArray<SourceText>.Empty; }
+        }
+
+        internal virtual SourceText StorageKey
+        {
+            get { return this; }
+        }
+
+        /// <summary>
         /// Returns a character at given position.
         /// </summary>
         /// <param name="position">The position to get the character from.</param>
@@ -396,14 +415,14 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        internal ImmutableArray<byte> GetChecksum()
+        internal ImmutableArray<byte> GetChecksum(bool useDefaultEncodingIfNull = false)
         {
             if (_lazyChecksum.IsDefault)
             {
-                // we shouldn't be asking for a checksum of encoding-less source text:
-                Debug.Assert(this.Encoding != null);
+                // we shouldn't be asking for a checksum of encoding-less source text, except for SourceText comparison.
+                Debug.Assert(this.Encoding != null || useDefaultEncodingIfNull);
 
-                using (var stream = new SourceTextStream(this))
+                using (var stream = new SourceTextStream(this, useDefaultEncodingIfNull: useDefaultEncodingIfNull))
                 {
                     ImmutableInterlocked.InterlockedInitialize(ref _lazyChecksum, CalculateChecksum(stream, _checksumAlgorithm));
                 }
@@ -412,7 +431,16 @@ namespace Microsoft.CodeAnalysis.Text
             return _lazyChecksum;
         }
 
-        private static ImmutableArray<byte> CalculateChecksum(Stream stream, SourceHashAlgorithm algorithmId)
+        private static ImmutableArray<byte> CalculateChecksum(byte[] buffer, int offset, int count, SourceHashAlgorithm algorithmId)
+        {
+            using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
+            {
+                Debug.Assert(algorithm != null);
+                return ImmutableArray.Create(algorithm.ComputeHash(buffer, offset, count));
+            }
+        }
+
+        internal static ImmutableArray<byte> CalculateChecksum(Stream stream, SourceHashAlgorithm algorithmId)
         {
             using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
             {
@@ -422,15 +450,6 @@ namespace Microsoft.CodeAnalysis.Text
                     stream.Seek(0, SeekOrigin.Begin);
                 }
                 return ImmutableArray.Create(algorithm.ComputeHash(stream));
-            }
-        }
-
-        private static ImmutableArray<byte> CalculateChecksum(byte[] buffer, int offset, int count, SourceHashAlgorithm algorithmId)
-        {
-            using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
-            {
-                Debug.Assert(algorithm != null);
-                return ImmutableArray.Create(algorithm.ComputeHash(buffer, offset, count));
             }
         }
 
@@ -498,6 +517,12 @@ namespace Microsoft.CodeAnalysis.Text
                     throw new ArgumentException(CodeAnalysisResources.ChangesMustBeOrderedAndNotOverlapping, nameof(changes));
                 }
 
+                var newTextLength = change.NewText?.Length ?? 0;
+
+                // ignore changes that don't change anything
+                if (change.Span.Length == 0 && newTextLength == 0)
+                    continue;
+
                 // if we've skipped a range, add
                 if (change.Span.Start > position)
                 {
@@ -505,7 +530,7 @@ namespace Microsoft.CodeAnalysis.Text
                     CompositeText.AddSegments(segments, subText);
                 }
 
-                if (!string.IsNullOrEmpty(change.NewText))
+                if (newTextLength > 0)
                 {
                     var segment = SourceText.From(change.NewText, this.Encoding, this.ChecksumAlgorithm);
                     CompositeText.AddSegments(segments, segment);
@@ -513,7 +538,14 @@ namespace Microsoft.CodeAnalysis.Text
 
                 position = change.Span.End;
 
-                changeRanges.Add(new TextChangeRange(change.Span, change.NewText?.Length ?? 0));
+                changeRanges.Add(new TextChangeRange(change.Span, newTextLength));
+            }
+
+            // no changes actually happend?
+            if (position == 0 && segments.Count == 0)
+            {
+                changeRanges.Free();
+                return this;
             }
 
             if (position < this.Length)
@@ -522,7 +554,15 @@ namespace Microsoft.CodeAnalysis.Text
                 CompositeText.AddSegments(segments, subText);
             }
 
-            return new ChangedText(this, changeRanges.ToImmutableAndFree(), segments.ToImmutableAndFree());
+            var newText = CompositeText.ToSourceTextAndFree(segments, this, adjustSegments: true);
+            if (newText != this)
+            {
+                return new ChangedText(this, newText, changeRanges.ToImmutableAndFree());
+            }
+            else
+            {
+                return this;
+            }
         }
 
         /// <summary>
@@ -623,6 +663,12 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
+        internal bool TryGetLines(out TextLineCollection lines)
+        {
+            lines = _lazyLineInfo;
+            return lines != null;
+        }
+
         /// <summary>
         /// Called from <see cref="Lines"/> to initialize the <see cref="TextLineCollection"/>. Thereafter,
         /// the collection is cached.
@@ -714,55 +760,96 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
+        private void EnumerateChars(Action<int, char[], int> action)
+        {
+            var position = 0;
+            var buffer = s_charArrayPool.Allocate();
+
+            var length = this.Length;
+            while (position < length)
+            {
+                var contentLength = Math.Min(length - position, buffer.Length);
+                this.CopyTo(position, buffer, 0, contentLength);
+                action(position, buffer, contentLength);
+                position += contentLength;
+            }
+
+            // once more with zero length to signal the end
+            action(position, buffer, 0);
+
+            s_charArrayPool.Free(buffer);
+        }
+
         private int[] ParseLineStarts()
         {
-            int length = this.Length;
-
             // Corner case check
             if (0 == this.Length)
             {
                 return new[] { 0 };
             }
 
-            var position = 0;
-            var index = 0;
-            var arrayBuilder = ArrayBuilder<int>.GetInstance();
+            var lineStarts = ArrayBuilder<int>.GetInstance();
+            lineStarts.Add(0); // there is always the first line
+
+            var lastWasCR = false;
 
             // The following loop goes through every character in the text. It is highly
             // performance critical, and thus inlines knowledge about common line breaks
             // and non-line breaks.
-            while (index < length)
+            EnumerateChars((int position, char[] buffer, int length) =>
             {
-                char c = this[index++];
-
-                // Common case - ASCII & not a line break
-                // if (c > '\r' && c <= 127)
-                // if (c >= ('\r'+1) && c <= 127)
-                const uint bias = '\r' + 1;
-                if (unchecked(c - bias) <= (127 - bias))
+                var index = 0;
+                if (lastWasCR)
                 {
-                    continue;
+                    if (buffer.Length > 0 && buffer[0] == '\n')
+                    {
+                        index++;
+                    }
+
+                    lineStarts.Add(position + index);
+                    lastWasCR = false;
                 }
 
-                // Assumes that the only 2-char line break sequence is CR+LF
-                if (c == '\r' && index < length && this[index] == '\n')
+                while (index < length)
                 {
+                    char c = buffer[index];
                     index++;
+
+                    // Common case - ASCII & not a line break
+                    // if (c > '\r' && c <= 127)
+                    // if (c >= ('\r'+1) && c <= 127)
+                    const uint bias = '\r' + 1;
+                    if (unchecked(c - bias) <= (127 - bias))
+                    {
+                        continue;
+                    }
+
+                    // Assumes that the only 2-char line break sequence is CR+LF
+                    if (c == '\r')
+                    {
+                        if (index < length && buffer[index] == '\n')
+                        {
+                            index++;
+                        }
+                        else if (index >= length)
+                        {
+                            lastWasCR = true;
+                            continue;
+                        }
+                    }
+                    else if (!TextUtilities.IsAnyLineBreakCharacter(c))
+                    {
+                        continue;
+                    }
+
+                    // next line starts at index
+                    lineStarts.Add(position + index);
                 }
-                else if (!TextUtilities.IsAnyLineBreakCharacter(c))
-                {
-                    continue;
-                }
+            });
 
-                arrayBuilder.Add(position);
-                position = index;
-            }
-
-            // Create a start for the final line.  
-            arrayBuilder.Add(position);
-
-            return arrayBuilder.ToArrayAndFree();
+            return lineStarts.ToArrayAndFree();
         }
+        #endregion
 
         /// <summary>
         /// Compares the content with content of another <see cref="SourceText"/>.
@@ -835,8 +922,6 @@ namespace Microsoft.CodeAnalysis.Text
                 s_charArrayPool.Free(buffer1);
             }
         }
-
-        #endregion
 
         /// <summary>
         /// Detect an encoding by looking for byte order marks.

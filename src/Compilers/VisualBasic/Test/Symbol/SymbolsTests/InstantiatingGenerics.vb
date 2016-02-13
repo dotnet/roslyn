@@ -213,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
     Public Class InstantiatingGenerics
         Inherits BasicTestBase
 
-        <Fact, WorkItem(910574, "DevDiv")>
+        <Fact, WorkItem(910574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910574")>
         Public Sub Test1()
 
             Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.General.MDTestLib1)

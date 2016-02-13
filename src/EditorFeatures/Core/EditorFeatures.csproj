@@ -134,6 +134,7 @@
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
     <InternalsVisibleToTypeScript Include="Microsoft.Test.Apex.VisualStudio" />
     <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
+    <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
@@ -200,6 +201,7 @@
     <Compile Include="Commands\SortAndRemoveUnnecessaryImportsCommandArgs.cs" />
     <Compile Include="Commands\SortImportsCommandArgs.cs" />
     <Compile Include="Commands\SurroundWithCommandArgs.cs" />
+    <Compile Include="Commands\SyncClassViewCommandArgs.cs" />
     <Compile Include="Commands\TabKeyCommandArgs.cs" />
     <Compile Include="Commands\ToggleCompletionModeCommandArgs.cs" />
     <Compile Include="Commands\TypeCharCommandArgs.cs" />
@@ -219,6 +221,7 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="ExportContentTypeLanguageServiceAttribute.cs" />
+    <Compile Include="Extensibility\BraceMatching\AbstractDirectiveTriviaBraceMatcher.cs" />
     <Compile Include="Extensibility\BraceMatching\ExportBraceMatcherAttribute.cs" />
     <Compile Include="Extensibility\BraceMatching\IBraceMatcher.cs" />
     <Compile Include="Extensibility\Commands\ExportCommandHandlerAttribute.cs" />
@@ -277,9 +280,13 @@
     <Compile Include="Extensibility\SignatureHelp\SignatureHelpParameter.cs" />
     <Compile Include="Extensibility\SignatureHelp\SignatureHelpTriggerInfo.cs" />
     <Compile Include="Extensibility\SignatureHelp\SignatureHelpTriggerReason.cs" />
+    <Compile Include="Implementation\Classification\SemanticClassificationBufferTaggerProvider.cs" />
+    <Compile Include="Implementation\Classification\SemanticClassificationBufferTaggerProvider.Tagger.cs" />
+    <Compile Include="Implementation\Classification\SemanticClassificationUtilities.cs" />
     <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />
     <Compile Include="Implementation\GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
+    <Compile Include="Implementation\Outlining\AbstractSyntaxOutliner.cs" />
     <Compile Include="Implementation\Outlining\InvalidOutliningRegionException.cs" />
     <Compile Include="Implementation\Suggestions\FixMultipleOccurrencesService.cs" />
     <Compile Include="Implementation\Suggestions\FixMultipleSuggestedAction.cs" />
@@ -314,6 +321,7 @@
     <Compile Include="Implementation\AutomaticCompletion\BraceCompletionSessionProvider.BraceCompletionSession.cs" />
     <Compile Include="Implementation\AutomaticCompletion\IEditorBraceCompletionSession.cs" />
     <Compile Include="Implementation\AutomaticCompletion\Sessions\AbstractTokenBraceCompletionSession.cs" />
+    <Compile Include="Implementation\BlockCommentEditing\AbstractBlockCommentEditingCommandHandler.cs" />
     <Compile Include="Implementation\BraceMatching\AbstractBraceMatcher.cs" />
     <Compile Include="Implementation\BraceMatching\BraceCharacterAndKind.cs" />
     <Compile Include="Implementation\BraceMatching\BraceHighlightingViewTaggerProvider.cs" />
@@ -338,7 +346,7 @@
     <Compile Include="Implementation\Classification\ClassificationTypeDefinitions.cs" />
     <Compile Include="Implementation\Classification\ClassificationUtilities.cs" />
     <Compile Include="Implementation\Classification\IEditorClassificationService.cs" />
-    <Compile Include="Implementation\Classification\SemanticClassificationTaggerProvider.cs" />
+    <Compile Include="Implementation\Classification\SemanticClassificationViewTaggerProvider.cs" />
     <Compile Include="Implementation\Classification\SyntacticClassificationTaggerProvider.cs" />
     <Compile Include="Implementation\Classification\SyntacticClassificationTaggerProvider.TagComputer.cs" />
     <Compile Include="Implementation\Classification\SyntacticClassificationTaggerProvider.TagComputer.LastLineCache.cs" />
@@ -363,7 +371,6 @@
     <Compile Include="Implementation\Diagnostics\ClassificationTypeDefinitions.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsClassificationTaggerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsSquiggleTaggerProvider.cs" />
-    <Compile Include="Implementation\Diagnostics\WellKnownDiagnosticPropertyNames.cs" />
     <Compile Include="Implementation\DocumentationComments\AbstractDocumentationCommentCommandHandler.cs" />
     <Compile Include="Implementation\DocumentationComments\AbstractXmlTagCompletionCommandHandler.cs" />
     <Compile Include="Implementation\EditAndContinue\ActiveStatementTag.cs" />
@@ -402,7 +409,6 @@
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\CurrentWorkingDirectoryDiscoveryService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\FileSystemCompletionHelper.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\ICurrentWorkingDirectoryDiscoveryService.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\FileSystem\IOUtilities.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\PathCompletionUtilities.cs" />
     <Compile Include="Implementation\KeywordHighlighting\AbstractKeywordHighlighter.cs" />
     <Compile Include="Implementation\KeywordHighlighting\HighlighterViewTaggerProvider.cs" />
@@ -660,6 +666,8 @@
     <Compile Include="Implementation\Workspaces\TextUndoHistoryWorkspaceServiceFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
+    <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.ViewSpanChangedEventSource.cs" />
+    <Compile Include="Shared\Utilities\SynchronizationContextTaskScheduler.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.Tagger.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource_ReferenceCounting.cs" />

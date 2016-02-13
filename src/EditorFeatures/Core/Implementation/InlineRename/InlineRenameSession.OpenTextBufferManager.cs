@@ -156,11 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             private void RaiseSpansChanged()
             {
-                var handler = this.SpansChanged;
-                if (handler != null)
-                {
-                    handler();
-                }
+                this.SpansChanged?.Invoke();
             }
 
             internal IEnumerable<RenameTrackingSpan> GetRenameTrackingSpans()
@@ -269,8 +265,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 AssertIsForeground();
 
-                // Detatch from the buffer; it is important that this is done before we start
-                // undoing transactions, since the undos will cause buffer changes.
+                // Detach from the buffer; it is important that this is done before we start
+                // undoing transactions, since the undo actions will cause buffer changes.
                 _subjectBuffer.ChangedLowPriority -= OnTextBufferChanged;
 
                 foreach (var view in _textViews)
@@ -382,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                                 }
                                 else
                                 {
-                                    // We might not have a renamable span if an alias conflict completely changed the text
+                                    // We might not have a renameable span if an alias conflict completely changed the text
                                     _referenceSpanToLinkedRenameSpanMap[replacement.OriginalSpan] = new RenameTrackingSpan(
                                         _referenceSpanToLinkedRenameSpanMap[replacement.OriginalSpan].TrackingSpan,
                                         RenameSpanKind.None);

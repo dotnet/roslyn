@@ -138,11 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _snapshotTracker.StartTracking(openedBuffer);
 
                 _openTextBuffer = openedBuffer;
-
-                if (Opened != null)
-                {
-                    Opened(this, isCurrentContext);
-                }
+                Opened?.Invoke(this, isCurrentContext);
             }
 
             internal void ProcessClose(bool updateActiveContext)
@@ -150,11 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // Todo: it might already be closed...
                 // For now, continue asserting as it can be clicked through.
                 Debug.Assert(_openTextBuffer != null);
-
-                if (Closing != null)
-                {
-                    Closing(this, updateActiveContext);
-                }
+                Closing?.Invoke(this, updateActiveContext);
 
                 var buffer = _openTextBuffer;
                 _openTextBuffer = null;
@@ -175,11 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private void OnUpdatedOnDisk(object sender, EventArgs e)
             {
-                var handler = UpdatedOnDisk;
-                if (handler != null)
-                {
-                    handler(this, EventArgs.Empty);
-                }
+                UpdatedOnDisk?.Invoke(this, EventArgs.Empty);
             }
 
             public void Dispose()

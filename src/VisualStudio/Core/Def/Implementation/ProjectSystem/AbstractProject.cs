@@ -352,6 +352,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             return ImmutableArray.CreateRange(_projectReferences);
         }
+        
+        public ImmutableArray<VisualStudioMetadataReference> GetCurrentMetadataReferences()
+        {
+            return ImmutableArray.CreateRange(_metadataReferences);
+        }
 
         public IVisualStudioHostDocument GetDocumentOrAdditionalDocument(DocumentId id)
         {
@@ -540,7 +545,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AddAnalyzerAssembly(analyzer.FullPath);
         }
 
-        protected void AddProjectReference(ProjectReference projectReference)
+        // Internal for unit testing
+        internal void AddProjectReference(ProjectReference projectReference)
         {
             // dev11 is sometimes calling us multiple times for the same data
             if (!CanAddProjectReference(projectReference))
@@ -1015,7 +1021,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
         }
 
-        protected virtual void UpdateAnalyzerRules()
+        /// <summary>
+        /// Implemented by derived types to provide a way for <see cref="AbstractProject"/> to indicate that options will need to be refreshed.
+        /// It is expected that derived types will read in shared option state stored in this class, create new Compilation and Parse options,
+        /// and call <see cref="SetOptions"/> in response. The default implementation does nothing.
+        /// </summary>
+        protected virtual void UpdateOptions()
         {
         }
 
@@ -1083,7 +1094,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // For 'Shared' projects, IVSHierarchy returns a hierarchy item with < character in its name (i.e. <SharedProjectName>)
                 // as a child of the root item. There is no such item in the 'visual' hierarchy in solution explorer and no such folder
                 // is present on disk either. Since this is not a real 'folder', we exclude it from the contents of Document.Folders.
-                // Note: The parent of the hierarchy item that contains < characher in its name is VSITEMID.Root. So we don't need to
+                // Note: The parent of the hierarchy item that contains < character in its name is VSITEMID.Root. So we don't need to
                 // worry about accidental propagation out of the Shared project to any containing 'Solution' folders - the check for
                 // VSITEMID.Root below already takes care of that.
                 var name = (string)nameObj;
@@ -1172,8 +1183,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _objOutputPathOpt = objOutputPath;
 
                 _compilationOptions = _compilationOptions.WithMetadataReferenceResolver(CreateMetadataReferenceResolver(
-                    metadataService: this.Workspace.Services.GetService<IMetadataService>(), 
-                    projectDirectory: this.ContainingDirectoryPathOpt, 
+                    metadataService: this.Workspace.Services.GetService<IMetadataService>(),
+                    projectDirectory: this.ContainingDirectoryPathOpt,
                     outputDirectory: Path.GetDirectoryName(_objOutputPathOpt)));
 
                 if (_pushingChangesToWorkspaceHosts)
@@ -1319,7 +1330,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         [Conditional("DEBUG")]
         private void ValidateReferences()
         {
-            // can happen when project is unloaded and reloaded or in venus (aspx) case
+            // can happen when project is unloaded and reloaded or in Venus (aspx) case
             if (_filePathOpt == null || _binOutputPathOpt == null || _objOutputPathOpt == null)
             {
                 return;

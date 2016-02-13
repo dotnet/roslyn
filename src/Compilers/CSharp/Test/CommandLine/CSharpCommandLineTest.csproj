@@ -29,7 +29,7 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Core\VBCSCompiler\VBCSCompiler.csproj">
+    <ProjectReference Include="..\..\..\Server\VBCSCompiler\VBCSCompiler.csproj">
       <Project>{9508F118-F62E-4C16-A6F4-7C3B56E166AD}</Project>
       <Name>VBCSCompiler</Name>
     </ProjectReference>
@@ -53,9 +53,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\Debug\</OutputPath>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <NoWarn>1591</NoWarn>
-    <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
@@ -63,7 +61,6 @@
     <OutputPath>bin\Release\</OutputPath>
     <Optimize>true</Optimize>
     <NoWarn>1591</NoWarn>
-    <DebugType>pdbonly</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
@@ -83,6 +80,7 @@
       <DependentUpon>CommandLineTestResources.resx</DependentUpon>
     </Compile>
     <Compile Include="ErrorLoggerTests.cs" />
+    <Compile Include="MiscTests.cs" />
     <Compile Include="TouchedFileLoggingTests.cs" />
   </ItemGroup>
   <ItemGroup>

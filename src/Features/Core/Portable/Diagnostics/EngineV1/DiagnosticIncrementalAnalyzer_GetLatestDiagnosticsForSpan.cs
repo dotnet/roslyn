@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             private readonly bool _blockForData;
             private readonly bool _includeSuppressedDiagnostics;
             private readonly CancellationToken _cancellationToken;
-            
+
             private readonly DiagnosticAnalyzerDriver _spanBasedDriver;
             private readonly DiagnosticAnalyzerDriver _documentBasedDriver;
             private readonly DiagnosticAnalyzerDriver _projectDriver;
@@ -56,9 +56,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 // Share the diagnostic analyzer driver across all analyzers.
                 var fullSpan = root?.FullSpan;
 
-                _spanBasedDriver = new DiagnosticAnalyzerDriver(_document, _range, root, _owner, _cancellationToken);
-                _documentBasedDriver = new DiagnosticAnalyzerDriver(_document, fullSpan, root, _owner, _cancellationToken);
-                _projectDriver = new DiagnosticAnalyzerDriver(_document.Project, _owner, _cancellationToken);
+                // We are computing diagnostics for a single document/span, so we don't need to enable concurrent analysis.
+                const bool concurrentAnalysis = false;
+                const bool reportSuppressedDiagnostics = true;
+
+                _spanBasedDriver = new DiagnosticAnalyzerDriver(_document, _range, root, _owner, concurrentAnalysis, reportSuppressedDiagnostics, _cancellationToken);
+                _documentBasedDriver = new DiagnosticAnalyzerDriver(_document, fullSpan, root, _owner, concurrentAnalysis, reportSuppressedDiagnostics, _cancellationToken);
+                _projectDriver = new DiagnosticAnalyzerDriver(_document.Project, _owner, concurrentAnalysis, reportSuppressedDiagnostics, _cancellationToken);
             }
 
             public List<DiagnosticData> Diagnostics { get; }
@@ -165,6 +169,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             [Conditional("DEBUG")]
             private void VerifyDiagnostics(SemanticModel model)
             {
+#if DEBUG
                 // Exclude unused import diagnostics since they are never reported when a span is passed.
                 // (See CSharp/VisualBasicCompilation.GetDiagnosticsForMethodBodiesInTree.)
                 Func<Diagnostic, bool> shouldInclude = d => _range.IntersectsWith(d.Location.SourceSpan) && !IsUnusedImportDiagnostic(d);
@@ -174,19 +179,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var rangeMethodBodyDiagnostics = model.GetMethodBodyDiagnostics(_range).ToArray();
                 var rangeDiagnostics = rangeDeclaractionDiagnostics.Concat(rangeMethodBodyDiagnostics).Where(shouldInclude).ToArray();
 
-                var set = new HashSet<Diagnostic>(rangeDiagnostics);
-
                 var wholeDeclarationDiagnostics = model.GetDeclarationDiagnostics().ToArray();
                 var wholeMethodBodyDiagnostics = model.GetMethodBodyDiagnostics().ToArray();
                 var wholeDiagnostics = wholeDeclarationDiagnostics.Concat(wholeMethodBodyDiagnostics).Where(shouldInclude).ToArray();
 
-                if (!set.SetEquals(wholeDiagnostics))
+                if (!AreEquivalent(rangeDiagnostics, wholeDiagnostics))
                 {
                     // otherwise, report non-fatal watson so that we can fix those cases
                     FatalError.ReportWithoutCrash(new Exception("Bug in GetDiagnostics"));
 
-                    // make sure we hold onto these even in ret build for debugging.
-                    GC.KeepAlive(set);
+                    // make sure we hold onto these for debugging.
                     GC.KeepAlive(rangeDeclaractionDiagnostics);
                     GC.KeepAlive(rangeMethodBodyDiagnostics);
                     GC.KeepAlive(rangeDiagnostics);
@@ -194,6 +196,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     GC.KeepAlive(wholeMethodBodyDiagnostics);
                     GC.KeepAlive(wholeDiagnostics);
                 }
+#endif
             }
 
             private static bool IsUnusedImportDiagnostic(Diagnostic d)
@@ -324,5 +327,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return stateType == StateType.Project ? _projectDriver : supportsSemanticInSpan ? _spanBasedDriver : _documentBasedDriver;
             }
         }
+
+#if DEBUG
+        internal static bool AreEquivalent(Diagnostic[] diagnosticsA, Diagnostic[] diagnosticsB)
+        {
+            var set = new HashSet<Diagnostic>(diagnosticsA, DiagnosticComparer.Instance);
+            return set.SetEquals(diagnosticsB);
+        }
+
+        private sealed class DiagnosticComparer : IEqualityComparer<Diagnostic>
+        {
+            internal static readonly DiagnosticComparer Instance = new DiagnosticComparer();
+
+            public bool Equals(Diagnostic x, Diagnostic y)
+            {
+                return x.Id == y.Id && x.Location == y.Location;
+            }
+
+            public int GetHashCode(Diagnostic obj)
+            {
+                return Hash.Combine(obj.Id.GetHashCode(), obj.Location.GetHashCode());
+            }
+        }
+#endif
     }
 }

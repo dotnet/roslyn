@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.UseAutoProperty
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
-        Public Sub TestMultiFile_CSharp()
+        Public Async Function TestMultiFile_CSharp() As System.Threading.Tasks.Task
             Dim input =
                 <Workspace>
                     <Project Language='C#' AssemblyName='CSharpAssembly1' CommonReferences='true'>
@@ -37,7 +37,7 @@ partial class C
                     </Project>
                 </Workspace>
 
-            Test(input, fileNameToExpected:=
+            Await TestAsync(input, fileNameToExpected:=
                  New Dictionary(Of String, String) From {
                     {"Test1.cs",
 <text>
@@ -53,10 +53,10 @@ partial class C
 }
 </text>.Value.Trim()}
                 })
-        End Sub
+        End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
-        Public Sub TestMultiFile_VisualBasic()
+        Public Async Function TestMultiFile_VisualBasic() As System.Threading.Tasks.Task
             Dim input =
                 <Workspace>
                     <Project Language='Visual Basic' AssemblyName='CSharpAssembly1' CommonReferences='true'>
@@ -77,7 +77,7 @@ end class
                     </Project>
                 </Workspace>
 
-            Test(input, fileNameToExpected:=
+            Await TestAsync(input, fileNameToExpected:=
                  New Dictionary(Of String, String) From {
                     {"Test1.vb",
 <text>
@@ -91,6 +91,6 @@ partial class C
 end class
 </text>.Value.Trim()}
                 })
-        End Sub
+        End Function
     End Class
 End Namespace

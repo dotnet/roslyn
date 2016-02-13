@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     {
         protected AsynchronousTaggerProvider(
             IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService) 
+            IForegroundNotificationService notificationService)
                 : base(asyncListener, notificationService)
         {
         }

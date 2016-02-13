@@ -590,7 +590,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543469, "DevDiv")>
+        <WorkItem(543469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543469")>
         <Fact()>
         Public Sub TestLiftedIntegerConstLocalInLambda()
 
@@ -645,7 +645,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543469, "DevDiv")>
+        <WorkItem(543469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543469")>
         <Fact()>
         Public Sub TestLiftedDecimalConstLocalInLambda()
 
@@ -722,7 +722,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543475, "DevDiv")>
+        <WorkItem(543475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543475")>
         <Fact()>
         Public Sub TestLocalConstCycleDetection()
 
@@ -746,7 +746,7 @@ End Module
                                        Diagnostic(ERRID.ERR_CircularEvaluation1, "j").WithArguments("j"))
         End Sub
 
-        <WorkItem(542910, "DevDiv")>
+        <WorkItem(542910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542910")>
         <Fact()>
         Public Sub TestSByteLocalConst()
 
@@ -781,6 +781,37 @@ End Module
 }
 ]]>)
 
+        End Sub
+
+        <Fact()>
+        Public Sub TruncatePrecisionFloat()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        const temp1 as single = 23334800f / 5.5f
+        console.WriteLine(Microsoft.VisualBasic.Int(temp1))
+        console.WriteLine(Microsoft.VisualBasic.Int(23334800f / 5.5f))
+        console.WriteLine(temp1 * 5.5)
+
+        const temp2 as double = 23334800.0 / 5.5
+        console.WriteLine(Microsoft.VisualBasic.Int(temp2))
+        console.WriteLine(Microsoft.VisualBasic.Int(23334800.0 / 5.5))
+        console.WriteLine(temp2 * 5.5)
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:=<![CDATA[
+4242691
+4242691
+23334800.5
+4242690
+4242690
+23334800
+            ]]>)
         End Sub
     End Class
 

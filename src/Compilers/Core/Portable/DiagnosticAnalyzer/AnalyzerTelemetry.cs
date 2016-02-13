@@ -55,11 +55,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         /// Count of registered code block end actions.
         /// </summary>
         public int CodeBlockEndActionsCount => _actionCounts.CodeBlockEndActionsCount;
-        
+
         /// <summary>
         /// Count of registered code block actions.
         /// </summary>
         public int CodeBlockActionsCount => _actionCounts.CodeBlockActionsCount;
+
+        /// <summary>
+        /// Count of registered operation actions.
+        /// </summary>
+        public int OperationActionsCount => _actionCounts.OperationActionsCount;
+
+        /// <summary>
+        /// Count of registered operation block start actions.
+        /// </summary>
+        public int OperationBlockStartActionsCount => _actionCounts.OperationBlockStartActionsCount;
+
+        /// <summary>
+        /// Count of registered operation block end actions.
+        /// </summary>
+        public int OperationBlockEndActionsCount => _actionCounts.OperationBlockEndActionsCount;
+
+        /// <summary>
+        /// Count of registered operation block actions.
+        /// </summary>
+        public int OperationBlockActionsCount => _actionCounts.OperationBlockActionsCount;
 
         /// <summary>
         /// Total execution time.

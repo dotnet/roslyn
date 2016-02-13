@@ -1,14 +1,15 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public Class TypeInferenceSimplifierTests
         Inherits AbstractSimplificationTests
-        <WorkItem(734369)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub TestDontSimplify1()
+        <WorkItem(734369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734369")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestDontSimplify1() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -69,12 +70,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
             Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
 
-            Test(input, expected, simplificationOptionSet)
-        End Sub
+            Await TestAsync(input, expected, simplificationOptionSet)
+        End Function
 
-        <WorkItem(734369)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub TestSimplify_ArrayElementConversion()
+        <WorkItem(734369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734369")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestSimplify_ArrayElementConversion() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -101,11 +102,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
             Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
 
-            Test(input, expected, simplificationOptionSet)
-        End Sub
+            Await TestAsync(input, expected, simplificationOptionSet)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub TestDontSimplify_Using()
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestDontSimplify_Using() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -166,11 +167,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
             Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
 
-            Test(input, expected, simplificationOptionSet)
-        End Sub
+            Await TestAsync(input, expected, simplificationOptionSet)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub TestDontSimplify_For_0()
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestDontSimplify_For_0() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -203,11 +204,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
             Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
 
-            Test(input, expected, simplificationOptionSet)
-        End Sub
+            Await TestAsync(input, expected, simplificationOptionSet)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub TestDontSimplify_For_1()
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestDontSimplify_For_1() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -254,12 +255,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
             Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
 
-            Test(input, expected, simplificationOptionSet)
-        End Sub
+            Await TestAsync(input, expected, simplificationOptionSet)
+        End Function
 
-        <WorkItem(734377)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub TestSimplify1()
+        <WorkItem(734377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734377")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestSimplify1() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -304,11 +305,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
             Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
 
-            Test(input, expected, simplificationOptionSet)
-        End Sub
+            Await TestAsync(input, expected, simplificationOptionSet)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub TestSimplify2()
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestSimplify2() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -357,11 +358,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
             Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
 
-            Test(input, expected, simplificationOptionSet)
-        End Sub
+            Await TestAsync(input, expected, simplificationOptionSet)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub TestSimplify_For_1()
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestSimplify_For_1() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -408,13 +409,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
             Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
 
-            Test(input, expected, simplificationOptionSet)
-        End Sub
+            Await TestAsync(input, expected, simplificationOptionSet)
+        End Function
 
 #Region "Type Argument Expand/Reduce for Generic Method Calls - 639136"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub TestSimplify_For_GenericMethods()
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestSimplify_For_GenericMethods() As Task
             Dim input =
         <Workspace>
             <Project Language="C#" CommonReferences="true">
@@ -468,11 +469,11 @@ class D : C
 
             Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInference, True}}
 
-            Test(input, expected, simplificationOptionSet)
-        End Sub
+            Await TestAsync(input, expected, simplificationOptionSet)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub TestSimplify_For_GenericMethods_VB()
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestSimplify_For_GenericMethods_VB() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -523,12 +524,12 @@ End Class
 
             Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInference, True}}
 
-            Test(input, expected, simplificationOptionSet)
-        End Sub
+            Await TestAsync(input, expected, simplificationOptionSet)
+        End Function
 
-        <WorkItem(734377)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_ExplicitTypeDecl_FieldDecl()
+        <WorkItem(734377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734377")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestVisualBasic_ExplicitTypeDecl_FieldDecl() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -569,12 +570,12 @@ End Namespace
 
             Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
 
-            Test(input, expected, simplificationOptionSet)
-        End Sub
+            Await TestAsync(input, expected, simplificationOptionSet)
+        End Function
 
-        <WorkItem(860111)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_ExplicitTypeDecl_MustGetNewSMForAnyReducer()
+        <WorkItem(860111, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860111")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestVisualBasic_ExplicitTypeDecl_MustGetNewSMForAnyReducer() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -584,7 +585,7 @@ Namespace Y
         Module Program
             Public Dim {|SimplifyParent:t as Integer = {|SimplifyParentParent:Y.X.A|}.getInt()|}
             Sub Main(args As String())
-            End Sub
+            End Function
         End Module
 
         Class A
@@ -605,7 +606,7 @@ Namespace Y
         Module Program
             Public Dim t = A.getInt()
             Sub Main(args As String())
-            End Sub
+            End Function
         End Module
 
         Class A
@@ -619,8 +620,8 @@ End Namespace
 
             Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
 
-            Test(input, expected, simplificationOptionSet)
-        End Sub
+            Await TestAsync(input, expected, simplificationOptionSet)
+        End Function
 #End Region
 
     End Class

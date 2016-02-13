@@ -585,8 +585,8 @@ class Test
         <entry offset=""0x8"" startLine=""7"" startColumn=""2"" endLine=""7"" endColumn=""3"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x9"">
-        <scope startOffset=""0x7"" endOffset=""0x8"">
-          <local name=""d"" il_index=""0"" il_start=""0x7"" il_end=""0x8"" attributes=""0"" />
+        <scope startOffset=""0x7"" endOffset=""0x9"">
+          <local name=""d"" il_index=""0"" il_start=""0x7"" il_end=""0x9"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -2055,7 +2055,7 @@ class Program
 </symbols>");
         }
 
-        [WorkItem(637465, "DevDiv")]
+        [WorkItem(637465, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637465")]
         [Fact]
         public void DynamicLocalOptimizedAway()
         {

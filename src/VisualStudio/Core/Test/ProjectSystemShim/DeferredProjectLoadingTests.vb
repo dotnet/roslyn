@@ -12,7 +12,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class DeferredProjectLoadingTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub SimpleDeferredLoading()
             Using testEnvironment = New TestEnvironment(solutionIsFullyLoaded:=False)
@@ -27,7 +27,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact, WorkItem(1094112)>
+        <Fact, WorkItem(1094112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094112")>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub DoNotDeferLoadIfInNonBackgroundBatch()
             Using testEnvironment = New TestEnvironment(solutionIsFullyLoaded:=False)
@@ -45,7 +45,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact, WorkItem(1094112)>
+        <Fact, WorkItem(1094112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094112")>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub AddingProjectInBatchDoesntAddAllProjects()
             Using testEnvironment = New TestEnvironment(solutionIsFullyLoaded:=False)
@@ -65,7 +65,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact, WorkItem(1094112)>
+        <Fact, WorkItem(1094112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094112")>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub AddingProjectReferenceInBatchMayPushOtherProjects()
             Using testEnvironment = New TestEnvironment(solutionIsFullyLoaded:=False)
@@ -82,7 +82,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact, WorkItem(1094112)>
+        <Fact, WorkItem(1094112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094112")>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub AddingProjectReferenceAfterBatchMayPushOtherProjects()
             Using testEnvironment = New TestEnvironment(solutionIsFullyLoaded:=False)

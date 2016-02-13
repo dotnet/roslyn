@@ -1568,6 +1568,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PointerMemberAccessExpression:
                     eventSyntax = ((MemberAccessExpressionSyntax)syntax).Name;
                     break;
+                case SyntaxKind.QualifiedName:
+                    // This case is reachable only through SemanticModel
+                    eventSyntax = ((QualifiedNameSyntax)syntax).Right;
+                    break;
                 case SyntaxKind.IdentifierName:
                     eventSyntax = syntax;
                     break;
@@ -2122,7 +2126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If the target type is an error then we've already reported a diagnostic. Don't bother
             // reporting the conversion error.
-            if (targetType.IsErrorType() || syntax.HasErrors)
+            if (targetType.IsErrorType())
             {
                 return;
             }

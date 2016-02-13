@@ -2555,6 +2555,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitFieldEqualsValue(BoundFieldEqualsValue node)
+        {
+            VisitRvalue(node.Value);
+            return null;
+        }
+
+        public override BoundNode VisitPropertyEqualsValue(BoundPropertyEqualsValue node)
+        {
+            VisitRvalue(node.Value);
+            return null;
+        }
+
+        public override BoundNode VisitParameterEqualsValue(BoundParameterEqualsValue node)
+        {
+            VisitRvalue(node.Value);
+            return null;
+        }
+
         #endregion visitors
     }
 }

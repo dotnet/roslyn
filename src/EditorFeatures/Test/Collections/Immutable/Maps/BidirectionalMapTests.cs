@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
 {
     public class BidirectionalMapTests
     {
-        [WpfFact]
+        [Fact]
         public void TestEmpty()
         {
             var map = BidirectionalMap<string, int>.Empty;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
             Assert.False(map.ContainsValue(0));
         }
 
-        [WpfFact]
+        [Fact]
         public void TestMap()
         {
             var map = BidirectionalMap<string, int>.Empty
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
             Assert.True(map.ContainsValue(2));
         }
 
-        [WpfFact]
+        [Fact]
         public void TestRemoveKey()
         {
             var map = BidirectionalMap<string, int>.Empty
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
             Assert.True(map.ContainsValue(2));
         }
 
-        [WpfFact]
+        [Fact]
         public void TestRemoveValue()
         {
             var map = BidirectionalMap<string, int>.Empty

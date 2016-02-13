@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -175,9 +176,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (notRegularProperty)
                 {
-                    Binder.CheckFeatureAvailability(location, 
-                                                    isReadOnly ? MessageID.IDS_FeatureReadonlyAutoImplementedProperties : 
-                                                                 MessageID.IDS_FeatureAutoImplementedProperties, 
+                    Binder.CheckFeatureAvailability(location,
+                                                    isReadOnly ? MessageID.IDS_FeatureReadonlyAutoImplementedProperties :
+                                                                 MessageID.IDS_FeatureAutoImplementedProperties,
                                                     diagnostics);
                 }
             }
@@ -763,6 +764,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' cannot be sealed because it is not an override
                 diagnostics.Add(ErrorCode.ERR_SealedNonOverride, location, this);
             }
+            else if (IsAbstract && ContainingType.TypeKind == TypeKind.Struct)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.AbstractKeyword));
+            }
+            else if (IsVirtual && ContainingType.TypeKind == TypeKind.Struct)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.VirtualKeyword));
+            }
             else if (IsAbstract && IsExtern)
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractAndExtern, location, this);
@@ -1275,7 +1286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if ((object)_setMethod != null && param.Name == ParameterSymbol.ValueParameterName)
                 {
-                    diagnostics.Add(ErrorCode.ERR_DuplicateGeneratedName, _location, param.Name);
+                    diagnostics.Add(ErrorCode.ERR_DuplicateGeneratedName, param.Locations.FirstOrDefault() ?? _location, param.Name);
                 }
             }
 

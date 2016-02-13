@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Extenders
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Interop
@@ -12,13 +13,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 #Region "GetStartPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GetStartPoint1()
+        Public Async Function TestGetStartPoint1() As Task
             Dim code =
 <Code>
 Delegate Sub $$Foo(i As Integer)
 </Code>
 
-            TestGetStartPoint(code,
+            Await TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -39,17 +40,17 @@ Delegate Sub $$Foo(i As Integer)
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=30)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=30)))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GetStartPoint2()
+        Public Async Function TestGetStartPoint2() As Task
             Dim code =
 <Code>
 &lt;System.CLSCompliant(True)&gt;
 Delegate Sub $$Foo(i As Integer)
 </Code>
 
-            TestGetStartPoint(code,
+            Await TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=27)),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -70,20 +71,20 @@ Delegate Sub $$Foo(i As Integer)
                      TextPoint(line:=2, lineOffset:=1, absoluteOffset:=29, lineLength:=30)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=27)))
-        End Sub
+        End Function
 
 #End Region
 
 #Region "GetEndPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GetEndPoint1()
+        Public Async Function TestGetEndPoint1() As Task
             Dim code =
 <Code>
 Delegate Sub $$Foo(i As Integer)
 </Code>
 
-            TestGetEndPoint(code,
+            Await TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -104,17 +105,17 @@ Delegate Sub $$Foo(i As Integer)
                      TextPoint(line:=1, lineOffset:=31, absoluteOffset:=31, lineLength:=30)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=1, lineOffset:=31, absoluteOffset:=31, lineLength:=30)))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GetEndPoint2()
+        Public Async Function TestGetEndPoint2() As Task
             Dim code =
 <Code>
 &lt;System.CLSCompliant(True)&gt;
 Delegate Sub $$Foo(i As Integer)
 </Code>
 
-            TestGetEndPoint(code,
+            Await TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      TextPoint(line:=1, lineOffset:=28, absoluteOffset:=28, lineLength:=27)),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -135,14 +136,14 @@ Delegate Sub $$Foo(i As Integer)
                      TextPoint(line:=2, lineOffset:=31, absoluteOffset:=59, lineLength:=30)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=31, absoluteOffset:=59, lineLength:=30)))
-        End Sub
+        End Function
 
 #End Region
 
 #Region "Attributes"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Attributes()
+        Public Async Function TestAttributes1() As Task
             Dim code =
 <Code>
 Imports System
@@ -151,76 +152,76 @@ Imports System
 Delegate Sub $$D()
 </Code>
 
-            TestAttributes(code, IsElement("CLSCompliant"))
-        End Sub
+            Await TestAttributes(code, IsElement("CLSCompliant"))
+        End Function
 
 #End Region
 
 #Region "BaseClass tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub BaseClass()
+        Public Async Function TestBaseClass1() As Task
             Dim code =
 <Code>
 Delegate Sub $$D()
 </Code>
 
-            TestBaseClass(code, "System.Delegate")
-        End Sub
+            Await TestBaseClass(code, "System.Delegate")
+        End Function
 
 #End Region
 
 #Region "Type tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Type_Void()
+        Public Async Function TestType_Void() As Task
             Dim code =
 <Code>
 Delegate Sub $$D()
 </Code>
 
-            TestTypeProp(code,
+            Await TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsString = "Void",
                              .AsFullName = "System.Void",
                              .CodeTypeFullName = "System.Void",
                              .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefVoid
                          })
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Type_Int()
+        Public Async Function TestType_Int() As Task
             Dim code =
 <Code>
 Delegate Function $$D() As Integer
 </Code>
 
-            TestTypeProp(code,
+            Await TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsString = "Integer",
                              .AsFullName = "System.Int32",
                              .CodeTypeFullName = "System.Int32",
                              .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefInt
                          })
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Type_SourceClass()
+        Public Async Function TestType_SourceClass() As Task
             Dim code =
 <Code>
 Class C : End Class
 Delegate Function $$D() As C
 </Code>
 
-            TestTypeProp(code, New CodeTypeRefData With {.CodeTypeFullName = "C", .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefCodeType})
-        End Sub
+            Await TestTypeProp(code, New CodeTypeRefData With {.CodeTypeFullName = "C", .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefCodeType})
+        End Function
 
 #End Region
 
 #Region "Set Type tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetType1()
+        Public Async Function TestSetType1() As Task
             Dim code =
 <Code>
 Delegate Sub $$D()
@@ -231,11 +232,11 @@ Delegate Sub $$D()
 Delegate Function D() As Integer
 </Code>
 
-            TestSetTypeProp(code, expected, "Integer")
-        End Sub
+            Await TestSetTypeProp(code, expected, "Integer")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetType2()
+        Public Async Function TestSetType2() As Task
             Dim code =
 <Code>
 Delegate Function $$D() As Integer
@@ -246,11 +247,11 @@ Delegate Function $$D() As Integer
 Delegate Function D() As Decimal
 </Code>
 
-            TestSetTypeProp(code, expected, "System.Decimal")
-        End Sub
+            Await TestSetTypeProp(code, expected, "System.Decimal")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetType3()
+        Public Async Function TestSetType3() As Task
             Dim code =
 <Code>
 Delegate Function $$D() As Integer
@@ -261,11 +262,11 @@ Delegate Function $$D() As Integer
 Delegate Sub D()
 </Code>
 
-            TestSetTypeProp(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
-        End Sub
+            Await TestSetTypeProp(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetType4()
+        Public Async Function TestSetType4() As Task
             Dim code =
 <Code>
 Class C
@@ -280,11 +281,11 @@ Class C
 End Class
 </Code>
 
-            TestSetTypeProp(code, expected, "Integer")
-        End Sub
+            Await TestSetTypeProp(code, expected, "Integer")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetType5()
+        Public Async Function TestSetType5() As Task
             Dim code =
 <Code>
 Class C
@@ -299,11 +300,11 @@ Class C
 End Class
 </Code>
 
-            TestSetTypeProp(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
-        End Sub
+            Await TestSetTypeProp(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetType6()
+        Public Async Function TestSetType6() As Task
             Dim code =
 <Code>
 Class C
@@ -318,15 +319,15 @@ Class C
 End Class
 </Code>
 
-            TestSetTypeProp(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
-        End Sub
+            Await TestSetTypeProp(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
+        End Function
 
 #End Region
 
 #Region "AddParameter tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddParameter1()
+        Public Async Function TestAddParameter1() As Task
             Dim code =
 <Code>
 Delegate Sub $$M()
@@ -337,11 +338,11 @@ Delegate Sub $$M()
 Delegate Sub M(a As Integer)
 </Code>
 
-            TestAddParameter(code, expected, New ParameterData With {.Name = "a", .Type = "Integer"})
-        End Sub
+            Await TestAddParameter(code, expected, New ParameterData With {.Name = "a", .Type = "Integer"})
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddParameter2()
+        Public Async Function TestAddParameter2() As Task
             Dim code =
 <Code>
 Delegate Sub $$M(a As Integer)
@@ -352,11 +353,11 @@ Delegate Sub $$M(a As Integer)
 Delegate Sub M(b As String, a As Integer)
 </Code>
 
-            TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "String"})
-        End Sub
+            Await TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "String"})
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddParameter3()
+        Public Async Function TestAddParameter3() As Task
             Dim code =
 <Code>
 Delegate Sub $$M(b As String, a As Integer)
@@ -367,11 +368,11 @@ Delegate Sub $$M(b As String, a As Integer)
 Delegate Sub M(b As String, c As Boolean, a As Integer)
 </Code>
 
-            TestAddParameter(code, expected, New ParameterData With {.Name = "c", .Type = "System.Boolean", .Position = 1})
-        End Sub
+            Await TestAddParameter(code, expected, New ParameterData With {.Name = "c", .Type = "System.Boolean", .Position = 1})
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddParameter4()
+        Public Async Function TestAddParameter4() As Task
             Dim code =
 <Code>
 Delegate Sub $$M(a As Integer)
@@ -382,15 +383,15 @@ Delegate Sub $$M(a As Integer)
 Delegate Sub M(a As Integer, b As String)
 </Code>
 
-            TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "String", .Position = -1})
-        End Sub
+            Await TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "String", .Position = -1})
+        End Function
 
 #End Region
 
 #Region "RemoveParameter tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub RemoveParameter1()
+        Public Async Function TestRemoveParameter1() As Task
             Dim code =
 <Code>
 Delegate Sub $$M(a As Integer)
@@ -401,11 +402,11 @@ Delegate Sub $$M(a As Integer)
 Delegate Sub M()
 </Code>
 
-            TestRemoveChild(code, expected, "a")
-        End Sub
+            Await TestRemoveChild(code, expected, "a")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub RemoveParameter2()
+        Public Async Function TestRemoveParameter2() As Task
             Dim code =
 <Code>
 Delegate Sub $$M(a As Integer, b As String)
@@ -416,11 +417,11 @@ Delegate Sub $$M(a As Integer, b As String)
 Delegate Sub M(a As Integer)
 </Code>
 
-            TestRemoveChild(code, expected, "b")
-        End Sub
+            Await TestRemoveChild(code, expected, "b")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub RemoveParameter3()
+        Public Async Function TestRemoveParameter3() As Task
             Dim code =
 <Code>
 Delegate Sub $$M(a As Integer, b As String)
@@ -431,11 +432,11 @@ Delegate Sub $$M(a As Integer, b As String)
 Delegate Sub M(b As String)
 </Code>
 
-            TestRemoveChild(code, expected, "a")
-        End Sub
+            Await TestRemoveChild(code, expected, "a")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub RemoveParameter4()
+        Public Async Function TestRemoveParameter4() As Task
             Dim code =
 <Code>
 Delegate Sub $$M(a As Integer, b As String, c As Integer)
@@ -446,85 +447,85 @@ Delegate Sub $$M(a As Integer, b As String, c As Integer)
 Delegate Sub M(a As Integer, c As Integer)
 </Code>
 
-            TestRemoveChild(code, expected, "b")
-        End Sub
+            Await TestRemoveChild(code, expected, "b")
+        End Function
 
 #End Region
 
 #Region "GenericExtender"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GenericExtender_GetBaseTypesCount()
+        Public Async Function TestGenericExtender_GetBaseTypesCount() As Task
             Dim code =
 <Code>
 Delegate Sub $$D()
 </Code>
 
-            TestGenericNameExtender_GetBaseTypesCount(code, 1)
-        End Sub
+            Await TestGenericNameExtender_GetBaseTypesCount(code, 1)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GenericExtender_GetBaseGenericName()
+        Public Async Function TestGenericExtender_GetBaseGenericName() As Task
             Dim code =
 <Code>
 Delegate Sub $$D()
 </Code>
 
-            TestGenericNameExtender_GetBaseGenericName(code, 1, "System.MulticastDelegate")
-        End Sub
+            Await TestGenericNameExtender_GetBaseGenericName(code, 1, "System.MulticastDelegate")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GenericExtender_GetImplementedTypesCount()
+        Public Async Function TestGenericExtender_GetImplementedTypesCount() As Task
             Dim code =
 <Code>
 Delegate Sub $$D()
 </Code>
 
-            TestGenericNameExtender_GetImplementedTypesCountThrows(Of ArgumentException)(code)
-        End Sub
+            Await TestGenericNameExtender_GetImplementedTypesCountThrows(Of ArgumentException)(code)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GenericExtender_GetImplTypeGenericName()
+        Public Async Function TestGenericExtender_GetImplTypeGenericName() As Task
             Dim code =
 <Code>
 Delegate Sub $$D()
 </Code>
 
-            TestGenericNameExtender_GetImplTypeGenericName(code, 1, Nothing)
-        End Sub
+            Await TestGenericNameExtender_GetImplTypeGenericName(code, 1, Nothing)
+        End Function
 
 #End Region
 
 #Region "Parameter name tests"
 
-        <WorkItem(1147885)>
+        <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TestParameterNameWithEscapeCharacters()
+        Public Async Function TestParameterNameWithEscapeCharacters() As Task
             Dim code =
 <Code>
 Delegate Sub $$D([integer] as Integer)
 </Code>
 
-            TestAllParameterNames(code, "[integer]")
-        End Sub
+            Await TestAllParameterNames(code, "[integer]")
+        End Function
 
-        <WorkItem(1147885)>
+        <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TestParameterNameWithEscapeCharacters_2()
+        Public Async Function TestParameterNameWithEscapeCharacters_2() As Task
             Dim code =
 <Code>
 Delegate Sub $$D([integer] as Integer, [string] as String)
 </Code>
 
-            TestAllParameterNames(code, "[integer]", "[string]")
-        End Sub
+            Await TestAllParameterNames(code, "[integer]", "[string]")
+        End Function
 
 #End Region
 
 #Region "AddAttribute tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddAttribute1()
+        Public Async Function TestAddAttribute1() As Task
             Dim code =
 <Code>
 Imports System
@@ -539,11 +540,11 @@ Imports System
 &lt;Serializable()&gt;
 Delegate Sub M()
 </Code>
-            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
-        End Sub
+            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddAttribute2()
+        Public Async Function TestAddAttribute2() As Task
             Dim code =
 <Code>
 Imports System
@@ -560,12 +561,12 @@ Imports System
 &lt;CLSCompliant(true)&gt;
 Delegate Sub M()
 </Code>
-            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
-        End Sub
+            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+        End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddAttribute_BelowDocComment()
+        Public Async Function TestAddAttribute_BelowDocComment() As Task
             Dim code =
 <Code>
 Imports System
@@ -582,8 +583,8 @@ Imports System
 &lt;CLSCompliant(true)&gt;
 Delegate Sub M()
 </Code>
-            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
-        End Sub
+            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+        End Function
 
 #End Region
 

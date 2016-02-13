@@ -11,16 +11,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
         Protected MustOverride ReadOnly Property Language As String
         Protected MustOverride ReadOnly Property DefaultCode As String
 
-        Protected Sub AssertValidId(id As String)
-            AssertValidId(id, Sub(value) Assert.True(value))
-        End Sub
+        Protected Function AssertValidIdAsync(id As String) As Threading.Tasks.Task
+            Return AssertValidIdAsync(id, Sub(value) Assert.True(value))
+        End Function
 
-        Protected Sub AssertNotValidId(id As String)
-            AssertValidId(id, Sub(value) Assert.False(value))
-        End Sub
+        Protected Function AssertNotValidIdAsync(id As String) As Threading.Tasks.Task
+            Return AssertValidIdAsync(id, Sub(value) Assert.False(value))
+        End Function
 
-        Private Sub AssertValidId(id As String, assertion As Action(Of Boolean))
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(
+        Private Async Function AssertValidIdAsync(id As String, assertion As Action(Of Boolean)) As Threading.Tasks.Task
+            Using workspace = Await TestWorkspace.CreateAsync(
 <Workspace>
     <Project Language=<%= Language %> AssemblyName="Assembly" CommonReferences="true">
         <Document>
@@ -32,10 +32,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 assertion(ContainedLanguageCodeSupport.IsValidId(document, id))
             End Using
 
-        End Sub
+        End Function
 
-        Protected Function GetWorkspace(code As String) As TestWorkspace
-            Return TestWorkspaceFactory.CreateWorkspace(
+        Protected Function GetWorkspaceAsync(code As String) As Threading.Tasks.Task(Of TestWorkspace)
+            Return TestWorkspace.CreateAsync(
 <Workspace>
     <Project Language=<%= Language %> AssemblyName="Assembly" CommonReferences="true">
         <Document FilePath="file">
@@ -49,5 +49,4 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
             Return workspace.CurrentSolution.Projects.Single().Documents.Single()
         End Function
     End Class
-
 End Namespace

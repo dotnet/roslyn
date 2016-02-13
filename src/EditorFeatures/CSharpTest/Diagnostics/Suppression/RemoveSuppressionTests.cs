@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression;
@@ -60,9 +61,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-            public void TestRemovePragmaSuppression()
+            public async Task TestRemovePragmaSuppression()
             {
-                Test(
+                await TestAsync(
         @"
 using System;
 
@@ -88,9 +89,9 @@ class Class
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-            public void TestRemovePragmaSuppression_AdjacentTrivia()
+            public async Task TestRemovePragmaSuppression_AdjacentTrivia()
             {
-                Test(
+                await TestAsync(
         @"
 using System;
 
@@ -122,9 +123,9 @@ class Class2
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-            public void TestRemovePragmaSuppression_TriviaWithMultipleIDs()
+            public async Task TestRemovePragmaSuppression_TriviaWithMultipleIDs()
             {
-                Test(
+                await TestAsync(
         @"
 using System;
 
@@ -154,9 +155,9 @@ class Class
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-            public void TestRemovePragmaSuppression_WithEnclosingSuppression()
+            public async Task TestRemovePragmaSuppression_WithEnclosingSuppression()
             {
-                Test(
+                await TestAsync(
         @"
 #pragma warning disable InfoDiagnostic
 using System;
@@ -186,9 +187,9 @@ class Class
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-            public void TestRemoveLocalAttributeSuppression()
+            public async Task TestRemoveLocalAttributeSuppression()
             {
-                Test(
+                await TestAsync(
         $@"
 using System;
 
@@ -213,9 +214,9 @@ class Class
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-            public void TestRemoveLocalAttributeSuppression2()
+            public async Task TestRemoveLocalAttributeSuppression2()
             {
-                Test(
+                await TestAsync(
         $@"
 using System;
 
@@ -246,9 +247,9 @@ class Class1
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-            public void TestRemoveGlobalAttributeSuppression()
+            public async Task TestRemoveGlobalAttributeSuppression()
             {
-                Test(
+                await TestAsync(
         $@"
 using System;
 
@@ -280,7 +281,7 @@ class Class
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public void TestFixAllInDocument_RemovePragmaSuppressions()
+            public async Task TestFixAllInDocument_RemovePragmaSuppressions()
             {
                 var input = @"
 <Workspace>
@@ -368,13 +369,13 @@ class Class2
     </Project>
 </Workspace>";
 
-                Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
             }
 
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public void TestFixAllInProject_RemovePragmaSuppressions()
+            public async Task TestFixAllInProject_RemovePragmaSuppressions()
             {
                 var input = @"
 <Workspace>
@@ -464,13 +465,13 @@ class Class2
     </Project>
 </Workspace>";
 
-                Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
             }
 
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public void TestFixAllInSolution()
+            public async Task TestFixAllInSolution()
             {
                 var input = @"
 <Workspace>
@@ -564,7 +565,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
             }
 
             #endregion
@@ -574,7 +575,7 @@ class Class2
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public void TestFixAllInDocument_RemoveAttributeSuppressions()
+            public async Task TestFixAllInDocument_RemoveAttributeSuppressions()
             {
                 var addedGlobalSuppressions = $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
@@ -689,13 +690,13 @@ class Class2
     </Project>
 </Workspace>";
 
-                Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
             }
 
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public void TestFixAllInProject_RemoveAttributeSuppressions()
+            public async Task TestFixAllInProject_RemoveAttributeSuppressions()
             {
                 var addedGlobalSuppressions = $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
@@ -809,13 +810,13 @@ class Class2
 
 
 
-                Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
             }
 
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public void TestFixAllInSolution_RemoveAttributeSuppression()
+            public async Task TestFixAllInSolution_RemoveAttributeSuppression()
             {
                 var addedGlobalSuppressionsProject1 = $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
@@ -938,7 +939,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
             }
         }
 
@@ -953,7 +954,7 @@ class Class2
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public void TestFixAllInProject_RemoveAttributeSuppressions()
+            public async Task TestFixAllInProject_RemoveAttributeSuppressions()
             {
                 var addedGlobalSuppressions = $@"
 // This file is used by Code Analysis to maintain SuppressMessage 
@@ -1065,7 +1066,7 @@ class Class2
 
 
 
-                Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
             }
         }
 

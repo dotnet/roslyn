@@ -12,7 +12,7 @@ using System.Linq;
 using Xunit;
 using BindingFlags = System.Reflection.BindingFlags;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class ResultsViewTests : CSharpResultProviderTestBase
     {
@@ -816,7 +816,7 @@ class C
             }
         }
 
-        [WorkItem(1006160)]
+        [WorkItem(1006160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006160")]
         [Fact]
         public void MultipleImplementations_DifferentImplementors()
         {
@@ -1329,7 +1329,7 @@ class C
         /// <summary>
         /// Do not instantiate proxy type for null IEnumerable.
         /// </summary>
-        [WorkItem(1009646)]
+        [WorkItem(1009646, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009646")]
         [Fact]
         public void IEnumerableNull()
         {
@@ -1408,7 +1408,9 @@ class C : IEnumerable
             }
         }
 
-        [Fact, WorkItem(1145125, "DevDiv")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")]
+        [WorkItem(5666, "https://github.com/dotnet/roslyn/issues/5666")]
         public void GetEnumerableException()
         {
             var source =
@@ -1501,7 +1503,7 @@ class C
         /// is [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]).
         /// Note, the native EE has an empty expansion when .dmp debugging.
         /// </summary>
-        [WorkItem(1043746)]
+        [WorkItem(1043746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043746")]
         [Fact]
         public void GetProxyPropertyValueError()
         {
@@ -1544,7 +1546,7 @@ class C : IEnumerable
         /// IEnumerable&lt;T&gt; should be expanded directly
         /// without intermediate "Results View" row.
         /// </summary>
-        [WorkItem(1114276)]
+        [WorkItem(1114276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114276")]
         [Fact]
         public void SyntheticIEnumerable()
         {

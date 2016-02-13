@@ -205,7 +205,7 @@ expectedOutput:="abcdefbye")
         End Sub
 
         <Fact>
-        <WorkItem(679120, "DevDiv")>
+        <WorkItem(679120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679120")>
         Public Sub ConcatEmptyArray()
             Dim result = CompileAndVerify(
 <compilation>

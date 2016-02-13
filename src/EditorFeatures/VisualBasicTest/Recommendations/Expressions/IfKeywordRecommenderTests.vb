@@ -2,111 +2,111 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class IfKeywordRecommenderTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IfHelpText()
-            VerifyRecommendationDescriptionTextIs(<MethodBody>Return |</MethodBody>, "If",
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function IfHelpTextTest() As Task
+            Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>Return |</MethodBody>, "If",
 $"{String.Format(VBFeaturesResources.Function1, "If")} (+1 {FeaturesResources.Overload})
 {IfConditionReturnsResults}
 If({Condition} As Boolean, {ExpressionIfTrue}, {ExpressionIfFalse}) As {Result}")
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IfAfterReturn()
-            VerifyRecommendationsContain(<MethodBody>Return |</MethodBody>, "If")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function IfAfterReturnTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Return |</MethodBody>, "If")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IfAfterArgument1()
-            VerifyRecommendationsContain(<MethodBody>Foo(|</MethodBody>, "If")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function IfAfterArgument1Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(|</MethodBody>, "If")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IfAfterArgument2()
-            VerifyRecommendationsContain(<MethodBody>Foo(bar, |</MethodBody>, "If")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function IfAfterArgument2Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar, |</MethodBody>, "If")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IfAfterBinaryExpression()
-            VerifyRecommendationsContain(<MethodBody>Foo(bar + |</MethodBody>, "If")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function IfAfterBinaryExpressionTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar + |</MethodBody>, "If")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IfAfterNot()
-            VerifyRecommendationsContain(<MethodBody>Foo(Not |</MethodBody>, "If")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function IfAfterNotTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(Not |</MethodBody>, "If")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IfAfterTypeOf()
-            VerifyRecommendationsContain(<MethodBody>If TypeOf |</MethodBody>, "If")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function IfAfterTypeOfTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>If TypeOf |</MethodBody>, "If")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IfAfterDoWhile()
-            VerifyRecommendationsContain(<MethodBody>Do While |</MethodBody>, "If")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function IfAfterDoWhileTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Do While |</MethodBody>, "If")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IfAfterDoUntil()
-            VerifyRecommendationsContain(<MethodBody>Do Until |</MethodBody>, "If")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function IfAfterDoUntilTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Do Until |</MethodBody>, "If")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IfAfterLoopWhile()
-            VerifyRecommendationsContain(<MethodBody>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function IfAfterLoopWhileTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Do
 Loop While |</MethodBody>, "If")
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IfAfterLoopUntil()
-            VerifyRecommendationsContain(<MethodBody>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function IfAfterLoopUntilTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Do
 Loop Until |</MethodBody>, "If")
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IfAfterIf()
-            VerifyRecommendationsContain(<MethodBody>If |</MethodBody>, "If")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function IfAfterIfTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>If |</MethodBody>, "If")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IfAfterElseIf()
-            VerifyRecommendationsContain(<MethodBody>ElseIf |</MethodBody>, "If")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function IfAfterElseIfTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>ElseIf |</MethodBody>, "If")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IfAfterElseSpaceIf()
-            VerifyRecommendationsContain(<MethodBody>Else If |</MethodBody>, "If")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function IfAfterElseSpaceIfTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Else If |</MethodBody>, "If")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IfAfterError()
-            VerifyRecommendationsContain(<MethodBody>Error |</MethodBody>, "If")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function IfAfterErrorTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Error |</MethodBody>, "If")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IfAfterThrow()
-            VerifyRecommendationsContain(<MethodBody>Throw |</MethodBody>, "If")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function IfAfterThrowTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Throw |</MethodBody>, "If")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IfAfterInitializer()
-            VerifyRecommendationsContain(<MethodBody>Dim x = |</MethodBody>, "If")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function IfAfterInitializerTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = |</MethodBody>, "If")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IfAfterArrayInitializerSquiggle()
-            VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, "If")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function IfAfterArrayInitializerSquiggleTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {|</MethodBody>, "If")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IfAfterArrayInitializerComma()
-            VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, "If")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function IfAfterArrayInitializerCommaTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {0, |</MethodBody>, "If")
+        End Function
 
-        <WorkItem(543270)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotInDelegateCreation()
+        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NotInDelegateCreationTest() As Task
             Dim code =
 <File>
 Module Program
@@ -123,8 +123,7 @@ End Module
 </File>
 
 
-            VerifyRecommendationsMissing(code, "If")
-        End Sub
-
+            Await VerifyRecommendationsMissingAsync(code, "If")
+        End Function
     End Class
 End Namespace

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void OnDocumentActiveContextChanged(object sender, DocumentEventArgs e)
         {
-            Reanalyze(e.Document.Project.Solution.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(e.Document.Id));
+            Reanalyze(e.Document.Project.Solution.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(e.Document.Id), highPriority: true);
         }
 
         // internal for testing
@@ -126,6 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return e.Option.Feature == SimplificationOptions.PerLanguageFeatureName ||
                        e.Option.Feature == SimplificationOptions.NonPerLanguageFeatureName ||
                        e.Option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic ||
+                       e.Option == RuntimeOptions.FullSolutionAnalysis ||
                        e.Option == InternalDiagnosticsOptions.UseDiagnosticEngineV2 ||
                        Analyzer.NeedsReanalysisOnOptionChanged(sender, e);
             }

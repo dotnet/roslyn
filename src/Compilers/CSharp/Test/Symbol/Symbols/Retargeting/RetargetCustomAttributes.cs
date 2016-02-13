@@ -265,7 +265,7 @@ class TestClass
         }
 
         [Fact]
-        [WorkItem(569089, "DevDiv"), WorkItem(575948, "DevDiv")]
+        [WorkItem(569089, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569089"), WorkItem(575948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575948")]
         public void NullArrays()
         {
             var source1 = @"

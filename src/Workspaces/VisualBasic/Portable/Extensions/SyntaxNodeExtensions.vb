@@ -507,10 +507,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             ' Rules for stripping trivia: 
             ' 1) If there is a pp directive, then it (and all preceding trivia) *must* be stripped.
-            '    This rule supercedes all other rules.
+            '    This rule supersedes all other rules.
             ' 2) If there is a doc comment, it cannot be stripped.  Even if there is a doc comment,
             '    followed by 5 new lines, then the doc comment still must stay with the node.  This
-            '    rule does *not* supercede rule 1.
+            '    rule does *not* supersede rule 1.
             ' 3) Single line comments in a group (i.e. with no blank lines between them) belong to
             '    the node *iff* there is no blank line between it and the following trivia.
 
@@ -525,7 +525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Next
 
             If ppIndex <> -1 Then
-                ' We have a pp directive.  it (and all all previous trivia) must be stripped.
+                ' We have a pp directive.  it (and all previous trivia) must be stripped.
                 leadingTriviaToStrip = New List(Of SyntaxTrivia)(leadingTrivia.Take(ppIndex + 1))
                 leadingTriviaToKeep = New List(Of SyntaxTrivia)(leadingTrivia.Skip(ppIndex + 1))
             Else
@@ -657,46 +657,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         ''' <summary>
-        ''' If the position is inside of token, return that token; otherwise, return the token to right.
-        ''' </summary>
-        <Extension()>
-        Public Function FindTokenOnRightOfPosition(
-            root As SyntaxNode,
-            position As Integer,
-            Optional includeSkipped As Boolean = True,
-            Optional includeDirectives As Boolean = False,
-            Optional includeDocumentationComments As Boolean = False) As SyntaxToken
-
-            Dim skippedTokenFinder As Func(Of SyntaxTriviaList, Integer, SyntaxToken) = Nothing
-
-            skippedTokenFinder =
-                If(includeSkipped, s_findSkippedTokenForward, CType(Nothing, Func(Of SyntaxTriviaList, Integer, SyntaxToken)))
-
-            Return FindTokenHelper.FindTokenOnRightOfPosition(Of CompilationUnitSyntax)(
-                    root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments)
-        End Function
-
-        ''' <summary>
-        ''' If the position is inside of token, return that token; otherwise, return the token to left. 
-        ''' </summary>
-        <Extension()>
-        Public Function FindTokenOnLeftOfPosition(
-            root As SyntaxNode,
-            position As Integer,
-            Optional includeSkipped As Boolean = True,
-            Optional includeDirectives As Boolean = False,
-            Optional includeDocumentationComments As Boolean = False) As SyntaxToken
-
-            Dim skippedTokenFinder As Func(Of SyntaxTriviaList, Integer, SyntaxToken) = Nothing
-
-            skippedTokenFinder =
-                If(includeSkipped, s_findSkippedTokenBackward, CType(Nothing, Func(Of SyntaxTriviaList, Integer, SyntaxToken)))
-
-            Return FindTokenHelper.FindTokenOnLeftOfPosition(Of CompilationUnitSyntax)(
-                    root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments)
-        End Function
-
-        ''' <summary>
         ''' Returns child node or token that contains given position.
         ''' </summary>
         ''' <remarks>
@@ -723,27 +683,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Debug.Assert(Not self.FullSpan.Contains(position), "Position is valid. How could we not find a child?")
             Throw New ArgumentOutOfRangeException(NameOf(position))
-        End Function
-
-
-        ''' <summary>
-        ''' Look inside a trivia list for a skipped token that contains the given position.
-        ''' </summary>
-        Private ReadOnly s_findSkippedTokenForward As Func(Of SyntaxTriviaList, Integer, SyntaxToken) =
-            Function(l, p) FindTokenHelper.FindSkippedTokenForward(GetSkippedTokens(l), p)
-
-        ''' <summary>
-        ''' Look inside a trivia list for a skipped token that contains the given position.
-        ''' </summary>
-        Private ReadOnly s_findSkippedTokenBackward As Func(Of SyntaxTriviaList, Integer, SyntaxToken) =
-            Function(l, p) FindTokenHelper.FindSkippedTokenBackward(GetSkippedTokens(l), p)
-
-        ''' <summary>
-        ''' get skipped tokens from the trivia list
-        ''' </summary>
-        Private Function GetSkippedTokens(list As SyntaxTriviaList) As IEnumerable(Of SyntaxToken)
-            Return list.Where(Function(t) t.RawKind = SyntaxKind.SkippedTokensTrivia) _
-                       .SelectMany(Function(t) DirectCast(t.GetStructure(), SkippedTokensTriviaSyntax).Tokens)
         End Function
 
         <Extension()>

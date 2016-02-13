@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
@@ -17,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestInvocationForCBool()
+        Public Async Function TestInvocationForCBool() As Task
             Dim markup = <a><![CDATA[
 Class C
     Sub Foo()
@@ -32,7 +33,7 @@ End Class
                                      String.Format(ConvertsToDataType, "Boolean"),
                                      ExpressionToConvert,
                                      currentParameterIndex:=0))
-            Test(markup, expectedOrderedItems)
-        End Sub
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
     End Class
 End Namespace

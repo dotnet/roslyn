@@ -294,10 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             var text = default(SourceText);
             if (tree != null && tree.TryGetText(out text))
             {
-                var line1 = text.Lines.IndexOf(token1.Span.End);
-                var line2 = text.Lines.IndexOf(token2.SpanStart);
-
-                return line1 == line2;
+                return text.AreOnSameLine(token1, token2);
             }
 
             return CommonFormattingHelpers.GetTextBetween(token1, token2).ContainsLineBreak();
@@ -361,7 +358,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 node.Kind() == SyntaxKind.TryStatement ||
                 node.Kind() == SyntaxKind.CatchClause ||
                 node.Kind() == SyntaxKind.FinallyClause ||
-                node.Kind() == SyntaxKind.LabeledStatement;
+                node.Kind() == SyntaxKind.LabeledStatement ||
+                node.Kind() == SyntaxKind.LockStatement;
         }
 
         private static SyntaxNode GetTopContainingNode(SyntaxNode node)

@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>> _compilerDiagnosticAnalyzerDescriptorMap;
 
         /// <summary>
-        /// Cache from <see cref="DiagnosticAnalyzer"/> instance to its supported desciptors.
+        /// Cache from <see cref="DiagnosticAnalyzer"/> instance to its supported descriptors.
         /// </summary>
         private readonly ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyCollection<DiagnosticDescriptor>> _descriptorCache;
 

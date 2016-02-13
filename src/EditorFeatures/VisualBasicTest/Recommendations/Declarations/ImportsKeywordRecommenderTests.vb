@@ -1,87 +1,82 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
+Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.ImportsKeywordRecommender
     Public Class OptionKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ImportsInBlankFile()
-            VerifyRecommendationsContain(<File>|</File>, "Imports")
-        End Sub
+        Public Async Function ImportsInBlankFileTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>|</File>, "Imports")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ImportsAfterAnotherImportsStatement()
-            VerifyRecommendationsContain(<File>
+        Public Async Function ImportsAfterAnotherImportsStatementTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 Imports Bar
 |</File>, "Imports")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ImportsAfterXmlImports()
-            VerifyRecommendationsContain(<File>
+        Public Async Function ImportsAfterXmlImportsTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 Imports &lt;xmlns:test="http://tempuri.org"&gt;
 |</File>, "Imports")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ImportsAfterBlankLineAfterImports()
-            VerifyRecommendationsContain(<File>
+        Public Async Function ImportsAfterBlankLineAfterImportsTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 Imports Bar
 
 |</File>, "Imports")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ImportsAfterBlankLineAfterXmlImports()
-            VerifyRecommendationsContain(<File>
+        Public Async Function ImportsAfterBlankLineAfterXmlImportsTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 Imports &lt;xmlns:test="http://tempuri.org"&gt;
 
 |</File>, "Imports")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ImportsAfterOptionStatement()
-            VerifyRecommendationsContain(<File>
+        Public Async Function ImportsAfterOptionStatementTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 Option Strict On
 |</File>, "Imports")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ImportsAfterBlankLineAfterOptionStatement()
-            VerifyRecommendationsContain(<File>
+        Public Async Function ImportsAfterBlankLineAfterOptionStatementTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 Option Strict On
 
 |</File>, "Imports")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ImportsNotBeforeOptionStatement()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function ImportsNotBeforeOptionStatementTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 |
 Option Strict On
 </File>, "Imports")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ImportsNotAfterType()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function ImportsNotAfterTypeTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 Class Foo
 End Class
 |</File>, "Imports")
-        End Sub
+        End Function
     End Class
 End Namespace

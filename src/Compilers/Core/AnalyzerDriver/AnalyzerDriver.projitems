@@ -9,6 +9,7 @@
     <Import_RootNamespace>AnalyzerDriver</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AnalyzerExceptionDescriptionBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DeclarationComputer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DeclarationInfo.cs" />
   </ItemGroup>

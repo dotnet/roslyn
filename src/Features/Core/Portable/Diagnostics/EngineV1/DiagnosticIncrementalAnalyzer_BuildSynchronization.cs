@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             if (PreferLiveErrorsOnOpenedFiles(workspace) && workspace.IsDocumentOpen(document.Id))
             {
                 // enqueue re-analysis of open documents.
-                this.Owner.Reanalyze(workspace, documentIds: SpecializedCollections.SingletonEnumerable(document.Id));
+                this.Owner.Reanalyze(workspace, documentIds: SpecializedCollections.SingletonEnumerable(document.Id), highPriority: true);
                 return;
             }
 
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 // make sure we don't report same id to multiple different analyzers
                 if (!seen.Add(descriptor.Id))
                 {
-                    // TODO: once we have information where diagnostic came from, we probably doesnt need this.
+                    // TODO: once we have information where diagnostic came from, we probably don't need this.
                     continue;
                 }
 

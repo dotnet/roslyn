@@ -74,7 +74,7 @@ class C
         /// We used to give error CS0011: The base class or interface 'A' in assembly 'xxx' referenced by type 'B' could not be resolved
         /// In Roslyn we do not know the context in which the lookup was occurring, so we give a new, more generic message.
         /// </summary>
-        [WorkItem(546451, "DevDiv")]
+        [WorkItem(546451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546451")]
         [Fact()]
         public void CS0011ERR_CantImportBase01()
         {
@@ -558,7 +558,7 @@ public class A
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisDelegateReturn, Line = 5, Column = 25 });
         }
 
-        [WorkItem(542005, "DevDiv")]
+        [WorkItem(542005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542005")]
         [Fact]
         public void CS0058ERR_BadVisDelegateReturn02()
         {
@@ -615,7 +615,7 @@ namespace NS
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisBaseClass, Line = 14, Column = 34 });
         }
 
-        [WorkItem(539511, "DevDiv")]
+        [WorkItem(539511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539511")]
         [Fact]
         public void CS0060ERR_BadVisBaseClass02()
         {
@@ -634,7 +634,7 @@ public class A<T>
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisBaseClass, Line = 4, Column = 18 });
         }
 
-        [WorkItem(539512, "DevDiv")]
+        [WorkItem(539512, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539512")]
         [Fact]
         public void CS0060ERR_BadVisBaseClass03()
         {
@@ -662,7 +662,7 @@ internal class F : A
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisBaseClass, Line = 14, Column = 22 });
         }
 
-        [WorkItem(539546, "DevDiv")]
+        [WorkItem(539546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539546")]
         [Fact]
         public void CS0060ERR_BadVisBaseClass04()
         {
@@ -679,7 +679,7 @@ public class A<T>
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisBaseClass, Line = 4, Column = 19 });
         }
 
-        [WorkItem(539562, "DevDiv")]
+        [WorkItem(539562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539562")]
         [Fact]
         public void CS0060ERR_BadVisBaseClass05()
         {
@@ -695,7 +695,7 @@ class A<T>
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
         }
 
-        [WorkItem(539950, "DevDiv")]
+        [WorkItem(539950, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539950")]
         [Fact]
         public void CS0060ERR_BadVisBaseClass06()
         {
@@ -803,7 +803,7 @@ public class MyClass
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E3").WithArguments("MyClass.E3"));
         }
 
-        [WorkItem(542570, "DevDiv")]
+        [WorkItem(542570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542570")]
         [Fact]
         public void CS0065ERR_EventNeedsBothAccessors_Interface01()
         {
@@ -819,7 +819,7 @@ interface i1
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "myevent").WithArguments("i1.myevent"));
         }
 
-        [WorkItem(542570, "DevDiv")]
+        [WorkItem(542570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542570")]
         [Fact]
         public void CS0065ERR_EventNeedsBothAccessors_Interface02()
         {
@@ -846,7 +846,7 @@ interface i1
                 Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "remove"));
         }
 
-        [WorkItem(542570, "DevDiv")]
+        [WorkItem(542570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542570")]
         [Fact]
         public void CS0065ERR_EventNeedsBothAccessors_Interface03()
         {
@@ -864,7 +864,7 @@ interface i1
                 Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "remove"));
         }
 
-        [WorkItem(542570, "DevDiv")]
+        [WorkItem(542570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542570")]
         [Fact]
         public void CS0065ERR_EventNeedsBothAccessors_Interface04()
         {
@@ -1223,7 +1223,7 @@ class C : I
                 .VerifyDiagnostics();
         }
 
-        [WorkItem(539770, "DevDiv")]
+        [WorkItem(539770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539770")]
         [Fact]
         public void CS0082ERR_MemberReserved07()
         {
@@ -1519,15 +1519,15 @@ namespace n3
 }";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-                // (16,25): error CS0104: 'IFoo<X>' is an ambiguous reference between 'n1.IFoo<T>' and 'n3.n2.IFoo<V>'
-                //     public class C<X> : IFoo<X>
-                Diagnostic(ErrorCode.ERR_AmbigContext, "IFoo<X>").WithArguments("IFoo<X>", "n1.IFoo<T>", "n3.n2.IFoo<V>"),
                 // (22,9): error CS0104: 'A' is an ambiguous reference between 'n1.A' and 'n3.n2.A'
                 //         A a;
-                Diagnostic(ErrorCode.ERR_AmbigContext, "A").WithArguments("A", "n1.A", "n3.n2.A"),
-                // (22,11): warning CS0169: The field 'n3.S.a' is never used
+                Diagnostic(ErrorCode.ERR_AmbigContext, "A").WithArguments("A", "n1.A", "n3.n2.A").WithLocation(22, 9),
+                // (16,25): error CS0104: 'IFoo<>' is an ambiguous reference between 'n1.IFoo<T>' and 'n3.n2.IFoo<V>'
+                //     public class C<X> : IFoo<X>
+                Diagnostic(ErrorCode.ERR_AmbigContext, "IFoo<X>").WithArguments("IFoo<>", "n1.IFoo<T>", "n3.n2.IFoo<V>").WithLocation(16, 25),
+                // (22,11): warning CS0169: The field 'S.a' is never used
                 //         A a;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("n3.S.a")
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("n3.S.a").WithLocation(22, 11)
             );
 
             var ns3 = comp.SourceModule.GlobalNamespace.GetMember<NamespaceSymbol>("n3");
@@ -1622,7 +1622,7 @@ class C
                 new ErrorDescription { Code = (int)ErrorCode.WRN_ExternMethodNoImplementation, Line = 16, Column = 31, IsWarning = true });
         }
 
-        [WorkItem(539584, "DevDiv")]
+        [WorkItem(539584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539584")]
         [Fact]
         public void CS0106ERR_BadMemberFlag03()
         {
@@ -1669,6 +1669,52 @@ class C
 ";
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 4, Column = 16 });
+        }
+
+        [Fact]
+        public void CS0106ERR_BadMemberFlag05()
+        {
+            var text = @"
+struct Foo
+{
+    public abstract void Bar1();
+    public virtual void Bar2() { }
+    public virtual int Bar3 { get;set; }
+    public abstract int Bar4 { get;set; }
+    public abstract event System.EventHandler Bar5;
+    public virtual event System.EventHandler Bar6;
+    // prevent warning for test
+    void OnBar() { Bar6?.Invoke(null, null); }
+    public virtual int this[int x] { get { return 1;} set {;} }
+    // use long for to prevent signature clash
+    public abstract int this[long x] { get; set; }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (6,24): error CS0106: The modifier 'virtual' is not valid for this item
+                //     public virtual int Bar3 { get;set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar3").WithArguments("virtual").WithLocation(6, 24),
+                // (7,25): error CS0106: The modifier 'abstract' is not valid for this item
+                //     public abstract int Bar4 { get;set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar4").WithArguments("abstract").WithLocation(7, 25),
+                // (12,24): error CS0106: The modifier 'virtual' is not valid for this item
+                //     public virtual int this[int x] { get { return 1;} set {;} }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("virtual").WithLocation(12, 24),
+                // (14,25): error CS0106: The modifier 'abstract' is not valid for this item
+                //     public abstract int this[long x] { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("abstract").WithLocation(14, 25),
+                // (5,25): error CS0106: The modifier 'virtual' is not valid for this item
+                //     public virtual void Bar2() { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar2").WithArguments("virtual").WithLocation(5, 25),
+                // (4,26): error CS0106: The modifier 'abstract' is not valid for this item
+                //     public abstract void Bar1();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar1").WithArguments("abstract").WithLocation(4, 26),
+                // (8,47): error CS0106: The modifier 'abstract' is not valid for this item
+                //     public abstract event System.EventHandler Bar5;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar5").WithArguments("abstract").WithLocation(8, 47),
+                // (9,46): error CS0106: The modifier 'virtual' is not valid for this item
+                //     public virtual event System.EventHandler Bar6;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar6").WithArguments("virtual").WithLocation(9, 46));
         }
 
         [Fact]
@@ -2043,7 +2089,7 @@ class B : A
             Assert.Equal(TypeKind.Error, param.Type.TypeKind);
         }
 
-        [WorkItem(538147, "DevDiv")]
+        [WorkItem(538147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538147")]
         [Fact]
         public void CS0118ERR_BadSKknown02()
         {
@@ -2088,7 +2134,7 @@ class Test
            );
         }
 
-        [Fact, WorkItem(538214, "DevDiv")]
+        [Fact, WorkItem(538214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538214")]
         public void CS0119ERR_BadSKunknown02()
         {
             var text = @"namespace N1
@@ -2151,7 +2197,7 @@ class Test
             // TODO...
         }
 
-        [WorkItem(539627, "DevDiv")]
+        [WorkItem(539627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539627")]
         [Fact]
         public void CS0136ERR_LocalIllegallyOverrides()
         {
@@ -2400,7 +2446,7 @@ namespace NS
                     Diagnostic(ErrorCode.ERR_AbstractAndExtern, "Q").WithArguments("X.Q").WithLocation(8, 35));
         }
 
-        [WorkItem(527618, "DevDiv")]
+        [WorkItem(527618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527618")]
         [Fact]
         public void CS0180ERR_AbstractAndExtern02()
         {
@@ -2836,27 +2882,28 @@ class C<T>
     N.C<N.D> c;
 }";
             CreateCompilationWithMscorlib(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+                // (2,16): error CS0234: The type or namespace name 'B<>' does not exist in the namespace 'N' (are you missing an assembly reference?)
+                // using NB = C<N.B<object>>;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "B<object>").WithArguments("B<>", "N").WithLocation(2, 16),
                 // (1,14): error CS0234: The type or namespace name 'A' does not exist in the namespace 'N' (are you missing an assembly reference?)
                 // using NA = N.A;
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "A").WithArguments("A", "N"),
-                // (2,16): error CS0234: The type or namespace name 'B<object>' does not exist in the namespace 'N' (are you missing an assembly reference?)
-                // using NB = C<N.B<object>>;
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "B<object>").WithArguments("B<object>", "N"),
-                // (8,7): error CS0234: The type or namespace name 'C<N.D>' does not exist in the namespace 'N' (are you missing an assembly reference?)
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "A").WithArguments("A", "N").WithLocation(1, 14),
+                // (8,7): error CS0234: The type or namespace name 'C<>' does not exist in the namespace 'N' (are you missing an assembly reference?)
                 //     N.C<N.D> c;
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "C<N.D>").WithArguments("C<N.D>", "N"),
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "C<N.D>").WithArguments("C<>", "N").WithLocation(8, 7),
                 // (8,11): error CS0234: The type or namespace name 'D' does not exist in the namespace 'N' (are you missing an assembly reference?)
                 //     N.C<N.D> c;
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "D").WithArguments("D", "N"),
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "D").WithArguments("D", "N").WithLocation(8, 11),
                 // (6,8): warning CS0169: The field 'C<T>.a' is never used
                 //     NA a;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("C<T>.a"),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("C<T>.a").WithLocation(6, 8),
                 // (7,8): warning CS0169: The field 'C<T>.b' is never used
                 //     NB b;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b"),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b").WithLocation(7, 8),
                 // (8,14): warning CS0169: The field 'C<T>.c' is never used
                 //     N.C<N.D> c;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c"));
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c").WithLocation(8, 14)
+                );
         }
 
         [Fact]
@@ -3041,7 +3088,7 @@ public class MyClass2 : MyClass
             Assert.Equal("NoType", mem3.ReturnType.Name);
         }
 
-        [WorkItem(537882, "DevDiv")]
+        [WorkItem(537882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537882")]
         [Fact]
         public void CS0246ERR_SingleTypeNameNotFound02()
         {
@@ -3081,10 +3128,13 @@ namespace NS
             var text =
 @"[Attribute] class C { }
 ";
-            // (1,2): error CS0246: The type or namespace name 'Attribute' could not be found (are you missing a using directive or an assembly reference?)
-
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_SingleTypeNameNotFound, Line = 1, Column = 2 });
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (1,2): error CS0246: The type or namespace name 'AttributeAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [Attribute] class C { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Attribute").WithArguments("AttributeAttribute").WithLocation(1, 2),
+                // (1,2): error CS0246: The type or namespace name 'Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [Attribute] class C { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Attribute").WithArguments("Attribute").WithLocation(1, 2));
         }
 
         [Fact]
@@ -3115,7 +3165,7 @@ class BAttribute : System.Attribute { }
                 VerifyDiagnostics(Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "s").WithArguments("s"));
         }
 
-        [WorkItem(543791, "DevDiv")]
+        [WorkItem(543791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543791")]
         [Fact]
         public void CS0246ERR_SingleTypeNameNotFound06()
         {
@@ -3792,7 +3842,7 @@ namespace N
                     Diagnostic(ErrorCode.ERR_PropertyAccessModInInterface, "set").WithArguments("I.this[string].set"));
         }
 
-        [WorkItem(538620, "DevDiv")]
+        [WorkItem(538620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538620")]
         [Fact]
         public void CS0276ERR_AccessModMissingAccessor()
         {
@@ -3862,7 +3912,7 @@ public class MyClass : MyInterface   // CS0277
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceAccessor, Line = 10, Column = 24 });
         }
 
-        [Fact(Skip = "530901"), WorkItem(530901, "DevDiv")]
+        [Fact(Skip = "530901"), WorkItem(530901, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530901")]
         public void CS0281ERR_FriendRefNotEqualToThis()
         {
             //sn -k CS0281.snk
@@ -4026,7 +4076,7 @@ class C<T>
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using COfArgIterator = C<System.ArgIterator>;").WithLocation(3, 1));
         }
 
-        [WorkItem(538157, "DevDiv")]
+        [WorkItem(538157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538157")]
         [Fact]
         public void CS0307ERR_TypeArgsNotAllowed()
         {
@@ -4074,7 +4124,7 @@ Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("NS.Tes
                 );
         }
 
-        [WorkItem(542296, "DevDiv")]
+        [WorkItem(542296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542296")]
         [Fact]
         public void CS0307ERR_TypeArgsNotAllowed_02()
         {
@@ -4138,7 +4188,7 @@ public class Test
                 new ErrorDescription { Code = (int)ErrorCode.ERR_HasNoTypeVars, Line = 10, Column = 43 });
         }
 
-        [WorkItem(540090, "DevDiv")]
+        [WorkItem(540090, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540090")]
         [Fact]
         public void CS0308ERR_HasNoTypeVars02()
         {
@@ -4440,8 +4490,8 @@ class B : A { }   // CS0424 error
                 Diagnostic(ErrorCode.ERR_ComImportWithBase, "B").WithArguments("B").WithLocation(5, 7));
         }
 
-        [WorkItem(856187, "DevDiv")]
-        [WorkItem(866093, "DevDiv")]
+        [WorkItem(856187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/856187")]
+        [WorkItem(866093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866093")]
         [Fact]
         public void CS0424ERR_ComImportWithInitializers()
         {
@@ -4989,7 +5039,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(568953, "DevDiv")]
+        [WorkItem(568953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568953")]
         public void CS0438ERR_SameFullNameThisAggThisNs01()
         // I (Neal Gafter) was not able to reproduce this in Dev10 using the batch compiler, but the Dev10
         // background compiler will emit this diagnostic (along with one other) for this code:
@@ -5032,7 +5082,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(568953, "DevDiv")]
+        [WorkItem(568953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568953")]
         public void CS0438ERR_SameFullNameThisAggThisNs02()
         {
             var text = @"using System;
@@ -5068,7 +5118,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(568953, "DevDiv")]
+        [WorkItem(568953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568953")]
         public void CS0438ERR_SameFullNameThisAggThisNs03()
         {
             var libSource = @"
@@ -5129,7 +5179,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(568953, "DevDiv")]
+        [WorkItem(568953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568953")]
         public void CS0438ERR_SameFullNameThisAggThisNs04()
         {
             var libSource = @"
@@ -5189,7 +5239,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(568953, "DevDiv")]
+        [WorkItem(568953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568953")]
         public void CS0438ERR_SameFullNameThisAggThisNs05()
         {
             var libSource = @"
@@ -5250,7 +5300,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(568953, "DevDiv")]
+        [WorkItem(568953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568953")]
         public void CS0438ERR_SameFullNameThisAggThisNs06()
         {
             var libSource = @"
@@ -5310,7 +5360,7 @@ namespace NS
         }
 
         [ClrOnlyFact(ClrOnlyReason.Unknown)]
-        [WorkItem(568953, "DevDiv")]
+        [WorkItem(568953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568953")]
         public void CS0436WRN_SameFullNameThisAggAgg_01()
         {
             var libSource = @"
@@ -5367,7 +5417,7 @@ namespace NS
         }
 
         [ClrOnlyFact(ClrOnlyReason.Unknown)]
-        [WorkItem(568953, "DevDiv")]
+        [WorkItem(568953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568953")]
         public void CS0436WRN_SameFullNameThisAggAgg_02()
         {
             var libSource = @"
@@ -5426,7 +5476,7 @@ namespace NS
         }
 
         [ClrOnlyFact(ClrOnlyReason.Unknown)]
-        [WorkItem(568953, "DevDiv")]
+        [WorkItem(568953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568953")]
         public void CS0435WRN_SameFullNameThisNsAgg_01()
         {
             var libSource = @"
@@ -5485,7 +5535,7 @@ namespace NS
         }
 
         [ClrOnlyFact(ClrOnlyReason.Unknown)]
-        [WorkItem(568953, "DevDiv")]
+        [WorkItem(568953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568953")]
         public void CS0437WRN_SameFullNameThisAggNs_01()
         {
             var libSource = @"
@@ -5544,7 +5594,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676, "DevDiv")]
+        [WorkItem(530676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530676")]
         public void CS0101ERR_DuplicateNameInNS_01()
         {
             var text = @"using System;
@@ -5577,7 +5627,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676, "DevDiv")]
+        [WorkItem(530676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530676")]
         public void CS0101ERR_DuplicateNameInNS_02()
         {
             var text = @"using System;
@@ -5613,7 +5663,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676, "DevDiv")]
+        [WorkItem(530676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530676")]
         public void CS0101ERR_DuplicateNameInNS_03()
         {
             var text = @"using System;
@@ -5649,7 +5699,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676, "DevDiv")]
+        [WorkItem(530676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530676")]
         public void CS0101ERR_DuplicateNameInNS_04()
         {
             var text = @"using System;
@@ -5681,7 +5731,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676, "DevDiv")]
+        [WorkItem(530676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530676")]
         public void CS0101ERR_DuplicateNameInNS_05()
         {
             var libSource = @"
@@ -5741,7 +5791,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676, "DevDiv")]
+        [WorkItem(530676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530676")]
         public void CS0101ERR_DuplicateNameInNS_06()
         {
             var libSource = @"
@@ -5803,7 +5853,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676, "DevDiv")]
+        [WorkItem(530676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530676")]
         public void CS0101ERR_DuplicateNameInNS_07()
         {
             var libSource = @"
@@ -5863,7 +5913,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676, "DevDiv")]
+        [WorkItem(530676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530676")]
         public void CS0101ERR_DuplicateNameInNS_08()
         {
             var libSource = @"
@@ -5925,7 +5975,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676, "DevDiv")]
+        [WorkItem(530676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530676")]
         public void CS0101ERR_DuplicateNameInNS_09()
         {
             var libSource = @"
@@ -5988,7 +6038,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676, "DevDiv")]
+        [WorkItem(530676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530676")]
         public void CS0101ERR_DuplicateNameInNS_10()
         {
             var libSource = @"
@@ -6051,7 +6101,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676, "DevDiv")]
+        [WorkItem(530676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530676")]
         public void CS0101ERR_DuplicateNameInNS_11()
         {
             var libSource = @"
@@ -6122,7 +6172,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676, "DevDiv")]
+        [WorkItem(530676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530676")]
         public void CS0101ERR_DuplicateNameInNS_12()
         {
             var libSource = @"
@@ -6185,7 +6235,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676, "DevDiv")]
+        [WorkItem(530676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530676")]
         public void CS0101ERR_DuplicateNameInNS_13()
         {
             var libSource = @"
@@ -6254,7 +6304,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676, "DevDiv")]
+        [WorkItem(530676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530676")]
         public void CS0101ERR_DuplicateNameInNS_14()
         {
             var libSource = @"
@@ -6325,7 +6375,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676, "DevDiv")]
+        [WorkItem(530676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530676")]
         public void CS0101ERR_DuplicateNameInNS_15()
         {
             var mod3Source = @"
@@ -6411,7 +6461,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676, "DevDiv")]
+        [WorkItem(530676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530676")]
         public void CS0101ERR_DuplicateNameInNS_16()
         {
             var mod3Source = @"
@@ -6485,7 +6535,7 @@ namespace NS
         }
 
         [ClrOnlyFact(ClrOnlyReason.Unknown)]
-        [WorkItem(641639, "DevDiv")]
+        [WorkItem(641639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641639")]
         public void Bug641639()
         {
             var ModuleA01 = @"
@@ -6896,16 +6946,21 @@ extern alias FT1;
         [Fact]
         public void CS0442ERR_PrivateAbstractAccessor()
         {
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source =
 @"abstract class MyClass
 {
     public abstract int P { get; private set; } // CS0442
     protected abstract object Q { private get; set; } // CS0442
     internal virtual object R { private get; set; } // no error
 }
-",
-                "'set' error CS0442: 'MyClass.P.set': abstract properties cannot have private accessors",
-                "'get' error CS0442: 'MyClass.Q.get': abstract properties cannot have private accessors");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,42): error CS0442: 'MyClass.P.set': abstract properties cannot have private accessors
+                //     public abstract int P { get; private set; } // CS0442
+                Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "set").WithArguments("MyClass.P.set").WithLocation(3, 42),
+                // (4,43): error CS0442: 'MyClass.Q.get': abstract properties cannot have private accessors
+                //     protected abstract object Q { private get; set; } // CS0442
+                Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("MyClass.Q.get").WithLocation(4, 43));
         }
 
         [Fact]
@@ -7743,7 +7798,7 @@ public class cly : clx
 }
 ";
 
-        [WorkItem(543263, "DevDiv")]
+        [WorkItem(543263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
         [Fact]
         public void CS0506ERR_CantOverrideNonVirtual_Imported()
         {
@@ -7776,7 +7831,7 @@ class Derived2 : Base_VirtGet_Set
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "set").WithArguments("Derived2.Prop.set", "Base_VirtGet_Set.Prop.set"));
         }
 
-        [WorkItem(543263, "DevDiv")]
+        [WorkItem(543263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
         [Fact]
         public void CS0506ERR_CantOverrideNonVirtual_Imported_NO_ERROR()
         {
@@ -7801,7 +7856,7 @@ class Derived2 : Base_VirtGet_Set
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(539586, "DevDiv")]
+        [WorkItem(539586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539586")]
         [Fact]
         public void CS0506ERR_CantOverrideNonVirtual02()
         {
@@ -7873,7 +7928,7 @@ public class Cly : Clx
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeReturnTypeOnOverride, Line = 9, Column = 28 });
         }
 
-        [WorkItem(540325, "DevDiv")]
+        [WorkItem(540325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540325")]
         [Fact]
         public void CS0508ERR_CantChangeReturnTypeOnOverride2()
         {
@@ -7903,7 +7958,7 @@ Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GM").WithArguments("GG
         [Fact]
         public void CS0509ERR_CantDeriveFromSealedType01()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source =
 @"namespace NS
 {
     public struct stx { }
@@ -7912,15 +7967,20 @@ Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GM").WithArguments("GG
     public class cly : clx {}
     public class clz : stx { }
 }
-",
-                "'cly' error CS0509: 'cly': cannot derive from sealed type 'clx'",
-                "'clz' error CS0509: 'clz': cannot derive from sealed type 'stx'");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (7,18): error CS0509: 'clz': cannot derive from sealed type 'stx'
+                //     public class clz : stx { }
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "clz").WithArguments("NS.clz", "NS.stx").WithLocation(7, 18),
+                // (6,18): error CS0509: 'cly': cannot derive from sealed type 'clx'
+                //     public class cly : clx {}
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "cly").WithArguments("NS.cly", "NS.clx").WithLocation(6, 18));
         }
 
         [Fact]
         public void CS0509ERR_CantDeriveFromSealedType02()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source =
 @"namespace N1 { enum E { A, B } }
 namespace N2
 {
@@ -7928,16 +7988,23 @@ namespace N2
     class D : System.Int32 { }
     class E : int { }
 }
-",
-                "'C' error CS0509: 'C': cannot derive from sealed type 'E'",
-                "'D' error CS0509: 'D': cannot derive from sealed type 'int'",
-                "'E' error CS0509: 'E': cannot derive from sealed type 'int'");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (6,11): error CS0509: 'E': cannot derive from sealed type 'int'
+                //     class E : int { }
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "E").WithArguments("N2.E", "int").WithLocation(6, 11),
+                // (4,11): error CS0509: 'C': cannot derive from sealed type 'E'
+                //     class C : N1.E { }
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "C").WithArguments("N2.C", "N1.E").WithLocation(4, 11),
+                // (5,11): error CS0509: 'D': cannot derive from sealed type 'int'
+                //     class D : System.Int32 { }
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "D").WithArguments("N2.D", "int").WithLocation(5, 11));
         }
 
         [Fact]
         public void CS0513ERR_AbstractInConcreteClass01()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source =
 @"namespace NS
 {
     public class clx
@@ -7948,12 +8015,23 @@ namespace N2
         public abstract object P { get; set; }
     }
 }
-",
-                "'M1' error CS0513: 'clx.M1()' is abstract but it is contained in non-abstract class 'clx'",
-                "'M2' error CS0513: 'clx.M2()' is abstract but it is contained in non-abstract class 'clx'",
-                "'M3' error CS0513: 'clx.M3(sbyte)' is abstract but it is contained in non-abstract class 'clx'",
-                "'get' error CS0513: 'clx.P.get' is abstract but it is contained in non-abstract class 'clx'",
-                "'set' error CS0513: 'clx.P.set' is abstract but it is contained in non-abstract class 'clx'");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (8,36): error CS0513: 'clx.P.get' is abstract but it is contained in non-abstract class 'clx'
+                //         public abstract object P { get; set; }
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("NS.clx.P.get", "NS.clx").WithLocation(8, 36),
+                // (8,41): error CS0513: 'clx.P.set' is abstract but it is contained in non-abstract class 'clx'
+                //         public abstract object P { get; set; }
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("NS.clx.P.set", "NS.clx").WithLocation(8, 41),
+                // (6,34): error CS0513: 'clx.M2()' is abstract but it is contained in non-abstract class 'clx'
+                //         internal abstract object M2();
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M2").WithArguments("NS.clx.M2()", "NS.clx").WithLocation(6, 34),
+                // (7,42): error CS0513: 'clx.M3(sbyte)' is abstract but it is contained in non-abstract class 'clx'
+                //         protected abstract internal void M3(sbyte p);
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M3").WithArguments("NS.clx.M3(sbyte)", "NS.clx").WithLocation(7, 42),
+                // (5,30): error CS0513: 'clx.M1()' is abstract but it is contained in non-abstract class 'clx'
+                //         abstract public void M1();
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M1").WithArguments("NS.clx.M1()", "NS.clx").WithLocation(5, 30));
         }
 
         [Fact]
@@ -8255,7 +8333,7 @@ struct N
                 );
         }
 
-        [WorkItem(540215, "DevDiv")]
+        [WorkItem(540215, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540215")]
         [Fact]
         public void CS0523ERR_StructLayoutCycle03()
         {
@@ -8282,7 +8360,7 @@ struct B
                 );
         }
 
-        [WorkItem(541629, "DevDiv")]
+        [WorkItem(541629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541629")]
         [Fact]
         public void CS0523ERR_StructLayoutCycle04()
         {
@@ -8325,7 +8403,7 @@ struct Z {
                 );
         }
 
-        [WorkItem(541629, "DevDiv")]
+        [WorkItem(541629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541629")]
         [Fact]
         public void CS0523ERR_StructLayoutCycle05()
         {
@@ -8394,7 +8472,7 @@ struct S4<T>
                 );
         }
 
-        [WorkItem(872954)]
+        [WorkItem(872954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872954")]
         [Fact]
         public void CS0523ERR_StructLayoutCycle07()
         {
@@ -8683,7 +8761,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "x").WithArguments("static"));
         }
 
-        [WorkItem(895401, "DevDiv")]
+        [WorkItem(895401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/895401")]
         [Fact]
         public void VolatileFixed()
         {
@@ -8698,7 +8776,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "x").WithArguments("volatile"));
         }
 
-        [WorkItem(895401, "DevDiv")]
+        [WorkItem(895401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/895401")]
         [Fact]
         public void ReadonlyConst()
         {
@@ -8743,7 +8821,7 @@ class C
                 new ErrorDescription { Code = (int)ErrorCode.ERR_HidingAbstractMethod, Line = 11, Column = 34 });
         }
 
-        [WorkItem(539629, "DevDiv")]
+        [WorkItem(539629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539629")]
         [Fact]
         public void CS0533ERR_HidingAbstractMethod02()
         {
@@ -8794,7 +8872,7 @@ namespace NS
                 );
         }
 
-        [WorkItem(540464, "DevDiv")]
+        [WorkItem(540464, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540464")]
         [Fact]
         public void CS0533ERR_HidingAbstractMethod03()
         {
@@ -8825,7 +8903,7 @@ public new int h; // no CS0533 here in Dev10, but I'm not sure why not. (VB give
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "f").WithArguments("D.f", "A.f()"));
         }
 
-        [WorkItem(539629, "DevDiv")]
+        [WorkItem(539629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539629")]
         [Fact]
         public void CS0533ERR_HidingAbstractMethod_Combinations()
         {
@@ -8928,7 +9006,7 @@ abstract class Derived8 : Base
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "P").WithArguments("Derived8.P", "Base.P"));
         }
 
-        [WorkItem(539585, "DevDiv")]
+        [WorkItem(539585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539585")]
         [Fact]
         public void CS0534ERR_UnimplementedAbstractMethod()
         {
@@ -9018,7 +9096,7 @@ public class B : A { }   // CS0535 A::F is not implemented
                 Diagnostic(ErrorCode.ERR_ObjectCantHaveBases, "Object"));
         }
 
-        [WorkItem(538320, "DevDiv")]
+        [WorkItem(538320, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538320")]
         [Fact]
         public void CS0537ERR_ObjectCantHaveBases_WithMsCorlib()
         {
@@ -9263,7 +9341,7 @@ public class Clx
         public void CS0542ERR_MemberNameSameAsType02()
         {
             // No errors for names from explicit implementations.
-            DiagnosticsUtils.TestDiagnostics(
+            var source =
 @"interface IM
 {
     void C();
@@ -9277,10 +9355,11 @@ class C : IM, IP
     void IM.C() { }
     object IP.C { get { return null; } }
 }
-");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [Fact(), WorkItem(529156, "DevDiv")]
+        [Fact(), WorkItem(529156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529156")]
         public void CS0542ERR_MemberNameSameAsType03()
         {
             CreateCompilationWithMscorlib(
@@ -9297,7 +9376,7 @@ class C : IM, IP
 ").VerifyDiagnostics();
         }
 
-        [WorkItem(538633, "DevDiv")]
+        [WorkItem(538633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538633")]
         [Fact]
         public void CS0542ERR_MemberNameSameAsType04()
         {
@@ -9431,7 +9510,7 @@ class set_P : A
         /// Derived class with same name as base class
         /// event accessor metadata name.
         /// </summary>
-        [WorkItem(530385, "DevDiv")]
+        [WorkItem(530385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530385")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void CS0542ERR_MemberNameSameAsType07()
         {
@@ -9541,7 +9620,7 @@ public class b : a
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NoGetToOverride, Line = 13, Column = 9 });
         }
 
-        [WorkItem(539321, "DevDiv")]
+        [WorkItem(539321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539321")]
         [Fact]
         public void CS0545ERR_NoGetToOverride_Regress()
         {
@@ -9595,7 +9674,7 @@ public class b : a
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NoSetToOverride, Line = 15, Column = 9 });
         }
 
-        [WorkItem(539321, "DevDiv")]
+        [WorkItem(539321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539321")]
         [Fact]
         public void CS0546ERR_NoSetToOverride_Regress()
         {
@@ -10274,7 +10353,7 @@ namespace NS
             // TODO...
         }
 
-        [WorkItem(545463, "DevDiv")]
+        [WorkItem(545463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545463")]
         [Fact]
         public void CS0576ERR_ConflictAliasAndMember02()
         {
@@ -10352,7 +10431,7 @@ class B : System.Attribute { }
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateAttribute, Line = 4, Column = 8 });
         }
 
-        [Fact, WorkItem(528872, "DevDiv")]
+        [Fact, WorkItem(528872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528872")]
         public void CS0582ERR_ConditionalOnInterfaceMethod()
         {
             var text = @"using System.Diagnostics;
@@ -10644,7 +10723,7 @@ class Class2 { }
         [Fact]
         public void CS0621ERR_VirtualPrivate02()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source =
 @"abstract class A
 {
     abstract object P { get; }
@@ -10653,9 +10732,14 @@ class B
 {
     private virtual object Q { get; set; }
 }
-",
-                "'P' error CS0621: 'A.P': virtual or abstract members cannot be private",
-                "'Q' error CS0621: 'B.Q': virtual or abstract members cannot be private");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,21): error CS0621: 'A.P': virtual or abstract members cannot be private
+                //     abstract object P { get; }
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "P").WithArguments("A.P").WithLocation(3, 21),
+                // (7,28): error CS0621: 'B.Q': virtual or abstract members cannot be private
+                //     private virtual object Q { get; set; }
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "Q").WithArguments("B.Q").WithLocation(7, 28));
         }
 
         [Fact]
@@ -10840,7 +10924,7 @@ public class MainClass
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateNamedAttributeArgument, Line = 13, Column = 21 });
         }
 
-        [WorkItem(540923, "DevDiv")]
+        [WorkItem(540923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540923")]
         [Fact]
         public void CS0643ERR_DuplicateNamedAttributeArgument02()
         {
@@ -10870,7 +10954,7 @@ public class Test
         [Fact]
         public void CS0644ERR_DeriveFromEnumOrValueType()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source =
 @"using System;
 namespace N
 {
@@ -10880,12 +10964,23 @@ namespace N
     static class F : MulticastDelegate { }
     static class G : Array { }
 }
-",
-                "'C' error CS0644: 'C' cannot derive from special class 'Enum'",
-                "'D' error CS0644: 'D' cannot derive from special class 'ValueType'",
-                "'E' error CS0644: 'E' cannot derive from special class 'Delegate'",
-                "'F' error CS0644: 'F' cannot derive from special class 'MulticastDelegate'",
-                "'G' error CS0644: 'G' cannot derive from special class 'Array'");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (5,11): error CS0644: 'D' cannot derive from special class 'ValueType'
+                //     class D : ValueType { }
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "D").WithArguments("N.D", "System.ValueType").WithLocation(5, 11),
+                // (6,11): error CS0644: 'E' cannot derive from special class 'Delegate'
+                //     class E : Delegate { }
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "E").WithArguments("N.E", "System.Delegate").WithLocation(6, 11),
+                // (4,11): error CS0644: 'C' cannot derive from special class 'Enum'
+                //     class C : Enum { }
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "C").WithArguments("N.C", "System.Enum").WithLocation(4, 11),
+                // (8,18): error CS0644: 'G' cannot derive from special class 'Array'
+                //     static class G : Array { }
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "G").WithArguments("N.G", "System.Array").WithLocation(8, 18),
+                // (7,18): error CS0644: 'F' cannot derive from special class 'MulticastDelegate'
+                //     static class F : MulticastDelegate { }
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "F").WithArguments("N.F", "System.MulticastDelegate").WithLocation(7, 18));
         }
 
         [Fact]
@@ -11662,7 +11757,7 @@ class C5<T> where T : I
             // TODO...
         }
 
-        [WorkItem(546447, "DevDiv")]
+        [WorkItem(546447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546447")]
         [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void CS0682ERR_BogusExplicitImpl()
         {
@@ -11867,7 +11962,7 @@ class C : I
 {
     interface IFoo
     {
-        void M<M>(M m);
+        void M<M>(M m); // OK (constraint applies to types but not methods)
     }
     
     class C<C>
@@ -11878,13 +11973,14 @@ class C : I
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeVariableSameAsParent, Line = 5, Column = 16 }, // Dev10 not report this if there next 2 errors
-                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeVariableSameAsParent, Line = 8, Column = 13 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeVariableSameAsParent, Line = 10, Column = 28 });
-
-            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            // TODO...
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (8,13): error CS0694: Type parameter 'C' has the same name as the containing type, or method
+                //     class C<C>
+                Diagnostic(ErrorCode.ERR_TypeVariableSameAsParent, "C").WithArguments("C").WithLocation(8, 13),
+                // (10,28): error CS0694: Type parameter 'S' has the same name as the containing type, or method
+                //         public struct S<T, S>
+                Diagnostic(ErrorCode.ERR_TypeVariableSameAsParent, "S").WithArguments("S").WithLocation(10, 28)
+                );
         }
 
         [Fact]
@@ -11914,7 +12010,7 @@ class G6<T1, T2> : I<T1>, I2<T2> { } // CS0695
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnifyingInterfaceInstantiations, Line = 15, Column = 7 });
         }
 
-        [WorkItem(539517, "DevDiv")]
+        [WorkItem(539517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539517")]
         [Fact]
         public void CS0695ERR_UnifyingInterfaceInstantiations2()
         {
@@ -11927,7 +12023,7 @@ class A<T, S> : I<I<T, T>, T>, I<I<T, S>, S> { } // CS0695
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnifyingInterfaceInstantiations, Line = 4, Column = 7 });
         }
 
-        [WorkItem(539518, "DevDiv")]
+        [WorkItem(539518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539518")]
         [Fact]
         public void CS0695ERR_UnifyingInterfaceInstantiations3()
         {
@@ -12282,7 +12378,7 @@ static class C
         [Fact]
         public void CS0713ERR_StaticDerivedFromNonObject01()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source =
 @"namespace NS
 {
     public class Base
@@ -12301,22 +12397,32 @@ static class C
     {
     }
 }
-",
-                "'Base' error CS0713: Static class 'Derived' cannot derive from type 'Base'. Static classes must derive from object.",
-                "'Base1<string, V>' error CS0713: Static class 'D<V>' cannot derive from type 'Base1<string, V>'. Static classes must derive from object.");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (7,35): error CS0713: Static class 'Derived' cannot derive from type 'Base'. Static classes must derive from object.
+                //     public static class Derived : Base
+                Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "Base").WithArguments("NS.Derived", "NS.Base").WithLocation(7, 35),
+                // (15,25): error CS0713: Static class 'D<V>' cannot derive from type 'Base1<string, V>'. Static classes must derive from object.
+                //     static class D<V> : Base1<string, V>
+                Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "Base1<string, V>").WithArguments("NS.D<V>", "NS.Base1<string, V>").WithLocation(15, 25));
         }
 
         [Fact]
         public void CS0713ERR_StaticDerivedFromNonObject02()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source =
 @"delegate void A();
 struct B { }
 static class C : A { }
 static class D : B { }
-",
-                "'A' error CS0713: Static class 'C' cannot derive from type 'A'. Static classes must derive from object.",
-                "'B' error CS0713: Static class 'D' cannot derive from type 'B'. Static classes must derive from object.");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (4,18): error CS0713: Static class 'D' cannot derive from type 'B'. Static classes must derive from object.
+                // static class D : B { }
+                Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "B").WithArguments("D", "B").WithLocation(4, 18),
+                // (3,18): error CS0713: Static class 'C' cannot derive from type 'A'. Static classes must derive from object.
+                // static class C : A { }
+                Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "A").WithArguments("C", "A").WithLocation(3, 18));
         }
 
         [Fact]
@@ -12761,7 +12867,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "get").WithArguments("S").WithLocation(4, 11));
         }
 
-        [WorkItem(530434, "DevDiv")]
+        [WorkItem(530434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530434")]
         [Fact(Skip = "530434")]
         public void CS0722ERR_ReturnTypeIsStaticClass03()
         {
@@ -12788,7 +12894,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "set").WithArguments("S").WithLocation(6, 27));
         }
 
-        [WorkItem(546540, "DevDiv")]
+        [WorkItem(546540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546540")]
         [Fact]
         public void CS0722ERR_ReturnTypeIsStaticClass04()
         {
@@ -13248,7 +13354,7 @@ public partial class C
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M1").WithArguments("C.M1()").WithLocation(3, 18));
         }
 
-        [WorkItem(542703, "DevDiv")]
+        [WorkItem(542703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542703")]
         [Fact]
         public void CS0759ERR_PartialMethodMustHaveLatent_02()
         {
@@ -13563,7 +13669,7 @@ namespace TestNamespace
         }
 
         [Fact]
-        [WorkItem(1032724)]
+        [WorkItem(1032724, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032724")]
         public void CS0842ERR_ExplicitLayoutAndAutoImplementedProperty_Bug1032724()
         {
             var text = @"
@@ -13615,15 +13721,20 @@ namespace TestNamespace
         [Fact]
         public void CS1014ERR_GetOrSetExpected()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source =
 @"partial class C
 {
     public object P { partial get; set; }
     object Q { get { return 0; } add { } }
 }
-",
-                "'partial' error CS1014: A get or set accessor expected",
-                "'add' error CS1014: A get or set accessor expected");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,23): error CS1014: A get or set accessor expected
+                //     public object P { partial get; set; }
+                Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(3, 23),
+                // (4,34): error CS1014: A get or set accessor expected
+                //     object Q { get { return 0; } add { } }
+                Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 34));
         }
 
         [Fact]
@@ -13849,7 +13960,7 @@ references: new[] { reference });
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "U").WithLocation(25, 8));
         }
 
-        [WorkItem(528256, "DevDiv")]
+        [WorkItem(528256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528256")]
         [Fact()]
         public void CS1106ERR_BadExtensionAgg02()
         {
@@ -14062,7 +14173,7 @@ namespace NS
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
         }
 
-        [WorkItem(537684, "DevDiv")]
+        [WorkItem(537684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537684")]
         [Fact]
         public void CS1537ERR_DuplicateAlias2()
         {
@@ -14121,7 +14232,7 @@ using X = ABC.X<int>;";
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = ABC.X<int>;"));
         }
 
-        [WorkItem(539125, "DevDiv")]
+        [WorkItem(539125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539125")]
         [Fact]
         public void CS1542ERR_AddModuleAssembly()
         {
@@ -14139,7 +14250,7 @@ using X = ABC.X<int>;";
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IFoo").WithArguments("IFoo"));
         }
 
-        [Fact, WorkItem(544910, "DevDiv")]
+        [Fact, WorkItem(544910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544910")]
         public void CS1599ERR_MethodReturnCantBeRefAny()
         {
             var text = @"
@@ -14180,7 +14291,7 @@ Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArgumen
                 );
         }
 
-        [Fact, WorkItem(544910, "DevDiv")]
+        [Fact, WorkItem(544910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544910")]
         public void CS1601ERR_MethodArgCantBeRefAny()
         {
             // We've changed the text of the error message from
@@ -14228,7 +14339,7 @@ Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "__makeref(r3)").WithArguments("
                  );
         }
 
-        [WorkItem(542003, "DevDiv")]
+        [WorkItem(542003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542003")]
         [Fact]
         public void CS1608ERR_CantUseRequiredAttribute()
         {
@@ -14300,7 +14411,7 @@ class AAttribute : Attribute { }
                 Diagnostic(ErrorCode.ERR_IllegalFixedType, "string"));
         }
 
-        [WorkItem(545353, "DevDiv")]
+        [WorkItem(545353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545353")]
         [Fact]
         public void CS1664ERR_FixedOverflow()
         {
@@ -14315,7 +14426,7 @@ class AAttribute : Attribute { }
                 Diagnostic(ErrorCode.ERR_FixedOverflow, "1073741825").WithArguments("1073741825", "long"));
         }
 
-        [WorkItem(545353, "DevDiv")]
+        [WorkItem(545353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545353")]
         [Fact]
         public void CS1665ERR_InvalidFixedArraySize()
         {
@@ -14330,7 +14441,7 @@ class AAttribute : Attribute { }
                 Diagnostic(ErrorCode.ERR_InvalidFixedArraySize, "0"));
         }
 
-        [WorkItem(546922, "DevDiv")]
+        [WorkItem(546922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546922")]
         [Fact]
         public void CS1665ERR_InvalidFixedArraySizeNegative()
         {
@@ -14613,7 +14724,7 @@ class MyClass {}
         // CS1703ERR_DuplicateImport:       See ReferenceManagerTests.CS1703ERR_DuplicateImport
         // CS1704ERR_DuplicateImportSimple: See ReferenceManagerTests.CS1704ERR_DuplicateImportSimple
 
-        [Fact(Skip = "530901"), WorkItem(530901, "DevDiv")]
+        [Fact(Skip = "530901"), WorkItem(530901, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530901")]
         public void CS1705ERR_AssemblyMatchBadVersion()
         {
             // compile with: /target:library /out:c:\\cs1705.dll /keyfile:mykey.snk
@@ -14783,7 +14894,7 @@ public class TestUnsafe
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BaseClassMustBeFirst, Line = 12, Column = 30 });
         }
 
-        [Fact(), WorkItem(530393, "DevDiv")]
+        [Fact(), WorkItem(530393, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530393")]
         public void CS1724ERR_InvalidDefaultCharSetValue()
         {
             var text = @"
@@ -14803,7 +14914,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(1116455, "DevDiv")]
+        [Fact, WorkItem(1116455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116455")]
         public void CS1725ERR_FriendAssemblyBadArgs()
         {
             var text = @"
@@ -14879,7 +14990,7 @@ using System.Runtime.CompilerServices;
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new C()").WithArguments("y").WithLocation(3, 38));
         }
 
-        [Fact, WorkItem(542401, "DevDiv")]
+        [Fact, WorkItem(542401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542401")]
         public void CS1736ERR_DefaultValueMustBeConstant_1()
         {
             var text = @"
@@ -14994,7 +15105,7 @@ class A
                 Diagnostic(ErrorCode.ERR_NoPIAAssemblyMissingAttributes).WithArguments("MissingPIAAttribute, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "System.Runtime.InteropServices.ImportedFromTypeLibAttribute", "System.Runtime.InteropServices.PrimaryInteropAssemblyAttribute").WithLocation(1, 1));
         }
 
-        [WorkItem(620366, "DevDiv")]
+        [WorkItem(620366, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/620366")]
         [Fact]
         public void CS1748ERR_NoCanonicalView()
         {
@@ -15308,7 +15419,7 @@ public static class ErrorCode
                 new ErrorDescription { Code = 1763, Line = 7, Column = 35 });
         }
 
-        [WorkItem(619266, "DevDiv")]
+        [WorkItem(619266, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619266")]
         [Fact(Skip = "619266")]
         public void CS1768ERR_GenericsUsedInNoPIAType()
         {
@@ -15538,7 +15649,7 @@ public interface ISomeInterface
                 Diagnostic(ErrorCode.ERR_DeriveFromDynamic, "dynamic").WithArguments("ErrorCode"));
         }
 
-        [Fact, WorkItem(552740, "DevDiv")]
+        [Fact, WorkItem(552740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552740")]
         public void CS1966ERR_DeriveFromConstructedDynamic()
         {
             var text = @"
@@ -15630,7 +15741,7 @@ namespace N1
    class A { public int Foo() { return 2; }}
 }
 ";
-            var expectedDiagnostics = new[] 
+            var expectedDiagnostics = new[]
             {
                 // (2,1): error CS7021: You cannot declare namespace in script code
                 // namespace N1
@@ -15808,7 +15919,7 @@ namespace x
         [Fact]
         public void CS0108WRN_NewRequired02()
         {
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source =
 @"class A
 {
     public static void P() { }
@@ -15831,18 +15942,35 @@ class B : A
     public static void V() { } // CS0108
     public void W() { } // CS0108
 }
-",
-                "'P' warning CS0108: 'B.P' hides inherited member 'A.P()'. Use the new keyword if hiding was intended.",
-                "'Q' warning CS0108: 'B.Q' hides inherited member 'A.Q()'. Use the new keyword if hiding was intended.",
-                "'R' warning CS0108: 'B.R' hides inherited member 'A.R()'. Use the new keyword if hiding was intended.",
-                "'S' warning CS0108: 'B.S' hides inherited member 'A.S()'. Use the new keyword if hiding was intended.",
-                "'T' warning CS0108: 'B.T()' hides inherited member 'A.T'. Use the new keyword if hiding was intended.",
-                "'U' warning CS0108: 'B.U()' hides inherited member 'A.U'. Use the new keyword if hiding was intended.",
-                "'V' warning CS0108: 'B.V()' hides inherited member 'A.V'. Use the new keyword if hiding was intended.",
-                "'W' warning CS0108: 'B.W()' hides inherited member 'A.W'. Use the new keyword if hiding was intended.");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (15,16): warning CS0108: 'B.Q' hides inherited member 'A.Q()'. Use the new keyword if hiding was intended.
+                //     public int Q { get; set; } // CS0108
+                Diagnostic(ErrorCode.WRN_NewRequired, "Q").WithArguments("B.Q", "A.Q()").WithLocation(15, 16),
+                // (16,23): warning CS0108: 'B.R' hides inherited member 'A.R()'. Use the new keyword if hiding was intended.
+                //     public static int R { get; set; } // CS0108
+                Diagnostic(ErrorCode.WRN_NewRequired, "R").WithArguments("B.R", "A.R()").WithLocation(16, 23),
+                // (17,16): warning CS0108: 'B.S' hides inherited member 'A.S()'. Use the new keyword if hiding was intended.
+                //     public int S { get; set; } // CS0108
+                Diagnostic(ErrorCode.WRN_NewRequired, "S").WithArguments("B.S", "A.S()").WithLocation(17, 16),
+                // (18,24): warning CS0108: 'B.T()' hides inherited member 'A.T'. Use the new keyword if hiding was intended.
+                //     public static void T() { } // CS0108
+                Diagnostic(ErrorCode.WRN_NewRequired, "T").WithArguments("B.T()", "A.T").WithLocation(18, 24),
+                // (19,17): warning CS0108: 'B.U()' hides inherited member 'A.U'. Use the new keyword if hiding was intended.
+                //     public void U() { } // CS0108
+                Diagnostic(ErrorCode.WRN_NewRequired, "U").WithArguments("B.U()", "A.U").WithLocation(19, 17),
+                // (20,24): warning CS0108: 'B.V()' hides inherited member 'A.V'. Use the new keyword if hiding was intended.
+                //     public static void V() { } // CS0108
+                Diagnostic(ErrorCode.WRN_NewRequired, "V").WithArguments("B.V()", "A.V").WithLocation(20, 24),
+                // (21,17): warning CS0108: 'B.W()' hides inherited member 'A.W'. Use the new keyword if hiding was intended.
+                //     public void W() { } // CS0108
+                Diagnostic(ErrorCode.WRN_NewRequired, "W").WithArguments("B.W()", "A.W").WithLocation(21, 17),
+                // (14,23): warning CS0108: 'B.P' hides inherited member 'A.P()'. Use the new keyword if hiding was intended.
+                //     public static int P { get; set; } // CS0108
+                Diagnostic(ErrorCode.WRN_NewRequired, "P").WithArguments("B.P", "A.P()").WithLocation(14, 23));
         }
 
-        [WorkItem(539624, "DevDiv")]
+        [WorkItem(539624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539624")]
         [Fact]
         public void CS0108WRN_NewRequired03()
         {
@@ -15879,7 +16007,7 @@ class DClass : SBase
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewRequired, Line = 26, Column = 20, IsWarning = true });
         }
 
-        [WorkItem(540459, "DevDiv")]
+        [WorkItem(540459, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540459")]
         [Fact]
         public void CS0108WRN_NewRequired04()
         {
@@ -16072,7 +16200,7 @@ class B : A
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "IM3").WithArguments("B.IM3"));
         }
 
-        [WorkItem(539624, "DevDiv")]
+        [WorkItem(539624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539624")]
         [Fact]
         public void CS0108WRN_NewRequired_Arity()
         {
@@ -16229,7 +16357,7 @@ class HideWithDelegate : Class
                 Diagnostic(ErrorCode.WRN_NewRequired, "D").WithArguments("HideWithDelegate.D<A, B, C>", "Class.D<A, B, C>"));
         }
 
-        [Fact, WorkItem(546736, "DevDiv")]
+        [Fact, WorkItem(546736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546736")]
         public void CS0108WRN_NewRequired_Partial()
         {
             var text = @"
@@ -16410,7 +16538,7 @@ namespace SA
         }
 
         [Fact]
-        [WorkItem(546077, "DevDiv")]
+        [WorkItem(546077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546077")]
         public void MultipleSymbolDisambiguation()
         {
             var sourceRef1 = @"
@@ -16554,7 +16682,7 @@ internal class D : C.X { }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>"));
         }
 
-        [WorkItem(545725, "DevDiv")]
+        [WorkItem(545725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545725")]
         [Fact]
         public void CS0436WRN_SameFullNameThisAggAgg02()
         {
@@ -16585,7 +16713,7 @@ namespace System
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x"));
         }
 
-        [WorkItem(538320, "DevDiv")]
+        [WorkItem(538320, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538320")]
         [Fact]
         public void CS0436WRN_SameFullNameThisAggAgg03()
         {
@@ -16652,7 +16780,7 @@ namespace SA
             // TODO...
         }
 
-        [WorkItem(545649, "DevDiv")]
+        [WorkItem(545649, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545649")]
         [Fact]
         public void CS0437WRN_SameFullNameThisAggNs02()
         {
@@ -16776,8 +16904,8 @@ class C
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("C.P1.set").WithLocation(11, 33));
         }
 
-        [WorkItem(544660, "DevDiv")]
-        [WorkItem(530324, "DevDiv")]
+        [WorkItem(544660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544660")]
+        [WorkItem(530324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530324")]
         [Fact]
         public void CS0626WRN_ExternMethodNoImplementation02()
         {
@@ -16845,7 +16973,7 @@ sealed class C<T>
                 new ErrorDescription { Code = (int)ErrorCode.WRN_ProtectedInSealed, Line = 8, Column = 45, IsWarning = true });
         }
 
-        [WorkItem(539588, "DevDiv")]
+        [WorkItem(539588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539588")]
         [Fact]
         public void CS0628WRN_ProtectedInSealed03()
         {
@@ -17138,7 +17266,7 @@ public class C : Base
                 Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "S").WithArguments("NS.C<T>.S.S(string)").WithLocation(9, 20));
         }
 
-        [WorkItem(540859, "DevDiv")]
+        [WorkItem(540859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540859")]
         [Fact]
         public void CS0824WRN_ExternCtorNoImplementation02()
         {
@@ -17157,7 +17285,7 @@ class C
                 Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "B").WithArguments("B.B()").WithLocation(4, 19));
         }
 
-        [WorkItem(1084682, "DevDiv"), WorkItem(386, "CodePlex")]
+        [WorkItem(1084682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084682"), WorkItem(386, "CodePlex")]
         [Fact]
         public void CS0824WRN_ExternCtorNoImplementation03()
         {
@@ -17185,7 +17313,7 @@ public class B : A
             Assert.False(verifier.TestData.Methods.Keys.Any(n => n.StartsWith("B..ctor", StringComparison.Ordinal))); // Haven't tried to emit it
         }
 
-        [WorkItem(1084682, "DevDiv"), WorkItem(1036359, "DevDiv"), WorkItem(386, "CodePlex")]
+        [WorkItem(1084682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084682"), WorkItem(1036359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036359"), WorkItem(386, "CodePlex")]
         [Fact]
         public void CS0824WRN_ExternCtorNoImplementation04()
         {
@@ -17210,7 +17338,7 @@ public class B : A
                 );
         }
 
-        [WorkItem(1084682, "DevDiv"), WorkItem(1036359, "DevDiv"), WorkItem(386, "CodePlex")]
+        [WorkItem(1084682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084682"), WorkItem(1036359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036359"), WorkItem(386, "CodePlex")]
         [Fact]
         public void CS0824WRN_ExternCtorNoImplementation05()
         {
@@ -17235,7 +17363,7 @@ public class B : A
                 );
         }
 
-        [WorkItem(1084682, "DevDiv"), WorkItem(1036359, "DevDiv"), WorkItem(386, "CodePlex")]
+        [WorkItem(1084682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084682"), WorkItem(1036359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036359"), WorkItem(386, "CodePlex")]
         [Fact]
         public void CS0824WRN_ExternCtorNoImplementation06()
         {
@@ -17261,7 +17389,7 @@ public class B : A
                 );
         }
 
-        [WorkItem(1084682, "DevDiv"), WorkItem(386, "CodePlex")]
+        [WorkItem(1084682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084682"), WorkItem(386, "CodePlex")]
         [Fact]
         public void CS0824WRN_ExternCtorNoImplementation07()
         {
@@ -17284,7 +17412,7 @@ public class B : A
                 );
         }
 
-        [WorkItem(1084682, "DevDiv"), WorkItem(386, "CodePlex")]
+        [WorkItem(1084682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084682"), WorkItem(386, "CodePlex")]
         [Fact]
         public void CS0824WRN_ExternCtorNoImplementation08()
         {
@@ -17307,7 +17435,7 @@ public class B
                 );
         }
 
-        [WorkItem(1084682, "DevDiv"), WorkItem(1036359, "DevDiv"), WorkItem(386, "CodePlex")]
+        [WorkItem(1084682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084682"), WorkItem(1036359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036359"), WorkItem(386, "CodePlex")]
         [Fact]
         public void CS0824WRN_ExternCtorNoImplementation09()
         {
@@ -17330,7 +17458,7 @@ public class B : A
                 );
         }
 
-        [WorkItem(1084682, "DevDiv"), WorkItem(1036359, "DevDiv"), WorkItem(386, "CodePlex")]
+        [WorkItem(1084682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084682"), WorkItem(1036359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036359"), WorkItem(386, "CodePlex")]
         [Fact]
         public void CS0824WRN_ExternCtorNoImplementation10()
         {
@@ -17447,7 +17575,7 @@ Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "c").WithArguments("
                 );
         }
 
-        [Fact(), WorkItem(544447, "DevDiv")]
+        [Fact(), WorkItem(544447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544447")]
         public void CS1700WRN_InvalidAssemblyName()
         {
             var text = @"
@@ -18118,7 +18246,7 @@ namespace B
             Assert.Equal(2, nsa.GetMembers().Length);
         }
 
-        [WorkItem(538218, "DevDiv")]
+        [WorkItem(538218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538218")]
         [Fact]
         public void RecursiveInterfaceLookup01()
         {
@@ -18130,7 +18258,7 @@ interface B : A<B.Garbage> { }";
             var b = comp.SourceModule.GlobalNamespace.GetMembers("B").Single() as NamespaceSymbol;
         }
 
-        [WorkItem(538150, "DevDiv")]
+        [WorkItem(538150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538150")]
         [Fact]
         public void CS0102ERR_DuplicateNameInClass04()
         {
@@ -18229,7 +18357,7 @@ namespace NS
                     Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(8, 17));
         }
 
-        [WorkItem(538616, "DevDiv")]
+        [WorkItem(538616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538616")]
         [Fact]
         public void CS0102ERR_DuplicateNameInClass08()
         {
@@ -18245,7 +18373,7 @@ class A<T>
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateNameInClass, Line = 4, Column = 10 });
         }
 
-        [WorkItem(538917, "DevDiv")]
+        [WorkItem(538917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538917")]
         [Fact]
         public void CS0102ERR_DuplicateNameInClass09()
         {
@@ -18259,7 +18387,7 @@ class A<T>
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateNameInClass, Line = 4, Column = 11 });
         }
 
-        [WorkItem(538634, "DevDiv")]
+        [WorkItem(538634, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538634")]
         [Fact]
         public void CS0102ERR_DuplicateNameInClass10()
         {
@@ -18311,7 +18439,7 @@ class A<T>
                     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "E").WithArguments("E", "N").WithLocation(4, 10));
         }
 
-        [WorkItem(528149, "DevDiv")]
+        [WorkItem(528149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528149")]
         [Fact]
         public void CS0101ERR_DuplicateNameInNS06()
         {
@@ -18366,7 +18494,7 @@ class A<T>
                 );
         }
 
-        [WorkItem(539742, "DevDiv")]
+        [WorkItem(539742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539742")]
         [Fact]
         public void CS0102ERR_DuplicateNameInClass11()
         {
@@ -18380,7 +18508,7 @@ class A<T>
                     Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "E").WithArguments("C", "E").WithLocation(4, 10));
         }
 
-        [WorkItem(528149, "DevDiv")]
+        [WorkItem(528149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528149")]
         [Fact]
         public void CS0102ERR_DuplicateNameInClass12()
         {
@@ -18673,7 +18801,7 @@ class A
             CreateCompilationWithMscorlib(string.Format(template, "int set_Item() { return 0; }")).VerifyDiagnostics();
         }
 
-        [WorkItem(539625, "DevDiv")]
+        [WorkItem(539625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539625")]
         [Fact]
         public void CS0104ERR_AmbigContext02()
         {
@@ -18770,7 +18898,7 @@ namespace Conformance.Expressions
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AmbigContext, Line = 12, Column = 20 });
         }
 
-        [WorkItem(540255, "DevDiv")]
+        [WorkItem(540255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540255")]
         [Fact]
         public void CS0122ERR_BadAccess01()
         {
@@ -19058,7 +19186,7 @@ internal class InternalClass : PublicClass
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "F").WithArguments("InternalClass.F"));
         }
 
-        [Fact, WorkItem(543386, "DevDiv")]
+        [Fact, WorkItem(543386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543386")]
         public void VolatileFieldWithGenericTypeConstrainedToClass()
         {
             var text = @"
@@ -19074,7 +19202,7 @@ class G<T> where T : C
 
         #endregion
 
-        [WorkItem(783920, "DevDiv")]
+        [WorkItem(783920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/783920")]
         [Fact()]
         public void Bug783920()
         {
@@ -19171,7 +19299,7 @@ internal abstract event System.EventHandler E;";
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("E", "Script").WithLocation(3, 45));
         }
 
-        [WorkItem(529225)]
+        [WorkItem(529225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529225")]
         [Fact]
         public void AbstractInSubmission()
         {

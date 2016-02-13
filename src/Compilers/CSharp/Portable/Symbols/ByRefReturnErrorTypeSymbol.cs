@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             TypeWithModifiers substitutedReferencedType = typeMap.SubstituteType(_referencedType);
             return substitutedReferencedType.Is(_referencedType) ?
-                       new TypeWithModifiers(this) : 
+                       new TypeWithModifiers(this) :
                        new TypeWithModifiers(new ByRefReturnErrorTypeSymbol(substitutedReferencedType.Type, _countOfCustomModifiersPrecedingByRef),
                                              substitutedReferencedType.CustomModifiers);
         }

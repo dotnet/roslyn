@@ -406,15 +406,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A value in the pathMap is empty..
-        /// </summary>
-        internal static string EmptyValueInPathMap {
-            get {
-                return ResourceManager.GetString("EmptyValueInPathMap", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;end&apos; must not be less than &apos;start&apos;.
         /// </summary>
         internal static string EndMustNotBeLessThanStart {
@@ -438,6 +429,16 @@ namespace Microsoft.CodeAnalysis {
         internal static string Event1 {
             get {
                 return ResourceManager.GetString("Event1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exception occurred with following context:
+        ///{0}.
+        /// </summary>
+        internal static string ExceptionContext {
+            get {
+                return ResourceManager.GetString("ExceptionContext", resourceCulture);
             }
         }
         
@@ -618,6 +619,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string InvalidDiagnosticIdReported {
             get {
                 return ResourceManager.GetString("InvalidDiagnosticIdReported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic &apos;{0}&apos; has a source location in file &apos;{1}&apos;, which is not part of the compilation being analyzed..
+        /// </summary>
+        internal static string InvalidDiagnosticLocationReported {
+            get {
+                return ResourceManager.GetString("InvalidDiagnosticLocationReported", resourceCulture);
             }
         }
         
@@ -874,6 +884,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A value in the pathMap is null..
+        /// </summary>
+        internal static string NullValueInPathMap {
+            get {
+                return ResourceManager.GetString("NullValueInPathMap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Output kind not supported..
         /// </summary>
         internal static string OutputKindNotSupported {
@@ -1032,6 +1051,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string RuleSetMissingAttribute {
             get {
                 return ResourceManager.GetString("RuleSetMissingAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value for argument &apos;/shared:&apos; must not be empty.
+        /// </summary>
+        internal static string SharedArgumentMissing {
+            get {
+                return ResourceManager.GetString("SharedArgumentMissing", resourceCulture);
             }
         }
         

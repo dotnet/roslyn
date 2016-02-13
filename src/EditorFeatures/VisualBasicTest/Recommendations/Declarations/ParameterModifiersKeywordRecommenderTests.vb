@@ -1,169 +1,162 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
-
 #Disable Warning RS0007 ' Avoid zero-length array allocations. This is non-shipping test code.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class ParameterModifiersKeywordRecommenderTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AllRecommendationsForFirstParameter()
-            VerifyRecommendationsContain(<ClassDeclaration>Sub Foo(|</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AllRecommendationsForFirstParameterTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Sub Foo(|</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AllRecommendationsForSecondParameterAfterByRefFirst()
-            VerifyRecommendationsContain(<ClassDeclaration>Sub Foo(ByRef first As Integer, |</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AllRecommendationsForSecondParameterAfterByRefFirstTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Sub Foo(ByRef first As Integer, |</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AllRecommendationsForSecondParameterAfterByValFirst()
-            VerifyRecommendationsContain(<ClassDeclaration>Sub Foo(ByVal first As Integer, |</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AllRecommendationsForSecondParameterAfterByValFirstTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Sub Foo(ByVal first As Integer, |</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AllRecommendationsForFirstParameterAfterGenericParams()
-            VerifyRecommendationsAreExactly(<ClassDeclaration>Sub Foo(Of T)(|</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AllRecommendationsForFirstParameterAfterGenericParamsTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Foo(Of T)(|</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ByValAndByRefAfterOptional()
-            VerifyRecommendationsAreExactly(<ClassDeclaration>Sub Foo(Optional |</ClassDeclaration>, "ByVal", "ByRef")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function ByValAndByRefAfterOptionalTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Foo(Optional |</ClassDeclaration>, "ByVal", "ByRef")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NothingAfterOptionalByVal()
-            VerifyRecommendationsAreExactly(<ClassDeclaration>Sub Foo(Optional ByVal |</ClassDeclaration>, {})
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NothingAfterOptionalByValTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Foo(Optional ByVal |</ClassDeclaration>, {})
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NothingAfterByRefOptional()
-            VerifyRecommendationsAreExactly(<ClassDeclaration>Sub Foo(ByRef Optional |</ClassDeclaration>, {})
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NothingAfterByRefOptionalTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Foo(ByRef Optional |</ClassDeclaration>, {})
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NothingAfterByValOptional()
-            VerifyRecommendationsAreExactly(<ClassDeclaration>Sub Foo(ByVal Optional |</ClassDeclaration>, {})
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NothingAfterByValOptionalTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Foo(ByVal Optional |</ClassDeclaration>, {})
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NothingAfterOptionalByRef()
-            VerifyRecommendationsAreExactly(<ClassDeclaration>Sub Foo(Optional ByRef |</ClassDeclaration>, {})
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NothingAfterOptionalByRefTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Foo(Optional ByRef |</ClassDeclaration>, {})
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ByValAfterParamArray()
-            VerifyRecommendationsAreExactly(<ClassDeclaration>Sub Foo(ParamArray |</ClassDeclaration>, "ByVal")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function ByValAfterParamArrayTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Foo(ParamArray |</ClassDeclaration>, "ByVal")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NothingAfterPreviousParamArray()
-            VerifyRecommendationsAreExactly(<ClassDeclaration>Sub Foo(ParamArray arg1 As Integer(), |</ClassDeclaration>, {})
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NothingAfterPreviousParamArrayTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Foo(ParamArray arg1 As Integer(), |</ClassDeclaration>, {})
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub OptionalRecommendedAfterPreviousOptional()
-            VerifyRecommendationsAreExactly(<ClassDeclaration>Sub Foo(Optional arg1 = 2, |</ClassDeclaration>, "Optional")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function OptionalRecommendedAfterPreviousOptionalTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Sub Foo(Optional arg1 = 2, |</ClassDeclaration>, "Optional")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoByRefByValOrParamArrayAfterByVal()
-            VerifyRecommendationsMissing(<ClassDeclaration>Sub Foo(ByVal |, |</ClassDeclaration>, "ByVal", "ByRef", "ParamArray")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NoByRefByValOrParamArrayAfterByValTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Sub Foo(ByVal |, |</ClassDeclaration>, "ByVal", "ByRef", "ParamArray")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoByRefByValAfterByRef()
-            VerifyRecommendationsMissing(<ClassDeclaration>Sub Foo(ByRef |, |</ClassDeclaration>, "ByVal", "ByRef")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NoByRefByValAfterByRefTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Sub Foo(ByRef |, |</ClassDeclaration>, "ByVal", "ByRef")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AllAppropriateInPropertyParameters()
-            VerifyRecommendationsAreExactly(<ClassDeclaration>Property Foo(| As Integer</ClassDeclaration>, "ByVal", "Optional", "ParamArray")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AllAppropriateInPropertyParametersTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Property Foo(| As Integer</ClassDeclaration>, "ByVal", "Optional", "ParamArray")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AllInExternalMethodDeclaration()
-            VerifyRecommendationsAreExactly(<ClassDeclaration>Declare Sub Foo Lib "foo.dll" (|</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AllInExternalMethodDeclarationTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Declare Sub Foo Lib "foo.dll" (|</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AllInExternalDelegateDeclaration()
-            VerifyRecommendationsContain(<ClassDeclaration>Delegate Sub Foo(|</ClassDeclaration>, "ByVal", "ByRef")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AllInExternalDelegateDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Delegate Sub Foo(|</ClassDeclaration>, "ByVal", "ByRef")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AllRecommendationsForSubLambda()
-            VerifyRecommendationsAreExactly(<MethodBody>Dim x = Sub(|</MethodBody>, "ByVal", "ByRef")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AllRecommendationsForSubLambdaTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<MethodBody>Dim x = Sub(|</MethodBody>, "ByVal", "ByRef")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NothingAfterByValInSubLambda()
-            VerifyRecommendationsAreExactly(<MethodBody>Dim x = Sub(ByVal |</MethodBody>, {})
-        End Sub
+        Public Async Function NothingAfterByValInSubLambdaTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<MethodBody>Dim x = Sub(ByVal |</MethodBody>, {})
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NothingAfterByRefInSubLambda()
-            VerifyRecommendationsAreExactly(<MethodBody>Dim x = Sub(ByRef |</MethodBody>, {})
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NothingAfterByRefInSubLambdaTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<MethodBody>Dim x = Sub(ByRef |</MethodBody>, {})
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AllRecommendationsForFunctionLambda()
-            VerifyRecommendationsAreExactly(<MethodBody>Dim x = Function(|</MethodBody>, "ByVal", "ByRef")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AllRecommendationsForFunctionLambdaTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<MethodBody>Dim x = Function(|</MethodBody>, "ByVal", "ByRef")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AllRecommendationsForEvent()
-            VerifyRecommendationsAreExactly(<ClassDeclaration>Event MyEvent(|</ClassDeclaration>, "ByVal", "ByRef")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AllRecommendationsForEventTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Event MyEvent(|</ClassDeclaration>, "ByVal", "ByRef")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NothingAfterByValInFunctionLambda()
-            VerifyRecommendationsAreExactly(<MethodBody>Dim x = Function(ByVal |</MethodBody>, {})
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NothingAfterByValInFunctionLambdaTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<MethodBody>Dim x = Function(ByVal |</MethodBody>, {})
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NothingAfterByRefInFunctionLambda()
-            VerifyRecommendationsAreExactly(<MethodBody>Dim x = Function(ByRef |</MethodBody>, {})
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NothingAfterByRefInFunctionLambdaTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<MethodBody>Dim x = Function(ByRef |</MethodBody>, {})
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub OnlyByValForFirstParameterOfOperator()
-            VerifyRecommendationsAreExactly(<ClassDeclaration>Shared Operator &amp;(|</ClassDeclaration>, "ByVal")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function OnlyByValForFirstParameterOfOperatorTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Shared Operator &amp;(|</ClassDeclaration>, "ByVal")
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub OnlyByValForSecondParameterOfOperator()
-            VerifyRecommendationsAreExactly(<ClassDeclaration>Shared Operator &amp;(i As Integer, |</ClassDeclaration>, "ByVal")
-        End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function OnlyByValForSecondParameterOfOperatorTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Shared Operator &amp;(i As Integer, |</ClassDeclaration>, "ByVal")
+        End Function
 
-        <WorkItem(529209)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub OnlyByValForPropertyAccessor()
-            VerifyRecommendationsAreExactly(<PropertyDeclaration>Set(| value As String)</PropertyDeclaration>, "ByVal")
-        End Sub
+        <WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function OnlyByValForPropertyAccessorTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<PropertyDeclaration>Set(| value As String)</PropertyDeclaration>, "ByVal")
+        End Function
 
-        <WorkItem(529209)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub OnlyByValForAddHandlerAccessor()
-            VerifyRecommendationsAreExactly(<CustomEventDeclaration>AddHandler(| value As EventHandler)</CustomEventDeclaration>, "ByVal")
-        End Sub
+        <WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function OnlyByValForAddHandlerAccessorTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<CustomEventDeclaration>AddHandler(| value As EventHandler)</CustomEventDeclaration>, "ByVal")
+        End Function
 
-        <WorkItem(529209)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub OnlyByValForRemoveHandlerAccessor()
-            VerifyRecommendationsAreExactly(<CustomEventDeclaration>RemoveHandler(| value As EventHandler)</CustomEventDeclaration>, "ByVal")
-        End Sub
+        <WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function OnlyByValForRemoveHandlerAccessorTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<CustomEventDeclaration>RemoveHandler(| value As EventHandler)</CustomEventDeclaration>, "ByVal")
+        End Function
 
-        <WorkItem(529209)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub OnlyByValForRemoveHandlerWhenAllAccessorsPresent()
+        <WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function OnlyByValForRemoveHandlerWhenAllAccessorsPresentTest() As Task
             Dim code =
 <File>
 Class C
@@ -177,18 +170,18 @@ Class C
     End Event
 End Class
 </File>
-            VerifyRecommendationsAreExactly(code, "ByVal")
-        End Sub
+            Await VerifyRecommendationsAreExactlyAsync(code, "ByVal")
+        End Function
 
-        <WorkItem(529209)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub OnlyByValForRaiseEventHandlerAccessor()
-            VerifyRecommendationsAreExactly(<CustomEventDeclaration>RaiseEvent(| sender As Object, e As EventArgs)</CustomEventDeclaration>, "ByVal")
-        End Sub
+        <WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function OnlyByValForRaiseEventHandlerAccessorTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<CustomEventDeclaration>RaiseEvent(| sender As Object, e As EventArgs)</CustomEventDeclaration>, "ByVal")
+        End Function
 
-        <WorkItem(529209)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub OnlyByValForRaiseEventHandlerWhenAllAccessorsPresent()
+        <WorkItem(529209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529209")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function OnlyByValForRaiseEventHandlerWhenAllAccessorsPresentTest() As Task
             Dim code =
 <File>
 Class C
@@ -202,15 +195,15 @@ Class C
     End Event
 End Class
 </File>
-            VerifyRecommendationsAreExactly(code, "ByVal")
-        End Sub
+            Await VerifyRecommendationsAreExactlyAsync(code, "ByVal")
+        End Function
 
-        <WorkItem(530953)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterLineContinuation()
-            VerifyRecommendationsContain(
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterLineContinuationTest() As Task
+            Await VerifyRecommendationsContainAsync(
 <ClassDeclaration>Sub Foo(
 |</ClassDeclaration>, "ByVal", "ByRef", "Optional", "ParamArray")
-        End Sub
+        End Function
     End Class
 End Namespace

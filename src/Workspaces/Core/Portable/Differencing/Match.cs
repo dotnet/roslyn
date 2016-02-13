@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             _root1 = root1;
             _root2 = root2;
             _comparer = comparer;
-            
+
             int labelCount = comparer.LabelCount;
 
             // Calculate chains (not including root node):

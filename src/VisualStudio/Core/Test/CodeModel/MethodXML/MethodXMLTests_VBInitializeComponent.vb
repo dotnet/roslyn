@@ -1,12 +1,13 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBInitializeComponent1()
+        Public Async Function TestVBInitializeComponent1() As Task
             Dim definition =
     <Workspace>
         <Project Language="Visual Basic" CommonReferences="true">
@@ -45,11 +46,11 @@ End Class</Document>
         </Project>
     </Workspace>
 
-            Test(definition, s_initializeComponentXML1)
-        End Sub
+            Await TestAsync(definition, s_initializeComponentXML1)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBInitializeComponent2()
+        Public Async Function TestVBInitializeComponent2() As Task
             Dim definition =
     <Workspace>
         <Project Language="Visual Basic" CommonReferences="true">
@@ -109,8 +110,8 @@ End Class</Document>
         </Project>
     </Workspace>
 
-            Test(definition, s_initializeComponentXML2)
-        End Sub
+            Await TestAsync(definition, s_initializeComponentXML2)
+        End Function
 
     End Class
 End Namespace

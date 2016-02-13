@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -7,20 +8,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     public class AwaitKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInTypeContext()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInTypeContext()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 class Program
 {
     $$
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InSynchronousMethod()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInSynchronousMethod()
         {
-            VerifyKeyword(@"
+            await VerifyKeywordAsync(@"
 class Program
 {
     void foo()
@@ -30,10 +31,10 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void StatementInAsyncMethod()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestStatementInAsyncMethod()
         {
-            VerifyKeyword(@"
+            await VerifyKeywordAsync(@"
 class Program
 {
     async void foo()
@@ -43,10 +44,10 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void ExpressionInAsyncMethod()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExpressionInAsyncMethod()
         {
-            VerifyKeyword(@"
+            await VerifyKeywordAsync(@"
 class Program
 {
     async void foo()
@@ -56,10 +57,10 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInQuery()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInQuery()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 class Program
 {
     async void foo()
@@ -70,11 +71,11 @@ class Program
 }");
         }
 
-        [WorkItem(907052)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InFinally()
+        [WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFinally()
         {
-            VerifyKeyword(@"
+            await VerifyKeywordAsync(@"
 class Program
 {
     async void foo()
@@ -85,11 +86,11 @@ class Program
 }");
         }
 
-        [WorkItem(907052)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InCatch()
+        [WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInCatch()
         {
-            VerifyKeyword(@"
+            await VerifyKeywordAsync(@"
 class Program
 {
     async void foo()
@@ -100,10 +101,10 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInLock()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInLock()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 class Program
 {
     async void foo()
@@ -113,10 +114,10 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InAsyncLambdaInCatch()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAsyncLambdaInCatch()
         {
-            VerifyKeyword(@"
+            await VerifyKeywordAsync(@"
 class Program
 {
     async void foo()
@@ -127,10 +128,10 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AwaitInLock()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAwaitInLock()
         {
-            VerifyKeyword(@"
+            await VerifyKeywordAsync(@"
 class Program
 {
     async void foo()
@@ -139,10 +140,10 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InGlobalStatement()
+        public async Task TestInGlobalStatement()
         {
             const string text = @"$$";
-            VerifyKeyword(SourceCodeKind.Script, text);
-        } 
+            await VerifyKeywordAsync(SourceCodeKind.Script, text);
+        }
     }
 }

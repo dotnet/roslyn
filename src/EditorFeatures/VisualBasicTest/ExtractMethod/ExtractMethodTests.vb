@@ -14,29 +14,29 @@ Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
     Partial Public Class ExtractMethodTests
-        Protected Shared Sub ExpectExtractMethodToFail(codeWithMarker As XElement, Optional dontPutOutOrRefOnStruct As Boolean = True)
+        Protected Shared Async Function ExpectExtractMethodToFailAsync(codeWithMarker As XElement, Optional dontPutOutOrRefOnStruct As Boolean = True) As Tasks.Task
             Dim codeWithoutMarker As String = Nothing
             Dim textSpan As TextSpan
             MarkupTestFile.GetSpan(codeWithMarker.NormalizedValue, codeWithoutMarker, textSpan)
 
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(codeWithoutMarker)
-                Dim treeAfterExtractMethod = ExtractMethod(workspace, workspace.Documents.First(), textSpan, succeeded:=False, dontPutOutOrRefOnStruct:=dontPutOutOrRefOnStruct)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(codeWithoutMarker)
+                Dim treeAfterExtractMethod = Await ExtractMethodAsync(workspace, workspace.Documents.First(), textSpan, succeeded:=False, dontPutOutOrRefOnStruct:=dontPutOutOrRefOnStruct)
             End Using
-        End Sub
+        End Function
 
-        Private Shared Sub NotSupported_ExtractMethod(codeWithMarker As XElement)
+        Private Shared Async Function NotSupported_ExtractMethodAsync(codeWithMarker As XElement) As Tasks.Task
             Dim codeWithoutMarker As String = Nothing
             Dim textSpan As TextSpan
             MarkupTestFile.GetSpan(codeWithMarker.NormalizedValue, codeWithoutMarker, textSpan)
 
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(codeWithoutMarker)
-                Assert.NotNull(Record.Exception(Sub()
-                                                    Dim tree = ExtractMethod(workspace, workspace.Documents.First(), textSpan)
-                                                End Sub))
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(codeWithoutMarker)
+                Assert.NotNull(Await Record.ExceptionAsync(Async Function()
+                                                               Dim tree = Await ExtractMethodAsync(workspace, workspace.Documents.First(), textSpan)
+                                                           End Function))
             End Using
-        End Sub
+        End Function
 
-        Protected Overloads Shared Sub TestExtractMethod(
+        Protected Overloads Shared Async Function TestExtractMethodAsync(
             codeWithMarker As String,
             expected As String,
             Optional temporaryFailing As Boolean = False,
@@ -44,17 +44,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Optional dontPutOutOrRefOnStruct As Boolean = True,
             Optional metadataReference As String = Nothing,
             Optional compareTokens As Boolean = False
-        )
+        ) As Tasks.Task
 
             Dim metadataReferences = If(metadataReference Is Nothing, Array.Empty(Of String)(), New String() {metadataReference})
 
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFiles(New String() {codeWithMarker}, metadataReferences:=metadataReferences, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(New String() {codeWithMarker}, metadataReferences:=metadataReferences, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
                 Dim document = workspace.Documents.First()
                 Dim subjectBuffer = document.TextBuffer
                 Dim textSpan = document.SelectedSpans.First()
 
-                Dim tree = ExtractMethod(workspace, workspace.Documents.First(), textSpan, allowMovingDeclaration:=allowMovingDeclaration, dontPutOutOrRefOnStruct:=dontPutOutOrRefOnStruct)
+                Dim tree = Await ExtractMethodAsync(workspace, workspace.Documents.First(), textSpan, allowMovingDeclaration:=allowMovingDeclaration, dontPutOutOrRefOnStruct:=dontPutOutOrRefOnStruct)
 
                 Using edit = subjectBuffer.CreateEdit()
                     edit.Replace(0, edit.Snapshot.Length, tree.ToFullString())
@@ -71,9 +71,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                     End If
                 End If
             End Using
-        End Sub
+        End Function
 
-        Protected Overloads Shared Sub TestExtractMethod(
+        Protected Overloads Shared Async Function TestExtractMethodAsync(
             codeWithMarker As XElement,
             expected As XElement,
             Optional temporaryFailing As Boolean = False,
@@ -81,17 +81,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Optional dontPutOutOrRefOnStruct As Boolean = True,
             Optional metadataReference As String = Nothing,
             Optional compareTokens As Boolean = False
-        )
+        ) As Tasks.Task
 
-            TestExtractMethod(codeWithMarker.NormalizedValue, expected.NormalizedValue, temporaryFailing, allowMovingDeclaration, dontPutOutOrRefOnStruct, metadataReference, compareTokens)
-        End Sub
+            Await TestExtractMethodAsync(codeWithMarker.NormalizedValue, expected.NormalizedValue, temporaryFailing, allowMovingDeclaration, dontPutOutOrRefOnStruct, metadataReference, compareTokens)
+        End Function
 
-        Private Shared Function ExtractMethod(workspace As TestWorkspace,
+        Private Shared Async Function ExtractMethodAsync(workspace As TestWorkspace,
                                               testDocument As TestHostDocument,
                                               textSpan As TextSpan,
                                               Optional succeeded As Boolean = True,
                                               Optional allowMovingDeclaration As Boolean = True,
-                                              Optional dontPutOutOrRefOnStruct As Boolean = True) As SyntaxNode
+                                              Optional dontPutOutOrRefOnStruct As Boolean = True) As Tasks.Task(Of SyntaxNode)
             Dim snapshotSpan = textSpan.ToSnapshotSpan(testDocument.TextBuffer.CurrentSnapshot)
 
             Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
@@ -101,10 +101,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                                    WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, allowMovingDeclaration).
                                    WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, dontPutOutOrRefOnStruct)
 
-            Dim sdocument = SemanticDocument.CreateAsync(document, CancellationToken.None).Result
+            Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
             Dim validator = New VisualBasicSelectionValidator(sdocument, snapshotSpan.Span.ToTextSpan(), options)
 
-            Dim selectedCode = validator.GetValidSelectionAsync(CancellationToken.None).Result
+            Dim selectedCode = Await validator.GetValidSelectionAsync(CancellationToken.None)
             If Not succeeded And selectedCode.Status.Failed() Then
                 Return Nothing
             End If
@@ -113,27 +113,27 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
 
             ' extract method
             Dim extractor = New VisualBasicMethodExtractor(CType(selectedCode, VisualBasicSelectionResult))
-            Dim result = extractor.ExtractMethodAsync(CancellationToken.None).Result
+            Dim result = Await extractor.ExtractMethodAsync(CancellationToken.None)
             Assert.NotNull(result)
             Assert.Equal(succeeded, result.Succeeded OrElse result.SucceededWithSuggestion)
 
-            Return result.Document.GetSyntaxRootAsync().Result
+            Return Await result.Document.GetSyntaxRootAsync()
         End Function
 
-        Private Shared Sub TestSelection(codeWithMarker As XElement, Optional ByVal expectedFail As Boolean = False)
+        Private Shared Async Function TestSelectionAsync(codeWithMarker As XElement, Optional ByVal expectedFail As Boolean = False) As Tasks.Task
             Dim codeWithoutMarker As String = Nothing
             Dim namedSpans = CType(New Dictionary(Of String, IList(Of TextSpan))(), IDictionary(Of String, IList(Of TextSpan)))
 
             MarkupTestFile.GetSpans(codeWithMarker.NormalizedValue, codeWithoutMarker, namedSpans)
 
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(codeWithoutMarker)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(codeWithoutMarker)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Assert.NotNull(document)
 
                 Dim options = document.Project.Solution.Workspace.Options.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, True)
-                Dim sdocument = SemanticDocument.CreateAsync(document, CancellationToken.None).Result
+                Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
                 Dim validator = New VisualBasicSelectionValidator(sdocument, namedSpans("b").Single(), options)
-                Dim result = validator.GetValidSelectionAsync(CancellationToken.None).Result
+                Dim result = Await validator.GetValidSelectionAsync(CancellationToken.None)
 
                 If expectedFail Then
                     Assert.True(result.Status.Failed(), "Selection didn't fail as expected")
@@ -145,24 +145,24 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                     Assert.Equal(namedSpans("r").Single(), result.FinalSpan)
                 End If
             End Using
-        End Sub
+        End Function
 
-        Private Shared Sub TestInMethod(codeWithMarker As XElement, Optional ByVal expectedFail As Boolean = False)
+        Private Shared Async Function TestInMethodAsync(codeWithMarker As XElement, Optional ByVal expectedFail As Boolean = False) As Tasks.Task
             Dim markupWithMarker = <text>Class C
     Sub S<%= codeWithMarker.Value %>    End Sub
 End Class</text>
-            TestSelection(markupWithMarker, expectedFail)
-        End Sub
+            Await TestSelectionAsync(markupWithMarker, expectedFail)
+        End Function
 
-        Private Shared Sub IterateAll(ByVal code As String)
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(code)
+        Private Shared Async Function IterateAllAsync(code As String) As Tasks.Task
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Assert.NotNull(document)
 
-                Dim sdocument = SemanticDocument.CreateAsync(document, CancellationToken.None).Result
+                Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
 
-                Dim tree = document.GetSyntaxTreeAsync().Result
-                Dim iterator = tree.GetRoot().DescendantNodesAndSelf()
+                Dim root = Await document.GetSyntaxRootAsync()
+                Dim iterator = root.DescendantNodesAndSelf()
 
                 Dim options = document.Project.Solution.Workspace.Options _
                                       .WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, True)
@@ -170,7 +170,7 @@ End Class</text>
                 For Each node In iterator
                     Try
                         Dim validator = New VisualBasicSelectionValidator(sdocument, node.Span, options)
-                        Dim result = validator.GetValidSelectionAsync(CancellationToken.None).Result
+                        Dim result = Await validator.GetValidSelectionAsync(CancellationToken.None)
 
                         ' check the obvious case
                         If Not (TypeOf node Is ExpressionSyntax) AndAlso (Not node.UnderValidContext()) Then
@@ -181,6 +181,6 @@ End Class</text>
                     End Try
                 Next node
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

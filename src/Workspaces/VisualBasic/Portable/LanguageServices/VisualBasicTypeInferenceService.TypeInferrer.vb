@@ -615,7 +615,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function InferTypeInForStepClause(forStepClause As ForStepClauseSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
                 ' TODO(cyrusn): Potentially infer a different type based on the type of the variable
-                ' being foreached over.
+                ' being foreach-ed over.
                 Return SpecializedCollections.SingletonEnumerable(Me.Compilation.GetSpecialType(SpecialType.System_Int32))
             End Function
 
@@ -645,7 +645,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                 End If
 
-                ' If we're in a lambda, then use the return tpe of the lambda to figure out what to
+                ' If we're in a lambda, then use the return type of the lambda to figure out what to
                 ' infer.  i.e.   Func<int,string> f = i => { return Foo(); }
                 Dim lambda = returnStatement.GetAncestorsOrThis(Of ExpressionSyntax)().FirstOrDefault(
                     Function(e) TypeOf e Is MultiLineLambdaExpressionSyntax OrElse
@@ -753,7 +753,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function InferTypeInThrowStatement(Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
-                ' If we're not the Throw token, there's nothing to to
+                ' If we're not the Throw token, there's nothing to do
                 If previousToken <> Nothing AndAlso previousToken.Kind <> SyntaxKind.ThrowKeyword Then
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                 End If

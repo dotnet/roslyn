@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public MSBuildProjectLoader(Workspace workspace, ImmutableDictionary<string, string> properties = null)
         {
             _workspace = workspace;
-            _properties = properties ??  ImmutableDictionary<string, string>.Empty;
+            _properties = properties ?? ImmutableDictionary<string, string>.Empty;
         }
 
         /// <summary>
@@ -97,25 +97,22 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private void SetSolutionProperties(string solutionFilePath)
         {
+            // When MSBuild is building an individual project, it doesn't define $(SolutionDir).
+            // However when building an .sln file, or when working inside Visual Studio,
+            // $(SolutionDir) is defined to be the directory where the .sln file is located.
+            // Some projects out there rely on $(SolutionDir) being set (although the best practice is to
+            // use MSBuildProjectDirectory which is always defined).
             if (!string.IsNullOrEmpty(solutionFilePath))
             {
-                // When MSBuild is building an individual project, it doesn't define $(SolutionDir).
-                // However when building an .sln file, or when working inside Visual Studio,
-                // $(SolutionDir) is defined to be the directory where the .sln file is located.
-                // Some projects out there rely on $(SolutionDir) being set (although the best practice is to
-                // use MSBuildProjectDirectory which is always defined).
-                if (!string.IsNullOrEmpty(solutionFilePath))
+                string solutionDirectory = Path.GetDirectoryName(solutionFilePath);
+                if (!solutionDirectory.EndsWith(@"\", StringComparison.Ordinal))
                 {
-                    string solutionDirectory = Path.GetDirectoryName(solutionFilePath);
-                    if (!solutionDirectory.EndsWith(@"\", StringComparison.Ordinal))
-                    {
-                        solutionDirectory += @"\";
-                    }
+                    solutionDirectory += @"\";
+                }
 
-                    if (Directory.Exists(solutionDirectory))
-                    {
-                        _properties = _properties.SetItem(SolutionDirProperty, solutionDirectory);
-                    }
+                if (Directory.Exists(solutionDirectory))
+                {
+                    _properties = _properties.SetItem(SolutionDirProperty, solutionDirectory);
                 }
             }
         }
@@ -234,8 +231,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// The first <see cref="ProjectInfo"/> in the result corresponds to the specified project file.
         /// </summary>
         public async Task<ImmutableArray<ProjectInfo>> LoadProjectInfoAsync(
-            string projectFilePath, 
-            ImmutableDictionary<string, ProjectId> projectPathToProjectIdMap = null, 
+            string projectFilePath,
+            ImmutableDictionary<string, ProjectId> projectPathToProjectIdMap = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (projectFilePath == null)
@@ -259,7 +256,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private class LoadState
         {
-            private Dictionary<ProjectId, ProjectInfo> _projetIdToProjectInfoMap
+            private Dictionary<ProjectId, ProjectInfo> _projectIdToProjectInfoMap
                 = new Dictionary<ProjectId, ProjectInfo>();
 
             private List<ProjectInfo> _projectInfoList
@@ -278,13 +275,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             public void Add(ProjectInfo info)
             {
-                _projetIdToProjectInfoMap.Add(info.Id, info);
+                _projectIdToProjectInfoMap.Add(info.Id, info);
                 _projectInfoList.Add(info);
             }
 
             public bool TryGetValue(ProjectId id, out ProjectInfo info)
             {
-                return _projetIdToProjectInfoMap.TryGetValue(id, out info);
+                return _projectIdToProjectInfoMap.TryGetValue(id, out info);
             }
 
             public IReadOnlyList<ProjectInfo> Projects

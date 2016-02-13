@@ -3,7 +3,7 @@
   "version": 1,
   "targets": {
     ".NETPlatform,Version=v5.0": {
-      "Microsoft.DiaSymReader/1.0.6": {
+      "Microsoft.DiaSymReader/1.0.7": {
         "compile": {
           "lib/portable-net45+win8/Microsoft.DiaSymReader.dll": {}
         },
@@ -201,7 +201,7 @@
           "ref/dotnet/System.Reflection.Extensions.dll": {}
         }
       },
-      "System.Reflection.Metadata/1.1.0": {
+      "System.Reflection.Metadata/1.2.0-rc3-23811": {
         "dependencies": {
           "System.Collections.Immutable": "[1.1.37, )"
         },
@@ -475,8 +475,8 @@
     }
   },
   "libraries": {
-    "Microsoft.DiaSymReader/1.0.6": {
-      "sha512": "ai2eBJrXlHa0hecUKnEyacH0iXxGNOMpc9X0s7VAeqqh5TSTW70QMhTRZ0FNCtf3R/W67K4a+uf3R7MASmAjrg==",
+    "Microsoft.DiaSymReader/1.0.7": {
+      "sha512": "4tPrkKu02w87HEvoubBGm7Hqjps69DucsBWQvGezwvDV5RJt+eZqdmdC/jNH1qn6hIem9JpJnLBK0abBzhErOg==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -486,7 +486,7 @@
         "lib/portable-net45+win8/Microsoft.DiaSymReader.dll",
         "lib/portable-net45+win8/Microsoft.DiaSymReader.xml",
         "Microsoft.DiaSymReader.nuspec",
-        "package/services/metadata/core-properties/ead7dc5d4bf24fbe8708f348725a9b02.psmdcp"
+        "package/services/metadata/core-properties/8754926735b64532b55b0acd21f93808.psmdcp"
       ]
     },
     "Microsoft.DiaSymReader.Native/1.3.3": {
@@ -1143,18 +1143,20 @@
         "System.Reflection.Extensions.nuspec"
       ]
     },
-    "System.Reflection.Metadata/1.1.0": {
-      "sha512": "a8VsRm/B0Ik1o5FumSMWmpwbG7cvIIajAYhzTTy9VB9XItByJDQHGZkQTIAdsvVJ6MI5O3uH/lb0izgQDlDIWA==",
+    "System.Reflection.Metadata/1.2.0-rc3-23811": {
+      "sha512": "gAOQV1dsGyQfQUuzsCYFLMlI6BhfK1/2aA7JGf6gJphaLgjU4dV4hzjbE0iZXgo61VUuda2LtCBrWWZBw5897Q==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
+        "dotnet_library_license.txt",
         "lib/dotnet5.2/System.Reflection.Metadata.dll",
         "lib/dotnet5.2/System.Reflection.Metadata.xml",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml",
-        "package/services/metadata/core-properties/644d6c945e3d43e2806bf6892201a6ef.psmdcp",
-        "System.Reflection.Metadata.nuspec"
+        "package/services/metadata/core-properties/9aa921f066b94690988804574c5d2231.psmdcp",
+        "System.Reflection.Metadata.nuspec",
+        "ThirdPartyNotices.txt"
       ]
     },
     "System.Reflection.Primitives/4.0.0": {

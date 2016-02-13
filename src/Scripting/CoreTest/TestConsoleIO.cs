@@ -9,6 +9,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
 {
     internal sealed class TestConsoleIO : ConsoleIO
     {
+        private const ConsoleColor InitialColor = ConsoleColor.Gray;
+
         public TestConsoleIO(string input)
             : this(new Reader(input))
         {
@@ -21,15 +23,15 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
 
         public override ConsoleColor ForegroundColor
         {
-            get
-            {
-                return ((Writer)Out).CurrentColor;
-            }
-
             set
             {
                 ((Writer)Out).CurrentColor = value;
             }
+        }
+
+        public override void ResetColor()
+        {
+            ForegroundColor = InitialColor;
         }
 
         private sealed class Reader : StringReader
@@ -51,8 +53,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
 
         private sealed class Writer : StringWriter
         {
-            private ConsoleColor _lastColor = ConsoleColor.Gray;
-            public ConsoleColor CurrentColor = ConsoleColor.Gray;
+            private ConsoleColor _lastColor = InitialColor;
+            public ConsoleColor CurrentColor = InitialColor;
             public override Encoding Encoding => Encoding.UTF8;
             private readonly Reader _reader;
 

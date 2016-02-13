@@ -1,11 +1,11 @@
 ## Welcome to the .NET Compiler Platform ("Roslyn")
 
 ### Windows - Unit Tests
-||Debug x86|Debug x64|Release x86|Release x64|
-|:--:|:--:|:--:|:--:|:--:|
-|**master**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_dbg_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_dbg_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_rel_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_rel_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_rel_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_rel_unit64/)|
-|**future**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_dbg_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_dbg_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_rel_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_rel_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_rel_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_rel_unit64/)|
-|**stabilization**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_stabil_win_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_stabil_win_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_stabil_win_dbg_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_stabil_win_dbg_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_stabil_win_rel_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_stabil_win_rel_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_stabil_win_rel_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_stabil_win_rel_unit64/)|
+||Debug x86|Debug x64|Release x86|Release x64|Determinism|
+|:--:|:--:|:--:|:--:|:--:|:--:|
+|**master**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_dbg_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_dbg_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_rel_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_rel_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_rel_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_rel_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_determinism/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_determinism/)|
+|**future**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_dbg_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_dbg_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_rel_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_rel_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_rel_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_rel_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_determinism/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_determinism/)|
+|**stabilization**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_stabil_win_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_stabil_win_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_stabil_win_dbg_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_stabil_win_dbg_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_stabil_win_rel_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_stabil_win_rel_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_stabil_win_rel_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_stabil_win_rel_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_stabil_determinism/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_stabil_determinism/)|
 
 ### Linux/Mac - Unit Tests
 ||Linux|Mac OSX|
@@ -55,6 +55,7 @@ To get the latest "preview" drop, published about once per month, add the `-pre`
 * [Language Feature Status](https://github.com/dotnet/roslyn/wiki/Languages-features-in-C%23-6-and-VB-14)
 * [Language Design Notes](https://github.com/dotnet/roslyn/issues?q=label%3A%22Design+Notes%22+)
 * [FAQ](https://github.com/dotnet/roslyn/wiki/FAQ)
+* Also take a look at our [Wiki](https://github.com/dotnet/roslyn/wiki) for more information on how to contribute, what the labels on issue mean, etc.
 
 ### Contribute!
 
@@ -65,7 +66,10 @@ Some of the best ways to contribute are to try things out, file bugs, and join i
 
 Looking for something to work on? The list of [up for grabs issues](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3A%22Up+for+Grabs%22) is a great place to start.
 
+This project has adopted a code of conduct adapted from the [Contributor Covenant](http://contributor-covenant.org/) to clarify expected behavior in our community. This code of conduct has been [adopted by many other projects](http://contributor-covenant.org/adopters/). For more information see the [Code of conduct](http://www.dotnetfoundation.org/code-of-conduct).
+
+
 ### .NET Foundation
 
 This project is part of the [.NET Foundation](http://www.dotnetfoundation.org/projects) along with other
-projects like [the class libraries for .NET Core](https://github.com/dotnet/corefx/).
+projects like [the class libraries for .NET Core](https://github.com/dotnet/corefx/). 

@@ -215,6 +215,7 @@ public class C { }").Path;
                 filelist.Add(source1);
                 var outWriter = new StringWriter();
                 var cmd = new CSharpCompilerServer(
+                    DesktopCompilerServerHost.SharedAssemblyReferenceProvider,
                     new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
                     null,
                     _baseDirectory,

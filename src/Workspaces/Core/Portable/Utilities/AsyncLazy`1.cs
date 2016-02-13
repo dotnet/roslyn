@@ -217,7 +217,7 @@ namespace Roslyn.Utilities
                 request.RegisterForCancellation(OnAsynchronousRequestCancelled, cancellationToken);
 
                 // Since we already registered for cancellation, it's possible that the registration has
-                // cancelled this new computation if we were the only requestor.
+                // cancelled this new computation if we were the only requester.
                 if (newAsynchronousComputation != null)
                 {
                     StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: request, callerCancellationToken: cancellationToken);
@@ -409,7 +409,7 @@ namespace Roslyn.Utilities
 
                 // We can only be here if the computation was cancelled, which means all requests for the value
                 // must have been cancelled. Therefore, the ThrowIfCancellationRequested above must have thrown
-                // because that token from the requestor was cancelled.
+                // because that token from the requester was cancelled.
                 throw ExceptionUtilities.Unreachable;
             }
         }

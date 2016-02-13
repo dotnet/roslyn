@@ -2,7 +2,6 @@
 <RuleSet Name="Ruleset for Roslyn test projects." Description="These rule are identical to the minimum recommended ruleset, but specific roslyn performance rules have been turned off." ToolsVersion="14.0">
   <!-- Include all non-shipping project rules -->
   <Include Path="..\src\Tools\Microsoft.CodeAnalysis.Toolset.Open\Rulesets\NonShippingProjectRules.ruleset" Action="Default" />
-
   <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
     <Rule Id="CA1001" Action="Warning" />
     <Rule Id="CA1009" Action="Warning" />
@@ -51,6 +50,7 @@
     <Rule Id="RS0005" Action="None" />
     <Rule Id="RS0007" Action="None" />
     <Rule Id="RS0014" Action="None" />
+    <Rule Id="RS0003" Action="None" />
   </Rules>
   <Rules AnalyzerId="Roslyn.Diagnostics.Analyzers.VisualBasic" RuleNamespace="Roslyn.Diagnostics.Analyzers.VisualBasic">
     <Rule Id="RS0001" Action="None" />

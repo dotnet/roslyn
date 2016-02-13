@@ -8,7 +8,7 @@ namespace Roslyn.Utilities
     {
         public static FailFastReset SuppressFailFast()
         {
-            // TODO: reimplement this mechanism in a portable way
+            // TODO: re-implement this mechanism in a portable way
             // CallContext.LogicalSetData(SuppressFailFastKey, boxedTrue);
             return new FailFastReset();
         }

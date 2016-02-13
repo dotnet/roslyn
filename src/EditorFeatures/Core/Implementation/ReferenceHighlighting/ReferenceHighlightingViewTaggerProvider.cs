@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
-            // Note: we don't listen for OnTextChanged.  Text changes to this this buffer will get
+            // Note: we don't listen for OnTextChanged.  Text changes to this buffer will get
             // reported by OnSemanticChanged.
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnCaretPositionChanged(textView, textView.TextBuffer, TaggerDelay.Short),
@@ -191,6 +191,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                     return ReferenceHighlightTag.Instance;
             }
         }
-
     }
 }

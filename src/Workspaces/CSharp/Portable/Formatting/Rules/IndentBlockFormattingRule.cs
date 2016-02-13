@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             if (lastToken.IsMissing)
             {
-                // embedded statement is not done, consider following as part of embeded statement
+                // embedded statement is not done, consider following as part of embedded statement
                 AddIndentBlockOperation(list, firstToken, lastToken);
             }
             else

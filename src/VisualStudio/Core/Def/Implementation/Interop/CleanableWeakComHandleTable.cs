@@ -176,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
             if (_table.ContainsKey(key))
             {
-                throw new InvalidOperationException("Key already exists in table.");
+                throw new InvalidOperationException($"Key already exists in table: {(key != null ? key.ToString() : "<null>")}.");
             }
 
             _itemsAddedSinceLastCleanUp++;
@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
             InvalidateEnumerator();
 
-            this._table.Add(key, new WeakComHandle<TValue, TValue>(value));
+            _table.Add(key, new WeakComHandle<TValue, TValue>(value));
         }
 
         public TValue Remove(TKey key)
@@ -210,6 +210,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
             }
 
             return null;
+        }
+
+        public bool ContainsKey(TKey key)
+        {
+            this.AssertIsForeground();
+
+            return _table.ContainsKey(key);
         }
 
         public bool TryGetValue(TKey key, out TValue value)

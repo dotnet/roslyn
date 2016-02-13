@@ -40,8 +40,8 @@ namespace CSharpAnalyzers
 
         #endregion
 
-        internal const string UnsecureMethodAttributeName = "MyNamespace.UnsecureMethodAttribute";
-        internal const string SecureTypeInterfaceName = "MyNamespace.ISecureType";
+        public const string UnsecureMethodAttributeName = "MyNamespace.UnsecureMethodAttribute";
+        public const string SecureTypeInterfaceName = "MyNamespace.ISecureType";
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

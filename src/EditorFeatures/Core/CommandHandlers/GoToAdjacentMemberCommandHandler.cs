@@ -2,11 +2,10 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared;
@@ -15,7 +14,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Outlining;
 using Roslyn.Utilities;
 
@@ -70,7 +68,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             int? targetPosition = null;
             var waitResult = _waitIndicator.Wait(EditorFeaturesResources.Navigating, allowCancel: true, action: waitContext =>
             {
-                targetPosition = GetTargetPosition(document, caretPoint.Value.Position, args.Direction == NavigateDirection.Down, waitContext.CancellationToken);
+                var task = GetTargetPositionAsync(document, caretPoint.Value.Position, args.Direction == NavigateDirection.Down, waitContext.CancellationToken);
+                targetPosition = task.WaitAndGetResult(waitContext.CancellationToken);
             });
 
             if (waitResult == WaitIndicatorResult.Canceled || targetPosition == null)
@@ -84,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         /// <summary>
         /// Internal for testing purposes.
         /// </summary>
-        internal static int? GetTargetPosition(Document document, int caretPosition, bool next, CancellationToken cancellationToken)
+        internal static async Task<int?> GetTargetPositionAsync(Document document, int caretPosition, bool next, CancellationToken cancellationToken)
         {
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             if (syntaxFactsService == null)
@@ -92,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 return null;
             }
 
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
             var members = syntaxFactsService.GetMethodLevelMembers(root);
             if (members.Count == 0)
             {

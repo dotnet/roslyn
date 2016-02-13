@@ -59,6 +59,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             get { return CSharpVSResources.Option_GenerateXmlDocCommentsForTripleSlash; }
         }
 
+        public static string Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments
+        {
+            get { return CSharpVSResources.Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments; }
+        }
+
         public static string Option_Highlighting
         {
             get { return CSharpVSResources.Option_Highlighting; }

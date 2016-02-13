@@ -1,103 +1,96 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class ContinueKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ContinueNotInMethodBody()
-            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Continue")
-        End Sub
+        Public Async Function ContinueNotInMethodBodyTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Continue")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ContinueInForLoop()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function ContinueInForLoopTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 For i = 1 To 10
 |
 Next</MethodBody>, "Continue")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ContinueInForEachLoop()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function ContinueInForEachLoopTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 For Each i In j
 |
 Next</MethodBody>, "Continue")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ContinueInWhileLoop()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function ContinueInWhileLoopTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 While True
 |
 End While</MethodBody>, "Continue")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ContinueInDoWhileLoop()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function ContinueInDoWhileLoopTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Do While True
 |
 Loop</MethodBody>, "Continue")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ContinueInLoopWhileLoop()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function ContinueInLoopWhileLoopTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Do
 |
 Loop While True</MethodBody>, "Continue")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ContinueInInfiniteDoWhileLoop()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function ContinueInInfiniteDoWhileLoopTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Do
 |
 Loop</MethodBody>, "Continue")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ContinueNotInLambda()
-            VerifyRecommendationsMissing(<MethodBody>
+        Public Async Function ContinueNotInLambdaTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>
 Do
 Dim x = Function()
 |
         End Function
 Loop</MethodBody>, "Continue")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ContinueInClassDeclarationLambda()
-            VerifyRecommendationsContain(<ClassDeclaration>
+        Public Async Function ContinueInClassDeclarationLambdaTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
 Dim _x = Function()
              Do
              |
              Loop
          End Function
 </ClassDeclaration>, "Continue")
-        End Sub
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ContinueNotInSingleLineLambdaInMethodBody()
-            VerifyRecommendationsMissing(<MethodBody>
+        Public Async Function ContinueNotInSingleLineLambdaInMethodBodyTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>
 Dim x = Sub() |
 </MethodBody>, "Continue")
-        End Sub
+        End Function
     End Class
 End Namespace

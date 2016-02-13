@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             #endregion
 
-            public event Action<ICollection<KeyValuePair<ITextBuffer, NormalizedSnapshotSpanCollection>>> TagsChangedForBuffer;
+            public event Action<ICollection<KeyValuePair<ITextBuffer, DiffResult>>> TagsChangedForBuffer;
 
             public event EventHandler Paused;
             public event EventHandler Resumed;
@@ -99,16 +101,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 DebugRecordInitialStackTrace();
 
-                this._workQueue = new AsynchronousSerialWorkQueue(asyncListener);
+                _workQueue = new AsynchronousSerialWorkQueue(asyncListener);
                 this.CachedTagTrees = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
 
-                _eventSource = CreateEventSource(); 
+                _eventSource = CreateEventSource();
 
                 Connect();
 
-                // Kick off a task to compte the initial set of tags.
+                // Kick off a task to compute the initial set of tags.
                 RecalculateTagsOnChanged(new TaggerEventArgs(TaggerDelay.Short));
             }
+
+            public TaggerDelay AddedTagNotificationDelay => _dataSource.AddedTagNotificationDelay;
+            public TaggerDelay RemovedTagNotificationDelay => _dataSource.RemovedTagNotificationDelay;
 
             private ITaggerEventSource CreateEventSource()
             {
@@ -134,13 +139,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    this._workQueue.AssertIsForeground();
+                    _workQueue.AssertIsForeground();
                     return _accumulatedTextChanges_doNotAccessDirectly;
                 }
 
                 set
                 {
-                    this._workQueue.AssertIsForeground();
+                    _workQueue.AssertIsForeground();
                     _accumulatedTextChanges_doNotAccessDirectly = value;
                 }
             }
@@ -149,13 +154,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    this._workQueue.AssertIsForeground();
+                    _workQueue.AssertIsForeground();
                     return _cachedTagTrees_doNotAccessDirectly;
                 }
 
                 set
                 {
-                    this._workQueue.AssertIsForeground();
+                    _workQueue.AssertIsForeground();
                     _cachedTagTrees_doNotAccessDirectly = value;
                 }
             }
@@ -164,13 +169,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    this._workQueue.AssertIsForeground();
+                    _workQueue.AssertIsForeground();
                     return _state_doNotAccessDirecty;
                 }
 
                 set
                 {
-                    this._workQueue.AssertIsForeground();
+                    _workQueue.AssertIsForeground();
                     _state_doNotAccessDirecty = value;
                 }
             }
@@ -179,20 +184,20 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    this._workQueue.AssertIsForeground();
+                    _workQueue.AssertIsForeground();
                     return _upToDate_doNotAccessDirectly;
                 }
 
                 set
                 {
-                    this._workQueue.AssertIsForeground();
+                    _workQueue.AssertIsForeground();
                     _upToDate_doNotAccessDirectly = value;
                 }
             }
 
             public void RegisterNotification(Action action, int delay, CancellationToken cancellationToken)
             {
-                _notificationService.RegisterNotification(action, delay, this._asyncListener.BeginAsyncOperation("TagSource"), cancellationToken);
+                _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation("TagSource"), cancellationToken);
             }
 
             /// <summary>
@@ -202,14 +207,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 // First, cancel any previous requests (either still queued, or started).  We no longer
                 // want to continue it if new changes have come in.
-                this._workQueue.CancelCurrentWork();
+                _workQueue.CancelCurrentWork();
 
-                RegisterNotification(RecomputeTagsForeground, (int)e.Delay.ComputeTimeDelay(this._subjectBuffer).TotalMilliseconds, this._workQueue.CancellationToken);
+                RegisterNotification(RecomputeTagsForeground, (int)e.Delay.ComputeTimeDelay(_subjectBuffer).TotalMilliseconds, _workQueue.CancellationToken);
             }
 
             private void Connect()
             {
-                this._workQueue.AssertIsForeground();
+                _workQueue.AssertIsForeground();
 
                 _eventSource.Changed += OnChanged;
                 _eventSource.UIUpdatesResumed += OnUIUpdatesResumed;
@@ -217,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
                 {
-                    this._subjectBuffer.Changed += OnSubjectBufferChanged;
+                    _subjectBuffer.Changed += OnSubjectBufferChanged;
                 }
 
                 if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
@@ -237,20 +242,20 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             public void Disconnect()
             {
-                this._workQueue.AssertIsForeground();
-                this._workQueue.CancelCurrentWork();
+                _workQueue.AssertIsForeground();
+                _workQueue.CancelCurrentWork();
 
                 // Tell the interaction object to stop issuing events.
                 _eventSource.Disconnect();
 
                 if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
                 {
-                    this._textViewOpt.Caret.PositionChanged -= OnCaretPositionChanged;
+                    _textViewOpt.Caret.PositionChanged -= OnCaretPositionChanged;
                 }
 
                 if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
                 {
-                    this._subjectBuffer.Changed -= OnSubjectBufferChanged;
+                    _subjectBuffer.Changed -= OnSubjectBufferChanged;
                 }
 
                 _eventSource.UIUpdatesPaused -= OnUIUpdatesPaused;
@@ -258,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _eventSource.Changed -= OnChanged;
             }
 
-            private void RaiseTagsChanged(ITextBuffer buffer, NormalizedSnapshotSpanCollection difference)
+            private void RaiseTagsChanged(ITextBuffer buffer, DiffResult difference)
             {
                 this.AssertIsForeground();
                 if (difference.Count == 0)
@@ -268,34 +273,22 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
 
                 RaiseTagsChanged(SpecializedCollections.SingletonCollection(
-                    new KeyValuePair<ITextBuffer, NormalizedSnapshotSpanCollection>(buffer, difference)));
+                    new KeyValuePair<ITextBuffer, DiffResult>(buffer, difference)));
             }
 
-            private void RaiseTagsChanged(ICollection<KeyValuePair<ITextBuffer, NormalizedSnapshotSpanCollection>> collection)
+            private void RaiseTagsChanged(ICollection<KeyValuePair<ITextBuffer, DiffResult>> collection)
             {
-                var tagsChangedForBuffer = TagsChangedForBuffer;
-                if (tagsChangedForBuffer != null)
-                {
-                    tagsChangedForBuffer(collection);
-                }
+                TagsChangedForBuffer?.Invoke(collection);
             }
 
             private void RaisePaused()
             {
-                var paused = this.Paused;
-                if (paused != null)
-                {
-                    paused(this, EventArgs.Empty);
-                }
+                this.Paused?.Invoke(this, EventArgs.Empty);
             }
 
             private void RaiseResumed()
             {
-                var resumed = this.Resumed;
-                if (resumed != null)
-                {
-                    resumed(this, EventArgs.Empty);
-                }
+                this.Resumed?.Invoke(this, EventArgs.Empty);
             }
 
             private static T NextOrDefault<T>(IEnumerator<T> enumerator)
@@ -306,13 +299,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// <summary>
             /// Return all the spans that appear in only one of "latestSpans" or "previousSpans".
             /// </summary>
-            private static IEnumerable<SnapshotSpan> Difference<T>(IEnumerable<ITagSpan<T>> latestSpans, IEnumerable<ITagSpan<T>> previousSpans, IEqualityComparer<T> comparer)
+            private static DiffResult Difference<T>(IEnumerable<ITagSpan<T>> latestSpans, IEnumerable<ITagSpan<T>> previousSpans, IEqualityComparer<T> comparer)
                 where T : ITag
             {
-                var latestEnumerator = latestSpans.GetEnumerator();
-                var previousEnumerator = previousSpans.GetEnumerator();
-                try
+                using (var addedPool = SharedPools.Default<List<SnapshotSpan>>().GetPooledObject())
+                using (var removedPool = SharedPools.Default<List<SnapshotSpan>>().GetPooledObject())
+                using (var latestEnumerator = latestSpans.GetEnumerator())
+                using (var previousEnumerator = previousSpans.GetEnumerator())
                 {
+                    var added = addedPool.Object;
+                    var removed = removedPool.Object;
+
                     var latest = NextOrDefault(latestEnumerator);
                     var previous = NextOrDefault(previousEnumerator);
 
@@ -323,12 +320,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                         if (latestSpan.Start < previousSpan.Start)
                         {
-                            yield return latestSpan;
+                            added.Add(latestSpan);
                             latest = NextOrDefault(latestEnumerator);
                         }
                         else if (previousSpan.Start < latestSpan.Start)
                         {
-                            yield return previousSpan;
+                            removed.Add(previousSpan);
                             previous = NextOrDefault(previousEnumerator);
                         }
                         else
@@ -337,19 +334,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                             // region to be conservative.
                             if (previousSpan.End > latestSpan.End)
                             {
-                                yield return previousSpan;
+                                removed.Add(previousSpan);
                                 latest = NextOrDefault(latestEnumerator);
                             }
                             else if (latestSpan.End > previousSpan.End)
                             {
-                                yield return latestSpan;
+                                added.Add(latestSpan);
                                 previous = NextOrDefault(previousEnumerator);
                             }
                             else
                             {
                                 if (!comparer.Equals(latest.Tag, previous.Tag))
                                 {
-                                    yield return latestSpan;
+                                    added.Add(latestSpan);
                                 }
 
                                 latest = NextOrDefault(latestEnumerator);
@@ -360,20 +357,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     while (latest != null)
                     {
-                        yield return latest.Span;
+                        added.Add(latest.Span);
                         latest = NextOrDefault(latestEnumerator);
                     }
 
                     while (previous != null)
                     {
-                        yield return previous.Span;
+                        removed.Add(previous.Span);
                         previous = NextOrDefault(previousEnumerator);
                     }
-                }
-                finally
-                {
-                    latestEnumerator.Dispose();
-                    previousEnumerator.Dispose();
+
+                    return new DiffResult(added, removed);
                 }
             }
         }

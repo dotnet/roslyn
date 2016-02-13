@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
     Public Class EmitMetadata
         Inherits BasicTestBase
 
-        <Fact, WorkItem(547015, "DevDiv")>
+        <Fact, WorkItem(547015, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547015")>
         Public Sub IncorrectCustomAssemblyTableSize_TooManyMethodSpecs()
             Dim source = TestResources.MetadataTests.Invalid.ManyMethodSpecs
             CompileAndVerify(VisualBasicCompilation.Create("Foo", syntaxTrees:={Parse(source)}, references:={MscorlibRef, SystemCoreRef, MsvbRef}))
@@ -553,7 +553,7 @@ End Class
             Assert.Equal(0, reader.GetTypeDefinition(typeDefs(0)).Attributes)
         End Sub
 
-        <WorkItem(543517, "DevDiv")>
+        <WorkItem(543517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543517")>
         <Fact()>
         Public Sub EmitBeforeFieldInit()
             CompileAndVerify(
@@ -904,7 +904,7 @@ End Class
 
         End Sub
 
-        <Fact, WorkItem(90)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6190"), WorkItem(90, "https://github.com/dotnet/roslyn/issues/90")>
         Public Sub EmitWithNoResourcesAllPlatforms()
             Dim comp = CreateCompilationWithMscorlib(
                 <compilation>

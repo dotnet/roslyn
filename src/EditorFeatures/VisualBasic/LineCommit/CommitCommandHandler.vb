@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
                         bufferManager.CommitDirty(isExplicitFormat:=False, cancellationToken:=_cancellationToken)
 
-                        ' We may have reindented the surrounding block, so let's recompute
+                        ' We may have re-indented the surrounding block, so let's recompute
                         ' where we should end up
                         Dim newCaretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer)
 

@@ -34,8 +34,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         ' "probably not crash" as an improvement over "will crash when the finalizer throws."
 
         <HandleProcessCorruptedStateExceptions()>
-        Public Function CreateCodeModelTestState(definition As XElement) As CodeModelTestState
-            Dim workspace = TestWorkspaceFactory.CreateWorkspace(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+        Public Async Function CreateCodeModelTestStateAsync(definition As XElement) As Threading.Tasks.Task(Of CodeModelTestState)
+            Dim workspace = Await TestWorkspace.CreateAsync(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
 
             Dim result As CodeModelTestState = Nothing
             Try
@@ -145,9 +145,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Dim result As EnvDTE.CodeElement = Nothing
 
             For Each candidateScope In candidateScopes
+                Roslyn.Test.Utilities.WpfTestCase.RequireWpfFact($"{NameOf(GetCodeElementAtCursor)} creates CodeElements and thus uses the affinited CleanableWeakComHandleTable")
+
                 Try
                     result = state.FileCodeModelObject.CodeElementFromPosition(cursorPosition, candidateScope)
-                Catch
+                Catch ex As COMException
                     ' Loop around and try the next candidate scope
                     result = Nothing
                 End Try

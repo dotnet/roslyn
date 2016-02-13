@@ -367,44 +367,46 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "40497058210285131854513962138377228261454376934125320985913276672363" +
                 "28125001e-324",
                 0x0000000000000001);
+
+            CheckOneDouble("1.0e-99999999999999999999", 0.0);
+            CheckOneDouble("0e-99999999999999999999", 0.0);
+            CheckOneDouble("0e99999999999999999999", 0.0);
         }
 
-        static void TestRoundTripDouble(ulong bits)
+        private static void TestRoundTripDouble(ulong bits)
         {
             double d = BitConverter.Int64BitsToDouble((long)bits);
             if (double.IsInfinity(d) || double.IsNaN(d)) return;
-            string s = $"{d:G17}";
+            string s = InvariantToString(d);
             CheckOneDouble(s, bits);
         }
 
-        static void TestRoundTripDouble(double d)
+        private static string InvariantToString(object o)
         {
-            string s = $"{d:G17}";
+            return string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:G17}", o);
+        }
+
+        private static void TestRoundTripDouble(double d)
+        {
+            string s = InvariantToString(d);
             CheckOneDouble(s, d);
         }
 
-        static void CheckOneDouble(string s, ulong expectedBits)
+        private static void CheckOneDouble(string s, ulong expectedBits)
         {
             CheckOneDouble(s, BitConverter.Int64BitsToDouble((long)expectedBits));
         }
 
-        static void CheckOneDouble(string s, double expected)
+        private static void CheckOneDouble(string s, double expected)
         {
             double actual;
             if (!RealParser.TryParseDouble(s, out actual)) actual = 1.0 / 0.0;
             if (!actual.Equals(expected))
             {
-#if DEBUG
-                throw new AssertFailureException($@"
-Error for double input ""{s}""
-   expected {expected:G17}
-   actual {actual:G17}");
-#else
                 throw new Exception($@"
 Error for double input ""{s}""
-   expected {expected:G17}
-   actual {actual:G17}");
-#endif
+   expected {InvariantToString(expected)}
+   actual {InvariantToString(actual)}");
             }
         }
 
@@ -551,51 +553,45 @@ Error for double input ""{s}""
         }
 
 
-        static void TestRoundTripFloat(uint bits)
+        private static void TestRoundTripFloat(uint bits)
         {
             float d = Int32BitsToFloat(bits);
             if (float.IsInfinity(d) || float.IsNaN(d)) return;
-            string s = $"{d:G17}";
+            string s = InvariantToString(d);
             CheckOneFloat(s, bits);
         }
 
-        static void TestRoundTripFloat(float d)
+        private static void TestRoundTripFloat(float d)
         {
-            string s = $"{d:G17}";
+            string s = InvariantToString(d);
             if (s != "NaN" && s != "Infinity") CheckOneFloat(s, d);
         }
 
-        static void CheckOneFloat(string s, uint expectedBits)
+        private static void CheckOneFloat(string s, uint expectedBits)
         {
             CheckOneFloat(s, Int32BitsToFloat(expectedBits));
         }
 
-        static void CheckOneFloat(string s, float expected)
+        private static void CheckOneFloat(string s, float expected)
         {
             float actual;
             if (!RealParser.TryParseFloat(s, out actual)) actual = 1.0f / 0.0f;
             if (!actual.Equals(expected))
             {
-#if DEBUG
-                throw new AssertFailureException($@"Error for float input ""{s}""
-   expected {expected:G17}
-   actual {actual:G17}");
-#else
                 throw new Exception($@"Error for float input ""{s}""
-   expected {expected:G17}
-   actual {actual:G17}");
-#endif
+   expected {InvariantToString(expected)}
+   actual {InvariantToString(actual)}");
             }
         }
 
-        static uint FloatToInt32Bits(float f)
+        private static uint FloatToInt32Bits(float f)
         {
             var bits = default(FloatUnion);
             bits.FloatData = f;
             return bits.IntData;
         }
 
-        static float Int32BitsToFloat(uint i)
+        private static float Int32BitsToFloat(uint i)
         {
             var bits = default(FloatUnion);
             bits.IntData = i;
@@ -603,7 +599,7 @@ Error for double input ""{s}""
         }
 
         [StructLayout(LayoutKind.Explicit)]
-        struct FloatUnion
+        private struct FloatUnion
         {
             [FieldOffset(0)]
             public uint IntData;

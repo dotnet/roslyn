@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         public CommandState GetCommandState(TabKeyCommandArgs args, Func<CommandState> nextHandler)
         {
             AssertIsForeground();
-            
+
             if (!AreSnippetsEnabled(args))
             {
                 return nextHandler();

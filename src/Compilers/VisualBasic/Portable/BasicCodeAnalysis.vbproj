@@ -45,48 +45,20 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <Optimize>false</Optimize>
-    <DebugType>full</DebugType>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.xml</DocumentationFile>
     <NoWarn>42014</NoWarn>
     <CodeAnalysisRuleSet>..\BasicCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.xml</DocumentationFile>
     <NoWarn>42014</NoWarn>
     <CodeAnalysisRuleSet>..\BasicCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup>
-    <RootNamespace>
-    </RootNamespace>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-    <OutDir>..\..\..\..\Binaries\Debug\amd64</OutDir>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
-    <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.xml</DocumentationFile>
-    <NoWarn>42014</NoWarn>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <CodeAnalysisRuleSet>..\BasicCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <DefineTrace>true</DefineTrace>
-    <OutDir>..\..\..\..\Binaries\Release\amd64</OutDir>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
-    <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.xml</DocumentationFile>
-    <Optimize>true</Optimize>
-    <NoWarn>42014</NoWarn>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <CodeAnalysisRuleSet>..\BasicCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
+    <RootNamespace />
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(IntermediateOutputPath)BoundNodes.xml.Generated.vb" />
@@ -301,9 +273,11 @@
     <Compile Include="BoundTree\BoundWithStatement.vb" />
     <Compile Include="BoundTree\BoundXmlAttribute.vb" />
     <Compile Include="BoundTree\BoundYieldStatement.vb" />
+    <Compile Include="BoundTree\Expression.vb" />
     <Compile Include="BoundTree\GroupTypeInferenceLambda.vb" />
     <Compile Include="BoundTree\NoOpStatementFlavor.vb" />
     <Compile Include="BoundTree\PseudoVariableExpressions.vb" />
+    <Compile Include="BoundTree\Statement.vb" />
     <Compile Include="BoundTree\UnboundLambda.vb" />
     <Compile Include="CodeGen\CodeGenerator.vb" />
     <Compile Include="CodeGen\EmitAddress.vb" />
@@ -900,6 +874,7 @@
     <Compile Include="Syntax\SeparatedSyntaxListBuilder.vb" />
     <Compile Include="Syntax\SimpleSyntaxReference.vb" />
     <Compile Include="Syntax\SingleLineLambdaExpressionSyntax.vb" />
+    <Compile Include="Syntax\SkippedTokensTriviaSyntax.vb" />
     <Compile Include="Syntax\StructuredTriviaSyntax.vb" />
     <Compile Include="Syntax\SyntaxEquivalence.vb" />
     <Compile Include="Syntax\SyntaxExtensions.vb" />
@@ -992,11 +967,13 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="vbc" />
     <InternalsVisibleTo Include="vbi" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CompilerServer" />
     <InternalsVisibleTo Include="VBCSCompiler" />
+    <InternalsVisibleTo Include="VBCSCompilerPortable" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Emit.UnitTests" />
@@ -1011,8 +988,8 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.Desktop.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />

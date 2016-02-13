@@ -455,8 +455,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             private SyntaxNode GenerateName(SyntaxGenerator factory, bool isGenericType)
             {
-                return isGenericType 
-                    ? factory.GenericName(State.ClassOrStructType.Name, State.ClassOrStructType.TypeArguments) 
+                return isGenericType
+                    ? factory.GenericName(State.ClassOrStructType.Name, State.ClassOrStructType.TypeArguments)
                     : factory.IdentifierName(State.ClassOrStructType.Name);
             }
 

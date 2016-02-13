@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.VisualStudio.Text;
@@ -15,11 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
     public abstract class AbstractXmlTagCompletionTests
     {
         internal abstract ICommandHandler<TypeCharCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistory);
-        protected abstract TestWorkspace CreateTestWorkspace(string initialMarkup);
+        protected abstract Task<TestWorkspace> CreateTestWorkspaceAsync(string initialMarkup);
 
-        public void Verify(string initialMarkup, string expectedMarkup, char typeChar)
+        public async Task VerifyAsync(string initialMarkup, string expectedMarkup, char typeChar)
         {
-            using (var workspace = CreateTestWorkspace(initialMarkup))
+            using (var workspace = await CreateTestWorkspaceAsync(initialMarkup))
             {
                 var testDocument = workspace.Documents.Single();
                 var view = testDocument.GetTextView();

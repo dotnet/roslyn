@@ -702,8 +702,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         UnboundArgumentErrorTypeSymbol.CreateTypeArguments(
                             unconstructedType.TypeParameters,
                             node.Arity,
-                            errorInfo: null), 
-                        unbound:false);
+                            errorInfo: null),
+                        unbound: false);
                 }
                 else
                 {
@@ -1282,7 +1282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // '{0}' is an ambiguous reference between '{1}' and '{2}'
                                 info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigContext, originalSymbols,
                                     new object[] {
-                                        where,
+                                        (where as NameSyntax)?.ErrorDisplayName() ?? simpleName,
                                         new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
                                         new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat) });
                             }
@@ -1421,14 +1421,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 //  SPEC:   is present, and a compile-time error results.
 
                                 info = new CSDiagnosticInfo(ErrorCode.ERR_AmbiguousAttribute, originalSymbols,
-                                    new object[] { where, first, second });
+                                    new object[] { (where as NameSyntax)?.ErrorDisplayName() ?? simpleName, first, second });
                             }
                             else
                             {
                                 // '{0}' is an ambiguous reference between '{1}' and '{2}'
                                 info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigContext, originalSymbols,
                                     new object[] {
-                                        where,
+                                        (where as NameSyntax)?.ErrorDisplayName() ?? simpleName,
                                         new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
                                         new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat) });
                             }
@@ -1524,7 +1524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node = node.Parent;
                 }
 
-                CSDiagnosticInfo info = NotFound(where, simpleName, arity, where.ToString(), diagnostics, aliasOpt, qualifierOpt, options);
+                CSDiagnosticInfo info = NotFound(where, simpleName, arity, (where as NameSyntax)?.ErrorDisplayName() ?? simpleName, diagnostics, aliasOpt, qualifierOpt, options);
                 return new ExtendedErrorTypeSymbol(qualifierOpt ?? Compilation.Assembly.GlobalNamespace, simpleName, arity, info);
             }
 
@@ -1750,6 +1750,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool encounteredForwardingCycle;
             string fullName;
 
+            // for attributes, suggest both, but not for verbatim name
+            if (options.IsAttributeTypeLookup() && !options.IsVerbatimNameAttributeTypeLookup())
+            {
+                // just recurse one level, so cheat and OR verbatim name option :)
+                NotFound(where, simpleName, arity, whereText + "Attribute", diagnostics, aliasOpt, qualifierOpt, options | LookupOptions.VerbatimNameAttributeTypeOnly);
+            }
+
             if ((object)qualifierOpt != null)
             {
                 if (qualifierOpt.IsType)
@@ -1812,7 +1819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return diagnostics.Add(ErrorCode.ERR_AliasNotFound, location, whereText);
             }
 
-            if (whereText == "var" && !options.IsAttributeTypeLookup())
+            if ((where as IdentifierNameSyntax)?.Identifier.Text == "var" && !options.IsAttributeTypeLookup())
             {
                 var code = (where.Parent is QueryClauseSyntax) ? ErrorCode.ERR_TypeVarNotFoundRangeVariable : ErrorCode.ERR_TypeVarNotFound;
                 return diagnostics.Add(code, location);

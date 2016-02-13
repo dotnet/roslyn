@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             /// <summary>
-            /// Given a ISymbol, returns the renamable locations for a given symbol.
+            /// Given a ISymbol, returns the renameable locations for a given symbol.
             /// </summary>
             public static async Task<IEnumerable<RenameLocation>> GetRenamableDefinitionLocationsAsync(ISymbol referencedSymbol, ISymbol originalSymbol, Solution solution, CancellationToken cancellationToken)
             {
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     {
                         if (location.Alias.Name == referencedSymbol.Name)
                         {
-                            results.Add(new RenameLocation(location.Location, location.Document.Id, 
+                            results.Add(new RenameLocation(location.Location, location.Document.Id,
                                 isCandidateLocation: location.IsCandidateLocation, isRenamableAliasUsage: true, isWrittenTo: location.IsWrittenTo));
 
                             // We also need to add the location of the alias itself

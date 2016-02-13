@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // when deciding if the construct is on a single line.
 
             var endBrace = bracePair.Item2;
-            if (lastToken.Kind() != SyntaxKind.CloseBraceToken && 
+            if (lastToken.Kind() != SyntaxKind.CloseBraceToken &&
                 lastToken.Kind() != SyntaxKind.EndOfFileToken &&
                 !endBrace.IsMissing)
             {

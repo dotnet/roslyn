@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 token1 As SyntaxToken, list As IEnumerable(Of SyntaxTrivia), token2 As SyntaxToken) As IEnumerable(Of SyntaxTrivia)
 
                 ' special case for skipped token trivia
-                ' formatter doesn't touch tokens that have skipped tokens inbetween. so, we need to take care of such case ourselves
+                ' formatter doesn't touch tokens that have skipped tokens in-between. so, we need to take care of such case ourselves
                 If list.Any(Function(t) t.RawKind = SyntaxKind.SkippedTokensTrivia) Then
                     Return RemoveElasticAfterColon(
                         token1.TrailingTrivia.Concat(list).Concat(ReplaceElasticToEndOfLine(token2.LeadingTrivia)))

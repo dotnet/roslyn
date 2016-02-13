@@ -30,14 +30,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             Me._root = root
         End Sub
 
-        Public Function FormatToken(workspace As Workspace, token As SyntaxToken, cancellationToken As CancellationToken) As IList(Of TextChange) Implements ISmartTokenFormatter.FormatToken
+        Public Function FormatTokenAsync(workspace As Workspace, token As SyntaxToken, cancellationToken As CancellationToken) As Tasks.Task(Of IList(Of TextChange)) Implements ISmartTokenFormatter.FormatTokenAsync
             Contract.ThrowIfTrue(token.Kind = SyntaxKind.None OrElse token.Kind = SyntaxKind.EndOfFileToken)
 
             ' get previous token
             Dim previousToken = token.GetPreviousToken()
 
             Dim spans = SpecializedCollections.SingletonEnumerable(TextSpan.FromBounds(previousToken.SpanStart, token.Span.End))
-            Return Formatter.GetFormattedTextChanges(_root, spans, workspace, _optionSet, _formattingRules, cancellationToken)
+            Return Formatter.GetFormattedTextChangesAsync(_root, spans, workspace, _optionSet, _formattingRules, cancellationToken)
         End Function
     End Class
 End Namespace

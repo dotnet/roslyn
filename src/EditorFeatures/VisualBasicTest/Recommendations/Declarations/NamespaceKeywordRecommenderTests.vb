@@ -1,35 +1,30 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
+Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class NamespaceKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceInFile()
-            VerifyRecommendationsContain(<File>|</File>, "Namespace")
-        End Sub
+        Public Async Function NamespaceInFileTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>|</File>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotInMethodDeclaration()
-            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotInMethodDeclarationTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceInNamespace()
-            VerifyRecommendationsContain(<NamespaceDeclaration>|</NamespaceDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceInNamespaceTest() As Task
+            Await VerifyRecommendationsContainAsync(<NamespaceDeclaration>|</NamespaceDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NestedNamespaceFollowsTypeDeclaration()
+        Public Async Function NestedNamespaceFollowsTypeDeclarationTest() As Task
             Dim code =
 <File>
 Namespace N1
@@ -39,12 +34,12 @@ Namespace N1
     |
 End Namespace
 </File>
-            VerifyRecommendationsContain(code, "Namespace")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "Namespace")
+        End Function
 
-        <WpfFact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceFollowsNamespace()
+        Public Async Function NamespaceFollowsNamespaceTest() As Task
             Dim code =
 <File>
 Namespace N1
@@ -54,23 +49,23 @@ Namespace N1
 End Namespace
 |
 </File>
-            VerifyRecommendationsContain(code, "Namespace")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "Namespace")
+        End Function
 
-        <WpfFact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceFollowsNamespaceWithoutMatchingEnd()
+        Public Async Function NamespaceFollowsNamespaceWithoutMatchingEndTest() As Task
             Dim code =
 <File>
 Namespace N1
 |
 </File>
-            VerifyRecommendationsContain(code, "Namespace")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "Namespace")
+        End Function
 
-        <WpfFact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceFollowsMismatchedEnd1()
+        Public Async Function NamespaceFollowsMismatchedEnd1Test() As Task
             Dim code =
 <File>
 Namespace N1
@@ -78,251 +73,251 @@ End Class
 |
 End Namespace
 </File>
-            VerifyRecommendationsContain(code, "Namespace")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "Namespace")
+        End Function
 
-        <WpfFact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceFollowsMismatchedEnd2()
+        Public Async Function NamespaceFollowsMismatchedEnd2Test() As Task
             Dim code =
 <File>
 Namespace N1
 End Class
 |
 </File>
-            VerifyRecommendationsContain(code, "Namespace")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "Namespace")
+        End Function
 
-        <WpfFact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceFollowsMismatchedEnd3()
+        Public Async Function NamespaceFollowsMismatchedEnd3Test() As Task
             Dim code =
 <File>
 End Class
 |
 </File>
-            VerifyRecommendationsContain(code, "Namespace")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "Namespace")
+        End Function
 
-        <WpfFact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceFollowsMismatchedEnd4()
+        Public Async Function NamespaceFollowsMismatchedEnd4Test() As Task
             Dim code =
 <File>
 End Class
 |
 End Namespace
 </File>
-            VerifyRecommendationsContain(code, "Namespace")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceFollowsDelegateDeclaration()
+        Public Async Function NamespaceFollowsDelegateDeclarationTest() As Task
             Dim code =
 <File>
 Delegate Sub DelegateType()
 |
 </File>
-            VerifyRecommendationsContain(code, "Namespace")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotInInterface()
-            VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotInInterfaceTest() As Task
+            Await VerifyRecommendationsMissingAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotInEnum()
-            VerifyRecommendationsMissing(<EnumDeclaration>|</EnumDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotInEnumTest() As Task
+            Await VerifyRecommendationsMissingAsync(<EnumDeclaration>|</EnumDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotInStructure()
-            VerifyRecommendationsMissing(<StructureDeclaration>|</StructureDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotInStructureTest() As Task
+            Await VerifyRecommendationsMissingAsync(<StructureDeclaration>|</StructureDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotInModule()
-            VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotInModuleTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ModuleDeclaration>|</ModuleDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterPartial()
-            VerifyRecommendationsMissing(<File>Partial |</File>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterPartialTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Partial |</File>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterPublic()
-            VerifyRecommendationsMissing(<File>Public |</File>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterPublicTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Public |</File>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterPublicInClassDeclaration()
-            VerifyRecommendationsMissing(<ClassDeclaration>Public |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterPublicInClassDeclarationTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Public |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterProtectedInFile()
-            VerifyRecommendationsMissing(<File>Protected |</File>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterProtectedInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Protected |</File>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterProtectedInClassDeclaration()
-            VerifyRecommendationsMissing(<ClassDeclaration>Protected |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterProtectedInClassDeclarationTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Protected |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterFriendInFile()
-            VerifyRecommendationsMissing(<File>Friend |</File>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterFriendInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Friend |</File>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterFriendInClassDeclaration()
-            VerifyRecommendationsMissing(<ClassDeclaration>Friend |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterFriendInClassDeclarationTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Friend |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterPrivateInFile()
-            VerifyRecommendationsMissing(<File>Private |</File>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterPrivateInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Private |</File>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterPrivateInNestedClass()
-            VerifyRecommendationsMissing(<ClassDeclaration>Private |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterPrivateInNestedClassTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Private |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterPrivateInNamespace()
-            VerifyRecommendationsMissing(<NamespaceDeclaration>Private |</NamespaceDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterPrivateInNamespaceTest() As Task
+            Await VerifyRecommendationsMissingAsync(<NamespaceDeclaration>Private |</NamespaceDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterProtectedFriendInFile()
-            VerifyRecommendationsMissing(<File>Protected Friend |</File>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterProtectedFriendInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Protected Friend |</File>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterProtectedFriendInClass()
-            VerifyRecommendationsMissing(<ClassDeclaration>Protected Friend |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterProtectedFriendInClassTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Protected Friend |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterOverloads()
-            VerifyRecommendationsMissing(<ClassDeclaration>Overloads |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterOverloadsTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overloads |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterOverrides()
-            VerifyRecommendationsMissing(<ClassDeclaration>Overrides |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterOverridesTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overrides |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterOverridable()
-            VerifyRecommendationsMissing(<ClassDeclaration>Overridable |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterOverridableTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overridable |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterNotOverridable()
-            VerifyRecommendationsMissing(<ClassDeclaration>NotOverridable |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterNotOverridableTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotOverridable |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterMustOverride()
-            VerifyRecommendationsMissing(<ClassDeclaration>MustOverride |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterMustOverrideTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustOverride |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterMustOverrideOverrides()
-            VerifyRecommendationsMissing(<ClassDeclaration>MustOverride Overrides |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterMustOverrideOverridesTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustOverride Overrides |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterNotOverridableOverrides()
-            VerifyRecommendationsMissing(<ClassDeclaration>NotOverridable Overrides |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterNotOverridableOverridesTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotOverridable Overrides |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterConst()
-            VerifyRecommendationsMissing(<ClassDeclaration>Const |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterConstTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Const |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterDefault()
-            VerifyRecommendationsMissing(<ClassDeclaration>Default |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterDefaultTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Default |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterMustInherit()
-            VerifyRecommendationsMissing(<ClassDeclaration>MustInherit |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterMustInheritTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustInherit |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterNotInheritable()
-            VerifyRecommendationsMissing(<ClassDeclaration>NotInheritable |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterNotInheritableTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotInheritable |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterNarrowing()
-            VerifyRecommendationsMissing(<ClassDeclaration>Narrowing |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterNarrowingTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Narrowing |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterWidening()
-            VerifyRecommendationsMissing(<ClassDeclaration>Widening |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterWideningTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Widening |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterReadOnly()
-            VerifyRecommendationsMissing(<ClassDeclaration>ReadOnly |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterReadOnlyTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>ReadOnly |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterWriteOnly()
-            VerifyRecommendationsMissing(<ClassDeclaration>WriteOnly |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterWriteOnlyTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>WriteOnly |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterCustom()
-            VerifyRecommendationsMissing(<ClassDeclaration>Custom |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterCustomTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Custom |</ClassDeclaration>, "Namespace")
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NamespaceNotAfterShared()
-            VerifyRecommendationsMissing(<ClassDeclaration>Shared |</ClassDeclaration>, "Namespace")
-        End Sub
+        Public Async Function NamespaceNotAfterSharedTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Shared |</ClassDeclaration>, "Namespace")
+        End Function
     End Class
 End Namespace

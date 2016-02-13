@@ -15,8 +15,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
         // For example, consider the expression a[b+c].  The analysis of this expression starts at
         // the ElementAccessExpression.  The rules for an ElementAccessExpression say that the
         // expression is a ValidTerm if and only if both the LHS('a' in this case) and the
-        // RHS('b+c') are valid ValidExpressions. The LHS is a ValidTerm, and the RHS is a binary o
-        // perator-- this time AddExpression. The rules for AddExpression state that the expression
+        // RHS('b+c') are valid ValidExpressions. The LHS is a ValidTerm, and the RHS is a binary
+        // operator-- this time AddExpression. The rules for AddExpression state that the expression
         // is never a ValidTerm, but is a ValidExpression if both the LHS and the RHS are
         // ValidExpressions. In this case, both 'b' and 'c' are ValidTerms (thus valid expressions),
         // so 'a+b' is a ValidExpression (but not a ValidTerm), and finally 'a[b+c]' is considered a
