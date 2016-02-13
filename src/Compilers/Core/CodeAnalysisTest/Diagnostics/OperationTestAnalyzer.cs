@@ -1307,7 +1307,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.EventAssignmentExpression);
         }
     }
-    
+
     public class NullOperationSyntaxTestAnalyzer : DiagnosticAnalyzer
     {
         private const string ReliabilityCategory = "Reliability";
@@ -1354,7 +1354,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      foreach (var paramsarrayArgumentOperation in paramsList)
                      {
                          operationContext.ReportDiagnostic(
-                             Diagnostic.Create(ParamsArrayOperationDescriptor, 
+                             Diagnostic.Create(ParamsArrayOperationDescriptor,
                                                paramsarrayArgumentOperation.Syntax.GetLocation()));
                      }
 
@@ -1394,6 +1394,33 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
                 base.Visit(operation);
             }
+        }
+    }
+
+    public class NullCoalescingOperationTestAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor NullCoalescingOperationDescriptor = new DiagnosticDescriptor(
+            "NullCoalescingOperation",
+            "Null coalescing operation found",
+            "Null coalescing operation was found",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(NullCoalescingOperationDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     INullCoalescingExpression coalescing = (INullCoalescingExpression)operationContext.Operation;
+                     operationContext.ReportDiagnostic(Diagnostic.Create(NullCoalescingOperationDescriptor, coalescing.Syntax.GetLocation()));
+                 },
+                 OperationKind.NullCoalescingExpression);
         }
     }
 }
