@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             VisitArray(operation.Variables);
         }
 
-        public override void VisitVariable(IVariable operation)
+        public override void VisitVariableDeclaration(IVariableDeclaration operation)
         {
             Visit(operation.InitialValue);
         }
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             VisitArray(operation.Cases);
         }
 
-        public override void VisitCase(ICase operation)
+        public override void VisitSwitchCase(ISwitchCase operation)
         {
             VisitArray(operation.Clauses);
             VisitArray(operation.Body);
@@ -86,8 +86,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitIfStatement(IIfStatement operation)
         {
             Visit(operation.Condition);
-            Visit(operation.IfTrue);
-            Visit(operation.IfFalse);
+            Visit(operation.IfTrueStatement);
+            Visit(operation.IfFalseStatement);
         }
 
         public override void VisitWhileUntilLoopStatement(IWhileUntilLoopStatement operation)
@@ -119,35 +119,32 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public override void VisitLabelStatement(ILabelStatement operation)
-        { }
-
-        public override void VisitLabeledStatement(ILabeledStatement operation)
         {
-            Visit(operation.Labeled);
+            Visit(operation.LabeledStatement);
         }
 
         public override void VisitBranchStatement(IBranchStatement operation)
         { }
 
-        public override void VisitYieldBreakStatement(IStatement operation)
+        public override void VisitYieldBreakStatement(IReturnStatement operation)
         { }
 
-        public override void VisitEmptyStatement(IStatement operation)
+        public override void VisitEmptyStatement(IEmptyStatement operation)
         { }
 
         public override void VisitThrowStatement(IThrowStatement operation)
         {
-            Visit(operation.Thrown);
+            Visit(operation.ThrownObject);
         }
 
         public override void VisitReturnStatement(IReturnStatement operation)
         {
-            Visit(operation.Returned);
+            Visit(operation.ReturnedValue);
         }
 
         public override void VisitLockStatement(ILockStatement operation)
         {
-            Visit(operation.Locked);
+            Visit(operation.LockedObject);
             Visit(operation.Body);
         }
 
@@ -158,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.FinallyHandler);
         }
 
-        public override void VisitCatch(ICatch operation)
+        public override void VisitCatch(ICatchClause operation)
         {
             Visit(operation.Filter);
             Visit(operation.Handler);
@@ -166,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitUsingWithDeclarationStatement(IUsingWithDeclarationStatement operation)
         {
-            Visit(operation.Variables);
+            Visit(operation.Declaration);
         }
 
         public override void VisitUsingWithExpressionStatement(IUsingWithExpressionStatement operation)
@@ -191,10 +188,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.Body);
         }
 
-        public override void VisitStopStatement(IStatement operation)
+        public override void VisitStopStatement(IStopStatement operation)
         { }
 
-        public override void VisitEndStatement(IStatement operation)
+        public override void VisitEndStatement(IEndStatement operation)
         { }
 
         public override void VisitInvocationExpression(IInvocationExpression operation)
@@ -210,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.OutConversion);
         }
 
-        public override void VisitOmittedArgumentExpression(IExpression operation)
+        public override void VisitOmittedArgumentExpression(IOmittedArgumentExpression operation)
         { }
 
         public override void VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation)
@@ -286,8 +283,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitConditionalChoiceExpression(IConditionalChoiceExpression operation)
         {
             Visit(operation.Condition);
-            Visit(operation.IfTrue);
-            Visit(operation.IfFalse);
+            Visit(operation.IfTrueValue);
+            Visit(operation.IfFalseValue);
         }
 
         public override void VisitNullCoalescingExpression(INullCoalescingExpression operation)
@@ -301,7 +298,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.Operand);
         }
 
-        public override void VisitTypeOperationExpression(ITypeOperationExpression operation)
+        public override void VisitSizeOfExpression(ISizeOfExpression operation)
+        { }
+
+        public override void VisitTypeOfExpression(ITypeOfExpression operation)
         { }
 
         public override void VisitLambdaExpression(ILambdaExpression operation)
@@ -314,17 +314,17 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitAwaitExpression(IAwaitExpression operation)
         {
-            Visit(operation.Upon);
+            Visit(operation.AwaitedValue);
         }
 
         public override void VisitAddressOfExpression(IAddressOfExpression operation)
         {
-            Visit(operation.Addressed);
+            Visit(operation.Reference);
         }
 
         public override void VisitObjectCreationExpression(IObjectCreationExpression operation)
         {
-            VisitArray(operation.ConstructorArguments);
+            VisitArray(operation.ArgumentsInParameterOrder);
             VisitArray(operation.MemberInitializers);
         }
 
@@ -382,19 +382,19 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.Instance);
         }
 
-        public override void VisitUnboundLambdaExpression(IExpression operation)
+        public override void VisitUnboundLambdaExpression(IUnboundLambdaExpression operation)
         { }
 
-        public override void VisitDefaultValueExpression(IExpression operation)
+        public override void VisitDefaultValueExpression(IDefaultValueExpression operation)
         { }
 
-        public override void VisitTypeParameterObjectCreationExpression(IExpression operation)
+        public override void VisitTypeParameterObjectCreationExpression(ITypeParameterObjectCreationExpression operation)
         { }
 
-        public override void VisitInvalidStatement(IStatement operation)
+        public override void VisitInvalidStatement(IInvalidStatement operation)
         { }
 
-        public override void VisitInvalidExpression(IExpression operation)
+        public override void VisitInvalidExpression(IInvalidExpression operation)
         { }
     }
 }

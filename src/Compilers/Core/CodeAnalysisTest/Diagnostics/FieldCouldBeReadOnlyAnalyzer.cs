@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                  });
         }
 
-        private static void AssignTo(IExpression target, bool inConstructor, ITypeSymbol staticConstructorType, HashSet<IFieldSymbol> assignedToFields, HashSet<IFieldSymbol> mightBecomeReadOnlyFields)
+        private static void AssignTo(IOperation target, bool inConstructor, ITypeSymbol staticConstructorType, HashSet<IFieldSymbol> assignedToFields, HashSet<IFieldSymbol> mightBecomeReadOnlyFields)
         {
             if (target.Kind == OperationKind.FieldReferenceExpression)
             {
@@ -104,8 +104,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                     switch (fieldReference.Instance.Kind)
                     {
                         case OperationKind.InstanceReferenceExpression:
-                        case OperationKind.BaseClassInstanceReferenceExpression:
-                        case OperationKind.ClassInstanceReferenceExpression:
                             return;
                     }
                 }
@@ -120,7 +118,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                 assignedToFields.Add(targetField);
                 mightBecomeReadOnlyFields.Remove(targetField);
 
-                if (fieldReference.Instance != null && fieldReference.Instance.ResultType.IsValueType)
+                if (fieldReference.Instance != null && fieldReference.Instance.Type.IsValueType)
                 {
                     AssignTo(fieldReference.Instance, inConstructor, staticConstructorType, assignedToFields, mightBecomeReadOnlyFields);
                 }
