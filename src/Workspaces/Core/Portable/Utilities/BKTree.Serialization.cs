@@ -29,27 +29,33 @@ namespace Roslyn.Utilities
 
         internal static BKTree ReadFrom(ObjectReader reader)
         {
-            var concatenatedLowerCaseWords = new char[reader.ReadInt32()];
-            for (var i = 0; i < concatenatedLowerCaseWords.Length; i++)
-            {
-                concatenatedLowerCaseWords[i] = reader.ReadChar();
-            }
+            try {
+                var concatenatedLowerCaseWords = new char[reader.ReadInt32()];
+                for (var i = 0; i < concatenatedLowerCaseWords.Length; i++)
+                {
+                    concatenatedLowerCaseWords[i] = reader.ReadChar();
+                }
 
-            var nodeCount = reader.ReadInt32();
-            var nodes = ImmutableArray.CreateBuilder<Node>(nodeCount);
-            for (var i = 0; i < nodeCount; i++)
-            {
-                nodes.Add(Node.ReadFrom(reader));
-            }
+                var nodeCount = reader.ReadInt32();
+                var nodes = ImmutableArray.CreateBuilder<Node>(nodeCount);
+                for (var i = 0; i < nodeCount; i++)
+                {
+                    nodes.Add(Node.ReadFrom(reader));
+                }
 
-            var edgeCount = reader.ReadInt32();
-            var edges = ImmutableArray.CreateBuilder<Edge>(edgeCount);
-            for (var i = 0; i < edgeCount; i++)
-            {
-                edges.Add(Edge.ReadFrom(reader));
-            }
+                var edgeCount = reader.ReadInt32();
+                var edges = ImmutableArray.CreateBuilder<Edge>(edgeCount);
+                for (var i = 0; i < edgeCount; i++)
+                {
+                    edges.Add(Edge.ReadFrom(reader));
+                }
 
-            return new BKTree(concatenatedLowerCaseWords, nodes.MoveToImmutable(), edges.MoveToImmutable());
+                return new BKTree(concatenatedLowerCaseWords, nodes.MoveToImmutable(), edges.MoveToImmutable());
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }
