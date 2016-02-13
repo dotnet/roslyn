@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// The spell checker we use for fuzzy match queries.
         /// </summary>
-        private readonly Lazy<SpellChecker> _lazySpellChecker;
+        private readonly SpellChecker _spellChecker;
 
         private static readonly StringComparer s_caseInsensitiveComparer = CaseInsensitiveComparison.Comparer;
 
@@ -45,25 +45,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 : StringComparer.Ordinal.Compare(s1, s2);
         };
 
-        private SymbolTreeInfo(VersionStamp version, IReadOnlyList<Node> orderedNodes)
-            : this(version, orderedNodes, new Lazy<SpellChecker>(() => new SpellChecker(orderedNodes.Select(n => n.Name))))
-        {
-        }
-
         private SymbolTreeInfo(VersionStamp version, IReadOnlyList<Node> orderedNodes, SpellChecker spellChecker)
-            : this(version, orderedNodes, new Lazy<SpellChecker>(() => spellChecker))
-        {
-            // Make the lazy 'Created'.  This is a no-op since we already have the underlying spell
-            // checker.  This way if we end up wanting to serialize this tree info, we'll also
-            // serialize the spell checker.
-            var unused = _lazySpellChecker.Value;
-        }
-
-        private SymbolTreeInfo(VersionStamp version, IReadOnlyList<Node> orderedNodes, Lazy<SpellChecker> lazySpellChecker)
         {
             _version = version;
             _nodes = orderedNodes;
-            _lazySpellChecker = lazySpellChecker;
+            _spellChecker = spellChecker;
         }
 
         public int Count => _nodes.Count;
@@ -98,7 +84,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         public async Task<IEnumerable<ISymbol>> FuzzyFindAsync(AsyncLazy<IAssemblySymbol> lazyAssembly, string name, CancellationToken cancellationToken)
         {
-            var similarNames = _lazySpellChecker.Value.FindSimilarWords(name);
+            var similarNames = _spellChecker.FindSimilarWords(name);
             var result = new List<ISymbol>();
 
             foreach (var similarName in similarNames)
@@ -305,7 +291,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var list = new List<Node>();
             GenerateNodes(assembly.GlobalNamespace, list);
 
-            return new SymbolTreeInfo(version, SortNodes(list));
+            var spellChecker = new SpellChecker(list.Select(n => n.Name));
+            return new SymbolTreeInfo(version, SortNodes(list), spellChecker);
         }
 
         private static Node[] SortNodes(List<Node> nodes)
