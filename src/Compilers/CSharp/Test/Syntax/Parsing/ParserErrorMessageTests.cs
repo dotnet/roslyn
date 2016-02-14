@@ -2327,7 +2327,7 @@ return 1;
             ParseAndValidate(test,
     // (7,13): error CS1043: { or ; expected
     //         get return 1;
-    Diagnostic(ErrorCode.ERR_SemiOrLBraceExpected, "return"),
+    Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "return"),
     // (8,2): error CS1513: } expected
     Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }

@@ -5431,7 +5431,7 @@ class C
             Assert.True(acc.SemicolonToken.IsMissing);
 
             Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_SemiOrLBraceExpected, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemiOrLBraceOrArrowExpected, file.Errors()[0].Code);
             Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[1].Code);
         }
 
@@ -5572,8 +5572,8 @@ class C
             Assert.True(setDecl.SemicolonToken.IsMissing);
 
             Assert.Equal(2, file.Errors().Length);
-            Assert.Equal(ErrorCode.ERR_SemiOrLBraceExpected, (ErrorCode)file.Errors()[0].Code);
-            Assert.Equal(ErrorCode.ERR_SemiOrLBraceExpected, (ErrorCode)file.Errors()[1].Code);
+            Assert.Equal(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, (ErrorCode)file.Errors()[0].Code);
+            Assert.Equal(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, (ErrorCode)file.Errors()[1].Code);
         }
 
         [Fact]
@@ -6600,7 +6600,7 @@ class C
 
                 // (4,17): error CS1043: { or ; expected
                 //     int P { set . } }
-                Diagnostic(ErrorCode.ERR_SemiOrLBraceExpected, "."),
+                Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "."),
 
                 // We see this diagnostic because we're trying to skip bad tokens in the block and 
                 // the "expected" token (i.e. the one we report when we see something that's not a
