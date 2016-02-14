@@ -355,7 +355,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         Minus = 0x8,
         True = 0x9,
         False = 0xa,
-        BitwiseOrLogicalNot = 0xb
+        BitwiseOrLogicalNot = 0xb,
+
+        Invalid = 0xff
     }
 
     public enum UnaryOperandKind
@@ -371,7 +373,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         Enum = 0x700,
         Dynamic = 0x800,
         Object = 0x900,
-        Pointer = 0xa00
+        Pointer = 0xa00,
+
+        Invalid = 0xff00
     }
 
     /// <summary>
@@ -445,7 +449,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         ObjectPlus = UnaryOperandKind.Object | SimpleUnaryOperationKind.Plus,
         ObjectMinus = UnaryOperandKind.Object | SimpleUnaryOperationKind.Minus,
-        ObjectNot = UnaryOperandKind.Object | SimpleUnaryOperationKind.BitwiseOrLogicalNot
+        ObjectNot = UnaryOperandKind.Object | SimpleUnaryOperationKind.BitwiseOrLogicalNot,
+
+        Invalid = UnaryOperandKind.Invalid | SimpleUnaryOperationKind.Invalid
     }
 
     
@@ -499,7 +505,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         GreaterThanOrEqual = 0x16,
         GreaterThan = 0x17,
 
-        Like = 0x18
+        Like = 0x18,
+
+        Invalid = 0xff
     }
 
     public enum BinaryOperandsKind
@@ -520,7 +528,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         IntegerPointer = 0xc00,
         String = 0xd00,
         Delegate = 0xe00,
-        Nullable = 0xf00
+        Nullable = 0xf00,
+
+        Invalid = 0xff00
     }
 
     /// <summary>
@@ -700,7 +710,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         DynamicLessThan = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.LessThan,
         DynamicLessThanOrEqual = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.LessThanOrEqual,
         DynamicGreaterThanOrEqual = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.GreaterThanOrEqual,
-        DynamicGreaterThan = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.GreaterThan
+        DynamicGreaterThan = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.GreaterThan,
+
+        Invalid = BinaryOperandsKind.Invalid | SimpleBinaryOperationKind.Invalid
     }
 
     public static class UnaryAndBinaryOperationExtensions
