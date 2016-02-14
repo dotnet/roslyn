@@ -223,7 +223,7 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
-        Public Async Function TestAddProjectReference_CSharpToCSharp() As Task
+        Public Async Function AddProjectReference_CSharpToCSharp_Test() As Task
             Dim input =
                 <Workspace>
                     <Project Language='C#' AssemblyName='CSAssembly1' CommonReferences='true'>
@@ -268,7 +268,7 @@ namespace CSAssembly2
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
-        Public Async Function TestAddProjectReference_VBToVB() As Task
+        Public Async Function AddProjectReference_VBToVB_Test() As Task
             Dim input =
                 <Workspace>
                     <Project Language='Visual Basic' AssemblyName='VBAssembly1' CommonReferences='true'>
