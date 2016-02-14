@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         False = 0xa,
         BitwiseOrLogicalNot = 0xb,
 
-        Invalid = 0xf0
+        Invalid = 0xff
     }
 
     public enum UnaryOperandKind
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         Object = 0x900,
         Pointer = 0xa00,
 
-        Invalid = 0x1f00
+        Invalid = 0xff00
     }
 
     /// <summary>
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         Like = 0x18,
 
-        Invalid = 0xf0
+        Invalid = 0xff
     }
 
     public enum BinaryOperandsKind
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         Delegate = 0xe00,
         Nullable = 0xf00,
 
-        Invalid = 0x1f00
+        Invalid = 0xff00
     }
 
     /// <summary>
