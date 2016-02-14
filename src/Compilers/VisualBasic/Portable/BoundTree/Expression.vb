@@ -1113,30 +1113,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Friend Partial Class BoundTypeOf
-        Implements IIsExpression
+        Implements IIsTypeExpression
 
-        Private ReadOnly Property IIsType As ITypeSymbol Implements IIsExpression.IsType
+        Private ReadOnly Property IIsType As ITypeSymbol Implements IIsTypeExpression.IsType
             Get
                 Return Me.TargetType
             End Get
         End Property
 
-        Private ReadOnly Property IOperand As IOperation Implements IIsExpression.Operand
+        Private ReadOnly Property IOperand As IOperation Implements IIsTypeExpression.Operand
             Get
                 Return Me.Operand
             End Get
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.IsExpression
+            Return OperationKind.IsTypeExpression
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitIsExpression(Me)
+            visitor.VisitIsTypeExpression(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitIsExpression(Me, argument)
+            Return visitor.VisitIsTypeExpression(Me, argument)
         End Function
     End Class
 
@@ -1579,7 +1579,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundConditionalAccess
         Implements IConditionalAccessExpression
 
-        Private ReadOnly Property IValue As IOperation Implements IConditionalAccessExpression.Value
+        Private ReadOnly Property IValue As IOperation Implements IConditionalAccessExpression.ConditionalValue
             Get
                 Return Me.AccessExpression
             End Get
@@ -1858,17 +1858,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundRValuePlaceholder
+    Partial Friend Class BoundRValuePlaceholder
+        Implements IPlaceholderExpression
+
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.None
+            Return OperationKind.PlaceholderExpression
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
+            visitor.VisitPlaceholderExpression(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
+            Return visitor.VisitPlaceholderExpression(Me, argument)
         End Function
     End Class
 

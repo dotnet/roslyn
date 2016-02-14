@@ -1361,9 +1361,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Friend Partial Class BoundUsingStatement
-        Implements IUsingWithExpressionStatement, IUsingWithDeclarationStatement
+        Implements IUsingStatement
 
-        Private ReadOnly Property IValue As IOperation Implements IUsingWithExpressionStatement.Value
+        Private ReadOnly Property IValue As IOperation Implements IUsingStatement.Value
             Get
                 Return Me.ResourceExpressionOpt
             End Get
@@ -1371,7 +1371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ReadOnly s_variablesMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundUsingStatement, Variables)
 
-        Private ReadOnly Property IVariables As IVariableDeclarationStatement Implements IUsingWithDeclarationStatement.Declaration
+        Private ReadOnly Property IVariables As IVariableDeclarationStatement Implements IUsingStatement.Declaration
             Get
                 Return s_variablesMappings.GetValue(
                     Me,
@@ -1388,23 +1388,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function StatementKind() As OperationKind
-            Return If(Me._ResourceExpressionOpt Is Nothing, OperationKind.UsingWithDeclarationStatement, OperationKind.UsingWithExpressionStatement)
+            Return OperationKind.UsingStatement
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            If Me.StatementKind() = OperationKind.UsingWithDeclarationStatement Then
-                visitor.VisitUsingWithDeclarationStatement(Me)
-            Else
-                visitor.VisitUsingWithExpressionStatement(Me)
-            End If
+            visitor.VisitUsingStatement(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            If Me.StatementKind() = OperationKind.UsingWithDeclarationStatement Then
-                Return visitor.VisitUsingWithDeclarationStatement(Me, argument)
-            Else
-                Return visitor.VisitUsingWithExpressionStatement(Me, argument)
-            End If
+            Return visitor.VisitUsingStatement(Me, argument)
         End Function
 
         Private NotInheritable Class Variables

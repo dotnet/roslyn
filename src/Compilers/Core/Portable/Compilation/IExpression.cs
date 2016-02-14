@@ -308,14 +308,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a conditional access expression.
+    /// Represents an expression that includes a ? or ?. conditional access instance expression.
     /// </summary>
     public interface IConditionalAccessExpression : IOperation
     {
         /// <summary>
-        /// Expression containing the conditional access.
+        /// Expression to be evaluated if the conditional instance is non null.
         /// </summary>
-        IOperation Value { get; }
+        IOperation ConditionalValue { get; }
         /// <summary>
         /// Expresson that is conditionally accessed.
         /// </summary>
@@ -326,6 +326,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// Represents the value of a conditionally-accessed expression within an expression containing a conditional access.
     /// </summary>
     public interface IConditionalAccessInstanceExpression : IOperation
+    {
+    }
+
+    /// <summary>
+    /// Represents a general placeholder when no more specific kind of placeholder is available.
+    /// A placeholder is an expression whose meaning is inferred from context.
+    /// </summary>
+    public interface IPlaceholderExpression : IOperation
     {
     }
 
@@ -897,7 +905,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an expression that tests if a value is of a specific type.
     /// </summary>
-    public interface IIsExpression : IOperation
+    public interface IIsTypeExpression : IOperation
     {
         /// <summary>
         /// Value to test.

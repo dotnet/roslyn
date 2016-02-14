@@ -789,22 +789,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundIsOperator : IIsExpression
+    internal partial class BoundIsOperator : IIsTypeExpression
     {
-        IOperation IIsExpression.Operand => this.Operand;
+        IOperation IIsTypeExpression.Operand => this.Operand;
 
-        ITypeSymbol IIsExpression.IsType => this.TargetType.Type;
+        ITypeSymbol IIsTypeExpression.IsType => this.TargetType.Type;
 
-        protected override OperationKind ExpressionKind => OperationKind.IsExpression;
+        protected override OperationKind ExpressionKind => OperationKind.IsTypeExpression;
 
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitIsExpression(this);
+            visitor.VisitIsTypeExpression(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitIsExpression(this, argument);
+            return visitor.VisitIsTypeExpression(this, argument);
         }
     }
 
@@ -1264,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundConditionalAccess : IConditionalAccessExpression
     {
-        IOperation IConditionalAccessExpression.Value => this.AccessExpression;
+        IOperation IConditionalAccessExpression.ConditionalValue => this.AccessExpression;
 
         IOperation IConditionalAccessExpression.ConditionalInstance => this.Receiver;
 

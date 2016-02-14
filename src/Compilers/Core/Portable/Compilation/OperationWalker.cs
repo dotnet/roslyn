@@ -161,13 +161,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.Handler);
         }
 
-        public override void VisitUsingWithDeclarationStatement(IUsingWithDeclarationStatement operation)
+        public override void VisitUsingStatement(IUsingStatement operation)
         {
             Visit(operation.Declaration);
-        }
-
-        public override void VisitUsingWithExpressionStatement(IUsingWithExpressionStatement operation)
-        {
             Visit(operation.Value);
         }
 
@@ -261,11 +257,15 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitConditionalAccessExpression(IConditionalAccessExpression operation)
         {
-            Visit(operation.Value);
+            Visit(operation.ConditionalValue);
             Visit(operation.ConditionalInstance);
         }
 
         public override void VisitConditionalAccessInstanceExpression(IConditionalAccessInstanceExpression operation)
+        {
+        }
+
+        public override void VisitPlaceholderExpression(IPlaceholderExpression operation)
         {
         }
 
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.Secondary);
         }
 
-        public override void VisitIsExpression(IIsExpression operation)
+        public override void VisitIsTypeExpression(IIsTypeExpression operation)
         {
             Visit(operation.Operand);
         }

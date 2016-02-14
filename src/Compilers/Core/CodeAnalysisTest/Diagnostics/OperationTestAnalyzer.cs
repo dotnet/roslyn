@@ -1593,7 +1593,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      IConditionalAccessExpression conditionalAccess = (IConditionalAccessExpression)operationContext.Operation;
-                     if (conditionalAccess.Value != null && conditionalAccess.ConditionalInstance != null)
+                     if (conditionalAccess.ConditionalValue != null && conditionalAccess.ConditionalInstance != null)
                      {
                          operationContext.ReportDiagnostic(Diagnostic.Create(ConditionalAccessOperationDescriptor, conditionalAccess.Syntax.GetLocation()));
                      }
@@ -1607,6 +1607,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      operationContext.ReportDiagnostic(Diagnostic.Create(ConditionalAccessInstanceOperationDescriptor, conditionalAccessInstance.Syntax.GetLocation()));
                  },
                  OperationKind.ConditionalAccessInstanceExpression);
+
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    IPlaceholderExpression placeholder = (IPlaceholderExpression)operationContext.Operation;
+                    operationContext.ReportDiagnostic(Diagnostic.Create(ConditionalAccessInstanceOperationDescriptor, placeholder.Syntax.GetLocation()));
+                },
+                OperationKind.PlaceholderExpression);
         }
     }
 }

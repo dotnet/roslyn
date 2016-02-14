@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis
     {
         None = 0x0,
 
+        // Statements
+
         /// <summary>Indicates an <see cref="IInvalidStatement"/>.</summary>
         InvalidStatement = 0x1,
         /// <summary>Indicates an <see cref="IBlockStatement"/>.</summary>
@@ -58,155 +60,163 @@ namespace Microsoft.CodeAnalysis
         IfStatement = 0x5,
         /// <summary>Indicates an <see cref="ILoopStatement"/>.</summary>
         LoopStatement = 0x6,
-        /// <summary>Indicates an <see cref="IReturnStatement"/>.</summary>
-        YieldBreakStatement = 0x9,
         /// <summary>Indicates an <see cref="ILabelStatement"/>.</summary>
-        LabelStatement = 0xa,
+        LabelStatement = 0x7,
         /// <summary>Indicates an <see cref="IBranchStatement"/>.</summary>
-        BranchStatement = 0xc,
+        BranchStatement = 0x8,
         /// <summary>Indicates an <see cref="IEmptyStatement"/>.</summary>
-        EmptyStatement = 0xd,
+        EmptyStatement = 0x9,
         /// <summary>Indicates an <see cref="IThrowStatement"/>.</summary>
-        ThrowStatement = 0xe,
+        ThrowStatement = 0xa,
         /// <summary>Indicates an <see cref="IReturnStatement"/>.</summary>
-        ReturnStatement = 0xf,
+        ReturnStatement = 0xb,
+        /// <summary>Indicates an <see cref="IReturnStatement"/>.</summary>
+        YieldBreakStatement = 0xc,
         /// <summary>Indicates an <see cref="ILockStatement"/>.</summary>
-        LockStatement = 0x10,
+        LockStatement = 0xd,
         /// <summary>Indicates an <see cref="ITryStatement"/>.</summary>
-        TryStatement = 0x11,
-        /// <summary>Indicates an <see cref="ICatchClause"/>.</summary>
-        CatchClause = 0x12,
-        /// <summary>Indicates an <see cref="IUsingWithDeclarationStatement"/>.</summary>
-        UsingWithDeclarationStatement = 0x13,
-        /// <summary>Indicates an <see cref="IUsingWithExpressionStatement"/>.</summary>
-        UsingWithExpressionStatement = 0x14,
+        TryStatement = 0xe,
+        /// <summary>Indicates an <see cref="IUsingStatement"/>.</summary>
+        UsingStatement = 0xf,
         /// <summary>Indicates an <see cref="IReturnStatement"/>.</summary>
-        YieldReturnStatement = 0x15,
-        /// <summary>Indicates an <see cref="IFixedStatement"/>.</summary>
-        FixedStatement = 0x16,
-        // LocalFunctionStatement = 0x17,
-
+        YieldReturnStatement = 0x10,
         /// <summary>Indicates an <see cref="IExpressionStatement"/>.</summary>
-        ExpressionStatement = 0x18,
+        ExpressionStatement = 0x11,
+
+        // Statements that occur only C#.
+
+        /// <summary>Indicates an <see cref="IFixedStatement"/>.</summary>
+        FixedStatement = 0x30,
+
+        // Statements that occur only in Visual Basic.
+
+        /// <summary>Indicates an <see cref="IStopStatement"/>.</summary>
+        StopStatement = 0x50,
+        /// <summary>Indicates an <see cref="IEndStatement"/>.</summary>
+        EndStatement = 0x51,
+        /// <summary>Indicates an <see cref="IWithStatement"/>.</summary>
+        WithStatement = 0x52,
+
+        // Expressions
 
         /// <summary>Indicates an <see cref="IInvalidExpression"/>.</summary>
-        InvalidExpression = 0x19,
+        InvalidExpression = 0x100,
         /// <summary>Indicates an <see cref="ILiteralExpression"/>.</summary>
-        LiteralExpression = 0x1a,
+        LiteralExpression = 0x101,
         /// <summary>Indicates an <see cref="IConversionExpression"/>.</summary>
-        ConversionExpression = 0x1b,
+        ConversionExpression = 0x102,
         /// <summary>Indicates an <see cref="IInvocationExpression"/>.</summary>
-        InvocationExpression = 0x1c,
+        InvocationExpression = 0x103,
         /// <summary>Indicates an <see cref="IArrayElementReferenceExpression"/>.</summary>
-        ArrayElementReferenceExpression = 0x1d,
-        /// <summary>Indicates an <see cref="IPointerIndirectionReferenceExpression"/>.</summary>
-        PointerIndirectionReferenceExpression = 0x1e,
+        ArrayElementReferenceExpression = 0x104,
         /// <summary>Indicates an <see cref="ILocalReferenceExpression"/>.</summary>
-        LocalReferenceExpression = 0x1f,
+        LocalReferenceExpression = 0x105,
         /// <summary>Indicates an <see cref="IParameterReferenceExpression"/>.</summary>
-        ParameterReferenceExpression = 0x20,
+        ParameterReferenceExpression = 0x106,
         /// <summary>Indicates an <see cref="ISyntheticLocalReferenceExpression"/>.</summary>
-        SyntheticLocalReferenceExpression = 0x21,
+        SyntheticLocalReferenceExpression = 0x107,
         /// <summary>Indicates an <see cref="IFieldReferenceExpression"/>.</summary>
-        FieldReferenceExpression = 0x22,
+        FieldReferenceExpression = 0x108,
         /// <summary>Indicates an <see cref="IMethodBindingExpression"/>.</summary>
-        MethodBindingExpression = 0x23,
+        MethodBindingExpression = 0x109,
         /// <summary>Indicates an <see cref="IPropertyReferenceExpression"/>.</summary>
-        PropertyReferenceExpression = 0x24,
+        PropertyReferenceExpression = 0x10a,
         /// <summary>Indicates an <see cref="IIndexedPropertyReferenceExpression"/>.</summary>
-        IndexedPropertyReferenceExpression = 0x4f,
+        IndexedPropertyReferenceExpression = 0x10b,
         /// <summary>Indicates an <see cref="IEventReferenceExpression"/>.</summary>
-        EventReferenceExpression = 0x25,
-        /// <summary>Indicates an <see cref="ILateBoundMemberReferenceExpression"/>.</summary>
-        LateBoundMemberReferenceExpression = 0x26,
+        EventReferenceExpression = 0x10c,
         /// <summary>Indicates an <see cref="IUnaryOperatorExpression"/>.</summary>
-        UnaryOperatorExpression = 0x27,
+        UnaryOperatorExpression = 0x10d,
         /// <summary>Indicates an <see cref="IBinaryOperatorExpression"/>.</summary>
-        BinaryOperatorExpression = 0x28,
+        BinaryOperatorExpression = 0x10e,
         /// <summary>Indicates an <see cref="IConditionalChoiceExpression"/>.</summary>
-        ConditionalChoiceExpression = 0x29,
+        ConditionalChoiceExpression = 0x10f,
         /// <summary>Indicates an <see cref="INullCoalescingExpression"/>.</summary>
-        NullCoalescingExpression = 0x2a,
+        NullCoalescingExpression = 0x110,
         /// <summary>Indicates an <see cref="ILambdaExpression"/>.</summary>
-        LambdaExpression = 0x2b,
+        LambdaExpression = 0x111,
         /// <summary>Indicates an <see cref="IObjectCreationExpression"/>.</summary>
-        ObjectCreationExpression = 0x2c,
+        ObjectCreationExpression = 0x112,
         /// <summary>Indicates an <see cref="ITypeParameterObjectCreationExpression"/>.</summary>
-        TypeParameterObjectCreationExpression = 0x2d,
+        TypeParameterObjectCreationExpression = 0x113,
         /// <summary>Indicates an <see cref="IArrayCreationExpression"/>.</summary>
-        ArrayCreationExpression = 0x2e,
-        /// <summary>Indicates an <see cref="IDefaultValueExpression"/>.</summary>
-        DefaultValueExpression = 0x2f,
+        ArrayCreationExpression = 0x114,
         /// <summary>Indicates an <see cref="IInstanceReferenceExpression"/>.</summary>
-        InstanceReferenceExpression = 0x30,
-        /// <summary>Indicates an <see cref="IIsExpression"/>.</summary>
-        IsExpression = 0x33,
-        // TypeOperationExpression = 0x34,
-        AwaitExpression = 0x35,
-        /// <summary>Indicates an <see cref="IAddressOfExpression"/>.</summary>
-        AddressOfExpression = 0x36,
+        InstanceReferenceExpression = 0x115,
+        /// <summary>Indicates an <see cref="IIsTypeExpression"/>.</summary>
+        IsTypeExpression = 0x116,
+        /// <summary>Indicates an <see cref="IAwaitExpression"/>.</summary>
+        AwaitExpression = 0x117,
         /// <summary>Indicates an <see cref="IAssignmentExpression"/>.</summary>
-        AssignmentExpression = 0x37,
+        AssignmentExpression = 0x118,
         /// <summary>Indicates an <see cref="ICompoundAssignmentExpression"/>.</summary>
-        CompoundAssignmentExpression = 0x38,
+        CompoundAssignmentExpression = 0x119,
         /// <summary>Indicates an <see cref="IParenthesizedExpression"/>.</summary>
-        ParenthesizedExpression = 0x39,
-
-        /// <summary>Indicates an <see cref="IUnboundLambdaExpression"/>.</summary>
-        UnboundLambdaExpression = 0x3a,
+        ParenthesizedExpression = 0x11a,
         /// <summary>Indicates an <see cref="IEventAssignmentExpression"/>.</summary>
-        EventAssignmentExpression = 0x3b,
+        EventAssignmentExpression = 0x11b,
+        /// <summary>Indicates an <see cref="IConditionalAccessExpression"/>.</summary>
+        ConditionalAccessExpression = 0x11c,
+        /// <summary>Indicates an <see cref="IConditionalAccessInstanceExpression"/>.</summary>
+        ConditionalAccessInstanceExpression = 0x11d,
 
+        // Expressions that occur only in C#.
+
+        /// <summary>Indicates an <see cref="IDefaultValueExpression"/>.</summary>
+        DefaultValueExpression = 0x200,
         /// <summary>Indicates an <see cref="ITypeOfExpression"/>.</summary>
-        TypeOfExpression = 0x34,
+        TypeOfExpression = 0x201,
         /// <summary>Indicates an <see cref="ISizeOfExpression"/>.</summary>
-        SizeOfExpression = 0x50,
+        SizeOfExpression = 0x202,
+        /// <summary>Indicates an <see cref="IAddressOfExpression"/>.</summary>
+        AddressOfExpression = 0x203,
+        /// <summary>Indicates an <see cref="IPointerIndirectionReferenceExpression"/>.</summary>
+        PointerIndirectionReferenceExpression = 0x204,
+        /// <summary>Indicates an <see cref="IUnboundLambdaExpression"/>.</summary>
+        UnboundLambdaExpression = 0x205,
+        /// <summary>Indicates an <see cref="IIncrementExpression"/>.</summary>
+        IncrementExpression = 0x206,
 
-        // VB only
+        // Expressions that occur only in Visual Basic.
 
         /// <summary>Indicates an <see cref="IOmittedArgumentExpression"/>.</summary>
-        OmittedArgumentExpression = 0x3c,
-        /// <summary>Indicates an <see cref="IStopStatement"/>.</summary>
-        StopStatement = 0x3d,
-        /// <summary>Indicates an <see cref="IEndStatement"/>.</summary>
-        EndStatement = 0x3e,
-        /// <summary>Indicates an <see cref="IWithStatement"/>.</summary>
-        WithStatement = 0x3f,
+        OmittedArgumentExpression = 0x300,
+        /// <summary>Indicates an <see cref="ILateBoundMemberReferenceExpression"/>.</summary>
+        LateBoundMemberReferenceExpression = 0x301, 
+        /// <summary>Indicates an <see cref="IPlaceholderExpression"/>.</summary>
+        PlaceholderExpression = 0x302,
 
-        // Newly added
+        // Operations that are constituents of statements, expressions, or declarations.
 
-        /// <summary>Indicates an <see cref="IConditionalAccessExpression"/>.</summary>
-        ConditionalAccessExpression = 0x40,
-        /// <summary>Indicates an <see cref="IConditionalAccessInstanceExpression"/>.</summary>
-        ConditionalAccessInstanceExpression = 0x4e,
-
-        /// <summary>Indicates an <see cref="IIncrementExpression"/>.</summary>
-        IncrementExpression = 0x41,
+        /// <summary>Indicates an <see cref="IFieldInitializer"/>.</summary>
+        FieldInitializerInCreation = 0x400,
+        /// <summary>Indicates an <see cref="IFieldInitializer"/>.</summary>
+        FieldInitializerAtDeclaration = 0x401,
+        /// <summary>Indicates an <see cref="IPropertyInitializer"/>.</summary>
+        PropertyInitializerInCreation = 0x402,
+        /// <summary>Indicates an <see cref="IPropertyInitializer"/>.</summary>
+        PropertyInitializerAtDeclaration = 0x403,
+        /// <summary>Indicates an <see cref="IParameterInitializer"/>.</summary>
+        ParameterInitializerAtDeclaration = 0x404,
+        /// <summary>Indicates an <see cref="IArrayInitializer"/>.</summary>
+        ArrayInitializer = 0x405,
+        
+        /// <summary>Indicates an <see cref="IVariableDeclaration"/>.</summary>
+        VariableDeclaration = 0x406,
 
         /// <summary>Indicates an <see cref="IArgument"/>.</summary>
-        Argument = 0x42,
-        /// <summary>Indicates an <see cref="IFieldInitializer"/>.</summary>
-        FieldInitializerInCreation = 0x43,
-        /// <summary>Indicates an <see cref="IPropertyInitializer"/>.</summary>
-        PropertyInitializerInCreation = 0x44,
-        /// <summary>Indicates an <see cref="IArrayInitializer"/>.</summary>
-        ArrayInitializer = 0x45,
-        /// <summary>Indicates an <see cref="IVariableDeclaration"/>.</summary>
-        VariableDeclaration = 0x46,
-        /// <summary>Indicates an <see cref="ISwitchCase"/>.</summary>
-        SwitchCase = 0x47,
-        /// <summary>Indicates an <see cref="ISingleValueCaseClause"/>.</summary>
-        SingleValueCaseClause = 0x48,
-        /// <summary>Indicates an <see cref="IRelationalCaseClause"/>.</summary>
-        RelationalCaseClause = 0x49,
-        /// <summary>Indicates an <see cref="IRangeCaseClause"/>.</summary>
-        RangeCaseClause = 0x4a,
+        Argument = 0x407,
 
-        /// <summary>Indicates an <see cref="IParameterInitializer"/>.</summary>
-        ParameterInitializerAtDeclaration = 0x4b,
-        /// <summary>Indicates an <see cref="IFieldInitializer"/>.</summary>
-        FieldInitializerAtDeclaration = 0x4c,
-        /// <summary>Indicates an <see cref="IPropertyInitializer"/>.</summary>
-        PropertyInitializerAtDeclaration = 0x4d
+        /// <summary>Indicates an <see cref="ICatchClause"/>.</summary>
+        CatchClause = 0x408,
+
+        /// <summary>Indicates an <see cref="ISwitchCase"/>.</summary>
+        SwitchCase = 0x409,
+        /// <summary>Indicates an <see cref="ISingleValueCaseClause"/>.</summary>
+        SingleValueCaseClause = 0x40a,
+        /// <summary>Indicates an <see cref="IRelationalCaseClause"/>.</summary>
+        RelationalCaseClause = 0x40b,
+        /// <summary>Indicates an <see cref="IRangeCaseClause"/>.</summary>
+        RangeCaseClause = 0x40c,
     }
 }
