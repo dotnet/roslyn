@@ -74,10 +74,10 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             if (type.TypeKind == TypeKind.Enum)
             {
-                return Semantics.BinaryOperationKind.EnumAdd;
+                return BinaryOperationKind.EnumAdd;
             }
 
-            return Semantics.BinaryOperationKind.None;
+            return BinaryOperationKind.Invalid;
         }
     }
 

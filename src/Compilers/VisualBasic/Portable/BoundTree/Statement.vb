@@ -330,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                Return BinaryOperationKind.None
+                Return BinaryOperationKind.Invalid
             End Get
         End Property
 
@@ -439,7 +439,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return DeriveBinaryOperationKind(Me.OperatorKind, DirectCast(Me.Value, BoundExpression))
                 End If
 
-                Return BinaryOperationKind.None
+                Return BinaryOperationKind.Invalid
+
             End Get
         End Property
 

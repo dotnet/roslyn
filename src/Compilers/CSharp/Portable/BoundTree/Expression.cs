@@ -2084,7 +2084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BinaryOperationKind.DynamicSubtract;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(incrementKind);
+                    return BinaryOperationKind.Invalid;
             }
         }
 
@@ -2311,7 +2311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            throw ExceptionUtilities.UnexpectedValue(operatorKind & UnaryOperatorKind.TypeMask);
+            return UnaryOperationKind.Invalid;
         }
 
         internal static BinaryOperationKind DeriveBinaryOperationKind(BinaryOperatorKind operatorKind)
@@ -2733,7 +2733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            throw ExceptionUtilities.UnexpectedValue(operatorKind & BinaryOperatorKind.TypeMask);
+            return BinaryOperationKind.Invalid;
         }
     }
 }
