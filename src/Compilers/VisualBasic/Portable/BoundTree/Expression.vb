@@ -2848,7 +2848,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Select
             End Select
 
-            Throw ExceptionUtilities.UnexpectedValue(operatorKind And UnaryOperatorKind.OpMask)
+            Return UnaryOperationKind.Invalid
         End Function
 
         Friend Function DeriveBinaryOperationKind(operatorKind As BinaryOperatorKind, left As BoundExpression) As BinaryOperationKind
@@ -3081,8 +3081,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Select
             End If
 
-
-            Throw ExceptionUtilities.UnexpectedValue(operatorKind And BinaryOperatorKind.OpMask)
+            Return BinaryOperationKind.Invalid
         End Function
     End Module
 End Namespace

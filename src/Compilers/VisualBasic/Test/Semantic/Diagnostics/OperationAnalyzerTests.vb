@@ -1548,5 +1548,36 @@ End Class
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "New Integer() { 1 }").WithLocation(10, 12),
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "New Integer() { 1, 2 }").WithLocation(11, 12))
         End Sub
+
+        <WorkItem(8114, "https://github.com/dotnet/roslyn/issues/8114")>
+        <Fact>
+        Public Sub InvalidOperatorVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Function M1(a As Double, b as C) as Double
+        Return b + c
+    End Sub
+
+    Public Function M2(s As C) As C
+        Return -s
+    End Function
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_EndFunctionExpected, "Public Function M1(a As Double, b as C) as Double").WithLocation(2, 5),
+                Diagnostic(ERRID.ERR_InvalidEndSub, "End Sub").WithLocation(4, 5),
+                Diagnostic(ERRID.ERR_InvInsideEndsProc, "Public Function M2(s As C) As C").WithLocation(6, 5),
+                Diagnostic(ERRID.ERR_ClassNotExpression1, "c").WithArguments("C").WithLocation(3, 20),
+                Diagnostic(ERRID.ERR_UnaryOperand2, "-s").WithArguments("-", "C").WithLocation(7, 16))
+            comp.VerifyAnalyzerDiagnostics({New InvalidOperatorExpressionTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidBinaryDescriptor.Id, "b + c").WithLocation(3, 16),
+                Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidUnaryDescriptor.Id, "-s").WithLocation(7, 16))
+        End Sub
     End Class
 End Namespace
