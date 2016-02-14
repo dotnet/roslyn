@@ -2824,17 +2824,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 expressionBody = this.ParseArrowExpressionClause();
                 expressionBody = CheckFeatureAvailability(expressionBody, MessageID.IDS_FeatureExpressionBodiedMethod);
             }
-            // obsolete? We'll probably won't need this block anymore if tests succeed.
-            //if (isAccessorBody && blockBody==null && expressionBody==null)
-            //{
-            //    // There's a special error code for a missing token after an accessor keyword
-            //    this.AddError(SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken), ErrorCode.ERR_SemiOrLBraceOrArrowExpected);
-            //}
 
             semicolon = null;
             // Expression-bodies need semicolons and native behavior
             // expects a semicolon if there is no body
-            if (expressionBody != null || blockBody == null )
+            if (expressionBody != null || blockBody == null)
             {
                 semicolon = this.EatToken(SyntaxKind.SemicolonToken);
             }

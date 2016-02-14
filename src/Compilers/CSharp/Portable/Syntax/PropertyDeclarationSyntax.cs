@@ -24,4 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this.WithSemicolonToken(semicolon);
         }
     }
+
+    // backwards compatibility for API extension
+    public sealed partial class AccessorDeclarationSyntax : CSharpSyntaxNode
+    {
+        public AccessorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, BlockSyntax body, SyntaxToken semicolonToken)
+            => Update(attributeLists, modifiers, keyword, body, default(ArrowExpressionClauseSyntax), semicolonToken);
+    }
 }
