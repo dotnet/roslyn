@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Roslyn.Utilities;
+using static Roslyn.Utilities.PortableShim;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
@@ -223,7 +224,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 project.Solution.Projects.Where(p => p != project)
                                          .SelectMany(p => p.MetadataReferences.OfType<PortableExecutableReference>())
                                          .Distinct(comparer: this)
-                                         .Where(r => !seenReferences.Contains(r));
+                                         .Where(r => !seenReferences.Contains(r))
+                                         .Where(r => !IsInPackagesDirectory(r));
 
             // Search all metadata references in parallel.
             var findTasks = new HashSet<Task<List<SymbolReference>>>();
@@ -262,6 +264,42 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     break;
                 }
             }
+        }
+
+        /// <summary>
+        /// We ignore references that are in a directory that contains the names "Packages".
+        /// These directories are most likely the ones produced by NuGet, and we don't want
+        /// to offer to add .dll reference manually for dlls that are part of NuGet packages.
+        /// </summary>
+        private bool IsInPackagesDirectory(PortableExecutableReference reference)
+        {
+            const string Packages = nameof(Packages);
+
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(reference.FilePath))
+                {
+                    if (reference.FilePath.IndexOf(Packages, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        var currentPath = reference.FilePath;
+                        while (currentPath != null)
+                        {
+                            var name = Path.GetFileName(currentPath);
+                            if (StringComparer.OrdinalIgnoreCase.Equals(name, Packages))
+                            {
+                                return true;
+                            }
+
+                            currentPath = Path.GetDirectoryName(currentPath);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            return false;
         }
 
         /// <summary>

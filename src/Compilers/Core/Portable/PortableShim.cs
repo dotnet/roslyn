@@ -139,6 +139,16 @@ namespace Roslyn.Utilities
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(GetTempFileName), paramTypes: new Type[] { })
                 .CreateDelegate(typeof(Func<string>));
+
+            internal static readonly Func<string, string> GetFileName = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(GetFileName), paramTypes: new[] { typeof(string) })
+                .CreateDelegate<Func<string, string>>();
+
+            internal static readonly Func<string, string> GetDirectoryName = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(GetDirectoryName), paramTypes: new[] { typeof(string) })
+                .CreateDelegate<Func<string, string>>();
         }
 
         internal static class File
