@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                Return BinaryOperationKind.None
+                Return BinaryOperationKind.Invalid
             End Get
         End Property
 

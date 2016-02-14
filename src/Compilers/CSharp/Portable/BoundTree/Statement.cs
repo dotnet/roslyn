@@ -385,8 +385,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return BinaryOperationKind.EnumEquals;
                     }
-                }
 
+                    return BinaryOperationKind.Invalid;
+                }
+                // Return None for `default` case.
                 return BinaryOperationKind.None;
             }
         }
