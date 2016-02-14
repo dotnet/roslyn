@@ -2819,16 +2819,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 blockBody = this.ParseBlock(isMethodBody: true, isAccessorBody: isAccessorBody);
             }
 
-            else if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
+            if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
             {
                 expressionBody = this.ParseArrowExpressionClause();
                 expressionBody = CheckFeatureAvailability(expressionBody, MessageID.IDS_FeatureExpressionBodiedMethod);
             }
-            else if (isAccessorBody)
-            {
-                // There's a special error code for a missing token after an accessor keyword
-                this.AddError(SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken), ErrorCode.ERR_SemiOrLBraceOrArrowExpected);
-            }
+            // obsolete? We'll probably won't need this block anymore if tests succeed.
+            //if (isAccessorBody && blockBody==null && expressionBody==null)
+            //{
+            //    // There's a special error code for a missing token after an accessor keyword
+            //    this.AddError(SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken), ErrorCode.ERR_SemiOrLBraceOrArrowExpected);
+            //}
 
             semicolon = null;
             // Expression-bodies need semicolons and native behavior
@@ -3738,6 +3739,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             || (validAccName && !currentTokenIsSemicolon && !IsTerminator()))
                 {
                     ParseBlockAndExpressionBodiesWithSemicolon(out body, out expressionBody, out semicolon, isAccessorBody: true);
+                    // it seems that we had an accessor body, so check if we really have content
+                    if (expressionBody == null && body == null)
+                    {
+                        this.AddError(SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken), ErrorCode.ERR_SemiOrLBraceOrArrowExpected);
+                    }
                 }
                 else if (currentTokenIsSemicolon || validAccName)
                 {
