@@ -912,7 +912,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return null;
             }
 
-            if(declaredType.IsFunctionPointer())
+            if (declaredType.IsFunctionPointer())
             {
                 // Function pointers have no expansion
                 return null;

@@ -4421,7 +4421,7 @@ Class C
 End Class
 ]]></text>
 
-            Await TestAsync(input, expected, DontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
+            Await TestAsync(input, expected, s_dontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
         End Function
 
         <WorkItem(7955, "https://github.com/dotnet/roslyn/issues/7955")>
@@ -4454,7 +4454,7 @@ Class C
 End Class
 ]]></text>
 
-            Await TestAsync(input, expected, DontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
+            Await TestAsync(input, expected, s_dontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
         End Function
 
         <WorkItem(8381, "https://github.com/dotnet/roslyn/issues/8381")>
@@ -4494,7 +4494,7 @@ Class Class1
 End Class
 </text>
 
-            Await TestAsync(input, expected, DontQualifyMemberAccessWithThisOrMe)
+            Await TestAsync(input, expected, s_dontQualifyMemberAccessWithThisOrMe)
         End Function
 
         <WorkItem(8381, "https://github.com/dotnet/roslyn/issues/8381")>
@@ -4534,7 +4534,7 @@ Class Class1
 End Class
 </text>
 
-            Await TestAsync(input, expected, DontQualifyMemberAccessWithThisOrMe)
+            Await TestAsync(input, expected, s_dontQualifyMemberAccessWithThisOrMe)
         End Function
 
         <WorkItem(8381, "https://github.com/dotnet/roslyn/issues/8381")>
@@ -4574,7 +4574,7 @@ Class Class1
 End Class
 </text>
 
-            Await TestAsync(input, expected, DontQualifyMemberAccessWithThisOrMe)
+            Await TestAsync(input, expected, s_dontQualifyMemberAccessWithThisOrMe)
         End Function
 
         <WorkItem(8381, "https://github.com/dotnet/roslyn/issues/8381")>
@@ -4614,15 +4614,15 @@ Class Class1
 End Class
 </text>
 
-            Await TestAsync(input, expected, DontQualifyMemberAccessWithThisOrMe)
+            Await TestAsync(input, expected, s_dontQualifyMemberAccessWithThisOrMe)
         End Function
 
 #End Region
 
 #Region "Helpers"
 
-        Shared DontPreferIntrinsicPredefinedTypeKeywordInDeclaration As Dictionary(Of OptionKey, Object) = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), False}}
-        Shared DontQualifyMemberAccessWithThisOrMe As Dictionary(Of OptionKey, Object) = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, LanguageNames.VisualBasic), False}}
+        Private Shared s_dontPreferIntrinsicPredefinedTypeKeywordInDeclaration As Dictionary(Of OptionKey, Object) = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), False}}
+        Private Shared s_dontQualifyMemberAccessWithThisOrMe As Dictionary(Of OptionKey, Object) = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, LanguageNames.VisualBasic), False}}
 
 #End Region
 

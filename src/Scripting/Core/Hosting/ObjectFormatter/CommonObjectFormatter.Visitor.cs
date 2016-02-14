@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
 
             public Visitor(
-                CommonObjectFormatter formatter, 
+                CommonObjectFormatter formatter,
                 BuilderOptions builderOptions,
                 CommonPrimitiveFormatterOptions primitiveOptions,
                 CommonTypeNameFormatterOptions typeNameOptions,
@@ -801,9 +801,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                                     _memberDisplayFormat = MemberDisplayFormat.Hidden;
                                     _primitiveOptions = new CommonPrimitiveFormatterOptions(
-                                        _primitiveOptions.NumberRadix, 
-                                        _primitiveOptions.IncludeCharacterCodePoints, 
-                                        quoteStringsAndCharacters: !noQuotes, 
+                                        _primitiveOptions.NumberRadix,
+                                        _primitiveOptions.IncludeCharacterCodePoints,
+                                        quoteStringsAndCharacters: !noQuotes,
                                         escapeNonPrintableCharacters: _primitiveOptions.EscapeNonPrintableCharacters,
                                         cultureInfo: _primitiveOptions.CultureInfo);
 

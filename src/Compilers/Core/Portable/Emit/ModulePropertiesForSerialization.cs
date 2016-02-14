@@ -12,7 +12,7 @@ namespace Microsoft.Cci
     {
         /// <summary>
         /// The alignment factor (in bytes) that is used to align the raw data of sections in the image file.
-       ///  The value should be a power of 2 between 512 and 64K, inclusive. The default is 512.
+        ///  The value should be a power of 2 between 512 and 64K, inclusive. The default is 512.
         /// </summary>
         public readonly int FileAlignment;
 
@@ -180,7 +180,7 @@ namespace Microsoft.Cci
             this.DllCharacteristics = GetDllCharacteristics(enableHighEntropyVA, configureToExecuteInAppContainer);
         }
 
-        private static DllCharacteristics GetDllCharacteristics(bool enableHighEntropyVA, bool configureToExecuteInAppContainer) 
+        private static DllCharacteristics GetDllCharacteristics(bool enableHighEntropyVA, bool configureToExecuteInAppContainer)
         {
             var result =
                 DllCharacteristics.DynamicBase |

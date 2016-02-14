@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             public SuppressMessageAttributeState SuppressMessageAttributeState { get; }
-            
+
             public SemanticModel GetOrCreateCachedSemanticModel(SyntaxTree tree, Compilation compilation, CancellationToken cancellationToken)
             {
                 SemanticModel model;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return model;
                     }
                 }
-                
+
                 model = compilation.GetSemanticModel(tree);
 
                 lock (_semanticModelsMap)

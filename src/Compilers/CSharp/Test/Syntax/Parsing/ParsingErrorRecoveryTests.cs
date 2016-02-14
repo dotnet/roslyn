@@ -6337,7 +6337,7 @@ public class Test
         }
 
         [WorkItem(542236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542236")]
-        [ClrOnlyFact]
+        [Fact]
         public void InsertOpenBraceBeforeCodes()
         {
             var text = @"{
@@ -6348,7 +6348,7 @@ public class Test
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
             Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
 
-            Assert.Equal("{\r\n", syntaxTree.GetCompilationUnitRoot().GetLeadingTrivia().Node.ToFullString());
+            Assert.Equal($"{{{Environment.NewLine}", syntaxTree.GetCompilationUnitRoot().GetLeadingTrivia().Node.ToFullString());
 
             // The issue (9391) was exhibited while enumerating the diagnostics
             Assert.True(syntaxTree.GetDiagnostics().Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)).SequenceEqual(new[]
@@ -6843,7 +6843,7 @@ static
 
 
         [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
-        [ClrOnlyFact]
+        [Fact]
         public void MissingOpenBraceForClass()
         {
             var source = @"namespace n
@@ -6854,13 +6854,18 @@ static
             var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
 
             Assert.Equal(source, root.ToFullString());
+            // Verify incomplete class decls don't eat tokens of surrounding nodes
             var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
-            Assert.Equal(new Text.TextSpan(20, 9), classDecl.Span);
-            Assert.Equal(new Text.TextSpan(16, 13), classDecl.FullSpan);
+            Assert.False(classDecl.Identifier.IsMissing);
+            Assert.True(classDecl.OpenBraceToken.IsMissing);
+            Assert.True(classDecl.CloseBraceToken.IsMissing);
+            var ns = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
+            Assert.False(ns.OpenBraceToken.IsMissing);
+            Assert.False(ns.CloseBraceToken.IsMissing);
         }
 
         [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
-        [ClrOnlyFact]
+        [Fact]
         public void MissingOpenBraceForStruct()
         {
             var source = @"namespace n
@@ -6871,13 +6876,17 @@ static
             var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
 
             Assert.Equal(source, root.ToFullString());
+            // Verify incomplete struct decls don't eat tokens of surrounding nodes
             var structDecl = root.DescendantNodes().OfType<StructDeclarationSyntax>().Single();
-            Assert.Equal(new Text.TextSpan(20, 14), structDecl.Span);
-            Assert.Equal(new Text.TextSpan(16, 18), structDecl.FullSpan);
+            Assert.True(structDecl.OpenBraceToken.IsMissing);
+            Assert.True(structDecl.CloseBraceToken.IsMissing);
+            var ns = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
+            Assert.False(ns.OpenBraceToken.IsMissing);
+            Assert.False(ns.CloseBraceToken.IsMissing);
         }
 
         [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
-        [ClrOnlyFact]
+        [Fact]
         public void MissingNameForStruct()
         {
             var source = @"namespace n
@@ -6890,13 +6899,18 @@ static
             var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
 
             Assert.Equal(source, root.ToFullString());
+            // Verify incomplete struct decls don't eat tokens of surrounding nodes
             var structDecl = root.DescendantNodes().OfType<StructDeclarationSyntax>().Single();
-            Assert.Equal(new Text.TextSpan(20, 24), structDecl.Span);
-            Assert.Equal(new Text.TextSpan(16, 30), structDecl.FullSpan);
+            Assert.True(structDecl.Identifier.IsMissing);
+            Assert.False(structDecl.OpenBraceToken.IsMissing);
+            Assert.False(structDecl.CloseBraceToken.IsMissing);
+            var ns = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
+            Assert.False(ns.OpenBraceToken.IsMissing);
+            Assert.False(ns.CloseBraceToken.IsMissing);
         }
 
         [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
-        [ClrOnlyFact]
+        [Fact]
         public void MissingNameForClass()
         {
             var source = @"namespace n
@@ -6909,9 +6923,14 @@ static
             var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
 
             Assert.Equal(source, root.ToFullString());
+            // Verify incomplete class decls don't eat tokens of surrounding nodes
             var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
-            Assert.Equal(new Text.TextSpan(20, 19), classDecl.Span);
-            Assert.Equal(new Text.TextSpan(16, 25), classDecl.FullSpan);
+            Assert.True(classDecl.Identifier.IsMissing);
+            Assert.False(classDecl.OpenBraceToken.IsMissing);
+            Assert.False(classDecl.CloseBraceToken.IsMissing);
+            var ns = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
+            Assert.False(ns.OpenBraceToken.IsMissing);
+            Assert.False(ns.CloseBraceToken.IsMissing);
         }
     }
 }

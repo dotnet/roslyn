@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         {
             while (info != null)
             {
-                if (IsGeneratedMemberName(info.Name) || 
+                if (IsGeneratedMemberName(info.Name) ||
                     info.GetCustomAttributes<DebuggerHiddenAttribute>().Any())
                 {
                     return true;

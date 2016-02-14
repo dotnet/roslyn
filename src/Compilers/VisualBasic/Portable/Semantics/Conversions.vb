@@ -916,13 +916,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             userDefinedConversionsMightStillBeApplicable = False
             Dim conv As ConversionKind
 
-            ' Using <symbol>.IsConstant() for field accesses can result in an infinite loop.
-            ' To detect such a loop pass the already visited constants from the binder.
+            ' Using source.IsConstant for field accesses can result in an infinite loop.
+            ' To resolve the cycle, first call GetConstantValue with the already visited constants from the binder.                  
+            ' The check for source.IsConstant is still necessary because the node might still 
+            ' be considered as a non-constant in some error conditions (a reference before declaration,
+            ' for example).
             Dim sourceIsConstant As Boolean = False
             If source.Kind = BoundKind.FieldAccess Then
-                sourceIsConstant = DirectCast(source, BoundFieldAccess).FieldSymbol.GetConstantValue(binder.ConstantFieldsInProgress) IsNot Nothing
+                sourceIsConstant = DirectCast(source, BoundFieldAccess).FieldSymbol.GetConstantValue(binder.ConstantFieldsInProgress) IsNot Nothing AndAlso source.IsConstant
             ElseIf source.Kind = BoundKind.Local Then
-                sourceIsConstant = DirectCast(source, BoundLocal).LocalSymbol.GetConstantValue(binder) IsNot Nothing
+                sourceIsConstant = DirectCast(source, BoundLocal).LocalSymbol.GetConstantValue(binder) IsNot Nothing AndAlso source.IsConstant
             Else
                 sourceIsConstant = source.IsConstant
             End If

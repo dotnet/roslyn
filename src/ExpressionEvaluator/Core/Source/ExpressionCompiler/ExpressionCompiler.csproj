@@ -36,6 +36,10 @@
     <Compile Include="DebuggerDiagnosticFormatter.cs" />
     <Compile Include="DynamicFlagsCustomTypeInfo.cs" />
     <Compile Include="DynamicFlagsCustomTypeInfo_Factory.cs" />
+    <Compile Include="EESymbolProvider.cs" />
+    <Compile Include="ILSpan.cs" />
+    <Compile Include="PDB\MethodDebugInfo.Native.cs" />
+    <Compile Include="PDB\MethodDebugInfo.Portable.cs" />
     <Compile Include="Placeholders.cs" />
     <Compile Include="ImmutableArrayExtensions.cs" />
     <Compile Include="CompileResult.cs" />
@@ -48,10 +52,6 @@
     <Compile Include="PDB\MethodDebugInfo.cs" />
     <Compile Include="PDB\ImportRecord.cs" />
     <Compile Include="PDB\PdbHelpers.cs" />
-    <Compile Include="PDB\PortableImportRecord.cs" />
-    <Compile Include="PDB\NativeImportRecord.cs" />
-    <Compile Include="PDB\PortableExternAliasRecord.cs" />
-    <Compile Include="PDB\NativeExternAliasRecord.cs" />
     <Compile Include="ResultProperties.cs" />
     <Compile Include="ExpressionCompilerUtilities.cs" />
     <Compile Include="ExpressionEvaluatorFatalError.cs" />

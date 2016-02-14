@@ -14,33 +14,67 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
 {
     internal abstract class AbstractDocCommentCompletionProvider : CompletionListProvider, ICustomCommitCompletionProvider
     {
+        // Tag names
+        protected const string CDataPrefixTagName = "![CDATA[";
+        protected const string CTagName = "c";
+        protected const string CodeTagName = "code";
+        protected const string CommentPrefixTagName = "!--";
+        protected const string CompletionListTagName = "completionlist";
+        protected const string DescriptionTagName = "description";
+        protected const string ExampleTagName = "example";
+        protected const string ExceptionTagName = "exception";
+        protected const string IncludeTagName = "include";
+        protected const string ItemTagName = "item";
+        protected const string ListTagName = "list";
+        protected const string ListHeaderTagName = "listheader";
+        protected const string ParaTagName = "para";
+        protected const string ParamTagName = "param";
+        protected const string ParamRefTagName = "paramref";
+        protected const string PermissionTagName = "permission";
+        protected const string RemarksTagName = "remarks";
+        protected const string ReturnsTagName = "returns";
+        protected const string SeeTagName = "see";
+        protected const string SeeAlsoTagName = "seealso";
+        protected const string SummaryTagName = "summary";
+        protected const string TermTagName = "term";
+        protected const string TypeParamTagName = "typeparam";
+        protected const string TypeParamRefTagName = "typeparamref";
+        protected const string ValueTagName = "value";
+
+        // Attribute names
+        protected const string CrefAttributeName = "cref";
+        protected const string FileAttributeName = "file";
+        protected const string NameAttributeName = "name";
+        protected const string PathAttributeName = "path";
+        protected const string TypeAttributeName = "type";
+
         private readonly Dictionary<string, string[]> _tagMap =
             new Dictionary<string, string[]>
             {
-                { "exception", new[] { "<exception cref=\"", "\"" } },
-                { "!--", new[] { "<!--", "-->" } },
-                { "![CDATA[", new[] { "<![CDATA[", "]]>" } },
-                { "include", new[] { "<include file=\'", "\' path=\'[@name=\"\"]\'/>" } },
-                { "permission", new[] { "<permission cref=\"", "\"" } },
-                { "see", new[] { "<see cref=\"", "\"/>" } },
-                { "seealso", new[] { "<seealso cref=\"", "\"/>" } },
-                { "list", new[] { "<list type=\"", "\"" } },
-                { "paramref", new[] { "<paramref name=\"", "\"/>" } },
-                { "typeparamref", new[] { "<typeparamref name=\"", "\"/>" } },
-                { "completionlist", new[] { "<completionlist cref=\"", "\"/>" } },
+                { ExceptionTagName,      new[] { $"<{ExceptionTagName} {CrefAttributeName}=\"",      "\"" } },
+                { CommentPrefixTagName,  new[] { $"<{CommentPrefixTagName}",                         "-->" } },
+                { CDataPrefixTagName,    new[] { $"<{CDataPrefixTagName}",                           "]]>" } },
+                { IncludeTagName,        new[] { $"<{IncludeTagName} {FileAttributeName}=\'",        $"\' {PathAttributeName}=\'[@name=\"\"]\'/>" } },
+                { PermissionTagName,     new[] { $"<{PermissionTagName} {CrefAttributeName}=\"",     "\"" } },
+                { SeeTagName,            new[] { $"<{SeeTagName} {CrefAttributeName}=\"",            "\"/>" } },
+                { SeeAlsoTagName,        new[] { $"<{SeeAlsoTagName} {CrefAttributeName}=\"",        "\"/>" } },
+                { ListTagName,           new[] { $"<{ListTagName} {TypeAttributeName}=\"",           "\"" } },
+                { ParamRefTagName,       new[] { $"<{ParamRefTagName} {NameAttributeName}=\"",       "\"/>" } },
+                { TypeParamRefTagName,   new[] { $"<{TypeParamRefTagName} {NameAttributeName}=\"",   "\"/>" } },
+                { CompletionListTagName, new[] { $"<{CompletionListTagName} {CrefAttributeName}=\"", "\"/>" } },
             };
 
         private readonly string[][] _attributeMap =
             new[]
             {
-                new[] { "exception", "cref", "cref=\"", "\"" },
-                new[] { "permission",  "cref", "cref=\"", "\"" },
-                new[] { "see", "cref", "cref=\"", "\"" },
-                new[] { "seealso", "cref", "cref=\"", "\"" },
-                new[] { "list", "type", "type=\"", "\"" },
-                new[] { "param", "name", "name=\"", "\"" },
-                new[] { "include", "file", "file=\"", "\"" },
-                new[] { "include", "path", "path=\"", "\"" }
+                new[] { ExceptionTagName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
+                new[] { PermissionTagName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
+                new[] { SeeTagName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
+                new[] { SeeAlsoTagName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
+                new[] { ListTagName, TypeAttributeName, $"{TypeAttributeName}=\"", "\"" },
+                new[] { ParamTagName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
+                new[] { IncludeTagName, FileAttributeName, $"{FileAttributeName}=\"", "\"" },
+                new[] { IncludeTagName, PathAttributeName, $"{PathAttributeName}=\"", "\"" }
             };
 
         public override async Task ProduceCompletionListAsync(CompletionListContext context)
@@ -79,37 +113,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
 
         protected IEnumerable<CompletionItem> GetAlwaysVisibleItems(TextSpan filterSpan)
         {
-            return new[] { "see", "seealso", "![CDATA[", "!--" }
+            return new[] { SeeTagName, SeeAlsoTagName, CDataPrefixTagName, CommentPrefixTagName }
                 .Select(t => GetItem(t, filterSpan));
         }
 
         protected IEnumerable<CompletionItem> GetNestedTags(TextSpan filterSpan)
         {
-            return new[] { "c", "code", "para", "list", "paramref", "typeparamref" }
+            return new[] { CTagName, CodeTagName, ParaTagName, ListTagName, ParamRefTagName, TypeParamRefTagName }
                 .Select(t => GetItem(t, filterSpan));
         }
 
         protected IEnumerable<CompletionItem> GetTopLevelRepeatableItems(TextSpan filterSpan)
         {
-            return new[] { "exception", "include", "permission" }
+            return new[] { ExceptionTagName, IncludeTagName, PermissionTagName }
                 .Select(t => GetItem(t, filterSpan));
         }
 
         protected IEnumerable<CompletionItem> GetListItems(TextSpan span)
         {
-            return new[] { "listheader", "term", "item", "description" }
+            return new[] { ListHeaderTagName, TermTagName, ItemTagName, DescriptionTagName }
                 .Select(t => GetItem(t, span));
         }
 
         protected IEnumerable<CompletionItem> GetListHeaderItems(TextSpan span)
         {
-            return new[] { "term", "description" }
+            return new[] { TermTagName, DescriptionTagName }
                 .Select(t => GetItem(t, span));
         }
 
         protected string FormatParameter(string kind, string name)
         {
-            return string.Format("{0} name=\"{1}\"", kind, name);
+            return $"{kind} {NameAttributeName}=\"{name}\"";
         }
 
         public void Commit(CompletionItem completionItem, ITextView textView, ITextBuffer subjectBuffer, ITextSnapshot triggerSnapshot, char? commitChar)

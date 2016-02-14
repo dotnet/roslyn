@@ -54,18 +54,18 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             }
         }
 
-        private static readonly Func<int[], string> _tokenInspector = tokens =>
+        private static readonly Func<int[], string> s_tokenInspector = tokens =>
             tokens.Length == 0 ? "NoTokens" : "new[] { " + string.Join(", ", tokens.Select(TokenToConstantName)) + " }";
 
-        private static readonly Func<int, string> _ilOffsetInspector = offset =>
+        private static readonly Func<int, string> s_ilOffsetInspector = offset =>
             (offset == int.MaxValue) ? "NoOffset" : (offset >= 0) ? "0x" + offset.ToString("X2") : "-0x" + (-offset).ToString("X2");
 
-        private static readonly Func<int[], string> _rangeInspector = ranges =>
+        private static readonly Func<int[], string> s_rangeInspector = ranges =>
             ranges.Length == 0 ? "NoRange" : "new[] { " + string.Join(", ", ranges.Select(i => "0x" + i.ToString("X2"))) + " }";
 
-        private static readonly int[] NoTokens = new int[0];
-        private static readonly int[] NoRange = new int[0];
-        private static readonly int NoOffset = int.MaxValue;
+        private static readonly int[] s_noTokens = new int[0];
+        private static readonly int[] s_noRange = new int[0];
+        private static readonly int s_noOffset = int.MaxValue;
 
         [Fact]
         public void GetMethodFromDocumentPosition_UsingDIA_Native()
@@ -81,9 +81,9 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
 
             AssertEx.Equal(new int[][]
             {
-                NoTokens,                              // 1 
-                NoTokens,                              // 2
-                NoTokens,                              // 3
+                s_noTokens,                              // 1 
+                s_noTokens,                              // 2
+                s_noTokens,                              // 3
                 new[] { tokenG },                      // 4
                 new[] { tokenCtor, tokenF, tokenG  },  // 5
                 new[] { tokenCtor, tokenG },           // 6
@@ -93,32 +93,32 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
                 new[] { tokenCtor, tokenF },           // 10
                 new[] { tokenCtor },                   // 11
                 new[] { tokenCtor },                   // 12
-                NoTokens,                              // 13
+                s_noTokens,                              // 13
                 new[] { tokenCtor },                   // 14
-                NoTokens,                              // 15
-                NoTokens,                              // 16
+                s_noTokens,                              // 15
+                s_noTokens,                              // 16
                 new[] { tokenF },                      // 17
-                NoTokens,                              // 18
-                NoTokens,                              // 19
+                s_noTokens,                              // 18
+                s_noTokens,                              // 19
                 new[] { tokenF },                      // 20
-                NoTokens,                              // 21
+                s_noTokens,                              // 21
                 new[] { tokenF },                      // 22
                 new[] { tokenF },                      // 23
-                NoTokens,                              // 24
-                NoTokens,                              // 25
-                NoTokens,                              // 26
-                NoTokens,                              // 27
-                NoTokens,                              // 28
-                NoTokens,                              // 29
-            }, tokens, itemInspector: _tokenInspector, comparer: (x, y) => x.SequenceEqual(y));
+                s_noTokens,                              // 24
+                s_noTokens,                              // 25
+                s_noTokens,                              // 26
+                s_noTokens,                              // 27
+                s_noTokens,                              // 28
+                s_noTokens,                              // 29
+            }, tokens, itemInspector: s_tokenInspector, comparer: (x, y) => x.SequenceEqual(y));
 
             tokens = GetMethodTokensForEachLine(symReader, document2, 1, 29);
 
             AssertEx.Equal(new int[][]
             {
                 new[] { tokenF },            // 1
-                NoTokens,                    // 2
-                NoTokens,                    // 3
+                s_noTokens,                    // 2
+                s_noTokens,                    // 3
                 new[] { tokenH },            // 4
                 new[] { tokenE0, tokenH },   // 5
                 new[] { tokenE2 },           // 6
@@ -133,19 +133,19 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
                 new[] { tokenJ1 },           // 15
                 new[] { tokenJ2 },           // 16
                 new[] { tokenJ2 },           // 17
-                NoTokens,                    // 18
-                NoTokens,                    // 19
-                NoTokens,                    // 20
-                NoTokens,                    // 21
+                s_noTokens,                    // 18
+                s_noTokens,                    // 19
+                s_noTokens,                    // 20
+                s_noTokens,                    // 21
                 new[] { tokenI },            // 22
                 new[] { tokenI },            // 23
-                NoTokens,                    // 24
-                NoTokens,                    // 25
-                NoTokens,                    // 26
-                NoTokens,                    // 27
+                s_noTokens,                    // 24
+                s_noTokens,                    // 25
+                s_noTokens,                    // 26
+                s_noTokens,                    // 27
                 new[] { tokenJ2 },           // 28
-                NoTokens,                    // 29
-            }, tokens, itemInspector: _tokenInspector, comparer: (x, y) => x.SequenceEqual(y));
+                s_noTokens,                    // 29
+            }, tokens, itemInspector: s_tokenInspector, comparer: (x, y) => x.SequenceEqual(y));
 
             tokens = GetMethodTokensForEachLine(symReader, document3, 1, 29);
 
@@ -159,28 +159,28 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
                 new[] { tokenK3 },            // 6
                 new[] { tokenK4 },            // 7
                 new[] { tokenK4 },            // 8
-                NoTokens,                     // 9
+                s_noTokens,                     // 9
                 new[] { tokenK3 },            // 10
                 new[] { tokenK2 },            // 11
                 new[] { tokenK1 },            // 12
-                NoTokens,                     // 13
-                NoTokens,                     // 14
-                NoTokens,                     // 15
-                NoTokens,                     // 16
-                NoTokens,                     // 17
-                NoTokens,                     // 18
-                NoTokens,                     // 19
-                NoTokens,                     // 20
-                NoTokens,                     // 21
-                NoTokens,                     // 22
-                NoTokens,                     // 23
-                NoTokens,                     // 24
-                NoTokens,                     // 25
-                NoTokens,                     // 26
-                NoTokens,                     // 27
-                NoTokens,                     // 28
-                NoTokens,                     // 29
-            }, tokens, itemInspector: _tokenInspector, comparer: (x, y) => x.SequenceEqual(y));
+                s_noTokens,                     // 13
+                s_noTokens,                     // 14
+                s_noTokens,                     // 15
+                s_noTokens,                     // 16
+                s_noTokens,                     // 17
+                s_noTokens,                     // 18
+                s_noTokens,                     // 19
+                s_noTokens,                     // 20
+                s_noTokens,                     // 21
+                s_noTokens,                     // 22
+                s_noTokens,                     // 23
+                s_noTokens,                     // 24
+                s_noTokens,                     // 25
+                s_noTokens,                     // 26
+                s_noTokens,                     // 27
+                s_noTokens,                     // 28
+                s_noTokens,                     // 29
+            }, tokens, itemInspector: s_tokenInspector, comparer: (x, y) => x.SequenceEqual(y));
         }
 
         [Fact]
@@ -214,9 +214,9 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
 
             AssertEx.Equal(new int[][]
             {
-                NoTokens,                                 // 1
-                NoTokens,                                 // 2
-                NoTokens,                                 // 3
+                s_noTokens,                                 // 1
+                s_noTokens,                                 // 2
+                s_noTokens,                                 // 3
                 new int[] { tokenG },                     // 4
                 new int[] { tokenCtor, tokenF, tokenG },  // 5
                 new int[] { tokenCtor, tokenF, tokenG },  // 6
@@ -237,21 +237,21 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
                 new int[] { tokenF },                     // 21 (DIA: 0)
                 new int[] { tokenF },                     // 22 
                 new int[] { tokenF },                     // 23
-                NoTokens,                                 // 24
-                NoTokens,                                 // 25
-                NoTokens,                                 // 26
-                NoTokens,                                 // 27
-                NoTokens,                                 // 28
-                NoTokens,                                 // 29
-             }, tokens, itemInspector: _tokenInspector, comparer: (x, y) => x.SequenceEqual(y));
+                s_noTokens,                                 // 24
+                s_noTokens,                                 // 25
+                s_noTokens,                                 // 26
+                s_noTokens,                                 // 27
+                s_noTokens,                                 // 28
+                s_noTokens,                                 // 29
+             }, tokens, itemInspector: s_tokenInspector, comparer: (x, y) => x.SequenceEqual(y));
 
             tokens = GetMethodTokensForEachLine(symReader, document2, 1, 29);
 
             AssertEx.Equal(new int[][]
             {
                  new int[] { tokenF },                   // 1      
-                 NoTokens,                               // 2  
-                 NoTokens,                               // 3    
+                 s_noTokens,                               // 2  
+                 s_noTokens,                               // 3    
                  new int[] { tokenH },                   // 4    
                  new int[] { tokenE0, tokenH },          // 5   
                  new int[] { tokenH, tokenE2 },          // 6   (DIA: tokenE2)   
@@ -277,8 +277,8 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
                  new int[] { tokenJ2 },                  // 26  (DIA: 0)          
                  new int[] { tokenJ2 },                  // 27  (DIA: 0)          
                  new int[] { tokenJ2 },                  // 28  (DIA: tokenJ2) (!)  
-                 NoTokens,                               // 29        
-             }, tokens, itemInspector: _tokenInspector, comparer: (x, y) => x.SequenceEqual(y));
+                 s_noTokens,                               // 29        
+             }, tokens, itemInspector: s_tokenInspector, comparer: (x, y) => x.SequenceEqual(y));
 
             tokens = GetMethodTokensForEachLine(symReader, document3, 1, 29);
 
@@ -296,24 +296,24 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
                 new int[] { tokenK1, tokenK2, tokenK3 },             // 10  (DIA: tokenK3) 
                 new int[] { tokenK1, tokenK2 },                      // 11  (DIA: tokenK2)    
                 new int[] { tokenK1 },                               // 12   
-                NoTokens,                                            // 13  
-                NoTokens,                                            // 14
-                NoTokens,                                            // 15
-                NoTokens,                                            // 16
-                NoTokens,                                            // 17
-                NoTokens,                                            // 18
-                NoTokens,                                            // 19
-                NoTokens,                                            // 20
-                NoTokens,                                            // 21
-                NoTokens,                                            // 22
-                NoTokens,                                            // 23
-                NoTokens,                                            // 24
-                NoTokens,                                            // 25
-                NoTokens,                                            // 26
-                NoTokens,                                            // 27
-                NoTokens,                                            // 28
-                NoTokens,                                            // 29
-             }, tokens, itemInspector: _tokenInspector, comparer: (x, y) => x.SequenceEqual(y));
+                s_noTokens,                                            // 13  
+                s_noTokens,                                            // 14
+                s_noTokens,                                            // 15
+                s_noTokens,                                            // 16
+                s_noTokens,                                            // 17
+                s_noTokens,                                            // 18
+                s_noTokens,                                            // 19
+                s_noTokens,                                            // 20
+                s_noTokens,                                            // 21
+                s_noTokens,                                            // 22
+                s_noTokens,                                            // 23
+                s_noTokens,                                            // 24
+                s_noTokens,                                            // 25
+                s_noTokens,                                            // 26
+                s_noTokens,                                            // 27
+                s_noTokens,                                            // 28
+                s_noTokens,                                            // 29
+             }, tokens, itemInspector: s_tokenInspector, comparer: (x, y) => x.SequenceEqual(y));
         }
 
         [Fact]
@@ -371,11 +371,11 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             // for lines that are outside of the specified method.
 
             int[] offsets = GetILOffsetForEachLine(symReader, tokenCtor, document1, 1, 29);
-            AssertEx.Equal(new int[] 
-            {                       
-                NoOffset,           // 1
-                NoOffset,           // 2
-                NoOffset,           // 3
+            AssertEx.Equal(new int[]
+            {
+                s_noOffset,           // 1
+                s_noOffset,           // 2
+                s_noOffset,           // 3
                 0x5C,               // 4  (G)
                 0x00,               // 5  (OK)
                 0x00,               // 6  (OK)
@@ -385,31 +385,31 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
                 0x23,               // 10 (OK)
                 0x24,               // 11 (OK)
                 0x2A,               // 12 (OK)
-                NoOffset,           // 13
+                s_noOffset,           // 13
                 0x11,               // 14 (OK)
-                NoOffset,           // 15
-                NoOffset,           // 16
+                s_noOffset,           // 15
+                s_noOffset,           // 16
                 0x2B,               // 17 (F)
-                NoOffset,           // 18
-                NoOffset,           // 19
+                s_noOffset,           // 18
+                s_noOffset,           // 19
                 0x50,               // 20 (F)
-                NoOffset,           // 21
+                s_noOffset,           // 21
                 0x56,               // 22 (F)
                 0x5A,               // 23 (F)
-                NoOffset,           // 24
-                NoOffset,           // 25
-                NoOffset,           // 26
-                NoOffset,           // 27
-                NoOffset,           // 28
-                NoOffset            // 29
-            }, offsets, itemInspector: _ilOffsetInspector);
+                s_noOffset,           // 24
+                s_noOffset,           // 25
+                s_noOffset,           // 26
+                s_noOffset,           // 27
+                s_noOffset,           // 28
+                s_noOffset            // 29
+            }, offsets, itemInspector: s_ilOffsetInspector);
 
             offsets = GetILOffsetForEachLine(symReader, tokenF, document1, 1, 29);
             AssertEx.Equal(new int[]
             {
-                NoOffset,           // 1
-                NoOffset,           // 2
-                NoOffset,           // 3
+                s_noOffset,           // 1
+                s_noOffset,           // 2
+                s_noOffset,           // 3
                 0x31,               // 4
                 -0x2B,              // 5 
                 -0x2B,              // 6 
@@ -419,24 +419,24 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
                 -0x08,              // 10
                 -0x07,              // 11
                 -0x01,              // 12
-                NoOffset,           // 13
+                s_noOffset,           // 13
                 -0x1A,              // 14
-                NoOffset,           // 15
-                NoOffset,           // 16
+                s_noOffset,           // 15
+                s_noOffset,           // 16
                 0x00,               // 17
-                NoOffset,           // 18
-                NoOffset,           // 19
+                s_noOffset,           // 18
+                s_noOffset,           // 19
                 0x25,               // 20
-                NoOffset,           // 21
+                s_noOffset,           // 21
                 0x2B,               // 22
                 0x2F,               // 23
-                NoOffset,           // 24
-                NoOffset,           // 25
-                NoOffset,           // 26
-                NoOffset,           // 27
-                NoOffset,           // 28
-                NoOffset            // 29
-            }, offsets, itemInspector: _ilOffsetInspector);
+                s_noOffset,           // 24
+                s_noOffset,           // 25
+                s_noOffset,           // 26
+                s_noOffset,           // 27
+                s_noOffset,           // 28
+                s_noOffset            // 29
+            }, offsets, itemInspector: s_ilOffsetInspector);
         }
 
         [Fact]
@@ -451,70 +451,70 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             int[] offsets = GetILOffsetForEachLine(symReader, tokenCtor, document1, 1, 29);
             AssertEx.Equal(new int[]
             {
-                NoOffset,       // 1
-                NoOffset,       // 2
-                NoOffset,       // 3
-                NoOffset,       // 4 
+                s_noOffset,       // 1
+                s_noOffset,       // 2
+                s_noOffset,       // 3
+                s_noOffset,       // 4 
                 0x00,           // 5 
                 0x00,           // 6 
                 0x00,           // 7 
-                NoOffset,       // 8 
+                s_noOffset,       // 8 
                 0x1C,           // 9 
                 0x23,           // 10
                 0x24,           // 11
                 0x2A,           // 12
-                NoOffset,       // 13
+                s_noOffset,       // 13
                 0x11,           // 14
-                NoOffset,       // 15
-                NoOffset,       // 16
-                NoOffset,       // 17
-                NoOffset,       // 18
-                NoOffset,       // 19
-                NoOffset,       // 20
-                NoOffset,       // 21
-                NoOffset,       // 22
-                NoOffset,       // 23
-                NoOffset,       // 24
-                NoOffset,       // 25
-                NoOffset,       // 26
-                NoOffset,       // 27
-                NoOffset,       // 28
-                NoOffset        // 29
-            }, offsets, itemInspector: _ilOffsetInspector);
+                s_noOffset,       // 15
+                s_noOffset,       // 16
+                s_noOffset,       // 17
+                s_noOffset,       // 18
+                s_noOffset,       // 19
+                s_noOffset,       // 20
+                s_noOffset,       // 21
+                s_noOffset,       // 22
+                s_noOffset,       // 23
+                s_noOffset,       // 24
+                s_noOffset,       // 25
+                s_noOffset,       // 26
+                s_noOffset,       // 27
+                s_noOffset,       // 28
+                s_noOffset        // 29
+            }, offsets, itemInspector: s_ilOffsetInspector);
 
             offsets = GetILOffsetForEachLine(symReader, tokenF, document1, 1, 29);
             AssertEx.Equal(new int[]
             {
-                NoOffset,       // 1
-                NoOffset,       // 2
-                NoOffset,       // 3
-                NoOffset,       // 4
+                s_noOffset,       // 1
+                s_noOffset,       // 2
+                s_noOffset,       // 3
+                s_noOffset,       // 4
                 0x07,           // 5 (the first IL offset)
-                NoOffset,       // 6 
+                s_noOffset,       // 6 
                 0x0D,           // 7
                 0x13,           // 8 
-                NoOffset,       // 9 
+                s_noOffset,       // 9 
                 0x01,           // 10
-                NoOffset,       // 11
-                NoOffset,       // 12
-                NoOffset,       // 13
-                NoOffset,       // 14
-                NoOffset,       // 15
-                NoOffset,       // 16
+                s_noOffset,       // 11
+                s_noOffset,       // 12
+                s_noOffset,       // 13
+                s_noOffset,       // 14
+                s_noOffset,       // 15
+                s_noOffset,       // 16
                 0x00,           // 17
-                NoOffset,       // 18
-                NoOffset,       // 19
+                s_noOffset,       // 18
+                s_noOffset,       // 19
                 0x25,           // 20
-                NoOffset,       // 21
+                s_noOffset,       // 21
                 0x2B,           // 22
                 0x2F,           // 23
-                NoOffset,       // 24
-                NoOffset,       // 25
-                NoOffset,       // 26
-                NoOffset,       // 27
-                NoOffset,       // 28
-                NoOffset        // 29
-            }, offsets, itemInspector: _ilOffsetInspector);
+                s_noOffset,       // 24
+                s_noOffset,       // 25
+                s_noOffset,       // 26
+                s_noOffset,       // 27
+                s_noOffset,       // 28
+                s_noOffset        // 29
+            }, offsets, itemInspector: s_ilOffsetInspector);
 
             offsets = GetILOffsetForEachLine(symReader, tokenK1, document3, 1, 14);
             AssertEx.Equal(new int[]
@@ -531,9 +531,9 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
                 0x01,       // 10
                 0x01,       // 11
                 0x07,       // 12
-                NoOffset,   // 13
-                NoOffset,   // 14
-            }, offsets, itemInspector: _ilOffsetInspector);
+                s_noOffset,   // 13
+                s_noOffset,   // 14
+            }, offsets, itemInspector: s_ilOffsetInspector);
         }
 
         [Fact]
@@ -561,71 +561,71 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
 
             AssertEx.Equal(new int[][]
             {
-                NoRange,                    // 1
-                NoRange,                    // 2
-                NoRange,                    // 3
-                NoRange,                    // 4 
+                s_noRange,                    // 1
+                s_noRange,                    // 2
+                s_noRange,                    // 3
+                s_noRange,                    // 4 
                 new[] { 0x00, 0x11 },       // 5 
                 new[] { 0x00, 0x11 },       // 6 
-                isPortable ? new[] { 0x00, 0x11 } : NoRange, // 7 (bug in DSR)
-                NoRange,                    // 8 
+                isPortable ? new[] { 0x00, 0x11 } : s_noRange, // 7 (bug in DSR)
+                s_noRange,                    // 8 
                 new[] { 0x1C, 0x23 },       // 9 
                 new[] { 0x23, 0x24 },       // 10
                 new[] { 0x24, 0x2A },       // 11
                 new[] { 0x2A, 0x2B },       // 12
-                NoRange,                    // 13
+                s_noRange,                    // 13
                 new[] { 0x11, 0x1C },       // 14
-                NoRange,                    // 15
-                NoRange,                    // 16
-                NoRange,                    // 17
-                NoRange,                    // 18
-                NoRange,                    // 19
-                NoRange,                    // 20
-                NoRange,                    // 21
-                NoRange,                    // 22
-                NoRange,                    // 23
-                NoRange,                    // 24
-                NoRange,                    // 25
-                NoRange,                    // 26
-                NoRange,                    // 27
-                NoRange,                    // 28
-                NoRange                     // 29
-            }, ranges, itemInspector: _rangeInspector, comparer: (x, y) => x.SequenceEqual(y));
+                s_noRange,                    // 15
+                s_noRange,                    // 16
+                s_noRange,                    // 17
+                s_noRange,                    // 18
+                s_noRange,                    // 19
+                s_noRange,                    // 20
+                s_noRange,                    // 21
+                s_noRange,                    // 22
+                s_noRange,                    // 23
+                s_noRange,                    // 24
+                s_noRange,                    // 25
+                s_noRange,                    // 26
+                s_noRange,                    // 27
+                s_noRange,                    // 28
+                s_noRange                     // 29
+            }, ranges, itemInspector: s_rangeInspector, comparer: (x, y) => x.SequenceEqual(y));
 
             ranges = GetILOffsetRangesForEachLine(symReader, tokenF, document1, 1, 29);
 
             AssertEx.Equal(new int[][]
             {
-                NoRange,                          // 1
-                NoRange,                          // 2
-                NoRange,                          // 3
-                NoRange,                          // 4 
+                s_noRange,                          // 1
+                s_noRange,                          // 2
+                s_noRange,                          // 3
+                s_noRange,                          // 4 
                 new[] { 0x07, 0x0D, 0x19, 0x1F }, // 5 
-                NoRange,                          // 6 
+                s_noRange,                          // 6 
                 new[] { 0x0D, 0x13 },             // 7 
                 new[] { 0x13, 0x19 },             // 8 
-                NoRange,                          // 9 
+                s_noRange,                          // 9 
                 new[] { 0x01, 0x07 },             // 10
-                NoRange,                          // 11
-                NoRange,                          // 12
-                NoRange,                          // 13
-                NoRange,                          // 14
-                NoRange,                          // 15
-                NoRange,                          // 16
+                s_noRange,                          // 11
+                s_noRange,                          // 12
+                s_noRange,                          // 13
+                s_noRange,                          // 14
+                s_noRange,                          // 15
+                s_noRange,                          // 16
                 new[] { 0x00, 0x01 },             // 17
-                NoRange,                          // 18
-                NoRange,                          // 19
+                s_noRange,                          // 18
+                s_noRange,                          // 19
                 new[] { 0x25, 0x2B },             // 20
-                NoRange,                          // 21
+                s_noRange,                          // 21
                 new[] { 0x2B, 0x2F },             // 22
                 new[] { 0x2F, 0x31 },             // 23
-                NoRange,                          // 24
-                NoRange,                          // 25
-                NoRange,                          // 26
-                NoRange,                          // 27
-                NoRange,                          // 28
-                NoRange                           // 29
-            }, ranges, itemInspector: _rangeInspector, comparer: (x, y) => x.SequenceEqual(y));
+                s_noRange,                          // 24
+                s_noRange,                          // 25
+                s_noRange,                          // 26
+                s_noRange,                          // 27
+                s_noRange,                          // 28
+                s_noRange                           // 29
+            }, ranges, itemInspector: s_rangeInspector, comparer: (x, y) => x.SequenceEqual(y));
         }
 
         [Fact]
@@ -653,18 +653,18 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
 
             AssertEx.Equal(new int[][]
             {
-                NoRange,                // 6 
-                NoRange,                // 7 
+                s_noRange,                // 6 
+                s_noRange,                // 7 
                 new[] { 0x27, 0x28 },   // 8 
                 new[] { 0x28, 0x34 },   // 9 
                 new[] { 0x90, 0x9D },   // 10
                 new[] { 0xFB, 0x108 },  // 11
-                NoRange,                // 12
+                s_noRange,                // 12
                 new[] { 0x163, 0x167 }, // 13
                 new[] { 0x181, 0x189 }, // 14
-                NoRange,                // 15
-                NoRange                 // 16
-            }, ranges, itemInspector: _rangeInspector, comparer: (x, y) => x.SequenceEqual(y));
+                s_noRange,                // 15
+                s_noRange                 // 16
+            }, ranges, itemInspector: s_rangeInspector, comparer: (x, y) => x.SequenceEqual(y));
         }
 
         [Fact]

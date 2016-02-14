@@ -3121,7 +3121,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe ,expectedOutput: "0427");
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe, expectedOutput: "0427");
 
             compilation.VerifyIL("D.Main",
 @"
@@ -6889,7 +6889,7 @@ class Program
     }
 }";
 
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe ,expectedOutput: @"0");
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe, expectedOutput: @"0");
 
             compilation.VerifyIL("Program.Main",
 @"
@@ -8773,7 +8773,7 @@ class A
     }
 }
 ";
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe,  expectedOutput: @"2
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe, expectedOutput: @"2
 2
 3");
 
@@ -14306,7 +14306,6 @@ class Program
   IL_0032:  ret
 }
 ");
-
         }
 
         [Fact]
@@ -14356,7 +14355,6 @@ class Program
   IL_0023:  ret
 }
 ");
-
         }
 
         [Fact]
@@ -14401,7 +14399,6 @@ class Program
   IL_001e:  ret
 }
 ");
-
         }
 
         [Fact]
@@ -14644,7 +14641,7 @@ class Program
         [WorkItem(5530, "https://github.com/dotnet/roslyn/issues/5530")]
         [Fact]
         public void LogicalOpUsesLocal()
-        { 
+        {
             string source = @"
 
     class Program
@@ -14828,6 +14825,5 @@ class Program
   IL_0086:  ret
 }");
         }
-
     }
 }

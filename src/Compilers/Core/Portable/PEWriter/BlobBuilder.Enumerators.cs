@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.Cci
 {
-    partial class BlobBuilder
+    internal partial class BlobBuilder
     {
         // internal for testing
         internal struct Chunks : IEnumerable<BlobBuilder>, IEnumerator<BlobBuilder>, IEnumerator

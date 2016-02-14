@@ -225,7 +225,7 @@ End Module
             Dim token = tree.GetRoot().FindToken(text.Lines.Item(3).Start)
             Assert.Equal(">", token.ToString())
         End Sub
-        
+
         <Fact, WorkItem(7182, "https://github.com/dotnet/roslyn/issues/7182")>
         Public Sub WhenTextContainsTrailingTrivia_SyntaxNode_ContainsSkippedText_ReturnsTrue()
             Dim parsedTypeName = SyntaxFactory.ParseTypeName("System.Collections.Generic.List(Of Integer), mscorlib")

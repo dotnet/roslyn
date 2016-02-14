@@ -480,12 +480,12 @@ namespace Microsoft.Cci
         {
             BlobWriterImpl.WriteConstant(ref this, value);
         }
-        
+
         public void Clear()
         {
             _position = _start;
         }
-        
+
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         internal static void ThrowOutOfBounds()

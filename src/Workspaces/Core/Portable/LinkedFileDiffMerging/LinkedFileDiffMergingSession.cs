@@ -334,18 +334,18 @@ namespace Microsoft.CodeAnalysis
 
         internal static class SessionLogMessage
         {
-            private const string SessionId = "SessionId";
-            private const string HasLinkedFile = "HasLinkedFile";
+            private const string SessionId = nameof(SessionId);
+            private const string HasLinkedFile = nameof(HasLinkedFile);
 
-            private const string LinkedDocuments = "LinkedDocuments";
-            private const string DocumentsWithChanges = "DocumentsWithChanges";
-            private const string IdenticalDiffs = "IdenticalDiffs";
-            private const string IsolatedDiffs = "IsolatedDiffs";
-            private const string OverlappingDistinctDiffs = "OverlappingDistinctDiffs";
-            private const string OverlappingDistinctDiffsWithSameSpan = "OverlappingDistinctDiffsWithSameSpan";
-            private const string OverlappingDistinctDiffsWithSameSpanAndSubstringRelation = "OverlappingDistinctDiffsWithSameSpanAndSubstringRelation";
-            private const string InsertedMergeConflictComments = "InsertedMergeConflictComments";
-            private const string InsertedMergeConflictCommentsAtAdjustedLocation = "InsertedMergeConflictCommentsAtAdjustedLocation";
+            private const string LinkedDocuments = nameof(LinkedDocuments);
+            private const string DocumentsWithChanges = nameof(DocumentsWithChanges);
+            private const string IdenticalDiffs = nameof(IdenticalDiffs);
+            private const string IsolatedDiffs = nameof(IsolatedDiffs);
+            private const string OverlappingDistinctDiffs = nameof(OverlappingDistinctDiffs);
+            private const string OverlappingDistinctDiffsWithSameSpan = nameof(OverlappingDistinctDiffsWithSameSpan);
+            private const string OverlappingDistinctDiffsWithSameSpanAndSubstringRelation = nameof(OverlappingDistinctDiffsWithSameSpanAndSubstringRelation);
+            private const string InsertedMergeConflictComments = nameof(InsertedMergeConflictComments);
+            private const string InsertedMergeConflictCommentsAtAdjustedLocation = nameof(InsertedMergeConflictCommentsAtAdjustedLocation);
 
             public static KeyValueLogMessage Create(int sessionId, LinkedFileDiffMergingSessionInfo sessionInfo)
             {

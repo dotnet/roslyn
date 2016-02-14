@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         public abstract string FormatObject(object obj, PrintOptions options);
 
-        public abstract string FormatUnhandledException(Exception e);
+        public abstract string FormatException(Exception e);
     }
 }

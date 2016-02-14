@@ -69,6 +69,7 @@
     <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
     <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
+    <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
@@ -253,6 +254,7 @@
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsService.cs" />
     <Compile Include="ReplaceMethodWithProperty\ReplaceMethodWithPropertyCodeRefactoringProvider.cs" />
     <Compile Include="ReplaceMethodWithProperty\IReplaceMethodWithPropertyService.cs" />
+    <Compile Include="Shared\Extensions\ProjectExtensions.cs" />
     <Compile Include="Shared\Options\OrganizerOptionsProvider.cs" />
     <Compile Include="Shared\Options\RuntimeOptions.cs" />
     <Compile Include="Shared\Options\RuntimeOptionsProvider.cs" />

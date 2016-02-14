@@ -60,11 +60,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         protected override Task<BuildResponse> RunServerCompilation(
-            List<string> arguments, 
-            BuildPaths buildPaths, 
+            List<string> arguments,
+            BuildPaths buildPaths,
             string sessionKey,
-            string keepAlive, 
-            string libDirectory, 
+            string keepAlive,
+            string libDirectory,
             CancellationToken cancellationToken)
         {
             return RunServerCompilationCore(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, TimeoutOverride, TryCreateServer, cancellationToken);
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 language,
                 arguments,
                 buildPaths,
-                GetPipeNameFromFileInfo(buildPaths.ClientDirectory),
+                GetPipeNameForPath(buildPaths.ClientDirectory),
                 keepAlive,
                 libEnvVariable,
                 timeoutOverride: null,
@@ -101,7 +101,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             Func<string, string, bool> tryCreateServerFunc,
             CancellationToken cancellationToken)
         {
-
             var clientDir = buildPaths.ClientDirectory;
             var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
             var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
@@ -336,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         internal static bool TryCreateServerCore(string clientDir, string pipeName)
-        { 
+        {
             // The server should be in the same directory as the client
             string expectedPath = Path.Combine(clientDir, ServerName);
 
@@ -420,11 +419,28 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         protected override string GetSessionKey(BuildPaths buildPaths)
         {
-            return GetPipeNameFromFileInfo(buildPaths.ClientDirectory);
+            return GetPipeNameForPath(buildPaths.ClientDirectory);
         }
 
-        internal static string GetPipeNameFromFileInfo(string compilerExeDirectory)
+        internal static string GetPipeNameForPath(string compilerExeDirectory)
         { 
+            var basePipeName = GetBasePipeName(compilerExeDirectory);
+
+            // Prefix with username and elevation
+            var identity = WindowsIdentity.GetCurrent();
+            var principal = new WindowsPrincipal(identity);
+            var isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
+            var userName = Environment.UserName;
+            return $"{userName}.{isAdmin}.{basePipeName}";
+        }
+
+        internal static string GetBasePipeName(string compilerExeDirectory)
+        {
+            // Normalize away trailing slashes.  File APIs include / exclude this with no 
+            // discernable pattern.  Easiest to normalize it here vs. auditing every caller
+            // of this method.
+            compilerExeDirectory = compilerExeDirectory.TrimEnd(Path.DirectorySeparatorChar);
+
             string basePipeName;
             using (var sha = SHA256.Create())
             {
@@ -434,12 +450,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     .Replace("=", string.Empty);
             }
 
-            // Prefix with username and elevation
-            var identity = WindowsIdentity.GetCurrent();
-            var principal = new WindowsPrincipal(identity);
-            var isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
-            var userName = Environment.UserName;
-            return $"{userName}.{isAdmin}.{basePipeName}";
+            return basePipeName;
         }
     }
 }

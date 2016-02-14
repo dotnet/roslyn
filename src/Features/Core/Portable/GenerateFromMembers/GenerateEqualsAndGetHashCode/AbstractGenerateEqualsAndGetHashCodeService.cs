@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateEqualsAndGetHashCod
     {
         private const string EqualsName = "Equals";
         private const string GetHashCodeName = "GetHashCode";
-        private const string ObjName = "ObjName";
+        private const string ObjName = nameof(ObjName);
 
         protected AbstractGenerateEqualsAndGetHashCodeService()
         {

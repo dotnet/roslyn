@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         public static BoundNode Analyze(
-            BoundNode node, 
+            BoundNode node,
             Dictionary<LocalSymbol, LocalDefUseInfo> locals,
             bool debugFriendly)
         {
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
         {
-            throw ExceptionUtilities.Unreachable; 
+            throw ExceptionUtilities.Unreachable;
         }
 
         private void PushEvalStack(BoundExpression result, ExprContext context)
@@ -1677,7 +1677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var top = _evalStack.Last();
 
-            return top.Item2 == (local.RefKind == RefKind.None? ExprContext.Value : ExprContext.Address) &&
+            return top.Item2 == (local.RefKind == RefKind.None ? ExprContext.Value : ExprContext.Address) &&
                    top.Item1.Kind == BoundKind.Local &&
                    ((BoundLocal)top.Item1).LocalSymbol == local;
         }
@@ -1728,7 +1728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private bool CanScheduleToStack(LocalSymbol local)
         {
             return local.CanScheduleToStack &&
-                (!this._debugFriendly || !local.SynthesizedKind.IsLongLived());
+                (!_debugFriendly || !local.SynthesizedKind.IsLongLived());
         }
 
         private void DeclareLocals(ImmutableArray<LocalSymbol> locals, int stack)

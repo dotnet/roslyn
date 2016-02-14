@@ -30,13 +30,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         internal DesktopCompilerServerHost()
             : this(AppDomain.CurrentDomain.BaseDirectory, RuntimeEnvironment.GetRuntimeDirectory())
         {
-
         }
 
         internal DesktopCompilerServerHost(string clientDirectory, string sdkDirectory)
             : base(clientDirectory, sdkDirectory)
         {
-
         }
 
         public override bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers)

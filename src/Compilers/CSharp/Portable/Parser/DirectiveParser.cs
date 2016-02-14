@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         result = SyntaxFactory.BadDirectiveTrivia(hash, id, end, isActive);
                     }
 
-                    break; 
+                    break;
             }
 
             return result;
@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 if (!ignoreErrors)
                 {
-                    var errorCode =  ErrorCode.ERR_EndOfPPLineExpected;
+                    var errorCode = ErrorCode.ERR_EndOfPPLineExpected;
                     if (afterPragma)
                     {
                         errorCode = ErrorCode.WRN_EndOfPPLineExpected;

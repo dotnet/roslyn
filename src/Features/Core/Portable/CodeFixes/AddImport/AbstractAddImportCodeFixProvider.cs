@@ -84,7 +84,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         if (allSymbolReferences.Count == 0)
                         {
                             // No exact matches found.  Fall back to fuzzy searching.
-                            await FindResults(projectToAssembly, referenceToCompilation, project, allSymbolReferences, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                            // Only bother doing this for host workspaces.  We don't want this for 
+                            // things like the Interactive workspace as this will cause us to 
+                            // create expensive bktrees which we won't even be able to save for 
+                            // future use.
+                            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.Host)
+                            {
+                                await FindResults(projectToAssembly, referenceToCompilation, project, allSymbolReferences, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                            }
                         }
 
                         // Nothing found at all. No need to proceed.
@@ -100,8 +107,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                             var description = this.GetDescription(reference.SearchResult.Symbol, semanticModel, node);
                             if (description != null)
                             {
-                                var action = new MyCodeAction(description, c =>
-                                    this.AddImportAndReferenceAsync(node, reference, document, placeSystemNamespaceFirst, c));
+                                var action = new MyCodeAction(description, reference.GetGlyph(document),
+                                    c => this.AddImportAndReferenceAsync(node, reference, document, placeSystemNamespaceFirst, c));
                                 context.RegisterCodeFix(action, diagnostic);
                             }
                         }
@@ -383,10 +390,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution) :
+            private readonly Glyph? _glyph;
+
+            public MyCodeAction(string title, Glyph? glyph, Func<CancellationToken, Task<Solution>> createChangedSolution) :
                 base(title, createChangedSolution, equivalenceKey: title)
             {
+                _glyph = glyph;
             }
+
+            internal override int? Glyph => _glyph.HasValue ? (int)_glyph.Value : (int?)null;
         }
 
         private struct SearchResult<T> where T : ISymbol

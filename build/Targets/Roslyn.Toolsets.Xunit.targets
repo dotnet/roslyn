@@ -18,4 +18,22 @@
     <StartArguments Condition="'$(StartArguments)' == ''">$(XUnitArguments)</StartArguments>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
+  </PropertyGroup>
+
+  <!-- Add a default test app.config, if the project doesn't already have one-->
+  <Target Name="AddDefaultTestAppConfig">
+    <PropertyGroup>
+      <_AlreadyHasAppConfig Condition="'%(None.Filename)%(None.Extension)' == 'app.config'">true</_AlreadyHasAppConfig>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(_AlreadyHasAppConfig)' != 'true'">
+      <None Include="$(MSBuildThisFileDirectory)..\Defaults\app.config">
+        <Link>app.config</Link>
+      </None>
+    </ItemGroup>
+
+  </Target>
+
 </Project>

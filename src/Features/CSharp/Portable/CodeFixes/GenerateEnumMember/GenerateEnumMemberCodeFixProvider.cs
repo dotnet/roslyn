@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateEnumMember
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateConstructor)]
     internal class GenerateEnumMemberCodeFixProvider : AbstractGenerateMemberCodeFixProvider
     {
-        private const string CS0117 = "CS0117"; // error CS0117: 'Color' does not contain a definition for 'Red'
+        private const string CS0117 = nameof(CS0117); // error CS0117: 'Color' does not contain a definition for 'Red'
 
         public override ImmutableArray<string> FixableDiagnosticIds
         {

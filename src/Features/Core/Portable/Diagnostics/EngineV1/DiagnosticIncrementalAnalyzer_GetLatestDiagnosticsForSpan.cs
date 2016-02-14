@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 // Share the diagnostic analyzer driver across all analyzers.
                 var fullSpan = root?.FullSpan;
-                
+
                 // We are computing diagnostics for a single document/span, so we don't need to enable concurrent analysis.
                 const bool concurrentAnalysis = false;
                 const bool reportSuppressedDiagnostics = true;

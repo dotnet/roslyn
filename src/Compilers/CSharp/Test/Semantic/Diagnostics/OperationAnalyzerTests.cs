@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -263,6 +263,7 @@ class C
         M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
         M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
         M0(1);
+        M0(1, 2);
         M0(1, 2, 4, 3);
     }
 
@@ -301,13 +302,13 @@ class C
                 Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "4").WithLocation(17, 33),
                 Diagnostic(InvocationTestAnalyzer.BigParamArrayArgumentsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)").WithLocation(19, 9),
                 Diagnostic(InvocationTestAnalyzer.BigParamArrayArgumentsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)").WithLocation(20, 9),
-                Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "3").WithLocation(22, 21),
-                Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M3(0)").WithArguments("y").WithLocation(32, 9),
-                Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M3(y: null)").WithArguments("x").WithLocation(33, 9),
-                Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M3(x: 0)").WithArguments("y").WithLocation(34, 9),
-                Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M3()").WithArguments("x").WithLocation(35, 9),
-                Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M3()").WithArguments("y").WithLocation(35, 9),
-                Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M5(b: new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11})").WithArguments("x").WithLocation(46, 9)
+                Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "3").WithLocation(23, 21),
+                Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M3(0)").WithArguments("y").WithLocation(33, 9),
+                Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M3(y: null)").WithArguments("x").WithLocation(34, 9),
+                Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M3(x: 0)").WithArguments("y").WithLocation(35, 9),
+                Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M3()").WithArguments("x").WithLocation(36, 9),
+                Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M3()").WithArguments("y").WithLocation(36, 9),
+                Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M5(b: new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11})").WithArguments("x").WithLocation(47, 9)
                 );
         }
 
@@ -1123,7 +1124,7 @@ class C
                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(17, 42)
                 );
         }
-        
+
         [Fact]
         public void ParamsArraysCSharp()
         {
@@ -1328,6 +1329,120 @@ class C
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Property").WithLocation(29, 17),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Method()").WithLocation(30, 9)
                 );
+        }
+
+        [Fact]
+        public void LabelOperatorsCSharp()
+        {
+            const string source = @"
+public class A
+{
+    public void Fred()
+    {
+        Wilma: goto Betty;
+        Betty: goto Wilma;
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+             .VerifyDiagnostics()
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new LabelOperationsTestAnalyzer() }, null, null, false,
+                 Diagnostic(LabelOperationsTestAnalyzer.LabelDescriptor.Id, "Wilma: goto Betty;").WithLocation(6, 9),
+                 Diagnostic(LabelOperationsTestAnalyzer.GotoDescriptor.Id, "goto Betty;").WithLocation(6, 16),
+                 Diagnostic(LabelOperationsTestAnalyzer.LabelDescriptor.Id, "Betty: goto Wilma;").WithLocation(7, 9),
+                 Diagnostic(LabelOperationsTestAnalyzer.GotoDescriptor.Id, "goto Wilma;").WithLocation(7, 16)
+                 );
+        }
+
+        [Fact]
+        public void UnaryBinaryOperatorsCSharp()
+        {
+            const string source = @"
+public class A
+{
+    readonly int _value;
+
+    public A (int value)
+    {
+        _value = value;
+    }
+
+    public static A operator +(A x, A y)
+    {
+        return new A(x._value + y._value);
+    }
+
+    public static A operator *(A x, A y)
+    {
+        return new A(x._value * y._value);
+    }
+
+    public static A operator -(A x)
+    {
+        return new A(-x._value);
+    }
+
+    public static A operator +(A x)
+    {
+        return new A(+x._value);
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        bool b = false;
+        double d = 100;
+        A a1 = new A(0);
+        A a2 = new A(100);
+
+        b = !b;
+        d = d * 100;
+        a1 = a1 + a2;
+        a1 = -a2;
+   }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+             .VerifyDiagnostics()
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new UnaryAndBinaryOperationsTestAnalyzer() }, null, null, false,
+                 Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.BooleanNotDescriptor.Id, "!b").WithLocation(41, 13),
+                 Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.DoubleMultiplyDescriptor.Id, "d * 100").WithLocation(42, 13),
+                 Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.OperatorAddMethodDescriptor.Id, "a1 + a2").WithLocation(43, 14),
+                 Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.OperatorMinusMethodDescriptor.Id, "-a2").WithLocation(44, 14)
+                 );
+        }
+
+        [WorkItem(8520, "https://github.com/dotnet/roslyn/issues/8520")]
+        [Fact]
+        public void NullOperationSyntaxCSharp()
+        {
+            const string source = @"
+class C
+{
+    public void M0(params int[] b)
+    {
+    }
+
+    public void M1()
+    {
+        M0();
+        M0(1);
+        M0(1, 2);
+        M0(new int[] { });
+        M0(new int[] { 1 });
+        M0(new int[] { 1, 2});
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NullOperationSyntaxTestAnalyzer() }, null, null, false,
+                // TODO: missing a params array for M0() 
+                // https://github.com/dotnet/roslyn/issues/8566
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "1").WithLocation(11, 12),
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "1").WithLocation(12, 12));
         }
     }
 }

@@ -57,7 +57,7 @@ class C
             CleanupAllGeneratedFiles(hello);
             CleanupAllGeneratedFiles(errorLogFile);
         }
-        
+
         [Fact]
         public void SimpleCompilerDiagnostics()
         {

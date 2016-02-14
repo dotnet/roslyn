@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 {
     public class WorkCoordinatorTests
     {
-        private const string SolutionCrawler = "SolutionCrawler";
+        private const string SolutionCrawler = nameof(SolutionCrawler);
 
         [Fact]
         public void RegisterService()

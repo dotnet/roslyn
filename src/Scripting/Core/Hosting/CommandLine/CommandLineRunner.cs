@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
 
             return new ScriptOptions(
-                filePath: scriptPathOpt ?? "", 
+                filePath: scriptPathOpt ?? "",
                 references: ImmutableArray.CreateRange(resolvedReferences),
                 namespaces: CommandLineHelpers.GetImports(arguments),
                 metadataResolver: metadataResolver,
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 var task = (state == null) ?
                     newScript.RunAsync(globals, cancellationToken) :
-                    newScript.ContinueAsync(state, cancellationToken);
+                    newScript.RunFromAsync(state, cancellationToken);
 
                 state = task.GetAwaiter().GetResult();
             }
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             try
             {
                 _console.ForegroundColor = ConsoleColor.Red;
-                _console.Out.Write(_objectFormatter.FormatUnhandledException(e));
+                _console.Out.Write(_objectFormatter.FormatException(e));
             }
             finally
             {
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             const int MaxDisplayCount = 5;
 
             var errorsAndWarnings = diagnostics.ToArray();
-           
+
             // by severity, then by location
             var ordered = errorsAndWarnings.OrderBy((d1, d2) =>
             {

@@ -4454,17 +4454,17 @@ class C<T> { }";
             Assert.False(new FormattedSymbol(sA, f1).Equals((object)sA));
             Assert.False(new FormattedSymbol(sA, f1).Equals(null));
 
-            Assert.True(new FormattedSymbol(sA, f1).Equals(new  FormattedSymbol(sA, f1)));
-            Assert.False(new FormattedSymbol(sA, f1).Equals(new  FormattedSymbol(sA, f2)));
-            Assert.False(new FormattedSymbol(sA, f1).Equals(new  FormattedSymbol(sB, f1)));
-            Assert.False(new FormattedSymbol(sA, f1).Equals(new  FormattedSymbol(sB, f2)));
+            Assert.True(new FormattedSymbol(sA, f1).Equals(new FormattedSymbol(sA, f1)));
+            Assert.False(new FormattedSymbol(sA, f1).Equals(new FormattedSymbol(sA, f2)));
+            Assert.False(new FormattedSymbol(sA, f1).Equals(new FormattedSymbol(sB, f1)));
+            Assert.False(new FormattedSymbol(sA, f1).Equals(new FormattedSymbol(sB, f2)));
 
-            Assert.False(new FormattedSymbol(sC, f1).Equals(new  FormattedSymbol(sC.Construct(sA), f1)));
-            Assert.True(new FormattedSymbol(sC.Construct(sA), f1).Equals(new  FormattedSymbol(sC.Construct(sA), f1)));
+            Assert.False(new FormattedSymbol(sC, f1).Equals(new FormattedSymbol(sC.Construct(sA), f1)));
+            Assert.True(new FormattedSymbol(sC.Construct(sA), f1).Equals(new FormattedSymbol(sC.Construct(sA), f1)));
 
-            Assert.False(new FormattedSymbol(sA, new SymbolDisplayFormat()).Equals(new  FormattedSymbol(sA, new SymbolDisplayFormat())));
+            Assert.False(new FormattedSymbol(sA, new SymbolDisplayFormat()).Equals(new FormattedSymbol(sA, new SymbolDisplayFormat())));
 
-            Assert.True(new FormattedSymbol(sA, f1).GetHashCode().Equals(new  FormattedSymbol(sA, f1).GetHashCode()));
+            Assert.True(new FormattedSymbol(sA, f1).GetHashCode().Equals(new FormattedSymbol(sA, f1).GetHashCode()));
         }
     }
 }

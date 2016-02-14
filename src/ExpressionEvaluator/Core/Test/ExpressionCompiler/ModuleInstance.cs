@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
     {
         // Metadata are owned and disposed by the containing object:
         private readonly Metadata _metadataOpt;
-        
+
         internal readonly int MetadataLength;
         internal readonly IntPtr MetadataAddress;
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
             var moduleId = moduleMetadata.Module.GetModuleVersionIdOrThrow();
             var metadataBlock = moduleMetadata.Module.PEReaderOpt.GetMetadata();
-                
+
             return new ModuleInstance(
                 metadata,
                 moduleId,

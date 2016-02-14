@@ -7,9 +7,9 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
-    internal sealed class VariableDeclaration : IVariable
+    internal sealed class VariableDeclaration : IVariableDeclaration
     {
-        public VariableDeclaration(ILocalSymbol variable, IExpression initialValue, SyntaxNode syntax)
+        public VariableDeclaration(ILocalSymbol variable, IOperation initialValue, SyntaxNode syntax)
         {
             Variable = variable;
             InitialValue = initialValue;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public ILocalSymbol Variable { get; }
 
-        public IExpression InitialValue { get; }
+        public IOperation InitialValue { get; }
 
         public bool IsInvalid => Variable == null || (InitialValue != null && InitialValue.IsInvalid);
 
@@ -26,14 +26,18 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public SyntaxNode Syntax { get; }
 
+        public ITypeSymbol Type => null;
+
+        public Optional<object> ConstantValue => default(Optional<object>);
+
         public void Accept(OperationVisitor visitor)
         {
-            visitor.VisitVariable(this);
+            visitor.VisitVariableDeclaration(this);
         }
 
         public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitVariable(this, argument);
+            return visitor.VisitVariableDeclaration(this, argument);
         }
     }
 }

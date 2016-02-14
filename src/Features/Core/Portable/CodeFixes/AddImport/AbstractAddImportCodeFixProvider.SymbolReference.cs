@@ -49,22 +49,30 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return this.SearchResult.Symbol.GetHashCode();
             }
 
+            public abstract Glyph? GetGlyph(Document document);
             public abstract Solution UpdateSolution(Document newDocument);
         }
 
         private class ProjectSymbolReference : SymbolReference
         {
-            private readonly ProjectId _projectId;
+            private readonly Project _project;
 
-            public ProjectSymbolReference(SearchResult<INamespaceOrTypeSymbol> searchResult, ProjectId projectId)
+            public ProjectSymbolReference(SearchResult<INamespaceOrTypeSymbol> searchResult, Project project)
                 : base(searchResult)
             {
-                _projectId = projectId;
+                _project = project;
+            }
+
+            public override Glyph? GetGlyph(Document document)
+            {
+                return document.Project.Id == _project.Id
+                    ? default(Glyph?)
+                    : _project.GetGlyph();
             }
 
             public override Solution UpdateSolution(Document newDocument)
             {
-                if (_projectId == newDocument.Project.Id)
+                if (_project.Id == newDocument.Project.Id)
                 {
                     // This reference was found while searching in the project for our document.  No
                     // need to make any solution changes.
@@ -74,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // If this reference came from searching another project, then add a project reference
                 // as well.
                 var newProject = newDocument.Project;
-                newProject = newProject.AddProjectReference(new ProjectReference(_projectId));
+                newProject = newProject.AddProjectReference(new ProjectReference(_project.Id));
 
                 return newProject.Solution;
             }
@@ -89,6 +97,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
                 _reference = reference;
             }
+
+            public override Glyph? GetGlyph(Document document) => Glyph.Reference;
 
             public override Solution UpdateSolution(Document newDocument)
             {

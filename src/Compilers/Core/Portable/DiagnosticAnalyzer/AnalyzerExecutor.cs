@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _cancellationToken.ThrowIfCancellationRequested();
 
                 ExecuteAndCatchIfThrows(startAction.Analyzer,
-                    () => startAction.Action(new AnalyzerCompilationStartAnalysisContext(startAction.Analyzer, compilationScope, 
+                    () => startAction.Action(new AnalyzerCompilationStartAnalysisContext(startAction.Analyzer, compilationScope,
                         _compilation, _analyzerOptions, _compilationAnalysisValueProviderFactory, _cancellationToken)),
                     new AnalysisContextInfo(_compilation));
             }
@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 {
                                     var operationBlockScope = new HostOperationBlockStartAnalysisScope();
                                     var operationStartContext = new AnalyzerOperationBlockStartAnalysisContext(startAction.Analyzer,
-                                        operationBlockScope, operationBlocks, declaredSymbol, _analyzerOptions, _cancellationToken);
+                                        operationBlockScope, operationBlocks, declaredSymbol, semanticModel.Compilation, _analyzerOptions, _cancellationToken);
                                     operationBlockStartAction.Action(operationStartContext);
                                     operationBlockEndActions.AddAll(operationBlockScope.OperationBlockEndActions);
                                     operationActions.AddRange(operationBlockScope.OperationActions);
@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             ExecuteAndCatchIfThrows(
                                 operationBlockAction.Analyzer,
-                                () => operationBlockAction.Action(new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, semanticModel, _cancellationToken)),
+                                () => operationBlockAction.Action(new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, semanticModel.Compilation, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken)),
                                 new AnalysisContextInfo(_compilation, declaredSymbol));
                         }
                     }

@@ -333,7 +333,7 @@ class Hello
                     // Use a thread instead of Task to guarantee this code runs on a different
                     // thread and we can validate the mutex state. 
                     var source = new TaskCompletionSource<bool>();
-                    var thread = new Thread(_ => 
+                    var thread = new Thread(_ =>
                     {
                         Mutex mutex;
                         Assert.True(Mutex.TryOpenExisting(mutexName, out mutex));

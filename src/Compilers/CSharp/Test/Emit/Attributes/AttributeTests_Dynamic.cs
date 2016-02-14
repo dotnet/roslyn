@@ -1202,7 +1202,7 @@ class C
             CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature(
-                    "C+<>c", 
+                    "C+<>c",
                     "<Main>b__0_0",
                     ".method assembly hidebysig instance System.Object <Main>b__0_0(System.Object x, System.Object[] y) cil managed")
             });
@@ -1227,7 +1227,7 @@ class C
             CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, expectedSignatures: new[]
             {
                 Signature(
-                    "C+<>c", 
+                    "C+<>c",
                     "<Main>b__0_0",
                     ".method assembly hidebysig instance System.Object <Main>b__0_0([System.Runtime.CompilerServices.DynamicAttribute()] System.Object x, [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] System.Object[] y) cil managed")
             });

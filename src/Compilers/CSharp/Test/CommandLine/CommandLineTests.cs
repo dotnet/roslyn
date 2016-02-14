@@ -1488,7 +1488,7 @@ d.cs
         [Fact]
         public void Deterministic()
         {
-            var parsedArgs = DefaultParse(new [] { "a.cs" }, _baseDirectory);
+            var parsedArgs = DefaultParse(new[] { "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.CompilationOptions.Deterministic);
 
@@ -2837,7 +2837,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             var srcFile = Temp.CreateFile().WriteAllText(@"class A { static void Main(string[] args) { } }");
             var srcDirectory = Path.GetDirectoryName(srcFile.Path);
             string root = Path.GetPathRoot(srcDirectory); // Make sure we pick a drive that exists and is plugged in to avoid 'Drive not ready'
-            
+
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = new MockCSharpCompiler(null, srcDirectory,
                 new[] { "/nologo", "/preferreduilang:en",
@@ -3150,7 +3150,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             var lib3 = dir.CreateDirectory("lib3");
 
             var parsedArgs = DefaultParse(new[] { @"/lib:lib1", @"/libpath:lib2", @"/libpaths:lib3", "a.cs" }, dir.Path);
-            AssertEx.Equal(new[] 
+            AssertEx.Equal(new[]
             {
                 s_defaultSdkDirectory,
                 lib1.Path,
@@ -5643,7 +5643,7 @@ public class C
         [Fact, WorkItem(530359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530359")]
         public void NoStdLib02()
         {
-#region "source"
+            #region "source"
             var source = @"
 // <Title>A collection initializer can be declared with a user-defined IEnumerable that is declared in a user-defined System.Collections</Title>
 using System.Collections;
@@ -5762,7 +5762,7 @@ namespace System
     }
 }
 ";
-#endregion
+            #endregion
 
             var src = Temp.CreateFile("NoStdLib02.cs");
             src.WriteAllText(source + mslib);
@@ -7989,32 +7989,32 @@ class C {
         [Fact]
         public void PathMapParser()
         {
-            var parsedArgs = DefaultParse(new [] { "/pathmap:", "a.cs" }, _baseDirectory);
+            var parsedArgs = DefaultParse(new[] { "/pathmap:", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(ImmutableArray.Create<KeyValuePair<string, string>>(), parsedArgs.PathMap);
 
-            parsedArgs = DefaultParse(new [] { "/pathmap:K1=V1", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/pathmap:K1=V1", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(KeyValuePair.Create("K1", "V1"), parsedArgs.PathMap[0]);
 
-            parsedArgs = DefaultParse(new [] { "/pathmap:K1=V1,K2=V2", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/pathmap:K1=V1,K2=V2", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(KeyValuePair.Create("K1", "V1"), parsedArgs.PathMap[0]);
             Assert.Equal(KeyValuePair.Create("K2", "V2"), parsedArgs.PathMap[1]);
 
-            parsedArgs = DefaultParse(new [] { "/pathmap:,,,", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/pathmap:,,,", "a.cs" }, _baseDirectory);
             Assert.Equal(4, parsedArgs.Errors.Count());
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[1].Code);
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[2].Code);
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[3].Code);
 
-            parsedArgs = DefaultParse(new [] { "/pathmap:k=,=v", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/pathmap:k=,=v", "a.cs" }, _baseDirectory);
             Assert.Equal(2, parsedArgs.Errors.Count());
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[1].Code);
 
-            parsedArgs = DefaultParse(new [] { "/pathmap:k=v=bad", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/pathmap:k=v=bad", "a.cs" }, _baseDirectory);
             Assert.Equal(1, parsedArgs.Errors.Count());
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
         }

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// The spell checker we use for fuzzy match queries.
         /// </summary>
-        private readonly SpellChecker _spellChecker;
+        private readonly Lazy<SpellChecker> _lazySpellChecker;
 
         private static readonly StringComparer s_caseInsensitiveComparer = CaseInsensitiveComparison.Comparer;
 
@@ -45,11 +45,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 : StringComparer.Ordinal.Compare(s1, s2);
         };
 
+        private SymbolTreeInfo(VersionStamp version, IReadOnlyList<Node> orderedNodes)
+            : this(version, orderedNodes, new Lazy<SpellChecker>(() => new SpellChecker(orderedNodes.Select(n => n.Name))))
+        {
+        }
+
         private SymbolTreeInfo(VersionStamp version, IReadOnlyList<Node> orderedNodes, SpellChecker spellChecker)
+            : this(version, orderedNodes, new Lazy<SpellChecker>(() => spellChecker))
+        {
+            // Make the lazy 'Created'.  This is a no-op since we already have the underlying spell
+            // checker.  This way if we end up wanting to serialize this tree info, we'll also
+            // serialize the spell checker.
+            var unused = _lazySpellChecker.Value;
+        }
+
+        private SymbolTreeInfo(VersionStamp version, IReadOnlyList<Node> orderedNodes, Lazy<SpellChecker> lazySpellChecker)
         {
             _version = version;
             _nodes = orderedNodes;
-            _spellChecker = spellChecker;
+            _lazySpellChecker = lazySpellChecker;
         }
 
         public int Count => _nodes.Count;
@@ -84,7 +98,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         public async Task<IEnumerable<ISymbol>> FuzzyFindAsync(AsyncLazy<IAssemblySymbol> lazyAssembly, string name, CancellationToken cancellationToken)
         {
-            var similarNames = _spellChecker.FindSimilarWords(name);
+            var similarNames = _lazySpellChecker.Value.FindSimilarWords(name);
             var result = new List<ISymbol>();
 
             foreach (var similarName in similarNames)
@@ -197,7 +211,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 int mid = min + ((max - min) >> 1);
 
-                var comparison =  s_caseInsensitiveComparer.Compare(_nodes[mid].Name, name);
+                var comparison = s_caseInsensitiveComparer.Compare(_nodes[mid].Name, name);
                 if (comparison < 0)
                 {
                     min = mid + 1;
@@ -230,7 +244,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim> s_metadataIdToGate = new ConditionalWeakTable<MetadataId, SemaphoreSlim>();
         private static readonly ConditionalWeakTable<MetadataId, SymbolTreeInfo> s_metadataIdToInfo = new ConditionalWeakTable<MetadataId, SymbolTreeInfo>();
 
-        private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim>.CreateValueCallback s_metadataIdToGateCallback = 
+        private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim>.CreateValueCallback s_metadataIdToGateCallback =
             _ => new SemaphoreSlim(1);
 
         /// <summary>
@@ -239,7 +253,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<SymbolTreeInfo> TryGetInfoForMetadataAssemblyAsync(
             Solution solution,
             IAssemblySymbol assembly,
-            PortableExecutableReference reference, 
+            PortableExecutableReference reference,
             bool loadOnly,
             CancellationToken cancellationToken)
         {
@@ -291,8 +305,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var list = new List<Node>();
             GenerateNodes(assembly.GlobalNamespace, list);
 
-            var spellChecker = new SpellChecker(list.Select(n => n.Name));
-            return new SymbolTreeInfo(version, SortNodes(list), spellChecker);
+            return new SymbolTreeInfo(version, SortNodes(list));
         }
 
         private static Node[] SortNodes(List<Node> nodes)
@@ -364,7 +377,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             list.Add(node);
 
             // Add all child members
-            var memberLookup = GetMembers(globalNamespace).ToLookup(c => c.Name);
+            var memberLookup = s_getMembers(globalNamespace).ToLookup(c => c.Name);
 
             foreach (var grouping in memberLookup)
             {
@@ -372,7 +385,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static readonly Func<ISymbol, bool> UseSymbol = 
+        private static readonly Func<ISymbol, bool> s_useSymbol =
             s => s.CanBeReferencedByName && s.DeclaredAccessibility != Accessibility.Private;
 
         // generate nodes for symbols that share the same name, and all their descendants
@@ -383,7 +396,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             list.Add(node);
 
             // Add all child members
-            var membersByName = symbolsWithSameName.SelectMany(GetMembers).ToLookup(s => s.Name);
+            var membersByName = symbolsWithSameName.SelectMany(s_getMembers).ToLookup(s => s.Name);
 
             foreach (var grouping in membersByName)
             {
@@ -391,11 +404,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static Func<ISymbol, IEnumerable<ISymbol>> GetMembers = symbol =>
+        private static Func<ISymbol, IEnumerable<ISymbol>> s_getMembers = symbol =>
         {
             var nt = symbol as INamespaceOrTypeSymbol;
-            return nt != null 
-                ? nt.GetMembers().Where(UseSymbol)
+            return nt != null
+                ? nt.GetMembers().Where(s_useSymbol)
                 : SpecializedCollections.EmptyEnumerable<ISymbol>();
         };
 

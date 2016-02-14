@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -95,7 +96,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
         {
             var fileName = FileNameUtilities.GetFileName(fullPath);
 
-            KeyValuePair<DocumentNameAndHandle, ImmutableArray<DocumentNameAndHandle>> documents; 
+            KeyValuePair<DocumentNameAndHandle, ImmutableArray<DocumentNameAndHandle>> documents;
             if (!_map.TryGetValue(fileName, out documents))
             {
                 documentHandle = default(DocumentHandle);

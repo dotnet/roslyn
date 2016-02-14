@@ -14,6 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Csc.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Csi.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ErrorString.Designer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ICompilerOptionsHostObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ICscHostObject5.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InteractiveCompiler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IVbcHostObject6.cs" />

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -1417,6 +1417,7 @@ End Class
 ]]>
                              </file>
                          </compilation>
+
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New StaticMemberTestAnalyzer}, Nothing, Nothing, False,
@@ -1429,6 +1430,123 @@ End Class
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Field").WithLocation(25, 9),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.P").WithLocation(26, 17),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Method()").WithLocation(27, 9))
+        End Sub
+
+        <Fact>
+        Public Sub LabelOperatorsVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Public Class A
+    Public Sub Fred()
+        Wilma:
+        GoTo Betty
+        Betty:
+        GoTo Wilma
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New LabelOperationsTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(LabelOperationsTestAnalyzer.LabelDescriptor.Id, "Wilma:").WithLocation(3, 9),
+                Diagnostic(LabelOperationsTestAnalyzer.GotoDescriptor.Id, "GoTo Betty").WithLocation(4, 9),
+                Diagnostic(LabelOperationsTestAnalyzer.LabelDescriptor.Id, "Betty:").WithLocation(5, 9),
+                Diagnostic(LabelOperationsTestAnalyzer.GotoDescriptor.Id, "GoTo Wilma").WithLocation(6, 9))
+        End Sub
+
+        <Fact>
+        Public Sub UnaryBinaryOperatorsVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Public Class A
+
+    Private ReadOnly _value As Integer
+
+    Public Sub New (value As Integer)
+        _value = value
+    End Sub
+
+    Public Shared Operator +(x As A, Y As A) As A
+        Return New A(x._value + y._value)
+    End Operator
+
+    Public Shared Operator *(x As A, y As A) As A
+        Return New A(x._value * y._value)
+    End Operator
+
+    Public Shared Operator -(x  As A) As A
+        Return New A(-x._value)
+    End Operator
+
+    Public Shared operator +(x As A) As A
+        Return New A(+x._value)
+    End Operator
+End CLass
+
+Class C
+    Public Shared Sub Main()
+        Dim B As Boolean = False
+        Dim d As Double = 100
+        Dim a1 As New A(0)
+        Dim a2 As New A(100)
+
+        b = Not b
+        d = d * 100
+        a1 = a1 + a2
+        a1 = -a2
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New UnaryAndBinaryOperationsTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.BooleanNotDescriptor.Id, "Not b").WithLocation(33, 13),
+                Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.DoubleMultiplyDescriptor.Id, "d * 100").WithLocation(34, 13),
+                Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.OperatorAddMethodDescriptor.Id, "a1 + a2").WithLocation(35, 14),
+                Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.OperatorMinusMethodDescriptor.Id, "-a2").WithLocation(36, 14))
+        End Sub
+
+        <Fact>
+        Public Sub NullOperationSyntaxVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub M0(ParamArray b As Integer())
+    End Sub
+
+    Public Sub M1()
+        M0()
+        M0(1)
+        M0(1, 2)
+        M0(New Integer() {  })
+        M0(New Integer() { 1 })
+        M0(New Integer() { 1, 2 })
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            ' TODO: array should not be treated as ParamArray argument
+            ' https://github.com/dotnet/roslyn/issues/8570
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New NullOperationSyntaxTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0()").WithLocation(6, 9),
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0(1)").WithLocation(7, 9),
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0(1, 2)").WithLocation(8, 9),
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "New Integer() {  }").WithLocation(9, 12),
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "New Integer() { 1 }").WithLocation(10, 12),
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "New Integer() { 1, 2 }").WithLocation(11, 12))
         End Sub
     End Class
 End Namespace
