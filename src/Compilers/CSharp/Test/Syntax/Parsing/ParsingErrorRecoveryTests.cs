@@ -5542,7 +5542,7 @@ class C
             Assert.False(getBodyStmts[0].ContainsDiagnostics);
 
             Assert.Equal(1, file.Errors().Length);
-            Assert.Equal(ErrorCode.ERR_SemiOrLBraceExpected, (ErrorCode)file.Errors()[0].Code);
+            Assert.Equal(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, (ErrorCode)file.Errors()[0].Code);
         }
 
         [Fact]
