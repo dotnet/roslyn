@@ -261,7 +261,7 @@ namespace A
             Assert.Equal(True, viewModel.IsExistingFileEnabled)
         End Function
 
-        <WorkItem(858815)>
+        <WorkItem(858815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858815")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeAllowPublicAccessOnlyForGenerationIntoOtherProject() As Task
             Dim workspaceXml = <Workspace>
@@ -311,7 +311,7 @@ namespace A
             Assert.Equal(True, viewModel.IsAccessListEnabled)
         End Function
 
-        <WorkItem(858815)>
+        <WorkItem(858815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858815")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeAllowClassTypeKindForAttribute_CSharp() As Task
             Dim documentContentMarkup = <Text><![CDATA[
@@ -331,7 +331,7 @@ class Program
             Assert.Equal("FooAttribute", viewModel.TypeName)
         End Function
 
-        <WorkItem(858815)>
+        <WorkItem(858815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858815")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeAllowClassTypeKindForAttribute_VisualBasic() As Task
             Dim documentContentMarkup = <Text><![CDATA[
@@ -347,7 +347,7 @@ End Class]]></Text>
             Assert.Equal("BlahAttribute", viewModel.TypeName)
         End Function
 
-        <WorkItem(861544)>
+        <WorkItem(861544, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861544")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeWithCapsAttribute_VisualBasic() As Task
             Dim documentContentMarkup = <Text><![CDATA[
@@ -359,7 +359,7 @@ End class]]></Text>
             Assert.Equal("FooAttribute", viewModel.TypeName)
         End Function
 
-        <WorkItem(861544)>
+        <WorkItem(861544, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861544")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeWithoutCapsAttribute_VisualBasic() As Task
             Dim documentContentMarkup = <Text><![CDATA[
@@ -371,7 +371,7 @@ End class]]></Text>
             Assert.Equal("FooattributeAttribute", viewModel.TypeName)
         End Function
 
-        <WorkItem(861544)>
+        <WorkItem(861544, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861544")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeWithCapsAttribute_CSharp() As Task
             Dim documentContentMarkup = <Text><![CDATA[
@@ -384,7 +384,7 @@ public class CCC
             Assert.Equal("FooAttribute", viewModel.TypeName)
         End Function
 
-        <WorkItem(861544)>
+        <WorkItem(861544, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861544")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeWithoutCapsAttribute_CSharp() As Task
             Dim documentContentMarkup = <Text><![CDATA[
@@ -398,7 +398,7 @@ public class CCC
         End Function
 
 
-        <WorkItem(861462)>
+        <WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeCheckOnlyPublic_CSharp_1() As Task
             Dim documentContentMarkup = <Text><![CDATA[
@@ -416,7 +416,7 @@ public class C : $$D
             Assert.Equal(3, viewModel.AccessList.Count)
         End Function
 
-        <WorkItem(861462)>
+        <WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeCheckOnlyPublic_CSharp_2() As Task
             Dim documentContentMarkup = <Text><![CDATA[
@@ -433,7 +433,7 @@ public interface CCC : $$DDD
             Assert.Equal("public", viewModel.AccessList(0))
         End Function
 
-        <WorkItem(861462)>
+        <WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeCheckOnlyPublic_VisualBasic_1() As Task
             Dim documentContentMarkup = <Text><![CDATA[
@@ -449,7 +449,7 @@ End Class]]></Text>
             Assert.Equal(3, viewModel.AccessList.Count)
         End Function
 
-        <WorkItem(861462)>
+        <WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeCheckOnlyPublic_VisualBasic_2() As Task
             Dim documentContentMarkup = <Text><![CDATA[
@@ -467,7 +467,7 @@ End Class]]></Text>
             Assert.Equal("Public", viewModel.AccessList(0))
         End Function
 
-        <WorkItem(861462)>
+        <WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeCheckOnlyPublic_VisualBasic_3() As Task
             Dim documentContentMarkup = <Text><![CDATA[
@@ -485,7 +485,7 @@ End Interface]]></Text>
             Assert.Equal("Public", viewModel.AccessList(0))
         End Function
 
-        <WorkItem(861362)>
+        <WorkItem(861362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeWithModuleOption() As Task
             Dim workspaceXml = <Workspace>
@@ -522,7 +522,7 @@ End Namespace                                       </Document>
             Assert.Equal(3, viewModel.KindList.Count)
         End Function
 
-        <WorkItem(858826)>
+        <WorkItem(858826, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858826")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeFileExtensionUpdate() As Task
             Dim workspaceXml = <Workspace>
@@ -684,7 +684,7 @@ class Program
             Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
         End Function
 
-        <WorkItem(898452)>
+        <WorkItem(898452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898452")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeIntoNewFileWithInvalidIdentifierFolderName() As Task
             Dim documentContentMarkupCSharp = <Text><![CDATA[
@@ -763,7 +763,7 @@ namespace A
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
         End Function
 
-        <WorkItem(898563)>
+        <WorkItem(898563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898563")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateType_DontGenerateIntoExistingFile() As Task
             ' Get a Temp Folder Path
@@ -852,7 +852,7 @@ namespace A
             Optional projectRootFilePath As String = Nothing) As Tasks.Task(Of GenerateTypeDialogViewModel)
 
             Dim workspaceXml = If(content.Name.LocalName = "Workspace", content, GetOneProjectWorkspace(content, languageName, projectName, documentName, projectRootFilePath))
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml)
                 Dim testDoc = workspace.Documents.SingleOrDefault(Function(d) d.CursorPosition.HasValue)
                 Assert.NotNull(testDoc)
                 Dim document = workspace.CurrentSolution.GetDocument(testDoc.Id)

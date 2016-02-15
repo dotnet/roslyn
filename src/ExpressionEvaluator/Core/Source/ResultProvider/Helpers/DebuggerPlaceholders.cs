@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Debugger.Metadata
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+namespace Microsoft.VisualStudio.Debugger.Metadata
 {
     // Starting in Visual Studio 2015, Update 1, a new api exists to detect if a type is a function pointer.
     // This placeholder method is a temporary shim to allow Roslyn to avoid taking a dependency on Update 1 debugger

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     {
         private byte[] _nonUTF8StringBytes = new byte[] { 0x80, 0x92, 0xA4, 0xB6, 0xC9, 0xDB, 0xED, 0xFF };
 
-        [Fact, WorkItem(1038018), WorkItem(1041792)]
+        [Fact, WorkItem(1038018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018"), WorkItem(1041792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041792")]
         public void TestCreateTextFallsBackToSystemDefaultEncoding()
         {
             TestCreateTextInferredEncoding(
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 expectedEncoding: Encoding.Default);
         }
 
-        [Fact, WorkItem(1038018)]
+        [Fact, WorkItem(1038018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018")]
         public void TestCreateTextFallsBackToUTF8Encoding()
         {
             TestCreateTextInferredEncoding(
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 expectedEncoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true));
         }
 
-        [Fact, WorkItem(1038018)]
+        [Fact, WorkItem(1038018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018")]
         public void TestCreateTextFallsBackToProvidedDefaultEncoding()
         {
             TestCreateTextInferredEncoding(
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 expectedEncoding: Encoding.GetEncoding(1254));
         }
 
-        [Fact, WorkItem(1038018)]
+        [Fact, WorkItem(1038018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018")]
         public void TestCreateTextUsesByteOrderMarkIfPresent()
         {
             TestCreateTextInferredEncoding(

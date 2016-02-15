@@ -99,7 +99,7 @@ int i = V + V;";
                 index: 1);
         }
 
-        [WorkItem(541287)]
+        [WorkItem(541287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541287")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestBlockFormatting()
         {
@@ -133,7 +133,7 @@ index: 1,
 compareTokens: false);
         }
 
-        [WorkItem(546465)]
+        [WorkItem(546465, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546465")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestPreserveTrivia()
         {

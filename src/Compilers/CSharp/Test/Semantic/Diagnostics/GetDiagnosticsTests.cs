@@ -88,7 +88,7 @@ class C : Abracadabra
             DiagnosticsHelper.VerifyDiagnostics(model, source, @"bracadabra[\r\n]+", ErrorId);
         }
 
-        [Fact, WorkItem(1066483)]
+        [Fact, WorkItem(1066483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066483")]
         public void TestDiagnosticWithSeverity()
         {
             var source = @"
@@ -153,7 +153,7 @@ namespace N1
             var tree2 = CSharpSyntaxTree.ParseText(source2, path: "file2");
             var eventQueue = new AsyncQueue<CompilationEvent>();
             var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 }).WithEventQueue(eventQueue);
-            
+
             // Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
             var model = compilation.GetSemanticModel(tree1);
             model.GetDiagnostics(tree1.GetRoot().FullSpan);

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
         Private _aggregator As NavigateToTestAggregator
 
         Private Async Function SetupWorkspaceAsync(content As String) As Task(Of TestWorkspace)
-            Dim workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(content)
+            Dim workspace = Await TestWorkspace.CreateVisualBasicAsync(content)
             SetupNavigateTo(workspace)
             Return workspace
         End Function
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
         End Sub
 
         Private Async Function SetupWorkspaceAsync(workspaceElement As XElement) As Task(Of TestWorkspace)
-            Dim workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceElement)
+            Dim workspace = Await TestWorkspace.CreateAsync(workspaceElement)
             SetupNavigateTo(workspace)
             Return workspace
         End Function
@@ -267,7 +267,7 @@ End Class")
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo), WorkItem(780993)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo), WorkItem(780993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780993")>
         Public Async Function TestFindEvent() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo
 Public Event Bar as EventHandler
@@ -583,6 +583,7 @@ end namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WorkItem(7855, "https://github.com/dotnet/Roslyn/issues/7855")>
         Public Async Function TestDottedPattern7() As Task
             Using workspace = Await SetupWorkspaceAsync("namespace Foo
 namespace Bar
@@ -594,7 +595,7 @@ end namespace
 end namespace")
                 Dim expecteditems = New List(Of NavigateToItem) From
                 {
-                    New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing)
+                    New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Prefix, True, Nothing)
                 }
 
                 Dim items = _aggregator.GetItems("Baz.Q").ToList()
@@ -705,7 +706,7 @@ End Class")
             End Using
         End Function
 
-        <WorkItem(1111131)>
+        <WorkItem(1111131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1111131")>
         <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindClassInNamespaceWithGlobalPrefix() As Task
             Using worker = Await SetupWorkspaceAsync("Namespace Global.MyNS
@@ -718,7 +719,7 @@ End Namespace")
             End Using
         End Function
 
-        <WorkItem(1121267)>
+        <WorkItem(1121267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1121267")>
         <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindClassInGlobalNamespace() As Task
             Using worker = Await SetupWorkspaceAsync("Namespace Global

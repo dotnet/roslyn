@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 

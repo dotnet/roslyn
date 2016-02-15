@@ -2,11 +2,12 @@
 
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
-Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 
     Public Class NoPIATests
         Inherits ExpressionCompilerTestBase
@@ -25,19 +26,19 @@ Class C
         Dim o As I = Nothing
     End Sub
 End Class"
-            Dim compilation0 = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib(
                 {source},
                 options:=TestOptions.DebugDll,
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
-            Dim runtime = CreateRuntimeInstance(compilation0)
-            Dim context = CreateMethodContext(
-                runtime,
-                methodName:="C.M")
-            Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("Me", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
-            Assert.Null(errorMessage)
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("Me", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size        2 (0x2)
   .maxstack  1
@@ -45,6 +46,7 @@ End Class"
   IL_0000:  ldarg.0
   IL_0001:  ret
 }")
+                End Sub)
         End Sub
 
     End Class

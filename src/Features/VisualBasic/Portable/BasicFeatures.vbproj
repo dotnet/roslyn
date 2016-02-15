@@ -45,13 +45,11 @@
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
     <Optimize>false</Optimize>
-    <DebugType>full</DebugType>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.Features.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.Features.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
@@ -359,6 +357,7 @@
     <Compile Include="LanguageServices\VisualBasicSymbolDisplayService.SymbolDescriptionBuilder.vb" />
     <Compile Include="LanguageServices\VisualBasicSymbolDisplayService.vb" />
     <Compile Include="LanguageServices\VisualBasicSymbolDisplayServiceFactory.vb" />
+    <Compile Include="MakeMethodSynchronous\VisualBasicMakeMethodSynchronousCodeFixProvider.vb" />
     <Compile Include="MetadataAsSource\VisualBasicMetadataAsSourceService.vb" />
     <Compile Include="MetadataAsSource\VisualBasicMetadataAsSourceServiceFactory.vb" />
     <Compile Include="OrganizeImports\VisualBasicOrganizeImportsService.Rewriter.vb" />

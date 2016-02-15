@@ -739,7 +739,7 @@ public interface CL3_I1 : CL2_I1
         }
 
         [Fact]
-        [WorkItem(612417, "DevDiv")]
+        [WorkItem(612417, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612417")]
         public void Repro612417()
         {
             var libSource = @"

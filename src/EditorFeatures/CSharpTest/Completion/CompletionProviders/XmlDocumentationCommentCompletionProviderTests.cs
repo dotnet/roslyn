@@ -980,7 +980,7 @@ public class foo<T>
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit, commitChar: '>');
         }
 
-        [WorkItem(623168)]
+        [WorkItem(623168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623168")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoTrailingSpace()
         {
@@ -999,7 +999,7 @@ public class foo<T>
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "see", expectedCodeAfterCommit, commitChar: ' ');
         }
 
-        [WorkItem(638802)]
+        [WorkItem(638802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638802")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TagsAfterSameLineClosedTag()
         {
@@ -1012,7 +1012,7 @@ public class foo<T>
             await VerifyItemsExistAsync(text, "!--", "![CDATA[", "c", "code", "list", "para", "paramref", "seealso", "see", "typeparamref");
         }
 
-        [WorkItem(734825)]
+        [WorkItem(734825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734825")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EnumMember()
         {
@@ -1029,7 +1029,7 @@ public class foo<T>
             await VerifyItemsExistAsync(text);
         }
 
-        [WorkItem(954679)]
+        [WorkItem(954679, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954679")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionList()
         {
@@ -1040,7 +1040,7 @@ public class foo
 }", "completionlist");
         }
 
-        [WorkItem(775091)]
+        [WorkItem(775091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775091")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ParamRefNames()
         {

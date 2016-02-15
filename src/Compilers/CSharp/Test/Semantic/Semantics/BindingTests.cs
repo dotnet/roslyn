@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class BindingTests : CompilingTestBase
     {
-        [Fact, WorkItem(539872, "DevDiv")]
+        [Fact, WorkItem(539872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539872")]
         public void NoWRN_UnreachableCode()
         {
             var text = @"
@@ -267,7 +267,7 @@ class B
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(25, 39));
         }
 
-        [WorkItem(528425, "DevDiv")]
+        [WorkItem(528425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528425")]
         [Fact(Skip = "528425")]
         public void InaccessibleAndAccessible()
         {
@@ -647,7 +647,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgType, "1.0").WithArguments("1", "double", "int").WithLocation(8, 11));
         }
 
-        [WorkItem(541050, "DevDiv")]
+        [WorkItem(541050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541050")]
         [Fact]
         public void IncompleteDelegateDecl()
         {
@@ -676,7 +676,7 @@ delegate";
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [WorkItem(541213, "DevDiv")]
+        [WorkItem(541213, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541213")]
         [Fact]
         public void IncompleteElsePartInIfStmt()
         {
@@ -709,7 +709,7 @@ delegate";
                 );
         }
 
-        [WorkItem(541466, "DevDiv")]
+        [WorkItem(541466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541466")]
         [Fact]
         public void UseSiteErrorViaAliasTest01()
         {
@@ -748,7 +748,7 @@ public class Test
             // <fine-name>(7,9): error CS0012: The type 'BaseAssembly.BaseClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'BaseAssembly, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
         }
 
-        [WorkItem(541466, "DevDiv")]
+        [WorkItem(541466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541466")]
         [Fact]
         public void UseSiteErrorViaAliasTest02()
         {
@@ -787,7 +787,7 @@ public class Test
             // <fine-name>(6,9): error CS0012: The type 'BaseAssembly.BaseClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'BaseAssembly, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
         }
 
-        [WorkItem(541466, "DevDiv")]
+        [WorkItem(541466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541466")]
         [Fact]
         public void UseSiteErrorViaAliasTest03()
         {
@@ -831,7 +831,7 @@ public class Test
             // <fine-name>(4,16): error CS0012: The type 'BaseAssembly.BaseClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'BaseAssembly, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
         }
 
-        [WorkItem(911913, "DevDiv")]
+        [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
         public void UnimplementedInterfaceSquiggleLocation_Typical()
         {
@@ -850,7 +850,7 @@ public interface IInterfaceBase
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IInterfaceBase").WithArguments("ITT", "IInterfaceBase.bar()").WithLocation(3, 7));
         }
 
-        [WorkItem(911913, "DevDiv")]
+        [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
         public void UnimplementedInterfaceSquiggleLocation_FullyQualified()
         {
@@ -875,7 +875,7 @@ namespace test
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "test.IInterfaceBase").WithArguments("ITT", "test.IInterfaceBase.bar()").WithLocation(3, 7));
         }
 
-        [WorkItem(911913, "DevDiv")]
+        [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
         public void UnimplementedInterfaceSquiggleLocation_WithAlias()
         {
@@ -901,7 +901,7 @@ namespace test
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "a1.IInterfaceBase").WithArguments("ITT", "test.IInterfaceBase.bar()").WithLocation(5, 7));
         }
 
-        [WorkItem(911913, "DevDiv")]
+        [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
         public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario01()
         {
@@ -935,7 +935,7 @@ namespace test
                 //     : a1.IInterfaceBase, a1.IInterfaceBase2 
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "a1.IInterfaceBase2").WithArguments("ITT", "test.IInterfaceBase2.xyz()").WithLocation(5, 26));
         }
-        [WorkItem(911913, "DevDiv")]
+        [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
         public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario02()
         {
@@ -965,7 +965,7 @@ public interface IInterfaceBase2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IInterfaceBase").WithArguments("ITT", "IInterfaceBase.xyz()").WithLocation(3, 7));
         }
 
-        [WorkItem(911913, "DevDiv")]
+        [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
         public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario03()
         {
@@ -995,7 +995,7 @@ public interface IInterfaceBase2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IInterfaceBase2").WithArguments("ITT", "IInterfaceBase2.abc()").WithLocation(3, 23));
         }
 
-        [WorkItem(911913, "DevDiv")]
+        [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
         public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario04()
         {
@@ -1026,7 +1026,7 @@ public interface IInterfaceBase2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IInterfaceBase2").WithArguments("ITT", "IInterfaceBase2.xyz()").WithLocation(4, 6));
         }
 
-        [WorkItem(911913, "DevDiv")]
+        [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
         public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario05()
         {
@@ -1057,7 +1057,7 @@ interface IDerived : IInterfaceBase
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IDerived").WithArguments("ITT", "IInterfaceBase.xyzb()").WithLocation(2, 19));
         }
 
-        [WorkItem(911913, "DevDiv")]
+        [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
         public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario06()
         {
@@ -1085,7 +1085,7 @@ interface IDerived : IInterfaceBase
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IInterfaceBase").WithArguments("ITT", "IInterfaceBase.xyz()").WithLocation(2, 29));
         }
 
-        [WorkItem(911913, "DevDiv")]
+        [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
         public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario07()
         {
@@ -1113,7 +1113,7 @@ interface IInterfaceBase
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IInterfaceBase").WithArguments("ITT", "IInterfaceBase.xyz()").WithLocation(2, 19));
         }
 
-        [WorkItem(911913, "DevDiv")]
+        [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
         public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario08()
         {
@@ -1142,7 +1142,7 @@ interface IDerived2: IBase, IBase2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IDerived2").WithArguments("ITT", "IBase2.Method2()").WithLocation(2, 19));
         }
 
-        [WorkItem(911913, "DevDiv")]
+        [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
         public void UnimplementedInterfaceSquiggleLocation13UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario09()
         {
@@ -1177,7 +1177,7 @@ public interface IDerived : IBase, IBase2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IDerived").WithArguments("ITT", "IBase.method1()").WithLocation(2, 20));
         }
 
-        [WorkItem(911913, "DevDiv")]
+        [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
         public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario10()
         {
@@ -1218,7 +1218,7 @@ public interface IDerived : IBase2, IBase3
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IDerived").WithArguments("ITT", "IBase.method1()").WithLocation(2, 20));
         }
 
-        [WorkItem(911913, "DevDiv")]
+        [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
         public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario11()
         {
@@ -1268,7 +1268,7 @@ class foo : Iderived2, Iderived, Ibase, Ibase2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Iderived").WithArguments("foo", "Iderived.method3()").WithLocation(29, 24));
         }
 
-        [WorkItem(911913, "DevDiv")]
+        [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
         public void UnimplementedInterfaceSquiggleLocation_WithPartialClass01()
         {
@@ -1313,7 +1313,7 @@ public interface IBase3
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IBase3").WithArguments("Foo", "IBase3.method3()").WithLocation(15, 28));
         }
 
-        [WorkItem(911913, "DevDiv")]
+        [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
         public void UnimplementedInterfaceSquiggleLocation_WithPartialClass02()
         {
@@ -1359,7 +1359,7 @@ public interface IBase3
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IBase3").WithArguments("Foo", "IBase3.method3()").WithLocation(13, 28));
         }
 
-        [WorkItem(911913, "DevDiv")]
+        [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
         public void UnimplementedInterfaceSquiggleLocation_WithPartialClass03()
         {
@@ -1401,7 +1401,7 @@ public interface IBase3
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IBase3").WithArguments("Foo", "IBase3.method3()").WithLocation(9, 28)
  );
         }
-        [WorkItem(541466, "DevDiv")]
+        [WorkItem(541466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541466")]
         [Fact]
         public void UseSiteErrorViaAliasTest04()
         {
@@ -1433,7 +1433,7 @@ public class Test
             // <fine-name>(9,28): error CS0117: 'Class1' does not contain a definition for 'Class1Foo'
         }
 
-        [WorkItem(541466, "DevDiv")]
+        [WorkItem(541466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541466")]
         [Fact]
         public void UseSiteErrorViaAliasTest05()
         {
@@ -1459,7 +1459,7 @@ public class Test
             // <fine-name>(9,17): error CS0143: The type 'Class1' has no constructors defined
         }
 
-        [WorkItem(541466, "DevDiv")]
+        [WorkItem(541466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541466")]
         [Fact]
         public void UseSiteErrorViaAliasTest06()
         {
@@ -1492,7 +1492,7 @@ public class Test
             // <fine-name>(7,10): error CS1772: Type 'Class1' from assembly '...\NoPIAGenerics1-Asm1.dll' cannot be used across assembly boundaries because a type in its inheritance hierarchy has a generic type parameter that is an embedded interop type.
         }
 
-        [WorkItem(541466, "DevDiv")]
+        [WorkItem(541466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541466")]
         [Fact]
         public void UseSiteErrorViaAliasTest07()
         {
@@ -1523,7 +1523,7 @@ public class Test
             // NOTE: Dev10 reports NO ERRORS
         }
 
-        [WorkItem(948674, "DevDiv")]
+        [WorkItem(948674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/948674")]
         [Fact]
         public void UseSiteErrorViaImplementedInterfaceMember_1()
         {
@@ -1576,7 +1576,7 @@ public class BarImpl : IBar
                 );
         }
 
-        [WorkItem(948674, "DevDiv")]
+        [WorkItem(948674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/948674")]
         [Fact]
         public void UseSiteErrorViaImplementedInterfaceMember_2()
         {
@@ -1632,7 +1632,7 @@ public class BarImpl : IBar
                 );
         }
 
-        [WorkItem(948674, "DevDiv")]
+        [WorkItem(948674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/948674")]
         [Fact]
         public void UseSiteErrorViaImplementedInterfaceMember_3()
         {
@@ -1680,7 +1680,7 @@ public class BarImpl : IBar
                 );
         }
 
-        [WorkItem(948674, "DevDiv")]
+        [WorkItem(948674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/948674")]
         [Fact]
         public void UseSiteErrorViaImplementedInterfaceMember_4()
         {
@@ -1734,7 +1734,7 @@ public class BarImpl : IBar
                 );
         }
 
-        [WorkItem(541246, "DevDiv")]
+        [WorkItem(541246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541246")]
         [Fact]
         public void NamespaceQualifiedGenericTypeName()
         {
@@ -1792,7 +1792,7 @@ class C
                 );
         }
 
-        [WorkItem(541570, "DevDiv")]
+        [WorkItem(541570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541570")]
         [Fact]
         public void EnumNotMemberInConstructor()
         {
@@ -1806,7 +1806,7 @@ class C
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(541638, "DevDiv")]
+        [WorkItem(541638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541638")]
         [Fact]
         public void KeywordAsLabelIdentifier()
         {
@@ -1825,7 +1825,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "@int1"));
         }
 
-        [WorkItem(541677, "DevDiv")]
+        [WorkItem(541677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541677")]
         [Fact]
         public void AssignStaticEventToLocalVariable()
         {
@@ -1844,7 +1844,7 @@ class driver
 
         // Note: The locations for errors on generic methods are
         // name only, while Dev11 uses name + type parameters.
-        [WorkItem(528743, "DevDiv")]
+        [WorkItem(528743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528743")]
         [Fact]
         public void GenericMethodLocation()
         {
@@ -1875,7 +1875,7 @@ class C : I
                 Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M4").WithArguments("C.M4<T>()").WithLocation(10, 34));
         }
 
-        [WorkItem(542391, "DevDiv")]
+        [WorkItem(542391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542391")]
         [Fact]
         public void PartialMethodOptionalParameters()
         {
@@ -1900,7 +1900,7 @@ class C : I
         }
 
         [Fact]
-        [WorkItem(598043, "DevDiv")]
+        [WorkItem(598043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598043")]
         public void PartialMethodParameterNamesFromDefinition1()
         {
             var source = @"
@@ -1922,7 +1922,7 @@ partial class C
         }
 
         [Fact]
-        [WorkItem(598043, "DevDiv")]
+        [WorkItem(598043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598043")]
         public void PartialMethodParameterNamesFromDefinition2()
         {
             var source = @"
@@ -1982,7 +1982,7 @@ partial class C
                 );
         }
 
-        [WorkItem(543349, "DevDiv")]
+        [WorkItem(543349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543349")]
         [Fact]
         public void Fixed()
         {
@@ -2002,7 +2002,7 @@ partial class C
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = null;"));
         }
 
-        [WorkItem(1040171, "DevDiv")]
+        [WorkItem(1040171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040171")]
         [Fact]
         public void Bug1040171()
         {
@@ -2030,7 +2030,7 @@ class Program
                 //         bool c = true;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(6, 14));
         }
-        [Fact, WorkItem(543426, "DevDiv")]
+        [Fact, WorkItem(543426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543426")]
 
         private void NestedInterfaceImplementationWithOuterGenericType()
         {
@@ -2080,7 +2080,7 @@ namespace System.ServiceModel
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C4").WithArguments("C4").WithLocation(8, 15));
         }
 
-        [WorkItem(543777, "DevDiv")]
+        [WorkItem(543777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543777")]
         [Fact]
         public void DefaultParameterAtEndOfFile()
         {
@@ -2115,7 +2115,7 @@ namespace System.ServiceModel
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("C.M(object, ?)"));
         }
 
-        [WorkItem(543814, "DevDiv")]
+        [WorkItem(543814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543814")]
         [Fact]
         public void DuplicateNamedArgumentNullLiteral()
         {
@@ -2134,7 +2134,7 @@ namespace System.ServiceModel
                 Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "arg").WithArguments("arg").WithLocation(7, 13));
         }
 
-        [WorkItem(543820, "DevDiv")]
+        [WorkItem(543820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543820")]
         [Fact]
         public void GenericAttributeClassWithMultipleParts()
         {
@@ -2151,7 +2151,7 @@ class C<T> : System.Attribute { }";
                 );
         }
 
-        [WorkItem(543822, "DevDiv")]
+        [WorkItem(543822, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543822")]
         [Fact]
         public void InterfaceWithPartialMethodExplicitImplementation()
         {
@@ -2173,7 +2173,7 @@ class C<T> : System.Attribute { }";
                 );
         }
 
-        [WorkItem(545208, "DevDiv")]
+        [WorkItem(545208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545208")]
         [Fact]
         public void PartialMethodInsidePartialInterface()
         {
@@ -2190,7 +2190,7 @@ class C<T> : System.Attribute { }";
                 );
         }
 
-        [WorkItem(543827, "DevDiv")]
+        [WorkItem(543827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543827")]
         [Fact]
         public void StructConstructor()
         {
@@ -2215,7 +2215,7 @@ class C<T> : System.Attribute { }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(543827, "DevDiv")]
+        [WorkItem(543827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543827")]
         [Fact]
         public void StructVersusTryFinally()
         {
@@ -2235,7 +2235,7 @@ class C<T> : System.Attribute { }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(544513, "DevDiv")]
+        [WorkItem(544513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544513")]
         [Fact()]
         public void AnonTypesPropSameNameDiffType()
         {
@@ -2256,7 +2256,7 @@ class C<T> : System.Attribute { }";
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "p2").WithArguments("<anonymous type: string Price>", "<anonymous type: double Price>"));
         }
 
-        [WorkItem(545869, "DevDiv")]
+        [WorkItem(545869, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545869")]
         [Fact]
         public void TestSealedOverriddenMembers()
         {
@@ -2309,7 +2309,7 @@ class Program
 }").VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(1068547, "DevDiv")]
+        [Fact, WorkItem(1068547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068547")]
         public void Bug1068547_01()
         {
             var source =
@@ -2334,7 +2334,7 @@ class Program
             Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason);
         }
 
-        [Fact, WorkItem(1068547, "DevDiv")]
+        [Fact, WorkItem(1068547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068547")]
         public void Bug1068547_02()
         {
             var source =
@@ -2353,7 +2353,7 @@ class Program
             Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason);
         }
 
-        [Fact, WorkItem(1078958, "DevDiv")]
+        [Fact, WorkItem(1078958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078958")]
         public void Bug1078958()
         {
             const string source = @"
@@ -2373,7 +2373,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(6, 9));
         }
 
-        [Fact, WorkItem(1078958, "DevDiv")]
+        [Fact, WorkItem(1078958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078958")]
         public void Bug1078958_2()
         {
             const string source = @"
@@ -2392,7 +2392,7 @@ class C
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(1078961, "DevDiv")]
+        [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
         public void Bug1078961()
         {
             const string source = @"
@@ -2413,7 +2413,7 @@ class C
             CompileAndVerify(source, expectedOutput: "42");
         }
 
-        [Fact, WorkItem(1078961, "DevDiv")]
+        [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
         public void Bug1078961_2()
         {
             const string source = @"
@@ -2443,7 +2443,7 @@ class C
             Assert.Equal((int)i.Value, (int)t.ConstantValue);
         }
 
-        [Fact, WorkItem(1078961, "DevDiv")]
+        [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
         public void Bug1078961_3()
         {
             const string source = @"
@@ -2473,7 +2473,7 @@ class C
             Assert.Equal((int)i.Value, (int)t.ConstantValue);
         }
 
-        [Fact, WorkItem(1078961, "DevDiv")]
+        [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
         public void Bug1078961_4()
         {
             const string source = @"
@@ -2503,7 +2503,7 @@ class C
             Assert.Equal((int)i.Value, (int)t.ConstantValue);
         }
 
-        [Fact, WorkItem(1078961, "DevDiv")]
+        [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
         public void Bug1078961_5()
         {
             const string source = @"
@@ -2694,7 +2694,7 @@ class A
         }
 
         [Fact, WorkItem(5170, "https://github.com/dotnet/roslyn/issues/5170")]
-        public void TypeOfBinderParameter() 
+        public void TypeOfBinderParameter()
         {
             var sourceText = @"
 using System.Linq;
@@ -2710,7 +2710,7 @@ public static class LazyToStringExtension
             .Select(x => x.GetValue(obj))
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(sourceText, new[] { SystemCoreRef },  options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib(sourceText, new[] { SystemCoreRef }, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
                 // (12,42): error CS1002: ; expected
                 //             .Select(x => x.GetValue(obj))
@@ -2790,7 +2790,7 @@ class C
             var group1 = model.GetMemberGroup(node1);
             Assert.Equal(2, group1.Length);
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", group1[0].ToTestDisplayString());
-            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)", 
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)",
                          group1[1].ToTestDisplayString());
 
             var symbolInfo1 = model.GetSymbolInfo(node1);
@@ -2799,7 +2799,7 @@ class C
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", symbolInfo1.CandidateSymbols.Single().ToTestDisplayString());
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo1.CandidateReason);
 
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText== "AuthenticateAsync").Single().Parent;
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "AuthenticateAsync").Single().Parent;
 
             Assert.Equal("ctx.Authentication.AuthenticateAsync", node.ToString());
 
@@ -2869,7 +2869,7 @@ class C
             Assert.Equal("app.Use", node1.ToString());
             var group1 = model.GetMemberGroup(node1);
             Assert.Equal(2, group1.Length);
-            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)", 
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)",
                          group1[0].ToTestDisplayString());
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", group1[1].ToTestDisplayString());
 
@@ -2943,7 +2943,7 @@ class C
             var group1 = model.GetMemberGroup(node1);
             Assert.Equal(2, group1.Length);
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", group1[0].ToTestDisplayString());
-            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)", 
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)",
                          group1[1].ToTestDisplayString());
 
             var symbolInfo1 = model.GetSymbolInfo(node1);
@@ -3028,7 +3028,7 @@ class C
             var group1 = model.GetMemberGroup(node1);
             Assert.Equal(2, group1.Length);
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", group1[0].ToTestDisplayString());
-            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)", 
+            Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)",
                          group1[1].ToTestDisplayString());
 
             var symbolInfo1 = model.GetSymbolInfo(node1);
@@ -3045,6 +3045,173 @@ class C
             var group = model.GetMemberGroup(node);
 
             Assert.Equal("System.Threading.Tasks.Task<AuthenticationResult> AuthenticationManager.AuthenticateAsync(System.String authenticationScheme)", group.Single().ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(7101, "https://github.com/dotnet/roslyn/issues/7101")]
+        public void UsingStatic_01()
+        {
+            var source =
+@"
+using System;
+using static ClassWithNonStaticMethod;
+using static Extension1;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var instace = new Program();
+        instace.NonStaticMethod();
+    }
+
+    private void NonStaticMethod()
+    {
+        MathMin(0, 1);
+        MathMax(0, 1);
+        MathMax2(0, 1);
+        
+        int x;
+        x = F1;
+        x = F2;
+
+        x.MathMax2(3);
+    }
+}
+
+class ClassWithNonStaticMethod
+{
+    public static int MathMax(int a, int b)
+    {
+        return Math.Max(a, b);
+    }
+
+    public int MathMin(int a, int b)
+    {
+        return Math.Min(a, b);
+    }
+
+    public int F2 = 0;
+}
+
+static class Extension1
+{
+    public static int MathMax2(this int a, int b)
+    {
+        return Math.Max(a, b);
+    }
+
+    public static int F1 = 0;
+}
+
+static class Extension2
+{
+    public static int MathMax3(this int a, int b)
+    {
+        return Math.Max(a, b);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45(source);
+
+            comp.VerifyDiagnostics(
+    // (16,9): error CS0103: The name 'MathMin' does not exist in the current context
+    //         MathMin(0, 1);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "MathMin").WithArguments("MathMin").WithLocation(16, 9),
+    // (18,9): error CS0103: The name 'MathMax2' does not exist in the current context
+    //         MathMax2(0, 1);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "MathMax2").WithArguments("MathMax2").WithLocation(18, 9),
+    // (22,13): error CS0103: The name 'F2' does not exist in the current context
+    //         x = F2;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "F2").WithArguments("F2").WithLocation(22, 13)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "MathMin").Single().Parent;
+            Assert.Equal("MathMin(0, 1)", node1.ToString());
+
+            var names = model.LookupNames(node1.SpanStart);
+            Assert.False(names.Contains("MathMin"));
+            Assert.True(names.Contains("MathMax"));
+            Assert.True(names.Contains("F1"));
+            Assert.False(names.Contains("F2"));
+            Assert.False(names.Contains("MathMax2"));
+            Assert.False(names.Contains("MathMax3"));
+
+            Assert.True(model.LookupSymbols(node1.SpanStart, name: "MathMin").IsEmpty);
+            Assert.Equal(1, model.LookupSymbols(node1.SpanStart, name: "MathMax").Length);
+            Assert.Equal(1, model.LookupSymbols(node1.SpanStart, name: "F1").Length);
+            Assert.True(model.LookupSymbols(node1.SpanStart, name: "F2").IsEmpty);
+            Assert.True(model.LookupSymbols(node1.SpanStart, name: "MathMax2").IsEmpty);
+            Assert.True(model.LookupSymbols(node1.SpanStart, name: "MathMax3").IsEmpty);
+
+            var symbols = model.LookupSymbols(node1.SpanStart);
+            Assert.False(symbols.Where(s => s.Name == "MathMin").Any());
+            Assert.True(symbols.Where(s => s.Name == "MathMax").Any());
+            Assert.True(symbols.Where(s => s.Name == "F1").Any());
+            Assert.False(symbols.Where(s => s.Name == "F2").Any());
+            Assert.False(symbols.Where(s => s.Name == "MathMax2").Any());
+            Assert.False(symbols.Where(s => s.Name == "MathMax3").Any());
+        }
+
+        [Fact, WorkItem(8234, "https://github.com/dotnet/roslyn/issues/8234")]
+        public void EventAccessInTypeNameContext()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main() {}
+
+    event System.EventHandler E1;
+
+    void Test(Program x)
+    {
+        System.Console.WriteLine();
+        x.E1.E
+        System.Console.WriteLine();
+    }
+
+    void Dummy()
+    {
+        E1 = null;
+        var x = E1;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+
+            comp.VerifyDiagnostics(
+    // (11,15): error CS1001: Identifier expected
+    //         x.E1.E
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(11, 15),
+    // (11,15): error CS1002: ; expected
+    //         x.E1.E
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 15),
+    // (11,9): error CS0118: 'x' is a variable but is used like a type
+    //         x.E1.E
+    Diagnostic(ErrorCode.ERR_BadSKknown, "x").WithArguments("x", "variable", "type").WithLocation(11, 9)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "E").Single().Parent;
+            Assert.Equal("x.E1.E", node1.ToString());
+            Assert.Equal(SyntaxKind.QualifiedName, node1.Kind());
+
+            var node2 = ((QualifiedNameSyntax)node1).Left;
+            Assert.Equal("x.E1", node2.ToString());
+
+            var symbolInfo2 = model.GetSymbolInfo(node2);
+            Assert.Null(symbolInfo2.Symbol);
+            Assert.Equal("event System.EventHandler Program.E1", symbolInfo2.CandidateSymbols.Single().ToTestDisplayString());
+            Assert.Equal(CandidateReason.NotATypeOrNamespace, symbolInfo2.CandidateReason);
+
+            var symbolInfo1 = model.GetSymbolInfo(node1);
+            Assert.Null(symbolInfo1.Symbol);
+            Assert.True(symbolInfo1.CandidateSymbols.IsEmpty);
         }
     }
 }

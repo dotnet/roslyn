@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Dim snapshot = workspace.CurrentSolution
                 Dim Type = (Await GetProject(snapshot, "CSharpAssembly").GetCompilationAsync()).GlobalNamespace.GetTypeMembers("CSClass").Single()
 
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Dim snapshot = workspace.CurrentSolution
                 Dim Type = (Await GetProject(snapshot, "VBAssembly").GetCompilationAsync()).GlobalNamespace.GetTypeMembers("VBClass").Single()
 
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Function
 
         <Fact>
-        <WorkItem(1068631)>
+        <WorkItem(1068631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068631")>
         Public Async Function TestFindMethodInVisualBasicToCSharpPortableProject() As Task
             Dim workspaceDefinition =
 <Workspace>
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Dim compilation = Await GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync()
                 Dim member = compilation.GlobalNamespace.GetMembers("N").Single().GetTypeMembers("CSClass").Single().GetMembers("M").Single()
 
@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Dim compilation = Await GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync()
                 Dim member = compilation.GlobalNamespace.GetMembers("N").Single().GetTypeMembers("CSClass").Single().GetMembers("M").Single()
 
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Dim compilation = Await GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync()
                 Dim member = compilation.GlobalNamespace.GetMembers("N").Single().GetTypeMembers("CSClass").Single().GetMembers("M").Single()
 
@@ -212,6 +212,43 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 Assert.Equal(LanguageNames.CSharp, mappedMember.Language)
                 Assert.True(mappedMember.Locations.All(Function(Loc) Loc.IsInSource))
+            End Using
+        End Function
+
+
+        <Fact>
+        Public Async Function TestFindRetargetedClass() As Task
+            Dim workspaceDefinition =
+<Workspace>
+    <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferencesPortable="true">
+        <Document>
+            namespace N
+            {
+                public class CSClass
+                {
+                }
+            }
+        </Document>
+    </Project>
+    <Project Language="C#" AssemblyName="CSharpAssembly2" CommonReferences="true">
+        <ProjectReference>CSharpAssembly</ProjectReference>
+    </Project>
+</Workspace>
+
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
+                Dim retargetedCompilation = Await GetProject(workspace.CurrentSolution, "CSharpAssembly").GetCompilationAsync()
+                Dim originalClass = retargetedCompilation.GlobalNamespace.GetMembers("N").Single().GetTypeMembers("CSClass").Single()
+                Dim retargetingCompilation = Await GetProject(workspace.CurrentSolution, "CSharpAssembly2").GetCompilationAsync()
+                Dim retargetedClass = retargetingCompilation.GlobalNamespace.GetMembers("N").Single().GetTypeMembers("CSClass").Single()
+
+                ' The retargeted class should not have the same assembly identity as the originating assembly, but
+                ' should come through the compilation reference
+                Assert.NotEqual(retargetedClass.ContainingAssembly, retargetedCompilation.Assembly)
+                Assert.IsAssignableFrom(Of CompilationReference)(retargetingCompilation.GetMetadataReference(retargetedClass.ContainingAssembly))
+
+                Dim mappedMember = Await SymbolFinder.FindSourceDefinitionAsync(retargetedClass, workspace.CurrentSolution)
+
+                Assert.Equal(Of ISymbol)(originalClass, mappedMember)
             End Using
         End Function
     End Class

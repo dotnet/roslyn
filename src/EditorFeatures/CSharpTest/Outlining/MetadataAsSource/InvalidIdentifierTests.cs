@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
                 .WhereNotNull().ToArray();
         }
 
-        [WorkItem(1174405)]
+        [WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task PrependedDollarSign()
         {
@@ -41,7 +41,7 @@ $$class C
             await VerifyNoRegionsAsync(code);
         }
 
-        [WorkItem(1174405)]
+        [WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task SymbolsAndPunctuation()
         {
@@ -54,7 +54,7 @@ $$class C
             await VerifyNoRegionsAsync(code);
         }
 
-        [WorkItem(1174405)]
+        [WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task IdentifierThatLooksLikeCode()
         {

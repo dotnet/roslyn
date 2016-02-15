@@ -34,12 +34,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private struct PackedFlags
         {
             // Layout:
-            // |.............|h|rr|cccccccc|vvvvvvvv|
+            // |.............|n|rr|cccccccc|vvvvvvvv|
             // 
             // v = decoded well known attribute values. 8 bits.
             // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 8 bits.
             // r = RefKind. 2 bits.
-            // h = hasByRefBeforeCustomModifiers. 1 bit.
+            // n = hasNameInMetadata. 1 bit.
 
             private const int WellKnownAttributeDataOffset = 0;
             private const int WellKnownAttributeCompletionFlagOffset = 8;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int WellKnownAttributeDataMask = 0xFF;
             private const int WellKnownAttributeCompletionFlagMask = WellKnownAttributeDataMask;
 
-            // Available bit 0x1 << 18;
+            private const int HasNameInMetadataBit = 0x1 << 18;
 
             private const int AllWellKnownAttributesCompleteNoData = WellKnownAttributeCompletionFlagMask << WellKnownAttributeCompletionFlagOffset;
 
@@ -58,6 +58,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public RefKind RefKind
             {
                 get { return (RefKind)((_bits >> RefKindOffset) & RefKindMask); }
+            }
+
+            public bool HasNameInMetadata
+            {
+                get { return (_bits & HasNameInMetadataBit) != 0; }
             }
 
 #if DEBUG
@@ -80,12 +85,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 #endif
 
-            public PackedFlags(RefKind refKind, bool attributesAreComplete)
+            public PackedFlags(RefKind refKind, bool attributesAreComplete, bool hasNameInMetadata)
             {
                 int refKindBits = ((int)refKind & RefKindMask) << RefKindOffset;
                 int attributeBits = attributesAreComplete ? AllWellKnownAttributesCompleteNoData : 0;
+                int hasNameInMetadataBits = hasNameInMetadata ? HasNameInMetadataBit : 0;
 
-                _bits = refKindBits | attributeBits;
+                _bits = refKindBits | attributeBits | hasNameInMetadataBits;
             }
 
             public bool SetWellKnownAttribute(WellKnownAttributeFlags flag, bool value)
@@ -223,15 +229,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _type = type;
             }
 
-            if (string.IsNullOrEmpty(_name))
+            bool hasNameInMetadata = !string.IsNullOrEmpty(_name);
+            if (!hasNameInMetadata)
             {
                 // As was done historically, if the parameter doesn't have a name, we give it the name "value".
                 _name = "value";
             }
 
-            _packedFlags = new PackedFlags(refKind, attributesAreComplete: handle.IsNil);
+            _packedFlags = new PackedFlags(refKind, attributesAreComplete: handle.IsNil, hasNameInMetadata: hasNameInMetadata);
 
             Debug.Assert(refKind == this.RefKind);
+            Debug.Assert(hasNameInMetadata == this.HasNameInMetadata);
+        }
+
+        private bool HasNameInMetadata
+        {
+            get
+            {
+                return _packedFlags.HasNameInMetadata;
+            }
         }
 
         private static PEParameterSymbol Create(
@@ -301,6 +317,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 return _name;
+            }
+        }
+
+        public override string MetadataName
+        {
+            get
+            {
+                return HasNameInMetadata ? _name : string.Empty;
             }
         }
 

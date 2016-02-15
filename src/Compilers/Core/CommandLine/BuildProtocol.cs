@@ -380,13 +380,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         public CompletedBuildResponse(int returnCode,
                                       bool utf8output,
-                                      string output,
-                                      string errorOutput)
+                                      string output)
         {
             ReturnCode = returnCode;
             Utf8Output = utf8output;
             Output = output;
-            ErrorOutput = errorOutput;
+
+            // This field existed to support writing to Console.Error.  The compiler doesn't ever write to 
+            // this field or Console.Error.  This field is only kept around in order to maintain the existing
+            // protocol semantics.
+            ErrorOutput = string.Empty;
         }
 
         public override ResponseType Type => ResponseType.Completed;
@@ -397,8 +400,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var utf8Output = reader.ReadBoolean();
             var output = ReadLengthPrefixedString(reader);
             var errorOutput = ReadLengthPrefixedString(reader);
+            if (!string.IsNullOrEmpty(errorOutput))
+            {
+                throw new InvalidOperationException();
+            }
 
-            return new CompletedBuildResponse(returnCode, utf8Output, output, errorOutput);
+            return new CompletedBuildResponse(returnCode, utf8Output, output);
         }
 
         protected override void AddResponseBody(BinaryWriter writer)
@@ -435,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
     internal sealed class MismatchedVersionBuildResponse : BuildResponse
     {
-        public override ResponseType Type => ResponseType.MismatchedVersion; 
+        public override ResponseType Type => ResponseType.MismatchedVersion;
 
         /// <summary>
         /// MismatchedVersion has no body.

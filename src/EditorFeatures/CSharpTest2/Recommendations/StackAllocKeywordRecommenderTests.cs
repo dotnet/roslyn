@@ -96,7 +96,7 @@ $$");
     int* v = $$");
         }
 
-        [WorkItem(544504)]
+        [WorkItem(544504, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544504")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInsideForStatementVarDecl1()
         {
@@ -108,7 +108,7 @@ $$");
         for (var i = $$");
         }
 
-        [WorkItem(544504)]
+        [WorkItem(544504, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544504")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInsideForStatementVarDecl2()
         {
@@ -120,7 +120,7 @@ $$");
         for (int* i = $$");
         }
 
-        [WorkItem(544504)]
+        [WorkItem(544504, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544504")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInsideForStatementVarDecl3()
         {

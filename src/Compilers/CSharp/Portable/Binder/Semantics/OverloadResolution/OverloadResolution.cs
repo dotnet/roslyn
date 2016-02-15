@@ -1497,6 +1497,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var m2Original = m2.LeastOverriddenMember.OriginalDefinition.GetParameters();
             for (i = 0; i < arguments.Count; ++i)
             {
+                // If these are both applicable varargs methods and we're looking at the __arglist argument
+                // then clearly neither of them is going to be better in this argument.
+                if (arguments[i].Kind == BoundKind.ArgListOperator)
+                {
+                    Debug.Assert(i == arguments.Count - 1);
+                    Debug.Assert(m1.Member.GetIsVararg() && m2.Member.GetIsVararg());
+                    continue;
+                }
+
                 uninst1.Add(GetParameterType(i, m1.Result, m1Original));
                 uninst2.Add(GetParameterType(i, m2.Result, m2Original));
             }

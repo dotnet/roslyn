@@ -422,6 +422,7 @@ namespace Microsoft.Cci
         private int[] _pseudoSymbolTokenToTokenMap;
         private IReference[] _pseudoSymbolTokenToReferenceMap;
         private int[] _pseudoStringTokenToTokenMap;
+        private bool _userStringTokenOverflow;
         private List<string> _pseudoStringTokenToStringMap;
         private ReferenceIndexer _referenceVisitor;
 
@@ -2268,8 +2269,8 @@ namespace Microsoft.Cci
 
         private void SerializeMetadataTables(
             BlobBuilder writer,
-            MetadataSizes metadataSizes, 
-            int methodBodyStreamRva, 
+            MetadataSizes metadataSizes,
+            int methodBodyStreamRva,
             int mappedFieldDataStreamRva)
         {
             int startPosition = writer.Position;
@@ -4294,7 +4295,10 @@ namespace Microsoft.Cci
             // If so, use the RVA of the already serialized one.
             // Note that we don't need to rewrite the fake tokens in the body before looking it up.
             int bodyRva;
-            if (isSmallBody && _smallMethodBodies.TryGetValue(methodBody.IL, out bodyRva))
+
+            // Don't do small body method caching during deterministic builds until this issue is fixed
+            // https://github.com/dotnet/roslyn/issues/7595
+            if (!_deterministic && isSmallBody && _smallMethodBodies.TryGetValue(methodBody.IL, out bodyRva))
             {
                 return bodyRva;
             }
@@ -4304,7 +4308,12 @@ namespace Microsoft.Cci
                 bodyRva = ilWriter.Position;
                 ilWriter.WriteByte((byte)((ilLength << 2) | 2));
 
-                _smallMethodBodies.Add(methodBody.IL, bodyRva);
+                // Don't do small body method caching during deterministic builds until this issue is fixed
+                // https://github.com/dotnet/roslyn/issues/7595
+                if (!_deterministic)
+                {
+                    _smallMethodBodies.Add(methodBody.IL, bodyRva);
+                }
             }
             else
             {
@@ -4479,7 +4488,23 @@ namespace Microsoft.Cci
             var str = _pseudoStringTokenToStringMap[index];
             if (str != null)
             {
-                var token = heaps.GetUserStringToken(str);
+                const int overflowToken = 0x70000000; // 0x70 is a token type for a user string
+                int token;
+                if (!_userStringTokenOverflow)
+                {
+                    if (!heaps.TryGetUserStringToken(str, out token))
+                    {
+                        this.Context.Diagnostics.Add(this.messageProvider.CreateDiagnostic(this.messageProvider.ERR_TooManyUserStrings,
+                                                                                           NoLocation.Singleton));
+                        _userStringTokenOverflow = true;
+                        token = overflowToken;
+                    }
+                }
+                else
+                {
+                    token = overflowToken;
+                }
+
                 _pseudoStringTokenToTokenMap[index] = token;
                 _pseudoStringTokenToStringMap[index] = null; // Set to null to bypass next lookup
                 return token;

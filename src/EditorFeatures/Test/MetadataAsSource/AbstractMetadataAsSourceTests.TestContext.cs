@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
     </Project>
 </Workspace>");
 
-                return TestWorkspaceFactory.CreateWorkspaceAsync(xmlString);
+                return TestWorkspace.CreateAsync(xmlString);
             }
 
             internal Document GetDocument(MetadataAsSourceFile file)
@@ -274,16 +274,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 var syntaxRoot = await document.GetSyntaxRootAsync();
                 var semanticModel = await document.GetSemanticModelAsync();
                 return semanticModel.GetSymbolInfo(syntaxRoot.FindNode(testDocument.SelectedSpans.Single())).Symbol;
-            }
-
-            private class GenerationResult
-            {
-                public readonly MetadataAsSourceFile File;
-
-                public GenerationResult(MetadataAsSourceFile file)
-                {
-                    this.File = file;
-                }
             }
         }
     }

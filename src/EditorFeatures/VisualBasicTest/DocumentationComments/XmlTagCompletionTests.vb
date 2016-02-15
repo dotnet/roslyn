@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
         End Function
 
         Protected Overrides Function CreateTestWorkspaceAsync(initialMarkup As String) As Task(Of TestWorkspace)
-            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(initialMarkup)
+            Return TestWorkspace.CreateVisualBasicAsync(initialMarkup)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
@@ -142,7 +142,7 @@ End Class]]></File>
             Await VerifyAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Function
 
-        <WorkItem(638235)>
+        <WorkItem(638235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638235")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
         Public Async Function TestNotCloseClosedTag() As Task
             Dim text = <File><![CDATA[

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)fieldSymbol == null)
                 {
-                    symbol.Type.Accept(this.NotFirstVisitor);
+                symbol.Type.Accept(this.NotFirstVisitor);
                 }
                 else
                 {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)propertySymbol == null)
                 {
-                    symbol.Type.Accept(this.NotFirstVisitor);
+                symbol.Type.Accept(this.NotFirstVisitor);
                 }
                 else
                 {
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)eventSymbol == null)
                 {
-                    symbol.Type.Accept(this.NotFirstVisitor);
+                symbol.Type.Accept(this.NotFirstVisitor);
                 }
                 else
                 {
@@ -519,18 +519,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameter = symbol as ParameterSymbol;
                 if ((object)parameter != null)
                 {
-                    countOfCustomModifiersPrecedingByRef = parameter.CountOfCustomModifiersPrecedingByRef;
+                    countOfCustomModifiersPrecedingByRef = parameter.CountOfCustomModifiersPrecedingByRef; 
 
-                    if (countOfCustomModifiersPrecedingByRef > 0)
-                    {
-                        AddCustomModifiersIfRequired(ImmutableArray.Create(symbol.CustomModifiers, 0, countOfCustomModifiersPrecedingByRef), leadingSpace: false, trailingSpace: true);
-                    }
+                if (countOfCustomModifiersPrecedingByRef > 0)
+                {
+                    AddCustomModifiersIfRequired(ImmutableArray.Create(symbol.CustomModifiers, 0, countOfCustomModifiersPrecedingByRef), leadingSpace: false, trailingSpace: true);
+                }
 
                     VisitTypeSymbolWithAnnotations(parameter.Type);
                 }
                 else
                 {
-                    symbol.Type.Accept(this.NotFirstVisitor);
+                symbol.Type.Accept(this.NotFirstVisitor);
                 }
 
                 if (countOfCustomModifiersPrecedingByRef == 0)

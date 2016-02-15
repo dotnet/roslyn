@@ -423,7 +423,7 @@ Class C
 End Class]]></a>.Value.NormalizeLineEndings()
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(PickySemanticFactsService)))
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceFromFilesAsync(LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), New VisualBasicParseOptions(), {text}, exportProvider)
+            Using workspace = Await TestWorkspace.CreateAsync(LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), New VisualBasicParseOptions(), {text}, exportProvider)
                 ' This test uses MEF to compose in an ISyntaxFactsService that 
                 ' asserts it isn't asked to speculate on nodes inside documentation trivia.
                 ' This verifies that the provider is asking for a speculative SemanticModel
@@ -814,6 +814,10 @@ End Class]]></a>.Value.NormalizeLineEndings()
             End Function
 
             Public Function GetInactiveRegionSpanAroundPosition(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As TextSpan Implements ISyntaxFactsService.GetInactiveRegionSpanAroundPosition
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetNameForArgument(argument As SyntaxNode) As String Implements ISyntaxFactsService.GetNameForArgument
                 Throw New NotImplementedException()
             End Function
         End Class

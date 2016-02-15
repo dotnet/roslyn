@@ -5,11 +5,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -37,45 +34,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             private readonly BitVector _byRefs;
             private readonly ushort _parameterCount;
-            private readonly byte _returnsVoid;
+            private readonly bool _returnsVoid;
+            private readonly int _generation;
 
-            public SynthesizedDelegateKey(int parameterCount, BitVector byRefs, bool returnsVoid)
+            public SynthesizedDelegateKey(int parameterCount, BitVector byRefs, bool returnsVoid, int generation)
             {
                 _parameterCount = (ushort)parameterCount;
-                _returnsVoid = (byte)(returnsVoid ? 1 : 0);
+                _returnsVoid = returnsVoid;
+                _generation = generation;
                 _byRefs = byRefs;
             }
 
-            /// <summary>
-            /// Produces name of the synthesized delegate symbol that encodes the parameter byref-ness and return type of the delegate.
-            /// The arity is appended via `N suffix since in MetadataName calculation since the delegate is generic.
-            /// </summary>
             public string MakeTypeName()
             {
-                var pooledBuilder = PooledStringBuilder.GetInstance();
-                pooledBuilder.Builder.Append(_returnsVoid != 0 ? "<>A" : "<>F");
-
-                if (!_byRefs.IsNull)
-                {
-                    pooledBuilder.Builder.Append("{");
-
-                    int i = 0;
-                    foreach (int byRefIndex in _byRefs.Words())
-                    {
-                        if (i > 0)
-                        {
-                            pooledBuilder.Builder.Append(",");
-                        }
-
-                        pooledBuilder.Builder.AppendFormat("{0:x8}", byRefIndex);
-                        i++;
-                    }
-
-                    pooledBuilder.Builder.Append("}");
-                    Debug.Assert(i > 0);
-                }
-
-                return pooledBuilder.ToStringAndFree();
+                return GeneratedNames.MakeDynamicCallSiteDelegateName(_byRefs, _returnsVoid, _generation);
             }
 
             public override bool Equals(object obj)
@@ -87,12 +59,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return _parameterCount == other._parameterCount
                     && _returnsVoid == other._returnsVoid
+                    && _generation == other._generation
                     && _byRefs.Equals(other._byRefs);
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine((int)_parameterCount, Hash.Combine((int)_returnsVoid, _byRefs.GetHashCode()));
+                return Hash.Combine(
+                    Hash.Combine((int)_parameterCount, _generation),
+                    Hash.Combine(_returnsVoid.GetHashCode(), _byRefs.GetHashCode()));
             }
         }
 
@@ -182,12 +157,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal SynthesizedDelegateSymbol SynthesizeDelegate(int parameterCount, BitVector byRefParameters, bool returnsVoid)
+        internal SynthesizedDelegateSymbol SynthesizeDelegate(int parameterCount, BitVector byRefParameters, bool returnsVoid, int generation)
         {
             // parameterCount doesn't include return type
             Debug.Assert(byRefParameters.IsNull || parameterCount == byRefParameters.Capacity);
 
-            var key = new SynthesizedDelegateKey(parameterCount, byRefParameters, returnsVoid);
+            var key = new SynthesizedDelegateKey(parameterCount, byRefParameters, returnsVoid, generation);
 
             SynthesizedDelegateValue result;
             if (this.SynthesizedDelegates.TryGetValue(key, out result))
@@ -405,14 +380,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal IReadOnlyDictionary<Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue> GetAnonymousTypeMap()
         {
             var result = new Dictionary<Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue>();
-            var templates = GetAllCreatedTemplates();
-            foreach (AnonymousTypeTemplateSymbol template in templates)
+            var templates = ArrayBuilder<AnonymousTypeTemplateSymbol>.GetInstance();
+            // Get anonymous types but not synthesized delegates. (Delegate types are
+            // not reused across generations since reuse would add complexity (such
+            // as parsing delegate type names from metadata) without a clear benefit.)
+            GetCreatedAnonymousTypeTemplates(templates);
+            foreach (var template in templates)
             {
                 var nameAndIndex = template.NameAndIndex;
                 var key = template.GetAnonymousTypeKey();
                 var value = new Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(nameAndIndex.Name, nameAndIndex.Index, template);
                 result.Add(key, value);
             }
+            templates.Free();
             return result;
         }
 

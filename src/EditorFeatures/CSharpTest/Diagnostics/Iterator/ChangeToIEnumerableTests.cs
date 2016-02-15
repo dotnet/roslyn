@@ -189,7 +189,7 @@ class Program
             await TestMissingAsync(initial);
         }
 
-        [WorkItem(7087,@"https://github.com/dotnet/roslyn/issues/7087")]
+        [WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
         public async Task TestChangeToIEnumerableProperty()
         {
@@ -198,7 +198,7 @@ class Program
  @"using System ; using System . Collections . Generic ; namespace Asdf { public class Test { public IEnumerable < IMyInterface > Test { get { yield return TestFactory . Create < float > ( ""yada yada yada"" ) ; } ; } } public static class TestFactory { public static IMyInterface Create < T > ( string someIdentifier ) { return new MyClass < T > ( ) ; } } public interface IMyInterface : IEquatable < IMyInterface > { } public class MyClass < T > : IMyInterface { public bool Equals ( IMyInterface other ) { throw new NotImplementedException ( ) ; } } } ");
         }
 
-        [WorkItem(7087,@"https://github.com/dotnet/roslyn/issues/7087")]
+        [WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
         public async Task TestChangeToIEnumerableOperator()
         {
@@ -207,7 +207,7 @@ class Program
 @"using System ; using System . Collections ; using System . Collections . Generic ; namespace Asdf { public class T { public static IEnumerable < int > operator = ( T left , T right ) { yield return 0 ; } } } ");
         }
 
-        [WorkItem(7087,@"https://github.com/dotnet/roslyn/issues/7087")]
+        [WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
         public async Task TestChangeToIEnumerableIndexer()
         {

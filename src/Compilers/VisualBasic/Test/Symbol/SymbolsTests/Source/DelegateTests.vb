@@ -372,7 +372,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(540948, "DevDiv")>
+        <WorkItem(540948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540948")>
         <Fact>
         Public Sub AddressOfGenericMethod()
             Dim source = <compilation name="C">
@@ -396,7 +396,7 @@ End Module
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
-        <WorkItem(541002, "DevDiv")>
+        <WorkItem(541002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541002")>
         <Fact>
         Public Sub TypeParameterCannotConflictWithDelegateMethod()
             Dim source = <compilation name="F">
@@ -414,7 +414,7 @@ End Class
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
-        <WorkItem(541004, "DevDiv")>
+        <WorkItem(541004, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541004")>
         <Fact>
         Public Sub DelegateParameterCanBeNamedInvoke()
             Dim source = <compilation name="D">

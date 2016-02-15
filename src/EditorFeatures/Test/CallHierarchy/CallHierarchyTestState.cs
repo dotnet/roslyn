@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         public static async Task<CallHierarchyTestState> CreateAsync(XElement markup, params Type[] additionalTypes)
         {
             var exportProvider = CreateExportProvider(additionalTypes);
-            var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(markup, exportProvider: exportProvider);
+            var workspace = await TestWorkspace.CreateAsync(markup, exportProvider: exportProvider);
 
             return new CallHierarchyTestState(workspace);
         }
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         public static async Task<CallHierarchyTestState> CreateAsync(string markup, params Type[] additionalTypes)
         {
             var exportProvider = CreateExportProvider(additionalTypes);
-            var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup, exportProvider: exportProvider);
+            var workspace = await TestWorkspace.CreateCSharpAsync(markup, exportProvider: exportProvider);
             return new CallHierarchyTestState(markup, workspace);
         }
 

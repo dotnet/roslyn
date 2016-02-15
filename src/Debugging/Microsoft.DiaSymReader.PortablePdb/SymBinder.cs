@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using Roslyn.Utilities;
 using System;
 using System.IO;
@@ -101,7 +102,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
                     return HResult.E_FAIL; // TODO: specific error code (ecToHresult)?
                 }
 
-                Guid guid = codeViewData.PdbId;
+                Guid guid = codeViewData.Guid;
                 int age = codeViewData.Age;
                 string pdbFileName = Path.GetFileName(codeViewData.Path);
                 var lazyImport = new LazyMetadataImport(mdImport);
@@ -174,17 +175,17 @@ namespace Microsoft.DiaSymReader.PortablePdb
             }
         }
 
-        private static readonly char[] SearchPathSeparators = { ';' };
+        private static readonly char[] s_searchPathSeparators = { ';' };
 
         private bool TryFindMatchingPdb(
             string searchPaths,
             string peFileExtension, // with no leading .
             string pdbFileName,
-            Guid guid, 
-            uint stamp, 
-            int age, 
+            Guid guid,
+            uint stamp,
+            int age,
             LazyMetadataImport metadataImport,
-            SymUnmanagedSearchPolicy searchPolicy, 
+            SymUnmanagedSearchPolicy searchPolicy,
             out ISymUnmanagedReader reader)
         {
             if (searchPaths == null)
@@ -193,7 +194,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 return false;
             }
 
-            foreach (var searchPath in searchPaths.Split(SearchPathSeparators, StringSplitOptions.RemoveEmptyEntries))
+            foreach (var searchPath in searchPaths.Split(s_searchPathSeparators, StringSplitOptions.RemoveEmptyEntries))
             {
                 // TODO: check symsrv policy
                 if (searchPath.StartsWith("SRV*", StringComparison.OrdinalIgnoreCase))
@@ -229,8 +230,8 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         private bool TryCreateReaderForMatchingPdb(
             string pdbFilePath,
-            Guid guid, 
-            uint stamp, 
+            Guid guid,
+            uint stamp,
             int age,
             LazyMetadataImport metadataImport,
             out ISymUnmanagedReader reader)
@@ -260,11 +261,11 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 var peStream = PortableShim.File.OpenRead(peFilePath);
                 using (var peReader = new PEReader(peStream))
                 {
-                    foreach (var entry in PEUtilities.ReadDebugDirectory(peReader, peStream))
+                    foreach (var entry in peReader.ReadDebugDirectory())
                     {
-                        if (entry.EntryType == DebugDirectoryEntryType.CodeView)
+                        if (entry.Type == DebugDirectoryEntryType.CodeView)
                         {
-                            codeViewData = PEUtilities.ReadCodeViewDebugDirectoryData(peStream, entry);
+                            codeViewData = peReader.ReadCodeViewDebugDirectoryData(entry);
                             stamp = entry.Stamp;
                             return true;
                         }

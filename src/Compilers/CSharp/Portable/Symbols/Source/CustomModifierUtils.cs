@@ -66,8 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we can use it in place of this.Type.  We do so by computing the dynamic transform flags that
             // code gen uses and then passing them to the dynamic type decoder that metadata reading uses.
 
-            const int customModifierCount = 0;// Ignore custom modifiers, since we're not done copying them.
-            ImmutableArray<bool> flags = CSharpCompilation.DynamicTransformsEncoder.Encode(destinationType, customModifierCount, refKind);
+            ImmutableArray<bool> flags = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(destinationType, refKind);
             TypeSymbol resultType = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(sourceType, containingAssembly, refKind, flags);
 
             // Preserve nullable modifiers as well.
@@ -103,8 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SourceParameterSymbolBase destinationParameter = (SourceParameterSymbolBase)destinationParameters[i];
                 ParameterSymbol sourceParameter = sourceParameters[i];
 
-                if (sourceParameter.Type.CustomModifiers.Any() || sourceParameter.Type.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds:true) ||
-                    destinationParameter.Type.CustomModifiers.Any() || destinationParameter.Type.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds:true) || // Could happen if the associated property has custom modifiers.
+                if (sourceParameter.Type.CustomModifiers.Any() || sourceParameter.Type.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: true) ||
+                    destinationParameter.Type.CustomModifiers.Any() || destinationParameter.Type.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: true) || // Could happen if the associated property has custom modifiers.
                     (alsoCopyParamsModifier && (sourceParameter.IsParams != destinationParameter.IsParams)))
                 {
                     if (builder == null)

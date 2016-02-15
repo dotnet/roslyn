@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static NamedTypeSymbol ConstructIfGeneric(this NamedTypeSymbol type, ImmutableArray<TypeSymbolWithAnnotations> typeArguments)
         {
             Debug.Assert(type.TypeParameters.IsEmpty == (typeArguments.Length == 0));
-            return type.TypeParameters.IsEmpty ? type : type.Construct(typeArguments, unbound:false);
+            return type.TypeParameters.IsEmpty ? type : type.Construct(typeArguments, unbound: false);
         }
 
         public static bool IsNestedType(this Symbol symbol)

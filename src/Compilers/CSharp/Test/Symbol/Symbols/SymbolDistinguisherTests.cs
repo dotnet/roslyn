@@ -682,7 +682,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "Lib.M<C>").WithArguments("Lib.M<T>()", "C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", "T", "C [file.cs(2)]").WithLocation(8, 9));
         }
 
-        [WorkItem(6262)]
+        [WorkItem(6262, "https://github.com/dotnet/roslyn/issues/6262")]
         [Fact]
         public void SymbolDistinguisherEquality()
         {

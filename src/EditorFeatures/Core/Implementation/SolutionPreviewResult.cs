@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
         public bool IsEmpty => _previews.Count == 0;
 
-        public async Task<IList<object>> GetPreviewsAsync(DocumentId preferredDocumentId = null, ProjectId preferredProjectId = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IReadOnlyList<object>> GetPreviewsAsync(DocumentId preferredDocumentId = null, ProjectId preferredProjectId = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             AssertIsForeground();
             cancellationToken.ThrowIfCancellationRequested();
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor
                        _previews.IndexOf(i1) - _previews.IndexOf(i2);
             }).ThenBy((i1, i2) =>
             {
-                return i1.Text == null && i2.Text != null ? -1 : 
+                return i1.Text == null && i2.Text != null ? -1 :
                        i1.Text != null && i2.Text == null ? 1 :
                        _previews.IndexOf(i1) - _previews.IndexOf(i2);
             });

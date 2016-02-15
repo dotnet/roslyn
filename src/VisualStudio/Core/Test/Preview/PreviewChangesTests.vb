@@ -18,7 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Preview
 
         <WpfFact>
         Public Async Function TestListStructure() As Task
-            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(<text>
+            Using workspace = Await TestWorkspace.CreateCSharpAsync(<text>
 Class C
 {
     void Foo()
@@ -56,7 +56,7 @@ Class C
             End Using
         End Function
 
-        <WpfFact, WorkItem(1036455)>
+        <WpfFact, WorkItem(1036455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
         Public Async Function TestListStructure_AddedDeletedDocuments() As Task
             Dim workspaceXml =
                 <Workspace>
@@ -74,7 +74,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml, exportProvider:=_exportProvider)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml, exportProvider:=_exportProvider)
                 Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
                     Tuple.Create("topLevelItemName", 0),
@@ -118,7 +118,7 @@ Class C
 
         <WpfFact>
         Public Async Function TestCheckedItems() As Task
-            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(<text>
+            Using workspace = Await TestWorkspace.CreateCSharpAsync(<text>
 Class C
 {
     void Foo()
@@ -162,7 +162,7 @@ Class C
             End Using
         End Function
 
-        <WpfFact, WorkItem(1036455)>
+        <WpfFact, WorkItem(1036455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036455")>
         Public Async Function TestCheckedItems_AddedDeletedDocuments() As Task
             Dim workspaceXml =
                 <Workspace>
@@ -181,7 +181,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml, exportProvider:=_exportProvider)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml, exportProvider:=_exportProvider)
                 Dim docId = workspace.Documents.First().Id
                 Dim document = workspace.CurrentSolution.GetDocument(docId)
 
@@ -264,7 +264,7 @@ End Class
                                    </Project>
                                </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml, , exportProvider:=_exportProvider)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml, , exportProvider:=_exportProvider)
                 Dim documentId1 = workspace.Documents.Where(Function(d) d.Project.Name = "VBProj1").Single().Id
                 Dim document1 = workspace.CurrentSolution.GetDocument(documentId1)
 

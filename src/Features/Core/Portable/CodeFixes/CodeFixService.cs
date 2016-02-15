@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -420,8 +421,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private bool IsInteractiveCodeFixProvider(CodeFixProvider provider)
         {
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
-            return provider?.GetType()?.Name == "AbstractAddImportCodeFixProvider`1" ||
-                provider is FullyQualify.AbstractFullyQualifyCodeFixProvider;
+            if (provider is FullyQualify.AbstractFullyQualifyCodeFixProvider)
+            {
+                return true;
+            }
+
+            var providerType = provider?.GetType();
+            while (providerType != null)
+            {
+                if (providerType.IsConstructedGenericType &&
+                    providerType.GetGenericTypeDefinition() == typeof(AddImport.AbstractAddImportCodeFixProvider<>))
+                {
+                    return true;
+                }
+
+                providerType = providerType.GetTypeInfo().BaseType;
+            }
+
+            return false;
         }
 
         private static readonly Func<DiagnosticId, List<CodeFixProvider>> s_createList = _ => new List<CodeFixProvider>();

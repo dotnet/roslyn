@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             public readonly int Value;
         }
 
-        [WorkItem(620704, "DevDiv")]
+        [WorkItem(620704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/620704")]
         [Fact]
         public void ZeroHash()
         {

@@ -148,6 +148,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -190,6 +191,7 @@
     <Compile Include="Attributes\AttributeTests.cs" />
     <Compile Include="AutomaticCompletion\AbstractAutomaticBraceCompletionTests.cs" />
     <Compile Include="AutomaticCompletion\AbstractAutomaticLineEnderTests.cs" />
+    <Compile Include="BlockCommentEditing\AbstractBlockCommentEditingTests.cs" />
     <Compile Include="BraceHighlighting\AbstractBraceHighlightingTests.cs" />
     <Compile Include="BraceMatching\AbstractBraceMatcherTests.cs" />
     <Compile Include="CallHierarchy\CallHierarchyTestState.cs" />
@@ -255,6 +257,7 @@
     <Compile Include="Outlining\AbstractSyntaxNodeOutlinerTests.cs" />
     <Compile Include="Outlining\AbstractSyntaxOutlinerTests.cs" />
     <Compile Include="Outlining\AbstractSyntaxTriviaOutlinerTests.cs" />
+    <Compile Include="Outlining\OutliningServiceTests.cs" />
     <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="DocCommentFormatting\DocCommentFormattingTests.cs" />
     <Compile Include="DocumentationComments\AbstractDocumentationCommentTests.cs" />
@@ -336,7 +339,6 @@
     <Compile Include="Utilities\TestWaitContext.cs" />
     <Compile Include="Utilities\TestWaitIndicator.cs" />
     <Compile Include="Workspaces\CSharpTestWorkspaceFixture.cs" />
-    <Compile Include="Workspaces\CSharpWorkspaceFactory.cs" />
     <Compile Include="Workspaces\MefTestWorkspace.cs" />
     <Compile Include="Workspaces\NoCompilationConstants.cs" />
     <Compile Include="Workspaces\NoCompilationContentTypeDefinitions.cs" />
@@ -349,16 +351,14 @@
     <Compile Include="Workspaces\TestHostDocument.cs" />
     <Compile Include="Workspaces\TestHostProject.cs" />
     <Compile Include="Workspaces\TestHostSolution.cs" />
-    <Compile Include="Workspaces\TestOptionServiceFactory.cs" />
     <Compile Include="Workspaces\TestWorkspace.cs" />
-    <Compile Include="Workspaces\TestWorkspaceFactory.cs" />
-    <Compile Include="Workspaces\TestWorkspaceFactory_XmlConsumption.cs" />
-    <Compile Include="Workspaces\TestWorkspaceFactory_XmlCreation.cs" />
+    <Compile Include="Workspaces\TestWorkspace_Create.cs" />
+    <Compile Include="Workspaces\TestWorkspace_XmlConsumption.cs" />
+    <Compile Include="Workspaces\TestWorkspace_XmlCreation.cs" />
     <Compile Include="Workspaces\TestWorkspaceFixture.cs" />
     <Compile Include="Workspaces\ProjectCacheHostServiceFactoryTests.cs" />
     <Compile Include="Workspaces\TextFactoryTests.cs" />
     <Compile Include="Workspaces\VisualBasicTestWorkspaceFixture.cs" />
-    <Compile Include="Workspaces\VisualBasicWorkspaceFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

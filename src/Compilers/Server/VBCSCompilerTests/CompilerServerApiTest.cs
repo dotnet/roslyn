@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         private static readonly BuildResponse s_emptyBuildResponse = new CompletedBuildResponse(
             returnCode: 0,
             utf8output: false,
-            output: string.Empty,
-            errorOutput: string.Empty);
+            output: string.Empty);
 
         private const string HelloWorldSourceText = @"
 using System;
@@ -334,7 +333,7 @@ class Hello
                     // Use a thread instead of Task to guarantee this code runs on a different
                     // thread and we can validate the mutex state. 
                     var source = new TaskCompletionSource<bool>();
-                    var thread = new Thread(_ => 
+                    var thread = new Thread(_ =>
                     {
                         Mutex mutex;
                         Assert.True(Mutex.TryOpenExisting(mutexName, out mutex));

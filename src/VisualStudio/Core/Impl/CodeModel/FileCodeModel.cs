@@ -196,6 +196,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal void OnCodeElementCreated(SyntaxNodeKey nodeKey, EnvDTE.CodeElement element)
         {
+            // If we're creating an element with the same node key as an element that's already in the table, just remove
+            // the old element. The old element will continue to function but the new element will replace it in the cache.
+
+            if (_codeElementTable.ContainsKey(nodeKey))
+            {
+                _codeElementTable.Remove(nodeKey);
+            }
+
             _codeElementTable.Add(nodeKey, element);
         }
 

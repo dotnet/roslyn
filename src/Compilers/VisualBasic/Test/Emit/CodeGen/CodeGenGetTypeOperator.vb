@@ -303,7 +303,7 @@ Class2`2[T,U]
 ]]>).Compilation
         End Sub
 
-        <Fact(Skip:="542581"), WorkItem(542581, "DevDiv")>
+        <Fact(Skip:="542581"), WorkItem(542581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")>
         Public Sub CodeGen_GetType_InheritedNestedTypeThroughUnboundGeneric()
             CompileAndVerify(
 <compilation>

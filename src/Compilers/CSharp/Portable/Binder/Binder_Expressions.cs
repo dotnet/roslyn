@@ -6276,8 +6276,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new MethodGroupResolution(methodResolution.MethodGroup,
                                                  methodResolution.OtherSymbol,
-                                                 methodResolution.OverloadResolutionResult, 
-                                                 methodResolution.AnalyzedArguments, 
+                                                 methodResolution.OverloadResolutionResult,
+                                                 methodResolution.AnalyzedArguments,
                                                  methodResolution.ResultKind,
                                                  methodResolution.Diagnostics,
                                                  extensionMethodsOfSameViabilityAreAvailable: true);

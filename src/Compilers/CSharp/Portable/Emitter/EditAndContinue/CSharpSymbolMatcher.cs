@@ -849,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     var translatedTypeArguments = type.GetAllTypeArguments(ref useSiteDiagnostics).SelectAsArray((t, v) => t.Update((TypeSymbol)v.Visit(t.TypeSymbol), 
-                                                                                                                                    v.VisitCustomModifiers(t.CustomModifiers)), 
+                                                                                                                                                  v.VisitCustomModifiers(t.CustomModifiers)), 
                                                                                                                  this);
 
                     var translatedOriginalDef = (NamedTypeSymbol)this.Visit(originalDef);

@@ -33,7 +33,7 @@ $$#region Foo";
                 Region("span", "Foo", autoCollapse: true, isDefaultCollapsed: true));
         }
 
-        [WorkItem(539361)]
+        [WorkItem(539361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539361")]
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task RegressionFor5284()
         {
@@ -69,7 +69,7 @@ namespace BasicGenerateFromUsage
                 Region("span", "TaoRegion", autoCollapse: true, isDefaultCollapsed: true));
         }
 
-        [WorkItem(953668)]
+        [WorkItem(953668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/953668")]
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task RegionsShouldBeCollapsedByDefault()
         {

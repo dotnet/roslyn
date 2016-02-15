@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis
             //
             // 2) The implementation of AssemblyName.CultureName on Mono incorrectly returns "neutral" for invariant culture identities.
 
-            return cultureName == null || AssemblyIdentityComparer.CultureComparer.Equals(cultureName, InvariantCultureDisplay) ? 
+            return cultureName == null || AssemblyIdentityComparer.CultureComparer.Equals(cultureName, InvariantCultureDisplay) ?
                 string.Empty : cultureName;
         }
 
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis
         {
             // The native compiler doesn't enforce that the culture be anything in particular. 
             // AssemblyIdentity should preserve user input even if it is of dubious utility.
-            
+
             // Note: If these checks change, the error messages emitted by the compilers when
             // this case is detected will also need to change. They currently directly
             // name the presence of the NUL character as the reason that the culture name is invalid.
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis
             // AssemblyDef always has full key or no key:
             var publicKeyBytes = name.GetPublicKey();
             ImmutableArray<byte> publicKey = (publicKeyBytes != null) ? ImmutableArray.Create(publicKeyBytes) : ImmutableArray<byte>.Empty;
-            
+
             return new AssemblyIdentity(
                 name.Name,
                 name.Version,

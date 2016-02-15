@@ -202,7 +202,7 @@ class c { }";
             await VerifyAsync(text, expected, '/');
         }
 
-        [WorkItem(638800)]
+        [WorkItem(638800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638800")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
         public async Task NestedIdenticalTags()
         {
@@ -217,7 +217,7 @@ class c { }";
             await VerifyAsync(text, expected, '>');
         }
 
-        [WorkItem(638800)]
+        [WorkItem(638800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638800")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
         public async Task MultipleNestedIdenticalTags()
         {
@@ -232,7 +232,7 @@ class c { }";
             await VerifyAsync(text, expected, '>');
         }
 
-        [WorkItem(638235)]
+        [WorkItem(638235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638235")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
         public async Task SlashNotIfCloseTagFollows()
         {
@@ -258,7 +258,7 @@ class c { }";
 
         protected override Task<TestWorkspace> CreateTestWorkspaceAsync(string initialMarkup)
         {
-            return CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(initialMarkup);
+            return TestWorkspace.CreateCSharpAsync(initialMarkup);
         }
     }
 }

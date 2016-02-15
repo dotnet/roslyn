@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
         public const string SingleIfStatementForm = nameof(SingleIfStatementForm);
     }
 
-    //[DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class InvokeDelegateWithConditionalAccessAnalyzer : DiagnosticAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    internal class InvokeDelegateWithConditionalAccessAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
             IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId,
@@ -92,6 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             ExpressionStatementSyntax expressionStatement,
             InvocationExpressionSyntax invocationExpression)
         {
+            var cancellationToken = syntaxContext.CancellationToken;
+
             // Look for the form:  "if (someExpr != null) someExpr()"
             if (condition.Left.IsKind(SyntaxKind.NullLiteralExpression) ||
                 condition.Right.IsKind(SyntaxKind.NullLiteralExpression))
@@ -100,8 +102,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                     ? condition.Right
                     : condition.Left;
 
+                cancellationToken.ThrowIfCancellationRequested();
                 if (SyntaxFactory.AreEquivalent(expr, invocationExpression.Expression, topLevel: false))
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     // Looks good!
                     var tree = syntaxContext.SemanticModel.SyntaxTree;
                     var additionalLocations = new List<Location>
@@ -122,6 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                             Location.Create(tree, TextSpan.FromBounds(expressionStatement.Span.End, ifStatement.Span.End)),
                             additionalLocations, properties));
                     }
+
+                    return true;
                 }
             }
 
@@ -135,14 +142,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             ExpressionStatementSyntax expressionStatement,
             InvocationExpressionSyntax invocationExpression)
         {
+            var cancellationToken = syntaxContext.CancellationToken;
+            cancellationToken.ThrowIfCancellationRequested();
+
             // look for the form "if (a != null)" or "if (null != a)"
             if (!ifStatement.Parent.IsKind(SyntaxKind.Block))
             {
                 return false;
             }
 
-            if (!IsNotEqualsExpression(condition.Left, condition.Right) &&
-                !IsNotEqualsExpression(condition.Right, condition.Left))
+            if (!IsNullCheckExpression(condition.Left, condition.Right) &&
+                !IsNullCheckExpression(condition.Right, condition.Left))
             {
                 return false;
             }
@@ -191,6 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 return false;
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             if (!Equals(declarator.Identifier.ValueText, conditionName.Identifier.ValueText))
             {
                 return false;
@@ -198,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
             // Syntactically this looks good.  Now make sure that the local is a delegate type.
             var semanticModel = syntaxContext.SemanticModel;
-            var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+            var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
 
             // Ok, we made a local just to check it for null and invoke it.  Looks like something
             // we can suggest an improvement for!
@@ -234,7 +245,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             return true;
         }
 
-        private bool IsNotEqualsExpression(ExpressionSyntax left, ExpressionSyntax right) =>
+        private bool IsNullCheckExpression(ExpressionSyntax left, ExpressionSyntax right) =>
             left.IsKind(SyntaxKind.IdentifierName) && right.IsKind(SyntaxKind.NullLiteralExpression);
+
+        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        {
+            return DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        }
     }
 }

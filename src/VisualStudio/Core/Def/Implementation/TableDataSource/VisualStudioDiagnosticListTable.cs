@@ -78,6 +78,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             if (solution.ProjectIds.Count == 0)
             {
+                // whenever there is a change in solution, make sure we refresh static info
+                // of build errors so that things like project name correctly refreshed
+                _buildTableSource.RefreshAllFactories();
                 return;
             }
 
@@ -89,6 +92,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             if (solution.ProjectIds.Count > 0)
             {
+                // whenever there is a change in solution, make sure we refresh static info
+                // of build errors so that things like project name correctly refreshed
+                _buildTableSource.RefreshAllFactories();
                 return;
             }
 

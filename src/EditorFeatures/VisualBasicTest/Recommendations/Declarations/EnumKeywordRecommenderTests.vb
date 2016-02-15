@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>|</ClassDeclaration>, "Enum")
         End Function
 
-        <Fact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function EnumFollowsEnumTest() As Task
             Dim code =
@@ -22,7 +22,7 @@ End Enum
             Await VerifyRecommendationsContainAsync(code, "Enum")
         End Function
 
-        <Fact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function EnumFollowsEnumWithinClassTest() As Task
             Dim code =
@@ -54,7 +54,7 @@ End Class
             Await VerifyRecommendationsContainAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Enum")
         End Function
 
-        <Fact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function EnumFollowsMismatchedEndTest() As Task
             Dim code =

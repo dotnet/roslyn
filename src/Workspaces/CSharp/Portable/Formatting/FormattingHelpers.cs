@@ -385,7 +385,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                    node is WhileStatementSyntax ||
                    node is ForStatementSyntax ||
                    node is ForEachStatementSyntax ||
-                   node is UsingStatementSyntax;
+                   node is UsingStatementSyntax ||
+                   node is LockStatementSyntax;
         }
 
         public static bool IsNestedQueryExpression(this SyntaxToken token)
