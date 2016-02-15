@@ -102,10 +102,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' We need to transfer the references from the current source compilation but don't need its syntax trees.
             Dim metadataCompilation = compilation.RemoveAllSyntaxTrees()
 
-            Dim metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All)
+            Dim assemblyReferenceIdentityMap As ImmutableDictionary(Of AssemblyIdentity, AssemblyIdentity) = Nothing
+            Dim metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All, assemblyReferenceIdentityMap)
             Dim metadataDecoder = New MetadataDecoder(metadataAssembly.PrimaryModule)
             Dim metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder)
-            Dim metadataSymbols = New EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataDecoder)
+            Dim metadataSymbols = New EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataDecoder, assemblyReferenceIdentityMap)
 
             Return InterlockedOperations.Initialize(initialBaseline.LazyMetadataSymbols, metadataSymbols)
         End Function

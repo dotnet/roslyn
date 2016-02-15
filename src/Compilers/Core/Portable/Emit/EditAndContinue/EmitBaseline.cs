@@ -59,15 +59,18 @@ namespace Microsoft.CodeAnalysis.Emit
         internal sealed class MetadataSymbols
         {
             public readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> AnonymousTypes;
+            public readonly ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> AssemblyReferenceIdentityMap;
             public readonly object MetadataDecoder;
 
-            public MetadataSymbols(IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypes, object metadataDecoder)
+            public MetadataSymbols(IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypes, object metadataDecoder, ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> assemblyReferenceIdentityMap)
             {
                 Debug.Assert(anonymousTypes != null);
                 Debug.Assert(metadataDecoder != null);
+                Debug.Assert(assemblyReferenceIdentityMap != null);
 
                 this.AnonymousTypes = anonymousTypes;
                 this.MetadataDecoder = metadataDecoder;
+                this.AssemblyReferenceIdentityMap = assemblyReferenceIdentityMap;
             }
         }
 

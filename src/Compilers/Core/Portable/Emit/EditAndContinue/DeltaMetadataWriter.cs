@@ -348,6 +348,12 @@ namespace Microsoft.CodeAnalysis.Emit
             return _assemblyRefIndex.Rows;
         }
 
+        protected override AssemblyIdentity MapAssemblyReferenceIdentity(AssemblyIdentity identity)
+        {
+            AssemblyIdentity mapped;
+            return _previousGeneration.InitialBaseline.LazyMetadataSymbols.AssemblyReferenceIdentityMap.TryGetValue(identity, out mapped) ? mapped : identity;
+        }
+
         protected override int GetOrAddModuleRefIndex(string reference)
         {
             return _moduleRefIndex.GetOrAdd(reference);

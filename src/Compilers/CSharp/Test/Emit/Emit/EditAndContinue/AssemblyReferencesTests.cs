@@ -1,11 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -156,6 +161,76 @@ class C
   IL_0007:  ret
 }";
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL);
+        }
+
+        [Fact]
+        public void DependencyVersionWildcards()
+        {
+            string srcLib = @"
+[assembly: System.Reflection.AssemblyVersion(""1.0.*"")]
+
+public class D { }
+";
+
+            string src1 = @"
+using System;
+class C 
+{ 
+    public static int F(D a) { return 1; }
+}
+";
+            string src2 = @"
+using System;
+class C 
+{ 
+    public static int F(D a) { return 2; }
+}
+";
+            var lib1 = CreateCompilationWithMscorlib(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            lib1.VerifyDiagnostics();
+
+            Compilation lib2;
+
+            do
+            {
+                Thread.Sleep(1000);
+                lib2 = CreateCompilationWithMscorlib(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            }
+            while (lib1.Assembly.Identity.Version == lib2.Assembly.Identity.Version);
+            lib2.VerifyDiagnostics();
+
+            var compilation0 = CreateCompilation(src1, new[] { MscorlibRef, lib1.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.ToMetadataReference() });
+
+            var v0 = CompileAndVerify(compilation0);
+            var v1 = CompileAndVerify(compilation1);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
+
+            var md1 = diff1.GetMetadata();
+
+            var aggReader = new AggregatedMetadataReader(md0.MetadataReader, md1.Reader);
+
+            VerifyAssemblyReferences(aggReader, new[] 
+            {
+                "mscorlib, 4.0.0.0",
+                "Lib, " + lib1.Assembly.Identity.Version,
+                "mscorlib, 4.0.0.0",
+                "Lib, " + lib1.Assembly.Identity.Version,
+            });
+        }
+
+        public void VerifyAssemblyReferences(AggregatedMetadataReader reader, string[] expected)
+        {
+            AssertEx.Equal(expected, reader.GetAssemblyReferences().Select(aref => $"{reader.GetString(aref.Name)}, {aref.Version}"));
         }
     }
 }

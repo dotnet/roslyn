@@ -485,6 +485,27 @@ namespace Microsoft.CodeAnalysis
             aliasesOfReferencedAssemblies = aliasesOfReferencedAssembliesBuilder.ToImmutableAndFree();
         }
 
+        internal ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> GetAssemblyReferenceIdentityMap(ImmutableArray<AssemblyIdentity> originalIdentities, ImmutableArray<TAssemblySymbol> symbols)
+        {
+            Debug.Assert(originalIdentities.Length == symbols.Length);
+
+            ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Builder lazyBuilder = null;
+            for (int i = 0; i < originalIdentities.Length; i++)
+            {
+                if (originalIdentities[i].Version != symbols[i].Identity.Version)
+                {
+                    lazyBuilder = lazyBuilder ?? ImmutableDictionary.CreateBuilder<AssemblyIdentity, AssemblyIdentity>();
+                    lazyBuilder.Add(symbols[i].Identity, originalIdentities[i]);
+                }
+                else
+                {
+                    Debug.Assert(originalIdentities[i] == symbols[i].Identity);
+                }
+            }
+
+            return lazyBuilder?.ToImmutable() ?? ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Empty;
+        }
+
         // #r references are recursive, their aliases should be merged into all their dependencies.
         //
         // For example, if a compilation has a reference to LibA with alias A and the user #r's LibB with alias B,
