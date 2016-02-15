@@ -293,21 +293,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         {
             const string Packages = nameof(Packages);
 
-            if (!string.IsNullOrWhiteSpace(reference.FilePath))
+            var filePath = reference.FilePath;
+            if (filePath?.IndexOf(Packages, StringComparison.OrdinalIgnoreCase) >= 0)
             {
-                if (reference.FilePath.IndexOf(Packages, StringComparison.OrdinalIgnoreCase) >= 0)
+                var currentPath = filePath;
+                while (currentPath != null)
                 {
-                    var currentPath = reference.FilePath;
-                    while (currentPath != null)
+                    var name = PathUtilities.GetFileName(currentPath);
+                    if (StringComparer.OrdinalIgnoreCase.Equals(name, Packages))
                     {
-                        var name = PathUtilities.GetFileName(currentPath);
-                        if (StringComparer.OrdinalIgnoreCase.Equals(name, Packages))
-                        {
-                            return true;
-                        }
-
-                        currentPath = PathUtilities.GetDirectoryName(currentPath);
+                        return true;
                     }
+
+                    currentPath = PathUtilities.GetDirectoryName(currentPath);
                 }
             }
 
