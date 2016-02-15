@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 _diagnosticItem = diagnosticItem;
             }
 
-            [BrowseObjectDisplayName("DiagnosticItemIDDisplayName")]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemIDDisplayName))]
             public string Id
             {
                 get
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [BrowseObjectDisplayName("DiagnosticItemTitleDisplayName")]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemTitleDisplayName))]
             public string Title
             {
                 get
@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [BrowseObjectDisplayName("DiagnosticItemDescriptionDisplayName")]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemDescriptionDisplayName))]
             public string Description
             {
                 get
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [BrowseObjectDisplayName("DiagnosticItemHelpLinkDisplayName")]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemHelpLinkDisplayName))]
             public string HelpLink
             {
                 get
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [BrowseObjectDisplayName("DiagnosticItemCategoryDisplayName")]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemCategoryDisplayName))]
             public string Category
             {
                 get
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [BrowseObjectDisplayName("DiagnosticItemDefaultSeverityDisplayName")]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemDefaultSeverityDisplayName))]
             public string DefaultSeverity
             {
                 get
@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [BrowseObjectDisplayName("DiagnosticItemEnabledByDefaultDisplayName")]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemEnabledByDefaultDisplayName))]
             public bool EnabledByDefault
             {
                 get
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [BrowseObjectDisplayName("DiagnosticItemMessageDisplayName")]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemMessageDisplayName))]
             public string Message
             {
                 get
@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [BrowseObjectDisplayName("DiagnosticItemTagsDisplayName")]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemTagsDisplayName))]
             public string Tags
             {
                 get
@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [BrowseObjectDisplayName("DiagnosticItemEffectiveSeverityDisplayName")]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemEffectiveSeverityDisplayName))]
             public string EffectiveSeverity
             {
                 get
