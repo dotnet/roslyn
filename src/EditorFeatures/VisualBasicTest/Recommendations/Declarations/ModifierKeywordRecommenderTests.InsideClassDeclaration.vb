@@ -88,25 +88,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Shared Widening |</ClassDeclaration>, "Protected", "Friend", "Protected Friend", "Private")
         End Function
 
-        <WorkItem(545037)>
+        <WorkItem(545037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545037")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function PrivateNotAfterDefaultTest() As Task
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Default |</ClassDeclaration>, "Private")
         End Function
 
-        <WorkItem(545037)>
+        <WorkItem(545037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545037")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function DefaultNotAfterPrivateTest() As Task
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Private |</ClassDeclaration>, "Default")
         End Function
 
-        <WorkItem(530330)>
+        <WorkItem(530330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530330")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AfterDefaultTest() As Task
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>Default |</ClassDeclaration>, "Protected", "Protected Friend")
         End Function
 
-        <WorkItem(547254)>
+        <WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AfterAsyncTest() As Task
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>Async |</ClassDeclaration>, "Public", "Protected", "Protected Friend", "Friend", "Private")
@@ -552,7 +552,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overloads |</ClassDeclaration>, "Overloads")
         End Function
 
-        <WorkItem(530330)>
+        <WorkItem(530330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530330")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OverridableAfterDefaultTest() As Task
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>Default |</ClassDeclaration>, "Overridable", "NotOverridable", "MustOverride")
@@ -853,19 +853,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Shared |</ClassDeclaration>, "Shared")
         End Function
 
-        <WorkItem(545039)>
+        <WorkItem(545039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545039")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function SharedAfterShadowsTest() As Task
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>Shadows |</ClassDeclaration>, "Shared")
         End Function
 
-        <WorkItem(545039)>
+        <WorkItem(545039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545039")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OverridesDoesNotExistAfterSharedTest() As Task
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Shared |</ClassDeclaration>, "Overrides")
         End Function
 
-        <WorkItem(545039)>
+        <WorkItem(545039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545039")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ShadowsAfterSharedTest() As Task
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>Shared |</ClassDeclaration>, "Shadows")

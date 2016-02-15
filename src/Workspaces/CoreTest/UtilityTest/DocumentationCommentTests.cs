@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("Summary 1", comment.SummaryText);
         }
 
-        [WorkItem(522741, "DevDiv")]
+        [WorkItem(522741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522741")]
         [Fact(Skip = "Bug 522741")]
         public void ParseTagWithMultiLineComments()
         {
@@ -111,7 +111,7 @@ Summary 2
             Assert.Equal("b", comment.ExceptionTypes[2]);
         }
 
-        [Fact, WorkItem(546732, "DevDiv")]
+        [Fact, WorkItem(546732, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546732")]
         public void UnknownTag()
         {
             var comment = DocumentationComment.FromXmlFragment(
@@ -124,7 +124,7 @@ Summary 2
             Assert.Equal("The param named 'a'", comment.GetParameterText("a"));
         }
 
-        [Fact, WorkItem(546732, "DevDiv")]
+        [Fact, WorkItem(546732, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546732")]
         public void TextOutsideTag()
         {
             var comment = DocumentationComment.FromXmlFragment(
@@ -137,7 +137,7 @@ This is random top-level text.
             Assert.Equal("The param named 'a'", comment.GetParameterText("a"));
         }
 
-        [Fact, WorkItem(546732, "DevDiv")]
+        [Fact, WorkItem(546732, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546732")]
         public void SingleTopLevelTag()
         {
             var comment = DocumentationComment.FromXmlFragment(
@@ -152,7 +152,7 @@ This is random top-level text.
             Assert.Equal("The param named 'a'", comment.GetParameterText("a"));
         }
 
-        [Fact, WorkItem(530760, "DevDiv")]
+        [Fact, WorkItem(530760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530760")]
         public void MultipleParamsWithSameName()
         {
             var comment = DocumentationComment.FromXmlFragment(
@@ -164,7 +164,7 @@ This is random top-level text.
             Assert.Equal("This comment should be retained.", comment.GetParameterText("a"));
         }
 
-        [Fact, WorkItem(530760, "DevDiv")]
+        [Fact, WorkItem(530760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530760")]
         public void MultipleTypeParamsWithSameName()
         {
             var comment = DocumentationComment.FromXmlFragment(
@@ -176,7 +176,7 @@ This is random top-level text.
             Assert.Equal("This comment should be retained.", comment.GetTypeParameterText("a"));
         }
 
-        [Fact, WorkItem(530760, "DevDiv")]
+        [Fact, WorkItem(530760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530760")]
         public void MultipleExceptionsWithSameName()
         {
             var comment = DocumentationComment.FromXmlFragment(
@@ -196,7 +196,7 @@ This is random top-level text.
             Assert.Equal("Second B description", comment.GetExceptionTexts("B")[1]);
         }
 
-        [Fact, WorkItem(530760, "DevDiv")]
+        [Fact, WorkItem(530760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530760")]
         public void NoExceptionWithGivenName()
         {
             var comment = DocumentationComment.FromXmlFragment(@"<summary>This is a summary</summary>");
@@ -204,7 +204,7 @@ This is random top-level text.
             Assert.Equal(0, comment.GetExceptionTexts("A").Length);
         }
 
-        [Fact, WorkItem(531189, "DevDiv")]
+        [Fact, WorkItem(531189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531189")]
         public void NoNameAttribute()
         {
             var comment = DocumentationComment.FromXmlFragment(@"<param/><typeparam/><exception/>");

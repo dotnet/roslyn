@@ -29,7 +29,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <NoWarn>1591</NoWarn>
-    <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
@@ -38,7 +37,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>true</Optimize>
     <NoWarn>1591</NoWarn>
-    <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
@@ -64,21 +62,32 @@
     <Compile Include="Binding\AbstractLookupSymbolsInfo.cs" />
     <Compile Include="CaseInsensitiveComparison.cs" />
     <Compile Include="CodeGen\ILEmitStyle.cs" />
+    <Compile Include="Compilation\OperationVisitor.cs" />
+    <Compile Include="Compilation\OperationWalker.cs" />
     <Compile Include="Compilation\ScriptCompilationInfo.cs" />
+    <Compile Include="DiagnosticAnalyzer\SyntaxTreeValueProvider.cs" />
+    <Compile Include="DiagnosticAnalyzer\SourceTextValueProvider.cs" />
+    <Compile Include="DiagnosticAnalyzer\CompilationAnalysisValueProviderFactory.cs" />
+    <Compile Include="DiagnosticAnalyzer\CompilationAnalysisValueProvider.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.GeneratedCodeUtilities.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.CompilationData.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisContextInfo.cs" />
+    <Compile Include="DiagnosticAnalyzer\AnalysisValueProvider.cs" />
     <Compile Include="DiagnosticAnalyzer\SuppressMessageInfo.cs" />
     <Compile Include="Diagnostic\SuppressionInfo.cs" />
+    <Compile Include="InternalUtilities\JsonWriter.cs" />
     <Compile Include="InternalUtilities\SetWithInsertionOrder.cs" />
     <Compile Include="InternalUtilities\StackGuard.cs" />
     <Compile Include="InternalUtilities\StreamExtensions.cs" />
     <Compile Include="RealParser.cs" />
     <Compile Include="ReferenceManager\MergedAliases.cs" />
     <Compile Include="StrongName\CryptoBlobParser.cs" />
+    <Compile Include="Syntax\SyntaxTreeComparer.cs" />
     <Compile Include="Syntax\ICompilationUnitSyntax.cs" />
     <Compile Include="Syntax\ISkippedTokensTriviaSyntax.cs" />
+    <Compile Include="System\Reflection\Metadata\ILOpCode.cs" />
     <Compile Include="Text\LargeTextWriter.cs" />
+    <Compile Include="Text\SourceTextComparer.cs" />
     <Compile Include="Text\SourceTextWriter.cs" />
     <Compile Include="Text\StringTextWriter.cs" />
     <Compile Include="UnicodeCharacterUtilities.cs" />
@@ -97,7 +106,6 @@
     <Compile Include="CodeGen\ILBuilder.cs" />
     <Compile Include="CodeGen\ILBuilderConversions.cs" />
     <Compile Include="CodeGen\ILBuilderEmit.cs" />
-    <Compile Include="CodeGen\ILOpCode.cs" />
     <Compile Include="CodeGen\ILOpCodeExtensions.cs" />
     <Compile Include="CodeGen\ITokenDeferral.cs" />
     <Compile Include="CodeGen\LabelInfo.cs" />
@@ -159,9 +167,6 @@
     <Compile Include="CommandLine\CommonCompiler.LoggingStrongNameProvider.cs" />
     <Compile Include="CommandLine\CommonCompiler.LoggingXmlFileResolver.cs" />
     <Compile Include="CommandLine\ErrorLogger.cs" />
-    <Compile Include="CommandLine\ErrorLogger.Issue.cs" />
-    <Compile Include="CommandLine\ErrorLogger.Value.cs" />
-    <Compile Include="CommandLine\ErrorLogger.WellKnownStrings.cs" />
     <Compile Include="CommandLine\TouchedFileLogger.cs" />
     <Compile Include="Compilation.EmitStreamProvider.cs" />
     <Compile Include="Compilation\LoadDirective.cs" />
@@ -464,7 +469,6 @@
     <Compile Include="PEWriter\CustomDebugInfoConstants.cs" />
     <Compile Include="PEWriter\CustomDebugInfoWriter.cs" />
     <Compile Include="PEWriter\DebugSourceDocument.cs" />
-    <Compile Include="PEWriter\DirectoryEntry.cs" />
     <Compile Include="PEWriter\ExceptionHandlerRegion.cs" />
     <Compile Include="PEWriter\Expressions.cs" />
     <Compile Include="PEWriter\AssemblyReferenceAlias.cs" />

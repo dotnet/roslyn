@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.Editor.Navigation
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.GeneratedCodeRecognition
 Imports Microsoft.CodeAnalysis.Navigation
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Text
 
@@ -18,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
         Public ReadOnly ExportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(Catalog)
 
         Public Async Function TestAsync(workspaceDefinition As XElement, expectedResult As Boolean, executeOnDocument As Func(Of Document, Integer, IEnumerable(Of Lazy(Of INavigableItemsPresenter)), Boolean)) As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition, exportProvider:=ExportProvider)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition, exportProvider:=ExportProvider)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -45,6 +46,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 
                 Assert.Equal(expectedResult, actualResult)
 
+                Dim expectedLocations As New List(Of FilePathAndSpan)
+
+                For Each testDocument In workspace.Documents
+                    For Each selectedSpan In testDocument.SelectedSpans
+                        expectedLocations.Add(New FilePathAndSpan(testDocument.FilePath, selectedSpan))
+                    Next
+                Next
+
+                expectedLocations.Sort()
+
                 If expectedResult Then
                     If mockDocumentNavigationService._triedNavigationToSpan Then
                         Dim definitionDocument = workspace.GetTestDocument(mockDocumentNavigationService._documentId)
@@ -58,10 +69,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
                         Assert.False(mockDocumentNavigationService._triedNavigationToLineAndOffset)
                         Assert.NotEmpty(items)
 
+                        Dim actualLocations As New List(Of FilePathAndSpan)
+
                         For Each location In items
-                            Dim definitionDocument = workspace.GetTestDocument(location.Document.Id)
-                            Assert.True(definitionDocument.SelectedSpans.Contains(location.SourceSpan))
+                            actualLocations.Add(New FilePathAndSpan(location.Document.FilePath, location.SourceSpan))
                         Next
+
+                        actualLocations.Sort()
+                        Assert.Equal(expectedLocations, actualLocations)
 
                         ' The IDocumentNavigationService should not have been called
                         Assert.Null(mockDocumentNavigationService._documentId)
@@ -72,5 +87,31 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
                 End If
             End Using
         End Function
+
+        Private Structure FilePathAndSpan
+            Implements IComparable(Of FilePathAndSpan)
+
+            Public ReadOnly Property FilePath As String
+            Public ReadOnly Property Span As TextSpan
+
+            Public Sub New(filePath As String, span As TextSpan)
+                Me.FilePath = filePath
+                Me.Span = span
+            End Sub
+
+            Public Function CompareTo(other As FilePathAndSpan) As Integer Implements IComparable(Of FilePathAndSpan).CompareTo
+                Dim result = String.CompareOrdinal(FilePath, other.FilePath)
+
+                If result <> 0 Then
+                    Return result
+                End If
+
+                Return Span.CompareTo(other.Span)
+            End Function
+
+            Public Overrides Function ToString() As String
+                Return $"{FilePath}, {Span}"
+            End Function
+        End Structure
     End Module
 End Namespace

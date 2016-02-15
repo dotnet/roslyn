@@ -382,7 +382,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Case SyntaxKind.FunctionLambdaHeader,
                                  SyntaxKind.SubLambdaHeader,
                                  SyntaxKind.SetAccessorStatement,
-                                 SyntaxKind.GetAccessorStatement
+                                 SyntaxKind.GetAccessorStatement,
+                                 SyntaxKind.AddHandlerAccessorStatement,
+                                 SyntaxKind.RemoveHandlerAccessorStatement,
+                                 SyntaxKind.RaiseEventAccessorStatement
                                 ' Default values are not valid (and not bound) for lambda parameters or property accessors
                                 Return Nothing
 

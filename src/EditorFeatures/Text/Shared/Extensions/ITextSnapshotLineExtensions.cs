@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         public static bool StartsWith(this ITextSnapshotLine line, int index, string value, bool ignoreCase)
         {
             var snapshot = line.Snapshot;
-            if (index + value.Length >= snapshot.Length)
+            if (index + value.Length > snapshot.Length)
             {
                 return false;
             }

@@ -101,6 +101,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public bool SnippetShortcutExists_NonBlocking(string shortcut)
         {
+            if (shortcut == null)
+            {
+                return false;
+            }
+
             // Check against the known set of snippets, even if we're still in the process of
             // calculating a more up-to-date list.
             lock (cacheGuard)
@@ -210,7 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// pointer we passed and substituting the null reference. This then causes a null
         /// reference exception in the shim. Calling from the UI thread avoids this marshaller.
         /// </remarks>
-        void PopulateSnippetCacheFromExpansionEnumeration(IVsExpansionEnumeration expansionEnumerator)
+        private void PopulateSnippetCacheFromExpansionEnumeration(IVsExpansionEnumeration expansionEnumerator)
         {
             AssertIsForeground();
 

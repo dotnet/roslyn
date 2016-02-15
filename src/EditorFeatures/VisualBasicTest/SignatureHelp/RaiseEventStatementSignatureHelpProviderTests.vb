@@ -62,7 +62,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(543558)>
+        <WorkItem(543558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543558")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestRaiseEvent_Shared() As Task
             Dim markup = <a><![CDATA[

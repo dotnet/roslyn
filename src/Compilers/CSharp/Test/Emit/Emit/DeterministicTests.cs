@@ -58,16 +58,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 assemblyName: "DeterminismTest", references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(true));
             var compilationNonDeterministic = CreateCompilation(
-                source, 
-                assemblyName: "DeterminismTest", 
+                source,
+                assemblyName: "DeterminismTest",
                 references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(false));
 
             var resultDeterministic = compilationDeterministic.Emit(Stream.Null, Stream.Null);
             var resultNonDeterministic = compilationNonDeterministic.Emit(Stream.Null, Stream.Null);
 
-            Assert.False(resultDeterministic.Success);   
-            Assert.True(resultNonDeterministic.Success);   
+            Assert.False(resultDeterministic.Success);
+            Assert.True(resultNonDeterministic.Success);
         }
 
         [Fact, WorkItem(372, "https://github.com/dotnet/roslyn/issues/372")]
@@ -126,10 +126,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             }
         }
 
-        [Fact, WorkItem(926)]
+        [Fact, WorkItem(926, "https://github.com/dotnet/roslyn/issues/926")]
         public void CompareAllBytesEmitted_Debug()
         {
-            foreach (var pdbFormat in new[] 
+            foreach (var pdbFormat in new[]
             {
                 DebugInformationFormat.Pdb,
                 DebugInformationFormat.PortablePdb,

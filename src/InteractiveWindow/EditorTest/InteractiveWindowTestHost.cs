@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         internal readonly CompositionContainer ExportProvider;
         internal readonly TestInteractiveEngine Evaluator;
 
-        private static readonly Lazy<AggregateCatalog> _lazyCatalog = new Lazy<AggregateCatalog>(() =>
+        private static readonly Lazy<AggregateCatalog> s_lazyCatalog = new Lazy<AggregateCatalog>(() =>
         {
             var types = new[] { typeof(TestInteractiveEngine), typeof(InteractiveWindow) }.Concat(GetVisualStudioTypes());
             return new AggregateCatalog(types.Select(t => new AssemblyCatalog(t.Assembly)));
@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         internal InteractiveWindowTestHost(Action<InteractiveWindow.State> stateChangedHandler = null)
         {
             ExportProvider = new CompositionContainer(
-                _lazyCatalog.Value,
+                s_lazyCatalog.Value,
                 CompositionOptions.DisableSilentRejection | CompositionOptions.IsThreadSafe);
 
             var contentTypeRegistryService = ExportProvider.GetExport<IContentTypeRegistryService>().Value;

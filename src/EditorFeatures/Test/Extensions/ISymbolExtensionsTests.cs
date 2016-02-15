@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                     typeKind: TypeKind.Unknown));
         }
 
-        [Fact, WorkItem(545015)]
+        [Fact, WorkItem(545015, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545015")]
         public void TestRegularOperatorGlyph()
         {
             TestGlyph(
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                 methodKind: MethodKind.UserDefinedOperator);
         }
 
-        [Fact, WorkItem(545015)]
+        [Fact, WorkItem(545015, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545015")]
         public void TestConversionOperatorGlyph()
         {
             TestGlyph(

@@ -42,7 +42,7 @@ End Class
 |</File>, "Option")
         End Function
 
-        <WorkItem(543008)>
+        <WorkItem(543008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543008")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OptionNotAfterRegionKeywordTest() As Task

@@ -63,7 +63,7 @@ NewLines("Class Test \n Sub Main() \n Dim a = New A([|1|]) \n End Sub \n End Cla
 NewLines("Class Test \n Sub Main() \n Dim a = New A(1) \n End Sub \n End Class \n Class A \n Private v As Integer \n Public Sub New() \n End Sub \n Public Sub New(v As Integer) \n Me.v = v \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(527627), WorkItem(539735), WorkItem(539735)>
+        <WorkItem(527627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527627"), WorkItem(539735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539735"), WorkItem(539735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539735")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestInAsNewExpression() As Task
             Await TestAsync(
@@ -92,7 +92,7 @@ NewLines("Public Partial Class Test2 \n End Class \n Private Partial Class Test2
 NewLines("Public Partial Class Test2 \n Private v As Integer \n Public Sub New(v As Integer) \n Me.v = v \n End Sub \n End Class \n Private Partial Class Test2 \n End Class \n Public Class A \n Sub Main() \n Dim s = New Test2(5) \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(528257)>
+        <WorkItem(528257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528257")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateIntoInaccessibleType() As Task
             Await TestMissingAsync(
@@ -141,7 +141,7 @@ NewLines("Class Base(Of T, V) \n End Class \n Class Derived(Of V) \n Inherits Ba
 NewLines("Class Base(Of T, V) \n End Class \n Class Derived(Of V) \n Inherits Base(Of Integer, V) \n End Class \n Class MoreDerived \n Inherits Derived(Of Double) \n Private v As Double \n Public Sub New(v As Double) \n Me.v = v \n End Sub \n End Class \n Class Test \n Sub Foo() \n Dim a = New Base(Of Integer, Integer)(5, 5) \n Dim b = New Derived(Of Integer)(5) \n Dim c = New MoreDerived(5.5) \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(528244)>
+        <WorkItem(528244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528244")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestDateTypeForInference() As Task
             Await TestAsync(
@@ -163,14 +163,14 @@ NewLines("MustInherit Class Base \n End Class \n Class Derived \n Inherits Base 
 NewLines("MustInherit Class Base \n  Private x As Integer \n Public Sub New(x As Integer) \n Me.x = x \n End Sub \n End Class \n Class Derived \n Inherits Base \n Shared x As Integer \n Public Sub New(x As Integer) \n MyBase.New(x) 'This should generate a protected ctor in Base \n Derived.x = x \n End Sub \n Sub Test1() \n Dim a As New Derived(1) \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(540586)>
+        <WorkItem(540586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540586")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestMissingOnNoCloseParen() As Task
             Await TestMissingAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim c = New [|foo|]( \n End Sub \n End Module \n Class foo \n End Class"))
         End Function
 
-        <WorkItem(540545)>
+        <WorkItem(540545, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540545")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestConversionError() As Task
             Await TestAsync(
@@ -178,7 +178,7 @@ NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n Dim 
 NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n Dim i As Char \n Dim cObject As C = New C(i) \n Console.WriteLine(cObject.v1) \n End Sub \n End Module \n Class C \n Public v1 As Integer \n Private i As Char \n Public Sub New(i As Char) \n Me.i = i \n End Sub Public Sub New(v1 As Integer) \n Me.v1 = v1 \n End Sub \n \n End Class"))
         End Function
 
-        <WorkItem(540642)>
+        <WorkItem(540642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540642")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestNotOnNestedConstructor() As Task
             Await TestAsync(
@@ -186,7 +186,7 @@ NewLines("Module Program \n Sub Main(args As String()) \n Dim x As C = New C([|N
 NewLines("Module Program \n Sub Main(args As String()) \n Dim x As C = New C(New C()) \n End Sub \n End Module \n Friend Class C \n Private c As C \n Public Sub New(c As C) \n Me.c = c \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(540607)>
+        <WorkItem(540607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540607")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestUnavailableTypeParameters() As Task
             Await TestAsync(
@@ -194,7 +194,7 @@ NewLines("Class C(Of T1, T2) \n Sub M(x As T1, y As T2) \n Dim a As Test = New T
 NewLines("Class C(Of T1, T2) \n Sub M(x As T1, y As T2) \n Dim a As Test = New Test(x, y) \n End Sub \n End Class \n Friend Class Test \n Private x As Object \n Private y As Object \n Public Sub New(x As Object, y As Object) \n Me.x = x \n Me.y = y \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(540748)>
+        <WorkItem(540748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540748")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestKeywordArgument1() As Task
             Await TestAsync(
@@ -202,7 +202,7 @@ NewLines("Class Test \n Private [Class] As Integer = 5 \n Sub Main() \n Dim a = 
 NewLines("Class Test \n Private [Class] As Integer = 5 \n Sub Main() \n Dim a = New A([Class]) \n End Sub \n End Class \n Class A \n Private [class] As Integer \n Public Sub New([class] As Integer) \n Me.class = [class] \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(540747)>
+        <WorkItem(540747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540747")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestKeywordArgument2() As Task
             Await TestAsync(
@@ -210,7 +210,7 @@ NewLines("Class Test \n Sub Main() \n Dim a = New A([|Class|]) \n End Sub \n End
 NewLines("Class Test \n Sub Main() \n Dim a = New A(Class) \n End Sub \n End Class \n Class A \n Private p As Object \n Public Sub New(p As Object) \n Me.p = p \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(540746)>
+        <WorkItem(540746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540746")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestConflictWithTypeParameterName() As Task
             Await TestAsync(
@@ -218,7 +218,7 @@ NewLines("Class Test \n Sub Foo() \n Dim a = New Bar(Of Integer)([|5|]) \n End S
 NewLines("Class Test \n Sub Foo() \n Dim a = New Bar(Of Integer)(5) \n End Sub \n End Class \n Class Bar(Of V) \n Private v1 As Integer \n Public Sub New(v1 As Integer) \n Me.v1 = v1 \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(541174)>
+        <WorkItem(541174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541174")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestExistingReadonlyField() As Task
             Await TestAsync(
@@ -233,7 +233,7 @@ NewLines("Class Program \n Sub Test() \n Dim x = New A([|P|]:=5) \n End Sub \n E
 NewLines("Class Program \n Sub Test() \n Dim x = New A(P:=5) \n End Sub \n End Class \n Class A \n Public Sub New(P As Integer) \n Me.P = P \n End Sub \n Public Property P As Integer \n End Class"))
         End Function
 
-        <WorkItem(542055)>
+        <WorkItem(542055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542055")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestExistingMethod() As Task
             Await TestAsync(
@@ -241,7 +241,7 @@ NewLines("Class A \n Sub Test() \n Dim t As New C([|u|]:=5) \n End Sub \n End Cl
 NewLines("Class A \n Sub Test() \n Dim t As New C(u:=5) \n End Sub \n End Class \n Class C \n Private u1 As Integer \n Public Sub New(u As Integer) \n Me.u1 = u \n End Sub \n Public Sub u() \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(542055)>
+        <WorkItem(542055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542055")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestDetectAssignmentToSharedFieldFromInstanceConstructor() As Task
             Await TestAsync(
@@ -249,7 +249,7 @@ NewLines("Class Program \n Sub Test() \n Dim x = New A([|P|]:=5) \n End Sub \n E
 NewLines("Class Program \n Sub Test() \n Dim x = New A(P:=5) \n End Sub \n End Class \n Class A \n Private P1 As Integer \n Public Sub New(P As Integer) \n Me.P1 = P \n End Sub \n Shared Property P As Integer \n End Class"))
         End Function
 
-        <WorkItem(542055)>
+        <WorkItem(542055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542055")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestExistingFieldWithSameNameButIncompatibleType() As Task
             Await TestAsync(
@@ -264,7 +264,7 @@ NewLines("Class A \n Sub Test() \n Dim t As New C([|u|]:=5) \n End Sub \n End Cl
 NewLines("Class A \n Sub Test() \n Dim t As New C(u:=5) \n End Sub \n End Class \n Class C \n Inherits B \n Private x As String \n Public Sub New(u As Integer) \n Me.u = u \n End Sub \n End Class \n Class B \n Protected u As Integer \n End Class"))
         End Function
 
-        <WorkItem(542098)>
+        <WorkItem(542098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542098")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestMeConstructorInitializer() As Task
             Await TestAsync(
@@ -272,14 +272,14 @@ NewLines("Class C \n Sub New \n Me.New([|1|]) \n End Sub \n End Class"),
 NewLines("Class C \n Private v As Integer \n Public Sub New(v As Integer) \n Me.v = v \n End Sub \n Sub New \n Me.New(1) \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(542098)>
+        <WorkItem(542098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542098")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestExistingMeConstructorInitializer() As Task
             Await TestMissingAsync(
 NewLines("Class C \n Private v As Integer \n Sub New \n Me.[|New|](1) \n End Sub \n Public Sub New(v As Integer) \n Me.v = v \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(542098)>
+        <WorkItem(542098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542098")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestMyBaseConstructorInitializer() As Task
             Await TestAsync(
@@ -287,14 +287,14 @@ NewLines("Class C \n Sub New \n MyClass.New([|1|]) \n End Sub \n End Class"),
 NewLines("Class C \n Private v As Integer \n Public Sub New(v As Integer) \n Me.v = v \n End Sub \n Sub New \n MyClass.New(1) \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(542098)>
+        <WorkItem(542098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542098")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestExistingMyBaseConstructorInitializer() As Task
             Await TestMissingAsync(
 NewLines("Class C \n Private v As Integer \n Sub New \n MyClass.[|New|](1) \n End Sub \n Public Sub New(v As Integer) \n Me.v = v \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(542098)>
+        <WorkItem(542098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542098")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestMyClassConstructorInitializer() As Task
             Await TestAsync(
@@ -302,14 +302,14 @@ NewLines("Class C \n Inherits B \n Sub New \n MyBase.New([|1|]) \n End Sub \n En
 NewLines("Class C \n Inherits B \n Sub New \n MyBase.New(1) \n End Sub \n End Class \n Class B \n Private v As Integer \n Public Sub New(v As Integer) \n Me.v = v \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(542098)>
+        <WorkItem(542098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542098")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestExistingMyClassConstructorInitializer() As Task
             Await TestMissingAsync(
 NewLines("Class C \n Inherits B \n Sub New \n MyBase.New([|1|]) \n End Sub \n End Class \n Class B \n Protected Sub New(v As Integer) \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(542056)>
+        <WorkItem(542056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542056")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestConflictingFieldNameInSubclass() As Task
             Await TestAsync(
@@ -317,14 +317,14 @@ NewLines("Class A \n Sub Test() \n Dim t As New C([|u|]:=5) \n End Sub \n End Cl
 NewLines("Class A \n Sub Test() \n Dim t As New C(u:=5) \n End Sub \n End Class \n Class C \n Inherits B \n Private u1 As Integer \n Private x As String \n Public Sub New(u As Integer) \n Me.u1 = u \n End Sub \n End Class \n Class B \n Protected u As String \n End Class"))
         End Function
 
-        <WorkItem(542442)>
+        <WorkItem(542442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542442")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestNothingArgument() As Task
             Await TestMissingAsync(
 NewLines("Class C1 \n Public Sub New(ByVal accountKey As Integer) \n Me.new() \n Me.[|new|](accountKey, Nothing) \n End Sub \n Public Sub New(ByVal accountKey As Integer, ByVal accountName As String) \n Me.New(accountKey, accountName, Nothing) \n End Sub \n Public Sub New(ByVal accountKey As Integer, ByVal accountName As String, ByVal accountNumber As String) \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(540641)>
+        <WorkItem(540641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540641")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestMissingOnExistingConstructor() As Task
             Await TestMissingAsync(
@@ -355,7 +355,7 @@ End Class
 </Text>.Value)
         End Function
 
-        <WorkItem(546030)>
+        <WorkItem(546030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546030")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestConflictingDelegatedParameterNameAndNamedArgumentName1() As Task
             Await TestAsync(
@@ -385,7 +385,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf),
 compareTokens:=False)
         End Function
 
-        <WorkItem(530003)>
+        <WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestAttributesWithArgument() As Task
             Await TestAsync(
@@ -393,7 +393,7 @@ NewLines("<AttributeUsage(AttributeTargets.Class)> \n Public Class MyAttribute \
 NewLines("<AttributeUsage(AttributeTargets.Class)> \n Public Class MyAttribute \n Inherits System.Attribute \n Private v As Integer \n Public Sub New(v As Integer) \n Me.v = v \n End Sub \n End Class \n <MyAttribute(123)> \n Public Class D \n End Class"))
         End Function
 
-        <WorkItem(530003)>
+        <WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestAttributesWithMultipleArguments() As Task
             Await TestAsync(
@@ -401,7 +401,7 @@ NewLines("<AttributeUsage(AttributeTargets.Class)> \n Public Class MyAttribute \
 NewLines("<AttributeUsage(AttributeTargets.Class)> \n Public Class MyAttribute \n Inherits System.Attribute \n Private v1 As Boolean \n Private v2 As Integer \n Private v3 As String \n Public Sub New(v1 As Boolean, v2 As Integer, v3 As String) \n Me.v1 = v1 \n Me.v2 = v2 \n Me.v3 = v3 \n End Sub \n End Class \n <MyAttribute(true, 1, ""hello"")> \n Public Class D \n End Class"))
         End Function
 
-        <WorkItem(530003)>
+        <WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestAttributesWithNamedArguments() As Task
             Await TestAsync(
@@ -409,7 +409,7 @@ NewLines("<AttributeUsage(AttributeTargets.Class)> \n Public Class MyAttribute \
 NewLines("<AttributeUsage(AttributeTargets.Class)> \n Public Class MyAttribute \n Inherits System.Attribute \n Private Topic As String \n Private v1 As Boolean \n Private v2 As Integer \n Public Sub New(v1 As Boolean, v2 As Integer, Topic As String) \n Me.v1 = v1 \n Me.v2 = v2 \n Me.Topic = Topic \n End Sub \n End Class \n <MyAttribute(true, 1, Topic:= ""hello"")> \n Public Class D \n End Class"))
         End Function
 
-        <WorkItem(530003)>
+        <WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestAttributesWithAdditionalConstructors() As Task
             Await TestAsync(
@@ -417,7 +417,7 @@ NewLines("<AttributeUsage(AttributeTargets.Class)> \n Public Class MyAttribute \
 NewLines("<AttributeUsage(AttributeTargets.Class)> \n Public Class MyAttribute \n Inherits System.Attribute \n Private v As Integer \n Private v1 As Integer \n Public Sub New(v As Integer) \n Me.v = v \n End Sub \n Public Sub New(v As Integer, v1 As Integer) \n Me.New(v) \n Me.v1 = v1 \n End Sub \n End Class \n <MyAttribute(True, 2)> \n Public Class D \n End Class"))
         End Function
 
-        <WorkItem(530003)>
+        <WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestAttributesWithAllValidArguments() As Task
             Await TestAsync(
@@ -425,14 +425,14 @@ NewLines("Enum A \n A1 \n End Enum \n <AttributeUsage(AttributeTargets.Class)> \
 NewLines("Enum A \n A1 \n End Enum \n <AttributeUsage(AttributeTargets.Class)> \n Public Class MyAttribute \n Inherits System.Attribute \n Private a1 As A \n Private v1 As Short() \n Private v10 As String \n Private v2 As Boolean \n Private v3 As Integer \n Private v4 As Char \n Private v5 As Short \n Private v6 As Integer \n Private v7 As Long \n Private v8 As Double \n Private v9 As Single \n Public Sub New(v1() As Short, a1 As A, v2 As Boolean, v3 As Integer, v4 As Char, v5 As Short, v6 As Integer, v7 As Long, v8 As Double, v9 As Single, v10 As String) \n Me.v1 = v1 \n Me.a1 = a1 \n Me.v2 = v2 \n Me.v3 = v3 \n Me.v4 = v4 \n Me.v5 = v5 \n Me.v6 = v6 \n Me.v7 = v7 \n Me.v8 = v8 \n Me.v9 = v9 \n Me.v10 = v10 \n End Sub \n End Class \n <MyAttribute(New Short(1) {1, 2, 3}, A.A1, True, 1, ""Z""c, 5S, 1I, 5L, 6.0R, 2.1F, ""abc"")> \n Public Class D \n End Class "))
         End Function
 
-        <WorkItem(530003)>
+        <WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestAttributesWithLambda() As Task
             Await TestMissingAsync(
 NewLines("<AttributeUsage(AttributeTargets.Class)> \n Public Class MyAttribute \n Inherits System.Attribute End Class \n [|<MyAttribute(Function(x) x+1)>|] \n Public Class D \n End Class"))
         End Function
 
-        <WorkItem(889349)>
+        <WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestConstructorGenerationForDifferentNamedParameter() As Task
             Await TestAsync(
@@ -463,7 +463,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf),
 compareTokens:=False)
         End Function
 
-        <WorkItem(897355)>
+        <WorkItem(897355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897355")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestOptionStrictOn() As Task
             Await TestAsync(
@@ -471,7 +471,7 @@ NewLines("Option Strict On \n Module Module1 \n Sub Main() \n Dim int As Integer
 NewLines("Option Strict On \n Module Module1 \n Sub Main() \n Dim int As Integer = 3 \n Dim obj As Object = New Object() \n Dim c1 As Classic = New Classic(int) \n Dim c2 As Classic = New Classic(obj) \n End Sub \n Class Classic \n Private int As Integer \n Private obj As Object \n Public Sub New(obj As Object) \n Me.obj = obj \n End Sub \n Public Sub New(int As Integer) \n Me.int = int \n End Sub \n End Class \n End Module "))
         End Function
 
-        <WorkItem(528257)>
+        <WorkItem(528257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528257")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateInInaccessibleType() As Task
             Await TestAsync(
@@ -578,6 +578,24 @@ End Class
 Public Class [|;;|]Derived
     Inherits Base
 
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateConstructorNotOfferedForDuplicate() As Task
+            Await TestMissingAsync(
+"Imports System
+
+Class X
+    Private v As String
+
+    Public Sub New(v As String)
+        Me.v = v
+    End Sub
+
+    Sub Test()
+        Dim x As X = New X(New [|String|]())
+    End Sub
 End Class")
         End Function
     End Class

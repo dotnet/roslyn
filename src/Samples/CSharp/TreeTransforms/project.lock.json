@@ -53,7 +53,7 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc2-23608": {
+      "System.Reflection.Metadata/1.2.0-rc3-23811": {
         "dependencies": {
           "System.Collections.Immutable": "[1.1.37, )"
         },
@@ -148,7 +148,7 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc2-23608": {
+      "System.Reflection.Metadata/1.2.0-rc3-23811": {
         "dependencies": {
           "System.Collections.Immutable": "[1.1.37, )"
         },
@@ -243,7 +243,7 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc2-23608": {
+      "System.Reflection.Metadata/1.2.0-rc3-23811": {
         "dependencies": {
           "System.Collections.Immutable": "[1.1.37, )"
         },
@@ -338,7 +338,7 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc2-23608": {
+      "System.Reflection.Metadata/1.2.0-rc3-23811": {
         "dependencies": {
           "System.Collections.Immutable": "[1.1.37, )"
         },
@@ -578,18 +578,20 @@
         "System.Linq.nuspec"
       ]
     },
-    "System.Reflection.Metadata/1.2.0-rc2-23608": {
-      "sha512": "OTjZOWW+lJqVLkLeuZNWyNGL4PDSSJZIm5XPig0TOAwag46OyoEVz5t0AvE95SXj3mCaovSVpt8FvaXMiYt91w==",
+    "System.Reflection.Metadata/1.2.0-rc3-23811": {
+      "sha512": "gAOQV1dsGyQfQUuzsCYFLMlI6BhfK1/2aA7JGf6gJphaLgjU4dV4hzjbE0iZXgo61VUuda2LtCBrWWZBw5897Q==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
+        "dotnet_library_license.txt",
         "lib/dotnet5.2/System.Reflection.Metadata.dll",
         "lib/dotnet5.2/System.Reflection.Metadata.xml",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml",
-        "package/services/metadata/core-properties/c3d433fae9784b3da60bd437eacfbdd6.psmdcp",
-        "System.Reflection.Metadata.nuspec"
+        "package/services/metadata/core-properties/9aa921f066b94690988804574c5d2231.psmdcp",
+        "System.Reflection.Metadata.nuspec",
+        "ThirdPartyNotices.txt"
       ]
     },
     "System.Resources.ResourceManager/4.0.0": {
@@ -777,7 +779,7 @@
   "projectFileDependencyGroups": {
     "": [
       "System.Collections.Immutable >= 1.1.37",
-      "System.Reflection.Metadata >= 1.2.0-rc2-23608"
+      "System.Reflection.Metadata >= 1.2.0-rc3-23811"
     ],
     ".NETFramework,Version=v4.5.2": []
   }

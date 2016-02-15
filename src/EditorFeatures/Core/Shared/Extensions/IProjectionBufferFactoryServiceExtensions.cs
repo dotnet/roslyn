@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class IProjectionBufferFactoryServiceExtensions
     {
-        private const string RoslynPreviewContentType = "RoslynPreviewContentType";
+        private const string RoslynPreviewContentType = nameof(RoslynPreviewContentType);
 
         /// <summary>
         /// Hack to get view taggers working on our preview surfaces.  We need to define

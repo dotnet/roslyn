@@ -664,7 +664,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [Fact]
         public async Task TestWhitespaceBetweenMethods1()
         {
@@ -694,7 +694,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [Fact]
         public async Task TestWhitespaceBetweenMethods2()
         {
@@ -726,7 +726,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [Fact]
         public async Task TestWhitespaceBetweenMethods3()
         {
@@ -758,7 +758,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [Fact]
         public async Task TestWhitespaceBetweenMethods4()
         {
@@ -792,7 +792,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [Fact]
         public async Task TestWhitespaceBetweenMethods5()
         {
@@ -828,7 +828,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [Fact]
         public async Task TestWhitespaceBetweenMethods6()
         {
@@ -866,7 +866,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [Fact]
         public async Task TestMoveComments1()
         {
@@ -898,7 +898,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [Fact]
         public async Task TestMoveComments2()
         {
@@ -932,7 +932,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [Fact]
         public async Task TestMoveDocComments1()
         {
@@ -964,7 +964,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [Fact]
         public async Task TestMoveDocComments2()
         {
@@ -998,7 +998,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [Fact]
         public async Task TestDontMoveBanner()
         {
@@ -1032,7 +1032,7 @@ interface I
             await CheckAsync(initial, final);
         }
 
-        [WorkItem(537614)]
+        [WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [Fact]
         public async Task TestDontMoveBanner2()
         {
@@ -1080,7 +1080,7 @@ interface I
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
 
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(XElement.Parse(@"
+            using (var workspace = await TestWorkspace.CreateAsync(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         class C

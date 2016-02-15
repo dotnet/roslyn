@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenOverridingAndHiding
         Inherits BasicTestBase
 
-        <WorkItem(540852, "DevDiv")>
+        <WorkItem(540852, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540852")>
         <Fact>
         Public Sub TestSimpleMustOverride()
             Dim source =
@@ -37,8 +37,8 @@ End Class
             })
         End Sub
 
-        <WorkItem(528311, "DevDiv")>
-        <WorkItem(540865, "DevDiv")>
+        <WorkItem(528311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528311")>
+        <WorkItem(540865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540865")>
         <Fact>
         Public Sub TestSimpleOverrides()
             Dim source =
@@ -63,7 +63,7 @@ End Class
             verifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(540884, "DevDiv")>
+        <WorkItem(540884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540884")>
         <Fact>
         Public Sub TestMustOverrideOverrides()
             Dim source =
@@ -91,7 +91,7 @@ End Class
             verifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(542576, "DevDiv")>
+        <WorkItem(542576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542576")>
         <Fact>
         Public Sub TestDontMergePartials()
             Dim source =
@@ -138,8 +138,8 @@ End Class
             VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543751, "DevDiv")>
-        <Fact(), WorkItem(543751, "DevDiv")>
+        <WorkItem(543751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
+        <Fact(), WorkItem(543751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
         Public Sub TestMustOverloadWithOptional()
             CompileAndVerify(
                 <compilation>
@@ -369,7 +369,7 @@ BC30610: Class 'C6' must either be declared 'MustInherit' or override the follow
                                                   </expected>)
         End Sub
 
-        <WorkItem(543794, "DevDiv")>
+        <WorkItem(543794, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543794")>
         <Fact()>
         Public Sub CrossLanguageTest4()
             Dim vb1Compilation = CreateVisualBasicCompilation("VB1",
@@ -403,7 +403,7 @@ BC30610: Class 'C6' must either be declared 'MustInherit' or override the follow
             CompileAndVerify(vb2Compilation).VerifyDiagnostics()
         End Sub
 
-        <Fact(), WorkItem(544536, "DevDiv")>
+        <Fact(), WorkItem(544536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544536")>
         Public Sub VBOverrideCsharpOptional()
             Dim cs1Compilation = CreateCSharpCompilation("CS1",
             <![CDATA[
@@ -701,7 +701,7 @@ End Class
     </compilation>, expectedOutput:="Function S")
         End Sub
 
-        <Fact, WorkItem(546816, "DevDiv")>
+        <Fact, WorkItem(546816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546816")>
         Public Sub OverrideFinalizeWithoutNewslot()
             CompileAndVerify(
                 <compilation>

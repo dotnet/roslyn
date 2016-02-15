@@ -791,7 +791,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Case SyntaxKind.IteratorKeyword : bit = DeclarationModifiers.Iterator
 
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(modifier.Kind)
+                        ' It is possible to run into other tokens here, but only in error conditions.
+                        ' We are going to ignore them here.
+                        If Not modifier.GetDiagnostics().Any(Function(d) d.Severity = DiagnosticSeverity.Error) Then
+                            Throw ExceptionUtilities.UnexpectedValue(modifier.Kind)
+                        End If
                 End Select
 
                 result = result Or bit

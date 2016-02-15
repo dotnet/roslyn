@@ -68,7 +68,7 @@ $$");
 @"# $$");
         }
 
-        [WorkItem(542971)]
+        [WorkItem(542971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542971")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterIf()
         {

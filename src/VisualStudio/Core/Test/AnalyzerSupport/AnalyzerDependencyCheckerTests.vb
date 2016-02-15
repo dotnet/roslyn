@@ -41,7 +41,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Return {New IgnorableAssemblyIdentityList({mscorlib})}
         End Function
 
-        <Fact, WorkItem(1064914)>
+        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest1()
             ' Dependency Graph:
             '   A
@@ -57,7 +57,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
         End Sub
 
-        <Fact, WorkItem(1064914)>
+        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest2()
             ' Dependency graph:
             '   A --> B
@@ -84,7 +84,7 @@ public class A
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914)>
+        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest3()
             ' Dependency graph:
             '   A --> B
@@ -118,7 +118,7 @@ public class A
 
         End Sub
 
-        <Fact, WorkItem(1064914)>
+        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest4()
             ' Dependency graph:
             '   A --> B
@@ -158,7 +158,7 @@ public class C
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914)>
+        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest5()
             ' Dependency graph:
             '   Directory 1:
@@ -200,7 +200,7 @@ public class C
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914)>
+        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest6()
             ' Dependency graph:
             ' A -
@@ -241,7 +241,7 @@ public class B
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914)>
+        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest7()
             ' Dependency graph:
             '   Directory 1:
@@ -282,7 +282,7 @@ public class B
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914)>
+        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest8()
             ' Dependency graph:
             '   Directory 1:
@@ -342,7 +342,7 @@ public class C
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914)>
+        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest9()
             ' Dependency graph:
             '   Directory 1:
@@ -412,7 +412,7 @@ public class D
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914)>
+        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest10()
             ' Dependency graph:
             '   Directory 1:
@@ -492,7 +492,7 @@ public class E
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914)>
+        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest11()
             ' Dependency graph:
             '   Directory 1:
@@ -543,7 +543,7 @@ public class B
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914)>
+        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest12()
             ' Dependency graph:
             '   Directory 1:
@@ -600,7 +600,7 @@ public class B
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914)>
+        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest13()
             ' Dependency graph:
             '   Directory 1:
@@ -658,7 +658,7 @@ public class B
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914)>
+        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest14()
             ' Dependency graph:
             '   Directory 1:

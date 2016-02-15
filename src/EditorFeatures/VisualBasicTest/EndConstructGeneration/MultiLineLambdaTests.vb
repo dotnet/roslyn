@@ -67,7 +67,7 @@ End Class",
                 afterCaret:={3, -1})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544362)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
         Public Async Function TestApplyWithSubLambdaWithNoParameterParenthesis() As Task
             Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
@@ -86,7 +86,7 @@ End Class",
                 afterCaret:={3, -1})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544362)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
         Public Async Function TestApplyWithSubLambdaInsideMethodCall() As Task
             Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
@@ -105,7 +105,7 @@ End Class",
                 afterCaret:={3, -1})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544362)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
         Public Async Function TestApplyWithSubLambdaAndStatementInsideMethodCall() As Task
             Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
@@ -124,7 +124,7 @@ End Class",
                 afterCaret:={3, 10})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544362)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
         Public Async Function TestApplyWithFunctionLambdaInsideMethodCall() As Task
             Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
@@ -319,7 +319,7 @@ End Class",
                    afterCaret:={3, 20})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530683)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
         Public Async Function TestVerifySingleLineSubLambdaToMultiLineWithTrailingTrivia() As Task
             Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
@@ -357,7 +357,7 @@ End Class",
                    afterCaret:={3, 27})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530683)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
         Public Async Function TestVerifySingleLineFunctionLambdaToMultiLineWithTrailingTrivia() As Task
             Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
@@ -377,7 +377,7 @@ End Class",
         End Function
 
         <WorkItem(1922, "https://github.com/dotnet/roslyn/issues/1922")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530683)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
         Public Async Function TestVerifySingleLineFunctionLambdaToMultiLineInsideXMLTag() As Task
             Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
@@ -397,7 +397,7 @@ End Class",
         End Function
 
         <WorkItem(1922, "https://github.com/dotnet/roslyn/issues/1922")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530683)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
         Public Async Function TestVerifySingleLineSubLambdaToMultiLineInsideXMLTag() As Task
             Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C

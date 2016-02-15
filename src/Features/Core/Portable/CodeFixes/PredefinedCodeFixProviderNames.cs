@@ -26,14 +26,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string GenerateType = "Generate Type";
         public const string ImplementAbstractClass = "Implement Abstract Class";
         public const string ImplementInterface = "Implement Interface";
-        public const string InsertMissingCast = "InsertMissingCast";
+        public const string InsertMissingCast = nameof(InsertMissingCast);
         public const string MoveToTopOfFile = "Move To Top Of File";
         public const string RemoveUnnecessaryCast = "Remove Unnecessary Casts";
         public const string RemoveUnnecessaryImports = "Remove Unnecessary Usings or Imports";
         public const string RenameTracking = "Rename Tracking";
         public const string SimplifyNames = "Simplify Names";
         public const string SpellCheck = "Spell Check";
-        public const string Suppression = "Suppression";
+        public const string Suppression = nameof(Suppression);
         public const string AddOverloads = "Add Overloads to member";
         public const string AddNew = "Add new keyword to member";
     }

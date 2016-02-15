@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(543964, "DevDiv")]
+        [WorkItem(543964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543964")]
         public void MultipleProjectsWithSameDisplayName()
         {
             var solution = CreateSolution();
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return solution;
         }
 
-        [WorkItem(636431, "DevDiv")]
+        [WorkItem(636431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636431")]
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestProjectDependencyLoading()
         {
@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(542736, "DevDiv")]
+        [WorkItem(542736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
         public void TestDocumentChangedOnDiskIsNotObserved()
         {
             var text1 = "public class A {}";
@@ -1273,7 +1273,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(666263, "DevDiv")]
+        [WorkItem(666263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666263")]
         public void TestWorkspaceDiagnosticHasDebuggerText()
         {
             var solution = new AdhocWorkspace().CurrentSolution;
@@ -1299,7 +1299,7 @@ End Class";
             Assert.NotNull(diagnostic);
             var dd = diagnostic as DocumentDiagnostic;
             Assert.NotNull(dd);
-            Assert.Equal(dd.GetDebuggerDisplay(), string.Format("[{0}] {1}", dd.Kind.ToString(), dd.Message));
+            Assert.Equal(dd.ToString(), string.Format("[{0}] {1}", WorkspacesResources.Failure, dd.Message));
         }
 
         private bool WaitFor(Func<bool> condition, TimeSpan timeout)
@@ -1371,7 +1371,7 @@ public class C : A {
             Assert.Equal(pid1, projectForBaseType.Id);
         }
 
-        [WorkItem(1088127, "DevDiv")]
+        [WorkItem(1088127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088127")]
         [Fact]
         public void TestEncodingRetainedAfterTreeChanged()
         {

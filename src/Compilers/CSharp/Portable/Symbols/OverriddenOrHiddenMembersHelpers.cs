@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (ParameterSymbol param in currTypeBestMatch.GetParameters())
                 {
                     Debug.Assert(!param.Type.CustomModifiers.Any());
-                    Debug.Assert(!param.Type.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds:false));
+                    Debug.Assert(!param.Type.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false));
                 }
 #endif
 
@@ -824,14 +824,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Method:
                     MethodSymbol method = (MethodSymbol)member;
                     var methodReturnType = method.ReturnType;
-                    return methodReturnType.CustomModifiers.Any() || method.ReturnType.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds:false);
+                    return methodReturnType.CustomModifiers.Any() || method.ReturnType.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false);
                 case SymbolKind.Property:
                     PropertySymbol property = (PropertySymbol)member;
                     var propertyType = property.Type;
-                    return propertyType.CustomModifiers.Any() || propertyType.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds:false);
+                    return propertyType.CustomModifiers.Any() || propertyType.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false);
                 case SymbolKind.Event:
                     EventSymbol @event = (EventSymbol)member;
-                    return @event.Type.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds:false); //can't have custom modifiers on (vs in) type
+                    return @event.Type.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false); //can't have custom modifiers on (vs in) type
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }

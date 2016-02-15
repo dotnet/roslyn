@@ -43,7 +43,7 @@ enum Colors
         }
 
         [Fact]
-        [WorkItem(545678)]
+        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_EnumMemberAlways()
         {
@@ -73,7 +73,7 @@ public enum Foo
         }
 
         [Fact]
-        [WorkItem(545678)]
+        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_EnumMemberNever()
         {
@@ -103,7 +103,7 @@ public enum Foo
         }
 
         [Fact]
-        [WorkItem(545678)]
+        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_EnumMemberAdvanced()
         {
@@ -143,7 +143,7 @@ public enum Foo
                 hideAdvancedMembers: false);
         }
 
-        [WorkItem(8540099)]
+        [WorkItem(854099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854099")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInComment()
         {
@@ -165,7 +165,7 @@ enum Colors
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(827897)]
+        [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InYieldReturn()
         {
@@ -183,7 +183,7 @@ class Program
             await VerifyItemExistsAsync(markup, "DayOfWeek");
         }
 
-        [WorkItem(827897)]
+        [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InAsyncMethodReturnStatement()
         {
@@ -343,7 +343,7 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(828196)]
+        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SuggestAlias()
         {
@@ -359,7 +359,7 @@ class Program
             await VerifyItemExistsAsync(markup, "D");
         }
 
-        [WorkItem(828196)]
+        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SuggestAlias2()
         {
@@ -380,7 +380,7 @@ class Program
             await VerifyItemExistsAsync(markup, "D");
         }
 
-        [WorkItem(828196)]
+        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SuggestAlias3()
         {
@@ -405,7 +405,7 @@ class Program
             await VerifyItemExistsAsync(markup, "D");
         }
 
-        [WorkItem(828196)]
+        [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInParameterNameContext()
         {

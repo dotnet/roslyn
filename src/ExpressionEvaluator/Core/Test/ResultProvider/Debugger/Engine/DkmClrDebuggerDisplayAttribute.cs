@@ -3,6 +3,7 @@
 // C:\Enlistments\Roslyn2\_Download\Concord\0.0.1+b140327.201033\Microsoft.VisualStudio.Debugger.Engine.dll
 
 #endregion
+
 namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 {
     public class DkmClrDebuggerDisplayAttribute : DkmClrEvalAttribute

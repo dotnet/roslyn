@@ -479,7 +479,7 @@ public abstract class C
         /// <summary>
         /// The script entry point should complete synchronously.
         /// </summary>
-        [WorkItem(4495)]
+        [WorkItem(4495, "https://github.com/dotnet/roslyn/issues/4495")]
         [Fact]
         public void ScriptEntryPoint()
         {

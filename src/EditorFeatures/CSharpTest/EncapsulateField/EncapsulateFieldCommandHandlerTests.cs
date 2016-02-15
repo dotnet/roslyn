@@ -122,7 +122,7 @@ class$$ C
             }
         }
 
-        [WorkItem(1086632)]
+        [WorkItem(1086632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1086632")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task EncapsulateTwoFields()
         {
@@ -193,7 +193,7 @@ class Program
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
 
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(XElement.Parse(@"
+            using (var workspace = await TestWorkspace.CreateAsync(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         class C

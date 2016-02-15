@@ -689,10 +689,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!typeArgument.TypeSymbol.Equals(otherTypeArgument.TypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
                 {
                     return false;
-                }
+            }
 
                 if (!ignoreCustomModifiersAndArraySizesAndLowerBounds && !typeArgument.CustomModifiers.SequenceEqual(otherTypeArgument.CustomModifiers))
-                {
+            {
                     return false;
                 }
             }
@@ -966,8 +966,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (DeriveUseSiteDiagnosticFromType(ref result, arg))
                 {
                     return true;
+                    }
                 }
-            }
 
             return false;
         }

@@ -351,7 +351,7 @@ Attribute: System.Runtime.CompilerServices.DecimalConstantAttribute(999.99)
 ]]>)
         End Sub
 
-        <WorkItem(543530, "DevDiv")>
+        <WorkItem(543530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543530")>
         <Fact()>
         Public Sub OptionalForConstructorofAttribute()
             Dim source =
@@ -728,7 +728,7 @@ End Interface
             Return attributes.Where(Function(a) a.AttributeClass.Name = "ParamArrayAttribute").Count()
         End Function
 
-        <WorkItem(529684, "DevDiv")>
+        <WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")>
         <Fact()>
         Public Sub TestDuplicateConstantAttributesMetadata()
             Dim ilSource = <![CDATA[
@@ -831,7 +831,7 @@ System.Decimal: 3
 ]]>)
         End Sub
 
-        <WorkItem(529684, "DevDiv")>
+        <WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")>
         <Fact()>
         Public Sub TestDuplicateConstantAttributesSameValues()
             Dim source1 =
@@ -955,7 +955,7 @@ BC30455: Argument not specified for parameter 'o' of 'Public Shared Function F8(
 ]]>)
         End Sub
 
-        <WorkItem(529684, "DevDiv")>
+        <WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")>
         <Fact()>
         Public Sub TestDuplicateConstantAttributesSameValues_PartialMethods()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1009,7 +1009,7 @@ End Class
             End If
         End Sub
 
-        <WorkItem(529684, "DevDiv")>
+        <WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")>
         <Fact()>
         Public Sub TestDuplicateConstantAttributesDifferentValues()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1097,7 +1097,7 @@ Delegate Sub D(<DateTimeConstant(1), DefaultParameterValue(2)> o As DateTime)
 ]]></errors>)
         End Sub
 
-        <WorkItem(529684, "DevDiv")>
+        <WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")>
         <Fact()>
         Public Sub TestDuplicateConstantAttributesDifferentValues_PartialMethods()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1140,7 +1140,7 @@ BC37226: The parameter has multiple distinct default values.
         ''' <summary>
         ''' Should not report differences if either value is bad.
         ''' </summary>
-        <WorkItem(529684, "DevDiv")>
+        <WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")>
         <Fact()>
         Public Sub TestDuplicateConstantAttributesDifferentValues_BadValue()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1195,7 +1195,7 @@ False
 ]]>)
         End Sub
 
-        <WorkItem(543076, "DevDiv")>
+        <WorkItem(543076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543076")>
         <Fact()>
         Public Sub TestPropertyIntegerOptionalDouble()
             Dim source =
@@ -1223,7 +1223,7 @@ Parameter: Type=System.Double, Name=j, Optional=True, DefaultValue=100
 ]]>)
         End Sub
 
-        <WorkItem(543093, "DevDiv")>
+        <WorkItem(543093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543093")>
         <Fact()>
         Public Sub TestIntegerWithDateTimeOptionalValue()
             Dim source =
@@ -1243,7 +1243,7 @@ End Module
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeMismatch2, "IntegerWithDateTimeOptionalValue()").WithArguments("Date", "Integer"))
         End Sub
 
-        <WorkItem(543093, "DevDiv")>
+        <WorkItem(543093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543093")>
         <Fact()>
         Public Sub TestStringWithOptionalDateTimeValue()
             ' Error when option strict is on
@@ -1278,7 +1278,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem(543139, "DevDiv")>
+        <WorkItem(543139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543139")>
         <Fact()>
         Public Sub TestOverrideOptionalArgumentFromMetadata()
             Dim source =
@@ -1306,7 +1306,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(543227, "DevDiv")>
+        <WorkItem(543227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543227")>
         <Fact()>
         Public Sub TestMultipleEnumDefaultValuesFromMetadata()
             Dim source =

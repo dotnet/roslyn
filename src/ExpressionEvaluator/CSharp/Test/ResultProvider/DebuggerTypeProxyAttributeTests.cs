@@ -8,7 +8,7 @@ using System.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class DebuggerTypeProxyAttributeTests : CSharpResultProviderTestBase
     {
@@ -541,7 +541,7 @@ class C
                 EvalResult("Raw View", null, "", "(new C())._4, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
         }
 
-        [Fact, WorkItem(1024016)]
+        [Fact, WorkItem(1024016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024016")]
         public void NonGenericProxyOnGenericBase()
         {
             var source =

@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class SourceSymbolTests
         Inherits BasicTestBase
 
-        <WorkItem(539740, "DevDiv")>
+        <WorkItem(539740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539740")>
         <Fact()>
         Public Sub NamespaceWithoutName()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(String.Empty, symbol.Name)
         End Sub
 
-        <WorkItem(540447, "DevDiv")>
+        <WorkItem(540447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540447")>
         <Fact()>
         Public Sub FunctionWithoutName()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -61,7 +61,7 @@ BC30203: Identifier expected.
                 </errors>)
         End Sub
 
-        <WorkItem(540655, "DevDiv")>
+        <WorkItem(540655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540655")>
         <Fact()>
         Public Sub Bug6998()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -92,7 +92,7 @@ End Class
 
         End Sub
 
-        <WorkItem(546566, "DevDiv")>
+        <WorkItem(546566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546566")>
         <Fact()>
         Public Sub Bug16199()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -411,7 +411,7 @@ End Namespace
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(537442, "DevDiv")>
+        <WorkItem(537442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537442")>
         <Fact()>
         Public Sub InvalidOptionCompare()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -437,7 +437,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem(527175, "DevDiv")>
+        <WorkItem(527175, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527175")>
         <Fact()>
         Public Sub DoubleBracketsNames()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -484,7 +484,7 @@ End Namespace
         End Sub
 
 
-        <WorkItem(542508, "DevDiv")>
+        <WorkItem(542508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542508")>
         <Fact()>
         Public Sub LocalsWithoutAsClauseInForStatement()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -513,7 +513,7 @@ End Module
             Assert.Null(symbol)
         End Sub
 
-        <WorkItem(543720, "DevDiv")>
+        <WorkItem(543720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543720")>
         <Fact()>
         Public Sub InvalidLocalsWithColon()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -534,6 +534,76 @@ End Module
                 Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
                 Diagnostic(ERRID.ERR_MissingEndBrack, "[goo"))
 
+        End Sub
+
+        <WorkItem(187865, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/187865")>
+        <Fact>
+        Public Sub DifferentMembersMetadataName()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Delegate Sub D()
+Class C
+    Function Get_P(o As Object) As Object
+        Return o
+    End Function
+    Function p(o As Object) As Object
+        Return o
+    End Function
+    ReadOnly Property P As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+    Event E As D
+    Sub Add_E()
+    End Sub
+    ReadOnly Property add_e As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+    Declare Sub ADD_E Lib "A" (o As Object)
+End Class
+    </file>
+</compilation>)
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC31061: function 'Get_P' conflicts with a member implicitly declared for property 'P' in class 'C'.
+    Function Get_P(o As Object) As Object
+             ~~~~~
+BC30260: 'P' is already declared as 'Public Function p(o As Object) As Object' in this class.
+    ReadOnly Property P As Object
+                      ~
+BC31060: event 'E' implicitly defines 'add_E', which conflicts with a member of the same name in class 'C'.
+    Event E As D
+          ~
+BC31060: event 'E' implicitly defines 'add_E', which conflicts with a member of the same name in class 'C'.
+    Event E As D
+          ~
+BC31060: event 'E' implicitly defines 'add_E', which conflicts with a member of the same name in class 'C'.
+    Event E As D
+          ~
+</expected>)
+
+            Dim type = compilation.GetMember(Of NamedTypeSymbol)("C")
+
+            Dim members = type.GetMembers("P")
+            Assert.Equal(2, members.Length)
+            Assert.Equal("p", members(0).MetadataName)
+            Assert.Equal("P", members(1).MetadataName)
+
+            members = type.GetMembers("get_P")
+            Assert.Equal(2, members.Length)
+            Assert.Equal("Get_P", members(0).MetadataName)
+            Assert.Equal("get_P", members(1).MetadataName)
+
+            members = type.GetMembers("add_E")
+            Assert.Equal(4, members.Length)
+            Assert.Equal("add_E", members(0).MetadataName)
+            Assert.Equal("Add_E", members(1).MetadataName)
+            Assert.Equal("add_e", members(2).MetadataName)
+            Assert.Equal("Add_E", members(3).MetadataName)
         End Sub
 
     End Class

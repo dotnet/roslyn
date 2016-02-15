@@ -81,7 +81,7 @@ class C4 : C1 {}
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
-        [WorkItem(538506, "DevDiv")]
+        [WorkItem(538506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538506")]
         [Fact]
         public void CyclicBasesRegress4140()
         {
@@ -108,7 +108,7 @@ class A<T>
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
-        [WorkItem(538526, "DevDiv")]
+        [WorkItem(538526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538526")]
         [Fact]
         public void CyclicBasesRegress4166()
         {
@@ -159,7 +159,7 @@ class A : object, A.IC
             Assert.Equal(0, diagnostics.Count());
         }
 
-        [WorkItem(527551, "DevDiv")]
+        [WorkItem(527551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527551")]
         [Fact]
         public void CyclicBasesRegress4168()
         {
@@ -1427,7 +1427,7 @@ public class B : N { }
             Assert.Equal(1, comp.GetDeclarationDiagnostics().Count());
         }
 
-        [WorkItem(537401, "DevDiv")]
+        [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
         [Fact]
         public void NamespaceClassInterfaceEscapedIdentifier()
         {
@@ -1453,8 +1453,8 @@ namespace @if
             Assert.Equal("@if.@break", ibreak.ToString());
         }
 
-        [WorkItem(539328, "DevDiv")]
-        [WorkItem(539789, "DevDiv")]
+        [WorkItem(539328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539328")]
+        [WorkItem(539789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539789")]
         [Fact]
         public void AccessInBaseClauseCheckedWithRespectToContainer()
         {
@@ -1479,7 +1479,7 @@ class Y : X
         /// whether or not the base type of the containing type has been
         /// evaluated.
         /// </summary>
-        [WorkItem(539744, "DevDiv")]
+        [WorkItem(539744, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539744")]
         [Fact]
         public void BaseTypeEvaluationOrder()
         {
@@ -1556,7 +1556,7 @@ class C : I2 { }
             context.Diagnostics.Verify();
         }
 
-        [Fact(), WorkItem(544454, "DevDiv")]
+        [Fact(), WorkItem(544454, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544454")]
         public void InterfaceImplementedWithPrivateType()
         {
             var textA = @"
@@ -1599,7 +1599,7 @@ class Z
             Assert.Equal(0, c2.GetDiagnostics().Count());
         }
 
-        [WorkItem(545365, "DevDiv")]
+        [WorkItem(545365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545365")]
         [Fact()]
         public void ProtectedInternalNestedBaseClass()
         {
@@ -1631,7 +1631,7 @@ class C : PublicClass.ProtectedInternalClass
                 Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedInternalClass").WithArguments("PublicClass.ProtectedInternalClass"));
         }
 
-        [WorkItem(545365, "DevDiv")]
+        [WorkItem(545365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545365")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ProtectedAndInternalNestedBaseClass()
         {
@@ -1684,7 +1684,7 @@ class C : PublicClass.ProtectedAndInternalClass
                 Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedAndInternalClass").WithArguments("PublicClass.ProtectedAndInternalClass"));
         }
 
-        [WorkItem(530144, "DevDiv")]
+        [WorkItem(530144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530144")]
         [Fact()]
         public void UnifyingBaseInterfaces01()
         {
@@ -1741,7 +1741,7 @@ public interface I2 : I<int> {}";
             );
         }
 
-        [WorkItem(530144, "DevDiv")]
+        [WorkItem(530144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530144")]
         [Fact()]
         public void UnifyingBaseInterfaces02()
         {
@@ -1789,7 +1789,7 @@ public interface I2 : I<int> {}";
             );
         }
 
-        [WorkItem(545365, "DevDiv")]
+        [WorkItem(545365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545365")]
         [Fact()]
         public void ProtectedNestedBaseClass()
         {
@@ -1821,7 +1821,7 @@ class C : PublicClass.ProtectedClass
                 Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedClass").WithArguments("PublicClass.ProtectedClass"));
         }
 
-        [WorkItem(545589, "DevDiv")]
+        [WorkItem(545589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545589")]
         [Fact]
         public void MissingTypeArgumentInBase()
         {
@@ -1851,7 +1851,7 @@ class B : I<object>
                 );
         }
 
-        [WorkItem(792711, "DevDiv")]
+        [WorkItem(792711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792711")]
         [Fact]
         public void Repro792711()
         {
@@ -1872,7 +1872,7 @@ public class Derived<T> : Base<Derived<T>>
             Assert.Equal(TypeKind.Class, derived.TypeKind);
         }
 
-        [WorkItem(872825, "DevDiv")]
+        [WorkItem(872825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872825")]
         [Fact]
         public void InaccessibleStructInterface()
         {
@@ -1893,7 +1893,7 @@ struct S : C.I
                 Diagnostic(ErrorCode.ERR_BadAccess, "I").WithArguments("C.I").WithLocation(7, 14));
         }
 
-        [WorkItem(872948, "DevDiv")]
+        [WorkItem(872948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872948")]
         [Fact]
         public void MissingNestedMemberInStructImplementsClause()
         {
@@ -1910,7 +1910,7 @@ struct S : C.I
                 Diagnostic(ErrorCode.ERR_CircularBase, "I").WithArguments("S", "S").WithLocation(1, 14));
         }
 
-        [WorkItem(896959, "DevDiv")]
+        [WorkItem(896959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/896959")]
         [Fact(Skip = "896959")]
         public void MissingNestedMemberInClassImplementsClause()
         {
@@ -1925,7 +1925,7 @@ struct S : C.I
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "I").WithArguments("I", "C").WithLocation(1, 13));
         }
 
-        [Fact, WorkItem(1085632, "DevDiv")]
+        [Fact, WorkItem(1085632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085632")]
         public void BaseLookupRecursionWithStaticImport01()
         {
             const string source =
@@ -1961,7 +1961,7 @@ class D
                 );
         }
 
-        [Fact, WorkItem(1085632, "DevDiv")]
+        [Fact, WorkItem(1085632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085632")]
         public void BaseLookupRecursionWithStaticImport02()
         {
             const string source =

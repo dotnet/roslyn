@@ -264,7 +264,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 : context.SemanticModel.LookupSymbols(context.LeftToken.SpanStart);
 
             // Filter out any extension methods that might be imported by a using static directive.
-            symbols = symbols.Where(symbol => !symbol.IsExtensionMethod());
+            // But include extension methods declared in the context's type or it's parents
+            var contextEnclosingNamedType = context.SemanticModel.GetEnclosingNamedType(context.Position, cancellationToken);
+            var contextOuterTypes = context.GetOuterTypes(cancellationToken);
+            symbols = symbols.Where(symbol => !symbol.IsExtensionMethod() ||
+                                              contextEnclosingNamedType.Equals(symbol.ContainingType) ||
+                                              contextOuterTypes.Any(outerType => outerType.Equals(symbol.ContainingType)));
 
             // The symbols may include local variables that are declared later in the method and
             // should not be included in the completion list, so remove those. Filter them away,

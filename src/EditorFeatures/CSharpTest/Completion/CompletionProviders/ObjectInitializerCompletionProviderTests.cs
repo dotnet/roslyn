@@ -256,7 +256,7 @@ class d
             await VerifyExclusiveAsync(markup, false);
         }
 
-        [WorkItem(544242)]
+        [WorkItem(544242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544242")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInArgumentList()
         {
@@ -271,7 +271,7 @@ class d
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(530075)]
+        [WorkItem(530075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530075")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInArgumentList2()
         {
@@ -287,7 +287,7 @@ class d
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(544289)]
+        [WorkItem(544289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544289")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DerivedMembers()
         {
@@ -324,7 +324,7 @@ namespace ConsoleApplication1
             await VerifyItemIsAbsentAsync(markup, "BasePrivate");
         }
 
-        [WorkItem(544242)]
+        [WorkItem(544242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544242")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInCollectionInitializer()
         {
@@ -362,7 +362,7 @@ class C
             await VerifyItemExistsAsync(markup, "foo");
         }
 
-        [WorkItem(544550)]
+        [WorkItem(544550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544550")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ReadOnlyPropertiesShouldNotBePresent()
         {
@@ -380,7 +380,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "Count");
         }
 
-        [WorkItem(544550)]
+        [WorkItem(544550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544550")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IndexersShouldNotBePresent()
         {
@@ -418,7 +418,7 @@ class C
             await VerifyItemExistsAsync(markup, "bar");
         }
 
-        [WorkItem(544607)]
+        [WorkItem(544607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544607")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DoNotIncludeStaticMember()
         {
@@ -440,7 +440,7 @@ class Bar
         }
 
         [Fact]
-        [WorkItem(545678)]
+        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_PropertyInObjectCreationAlways()
         {
@@ -470,7 +470,7 @@ public class Foo
         }
 
         [Fact]
-        [WorkItem(545678)]
+        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_PropertyInObjectCreationNever()
         {
@@ -499,7 +499,7 @@ public class Foo
         }
 
         [Fact]
-        [WorkItem(545678)]
+        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_PropertyInObjectCreationAdvanced()
         {
@@ -569,7 +569,7 @@ class d
     }
 }";
 
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(markup))
             {
                 var hostDocument = workspace.Documents.Single();
                 var position = hostDocument.CursorPosition.Value;
@@ -592,7 +592,7 @@ class d
             await TestCommonIsTextualTriggerCharacterAsync();
         }
 
-        [WorkItem(530828)]
+        [WorkItem(530828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530828")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DoNotIncludeIndexedPropertyWithNonOptionalParameter()
         {
@@ -745,7 +745,7 @@ class Container
 
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(markup))
             {
                 var hostDocument = workspace.Documents.Single();
                 var position = hostDocument.CursorPosition.Value;

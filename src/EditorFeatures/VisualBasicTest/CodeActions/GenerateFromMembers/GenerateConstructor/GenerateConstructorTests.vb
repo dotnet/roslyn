@@ -71,7 +71,7 @@ NewLines("Class Program ( Of T ) \n Private i As Integer \n Public Sub New(i As 
 index:=0)
         End Function
 
-        <WorkItem(541995)>
+        <WorkItem(541995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541995")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestSimpleDelegatingConstructor() As Task
             Await TestAsync(
@@ -80,7 +80,7 @@ NewLines("Class Program \n Private i As Integer \n Private b As String \n Public
 index:=1)
         End Function
 
-        <WorkItem(542008)>
+        <WorkItem(542008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542008")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateFromNormalProperties() As Task
             Await TestAsync(

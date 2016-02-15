@@ -2690,7 +2690,7 @@ End Structure
                     Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "c").WithArguments("c"))
         End Sub
 
-        <WorkItem(545120, "DevDiv")>
+        <WorkItem(545120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545120")>
         <Fact()>
         Public Sub TestWith_NestedWithWithLambdasAndObjectInitializers()
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(

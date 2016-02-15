@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class AsyncTests
         Inherits BasicTestBase
 
-        <WorkItem(1004348, "DevDiv")>
+        <WorkItem(1004348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1004348")>
         <Fact>
         Public Sub StructVsClass()
             Dim source =
@@ -1615,7 +1615,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(1002672)>
+        <Fact, WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
         Public Sub Simple_LateBinding_1()
             Dim c = CompileAndVerify(
 <compilation>
@@ -1874,7 +1874,7 @@ End Module
             sequencePoints:="Program+VB$StateMachine_0_Test2.MoveNext")
         End Sub
 
-        <Fact, WorkItem(1002672)>
+        <Fact, WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
         Public Sub Simple_LateBinding_2()
             Dim c = CompileAndVerify(
 <compilation>
@@ -2281,7 +2281,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(553894, "DevDiv")>
+        <WorkItem(553894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553894")>
         <Fact()>
         Public Sub Simple_TaskOfT_EmitMetadataOnly()
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(
@@ -3681,7 +3681,7 @@ End Module
 </compilation>, useLatestFramework:=True, expectedOutput:="1")
         End Sub
 
-        <Fact(Skip:="785170"), WorkItem(785170, "DevDiv")>
+        <Fact(Skip:="785170"), WorkItem(785170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/785170")>
         Public Sub Imported_AsyncWithEH()
             CompileAndVerify(
 <compilation>
@@ -7310,7 +7310,7 @@ End Module
 </compilation>, useLatestFramework:=True, expectedOutput:="1 3 5 7 9")
         End Sub
 
-        <Fact, WorkItem(1003196)>
+        <Fact, WorkItem(1003196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003196")>
         Public Sub AsyncAndPartialMethods()
             CompileAndVerify(
 <compilation>
@@ -8391,7 +8391,7 @@ End Class
                 symbolValidator:=moduleValidator)
         End Sub
 
-        <Fact, WorkItem(1002672)>
+        <Fact, WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
         Public Sub EmittedSymbolsCheck_Debug()
             EmittedSymbolsCheck(True)
         End Sub
@@ -8401,7 +8401,7 @@ End Class
             EmittedSymbolsCheck(False)
         End Sub
 
-        <WorkItem(840843, "DevDiv")>
+        <WorkItem(840843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840843")>
         <Fact>
         Public Sub MissingAsyncMethodBuilder()
             Dim source = <compilation name="Async">

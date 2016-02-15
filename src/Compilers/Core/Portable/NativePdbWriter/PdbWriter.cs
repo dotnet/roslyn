@@ -97,7 +97,7 @@ namespace Microsoft.Cci
                 }
                 else
                 {
-                   _hashAlgorithm.TransformBlock(segment.Array, segment.Offset, segment.Count);
+                    _hashAlgorithm.TransformBlock(segment.Array, segment.Offset, segment.Count);
                 }
             }
 

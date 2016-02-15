@@ -17,6 +17,9 @@
     <InternalsVisibleToTypeScript>
       <Visible>false</Visible>
     </InternalsVisibleToTypeScript>
+    <InternalsVisibleToFSharp>
+      <Visible>false</Visible>
+    </InternalsVisibleToFSharp>
     <InternalsVisibleToMoq>
       <Visible>false</Visible>
     </InternalsVisibleToMoq>
@@ -34,7 +37,7 @@
           Inputs="$(MSBuildThisFileFullPath);$(MSBuildProjectFile)"
           Outputs="$(GeneratedInternalsVisibleToFile)"
           DependsOnTargets="PrepareForBuild"
-          Condition="'@(InternalsVisibleTo)' != '' OR '@(InternalsVisibleToTest)' != '' OR '@(InternalsVisibleToTypeScript)' != '' OR '@(InternalsVisibleToMoq)' != ''">
+          Condition="'@(InternalsVisibleTo)' != '' OR '@(InternalsVisibleToTest)' != '' OR '@(InternalsVisibleToTypeScript)' != '' OR '@(InternalsVisibleToFSharp)' != '' OR '@(InternalsVisibleToMoq)' != ''">
 
     <!--
          This is a slightly evil trick. What we have is a group of InternalsVisibleTo items which
@@ -68,14 +71,31 @@
       <Output TaskParameter="Include" ItemName="InternalsVisibleToAttribute" />
     </CreateItem>
     <CreateItem Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute"
+                AdditionalMetadata="_Parameter1=%(InternalsVisibleToFSharp.Identity), PublicKey=002400000480000094000000060200000024000052534131000400000100010007D1FA57C4AED9F0A32E84AA0FAEFD0DE9E8FD6AEC8F87FB03766C834C99921EB23BE79AD9D5DCC1DD9AD236132102900B723CF980957FC4E177108FC607774F29E8320E92EA05ECE4E821C0A5EFE8F1645C4C0C93C1AB99285D622CAA652C1DFAD63D745D6F2DE5F17E5EAF0FC4963D261C8A12436518206DC093344D5AD293" 
+                Condition="'@(InternalsVisibleToFSharp)' != ''">
+      <Output TaskParameter="Include" ItemName="InternalsVisibleToAttribute" />
+    </CreateItem>
+    <CreateItem Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute"
                 AdditionalMetadata="_Parameter1=%(InternalsVisibleToMoq.Identity)$(InternalsVisibleToMoqSuffix)"
                 Condition="'@(InternalsVisibleToMoq)' != ''">
       <Output TaskParameter="Include" ItemName="InternalsVisibleToAttribute" />
     </CreateItem>
     
-    <WriteCodeFragment AssemblyAttributes="@(InternalsVisibleToAttribute)"
-                       Language="$(Language)"
-                       OutputFile="$(GeneratedInternalsVisibleToFile)">
+    <!-- The necessity of this Task is tracked by https://github.com/dotnet/roslyn/issues/8421 -->
+    <WriteCodeFragmentEx 
+        Condition="'$(OS)' == 'Windows_NT'"
+        AssemblyAttributes="@(InternalsVisibleToAttribute)"
+        Language="$(Language)"
+        OutputFile="$(GeneratedInternalsVisibleToFile)">
+      <Output TaskParameter="OutputFile" ItemName="Compile" />
+      <Output TaskParameter="OutputFile" ItemName="FileWrites" />
+    </WriteCodeFragmentEx>
+
+    <WriteCodeFragment
+        Condition="'$(OS)' != 'Windows_NT'"
+        AssemblyAttributes="@(InternalsVisibleToAttribute)"
+        Language="$(Language)"
+        OutputFile="$(GeneratedInternalsVisibleToFile)">
       <Output TaskParameter="OutputFile" ItemName="Compile" />
       <Output TaskParameter="OutputFile" ItemName="FileWrites" />
     </WriteCodeFragment>

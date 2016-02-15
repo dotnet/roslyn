@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 return false;
-            }            
+            }
         }
     }
 }

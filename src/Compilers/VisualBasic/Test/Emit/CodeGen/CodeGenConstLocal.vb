@@ -590,7 +590,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543469, "DevDiv")>
+        <WorkItem(543469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543469")>
         <Fact()>
         Public Sub TestLiftedIntegerConstLocalInLambda()
 
@@ -645,7 +645,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543469, "DevDiv")>
+        <WorkItem(543469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543469")>
         <Fact()>
         Public Sub TestLiftedDecimalConstLocalInLambda()
 
@@ -722,7 +722,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543475, "DevDiv")>
+        <WorkItem(543475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543475")>
         <Fact()>
         Public Sub TestLocalConstCycleDetection()
 
@@ -746,7 +746,7 @@ End Module
                                        Diagnostic(ERRID.ERR_CircularEvaluation1, "j").WithArguments("j"))
         End Sub
 
-        <WorkItem(542910, "DevDiv")>
+        <WorkItem(542910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542910")>
         <Fact()>
         Public Sub TestSByteLocalConst()
 

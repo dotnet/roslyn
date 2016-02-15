@@ -1,7 +1,9 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
@@ -2019,7 +2021,7 @@ class C
             Await TestAddFunction(code, expected, New FunctionData With {.Name = "C", .Kind = EnvDTE.vsCMFunction.vsCMFunctionDestructor, .Type = "void", .Access = EnvDTE.vsCMAccess.vsCMAccessPublic})
         End Function
 
-        <WorkItem(1172038)>
+        <WorkItem(1172038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1172038")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddFunction_AfterIncompleteMember() As Task
             Dim code =
@@ -2527,7 +2529,7 @@ class C
             Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessPublic})
         End Function
 
-        <WorkItem(545238)>
+        <WorkItem(545238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545238")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddVariable14() As Task
             Dim code =
@@ -2548,7 +2550,7 @@ class C
             Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessPrivate})
         End Function
 
-        <WorkItem(546556)>
+        <WorkItem(546556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546556")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddVariable15() As Task
             Dim code =
@@ -2569,7 +2571,7 @@ class C
             Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessProject})
         End Function
 
-        <WorkItem(546556)>
+        <WorkItem(546556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546556")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddVariable16() As Task
             Dim code =
@@ -2590,7 +2592,7 @@ class C
             Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected})
         End Function
 
-        <WorkItem(546556)>
+        <WorkItem(546556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546556")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddVariable17() As Task
             Dim code =
@@ -2638,7 +2640,7 @@ class C
             Await TestAddVariable(code, expected, New VariableData With {.Name = "j", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefInt, .Position = "i"})
         End Function
 
-        <WorkItem(529865)>
+        <WorkItem(529865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529865")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddVariableAfterComment() As Task
             Dim code =
@@ -3826,6 +3828,35 @@ class C$$
                     For i = 1 To 100
                         Dim variable = codeClass.AddVariable("x", "System.Int32")
                         codeClass.RemoveMember(variable)
+                    Next
+                End Sub)
+        End Function
+
+        <WorkItem(8423, "https://github.com/dotnet/roslyn/issues/8423")>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestAddAndRemoveViaTextChangeManyTimes() As Task
+            Dim code =
+<Code>
+class C$$
+{
+}
+</Code>
+
+            Await TestElement(code,
+                Sub(state, codeClass)
+                    For i = 1 To 100
+                        Dim variable = codeClass.AddVariable("x", "System.Int32")
+
+                        ' Now, delete the variable that we just added.
+                        Dim startPoint = variable.StartPoint
+                        Dim document = state.FileCodeModelObject.GetDocument()
+                        Dim text = document.GetTextAsync(CancellationToken.None).Result
+                        Dim textLine = text.Lines(startPoint.Line - 1)
+                        text = text.Replace(textLine.SpanIncludingLineBreak, "")
+                        document = document.WithText(text)
+
+                        Dim result = state.VisualStudioWorkspace.TryApplyChanges(document.Project.Solution)
+                        Assert.True(result, "Attempt to apply changes to workspace failed.")
                     Next
                 End Sub)
         End Function

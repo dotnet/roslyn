@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class FullNameTests : CSharpResultProviderTestBase
     {
@@ -174,7 +174,7 @@ class C
             Assert.Equal("a  +  b, ac, raw", root.FullName);
         }
 
-        [Fact, WorkItem(1022165)]
+        [Fact, WorkItem(1022165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022165")]
         public void Keywords_Root()
         {
             var source = @"

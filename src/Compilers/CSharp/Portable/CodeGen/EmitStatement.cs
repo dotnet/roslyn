@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -363,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitCondBranchCore(BoundExpression condition, ref object dest, bool sense)
         {
-oneMoreTime:
+        oneMoreTime:
 
             ILOpCode ilcode;
 

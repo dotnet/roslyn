@@ -143,7 +143,7 @@ End Class
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(545259)>
+        <WorkItem(545259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545259")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestSingleDeclaratorDontRemoveLeadingTrivia2() As Task
             Dim code =
@@ -174,7 +174,7 @@ End Class
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(540330)>
+        <WorkItem(540330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540330")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestSingleDeclaratorDontMoveNextStatement() As Task
             Dim code =
@@ -301,7 +301,7 @@ Console.WriteLine(2)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(545704)>
+        <WorkItem(545704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545704")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestThreeDeclarators4() As Task
             Dim code =
@@ -463,7 +463,7 @@ Console.WriteLine(i + 1 * k)
         End Function
 
         <Fact(Skip:="551797"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
-        <WorkItem(551797)>
+        <WorkItem(551797, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551797")>
         Public Async Function TestInlineIntoExpression3() As Task
             Dim code =
 <MethodBody>
@@ -531,7 +531,7 @@ Console.WriteLine(("a" &amp; "b").Length)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(540374)>
+        <WorkItem(540374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540374")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineIntoMemberAccess3() As Task
             Dim code =
@@ -548,8 +548,8 @@ Console.Write(New String(" "c, 10).Length)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(541965)>
-        <WorkItem(551797)>
+        <WorkItem(541965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541965")>
+        <WorkItem(551797, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551797")>
         <WpfFact(Skip:="551797"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineIntoMemberAccess4() As Task
             Dim code =
@@ -622,7 +622,7 @@ End Sub
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542060)>
+        <WorkItem(542060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542060")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineIntoMemberAccess7() As Task
             Dim code =
@@ -639,7 +639,7 @@ Console.WriteLine((From x In "ABC" Select x).First())
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(546726)>
+        <WorkItem(546726, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546726")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineIntoMemberAccess8() As Task
             Dim code =
@@ -806,8 +806,8 @@ End Sub
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(544981)>
-        <WorkItem(568917)>
+        <WorkItem(544981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544981")>
+        <WorkItem(568917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast6() As Task
             Dim code =
@@ -836,7 +836,7 @@ End Class
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(544982)>
+        <WorkItem(544982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544982")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast7() As Task
             Dim code =
@@ -867,8 +867,8 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(545130)>
-        <WorkItem(568917)>
+        <WorkItem(545130, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545130")>
+        <WorkItem(568917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast8() As Task
             Dim code =
@@ -895,7 +895,7 @@ End Class
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(545162)>
+        <WorkItem(545162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545162")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast9() As Task
             Dim code =
@@ -922,7 +922,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(545177)>
+        <WorkItem(545177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545177")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast10() As Task
             Dim code =
@@ -949,8 +949,8 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(545600)>
-        <WorkItem(568917)>
+        <WorkItem(545600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545600")>
+        <WorkItem(568917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast11() As Task
             Dim code =
@@ -989,7 +989,7 @@ End Class
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(545601)>
+        <WorkItem(545601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545601")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast12() As Task
             Dim code =
@@ -1018,7 +1018,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(568917)>
+        <WorkItem(568917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast13() As Task
             Dim code =
@@ -1051,7 +1051,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(546700)>
+        <WorkItem(546700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546700")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineIntoExpressionHole1() As Task
             Dim code =
@@ -1177,7 +1177,7 @@ Console.WriteLine((1 + 1) * 2)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(545544)>
+        <WorkItem(545544, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545544")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontRemoveLineBreakAfterComment() As Task
             Dim code =
@@ -1264,7 +1264,7 @@ Dim y As Action = Sub()
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(543215)>
+        <WorkItem(543215, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543215")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontInsertUnnecessaryCast4() As Task
             Dim code =
@@ -1291,7 +1291,7 @@ End Sub
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(543280)>
+        <WorkItem(543280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543280")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontInsertUnnecessaryCast5() As Task
             Dim code =
@@ -1322,7 +1322,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(544973)>
+        <WorkItem(544973, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544973")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontInsertUnnecessaryCast6() As Task
             Dim code =
@@ -1355,7 +1355,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(545975)>
+        <WorkItem(545975, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545975")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontInsertUnnecessaryCast7() As Task
             Dim code =
@@ -1382,7 +1382,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(545846)>
+        <WorkItem(545846, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545846")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontInsertUnnecessaryCast8() As Task
             Dim markup =
@@ -1411,7 +1411,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <WorkItem(545624), WorkItem(799045)>
+        <WorkItem(545624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545624"), WorkItem(799045, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/799045")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontInsertUnnecessaryCast9() As Task
             Dim markup =
@@ -1442,7 +1442,7 @@ End Module
             Await TestAsync(markup, expected)
         End Function
 
-        <WorkItem(530068)>
+        <WorkItem(530068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530068")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontInsertUnnecessaryCast10() As Task
             Dim markup =
@@ -1603,7 +1603,7 @@ Call New Exception().Message.ToString
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542819)>
+        <WorkItem(542819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542819")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInsertCallIfNecessary9() As Task
             Dim code =
@@ -1620,7 +1620,7 @@ Call If(True, 1, 2).ToString
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542819)>
+        <WorkItem(542819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542819")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInsertCallIfNecessary10() As Task
             Dim code =
@@ -1637,7 +1637,7 @@ Call If(Nothing, "").ToString
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542667)>
+        <WorkItem(542667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary1() As Task
             Dim code =
@@ -1654,7 +1654,7 @@ Dim a = (From y In "" Select y), b
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542667)>
+        <WorkItem(542667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary2() As Task
             Dim code =
@@ -1671,7 +1671,7 @@ Dim a = Nothing, b = From y In "" Select y
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542667)>
+        <WorkItem(542667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary3() As Task
             Dim code =
@@ -1687,7 +1687,7 @@ Dim a = CType((Function() From y In "" Select y), Func(Of IEnumerable(Of Char)))
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542096)>
+        <WorkItem(542096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542096")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary4() As Task
             Dim code =
@@ -1704,7 +1704,7 @@ Dim y = New IEnumerable(Of Char)() {(From x In "ABC" Select x), From x In "ABC" 
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542096)>
+        <WorkItem(542096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542096")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary5() As Task
             Dim code =
@@ -1721,7 +1721,7 @@ Dim y = New IEnumerable(Of Char)() {(From x In "ABC" Select x), From x In "ABC" 
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542096)>
+        <WorkItem(542096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542096")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary6() As Task
             Dim code =
@@ -1749,7 +1749,7 @@ End Sub
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542795)>
+        <WorkItem(542795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542795")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary7() As Task
             Dim code =
@@ -1776,7 +1776,7 @@ End Sub
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542667)>
+        <WorkItem(542667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary8() As Task
             Dim code =
@@ -1793,7 +1793,7 @@ Dim a = (From y In "" Select y Order By y), b
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542795)>
+        <WorkItem(542795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542795")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary9() As Task
             Dim code =
@@ -1820,7 +1820,7 @@ End Sub
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542840)>
+        <WorkItem(542840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542840")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary10() As Task
             Dim code =
@@ -1837,7 +1837,7 @@ Dim y = (New Collections.ArrayList())(0)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542842)>
+        <WorkItem(542842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542842")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary11() As Task
             Dim code =
@@ -1854,7 +1854,7 @@ Dim a As Action = (Sub() If True Then Dim x), b = a
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542667)>
+        <WorkItem(542667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary12() As Task
             Dim code =
@@ -1871,7 +1871,7 @@ Dim a = (From y In "" Select y Order By y Ascending), b
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542840)>
+        <WorkItem(542840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542840")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary13() As Task
             Dim code =
@@ -1888,7 +1888,7 @@ Dim y = (New Collections.ArrayList)(0)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542931)>
+        <WorkItem(542931, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542931")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary14() As Task
             Dim code =
@@ -1905,7 +1905,7 @@ Dim p = From y In "", z In (From x In "") Distinct
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542989)>
+        <WorkItem(542989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542989")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary15() As Task
             Dim code =
@@ -1922,7 +1922,7 @@ Dim y = (From x In "" Group By x Into Count)(0)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542990)>
+        <WorkItem(542990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542990")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary16() As Task
             Dim code =
@@ -1939,7 +1939,7 @@ Dim y As String = (Function() Console.ReadLine)()
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542997)>
+        <WorkItem(542997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542997")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary17() As Task
             Dim code =
@@ -1956,7 +1956,7 @@ Dim q = From x In "" Select z = (Sub() Return) Distinct
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542997)>
+        <WorkItem(542997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542997")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary18() As Task
             Dim code =
@@ -1975,7 +1975,7 @@ Dim q = From x In "" Select z = (Sub() Return) _
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542997)>
+        <WorkItem(542997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542997")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary19() As Task
             Dim code =
@@ -1992,7 +1992,7 @@ Dim q = From x In "" Select z = Sub() Return
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(529694)>
+        <WorkItem(529694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529694")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary20() As Task
             Dim code =
@@ -2017,7 +2017,7 @@ End With
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(545571)>
+        <WorkItem(545571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545571")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary21() As Task
             Dim code =
@@ -2034,7 +2034,7 @@ Call (Sub() Exit Sub).Invoke()
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(545849)>
+        <WorkItem(545849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545849")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary22() As Task
             Dim code =
@@ -2053,7 +2053,7 @@ Console.WriteLine(y.Rank)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(531578)>
+        <WorkItem(531578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531578")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary23() As Task
             Dim code =
@@ -2092,7 +2092,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(531582)>
+        <WorkItem(531582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531582")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary24() As Task
             Dim code =
@@ -2113,9 +2113,9 @@ End Select
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(549182)>
-        <WorkItem(549191)>
-        <WorkItem(545730)>
+        <WorkItem(549182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/549182")>
+        <WorkItem(549191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/549191")>
+        <WorkItem(545730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545730")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestUnparenthesizeIfNecessary1() As Task
             Dim code =
@@ -2148,7 +2148,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542985)>
+        <WorkItem(542985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542985")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestAddExplicitArgumentListIfNecessary1() As Task
             Dim code =
@@ -2181,7 +2181,7 @@ End Function
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542985)>
+        <WorkItem(542985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542985")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestAddExplicitArgumentListIfNecessary2() As Task
             Dim code =
@@ -2214,7 +2214,7 @@ End Function
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(542985)>
+        <WorkItem(542985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542985")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestAddExplicitArgumentListIfNecessary3() As Task
             Dim code =
@@ -2249,7 +2249,7 @@ End Property
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(545174)>
+        <WorkItem(545174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545174")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestAddExplicitArgumentListIfNecessary4() As Task
             Dim code =
@@ -2275,7 +2275,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(529542)>
+        <WorkItem(529542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529542")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestAddExplicitArgumentListIfNecessary5() As Task
             Dim code =
@@ -2494,7 +2494,7 @@ Console.WriteLine(1)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(529627)>
+        <WorkItem(529627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529627")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConflict_ByRefLiteral() As Task
             Dim code =
@@ -2530,7 +2530,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(545342)>
+        <WorkItem(545342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545342")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConflict_UsedBeforeDeclaration() As Task
 
@@ -2557,8 +2557,8 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(545398)>
-        <WorkItem(568917)>
+        <WorkItem(545398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545398")>
+        <WorkItem(568917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInsertCorrectCastsForAssignmentStatement1() As Task
             Dim code =
@@ -2587,8 +2587,8 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(545398)>
-        <WorkItem(568917)>
+        <WorkItem(545398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545398")>
+        <WorkItem(568917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInsertCorrectCastsForAssignmentStatement2() As Task
             Dim code =
@@ -2617,7 +2617,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(545398)>
+        <WorkItem(545398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545398")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInsertCorrectCastsForAssignmentStatement3() As Task
             Dim code =
@@ -2646,7 +2646,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(545539)>
+        <WorkItem(545539, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545539")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontOverparenthesizeXmlAttributeAccessExpression() As Task
             Dim code =
@@ -2675,7 +2675,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(546069)>
+        <WorkItem(546069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546069")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestBrokenVariableDeclarator() As Task
             Dim code =
@@ -2691,7 +2691,7 @@ End Module
             Await TestMissingAsync(code)
         End Function
 
-        <WorkItem(546658)>
+        <WorkItem(546658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546658")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontInlineInUnterminatedBlock() As Task
             Dim markup =
@@ -2721,7 +2721,7 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-        <WorkItem(547152)>
+        <WorkItem(547152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547152")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestEscapeKeywordsIfNeeded1() As Task
             Dim code =
@@ -2755,7 +2755,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(531473)>
+        <WorkItem(531473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531473")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestEscapeKeywordsIfNeeded2() As Task
             Dim code =
@@ -2790,7 +2790,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(531473)>
+        <WorkItem(531473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531473")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestEscapeKeywordsIfNeeded3() As Task
             Dim code =
@@ -2825,7 +2825,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(547153)>
+        <WorkItem(547153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547153")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestEscapeKeywordsIfNeeded4() As Task
             Dim code =
@@ -2860,7 +2860,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(531584)>
+        <WorkItem(531584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531584")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestEscapeKeywordsIfNeeded5() As Task
             Dim code =
@@ -2897,7 +2897,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(601123)>
+        <WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestEscapeKeywordsIfNeeded6() As Task
             Dim code =
@@ -2948,7 +2948,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(580495)>
+        <WorkItem(580495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580495")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeLambdaIfNeeded01() As Task
             Dim code =
@@ -2975,7 +2975,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(607520)>
+        <WorkItem(607520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607520")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeLambdaIfNeeded02() As Task
             Dim code =
@@ -3002,7 +3002,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(607520)>
+        <WorkItem(607520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607520")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeLambdaIfNeeded03() As Task
             Dim code =
@@ -3027,7 +3027,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(621407)>
+        <WorkItem(621407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/621407")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeLambdaIfNeeded04() As Task
             Dim code =
@@ -3053,7 +3053,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(608208)>
+        <WorkItem(608208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608208")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeLambdaIfNeeded05() As Task
             Dim code =
@@ -3079,7 +3079,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(621407)>
+        <WorkItem(621407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/621407")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeLambdaIfNeeded06() As Task
             Dim code =
@@ -3105,7 +3105,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(621407)>
+        <WorkItem(621407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/621407")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeLambdaIfNeeded06_1() As Task
             Dim code =
@@ -3131,7 +3131,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(608995)>
+        <WorkItem(608995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608995")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeLambdaIfNeeded07() As Task
             Dim code =
@@ -3157,7 +3157,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(588344)>
+        <WorkItem(588344, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/588344")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeXmlLiteralExpressionIfNeeded() As Task
             Dim code =
@@ -3184,7 +3184,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(608204)>
+        <WorkItem(608204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608204")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeQueryExpressionIfFollowedBySelect() As Task
             Dim code =
@@ -3213,7 +3213,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(635364)>
+        <WorkItem(635364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635364")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeQueryExpressionIfFollowedBySelect_635364() As Task
             Dim code =
@@ -3248,7 +3248,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(635373)>
+        <WorkItem(635373, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635373")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeQueryExpressionIfFollowedBySelect_635373() As Task
             Dim code =
@@ -3287,7 +3287,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(608202)>
+        <WorkItem(608202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608202")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeQueryExpressionIfEndingWithDistinct() As Task
             Dim code =
@@ -3324,7 +3324,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(530129)>
+        <WorkItem(530129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530129")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConvertsDelegateInvocationToLabel() As Task
             Dim code =
@@ -3356,7 +3356,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(529796)>
+        <WorkItem(529796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529796")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConvertExtensionMethodInvocationToPlainStaticMethodInvocationIfNecessaryToKeepCorrectOverloadResolution() As Task
             Dim code =
@@ -3419,7 +3419,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(601907)>
+        <WorkItem(601907, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601907")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestEscapeContextualKeywordAfterQueryEndingWithXmlDocumentEvenWithMultipleEmptyLines() As Task
             Dim code =
@@ -3464,7 +3464,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(530903)>
+        <WorkItem(530903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530903")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineTempShouldParenthesizeExpressionIfNeeded() As Task
             Dim code =
@@ -3492,7 +3492,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(530945)>
+        <WorkItem(530945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530945")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineTempShouldParenthesizeLambdaExpressionIfNeeded() As Task
             Dim code =
@@ -3524,7 +3524,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(530926)>
+        <WorkItem(530926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530926")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineTempShouldNotAddUnnecessaryCallKeyword() As Task
             Dim code =
@@ -3549,7 +3549,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(529833)>
+        <WorkItem(529833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529833")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineTempChangesSymbolInfoForInlinedExpression() As Task
             Dim code =
@@ -3583,7 +3583,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(529833)>
+        <WorkItem(529833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529833")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineTempWithUserDefinedOperator() As Task
             Dim code =
@@ -3634,7 +3634,7 @@ End Class
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(529833)>
+        <WorkItem(529833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529833")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineTempWithUserDefinedOperator2() As Task
             Dim code =
@@ -3685,7 +3685,7 @@ End Class
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(529840)>
+        <WorkItem(529840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529840")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestBugfix_529840_DetectSemanticChangesAtInlineSite() As Task
             Dim code =
@@ -3735,7 +3735,7 @@ End Class
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(718152)>
+        <WorkItem(718152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718152")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestBugfix_718152_DontRemoveParenthesisForAwaitExpression() As Task
             Dim code =
@@ -3770,7 +3770,7 @@ End Class
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WorkItem(718152)>
+        <WorkItem(718152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718152")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestBugfix_718152_RemoveParenthesisForAwaitExpression() As Task
             Dim code =
@@ -4174,6 +4174,33 @@ Class C
 
     Sub N(x As Integer, y As Integer)
         M(CType($""{x}, {y}"", FormattableString))
+    End Sub
+End Class
+"
+
+            Await TestAsync(code, expected, compareTokens:=False)
+        End Function
+
+        <WorkItem(8119, "https://github.com/dotnet/roslyn/issues/8119")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function ShouldWorkEvenWhenReferencesVaryByCase() As Task
+            Dim code = "
+Imports System.Collections.Generic
+Class C
+    Sub M()
+        Dim [||]List As New List(Of String)
+        List.Add(""Apple"")
+        list.Add(""Banana"")
+    End Sub
+End Class
+"
+
+            Dim expected = "
+Imports System.Collections.Generic
+Class C
+    Sub M()
+        Call New List(Of String)().Add(""Apple"")
+        Call New List(Of String)().Add(""Banana"")
     End Sub
 End Class
 "

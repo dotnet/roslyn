@@ -55,7 +55,7 @@ $$#Region ""Foo""
                 Region("span", "#Region", autoCollapse:=False, isDefaultCollapsed:=True))
         End Function
 
-        <WorkItem(537984)>
+        <WorkItem(537984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537984")>
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function RegionEndOfFile() As Task
             Const code = "

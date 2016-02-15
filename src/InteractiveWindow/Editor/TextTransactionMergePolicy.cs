@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// </summary>
     internal class TextTransactionMergePolicy : IMergeTextUndoTransactionPolicy
     {
-        TextTransactionMergeDirections _allowableMergeDirections;
+        private TextTransactionMergeDirections _allowableMergeDirections;
 
         public TextTransactionMergePolicy() : this(TextTransactionMergeDirections.Forward | TextTransactionMergeDirections.Backward)
         {

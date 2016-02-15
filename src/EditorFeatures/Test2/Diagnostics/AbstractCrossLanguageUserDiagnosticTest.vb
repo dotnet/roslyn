@@ -1,6 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -20,19 +22,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         Friend MustOverride Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
 
         Protected Async Function TestMissing(definition As XElement) As Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition)
+            Using workspace = Await TestWorkspace.CreateAsync(definition)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Assert.Null(diagnosticAndFix)
             End Using
         End Function
 
         Protected Async Function TestAsync(definition As XElement,
-                           Optional expected As String = Nothing,
-                           Optional codeActionIndex As Integer = 0,
-                           Optional verifyTokens As Boolean = True,
-                           Optional fileNameToExpected As Dictionary(Of String, String) = Nothing,
-                           Optional verifySolutions As Action(Of Solution, Solution) = Nothing) As Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition)
+                            Optional expected As String = Nothing,
+                            Optional codeActionIndex As Integer = 0,
+                            Optional verifyTokens As Boolean = True,
+                            Optional fileNameToExpected As Dictionary(Of String, String) = Nothing,
+                            Optional verifySolutions As Action(Of Solution, Solution) = Nothing,
+                            Optional onAfterWorkspaceCreated As Action(Of TestWorkspace) = Nothing) As Task
+            Using workspace = TestWorkspace.CreateWorkspace(definition)
+                onAfterWorkspaceCreated?.Invoke(workspace)
+
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(codeActionIndex).Action
                 Dim operations = Await codeAction.GetOperationsAsync(CancellationToken.None)
@@ -125,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                                               expectedProjectReferenceTo As String,
                                               Optional index As Integer = 0) As Task
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(xmlDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(xmlDefinition)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(index).Action
                 Dim operations = Await codeAction.GetOperationsAsync(CancellationToken.None)
@@ -144,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                                                          expectedAssemblyIdentity As String,
                                                          Optional index As Integer = 0) As Task
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(xmlDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(xmlDefinition)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(index).Action
                 Dim operations = Await codeAction.GetOperationsAsync(CancellationToken.None)

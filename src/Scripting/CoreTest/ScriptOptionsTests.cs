@@ -110,9 +110,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         public void AddImports_Errors()
         {
             var options = ScriptOptions.Default;
-           
+
             Assert.Throws<ArgumentNullException>("imports", () => options.AddImports((string[])null));
-            Assert.Throws<ArgumentNullException>("imports[0]", () => options.AddImports(new string[] { null } ));
+            Assert.Throws<ArgumentNullException>("imports[0]", () => options.AddImports(new string[] { null }));
 
             Assert.Throws<ArgumentNullException>("imports", () => options.AddImports((IEnumerable<string>)null));
             Assert.Throws<ArgumentNullException>("imports[0]", () => options.AddImports((IEnumerable<string>)new string[] { null }));

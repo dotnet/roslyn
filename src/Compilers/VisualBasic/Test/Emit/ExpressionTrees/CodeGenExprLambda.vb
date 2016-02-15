@@ -1991,7 +1991,7 @@ Public Enum E_Long As Long : Dummy : End Enum
 
 #Region "Lambdas"
 
-        <Fact, WorkItem(530883, "DevDiv")>
+        <Fact, WorkItem(530883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530883")>
         Public Sub ExpressionTreeParameterWithLambdaArgumentAndTypeInference()
             Dim source = <compilation>
                              <file name="expr.vb"><![CDATA[
@@ -2013,7 +2013,7 @@ End Module
             CompileAndVerify(source, additionalRefs:={SystemCoreRef}).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(577271, "DevDiv")>
+        <Fact, WorkItem(577271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577271")>
         Public Sub Bug577271()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict On 
@@ -2039,7 +2039,7 @@ BC36675: Statement lambdas cannot be converted to expression trees.
 </errors>, addXmlReferences:=True)
         End Sub
 
-        <WorkItem(577272, "DevDiv")>
+        <WorkItem(577272, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577272")>
         <Fact>
         Public Sub Bug577272()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -2989,7 +2989,7 @@ End Module
             TestExpressionTrees(file, ExpTreeTestResources.XmlLiteralsInExprLambda03_Result, addXmlReferences:=True)
         End Sub
 
-        <WorkItem(545738, "DevDiv")>
+        <WorkItem(545738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545738")>
         <Fact()>
         Public Sub Bug_14377b()
             ' Expression Trees: Xml literals NYI
@@ -4510,7 +4510,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <Fact, WorkItem(651996, "DevDiv")>
+        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         Public Sub ExprTree_LegacyTests06_IL()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -6024,7 +6024,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <Fact, WorkItem(651996, "DevDiv")>
+        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         Public Sub ExprTreeIL()
             CompileAndVerify(
 <compilation>
@@ -6235,7 +6235,7 @@ Lambda(
 )]]>).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(651996, "DevDiv")>
+        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         Public Sub LocalVariableAccessIL()
             Dim c = CompileAndVerify(
 <compilation>
@@ -6581,7 +6581,7 @@ End Module]]></file>
                  expectedOutput:=<![CDATA[f1 f1 g1]]>)
         End Sub
 
-        <WorkItem(545757, "DevDiv")>
+        <WorkItem(545757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545757")>
         <Fact()>
         Public Sub Bug_14402()
             Dim source = <compilation>
@@ -6608,7 +6608,7 @@ End Module
                  expectedOutput:="() => (value(Form1+_Closure$__0-0).$VB$Local_s1_a ?? Convert(value(Form1+_Closure$__0-0).$VB$Local_s1_b))").VerifyDiagnostics()
         End Sub
 
-        <WorkItem(531513, "DevDiv")>
+        <WorkItem(531513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531513")>
         <Fact()>
         Public Sub Bug_18234()
             Dim file = <file name="a.vb"><![CDATA[
@@ -6704,7 +6704,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <WorkItem(545738, "DevDiv")>
+        <WorkItem(545738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545738")>
         <Fact()>
         Public Sub Bug_14377a()
             Dim source = <compilation>
@@ -6726,7 +6726,7 @@ End Module
                  expectedOutput:="10").VerifyDiagnostics()
         End Sub
 
-        <WorkItem(547151, "DevDiv")>
+        <WorkItem(547151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547151")>
         <Fact()>
         Public Sub Bug_18156()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -6775,7 +6775,7 @@ End Module
             VerifyExpressionTreesDiagnostics(file, <errors></errors>)
         End Sub
 
-        <WorkItem(957927, "DevDiv")>
+        <WorkItem(957927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957927")>
         <Fact()>
         Public Sub Bug957927()
             Dim source = <compilation>
@@ -7198,7 +7198,7 @@ BC36603: Multi-dimensional array cannot be converted to an expression tree.
 </errors>)
         End Sub
 
-        <WorkItem(531526, "DevDiv")>
+        <WorkItem(531526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531526")>
         <Fact()>
         Public Sub ByRefParamsInExpressionLambdas_BC36538()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -7328,7 +7328,7 @@ BC36675: Statement lambdas cannot be converted to expression trees.
 </errors>)
         End Sub
 
-        <WorkItem(545804, "DevDiv")>
+        <WorkItem(545804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545804")>
         <Fact()>
         Public Sub Bug_14469()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -7362,7 +7362,7 @@ BC36675: Statement lambdas cannot be converted to expression trees.
 </errors>)
         End Sub
 
-        <WorkItem(531420, "DevDiv")>
+        <WorkItem(531420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531420")>
         <Fact()>
         Public Sub ExprTreeLiftedUserDefinedOperatorsWithNullableResult_Binary_BC36534()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -7405,7 +7405,7 @@ BC36534: Expression cannot be converted into an expression tree.
 </errors>)
         End Sub
 
-        <WorkItem(531423, "DevDiv")>
+        <WorkItem(531423, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531423")>
         <Fact()>
         Public Sub ExprTreeUserDefinedAndAlsoOrElseWithNullableResult_BC36534()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -7451,7 +7451,7 @@ BC36534: Expression cannot be converted into an expression tree.
 </errors>)
         End Sub
 
-        <WorkItem(531424, "DevDiv")>
+        <WorkItem(531424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531424")>
         <Fact()>
         Public Sub ExprTreeUserDefinedUnaryWithNullableResult_BC36534()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -7530,7 +7530,7 @@ BC36604: Late binding operations cannot be converted to an expression tree.
 </errors>)
         End Sub
 
-        <WorkItem(797996, "DevDiv")>
+        <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact()>
         Public Sub MissingMember_System_Type__GetTypeFromHandle()
             Dim compilation = CreateCompilationWithoutReferences(
@@ -7592,7 +7592,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </errors>)
         End Sub
 
-        <WorkItem(797996, "DevDiv")>
+        <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact()>
         Public Sub MissingMember_System_Reflection_FieldInfo__GetFieldFromHandle()
             Dim compilation = CreateCompilationWithoutReferences(
@@ -7669,7 +7669,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </errors>)
         End Sub
 
-        <WorkItem(797996, "DevDiv")>
+        <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact()>
         Public Sub MissingMember_System_Reflection_MethodBase__GetMethodFromHandle()
             Dim compilation = CreateCompilationWithoutReferences(
@@ -7783,7 +7783,7 @@ BC35000: Requested operation is not available because the runtime library functi
 
 #End Region
 
-        <Fact, WorkItem(808608, "DevDiv")>
+        <Fact, WorkItem(808608, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808608")>
         Public Sub Bug808608_01()
 
             Dim source = <compilation>
@@ -7848,7 +7848,7 @@ End Module
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(808608, "DevDiv")>
+        <Fact, WorkItem(808608, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808608")>
         Public Sub Bug808608_02()
 
             Dim source = <compilation>
@@ -7907,7 +7907,7 @@ End Module
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(808651, "DevDiv")>
+        <Fact, WorkItem(808651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808651")>
         Public Sub Bug808651()
 
             Dim source = <compilation>

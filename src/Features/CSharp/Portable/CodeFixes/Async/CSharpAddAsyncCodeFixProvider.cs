@@ -20,17 +20,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         /// <summary>
         /// The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
         /// </summary>
-        private const string CS4032 = "CS4032";
+        private const string CS4032 = nameof(CS4032);
 
         /// <summary>
         /// The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
         /// </summary>
-        private const string CS4033 = "CS4033";
+        private const string CS4033 = nameof(CS4033);
 
         /// <summary>
         /// The 'await' operator can only be used within an async lambda expression. Consider marking this method with the 'async' modifier.
         /// </summary>
-        private const string CS4034 = "CS4034";
+        private const string CS4034 = nameof(CS4034);
 
         public override ImmutableArray<string> FixableDiagnosticIds
         {

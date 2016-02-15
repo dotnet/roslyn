@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
     public class ParserRegressionTests : CSharpTestBase
     {
-        [WorkItem(540005, "DevDiv")]
+        [WorkItem(540005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540005")]
         [Fact]
         public void c01()
         {
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem(540006, "DevDiv")]
+        [WorkItem(540006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540006")]
         [Fact]
         public void c02()
         {
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem(540007, "DevDiv")]
+        [WorkItem(540007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
         [Fact]
         public void c03()
         {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem(540007, "DevDiv")]
+        [WorkItem(540007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
         [Fact]
         public void c04()
         {
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem(540007, "DevDiv")]
+        [WorkItem(540007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
         [Fact]
         public void c000138()
         {
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem(540007, "DevDiv")]
+        [WorkItem(540007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
         [Fact]
         public void c000241()
         {
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem(540007, "DevDiv")]
+        [WorkItem(540007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540007")]
         [Fact]
         public void c024928()
         {

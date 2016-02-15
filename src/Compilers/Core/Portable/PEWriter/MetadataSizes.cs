@@ -11,7 +11,7 @@ namespace Microsoft.Cci
     {
         private const int StreamAlignment = 4;
 
-        public const ulong DebugMetadataTablesMask = 
+        public const ulong DebugMetadataTablesMask =
             1UL << (int)TableIndex.Document |
             1UL << (int)TableIndex.MethodDebugInformation |
             1UL << (int)TableIndex.LocalScope |
@@ -362,7 +362,7 @@ namespace Microsoft.Cci
                     MetadataVersionPaddedLength +  // metadata version
                     sizeof(ushort) +               // storage header: reserved
                     sizeof(ushort) +               // stream count
-                    (IsStandaloneDebugMetadata ? StandalonePdbStreamHeaderSize : 0) + 
+                    (IsStandaloneDebugMetadata ? StandalonePdbStreamHeaderSize : 0) +
                     RegularStreamHeaderSizes +
                     (IsMinimalDelta ? MinimalDeltaMarkerStreamHeaderSize : 0);
             }

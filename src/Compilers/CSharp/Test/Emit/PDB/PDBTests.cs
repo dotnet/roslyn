@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 </symbols>", options: PdbToXmlOptions.ExcludeMethods);
         }
 
-        [Fact, WorkItem(846584, "DevDiv")]
+        [Fact, WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")]
         public void RelativePathForExternalSource_Sha1()
         {
             var text1 = @"
@@ -244,7 +244,7 @@ public class C
 </symbols>");
         }
 
-        [Fact, WorkItem(1067635)]
+        [Fact, WorkItem(1067635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067635")]
         public void SuppressDynamicAndEncCDIForWinRT()
         {
             var source = @"
@@ -572,7 +572,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem(7244)]
+        [WorkItem(7244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/7244")]
         [Fact]
         public void ConstructorsWithoutInitializers()
         {
@@ -635,7 +635,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem(7244)]
+        [WorkItem(7244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/7244")]
         [Fact]
         public void ConstructorsWithInitializers()
         {
@@ -812,7 +812,7 @@ class Program
         /// the method must have a sequence point at
         /// offset 0 for correct stepping behavior.
         /// </summary>
-        [WorkItem(804681, "DevDiv")]
+        [WorkItem(804681, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/804681")]
         [Fact]
         public void SequencePointAtOffset0()
         {
@@ -1376,7 +1376,7 @@ class C
 
         #region WhileStatement
 
-        [WorkItem(538299, "DevDiv")]
+        [WorkItem(538299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538299")]
         [Fact]
         public void WhileStatement()
         {
@@ -1738,7 +1738,7 @@ public class C
 </symbols>");
         }
 
-        [WorkItem(544937, "DevDiv")]
+        [WorkItem(544937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]
         [Fact]
         public void ForEachStatement_MultiDimensionalArray()
         {
@@ -1831,7 +1831,7 @@ public class C
 ", sequencePoints: "C.Main");
         }
 
-        [WorkItem(544937, "DevDiv")]
+        [WorkItem(544937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]
         [Fact]
         public void ForEachStatement_MultiDimensionalArrayBreakAndContinue()
         {
@@ -2040,7 +2040,7 @@ public class C
 ", sequencePoints: "C.Main");
         }
 
-        [WorkItem(718501, "DevDiv")]
+        [WorkItem(718501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718501")]
         [Fact]
         public void ForEachNops()
         {
@@ -2230,7 +2230,7 @@ public class SeqPointForWhile
 
         #region Constructor
 
-        [WorkItem(538317, "DevDiv")]
+        [WorkItem(538317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538317")]
         [Fact]
         public void ConstructorSequencePoints1()
         {
@@ -2624,7 +2624,7 @@ public partial class C
 </symbols>");
         }
 
-        [WorkItem(543313, "DevDiv")]
+        [WorkItem(543313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543313")]
         [Fact]
         public void TestFieldInitializerExpressionLambda()
         {
@@ -2695,7 +2695,7 @@ class C
 
         #region Auto-Property
 
-        [Fact, WorkItem(820806, "DevDiv")]
+        [Fact, WorkItem(820806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820806")]
         public void BreakpointForAutoImplementedProperty()
         {
             var source = @"
@@ -2848,7 +2848,7 @@ public class C
 </symbols>");
         }
 
-        [WorkItem(538298, "DevDiv")]
+        [WorkItem(538298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538298")]
         [Fact]
         public void RegressSeqPtEndOfMethodAfterReturn()
         {
@@ -3017,7 +3017,7 @@ public class SeqPointAfterReturn
 
         #region Exception Handling
 
-        [WorkItem(542064, "DevDiv")]
+        [WorkItem(542064, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542064")]
         [Fact]
         public void ExceptionHandling()
         {
@@ -3490,7 +3490,7 @@ class Test
 </symbols>");
         }
 
-        [WorkItem(778655, "DevDiv")]
+        [WorkItem(778655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/778655")]
         [Fact]
         public void BranchToStartOfTry()
         {
@@ -4251,7 +4251,7 @@ unsafe class C
 </symbols>");
         }
 
-        [WorkItem(544917, "DevDiv")]
+        [WorkItem(544917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
         [Fact]
         public void DisabledLineDirective()
         {
@@ -4457,7 +4457,7 @@ public class T
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [Fact, WorkItem(546862, "DevDiv")]
+        [Fact, WorkItem(546862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546862")]
         public void Constant_InvalidUnicodeString()
         {
             var source = @"
@@ -5052,7 +5052,7 @@ class C
 </symbols>");
         }
 
-        [WorkItem(2501)]
+        [WorkItem(2501, "https://github.com/dotnet/roslyn/issues/2501")]
         [Fact]
         public void ImportsInAsyncLambda()
         {
