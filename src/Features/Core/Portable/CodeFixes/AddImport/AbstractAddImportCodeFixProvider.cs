@@ -291,25 +291,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         /// </summary>
         private bool IsInPackagesDirectory(PortableExecutableReference reference)
         {
-            const string Packages = nameof(Packages);
-
-            var filePath = reference.FilePath;
-            if (filePath?.IndexOf(Packages, StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                var currentPath = filePath;
-                while (currentPath != null)
-                {
-                    var name = PathUtilities.GetFileName(currentPath);
-                    if (StringComparer.OrdinalIgnoreCase.Equals(name, Packages))
-                    {
-                        return true;
-                    }
-
-                    currentPath = PathUtilities.GetDirectoryName(currentPath);
-                }
-            }
-
-            return false;
+            return PathUtilities.ContainsPathComponent(reference.FilePath, "packages");
         }
 
         /// <summary>

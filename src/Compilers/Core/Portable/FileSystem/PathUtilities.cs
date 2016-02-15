@@ -72,19 +72,136 @@ namespace Roslyn.Utilities
         /// <remarks>
         /// Unlike <see cref="System.IO.Path.GetDirectoryName"/> it
         ///     doesn't check for invalid path characters, 
-        ///     doesn't strip any trailing directory separators (TODO: tomat),
-        ///     doesn't recognize UNC structure \\computer-name\share\directory-name\file-name (TODO: tomat).
         /// </remarks>
         /// <returns>Prefix of path that represents a directory. </returns>
         internal static string GetDirectoryName(string path)
         {
-            int fileNameStart = FileNameUtilities.IndexOfFileName(path);
-            if (fileNameStart < 0)
+            return GetDirectoryName(path, IsUnixLikePlatform);
+        }
+
+        /// <summary>
+        /// Exposed for testing purposes only.
+        /// </summary>
+        internal static string GetDirectoryName(string path, bool isUnixLike)
+        {
+            if (path != null)
+            {
+                var rootLength = GetRoot(path, isUnixLike).Length;
+                if (path.Length > rootLength)
+                {
+                    var i = path.Length;
+                    while (i > rootLength)
+                    {
+                        i--;
+                        if (IsDirectorySeparator(path[i]))
+                        {
+                            if (i > 0 && IsDirectorySeparator(path[i - 1]))
+                            {
+                                continue;
+                            }
+
+                            break;
+                        }
+                    }
+
+                    return path.Substring(0, i);
+                }
+            }
+
+            return null;
+        }
+
+        private static string GetRoot(string path, bool isUnixLike)
+        {
+            if (path == null)
             {
                 return null;
             }
 
-            return path.Substring(0, fileNameStart);
+            if (isUnixLike)
+            {
+                return GetUnixRoot(path);
+            }
+            else
+            {
+                return GetWindowsRoot(path);
+            }
+        }
+
+        private static string GetWindowsRoot(string path)
+        {
+            // Windows
+            int length = path.Length;
+            if (length >= 1 && IsDirectorySeparator(path[0]))
+            {
+                if (length < 2 || !IsDirectorySeparator(path[1]))
+                {
+                    //  It was of the form:
+                    //          \     
+                    //          \f
+                    // in this case, just return \ as the root.
+                    return path.Substring(0, 1);
+                }
+
+                // We've got \\ so far.  If we have a path of the form \\x\y\z
+                // then we want to return "\\x\y" as the root portion.
+                int i = 2;
+                bool hitSeparator = false;
+                while (true)
+                {
+                    if (i == length)
+                    {
+                        // We reached the end of the path. The entire path is
+                        // considered the root.
+                        return path;
+                    }
+
+                    if (path[i] != DirectorySeparatorChar && path[i] != AltDirectorySeparatorChar)
+                    {
+                        // We got a non separator character.  Just keep consuming.
+                        i++;
+                        continue;
+                    }
+
+                    if (!hitSeparator)
+                    {
+                        // This is the first separator we've hit.  Consume it and keep going.
+                        hitSeparator = true;
+                        i++;
+                        continue;
+                    }
+
+                    // We hit the second separator.  The root is the path up to this point.
+                    return path.Substring(0, i);
+                }
+            }
+            else if (length >= 2 && path[1] == VolumeSeparatorChar)
+            {
+                // handles c: and c:\
+                return length >= 3 && IsDirectorySeparator(path[2])
+                    ? path.Substring(0, @"c:\".Length)
+                    : path.Substring(0, @"c:".Length);
+            }
+            else
+            {
+                // No path root.
+                return "";
+            }
+        }
+
+        private static string GetUnixRoot(string path)
+        {
+            if (path.Length > 0)
+            {
+                if (IsDirectorySeparator(path[0]))
+                {
+                    //  "/..."
+                    return path.Substring(0, 1);
+                }
+            }
+
+            // No path root.
+            return "";
         }
 
         internal static PathKind GetPathKind(string path)
@@ -372,6 +489,37 @@ namespace Roslyn.Utilities
                 || string.Equals(extension, ".exe", StringComparison.OrdinalIgnoreCase)
                 || assemblyDisplayNameOrPath.IndexOf(DirectorySeparatorChar) != -1
                 || assemblyDisplayNameOrPath.IndexOf(AltDirectorySeparatorChar) != -1;
+        }
+
+        /// <summary>
+        /// Determines if "path" contains 'component' within itself.
+        /// i.e. asking if the path "c:\foo\bar\baz" has component "bar" would return 'true'.
+        /// On the other hand, if you had "c:\foo\bar1\baz" then it would not have "bar" as a
+        /// component.
+        /// 
+        /// A path contains a component if any file name or directory name in the path
+        /// matches 'component'.  As such, if you had something like "\\foo" then that would
+        /// not have "foo" as a component. That's because here "foo" is the server name portion
+        /// of the UNC path, and not an actual directory or file name.
+        /// </summary>
+        internal static bool ContainsPathComponent(string path, string component)
+        {
+            if (path?.IndexOf(component, StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                var currentPath = path;
+                while (currentPath != null)
+                {
+                    var currentName = GetFileName(currentPath);
+                    if (StringComparer.OrdinalIgnoreCase.Equals(currentName, component))
+                    {
+                        return true;
+                    }
+
+                    currentPath = GetDirectoryName(currentPath);
+                }
+            }
+
+            return false;
         }
     }
 }
