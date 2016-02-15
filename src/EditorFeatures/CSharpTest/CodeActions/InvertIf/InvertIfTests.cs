@@ -505,7 +505,7 @@ class C
 @"string x; if (0 == x.Length) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986)]
+        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestSimplifyToLengthEqualsZero5()
         {
@@ -514,7 +514,7 @@ class C
 @"byte x = 1; if (0 == x) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986)]
+        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestSimplifyToLengthEqualsZero6()
         {
@@ -523,7 +523,7 @@ class C
 @"ushort x = 1; if (0 == x) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986)]
+        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestSimplifyToLengthEqualsZero7()
         {
@@ -532,7 +532,7 @@ class C
 @"uint x = 1; if (0 == x) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986)]
+        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestSimplifyToLengthEqualsZero8()
         {
@@ -541,7 +541,7 @@ class C
 @"ulong x = 1; if (0 == x) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986)]
+        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestSimplifyToLengthEqualsZero9()
         {
@@ -550,7 +550,7 @@ class C
 @"ulong x = 1; if (0 < x) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(545986)]
+        [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestSimplifyToLengthEqualsZero10()
         {
@@ -559,7 +559,7 @@ class C
 @"ulong x = 1; if (x > 0) { b(); } else { a(); } } } ");
         }
 
-        [WorkItem(530505)]
+        [WorkItem(530505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530505")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestSimplifyToLengthEqualsZero11()
         {

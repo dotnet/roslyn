@@ -116,7 +116,7 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
             Await TestAsync(code, indentation:=30)
         End Function
 
-        <WorkItem(542240)>
+        <WorkItem(542240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542240")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>
         Public Async Function MissingEndStatement() As Task
@@ -131,7 +131,7 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)
             Await TestAsync(code, indentation:=4)
         End Function
 
-        <WorkItem(542240)>
+        <WorkItem(542240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542240")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>
         Public Async Function EmptyElement1() As Task
@@ -173,7 +173,7 @@ End Class
             Dim position As Integer = 0
             MarkupTestFile.GetPosition(codeWithMarkup, code, position)
 
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(code)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code)
                 Dim hostdoc = workspace.Documents.First()
                 Dim buffer = hostdoc.GetTextBuffer()
 

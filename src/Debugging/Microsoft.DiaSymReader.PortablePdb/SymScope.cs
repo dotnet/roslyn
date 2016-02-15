@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -17,7 +18,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetChildren(
             int bufferLength,
-            out int count, 
+            out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]ISymUnmanagedScope[] children)
         {
             var childrenData = _data.GetChildren();
@@ -44,7 +45,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetConstants(
             int bufferLength,
-            out int count, 
+            out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]ISymUnmanagedConstant[] constants)
         {
             return _data.GetConstants(bufferLength, out count, constants);
@@ -87,7 +88,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetNamespaces(
             int bufferLength,
-            out int count, 
+            out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]ISymUnmanagedNamespace[] namespaces)
         {
             // Language specific, the client has to use Portable PDB reader directly to access the data.

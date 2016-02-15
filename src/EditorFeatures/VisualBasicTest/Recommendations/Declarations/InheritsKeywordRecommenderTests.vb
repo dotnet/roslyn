@@ -49,7 +49,7 @@ Structure Foo
 |</File>, "Inherits")
         End Function
 
-        <WorkItem(531257)>
+        <WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function InheritsAfterInheritsInInterfaceTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
@@ -61,7 +61,7 @@ Public Interface ITest2
 </File>, "Inherits")
         End Function
 
-        <WorkItem(531257)>
+        <WorkItem(531257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531257")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function InheritsNotAfterInheritsInClassTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
@@ -71,7 +71,7 @@ Public Class Foo
 </File>, "Inherits")
         End Function
 
-        <WorkItem(674791)>
+        <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotAfterHashTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>

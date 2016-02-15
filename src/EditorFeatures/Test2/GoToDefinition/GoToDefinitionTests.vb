@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(900438)>
+        <WorkItem(900438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/900438")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestCSharpGotoDefinitionPartialMethod() As Task
             Dim workspace =
@@ -500,7 +500,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(538765)>
+        <WorkItem(538765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538765")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestCSharpGotoDefinitionThroughOddlyNamedType() As Task
             Dim workspace =
@@ -571,7 +571,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(542004)>
+        <WorkItem(542004, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542004")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestCSharpTestLambdaParameter() As Task
             Dim workspace =
@@ -656,7 +656,7 @@ class C
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(545324)>
+        <WorkItem(545324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545324")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestCSharpFilterGotoDefResultsFromHiddenCodeForUIPresenters() As Task
             Dim workspace =
@@ -677,7 +677,7 @@ class C
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(545324)>
+        <WorkItem(545324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545324")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestCSharpDoNotFilterGotoDefResultsFromHiddenCodeForApis() As Task
             Dim workspace =
@@ -933,7 +933,7 @@ class C
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(989476)>
+        <WorkItem(989476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/989476")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestCSharpPreferNongeneratedSourceLocations() As Task
             Dim workspace =
@@ -958,7 +958,7 @@ partial class C
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(989476)>
+        <WorkItem(989476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/989476")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestCSharpUseGeneratedSourceLocationsIfNoNongeneratedLocationsAvailable() As Task
             Dim workspace =
@@ -1005,7 +1005,7 @@ class D
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(541105)>
+        <WorkItem(541105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541105")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestVisualBasicPropertyBackingField() As Task
             Dim workspace =
@@ -1137,7 +1137,7 @@ End Class
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(900438)>
+        <WorkItem(900438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/900438")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestVisualBasicGotoDefinitionPartialMethod() As Task
             Dim workspace =
@@ -1213,7 +1213,7 @@ End Class
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(542872)>
+        <WorkItem(542872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542872")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestVisualBasicMe() As Task
             Dim workspace =
@@ -1247,7 +1247,7 @@ End Class
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(542872)>
+        <WorkItem(542872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542872")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestVisualBasicMyClass() As Task
             Dim workspace =
@@ -1281,7 +1281,7 @@ End Class
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(542872)>
+        <WorkItem(542872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542872")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestVisualBasicMyBase() As Task
             Dim workspace =
@@ -1339,7 +1339,7 @@ End Class
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(545324)>
+        <WorkItem(545324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545324")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestVisualBasicFilterGotoDefResultsFromHiddenCodeForUIPresenters() As Task
             Dim workspace =
@@ -1360,7 +1360,7 @@ End Class
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(545324)>
+        <WorkItem(545324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545324")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestVisualBasicDoNotFilterGotoDefResultsFromHiddenCodeForApis() As Task
             Dim workspace =
@@ -1434,7 +1434,7 @@ End Module]]>]
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(542220)>
+        <WorkItem(542220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542220")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestCSharpTestAliasAndTarget1() As Task
             Dim workspace =
@@ -1463,7 +1463,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(542220)>
+        <WorkItem(542220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542220")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestCSharpTestAliasAndTarget2() As Task
             Dim workspace =
@@ -1492,7 +1492,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(542220)>
+        <WorkItem(542220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542220")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestCSharpTestAliasAndTarget3() As Task
             Dim workspace =
@@ -1521,7 +1521,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(542220)>
+        <WorkItem(542220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542220")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestCSharpTestAliasAndTarget4() As Task
             Dim workspace =
@@ -1550,7 +1550,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(543218)>
+        <WorkItem(543218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543218")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestVisualBasicQueryRangeVariable() As Task
             Dim workspace =
@@ -1574,7 +1574,7 @@ End Module
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(529060)>
+        <WorkItem(529060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529060")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestVisualBasicGotoConstant() As Task
             Dim workspace =
@@ -1594,7 +1594,7 @@ End Module
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(545661)>
+        <WorkItem(545661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545661")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestCrossLanguageParameterizedPropertyOverride() As Task
             Dim workspace =
@@ -1626,7 +1626,7 @@ class B : A
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(866094)>
+        <WorkItem(866094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866094")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestCrossLanguageNavigationToVBModuleMember() As Task
             Dim workspace =
@@ -1694,7 +1694,7 @@ class C
             Await TestAsync(workspace, expectedResult:=False)
         End Function
 
-        <WorkItem(546341)>
+        <WorkItem(546341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546341")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestGoToDefinitionOnGlobalKeyword() As Task
             Dim workspace =
@@ -1712,7 +1712,7 @@ class C
             Await TestAsync(workspace, expectedResult:=False)
         End Function
 
-        <WorkItem(902119)>
+        <WorkItem(902119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902119")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestGoToDefinitionOnInferredFieldInitializer() As Task
             Dim workspace =
@@ -1739,7 +1739,7 @@ End Class
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(885151)>
+        <WorkItem(885151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/885151")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestGoToDefinitionGlobalImportAlias() As Task
             Dim workspace =

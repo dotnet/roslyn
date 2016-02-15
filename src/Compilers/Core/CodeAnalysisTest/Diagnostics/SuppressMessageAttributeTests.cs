@@ -620,7 +620,7 @@ End Class
                 Diagnostic("Token", "RaiseEvent"));
         }
 
-        [WorkItem(1103442)]
+        [WorkItem(1103442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1103442")]
         [Fact]
         public async Task SuppressSyntaxDiagnosticsOnRaiseEventAccessorBasic()
         {

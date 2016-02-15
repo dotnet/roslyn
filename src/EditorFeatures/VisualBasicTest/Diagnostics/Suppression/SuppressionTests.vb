@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
             compilationOptions As CompilationOptions
         ) As Task(Of TestWorkspace)
 
-            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(
+            Return TestWorkspace.CreateVisualBasicAsync(
                 definition,
                 DirectCast(parseOptions, ParseOptions),
                 If(DirectCast(compilationOptions, CompilationOptions), New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
                     Return Tuple.Create(Of DiagnosticAnalyzer, ISuppressionFixProvider)(Nothing, New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-                <WorkItem(730770)>
+                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirective() As Task
                     Dim source = <![CDATA[
@@ -96,7 +96,7 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(730770)>
+                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestMultilineStatementPragmaWarningDirective1() As Task
                     Dim source = <![CDATA[
@@ -135,7 +135,7 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(730770)>
+                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestMultilineStatementPragmaWarningDirective2() As Task
                     Dim source = <![CDATA[
@@ -180,7 +180,7 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(730770)>
+                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestMultilineStatementPragmaWarningDirective3() As Task
                     Dim source = <![CDATA[
@@ -225,7 +225,7 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(730770)>
+                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestMultilineStatementPragmaWarningDirective4() As Task
                     Dim source = <![CDATA[
@@ -264,7 +264,7 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(730770)>
+                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestMultilineStatementPragmaWarningDirective5() As Task
                     Dim source = <![CDATA[
@@ -303,7 +303,7 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(730770)>
+                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestMultilineStatementPragmaWarningDirective6() As Task
                     Dim source = <![CDATA[
@@ -345,7 +345,7 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(730770)>
+                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestMultilineStatementPragmaWarningDirective7() As Task
                     Dim source = <![CDATA[
@@ -387,7 +387,7 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(730770)>
+                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirectiveWithExistingTrivia() As Task
                     Dim source = <![CDATA[
@@ -429,7 +429,7 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(970129)>
+                <WorkItem(970129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/970129")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestSuppressionAroundSingleToken() As Task
                     Dim source = <![CDATA[
@@ -477,7 +477,7 @@ End Module]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(1066576)>
+                <WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia1() As Task
                     Dim source = <![CDATA[
@@ -523,7 +523,7 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value, enableDocCommentProcessing)
                 End Function
 
-                <WorkItem(1066576)>
+                <WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia2() As Task
                     Dim source = <![CDATA['''[|<summary></summary>|]]]>
@@ -534,7 +534,7 @@ End Class]]>
                     Await TestAsync(source.Value, expected.Value, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
                 End Function
 
-                <WorkItem(1066576)>
+                <WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia3() As Task
                     Dim source = <![CDATA[   '''[|<summary></summary>|]   ]]>
@@ -545,7 +545,7 @@ End Class]]>
                     Await TestAsync(source.Value, expected.Value, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
                 End Function
 
-                <WorkItem(1066576)>
+                <WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia4() As Task
                     Dim source = <![CDATA[
@@ -566,7 +566,7 @@ Class C : End Class
                     Await TestAsync(source.Value, expected.Value, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
                 End Function
 
-                <WorkItem(1066576)>
+                <WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia5() As Task
                     Dim source = <![CDATA[class C1 : End Class
@@ -583,7 +583,7 @@ Class C3 : End Class]]>
                     Await TestAsync(source.Value, expected.Value, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
                 End Function
 
-                <WorkItem(1066576)>
+                <WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia6() As Task
                     Dim source = <![CDATA[class C1 : End Class
@@ -650,7 +650,7 @@ End Class]]>
                 End Function
 
 
-                <WorkItem(730770)>
+                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestInfoDiagnosticSuppressed() As Task
 
@@ -723,7 +723,7 @@ End Class]]>
                     Return New Tuple(Of DiagnosticAnalyzer, ISuppressionFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-                <WorkItem(730770)>
+                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestDiagnosticWithBadIdSuppressed() As Task
 
@@ -767,7 +767,7 @@ End Class]]>
                     Return New Tuple(Of DiagnosticAnalyzer, ISuppressionFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-                <WorkItem(730770)>
+                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestWarningDiagnosticWithNameMatchingKeywordSuppressed() As Task
                     Dim source = <![CDATA[
@@ -887,7 +887,7 @@ End Class]]>
                 End Function
 
 
-                <WorkItem(730770)>
+                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestCompilerDiagnosticsCannotBeSuppressed() As Task
 

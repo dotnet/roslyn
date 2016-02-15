@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
     public class EventTests : CSharpTestBase
     {
         #region Positive Cases
-        [WorkItem(537323, "DevDiv")]
+        [WorkItem(537323, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537323")]
         [Fact]
         public void EventInStructFollowedByClassDecl()
         {
@@ -39,7 +39,7 @@ class main1
             Assert.Equal("main1, Test1", actual);
         }
 
-        [WorkItem(537401, "DevDiv")]
+        [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
         [Fact]
         public void EventEscapedIdentifier()
         {
@@ -305,7 +305,7 @@ public class E
             Assert.NotNull(eventSymbol2);
         }
 
-        [WorkItem(542748, "DevDiv")]
+        [WorkItem(542748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542748")]
         [Fact()]
         public void FieldLikeEventAccessorIsSynthesized()
         {
@@ -623,7 +623,7 @@ class E : Interface
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "e").WithArguments("D.e"));
         }
 
-        [WorkItem(541704, "DevDiv")]
+        [WorkItem(541704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541704")]
         [Fact]
         public void OperationsInDeclaringType()
         {
@@ -830,7 +830,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_ReturnNotLValue, "This").WithArguments("S.This"));
         }
 
-        [WorkItem(546356, "DevDiv")]
+        [WorkItem(546356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546356")]
         [Fact]
         public void StructEvent2()
         {
@@ -865,7 +865,7 @@ struct S
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("S.E"));
         }
 
-        [WorkItem(546356, "DevDiv")]
+        [WorkItem(546356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546356")]
         [Fact]
         public void StructEvent3()
         {
@@ -926,7 +926,7 @@ class C
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("C.E"));
         }
 
-        [WorkItem(542570, "DevDiv")]
+        [WorkItem(542570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542570")]
         [Fact]
         public void UseMissingAccessorInInterface()
         {
@@ -1346,7 +1346,7 @@ class C
             Assert.Equal(Accessibility.Public, event3.RemoveMethod.DeclaredAccessibility);
         }
 
-        [WorkItem(538956, "DevDiv")]
+        [WorkItem(538956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538956")]
         [Fact]
         public void EventAccessorDoesNotHideMethod()
         {
@@ -1369,7 +1369,7 @@ class Program {
             CreateCompilationWithMscorlib(cSharpSource).VerifyDiagnostics();
         }
 
-        [WorkItem(538956, "DevDiv")]
+        [WorkItem(538956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538956")]
         [Fact]
         public void EventAccessorDoesNotConflictWithMethod()
         {
@@ -1394,7 +1394,7 @@ class Program {
             CreateCompilationWithMscorlib(cSharpSource).VerifyDiagnostics();
         }
 
-        [WorkItem(538992, "DevDiv")]
+        [WorkItem(538992, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538992")]
         [Fact]
         public void CannotAccessEventThroughParenthesizedType()
         {
@@ -1445,7 +1445,7 @@ class Outer
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "Q").WithArguments("Outer.Foo.Q"));
         }
 
-        [WorkItem(542461, "DevDiv")]
+        [WorkItem(542461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542461")]
         [Fact]
         public void EventMustDelegate()
         {
@@ -1518,7 +1518,7 @@ namespace TestEvents
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "Changed"));
         }
 
-        [WorkItem(543791, "DevDiv")]
+        [WorkItem(543791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543791")]
         [Fact]
         public void MultipleDeclaratorsOneError()
         {
@@ -1541,7 +1541,7 @@ class A
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "b").WithArguments("A.b"));
         }
 
-        [WorkItem(545682, "DevDiv")]
+        [WorkItem(545682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545682")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void EventHidingMethod()
         {
@@ -1586,7 +1586,7 @@ class A
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "E1").WithArguments("B.E1").WithLocation(5, 11));
         }
 
-        [WorkItem(547071, "DevDiv")]
+        [WorkItem(547071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547071")]
         [Fact]
         public void InvalidEventDeclarations()
         {
@@ -1814,7 +1814,7 @@ class Derived2 : Base
             Assert.Equal("myRemove", event2.RemoveMethod.Name);
         }
 
-        [Fact, WorkItem(570905, "DevDiv")]
+        [Fact, WorkItem(570905, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570905")]
         public void OverriddenAccessorName_BaseMissingAccessor()
         {
             var source = @"
@@ -1860,7 +1860,7 @@ class Derived2 : Base
             Assert.Equal("remove_E", event2.RemoveMethod.Name);
         }
 
-        [WorkItem(850168, "DevDiv")]
+        [WorkItem(850168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850168")]
         [Fact]
         public void AbstractFieldLikeEvent()
         {

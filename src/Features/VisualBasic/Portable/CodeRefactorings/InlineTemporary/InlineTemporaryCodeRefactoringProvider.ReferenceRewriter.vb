@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             End Sub
 
             Private Function IsReference(node As SimpleNameSyntax) As Boolean
-                If node.Identifier.ValueText <> _definition.Identifier.ValueText Then
+                If Not CaseInsensitiveComparison.Equals(node.Identifier.ValueText, _definition.Identifier.ValueText) Then
                     Return False
                 End If
 

@@ -143,14 +143,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             : this(languageServices, compilationOptions, parseOptions, "Test", references)
         {
         }
-
         internal TestHostProject(
             HostLanguageServices languageServices,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
             string assemblyName,
             params MetadataReference[] references)
-            : this(languageServices, compilationOptions, parseOptions, assemblyName, references, SpecializedCollections.EmptyArray<TestHostDocument>())
+            : this(languageServices, compilationOptions, parseOptions, assemblyName: assemblyName, projectName: assemblyName, references: references, documents: SpecializedCollections.EmptyArray<TestHostDocument>())
         {
         }
 
@@ -159,6 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
             string assemblyName,
+            string projectName,
             IList<MetadataReference> references,
             IList<TestHostDocument> documents,
             IList<TestHostDocument> additionalDocuments = null,
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             IList<AnalyzerReference> analyzerReferences = null)
         {
             _assemblyName = assemblyName;
-            _name = assemblyName;
+            _name = projectName;
             _id = ProjectId.CreateNewId(debugName: this.AssemblyName);
             _languageServices = languageServices;
             _compilationOptions = compilationOptions;

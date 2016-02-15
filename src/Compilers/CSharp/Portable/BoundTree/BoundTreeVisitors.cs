@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly BoundNode Node;
 
             public CancelledByStackGuardException(Exception inner, BoundNode node)
-                : base (inner.Message, inner)
+                : base(inner.Message, inner)
             {
                 Node = node;
             }

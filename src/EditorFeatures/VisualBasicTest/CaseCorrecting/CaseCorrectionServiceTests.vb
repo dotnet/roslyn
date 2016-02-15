@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
         End Function
 
         Private Async Function TestAsync(input As String, expected As String) As Tasks.Task
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(input)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(input)
                 Await TestAsync(expected, workspace)
             End Using
         End Function
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
         End Function
 
         Private Async Function TestAsync(input As XElement, expected As String) As Tasks.Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(input)
+            Using workspace = Await TestWorkspace.CreateAsync(input)
                 Await TestAsync(expected, workspace)
             End Using
         End Function
@@ -110,7 +110,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(542058)>
+        <WorkItem(542058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542058")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestConstructorNew1() As Task
             Dim input = <Code>
@@ -138,7 +138,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(542058)>
+        <WorkItem(542058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542058")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestConstructorNew2() As Task
             Dim input = <Code>
@@ -174,7 +174,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(542058)>
+        <WorkItem(542058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542058")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestConstructorNew3() As Task
             Dim input = <Code>
@@ -202,8 +202,8 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(542058)>
-        <WorkItem(543999)>
+        <WorkItem(542058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542058")>
+        <WorkItem(543999, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543999")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestConstructorNew4() As Task
             Dim input = <Code>
@@ -235,7 +235,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(541352)>
+        <WorkItem(541352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541352")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestAlias1() As Task
             Dim input = <Code>
@@ -648,7 +648,7 @@ End Module
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
-        <WorkItem(599333)>
+        <WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
         Public Async Function TestPartialMethodName1() As Task
             Dim input = <Code>
 Partial Class foo
@@ -678,7 +678,7 @@ End Class
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
-        <WorkItem(599333)>
+        <WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
         Public Async Function TestPartialMethodName2() As Task
             ' Partial methods must be SUBs
             Dim input = <Code>
@@ -711,7 +711,7 @@ End Class
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
-        <WorkItem(599333)>
+        <WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
         Public Async Function TestPartialMethodParameterName1() As Task
             ' Partial method with parameters
             Dim input = <Code>
@@ -742,7 +742,7 @@ End Class
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
-        <WorkItem(599333)>
+        <WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
         Public Async Function TestPartialMethodParameterName2() As Task
             ' Multiple overloaded partial methods
             Dim input = <Code>
@@ -785,7 +785,7 @@ End Class
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
-        <WorkItem(599333)>
+        <WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
         Public Async Function TestPartialMethodParameterName3() As Task
             ' Partial method with different parameter names.
 
@@ -818,7 +818,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(608626)>
+        <WorkItem(608626, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608626")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestOverloadResolutionFailure() As Task
             Dim input = <Code>
@@ -928,7 +928,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(538930)>
+        <WorkItem(538930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538930")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestCharacterTypeSuffix() As Task
@@ -951,7 +951,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(538930)>
+        <WorkItem(538930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538930")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestULTypeSuffix() As Task
@@ -976,7 +976,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(538930)>
+        <WorkItem(538930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538930")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestFTypeSuffix() As Task
@@ -999,7 +999,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(538930)>
+        <WorkItem(538930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538930")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestRTypeSuffix() As Task
@@ -1022,7 +1022,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(538930)>
+        <WorkItem(538930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538930")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestDTypeSuffix() As Task
@@ -1045,7 +1045,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(538930)>
+        <WorkItem(538930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538930")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestDateLiteral() As Task
@@ -1070,7 +1070,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(539020)>
+        <WorkItem(539020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539020")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestEscaping1() As Task
@@ -1093,7 +1093,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(539020)>
+        <WorkItem(539020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539020")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestEscaping2() As Task
@@ -1136,7 +1136,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(539356)>
+        <WorkItem(539356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539356")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestREMInComment() As Task
             Dim input = <Code>
@@ -1150,7 +1150,7 @@ REM this is a comment
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(529938), WorkItem(529935)>
+        <WorkItem(529938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529938"), WorkItem(529935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529935")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestFullwidthREMInComment() As Task
             Dim input = <Code>
@@ -1185,7 +1185,7 @@ End Module
 
 #Region "Preprocessor"
 
-        <WorkItem(539308)>
+        <WorkItem(539308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539308")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestPreprocessor() As Task
             Dim input = <Code>
@@ -1201,7 +1201,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(539352)>
+        <WorkItem(539352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539352")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestPreprocessorLiterals() As Task
             Dim input = <Code>
@@ -1215,7 +1215,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(539352)>
+        <WorkItem(539352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539352")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestPreprocessorInMethodBodies() As Task
             Dim input = <Code>
@@ -1239,7 +1239,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(539352)>
+        <WorkItem(539352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539352")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestPreprocessorAroundClass() As Task
             Dim input = <Code>
@@ -1259,7 +1259,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(539472)>
+        <WorkItem(539472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539472")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestRemCommentAfterPreprocessor() As Task
             Dim input = <Code>
@@ -1917,7 +1917,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(542110)>
+        <WorkItem(542110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542110")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function SkippedTokens() As Task
             Dim input =
@@ -1935,7 +1935,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(544395)>
+        <WorkItem(544395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544395")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestAttribute() As Task
             Dim input =
@@ -1963,7 +1963,7 @@ End Enum
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(530927)>
+        <WorkItem(530927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530927")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestNewOnRightSideOfDot() As Task
             Dim input =

@@ -46,7 +46,7 @@ class A {
             Assert.Equal(1, comp.GetDeclarationDiagnostics().Count());
         }
 
-        [WorkItem(537194, "DevDiv")]
+        [WorkItem(537194, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537194")]
         [Fact]
         public void DefaultCtor1()
         {
@@ -88,7 +88,7 @@ class A {
             check(@"internal class A { static A(int x) {} }", "A", 1, doNotCheckAccessibility);
         }
 
-        [WorkItem(537345, "DevDiv")]
+        [WorkItem(537345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537345")]
         [Fact]
         public void Ctor1()
         {
@@ -560,7 +560,7 @@ namespace N1.N2  {
             #endregion
         }
 
-        [WorkItem(537752, "DevDiv")]
+        [WorkItem(537752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537752")]
         [Fact]
         public void AbstractVirtualMethodsCrossComps()
         {
@@ -831,7 +831,7 @@ namespace NS  {
             Assert.Equal("void NS.A.Overloads(NS.A p)", m1.ToTestDisplayString());
         }
 
-        [WorkItem(537752, "DevDiv")]
+        [WorkItem(537752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537752")]
         [Fact]
         public void OverloadMethodsCrossComps()
         {
@@ -940,7 +940,7 @@ namespace NS  {
             Assert.Equal("void NS.A.Overloads(NS.A p)", m1.ToTestDisplayString());
         }
 
-        [WorkItem(537754, "DevDiv")]
+        [WorkItem(537754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537754")]
         [Fact]
         public void PartialMethodsCrossTrees()
         {
@@ -1065,7 +1065,7 @@ namespace NS
             #endregion
         }
 
-        [WorkItem(537755, "DevDiv")]
+        [WorkItem(537755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537755")]
         [Fact]
         public void PartialMethodsWithRefParams()
         {
@@ -1228,7 +1228,7 @@ public class C : B<int, long>
 
         #region Regressions
 
-        [WorkItem(527149, "DevDiv")]
+        [WorkItem(527149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527149")]
         [Fact]
         public void MethodWithParamsInParameters()
         {
@@ -1244,7 +1244,7 @@ public class C : B<int, long>
             Assert.Equal("void C.F1(params System.Int32[missing][] a)", f1.ToTestDisplayString());
         }
 
-        [WorkItem(537352, "DevDiv")]
+        [WorkItem(537352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537352")]
         [Fact]
         public void Arglist()
         {
@@ -1263,7 +1263,7 @@ public class C : B<int, long>
             Assert.Equal("System.Int32 AA.Method1(__arglist)", nts.GetMembers("Method1").Single().ToTestDisplayString());
         }
 
-        [WorkItem(537877, "DevDiv")]
+        [WorkItem(537877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537877")]
         [Fact]
         public void ExpImpInterfaceWithGlobal()
         {
@@ -1302,7 +1302,7 @@ namespace N2
             Assert.Equal("System.Int32 N1.I1.Method()", em1.ToTestDisplayString());
         }
 
-        [WorkItem(537877, "DevDiv")]
+        [WorkItem(537877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537877")]
         [Fact]
         public void BaseInterfaceNameWithAlias()
         {
@@ -1338,7 +1338,7 @@ namespace N2
             Assert.Equal("N1.I1", bt.ToTestDisplayString());
         }
 
-        [WorkItem(538209, "DevDiv")]
+        [WorkItem(538209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538209")]
         [Fact]
         public void ParameterAccessibility01()
         {
@@ -1377,7 +1377,7 @@ class MyClass
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
         }
 
-        [WorkItem(537877, "DevDiv")]
+        [WorkItem(537877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537877")]
         [Fact]
         public void MethodsWithSameSigDiffReturnType()
         {
@@ -1434,7 +1434,7 @@ class B : A
         }
         #endregion
 
-        [WorkItem(537401, "DevDiv")]
+        [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
         [Fact]
         public void MethodEscapedIdentifier()
         {
@@ -1717,7 +1717,7 @@ class C
             Assert.Equal(SpecialType.System_Void, staticConstructor.ReturnType.SpecialType);
         }
 
-        [WorkItem(541834, "DevDiv")]
+        [WorkItem(541834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]
         [Fact]
         public void AccessorMethodAccessorOverriding()
         {
@@ -1761,7 +1761,7 @@ public class C : B
             context.Diagnostics.Verify();
         }
 
-        [WorkItem(541834, "DevDiv")]
+        [WorkItem(541834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]
         [Fact]
         public void MethodAccessorMethodOverriding()
         {
@@ -1805,7 +1805,7 @@ public class C : B
             context.Diagnostics.Verify();
         }
 
-        [WorkItem(543444, "DevDiv")]
+        [WorkItem(543444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543444")]
         [Fact]
         public void BadArityInOperatorDeclaration()
         {
@@ -1834,7 +1834,7 @@ class B
             );
         }
 
-        [WorkItem(779441, "DevDiv")]
+        [WorkItem(779441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/779441")]
         [Fact]
         public void UserDefinedOperatorLocation()
         {
@@ -1855,7 +1855,7 @@ public class C
             Assert.Equal(parenPos, span.End);
         }
 
-        [WorkItem(779441, "DevDiv")]
+        [WorkItem(779441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/779441")]
         [Fact]
         public void UserDefinedConversionLocation()
         {
@@ -1875,7 +1875,7 @@ public class C
             Assert.Equal(keywordPos, span.Start);
             Assert.Equal(parenPos, span.End);
         }
-        [WorkItem(787708, "DevDiv")]
+        [WorkItem(787708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/787708")]
         [Fact]
         public void PartialAsyncMethodInTypeWithAttributes()
         {
@@ -1902,7 +1902,7 @@ partial class C
               Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M"));
         }
 
-        [WorkItem(910100, "DevDiv")]
+        [WorkItem(910100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910100")]
         [Fact]
         public void SubstitutedParameterEquality()
         {
@@ -1927,7 +1927,7 @@ class C
             Assert.NotSame(substitutedParameter1, substitutedParameter2);
         }
 
-        [WorkItem(910100, "DevDiv")]
+        [WorkItem(910100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910100")]
         [Fact]
         public void ReducedExtensionMethodParameterEquality()
         {

@@ -1,24 +1,50 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-// NOTE: This is a temporary internal copy of code that will be cut from System.Reflection.Metadata v1.1 and
-//       ship in System.Reflection.Metadata v1.2 (with breaking changes). Remove and use the public API when
-//       a v1.2 prerelease is available and code flow is such that we can start to depend on it.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Reflection.Metadata;
 
+#if SRM
+namespace System.Reflection.Metadata.Decoding
+#else
+
 namespace Roslyn.Reflection.Metadata.Decoding
+#endif
 {
-    internal interface ISignatureTypeProvider<TType> : ITypeProvider<TType>
+#if SRM && FUTURE
+    public
+#endif
+    internal interface ISignatureTypeProvider<TType> : IPrimitiveTypeProvider<TType>, ITypeProvider<TType>, IConstructedTypeProvider<TType>
     {
-        MetadataReader Reader { get; }
+        /// <summary>
+        /// Gets the a type symbol for the function pointer type of the given method signature.
+        /// </summary>
         TType GetFunctionPointerType(MethodSignature<TType> signature);
+
+        /// <summary>
+        /// Gets the type symbol for the generic method parameter at the given zero-based index.
+        /// </summary>
         TType GetGenericMethodParameter(int index);
+
+        /// <summary>
+        /// Gets the type symbol for the generic type parameter at the given zero-based index.
+        /// </summary>
         TType GetGenericTypeParameter(int index);
-        TType GetModifiedType(TType unmodifiedType, ImmutableArray<CustomModifier<TType>> customModifiers);
+
+        /// <summary>
+        /// Gets the type symbol for a type with a custom modifier applied.
+        /// </summary>
+        /// <param name="reader">The metadata reader that was passed to the <see cref="SignatureDecoder{TType}"/>. It may be null.</param>
+        /// <param name="isRequired">True if the modifier is required, false if it's optional.</param>
+        /// <param name="modifier">The modifier type applied. </param>
+        /// <param name="unmodifiedType">The type symbol of the underlying type without modifiers applied.</param>
+        TType GetModifiedType(MetadataReader reader, bool isRequired, TType modifier, TType unmodifiedType);
+
+        /// <summary>
+        /// Gets the type symbol for a local variable type that is marked as pinned.
+        /// </summary>
         TType GetPinnedType(TType elementType);
-        TType GetPrimitiveType(PrimitiveTypeCode typeCode);
-        TType GetTypeFromDefinition(TypeDefinitionHandle handle, bool? isValueType);
-        TType GetTypeFromReference(TypeReferenceHandle handle, bool? isValueType);
     }
 }

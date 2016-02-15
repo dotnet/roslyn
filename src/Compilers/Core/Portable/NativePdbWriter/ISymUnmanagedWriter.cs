@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 #pragma warning disable 436 // SuppressUnmanagedCodeSecurityAttribute defined in source and mscorlib 
+
 using System;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -109,7 +110,7 @@ namespace Microsoft.Cci
     /// The highest version of the interface available in Microsoft.DiaSymReader.Native.
     /// </summary>
     [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("22DAEAF2-70F6-4EF1-B0C3-984F0BF27BFD"), SuppressUnmanagedCodeSecurity]
-    interface ISymUnmanagedWriter7 : ISymUnmanagedWriter5
+    internal interface ISymUnmanagedWriter7 : ISymUnmanagedWriter5
     {
         //  ISymUnmanagedWriter, ISymUnmanagedWriter2, ISymUnmanagedWriter3, ISymUnmanagedWriter4, ISymUnmanagedWriter5
         void _VtblGap1_33();
@@ -131,7 +132,7 @@ namespace Microsoft.Cci
 
         void GetSignatureAge(out uint sig, out uint age);
     }
-    
+
     /// <summary>
     /// A struct with the same size and layout as the native VARIANT type:
     ///   2 bytes for a discriminator (i.e. which type of variant it is).

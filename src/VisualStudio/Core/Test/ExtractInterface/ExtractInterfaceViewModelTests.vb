@@ -111,7 +111,7 @@ namespace Outer
         End Function
 
         <Fact>
-        <WorkItem(716122), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122"), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_GeneratedNameIsGeneratedFromTrimmedInterfaceName() As Task
             Dim markup = <Text><![CDATA[
 namespace Ns
@@ -187,7 +187,7 @@ class $$MyClass
         End Function
 
         <Fact>
-        <WorkItem(716122), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122"), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_FileNameIsGeneratedFromTrimmedInterfaceName() As Task
             Dim markup = <Text><![CDATA[
 public class C$$
@@ -201,7 +201,7 @@ public class C$$
         End Function
 
         <Fact>
-        <WorkItem(716122), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122"), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_InterfaceNameIsTrimmedOnSubmit() As Task
             Dim markup = <Text><![CDATA[
 public class C$$
@@ -216,7 +216,7 @@ public class C$$
         End Function
 
         <Fact>
-        <WorkItem(716122), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122"), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_FileNameIsTrimmedOnSubmit() As Task
             Dim markup = <Text><![CDATA[
 public class C$$
@@ -462,7 +462,7 @@ public class $$MyClass
                 </Project>
             </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml)
                 Dim doc = workspace.Documents.Single()
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
                 If (Not doc.CursorPosition.HasValue) Then

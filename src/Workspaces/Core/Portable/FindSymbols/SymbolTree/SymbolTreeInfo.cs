@@ -54,55 +54,92 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public int Count => _nodes.Count;
 
+        public Task<IEnumerable<ISymbol>> FindAsync(SearchQuery query, IAssemblySymbol assembly, CancellationToken cancellationToken)
+        {
+            return FindAsync(query, new AsyncLazy<IAssemblySymbol>(assembly), cancellationToken);
+        }
+
+        public Task<IEnumerable<ISymbol>> FindAsync(SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, CancellationToken cancellationToken)
+        {
+            // If the query has a specific string provided, then call into the SymbolTreeInfo
+            // helpers optimized for lookup based on an exact name.
+            switch (query.Kind)
+            {
+                case SearchKind.Exact:
+                    return this.FindAsync(lazyAssembly, query.Name, ignoreCase: false, cancellationToken: cancellationToken);
+                case SearchKind.ExactIgnoreCase:
+                    return this.FindAsync(lazyAssembly, query.Name, ignoreCase: true, cancellationToken: cancellationToken);
+                case SearchKind.Fuzzy:
+                    return this.FuzzyFindAsync(lazyAssembly, query.Name, cancellationToken);
+                case SearchKind.Custom:
+                    // Otherwise, we'll have to do a slow linear search over all possible symbols.
+                    return this.FindAsync(lazyAssembly, query.GetPredicate(), cancellationToken);
+            }
+
+            throw new InvalidOperationException();
+        }
+
         /// <summary>
         /// Finds symbols in this assembly that match the provided name in a fuzzy manner.
         /// </summary>
-        public IEnumerable<ISymbol> FuzzyFind(IAssemblySymbol assembly, string name, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ISymbol>> FuzzyFindAsync(AsyncLazy<IAssemblySymbol> lazyAssembly, string name, CancellationToken cancellationToken)
         {
             var similarNames = _spellChecker.FindSimilarWords(name);
-            return similarNames.SelectMany(n => Find(assembly, n, ignoreCase: true, cancellationToken: cancellationToken));
+            var result = new List<ISymbol>();
+
+            foreach (var similarName in similarNames)
+            {
+                var symbols = await FindAsync(lazyAssembly, similarName, ignoreCase: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                result.AddRange(symbols);
+            }
+
+            return result;
         }
 
         /// <summary>
         /// Get all symbols that have a name matching the specified name.
         /// </summary>
-        public IEnumerable<ISymbol> Find(
-            IAssemblySymbol assembly,
+        public async Task<IEnumerable<ISymbol>> FindAsync(
+            AsyncLazy<IAssemblySymbol> lazyAssembly,
             string name,
             bool ignoreCase,
             CancellationToken cancellationToken)
         {
             var comparer = GetComparer(ignoreCase);
+            var result = new List<ISymbol>();
+            IAssemblySymbol assemblySymbol = null;
 
             foreach (var node in FindNodes(name, comparer))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                foreach (var symbol in Bind(node, assembly.GlobalNamespace, cancellationToken))
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    yield return symbol;
-                }
+                assemblySymbol = assemblySymbol ?? await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+                result.AddRange(Bind(node, assemblySymbol.GlobalNamespace, cancellationToken));
             }
+
+            return result;
         }
 
         /// <summary>
         /// Slow, linear scan of all the symbols in this assembly to look for matches.
         /// </summary>
-        public IEnumerable<ISymbol> Find(IAssemblySymbol assembly, Func<string, bool> predicate, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ISymbol>> FindAsync(AsyncLazy<IAssemblySymbol> lazyAssembly, Func<string, bool> predicate, CancellationToken cancellationToken)
         {
+            var result = new List<ISymbol>();
+            IAssemblySymbol assembly = null;
             for (int i = 0, n = _nodes.Count; i < n; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var node = _nodes[i];
                 if (predicate(node.Name))
                 {
-                    foreach (var symbol in Bind(i, assembly.GlobalNamespace, cancellationToken))
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        yield return symbol;
-                    }
+                    assembly = assembly ?? await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+                    result.AddRange(Bind(i, assembly.GlobalNamespace, cancellationToken));
                 }
             }
+
+            return result;
         }
 
         private static StringComparer GetComparer(bool ignoreCase)
@@ -160,7 +197,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 int mid = min + ((max - min) >> 1);
 
-                var comparison =  s_caseInsensitiveComparer.Compare(_nodes[mid].Name, name);
+                var comparison = s_caseInsensitiveComparer.Compare(_nodes[mid].Name, name);
                 if (comparison < 0)
                 {
                     min = mid + 1;
@@ -193,13 +230,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim> s_metadataIdToGate = new ConditionalWeakTable<MetadataId, SemaphoreSlim>();
         private static readonly ConditionalWeakTable<MetadataId, SymbolTreeInfo> s_metadataIdToInfo = new ConditionalWeakTable<MetadataId, SymbolTreeInfo>();
 
-        private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim>.CreateValueCallback s_metadataIdToGateCallback = 
+        private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim>.CreateValueCallback s_metadataIdToGateCallback =
             _ => new SemaphoreSlim(1);
 
         /// <summary>
         /// this gives you SymbolTreeInfo for a metadata
         /// </summary>
-        public static async Task<SymbolTreeInfo> TryGetInfoForAssemblyAsync(Solution solution, IAssemblySymbol assembly, PortableExecutableReference reference, CancellationToken cancellationToken)
+        public static async Task<SymbolTreeInfo> TryGetInfoForMetadataAssemblyAsync(
+            Solution solution,
+            IAssemblySymbol assembly,
+            PortableExecutableReference reference,
+            bool loadOnly,
+            CancellationToken cancellationToken)
         {
             var metadata = assembly.GetMetadata();
             if (metadata == null)
@@ -220,9 +262,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return info;
                 }
 
-                info = await LoadOrCreateAsync(solution, assembly, reference.FilePath, cancellationToken).ConfigureAwait(false);
+                info = await LoadOrCreateAsync(solution, assembly, reference.FilePath, loadOnly, cancellationToken).ConfigureAwait(false);
+                if (info == null && loadOnly)
+                {
+                    return null;
+                }
+
                 return s_metadataIdToInfo.GetValue(metadata.Id, _ => info);
             }
+        }
+
+        public static async Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
+            Project project, CancellationToken cancellationToken)
+        {
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+            return await LoadOrCreateAsync(
+                project.Solution, compilation.Assembly, project.FilePath, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         internal static SymbolTreeInfo Create(VersionStamp version, IAssemblySymbol assembly, CancellationToken cancellationToken)
@@ -308,7 +364,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             list.Add(node);
 
             // Add all child members
-            var memberLookup = GetMembers(globalNamespace).ToLookup(c => c.Name);
+            var memberLookup = s_getMembers(globalNamespace).ToLookup(c => c.Name);
 
             foreach (var grouping in memberLookup)
             {
@@ -316,7 +372,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static readonly Func<ISymbol, bool> UseSymbol = 
+        private static readonly Func<ISymbol, bool> s_useSymbol =
             s => s.CanBeReferencedByName && s.DeclaredAccessibility != Accessibility.Private;
 
         // generate nodes for symbols that share the same name, and all their descendants
@@ -327,7 +383,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             list.Add(node);
 
             // Add all child members
-            var membersByName = symbolsWithSameName.SelectMany(GetMembers).ToLookup(s => s.Name);
+            var membersByName = symbolsWithSameName.SelectMany(s_getMembers).ToLookup(s => s.Name);
 
             foreach (var grouping in membersByName)
             {
@@ -335,11 +391,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static Func<ISymbol, IEnumerable<ISymbol>> GetMembers = symbol =>
+        private static Func<ISymbol, IEnumerable<ISymbol>> s_getMembers = symbol =>
         {
             var nt = symbol as INamespaceOrTypeSymbol;
-            return nt != null 
-                ? nt.GetMembers().Where(UseSymbol)
+            return nt != null
+                ? nt.GetMembers().Where(s_useSymbol)
                 : SpecializedCollections.EmptyEnumerable<ISymbol>();
         };
 

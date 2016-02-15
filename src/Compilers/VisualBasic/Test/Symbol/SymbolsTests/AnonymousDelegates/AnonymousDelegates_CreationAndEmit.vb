@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.AnonymousDelegates
     Public Class CreationAndEmit : Inherits BasicTestBase
 
         <Fact>
-        <WorkItem(1024401)>
+        <WorkItem(1024401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024401")>
         Public Sub DebuggerDisplayAttributeWithNoTypeMember()
             Dim src = "
 Module Test

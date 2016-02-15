@@ -126,6 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return e.Option.Feature == SimplificationOptions.PerLanguageFeatureName ||
                        e.Option.Feature == SimplificationOptions.NonPerLanguageFeatureName ||
                        e.Option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic ||
+                       e.Option == RuntimeOptions.FullSolutionAnalysis ||
                        e.Option == InternalDiagnosticsOptions.UseDiagnosticEngineV2 ||
                        Analyzer.NeedsReanalysisOnOptionChanged(sender, e);
             }

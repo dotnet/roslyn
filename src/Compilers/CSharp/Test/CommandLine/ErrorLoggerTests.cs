@@ -46,7 +46,7 @@ class C
 
             var expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd);
             var expectedIssues = @"
-      ""issues"": [
+      ""results"": [
       ]
     }
   ]
@@ -85,9 +85,10 @@ public class C
 
             var expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd);
             var expectedIssues = string.Format(@"
-      ""issues"": [
+      ""results"": [
         {{
           ""ruleId"": ""CS0169"",
+          ""kind"": ""warning"",
           ""locations"": [
             {{
               ""analysisTarget"": [
@@ -104,29 +105,37 @@ public class C
             }}
           ],
           ""fullMessage"": ""The field 'C.x' is never used"",
+          ""isSuppressedInSource"": false,
+          ""tags"": [
+            ""Compiler"",
+            ""Telemetry""
+          ],
           ""properties"": {{
             ""severity"": ""Warning"",
             ""warningLevel"": ""3"",
             ""defaultSeverity"": ""Warning"",
             ""title"": ""Field is never used"",
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True"",
-            ""isSuppressedInSource"": ""False"",
-            ""customTags"": ""Compiler;Telemetry""
+            ""isEnabledByDefault"": ""True""
           }}
         }},
         {{
           ""ruleId"": ""CS5001"",
+          ""kind"": ""error"",
           ""locations"": [
           ],
           ""fullMessage"": ""Program does not contain a static 'Main' method suitable for an entry point"",
+          ""isSuppressedInSource"": false,
+          ""tags"": [
+            ""Compiler"",
+            ""Telemetry"",
+            ""NotConfigurable""
+          ],
           ""properties"": {{
             ""severity"": ""Error"",
             ""defaultSeverity"": ""Error"",
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True"",
-            ""isSuppressedInSource"": ""False"",
-            ""customTags"": ""Compiler;Telemetry;NotConfigurable""
+            ""isEnabledByDefault"": ""True""
           }}
         }}
       ]
@@ -171,9 +180,10 @@ public class C
 
             var expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd);
             var expectedIssues = string.Format(@"
-      ""issues"": [
+      ""results"": [
         {{
           ""ruleId"": ""CS0169"",
+          ""kind"": ""warning"",
           ""locations"": [
             {{
               ""analysisTarget"": [
@@ -190,29 +200,37 @@ public class C
             }}
           ],
           ""fullMessage"": ""The field 'C.x' is never used"",
+          ""isSuppressedInSource"": true,
+          ""tags"": [
+            ""Compiler"",
+            ""Telemetry""
+          ],
           ""properties"": {{
             ""severity"": ""Warning"",
             ""warningLevel"": ""3"",
             ""defaultSeverity"": ""Warning"",
             ""title"": ""Field is never used"",
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True"",
-            ""isSuppressedInSource"": ""True"",
-            ""customTags"": ""Compiler;Telemetry""
+            ""isEnabledByDefault"": ""True""
           }}
         }},
         {{
           ""ruleId"": ""CS5001"",
+          ""kind"": ""error"",
           ""locations"": [
           ],
           ""fullMessage"": ""Program does not contain a static 'Main' method suitable for an entry point"",
+          ""isSuppressedInSource"": false,
+          ""tags"": [
+            ""Compiler"",
+            ""Telemetry"",
+            ""NotConfigurable""
+          ],
           ""properties"": {{
             ""severity"": ""Error"",
             ""defaultSeverity"": ""Error"",
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True"",
-            ""isSuppressedInSource"": ""False"",
-            ""customTags"": ""Compiler;Telemetry;NotConfigurable""
+            ""isEnabledByDefault"": ""True""
           }}
         }}
       ]
@@ -255,7 +273,7 @@ public class C
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
 
             var expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd);
-            var expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogIssuesText(cmd.Compilation);
+            var expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogResultsText(cmd.Compilation);
             var expectedText = expectedHeader + expectedIssues;
             Assert.Equal(expectedText, actualOutput);
 

@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
             Dim source As String = Nothing
             MarkupTestFile.GetPositionAndSpan(markup.NormalizedValue, source, position, expectedSpan)
 
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(source)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source)
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First
                 Dim result As BreakpointResolutionResult = Await VisualBasicBreakpointResolutionService.GetBreakpointAsync(document, position.Value, length, CancellationToken.None)
                 Assert.True(expectedSpan.Value = result.TextSpan,
@@ -33,7 +33,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
             End Using
         End Function
 
-        <WorkItem(876520)>
+        <WorkItem(876520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876520")>
         <Fact>
         Public Async Function TestBreakpointSpansMultipleMethods() As Task
             ' Normal case: debugger passing BP spans "sub Foo() end sub"

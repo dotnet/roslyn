@@ -255,7 +255,7 @@ End Class
 
         End Sub
 
-        <WorkItem(542725)>
+        <WorkItem(542725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542725")>
         <Fact>
         Public Sub M2MMultiTargetingMsCorLib02()
 
@@ -330,7 +330,7 @@ End Class
 
         End Sub
 
-        <WorkItem(542992)>
+        <WorkItem(542992, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542992")>
         <Fact>
         Public Sub M2MMultiTargetingMsCorLib03()
 

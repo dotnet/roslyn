@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color : long { Red = 0x7FFFFFFFFFFFFFFF , Blue = 0x8000000000000000 } ");
         }
 
-        [WorkItem(528312)]
+        [WorkItem(528312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528312")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterEnumWithLongMinValueInHex()
         {
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color : long { Red = 0xFFFFFFFFFFFFFFFF , Blue} ");
         }
 
-        [WorkItem(528312)]
+        [WorkItem(528312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528312")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterPositiveLongInHex()
         {
@@ -445,7 +445,7 @@ enum Weekday
 compareTokens: false);
         }
 
-        [WorkItem(540919)]
+        [WorkItem(540919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540919")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestKeyword()
         {
@@ -454,7 +454,7 @@ compareTokens: false);
 @"class Program { static void Main ( string [ ] args ) { Color . @enum ; } } enum Color { Red , @enum } ");
         }
 
-        [WorkItem(544333)]
+        [WorkItem(544333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544333")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestNotAfterPointer()
         {
@@ -507,7 +507,7 @@ class Program
 }");
         }
 
-        [WorkItem(545903)]
+        [WorkItem(545903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545903")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestNoOctal()
         {
@@ -516,7 +516,7 @@ class Program
 @"enum E { A = 007 , B = 8 , } class C { E x = E . B ; } ");
         }
 
-        [WorkItem(546654)]
+        [WorkItem(546654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546654")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestLastValueDoesNotHaveInitializer()
         {

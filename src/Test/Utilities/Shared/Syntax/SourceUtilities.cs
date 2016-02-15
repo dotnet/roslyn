@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Generic;
@@ -6,20 +7,20 @@ using System.Text;
 
 namespace Roslyn.Test.Utilities.Syntax
 {
-    internal sealed class RandomizedSourceText: SourceText
+    internal sealed class RandomizedSourceText : SourceText
     {
-        private char[] buffer = new char[2048];
+        private char[] _buffer = new char[2048];
 
         public RandomizedSourceText()
         {
             var random = new Random(12345);
-            for (var i = 0; i < buffer.Length; i++)
+            for (var i = 0; i < _buffer.Length; i++)
             {
-                buffer[i] = (char)random.Next();
+                _buffer[i] = (char)random.Next();
             }
         }
 
-        public override char this[int position] => buffer[position % buffer.Length];
+        public override char this[int position] => _buffer[position % _buffer.Length];
 
         public override Encoding Encoding => Encoding.UTF8;
 

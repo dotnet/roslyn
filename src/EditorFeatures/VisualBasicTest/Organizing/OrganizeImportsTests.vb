@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.OrganizeImports
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
     Public Class OrganizeImportsTests
         Private Async Function CheckAsync(initial As XElement, final As XElement, specialCaseSystem As Boolean) As Threading.Tasks.Task
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(initial.NormalizedValue)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(initial.NormalizedValue)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Dim newRoot = Await (Await OrganizeImportsService.OrganizeImportsAsync(document, specialCaseSystem)).GetSyntaxRootAsync()
 
@@ -530,7 +530,7 @@ Imports SystemZ
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        <WorkItem(538367)>
+        <WorkItem(538367, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538367")>
         Public Async Function TestXml() As Task
             Dim initial =
 <content><![CDATA[Imports System

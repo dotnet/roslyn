@@ -41,7 +41,7 @@ class Bar : IFoo
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
-        [WorkItem(709988)]
+        [WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitOnNotParen()
         {
@@ -70,7 +70,7 @@ class Bar : IFoo
             await VerifyProviderCommitAsync(markup, "Foo()", expected, null, "");
         }
 
-        [WorkItem(709988)]
+        [WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitOnParen()
         {

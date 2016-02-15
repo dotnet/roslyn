@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+extern alias csc;
+extern alias vbc;
+
 using Microsoft.CodeAnalysis.CommandLine;
 using System;
 using System.Collections.Generic;
@@ -10,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
@@ -172,6 +176,36 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             var response = await Send(pipeName, BuildRequest.CreateShutdown());
             return ((ShutdownBuildResponse)response).ServerProcessId;
+        }
+
+        internal static DesktopBuildClient CreateBuildClient(
+            RequestLanguage language,
+            CompileFunc compileFunc = null,
+            TextWriter textWriter = null,
+            IAnalyzerAssemblyLoader analyzerAssemblyLoader = null)
+        {
+            compileFunc = compileFunc ?? GetCompileFunc(language);
+            textWriter = textWriter ?? new StringWriter();
+            analyzerAssemblyLoader = analyzerAssemblyLoader ?? new Mock<IAnalyzerAssemblyLoader>(MockBehavior.Strict).Object;
+            return new DesktopBuildClient(language, compileFunc, analyzerAssemblyLoader);
+        }
+
+        internal static CompileFunc GetCompileFunc(RequestLanguage language)
+        {
+            Func<string[], string, string, string, TextWriter, IAnalyzerAssemblyLoader, int> func;
+            switch (language)
+            {
+                case RequestLanguage.CSharpCompile:
+                    func = csc.Microsoft.CodeAnalysis.CSharp.CommandLine.Program.Run;
+                    break;
+                case RequestLanguage.VisualBasicCompile:
+                    func = vbc.Microsoft.CodeAnalysis.VisualBasic.CommandLine.Program.Run;
+                    break;
+                default:
+                    throw new InvalidOperationException();
+            }
+
+            return (args, buildPaths, textWriter, loader) => func(args, buildPaths.ClientDirectory, buildPaths.WorkingDirectory, buildPaths.SdkDirectory, textWriter, loader);
         }
 
         private static async Task<int> CreateServerFailsConnectionCore(string pipeName, CancellationToken cancellationToken)

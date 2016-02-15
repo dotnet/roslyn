@@ -82,7 +82,7 @@ public interface i
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
-        <WorkItem(737021)>
+        <WorkItem(737021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737021")>
         Public Async Function TestGenerateEventInCSharpFileFromHandles() As Task
             Dim input =
         <Workspace>

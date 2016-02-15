@@ -311,7 +311,7 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "Program.Foo")
         End Function
 
-        <WorkItem(954694)>
+        <WorkItem(954694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954694")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAnyAccessibleMember() As Task
             Dim markup = <Text><![CDATA[
@@ -332,7 +332,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(815963)>
+        <WorkItem(815963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815963")>
         Public Async Function TestLocalNoAs() As Task
             Dim markup = <Text><![CDATA[
 Enum E

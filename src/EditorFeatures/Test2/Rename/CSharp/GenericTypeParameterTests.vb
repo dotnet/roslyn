@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class GenericTypeParameterTests
-        <WorkItem(403671)>
+        <WorkItem(403671, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/403671")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CustomerReported_ErrorTolerance()
             Using result = RenameEngineResult.Create(

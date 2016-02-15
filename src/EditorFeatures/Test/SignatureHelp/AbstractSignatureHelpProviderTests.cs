@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
         protected async Task VerifyItemWithReferenceWorkerAsync(string xmlString, IEnumerable<SignatureHelpTestItem> expectedOrderedItems, bool hideAdvancedMembers)
         {
-            using (var testWorkspace = await TestWorkspaceFactory.CreateWorkspaceAsync(xmlString))
+            using (var testWorkspace = await TestWorkspace.CreateAsync(xmlString))
             {
                 var optionsService = testWorkspace.Services.GetService<IOptionService>();
                 var cursorPosition = testWorkspace.Documents.First(d => d.Name == "SourceDocument").CursorPosition.Value;
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
     </Project>
 </Workspace>", sourceLanguage, SecurityElement.Escape(markup));
 
-            using (var testWorkspace = await TestWorkspaceFactory.CreateWorkspaceAsync(xmlString))
+            using (var testWorkspace = await TestWorkspace.CreateAsync(xmlString))
             {
                 var cursorPosition = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
                 var documentId = testWorkspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return substitutedReferencedType.Is(_referencedType) ?
                        TypeSymbolWithAnnotations.Create(this) : 
                        substitutedReferencedType.Update(new ByRefReturnErrorTypeSymbol(substitutedReferencedType.TypeSymbol, _countOfCustomModifiersPrecedingByRef),
-                                                        substitutedReferencedType.CustomModifiers);
+                                             substitutedReferencedType.CustomModifiers);
         }
 
         internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)

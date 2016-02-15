@@ -385,7 +385,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Show diagnostics for closed _files.
+        ///   Looks up a localized string similar to Enable full solution _analysis.
         /// </summary>
         internal static string Option_ClosedFileDiagnostics {
             get {
@@ -480,6 +480,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Option_Highlighting {
             get {
                 return ResourceManager.GetString("Option_Highlighting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Insert * at the start of new lines when writing /* */ comments.
+        /// </summary>
+        internal static string Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments {
+            get {
+                return ResourceManager.GetString("Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments", resourceCulture);
             }
         }
         
@@ -808,7 +817,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Insert space within empty argument list parentheses.
+        ///   Looks up a localized string similar to Insert space within empty parameter list parentheses.
         /// </summary>
         internal static string SpaceBetweenEmptyMethodDeclarationParentheses {
             get {
@@ -862,7 +871,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Insert space within argument list parentheses.
+        ///   Looks up a localized string similar to Insert space within parameter list parentheses.
         /// </summary>
         internal static string SpaceWithinMethodDeclarationParenthesis {
             get {

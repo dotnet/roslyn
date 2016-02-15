@@ -306,7 +306,7 @@ class C
             var interfaceI3 = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I3");
             var typeIntArrayWithCustomModifiers = interfaceI3.GetMember<MethodSymbol>("M1").Parameters.Single().Type.TypeSymbol;
 
-            Assert.True(typeIntArrayWithCustomModifiers.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds:false));
+            Assert.True(typeIntArrayWithCustomModifiers.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false));
 
             var conv = new BuckStopsHereBinder(compilation).Conversions;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -321,8 +321,8 @@ class C
             Assert.Equal(ConversionKind.Identity, conv.ClassifyConversion(typeIntArrayWithCustomModifiers, typeIntArrayWithCustomModifiers, ref useSiteDiagnostics).Kind);
         }
 
-        [WorkItem(529056, "DevDiv")]
-        [WorkItem(529056, "DevDiv")]
+        [WorkItem(529056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529056")]
+        [WorkItem(529056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529056")]
         [Fact()]
         public void TestConversion_ParenthesizedExpression()
         {
@@ -346,7 +346,7 @@ public class Program
             Assert.Equal(ConversionKind.Identity, tuple.Item2.ClassifyConversion(tuple.Item1, comp.GetSpecialType(SpecialType.System_Boolean)).Kind);
         }
 
-        [WorkItem(544571, "DevDiv")]
+        [WorkItem(544571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544571")]
         [Fact]
         public void TestClassifyConversion()
         {
@@ -556,7 +556,7 @@ class Program
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(542540, "DevDiv")]
+        [WorkItem(542540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542540")]
         [Fact]
         public void TestMethodGroupConversionWithOptionalParameter()
         {
@@ -575,7 +575,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "foo").WithArguments("foo", "System.Action"));
         }
 
-        [WorkItem(543119, "DevDiv")]
+        [WorkItem(543119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543119")]
         [Fact]
         public void TestConversion_IntToNullableShort()
         {
@@ -594,7 +594,7 @@ class C
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(543450, "DevDiv")]
+        [WorkItem(543450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543450")]
         [Fact()]
         public void TestConversion_IntToByte()
         {
@@ -1201,7 +1201,7 @@ class C
                 );
         }
 
-        [WorkItem(529568, "DevDiv")]
+        [WorkItem(529568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529568")]
         [Fact()]
         public void AmbiguousConversions()
         {
@@ -1516,7 +1516,7 @@ public class Test {
                 );
         }
 
-        [WorkItem(545361, "DevDiv")]
+        [WorkItem(545361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545361")]
         [ClrOnlyFact]
         public void NullableIntToStructViaDecimal()
         {
@@ -1615,7 +1615,7 @@ public struct S
             CompileAndVerify(source, expectedOutput: @"1ttt");
         }
 
-        [WorkItem(545471, "DevDiv")]
+        [WorkItem(545471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545471")]
         [ClrOnlyFact]
         public void CheckedConversionsInExpressionTrees()
         {
@@ -1664,7 +1664,7 @@ namespace ExpressionTest
 ");
         }
 
-        [WorkItem(647055, "DevDiv")]
+        [WorkItem(647055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/647055")]
         [Fact]
         public void AmbiguousImplicitExplicitUserDefined()
         {
@@ -1717,7 +1717,7 @@ class C<T>
             AssertEx.SetEqual(elementConversion.OriginalUserDefinedConversions, conversionSymbols);
         }
 
-        [WorkItem(715207, "DevDiv")]
+        [WorkItem(715207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715207")]
         [ClrOnlyFact]
         public void LiftingReturnTypeOfExplicitUserDefinedConversion()
         {
@@ -1748,7 +1748,7 @@ struct BigInteger
 ");
         }
 
-        [WorkItem(737732, "DevDiv")]
+        [WorkItem(737732, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737732")]
         [Fact]
         public void ConsiderSourceExpressionWhenDeterminingBestUserDefinedConversion()
         {
@@ -1782,7 +1782,7 @@ public class Test
             Assert.Equal(SpecialType.System_Byte, method.ParameterTypes.Single().SpecialType);
         }
 
-        [WorkItem(737732, "DevDiv")]
+        [WorkItem(737732, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737732")]
         [Fact]
         public void Repro737732()
         {
@@ -1816,7 +1816,7 @@ public struct C
             Assert.Equal(SpecialType.System_Byte, method.ParameterTypes.Single().SpecialType);
         }
 
-        [WorkItem(742345, "DevDiv")]
+        [WorkItem(742345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742345")]
         [ClrOnlyFact]
         public void MethodGroupConversion_ContravarianceAndDynamic()
         {
@@ -1839,7 +1839,7 @@ public class C
             CompileAndVerify(source, new[] { SystemCoreRef }, expectedOutput: "B");
         }
 
-        [WorkItem(742345, "DevDiv")]
+        [WorkItem(742345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742345")]
         [Fact]
         public void MethodGroupConversion_CovarianceAndDynamic()
         {
@@ -1869,7 +1869,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_BadRetType, "F").WithArguments("C.F()", "dynamic"));
         }
 
-        [WorkItem(737971, "DevDiv")]
+        [WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
         [Fact]
         public void ConversionsFromExpressions()
         {

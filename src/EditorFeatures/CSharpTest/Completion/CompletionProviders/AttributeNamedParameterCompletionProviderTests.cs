@@ -107,7 +107,7 @@ public class TestAttribute : Attribute
             await VerifyItemExistsAsync(markup, "Text =");
         }
 
-        [WorkItem(544345)]
+        [WorkItem(544345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544345")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExistingItemsAreFiltered()
         {
@@ -169,7 +169,7 @@ class Foo
             await VerifyItemExistsAsync(markup, "a:");
         }
 
-        [WorkItem(545426)]
+        [WorkItem(545426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545426")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestPropertiesInScript()
         {
@@ -192,7 +192,7 @@ class Foo
             await VerifyItemExistsAsync(markup, "Text =");
         }
 
-        [WorkItem(1075278)]
+        [WorkItem(1075278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075278")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInComment()
         {

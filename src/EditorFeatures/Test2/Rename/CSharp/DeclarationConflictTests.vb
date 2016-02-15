@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class DeclarationConflictTests
 
         <WpfFact(Skip:="917043")>
-        <WorkItem(917043)>
+        <WorkItem(917043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917043")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictForDelegate()
             Using result = RenameEngineResult.Create(
@@ -28,7 +28,7 @@ class C
         End Sub
 
         <WpfFact(Skip:="917043")>
-        <WorkItem(917043)>
+        <WorkItem(917043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917043")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictForIsolatedScopes()
             Using result = RenameEngineResult.Create(
@@ -210,7 +210,7 @@ class Foo
         End Sub
 
         <Fact>
-        <WorkItem(546429)>
+        <WorkItem(546429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546429")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictWithNamespaceDefinedInMetadata()
             Using result = RenameEngineResult.Create(
@@ -241,7 +241,7 @@ namespace N1 { }
             End Using
         End Sub
 
-        <WorkItem(608198)>
+        <WorkItem(608198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608198")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_ConflictInFieldInitializerOfFieldAndModuleNameResolvedThroughFullQualification()
@@ -272,7 +272,7 @@ class [|$$C|]
             End Using
         End Sub
 
-        <WorkItem(543654)>
+        <WorkItem(543654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543654")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_NoConflictBetweenLambdaParameterAndField()
@@ -292,7 +292,7 @@ class Program
             End Using
         End Sub
 
-        <WorkItem(529986)>
+        <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_ConflictBetweenTypeParametersInTypeDeclaration()
@@ -313,7 +313,7 @@ class Program<{|declconflict:A|}, [|$$B|]>
             End Using
         End Sub
 
-        <WorkItem(529986)>
+        <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_ConflictBetweenTypeParametersInMethodDeclaration()
@@ -336,7 +336,7 @@ class Program
             End Using
         End Sub
 
-        <WorkItem(529986)>
+        <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_ConflictBetweenTypeParametersInMethodDeclaration_2()
@@ -359,7 +359,7 @@ class Program
             End Using
         End Sub
 
-        <WorkItem(529986)>
+        <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_ConflictBetweenTypeParameterAndMember_1()
@@ -382,7 +382,7 @@ class Program<{|declconflict:@a|}>
             End Using
         End Sub
 
-        <WorkItem(529986)>
+        <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_ConflictBetweenTypeParameterAndMember_2()
@@ -404,7 +404,7 @@ class Program<{|declconflict:@a|}>
             End Using
         End Sub
 
-        <WorkItem(658801)>
+        <WorkItem(658801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658801")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_OverridingImplicitlyUsedMethod()
@@ -445,7 +445,7 @@ class C : A
             End Using
         End Sub
 
-        <WorkItem(682669)>
+        <WorkItem(682669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682669")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_OverridingImplicitlyUsedMethod_1()
@@ -485,7 +485,7 @@ class C : A
             End Using
         End Sub
 
-        <WorkItem(682669)>
+        <WorkItem(682669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682669")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_OverridingImplicitlyUsedMethod_2()
@@ -524,7 +524,7 @@ class C : A
             End Using
         End Sub
 
-        <WorkItem(851604)>
+        <WorkItem(851604, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/851604")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictInsideAttributeArgument()
             Using result = RenameEngineResult.Create(

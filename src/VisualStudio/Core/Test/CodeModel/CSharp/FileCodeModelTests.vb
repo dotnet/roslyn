@@ -100,7 +100,7 @@ class FooAttribute : System.Attribute
             End Using
         End Function
 
-        <WorkItem(150349)>
+        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function NoChildrenForInvalidMembers() As Task
             Dim code =
@@ -955,7 +955,7 @@ class $$C
 
 #End Region
 
-        <WorkItem(921220)>
+        <WorkItem(921220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/921220")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestClosedDocument() As Task
             Dim code =
@@ -1009,7 +1009,7 @@ class D
 </Workspace>
 
             Using originalWorkspaceAndFileCodeModel = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(oldCode))
-                Using changedworkspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(changedDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+                Using changedworkspace = Await TestWorkspace.CreateAsync(changedDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
 
                     Dim originalDocument = originalWorkspaceAndFileCodeModel.Workspace.CurrentSolution.GetDocument(originalWorkspaceAndFileCodeModel.Workspace.Documents(0).Id)
                     Dim originalTree = Await originalDocument.GetSyntaxTreeAsync()
@@ -1032,7 +1032,7 @@ class D
             End Using
         End Function
 
-        <WorkItem(925569)>
+        <WorkItem(925569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925569")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestChangeClassNameAndGetNameOfChildFunction() As Task
             Dim code =
@@ -1059,7 +1059,7 @@ class C
                 End Sub)
         End Function
 
-        <WorkItem(858153)>
+        <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCodeElements_PropertyAccessor() As Task
             Dim code =
@@ -1112,7 +1112,7 @@ class C
                 End Sub)
         End Function
 
-        <WorkItem(858153)>
+        <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCodeElements_EventAccessor() As Task
             Dim code =

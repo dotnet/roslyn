@@ -395,11 +395,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
             }
 
-            SharedPools.Default<StringBuilder>().ClearAndFree(namespaceName);
-            SharedPools.Default<StringBuilder>().ClearAndFree(className);
-
             // TODO: Make sure we pass the right value for Visual Basic.
             ppNavInfo = this.LibraryService.NavInfoFactory.Create(libraryName, referenceOwnerName, namespaceName.ToString(), className.ToString(), memberName);
+
+            SharedPools.Default<StringBuilder>().ClearAndFree(namespaceName);
+            SharedPools.Default<StringBuilder>().ClearAndFree(className);
 
             return VSConstants.S_OK;
         }

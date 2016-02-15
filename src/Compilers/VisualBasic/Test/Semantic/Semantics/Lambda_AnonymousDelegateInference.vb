@@ -587,7 +587,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543286, "DevDiv")>
+        <WorkItem(543286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543286")>
         <Fact()>
         Public Sub AnonDelegateReturningLambdaWithGenericType()
             Dim compilationDef =

@@ -50,7 +50,9 @@
     <Compile Include="..\..\Shared\SimpleAnalyzerAssemblyLoader.cs">
       <Link>SimpleAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="Vbc.cs" />
+    <Compile Include="..\..\Shared\Vbc.cs">
+      <Link>Vbc.cs</Link>
+    </Compile>
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>

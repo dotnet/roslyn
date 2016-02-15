@@ -210,7 +210,7 @@ static class Module1
             Assert.Equal(2, references.ElementAt(0).Locations.Count());
         }
 
-        [Fact, WorkItem(537936, "DevDiv")]
+        [Fact, WorkItem(537936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537936")]
         public async Task FindReferences_InterfaceMapping()
         {
             var text = @"

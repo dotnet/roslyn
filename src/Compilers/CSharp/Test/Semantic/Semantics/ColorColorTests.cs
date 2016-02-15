@@ -139,7 +139,7 @@ class F
                 SymbolKind.Method, "void E.M(System.Int32 x)");
         }
 
-        [WorkItem(542642, "DevDiv")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestNonInitializedLocalOnLeft()
         {
@@ -282,7 +282,7 @@ class F
             );
         }
 
-        [WorkItem(542407, "DevDiv")]
+        [WorkItem(542407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542407")]
         [Fact]
         public void TestClassOnRight()
         {
@@ -595,7 +595,7 @@ class F
 
         #endregion Aliases
 
-        [WorkItem(864605, "DevDiv")]
+        [WorkItem(864605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864605")]
         [Fact]
         public void TestTypeOrValueInMethodGroupIsExpression()
         {
@@ -720,7 +720,7 @@ class Program
             Assert.NotNull(info);
         }
 
-        [WorkItem(542642, "DevDiv")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestAliasNameCollisionMemberNameMatchesAlias01()
         {
@@ -759,7 +759,7 @@ class F
 );
         }
 
-        [WorkItem(542642, "DevDiv")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestAliasNameCollisionMemberNameMatchesAlias02()
         {
@@ -798,7 +798,7 @@ class F
 );
         }
 
-        [WorkItem(542642, "DevDiv")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestAliasNameCollisionMemberNameMatchesDefinition01()
         {
@@ -837,7 +837,7 @@ class F
 );
         }
 
-        [WorkItem(542642, "DevDiv")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestAliasNameCollisionMemberNameMatchesDefinition02()
         {
@@ -923,7 +923,7 @@ class C
                 SymbolKind.Method, "void C.Static()");
         }
 
-        [WorkItem(542642, "DevDiv")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void LambdaConversion()
         {
@@ -974,7 +974,7 @@ class Program
                 );
         }
 
-        [WorkItem(543551, "DevDiv")]
+        [WorkItem(543551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543551")]
         [Fact]
         public void FieldOfEnumType()
         {
@@ -997,7 +997,7 @@ class C
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [WorkItem(531386, "DevDiv")]
+        [WorkItem(531386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531386")]
         [Fact]
         public void AlternateTypeAndVariable()
         {
@@ -1283,7 +1283,7 @@ enum Color
             Assert.Equal(0, parentInfo.CandidateSymbols.Length);
         }
 
-        [WorkItem(542586, "DevDiv")]
+        [WorkItem(542586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542586")]
         [Fact]
         public void TestNestedNameCollisionType()
         {
@@ -1316,7 +1316,7 @@ class F
 );
         }
 
-        [WorkItem(542586, "DevDiv")]
+        [WorkItem(542586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542586")]
         [Fact]
         public void TestNestedNameCollisionType02()
         {
@@ -1342,7 +1342,7 @@ class F
                 SymbolKind.Method, "void E.M(params System.Int32[] a)");
         }
 
-        [WorkItem(542586, "DevDiv")]
+        [WorkItem(542586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542586")]
         [Fact]
         public void TestNestedNameCollisionValue()
         {
@@ -1375,7 +1375,7 @@ class F
 );
         }
 
-        [WorkItem(542642, "DevDiv")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestNameCollisionType()
         {
@@ -1402,7 +1402,7 @@ class F
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "E").WithArguments("E"));
         }
 
-        [WorkItem(542642, "DevDiv")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestNameCollisionValue()
         {
@@ -1428,7 +1428,7 @@ class F
                 SymbolKind.Method, "void E.M(System.Int32 x)");
         }
 
-        [WorkItem(542039, "DevDiv")]
+        [WorkItem(542039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
         [Fact]
         public void FieldAndMethodSameName()
         {
@@ -1452,7 +1452,7 @@ class F
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [WorkItem(542039, "DevDiv")]
+        [WorkItem(542039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
         [Fact]
         public void TypeAndMethodSameName()
         {
@@ -1480,7 +1480,7 @@ class F
 
         #region Regression cases
 
-        [WorkItem(546427, "DevDiv")]
+        [WorkItem(546427, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546427")]
         [Fact]
         public void ExtensionMethodWithColorColorReceiver()
         {
@@ -1539,7 +1539,7 @@ static class Test
 ");
         }
 
-        [WorkItem(938389, "DevDiv")]
+        [WorkItem(938389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
         [Fact]
         public void ShadowedTypeReceiver_1()
         {
@@ -1580,7 +1580,7 @@ namespace Foo
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(12, 38));
         }
 
-        [WorkItem(938389, "DevDiv")]
+        [WorkItem(938389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
         [Fact]
         public void ShadowedTypeReceiver_2()
         {
@@ -1618,7 +1618,7 @@ namespace Foo
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 39));
         }
 
-        [WorkItem(938389, "DevDiv")]
+        [WorkItem(938389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
         [Fact]
         public void ShadowedTypeReceiver_3()
         {
@@ -1659,7 +1659,7 @@ namespace Foo
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(12, 38));
         }
 
-        [WorkItem(938389, "DevDiv")]
+        [WorkItem(938389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
         [Fact]
         public void ShadowedTypeReceiver_4()
         {
@@ -1697,7 +1697,7 @@ namespace Foo
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 39));
         }
 
-        [WorkItem(1095020, "DevDiv")]
+        [WorkItem(1095020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095020")]
         [Fact]
         public void RangeVariableColorColor()
         {
@@ -1762,7 +1762,7 @@ class X
             Assert.Equal(parentDisplayString, parentInfo.Symbol.ToTestDisplayString());
         }
 
-        [WorkItem(969006, "DevDiv")]
+        [WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")]
         [Fact]
         public void Bug969006_1()
         {
@@ -1815,7 +1815,7 @@ class C
                 );
         }
 
-        [WorkItem(969006, "DevDiv"), WorkItem(1112493, "DevDiv")]
+        [WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006"), WorkItem(1112493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112493")]
         [Fact]
         public void Bug969006_2()
         {
@@ -1878,7 +1878,7 @@ class C
                 );
         }
 
-        [WorkItem(969006, "DevDiv")]
+        [WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")]
         [Fact]
         public void Bug969006_3()
         {
@@ -1928,7 +1928,7 @@ class C
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(969006, "DevDiv")]
+        [WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")]
         [Fact]
         public void Bug969006_4()
         {

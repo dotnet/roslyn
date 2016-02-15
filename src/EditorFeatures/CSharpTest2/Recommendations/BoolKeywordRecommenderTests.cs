@@ -523,7 +523,7 @@ $$");
 @"public delegate $$");
         }
 
-        [WorkItem(538804)]
+        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInTypeOf()
         {
@@ -531,7 +531,7 @@ $$");
 @"typeof($$"));
         }
 
-        [WorkItem(538804)]
+        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInDefault()
         {
@@ -539,7 +539,7 @@ $$");
 @"default($$"));
         }
 
-        [WorkItem(538804)]
+        [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInSizeOf()
         {
@@ -547,7 +547,7 @@ $$");
 @"sizeof($$"));
         }
 
-        [WorkItem(544219)]
+        [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInObjectInitializerMemberContext()
         {
@@ -560,7 +560,7 @@ class C
         var c = new C { x = 2, y = 3, $$");
         }
 
-        [WorkItem(546938)]
+        [WorkItem(546938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546938")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInCrefContext()
         {
@@ -575,7 +575,7 @@ class Program
 }");
         }
 
-        [WorkItem(546955)]
+        [WorkItem(546955, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546955")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInCrefContextNotAfterDot()
         {
@@ -585,14 +585,12 @@ class C { }
 ");
         }
 
-        [WorkItem(18374)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAsync()
         {
             await VerifyKeywordAsync(@"class c { async $$ }");
         }
 
-        [WorkItem(18374)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterAsyncAsType()
         {

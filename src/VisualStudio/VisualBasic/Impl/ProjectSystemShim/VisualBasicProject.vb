@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Concurrent
 Imports System.Runtime.InteropServices
 Imports System.Runtime.InteropServices.ComTypes
 Imports System.Threading
@@ -16,7 +15,7 @@ Imports Microsoft.VisualStudio.TextManager.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     Partial Friend MustInherit Class VisualBasicProject
-        Inherits AbstractEncProject
+        Inherits AbstractRoslynProject
         Implements IVbCompilerProject
         Implements IVisualStudioHostProject
 
@@ -381,8 +380,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             End Try
         End Sub
 
-        Private Sub UpdateOptions()
-            Dim newOptions = New ConvertedVisualBasicProjectOptions(_rawOptions, _compilerHost, _imports, GetStrongNameKeyPaths(), ContainingDirectoryPathOpt, Me.ruleSet)
+        Protected Overrides Sub UpdateOptions()
+            Dim newOptions = New ConvertedVisualBasicProjectOptions(_rawOptions, _compilerHost, _imports, GetStrongNameKeyPaths(), ContainingDirectoryPathOpt, Me.ruleSet, GetParsedCommandLineArguments())
 
             UpdateRuleSetError(Me.ruleSet)
 
@@ -423,6 +422,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
             _lastOptions = newOptions
         End Sub
+
+        Protected Overrides Function ParseCommandLineArguments(arguments As IEnumerable(Of String)) As CommandLineArguments
+            Return VisualBasicCommandLineParser.Default.Parse(arguments, ContainingDirectoryPathOpt, sdkDirectory:=Nothing)
+        End Function
 
         Public Sub SetModuleAssemblyName(wszName As String) Implements IVbCompilerProject.SetModuleAssemblyName
             Throw New NotImplementedException()
@@ -481,12 +484,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             If _lastOptions IsNot ConvertedVisualBasicProjectOptions.EmptyOptions Then
                 SetOptions(_lastOptions.CompilationOptions.WithGlobalImports(_imports), _lastOptions.ParseOptions)
             End If
-        End Sub
-
-        Protected Overrides Sub UpdateAnalyzerRules()
-            MyBase.UpdateAnalyzerRules()
-
-            UpdateOptions()
         End Sub
 
 #If DEBUG Then

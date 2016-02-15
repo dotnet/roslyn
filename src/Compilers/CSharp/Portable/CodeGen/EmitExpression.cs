@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
             {
-                _diagnostics.Add(ErrorCode.ERR_InsufficientStack, 
+                _diagnostics.Add(ErrorCode.ERR_InsufficientStack,
                                  BoundTreeVisitor.CancelledByStackGuardException.GetTooLongOrComplexExpressionErrorLocation(expression));
                 throw new EmitCancelledException();
             }

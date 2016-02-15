@@ -25,14 +25,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 |</File>, recommendations)
         End Function
 
-        <WorkItem(530100)>
+        <WorkItem(530100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530100")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AccessibilityModifiersTest() As Task
             Await VerifyContainsAsync("Public", "Friend")
             Await VerifyMissingAsync("Protected", "Private", "Protected Friend")
         End Function
 
-        <WorkItem(530100)>
+        <WorkItem(530100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530100")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ClassModifiersTest() As Task
             Await VerifyContainsAsync("MustInherit", "NotInheritable", "Partial")

@@ -69,6 +69,7 @@
     <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
     <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
+    <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
@@ -91,6 +92,7 @@
     <Compile Include="ChangeSignature\SignatureChange.cs" />
     <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SearchScope.cs" />
     <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SymbolReference.cs" />
+    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SymbolReferenceFinder.cs" />
     <Compile Include="CodeFixes\CodeFixContextExtensions.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixMultipleCodeAction.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllCodeAction.cs" />
@@ -245,16 +247,21 @@
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.AbstractIntroduceVariableCodeAction.cs" />
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.IntroduceVariableAllOccurrenceCodeAction.cs" />
     <Compile Include="LanguageServices\ProjectInfoService\IProjectInfoService.cs" />
+    <Compile Include="MakeMethodSynchronous\AbstractMakeMethodSynchronousCodeFixProvider.cs" />
     <Compile Include="Navigation\NavigationOptions.cs" />
     <Compile Include="Navigation\NavigationOptionsProvider.cs" />
     <Compile Include="QuickInfo\QuickInfoUtilities.cs" />
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsService.cs" />
     <Compile Include="ReplaceMethodWithProperty\ReplaceMethodWithPropertyCodeRefactoringProvider.cs" />
     <Compile Include="ReplaceMethodWithProperty\IReplaceMethodWithPropertyService.cs" />
+    <Compile Include="Shared\Extensions\ProjectExtensions.cs" />
     <Compile Include="Shared\Options\OrganizerOptionsProvider.cs" />
+    <Compile Include="Shared\Options\RuntimeOptions.cs" />
+    <Compile Include="Shared\Options\RuntimeOptionsProvider.cs" />
     <Compile Include="Shared\Options\ServiceComponentOnOffOptionsProvider.cs" />
     <Compile Include="Shared\Options\ServiceFeatureOnOffOptions.cs" />
     <Compile Include="Shared\Options\ServiceFeatureOnOffOptionsProvider.cs" />
+    <Compile Include="Shared\Utilities\IOUtilities.cs" />
     <Compile Include="Shared\Utilities\LinkedFilesSymbolEquivalenceComparer.cs" />
     <Compile Include="Shared\Utilities\SupportedPlatformData.cs" />
     <Compile Include="Completion\Providers\SymbolCompletionItem.cs" />

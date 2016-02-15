@@ -70,6 +70,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected virtual IEnumerable<Option<bool>> Options => SpecializedCollections.EmptyEnumerable<Option<bool>>();
         protected virtual IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.EmptyEnumerable<PerLanguageOption<bool>>();
 
+        /// <summary>
+        /// This controls what delay tagger will use to let editor know about newly inserted tags
+        /// </summary>
+        protected virtual TaggerDelay AddedTagNotificationDelay => TaggerDelay.NearImmediate;
+
+        /// <summary>
+        /// This controls what delay tagger will use to let editor know about just deleted tags.
+        /// </summary>
+        protected virtual TaggerDelay RemovedTagNotificationDelay => TaggerDelay.NearImmediate;
+
 #if DEBUG
         public readonly string StackTrace;
 #endif
@@ -211,6 +221,25 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
             return SpecializedTasks.EmptyTask;
+        }
+
+        private struct DiffResult
+        {
+            public NormalizedSnapshotSpanCollection Added { get; }
+            public NormalizedSnapshotSpanCollection Removed { get; }
+
+            public DiffResult(List<SnapshotSpan> added, List<SnapshotSpan> removed) :
+                this(added?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)added, removed?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)removed)
+            {
+            }
+
+            public DiffResult(IEnumerable<SnapshotSpan> added, IEnumerable<SnapshotSpan> removed)
+            {
+                Added = added != null ? new NormalizedSnapshotSpanCollection(added) : NormalizedSnapshotSpanCollection.Empty;
+                Removed = removed != null ? new NormalizedSnapshotSpanCollection(removed) : NormalizedSnapshotSpanCollection.Empty;
+            }
+
+            public int Count => Added.Count + Removed.Count;
         }
     }
 }

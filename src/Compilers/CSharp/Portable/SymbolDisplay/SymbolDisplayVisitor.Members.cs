@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameter = symbol as ParameterSymbol;
                 if ((object)parameter != null)
                 {
-                    countOfCustomModifiersPrecedingByRef = parameter.CountOfCustomModifiersPrecedingByRef; 
+                    countOfCustomModifiersPrecedingByRef = parameter.CountOfCustomModifiersPrecedingByRef;
                 }
 
                 if (countOfCustomModifiersPrecedingByRef > 0)
@@ -490,8 +490,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (countOfCustomModifiersPrecedingByRef < symbol.CustomModifiers.Length)
                 {
-                    AddCustomModifiersIfRequired(ImmutableArray.Create(symbol.CustomModifiers, countOfCustomModifiersPrecedingByRef, 
-                                                                       symbol.CustomModifiers.Length - countOfCustomModifiersPrecedingByRef), 
+                    AddCustomModifiersIfRequired(ImmutableArray.Create(symbol.CustomModifiers, countOfCustomModifiersPrecedingByRef,
+                                                                       symbol.CustomModifiers.Length - countOfCustomModifiersPrecedingByRef),
                                                  leadingSpace: true, trailingSpace: false);
                 }
             }

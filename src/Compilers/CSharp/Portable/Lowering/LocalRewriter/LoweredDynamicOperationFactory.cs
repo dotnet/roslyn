@@ -754,8 +754,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             int parameterCount = delegateSignature.Length - (returnsVoid ? 0 : 1);
-
-            return _factory.Compilation.AnonymousTypeManager.SynthesizeDelegate(parameterCount, byRefs, returnsVoid).Construct(delegateSignature);
+            int generation = _factory.CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal;
+            var synthesizedType = _factory.Compilation.AnonymousTypeManager.SynthesizeDelegate(parameterCount, byRefs, returnsVoid, generation);
+            return synthesizedType.Construct(delegateSignature);
         }
 
         internal BoundExpression GetArgumentInfo(

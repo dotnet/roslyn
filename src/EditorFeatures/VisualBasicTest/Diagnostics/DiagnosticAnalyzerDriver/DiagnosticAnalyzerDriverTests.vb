@@ -14,7 +14,7 @@ Public Class DiagnosticAnalyzerDriverTests
     Public Async Function DiagnosticAnalyzerDriverAllInOne() As Task
         Dim source = TestResource.AllInOneVisualBasicCode
         Dim analyzer = New BasicTrackingDiagnosticAnalyzer()
-        Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(source)
+        Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source)
             Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
             AccessSupportedDiagnostics(analyzer)
             Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, New TextSpan(0, document.GetTextAsync().Result.Length))
@@ -25,7 +25,7 @@ Public Class DiagnosticAnalyzerDriverTests
         End Using
     End Function
 
-    <Fact, WorkItem(908658)>
+    <Fact, WorkItem(908658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908658")>
     Public Async Function DiagnosticAnalyzerDriverVsAnalyzerDriverOnCodeBlock() As Task
         Dim methodNames As String() = {"Initialize", "AnalyzeCodeBlock"}
         Dim source = <file><![CDATA[
@@ -37,7 +37,7 @@ End Class
 ]]></file>
 
         Dim ideEngineAnalyzer = New BasicTrackingDiagnosticAnalyzer()
-        Using ideEngineWorkspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(source.Value)
+        Using ideEngineWorkspace = Await TestWorkspace.CreateVisualBasicAsync(source.Value)
             Dim ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single()
             Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(ideEngineAnalyzer, ideEngineDocument, New TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length))
             For Each method In methodNames
@@ -48,7 +48,7 @@ End Class
         End Using
 
         Dim compilerEngineAnalyzer = New BasicTrackingDiagnosticAnalyzer()
-        Using compilerEngineWorkspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(source.Value)
+        Using compilerEngineWorkspace = Await TestWorkspace.CreateVisualBasicAsync(source.Value)
             Dim compilerEngineCompilation = CType(compilerEngineWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync().Result, VisualBasicCompilation)
             compilerEngineCompilation.GetAnalyzerDiagnostics({compilerEngineAnalyzer})
             For Each method In methodNames
@@ -60,17 +60,17 @@ End Class
     End Function
 
     <Fact>
-    <WorkItem(759)>
+    <WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")>
     Public Async Function DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions() As Task
         Dim source = TestResource.AllInOneVisualBasicCode
-        Using Workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(source)
+        Using Workspace = Await TestWorkspace.CreateVisualBasicAsync(source)
             Dim document = Workspace.CurrentSolution.Projects.Single().Documents.Single()
             Await ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(
                 Async Function(analyzer) Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, New TextSpan(0, document.GetTextAsync().Result.Length), logAnalyzerExceptionAsDiagnostics:=True))
         End Using
     End Function
 
-    <WorkItem(908621)>
+    <WorkItem(908621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")>
     <Fact>
     Public Sub DiagnosticServiceIsSafeAgainstAnalyzerExceptions()
         Dim analyzer = New ThrowingDiagnosticAnalyzer(Of SyntaxKind)()
@@ -85,7 +85,7 @@ End Class
 
     <Fact>
     Public Async Function AnalyzerOptionsArePassedToAllAnalyzers() As Task
-        Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(TestResource.AllInOneVisualBasicCode)
+        Using workspace = Await TestWorkspace.CreateVisualBasicAsync(TestResource.AllInOneVisualBasicCode)
             Dim currentProject = workspace.CurrentSolution.Projects.Single()
             Dim additionalDocId = DocumentId.CreateNewId(currentProject.Id)
             Dim newSln = workspace.CurrentSolution.AddAdditionalDocument(additionalDocId, "add.config", SourceText.From("random text"))

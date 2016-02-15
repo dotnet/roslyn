@@ -991,7 +991,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             interface1 = interface2;
                             interface2 = temp;
                         }
-            
+
                         diagnostics.Add(ErrorCode.ERR_UnifyingInterfaceInstantiations, this.Locations[0], this, interface1, interface2);
                     }
                 }
