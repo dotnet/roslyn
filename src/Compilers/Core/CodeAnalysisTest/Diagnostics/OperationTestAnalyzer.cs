@@ -1564,6 +1564,75 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
     }
 
+    public class InvalidOperatorExpressionTestAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor InvalidBinaryDescriptor = new DiagnosticDescriptor(
+            "InvalidBinary",
+            "Invalid binary expression operation with BinaryOperationKind.Invalid",
+            "An Invalid binary expression operation with BinaryOperationKind.Invalid is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor InvalidUnaryDescriptor = new DiagnosticDescriptor(
+            "InvalidUnary",
+            "Invalid unary expression operation with UnaryOperationKind.Invalid",
+            "An Invalid unary expression operation with UnaryOperationKind.Invalid is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor InvalidIncrementDescriptor = new DiagnosticDescriptor(
+            "InvalidIncrement",
+            "Invalid increment expression operation with ICompoundAssignmentExpression.BinaryOperationKind == BinaryOperationKind.Invalid",
+            "An Invalid increment expression operation with ICompoundAssignmentExpression.BinaryOperationKind == BinaryOperationKind.Invalid is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(InvalidBinaryDescriptor,
+                                                                                                                  InvalidUnaryDescriptor,
+                                                                                                                  InvalidIncrementDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     var operation = operationContext.Operation;
+                     if (operation.Kind == OperationKind.BinaryOperatorExpression)
+                     {
+                         var binary = (IBinaryOperatorExpression)operation;
+                         if (binary.IsInvalid && binary.BinaryOperationKind == BinaryOperationKind.Invalid)
+                         {
+                             operationContext.ReportDiagnostic(Diagnostic.Create(InvalidBinaryDescriptor, binary.Syntax.GetLocation()));
+                         }
+                     }
+                     else if (operation.Kind == OperationKind.UnaryOperatorExpression)
+                     {
+                         var unary = (IUnaryOperatorExpression)operation;
+                         if (unary.IsInvalid && unary.UnaryOperationKind == UnaryOperationKind.Invalid)
+                         {
+                             operationContext.ReportDiagnostic(Diagnostic.Create(InvalidUnaryDescriptor, unary.Syntax.GetLocation()));
+                         }
+                     }
+                     else if (operation.Kind == OperationKind.IncrementExpression)
+                     {
+                         var inc = (IIncrementExpression)operation;
+                         if (inc.IsInvalid && inc.BinaryOperationKind == BinaryOperationKind.Invalid)
+                         {
+                             operationContext.ReportDiagnostic(Diagnostic.Create(InvalidIncrementDescriptor, inc.Syntax.GetLocation()));
+                         }
+                     }
+                 },
+                 OperationKind.BinaryOperatorExpression,
+                 OperationKind.UnaryOperatorExpression,
+                 OperationKind.IncrementExpression);
+        }
+    }
+
     public class ConditionalAccessOperationTestAnalyzer : DiagnosticAnalyzer
     {
         public static readonly DiagnosticDescriptor ConditionalAccessOperationDescriptor = new DiagnosticDescriptor(

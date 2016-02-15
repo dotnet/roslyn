@@ -1445,6 +1445,40 @@ class C
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "1").WithLocation(12, 12));
         }
 
+        [WorkItem(8114, "https://github.com/dotnet/roslyn/issues/8114")]
+        [Fact]
+        public void InvalidOperatorCSharp()
+        {
+            const string source = @"
+public class A
+{
+    public bool Compare(float f)
+    {
+        return f == float.Nan; // Misspelled
+    }
+
+    public string Negate(string f)
+    {
+        return -f;
+    }
+
+    public void Increment(string f)
+    {
+        f++;
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Nan").WithArguments("float", "Nan").WithLocation(6, 27),
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-f").WithArguments("-", "string").WithLocation(11, 16),
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "f++").WithArguments("++", "string").WithLocation(16, 9))
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new InvalidOperatorExpressionTestAnalyzer() }, null, null, false,
+                Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidBinaryDescriptor.Id, "f == float.Nan").WithLocation(6, 16),
+                Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidUnaryDescriptor.Id, "-f").WithLocation(11, 16),
+                Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidIncrementDescriptor.Id, "f++").WithLocation(16, 9));
+        }
+
         [Fact]
         public void ConditionalAccessOperationsCSharp()
         {
