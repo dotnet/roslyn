@@ -113,7 +113,7 @@
       "Microsoft.NETCore.Targets.DNXCore/5.0.0-beta-23504": {},
       "Microsoft.NETCore.TestHost/1.0.0-beta-23504": {},
       "Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23504": {},
-      "Microsoft.VisualBasic/10.0.0": {
+      "Microsoft.VisualBasic/10.0.1-beta-23504": {
         "dependencies": {
           "System.Collections": "[4.0.10, )",
           "System.Diagnostics.Debug": "[4.0.10, )",
@@ -133,10 +133,10 @@
           "System.Threading": "[4.0.10, )"
         },
         "compile": {
-          "ref/dotnet/Microsoft.VisualBasic.dll": {}
+          "ref/dotnet5.2/Microsoft.VisualBasic.dll": {}
         },
         "runtime": {
-          "lib/dotnet/Microsoft.VisualBasic.dll": {}
+          "lib/dotnet5.4/Microsoft.VisualBasic.dll": {}
         }
       },
       "Microsoft.Win32.Primitives/4.0.0": {
@@ -192,7 +192,7 @@
           "lib/dotnet/System.Collections.Concurrent.dll": {}
         }
       },
-      "System.Collections.Immutable/1.1.38-beta-23504": {
+      "System.Collections.Immutable/1.1.37": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
           "System.Diagnostics.Debug": "[4.0.0, )",
@@ -204,10 +204,10 @@
           "System.Threading": "[4.0.0, )"
         },
         "compile": {
-          "lib/dotnet5.1/System.Collections.Immutable.dll": {}
+          "lib/dotnet/System.Collections.Immutable.dll": {}
         },
         "runtime": {
-          "lib/dotnet5.1/System.Collections.Immutable.dll": {}
+          "lib/dotnet/System.Collections.Immutable.dll": {}
         }
       },
       "System.Collections.NonGeneric/4.0.0": {
@@ -395,15 +395,15 @@
           "ref/dotnet5.4/System.IO.FileSystem.dll": {}
         }
       },
-      "System.IO.FileSystem.Primitives/4.0.0": {
+      "System.IO.FileSystem.Primitives/4.0.1-beta-23504": {
         "dependencies": {
           "System.Runtime": "[4.0.20, )"
         },
         "compile": {
-          "ref/dotnet/System.IO.FileSystem.Primitives.dll": {}
+          "ref/dotnet5.4/System.IO.FileSystem.Primitives.dll": {}
         },
         "runtime": {
-          "lib/dotnet/System.IO.FileSystem.Primitives.dll": {}
+          "lib/dotnet5.4/System.IO.FileSystem.Primitives.dll": {}
         }
       },
       "System.IO.FileSystem.Watcher/4.0.0-beta-23504": {
@@ -1175,6 +1175,33 @@
           "ref/dotnet5.4/Microsoft.Win32.Primitives.dll": {}
         }
       },
+      "runtime.any.System.Linq.Expressions/4.0.11-beta-23504": {
+        "dependencies": {
+          "System.Collections": "[4.0.10, )",
+          "System.Diagnostics.Debug": "[4.0.10, )",
+          "System.Globalization": "[4.0.10, )",
+          "System.IO": "[4.0.10, )",
+          "System.Linq": "[4.0.0, )",
+          "System.ObjectModel": "[4.0.10, )",
+          "System.Reflection": "[4.0.10, )",
+          "System.Reflection.Emit": "[4.0.0, )",
+          "System.Reflection.Emit.ILGeneration": "[4.0.0, )",
+          "System.Reflection.Emit.Lightweight": "[4.0.0, )",
+          "System.Reflection.Extensions": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Reflection.TypeExtensions": "[4.0.0, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )",
+          "System.Threading": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/_._": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Linq.Expressions.dll": {}
+        }
+      },
       "runtime.osx.10.10-x64.Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23504": {
         "compile": {
           "ref/dotnet/_._": {}
@@ -1805,29 +1832,13 @@
           "lib/dotnet5.4/System.Linq.dll": {}
         }
       },
-      "System.Linq.Expressions/4.0.10": {
+      "System.Linq.Expressions/4.0.11-beta-23504": {
         "dependencies": {
-          "System.Collections": "[4.0.0, )",
-          "System.Diagnostics.Debug": "[4.0.0, )",
-          "System.Globalization": "[4.0.0, )",
-          "System.IO": "[4.0.0, )",
-          "System.Linq": "[4.0.0, )",
-          "System.ObjectModel": "[4.0.0, )",
           "System.Reflection": "[4.0.0, )",
-          "System.Reflection.Emit": "[4.0.0, )",
-          "System.Reflection.Extensions": "[4.0.0, )",
-          "System.Reflection.Primitives": "[4.0.0, )",
-          "System.Reflection.TypeExtensions": "[4.0.0, )",
-          "System.Resources.ResourceManager": "[4.0.0, )",
-          "System.Runtime": "[4.0.20, )",
-          "System.Runtime.Extensions": "[4.0.0, )",
-          "System.Threading": "[4.0.0, )"
+          "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet/System.Linq.Expressions.dll": {}
-        },
-        "runtime": {
-          "lib/DNXCore50/System.Linq.Expressions.dll": {}
+          "ref/dotnet5.4/System.Linq.Expressions.dll": {}
         }
       },
       "System.Net.NameResolution/4.0.0-beta-23504": {
@@ -2584,6 +2595,33 @@
           "ref/dotnet5.4/Microsoft.Win32.Primitives.dll": {}
         }
       },
+      "runtime.any.System.Linq.Expressions/4.0.11-beta-23504": {
+        "dependencies": {
+          "System.Collections": "[4.0.10, )",
+          "System.Diagnostics.Debug": "[4.0.10, )",
+          "System.Globalization": "[4.0.10, )",
+          "System.IO": "[4.0.10, )",
+          "System.Linq": "[4.0.0, )",
+          "System.ObjectModel": "[4.0.10, )",
+          "System.Reflection": "[4.0.10, )",
+          "System.Reflection.Emit": "[4.0.0, )",
+          "System.Reflection.Emit.ILGeneration": "[4.0.0, )",
+          "System.Reflection.Emit.Lightweight": "[4.0.0, )",
+          "System.Reflection.Extensions": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Reflection.TypeExtensions": "[4.0.0, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )",
+          "System.Threading": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/_._": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Linq.Expressions.dll": {}
+        }
+      },
       "runtime.linux.System.Diagnostics.Process/4.1.0-beta-23504": {
         "dependencies": {
           "Microsoft.Win32.Primitives": "[4.0.0, )",
@@ -3216,29 +3254,13 @@
           "lib/dotnet5.4/System.Linq.dll": {}
         }
       },
-      "System.Linq.Expressions/4.0.10": {
+      "System.Linq.Expressions/4.0.11-beta-23504": {
         "dependencies": {
-          "System.Collections": "[4.0.0, )",
-          "System.Diagnostics.Debug": "[4.0.0, )",
-          "System.Globalization": "[4.0.0, )",
-          "System.IO": "[4.0.0, )",
-          "System.Linq": "[4.0.0, )",
-          "System.ObjectModel": "[4.0.0, )",
           "System.Reflection": "[4.0.0, )",
-          "System.Reflection.Emit": "[4.0.0, )",
-          "System.Reflection.Extensions": "[4.0.0, )",
-          "System.Reflection.Primitives": "[4.0.0, )",
-          "System.Reflection.TypeExtensions": "[4.0.0, )",
-          "System.Resources.ResourceManager": "[4.0.0, )",
-          "System.Runtime": "[4.0.20, )",
-          "System.Runtime.Extensions": "[4.0.0, )",
-          "System.Threading": "[4.0.0, )"
+          "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet/System.Linq.Expressions.dll": {}
-        },
-        "runtime": {
-          "lib/DNXCore50/System.Linq.Expressions.dll": {}
+          "ref/dotnet5.4/System.Linq.Expressions.dll": {}
         }
       },
       "System.Net.NameResolution/4.0.0-beta-23504": {
@@ -4012,6 +4034,33 @@
           "lib/DNXCore50/Microsoft.Win32.Registry.dll": {}
         }
       },
+      "runtime.any.System.Linq.Expressions/4.0.11-beta-23504": {
+        "dependencies": {
+          "System.Collections": "[4.0.10, )",
+          "System.Diagnostics.Debug": "[4.0.10, )",
+          "System.Globalization": "[4.0.10, )",
+          "System.IO": "[4.0.10, )",
+          "System.Linq": "[4.0.0, )",
+          "System.ObjectModel": "[4.0.10, )",
+          "System.Reflection": "[4.0.10, )",
+          "System.Reflection.Emit": "[4.0.0, )",
+          "System.Reflection.Emit.ILGeneration": "[4.0.0, )",
+          "System.Reflection.Emit.Lightweight": "[4.0.0, )",
+          "System.Reflection.Extensions": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Reflection.TypeExtensions": "[4.0.0, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )",
+          "System.Threading": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/_._": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Linq.Expressions.dll": {}
+        }
+      },
       "runtime.win.System.Text.Encoding.CodePages/4.0.1-beta-23504": {
         "dependencies": {
           "System.Collections": "[4.0.10, )",
@@ -4740,29 +4789,13 @@
           "lib/dotnet5.4/System.Linq.dll": {}
         }
       },
-      "System.Linq.Expressions/4.0.10": {
+      "System.Linq.Expressions/4.0.11-beta-23504": {
         "dependencies": {
-          "System.Collections": "[4.0.0, )",
-          "System.Diagnostics.Debug": "[4.0.0, )",
-          "System.Globalization": "[4.0.0, )",
-          "System.IO": "[4.0.0, )",
-          "System.Linq": "[4.0.0, )",
-          "System.ObjectModel": "[4.0.0, )",
           "System.Reflection": "[4.0.0, )",
-          "System.Reflection.Emit": "[4.0.0, )",
-          "System.Reflection.Extensions": "[4.0.0, )",
-          "System.Reflection.Primitives": "[4.0.0, )",
-          "System.Reflection.TypeExtensions": "[4.0.0, )",
-          "System.Resources.ResourceManager": "[4.0.0, )",
-          "System.Runtime": "[4.0.20, )",
-          "System.Runtime.Extensions": "[4.0.0, )",
-          "System.Threading": "[4.0.0, )"
+          "System.Runtime": "[4.0.0, )"
         },
         "compile": {
-          "ref/dotnet/System.Linq.Expressions.dll": {}
-        },
-        "runtime": {
-          "lib/DNXCore50/System.Linq.Expressions.dll": {}
+          "ref/dotnet5.4/System.Linq.Expressions.dll": {}
         }
       },
       "System.Net.NameResolution/4.0.0-beta-23504": {
@@ -5610,37 +5643,6 @@
         "runtime.json"
       ]
     },
-    "Microsoft.VisualBasic/10.0.0": {
-      "sha512": "5BEm2/HAVd97whRlCChU7rmSh/9cwGlZ/NTNe3Jl07zuPWfKQq5TUvVNUmdvmEe8QRecJLZ4/e7WF1i1O8V42g==",
-      "type": "Package",
-      "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "lib/dotnet/Microsoft.VisualBasic.dll",
-        "lib/net45/_._",
-        "lib/netcore50/Microsoft.VisualBasic.dll",
-        "lib/win8/_._",
-        "lib/wpa81/_._",
-        "Microsoft.VisualBasic.nuspec",
-        "package/services/metadata/core-properties/5dbd3a7042354092a8b352b655cf4376.psmdcp",
-        "ref/dotnet/de/Microsoft.VisualBasic.xml",
-        "ref/dotnet/es/Microsoft.VisualBasic.xml",
-        "ref/dotnet/fr/Microsoft.VisualBasic.xml",
-        "ref/dotnet/it/Microsoft.VisualBasic.xml",
-        "ref/dotnet/ja/Microsoft.VisualBasic.xml",
-        "ref/dotnet/ko/Microsoft.VisualBasic.xml",
-        "ref/dotnet/Microsoft.VisualBasic.dll",
-        "ref/dotnet/Microsoft.VisualBasic.xml",
-        "ref/dotnet/ru/Microsoft.VisualBasic.xml",
-        "ref/dotnet/zh-hans/Microsoft.VisualBasic.xml",
-        "ref/dotnet/zh-hant/Microsoft.VisualBasic.xml",
-        "ref/net45/_._",
-        "ref/netcore50/Microsoft.VisualBasic.dll",
-        "ref/netcore50/Microsoft.VisualBasic.xml",
-        "ref/win8/_._",
-        "ref/wpa81/_._"
-      ]
-    },
     "Microsoft.VisualBasic/10.0.1-beta-23504": {
       "sha512": "rgmvkhiP34p4Hme3V1IrF3hBJnw7g/96Kum9Fttv5vE5T32EJOU9JWgHbevJkZxLPCT3jpbugbIErutJ7hdIyQ==",
       "type": "Package",
@@ -5767,6 +5769,28 @@
         "ref/dotnet5.4/zh-hans/Microsoft.Win32.Registry.xml",
         "ref/dotnet5.4/zh-hant/Microsoft.Win32.Registry.xml",
         "ref/net46/Microsoft.Win32.Registry.dll"
+      ]
+    },
+    "runtime.any.System.Linq.Expressions/4.0.11-beta-23504": {
+      "sha512": "c3Usq1EzjBFAPvhNGd31D02QJn57SmxX+PLgSFy24GZLgCHxZeVpx1bQKJMm4Y4T7EbDxyFwlNU2ih7ZntD2Jw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/System.Linq.Expressions.dll",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net45/_._",
+        "lib/netcore50/System.Linq.Expressions.dll",
+        "lib/win8/_._",
+        "lib/wp80/_._",
+        "lib/wpa81/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/1e8b9a8cefbc423f9654d2014be0bb40.psmdcp",
+        "ref/dotnet/_._",
+        "runtime.any.System.Linq.Expressions.nuspec",
+        "runtimes/aot/lib/netcore50/_._"
       ]
     },
     "runtime.linux.System.Diagnostics.Process/4.1.0-beta-23504": {
@@ -6795,6 +6819,20 @@
         "System.Collections.Concurrent.nuspec"
       ]
     },
+    "System.Collections.Immutable/1.1.37": {
+      "sha512": "fTpqwZYBzoklTT+XjTRK8KxvmrGkYHzBiylCcKyQcxiOM8k+QvhNBxRvFHDWzy4OEP5f8/9n+xQ9mEgEXY+muA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dotnet/System.Collections.Immutable.dll",
+        "lib/dotnet/System.Collections.Immutable.xml",
+        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
+        "package/services/metadata/core-properties/a02fdeabe1114a24bba55860b8703852.psmdcp",
+        "System.Collections.Immutable.nuspec"
+      ]
+    },
     "System.Collections.Immutable/1.1.38-beta-23504": {
       "sha512": "OJDxjX1yliiB3pe4XtP9Eg5IpNGPhbehD7GSXwkZAEnAVKtvrVRQqjCxubpFH1JiL18EAjyF+K8MqWQtXutMzg==",
       "type": "Package",
@@ -7578,38 +7616,6 @@
         "System.IO.FileSystem.nuspec"
       ]
     },
-    "System.IO.FileSystem.Primitives/4.0.0": {
-      "sha512": "7pJUvYi/Yq3A5nagqCCiOw3+aJp3xXc/Cjr8dnJDnER3/6kX3LEencfqmXUcPl9+7OvRNyPMNhqsLAcMK6K/KA==",
-      "type": "Package",
-      "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "lib/dotnet/System.IO.FileSystem.Primitives.dll",
-        "lib/MonoAndroid10/_._",
-        "lib/MonoTouch10/_._",
-        "lib/net46/System.IO.FileSystem.Primitives.dll",
-        "lib/xamarinios10/_._",
-        "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/2cf3542156f0426483f92b9e37d8d381.psmdcp",
-        "ref/dotnet/de/System.IO.FileSystem.Primitives.xml",
-        "ref/dotnet/es/System.IO.FileSystem.Primitives.xml",
-        "ref/dotnet/fr/System.IO.FileSystem.Primitives.xml",
-        "ref/dotnet/it/System.IO.FileSystem.Primitives.xml",
-        "ref/dotnet/ja/System.IO.FileSystem.Primitives.xml",
-        "ref/dotnet/ko/System.IO.FileSystem.Primitives.xml",
-        "ref/dotnet/ru/System.IO.FileSystem.Primitives.xml",
-        "ref/dotnet/System.IO.FileSystem.Primitives.dll",
-        "ref/dotnet/System.IO.FileSystem.Primitives.xml",
-        "ref/dotnet/zh-hans/System.IO.FileSystem.Primitives.xml",
-        "ref/dotnet/zh-hant/System.IO.FileSystem.Primitives.xml",
-        "ref/MonoAndroid10/_._",
-        "ref/MonoTouch10/_._",
-        "ref/net46/System.IO.FileSystem.Primitives.dll",
-        "ref/xamarinios10/_._",
-        "ref/xamarinmac20/_._",
-        "System.IO.FileSystem.Primitives.nuspec"
-      ]
-    },
     "System.IO.FileSystem.Primitives/4.0.1-beta-23504": {
       "sha512": "nM7JE4K2Ckczo72f6MkEoaP6mbOWvBM3L3LmO2ie+czJVQqLp7y/JUsCHl899KK78caccehh8eQQ5IHLu3Yixw==",
       "type": "Package",
@@ -7772,6 +7778,66 @@
         "ref/xamarinmac20/_._",
         "runtime.json",
         "runtimes/win8-aot/lib/netcore50/System.Linq.Expressions.dll",
+        "System.Linq.Expressions.nuspec"
+      ]
+    },
+    "System.Linq.Expressions/4.0.11-beta-23504": {
+      "sha512": "lT0MxBix8IwHFGSV1Myr+fk0G3S4WZWAzJo7hXkEmFtVliZpji+yv3lG8bATvbgUszfZBpfJtxNBnxCY0+dkpQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net45/_._",
+        "lib/win8/_._",
+        "lib/wp80/_._",
+        "lib/wpa81/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/92db2795f9104bcc85faf0c9aea57bf2.psmdcp",
+        "ref/dotnet5.1/de/System.Linq.Expressions.xml",
+        "ref/dotnet5.1/es/System.Linq.Expressions.xml",
+        "ref/dotnet5.1/fr/System.Linq.Expressions.xml",
+        "ref/dotnet5.1/it/System.Linq.Expressions.xml",
+        "ref/dotnet5.1/ja/System.Linq.Expressions.xml",
+        "ref/dotnet5.1/ko/System.Linq.Expressions.xml",
+        "ref/dotnet5.1/ru/System.Linq.Expressions.xml",
+        "ref/dotnet5.1/System.Linq.Expressions.dll",
+        "ref/dotnet5.1/System.Linq.Expressions.xml",
+        "ref/dotnet5.1/zh-hans/System.Linq.Expressions.xml",
+        "ref/dotnet5.1/zh-hant/System.Linq.Expressions.xml",
+        "ref/dotnet5.4/de/System.Linq.Expressions.xml",
+        "ref/dotnet5.4/es/System.Linq.Expressions.xml",
+        "ref/dotnet5.4/fr/System.Linq.Expressions.xml",
+        "ref/dotnet5.4/it/System.Linq.Expressions.xml",
+        "ref/dotnet5.4/ja/System.Linq.Expressions.xml",
+        "ref/dotnet5.4/ko/System.Linq.Expressions.xml",
+        "ref/dotnet5.4/ru/System.Linq.Expressions.xml",
+        "ref/dotnet5.4/System.Linq.Expressions.dll",
+        "ref/dotnet5.4/System.Linq.Expressions.xml",
+        "ref/dotnet5.4/zh-hans/System.Linq.Expressions.xml",
+        "ref/dotnet5.4/zh-hant/System.Linq.Expressions.xml",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net45/_._",
+        "ref/netcore50/de/System.Linq.Expressions.xml",
+        "ref/netcore50/es/System.Linq.Expressions.xml",
+        "ref/netcore50/fr/System.Linq.Expressions.xml",
+        "ref/netcore50/it/System.Linq.Expressions.xml",
+        "ref/netcore50/ja/System.Linq.Expressions.xml",
+        "ref/netcore50/ko/System.Linq.Expressions.xml",
+        "ref/netcore50/ru/System.Linq.Expressions.xml",
+        "ref/netcore50/System.Linq.Expressions.dll",
+        "ref/netcore50/System.Linq.Expressions.xml",
+        "ref/netcore50/zh-hans/System.Linq.Expressions.xml",
+        "ref/netcore50/zh-hant/System.Linq.Expressions.xml",
+        "ref/win8/_._",
+        "ref/wp80/_._",
+        "ref/wpa81/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtime.json",
         "System.Linq.Expressions.nuspec"
       ]
     },
@@ -9934,51 +10000,7 @@
     }
   },
   "projectFileDependencyGroups": {
-    "": [
-      "Microsoft.NETCore.Platforms >= 1.0.1-beta-23504",
-      "Microsoft.NETCore.Runtime.CoreCLR >= 1.0.1-beta-23504",
-      "Microsoft.NETCore.TestHost >= 1.0.0-beta-23504",
-      "System.AppContext >= 4.0.1-beta-23504",
-      "System.Collections >= 4.0.11-beta-23504",
-      "System.Collections.Immutable >= 1.1.38-beta-23504",
-      "System.Console >= 4.0.0-beta-23504",
-      "System.Diagnostics.Debug >= 4.0.11-beta-23504",
-      "System.Diagnostics.FileVersionInfo >= 4.0.0-beta-23504",
-      "System.Diagnostics.Process >= 4.1.0-beta-23504",
-      "System.Diagnostics.StackTrace >= 4.0.1-beta-23504",
-      "System.Diagnostics.Tools >= 4.0.1-beta-23504",
-      "System.Dynamic.Runtime >= 4.0.11-beta-23504",
-      "System.IO.FileSystem >= 4.0.1-beta-23504",
-      "System.IO.FileSystem.Watcher >= 4.0.0-beta-23504",
-      "System.IO.Pipes >= 4.0.0-beta-23504",
-      "System.Linq >= 4.0.1-beta-23504",
-      "System.Net.NameResolution >= 4.0.0-beta-23504",
-      "System.Net.Sockets >= 4.1.0-beta-23504",
-      "System.Private.Uri >= 4.0.1-beta-23504",
-      "System.Reflection >= 4.1.0-beta-23504",
-      "System.Reflection.Primitives >= 4.0.1-beta-23504",
-      "System.Resources.ResourceManager >= 4.0.1-beta-23504",
-      "System.Runtime >= 4.0.21-beta-23504",
-      "System.Runtime.Extensions >= 4.0.11-beta-23504",
-      "System.Runtime.Handles >= 4.0.1-beta-23504",
-      "System.Runtime.InteropServices >= 4.0.21-beta-23504",
-      "System.Runtime.Loader >= 4.0.0-beta-23504",
-      "System.Runtime.Numerics >= 4.0.1-beta-23504",
-      "System.Runtime.Serialization.Json >= 4.0.1-beta-23504",
-      "System.Security.Cryptography.Algorithms >= 4.0.0-beta-23504",
-      "System.Security.Cryptography.Encoding >= 4.0.0-beta-23504",
-      "System.Security.Cryptography.X509Certificates >= 4.0.0-beta-23504",
-      "System.Text.Encoding >= 4.0.11-beta-23504",
-      "System.Text.Encoding.CodePages >= 4.0.1-beta-23504",
-      "System.Text.Encoding.Extensions >= 4.0.11-beta-23504",
-      "System.Threading >= 4.0.11-beta-23504",
-      "System.Threading.Tasks >= 4.0.11-beta-23504",
-      "System.Threading.Tasks.Parallel >= 4.0.1-beta-23504",
-      "System.Threading.Thread >= 4.0.0-beta-23504",
-      "System.Xml.XDocument >= 4.0.11-beta-23504",
-      "System.Xml.XmlDocument >= 4.0.1-beta-23504",
-      "System.Xml.XPath.XDocument >= 4.0.1-beta-23504"
-    ],
+    "": [],
     "DNXCore,Version=v5.0": []
   }
 }
