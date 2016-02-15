@@ -270,33 +270,45 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         /// We ignore references that are in a directory that contains the names "Packages".
         /// These directories are most likely the ones produced by NuGet, and we don't want
         /// to offer to add .dll reference manually for dlls that are part of NuGet packages.
+        /// 
+        /// Note that this is only a heuristic (though a good one), and we should remove this
+        /// when we can get an API from NuGet that tells us if a reference is actually provided
+        /// by a nuget packages.
+        /// 
+        /// This heuristic will do the right thing in practically all cases for all. It 
+        /// prevents the very unpleasant experience of us offering to add a direct metadata 
+        /// reference to something that should only be referenced as a nuget package.
+        ///
+        /// It does mean that if the following is true:
+        /// You have a project that has a non-nuget metadata reference to something in a "packages"
+        /// directory, and you are in another project that uses a type name that would have matched
+        /// an accessible type from that dll. then we will not offer to add that .dll reference to
+        /// that other project.
+        /// 
+        /// However, that would be an exceedingly uncommon case that is degraded.  Whereas we're 
+        /// vastly improved in the common case. This is a totally acceptable and desirable outcome
+        /// for such a heuristic.
         /// </summary>
         private bool IsInPackagesDirectory(PortableExecutableReference reference)
         {
             const string Packages = nameof(Packages);
 
-            try
+            if (!string.IsNullOrWhiteSpace(reference.FilePath))
             {
-                if (!string.IsNullOrWhiteSpace(reference.FilePath))
+                if (reference.FilePath.IndexOf(Packages, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    if (reference.FilePath.IndexOf(Packages, StringComparison.OrdinalIgnoreCase) >= 0)
+                    var currentPath = reference.FilePath;
+                    while (currentPath != null)
                     {
-                        var currentPath = reference.FilePath;
-                        while (currentPath != null)
+                        var name = PathUtilities.GetFileName(currentPath);
+                        if (StringComparer.OrdinalIgnoreCase.Equals(name, Packages))
                         {
-                            var name = Path.GetFileName(currentPath);
-                            if (StringComparer.OrdinalIgnoreCase.Equals(name, Packages))
-                            {
-                                return true;
-                            }
-
-                            currentPath = Path.GetDirectoryName(currentPath);
+                            return true;
                         }
+
+                        currentPath = PathUtilities.GetDirectoryName(currentPath);
                     }
                 }
-            }
-            catch
-            {
             }
 
             return false;
