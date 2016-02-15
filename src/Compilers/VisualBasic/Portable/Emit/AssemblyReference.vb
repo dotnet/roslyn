@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             _targetAssembly = assemblySymbol
         End Sub
 
-        Public ReadOnly Property MetadataIdentity As AssemblyIdentity
+        Public ReadOnly Property Identity As AssemblyIdentity Implements Cci.IAssemblyReference.Identity
             Get
                 Return _targetAssembly.Identity
             End Get
@@ -27,43 +27,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             visitor.Visit(DirectCast(Me, Cci.IAssemblyReference))
         End Sub
 
-        Private ReadOnly Property IAssemblyReferenceCulture As String Implements Cci.IAssemblyReference.Culture
-            Get
-                Return MetadataIdentity.CultureName
-            End Get
-        End Property
-
-        Private ReadOnly Property IAssemblyReferenceIsRetargetable As Boolean Implements Cci.IAssemblyReference.IsRetargetable
-            Get
-                Return MetadataIdentity.IsRetargetable
-            End Get
-        End Property
-
-        Private ReadOnly Property IAssemblyReferenceContentType As AssemblyContentType Implements Cci.IAssemblyReference.ContentType
-            Get
-                Return MetadataIdentity.ContentType
-            End Get
-        End Property
-
-        Private ReadOnly Property IAssemblyReferencePublicKeyToken As ImmutableArray(Of Byte) Implements Cci.IAssemblyReference.PublicKeyToken
-            Get
-                Return MetadataIdentity.PublicKeyToken
-            End Get
-        End Property
-
-        Private ReadOnly Property IAssemblyReferenceVersion As Version Implements Cci.IAssemblyReference.Version
-            Get
-                Return MetadataIdentity.Version
-            End Get
-        End Property
-
-        Private Function IAssemblyReferenceGetDisplayName() As String Implements Cci.IAssemblyReference.GetDisplayName
-            Return MetadataIdentity.GetDisplayName()
-        End Function
-
         Private ReadOnly Property INamedEntityName As String Implements Cci.INamedEntity.Name
             Get
-                Return MetadataIdentity.Name
+                Return Identity.Name
             End Get
         End Property
 
