@@ -506,9 +506,15 @@ namespace Roslyn.Utilities
         {
             if (path?.IndexOf(component, StringComparison.OrdinalIgnoreCase) >= 0)
             {
+                int count = 0;
                 var currentPath = path;
                 while (currentPath != null)
                 {
+                    if (count > 64)
+                    {
+                        throw new InvalidOperationException("Iterated too many times on: " + path);
+                    }
+
                     var currentName = GetFileName(currentPath);
                     if (StringComparer.OrdinalIgnoreCase.Equals(currentName, component))
                     {
@@ -516,6 +522,7 @@ namespace Roslyn.Utilities
                     }
 
                     currentPath = GetDirectoryName(currentPath);
+                    count++;
                 }
             }
 
