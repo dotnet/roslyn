@@ -512,7 +512,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we want to retain the original (incorrect) type to avoid hiding the type given in source.
             if (type.TypeSymbol.Equals(overriddenEventType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
             {
-                type = CustomModifierUtils.CopyTypeCustomModifiers(overriddenEventType, type, RefKind.None, containingAssembly);
+                type = type.Update(CustomModifierUtils.CopyTypeCustomModifiers(overriddenEventType, type.TypeSymbol, RefKind.None, containingAssembly), 
+                                   eventWithCustomModifiers.Type.CustomModifiers);
             }
         }
 

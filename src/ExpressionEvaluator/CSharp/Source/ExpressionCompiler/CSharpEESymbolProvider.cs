@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 kind = LocalDeclarationKind.FixedVariable;
                 refKind = RefKind.None;
-                type = new PointerTypeSymbol(info.Type);
+                type = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(info.Type));
             }
             else
             {

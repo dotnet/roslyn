@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            result = binder.BindVariableOrAutoPropInitializer(equalsValue, field.GetFieldType(binder.FieldsBeingBound), diagnostics);
+                            result = binder.BindVariableOrAutoPropInitializer(equalsValue, field.GetFieldType(binder.FieldsBeingBound).TypeSymbol, diagnostics);
                         }
                         if (result != null)
                         {
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Property:
                     {
                         var property = (PropertySymbol)this.MemberSymbol;
-                        BoundExpression result = binder.BindVariableOrAutoPropInitializer(equalsValue, property.Type, diagnostics);
+                        BoundExpression result = binder.BindVariableOrAutoPropInitializer(equalsValue, property.Type.TypeSymbol, diagnostics);
                         if (result != null)
                         {
                             return new BoundPropertyEqualsValue(equalsValue, property, result);
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var parameter = (ParameterSymbol)this.MemberSymbol;
                         BoundExpression result = binder.BindParameterDefaultValue(
                             equalsValue,
-                            parameter.Type,
+                            parameter.Type.TypeSymbol,
                             diagnostics,
                             out unusedValueBeforeConversion);
                         if (result != null)

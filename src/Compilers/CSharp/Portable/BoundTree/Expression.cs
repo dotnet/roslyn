@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Corresponding parameter is optional with default value.
                     if (parameter.HasExplicitDefaultValue)
                     {
-                        arguments.Add(new Argument(ArgumentKind.DefaultValue, parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, null)));
+                        arguments.Add(new Argument(ArgumentKind.DefaultValue, parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type.TypeSymbol, null)));
                     }
                     else
                     {
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // An argument that is an array of the appropriate type is not a params argument.
                             (boundArguments.Length > argumentIndex + 1 ||
                              argument.Type.TypeKind != TypeKind.Array ||
-                             !argument.Type.Equals(parameters[parameters.Length - 1].Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true)))
+                             !argument.Type.Equals(parameters[parameters.Length - 1].Type.TypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds: true)))
                         {
                             return new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex, invocationSyntax));
                         }
