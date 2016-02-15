@@ -2029,6 +2029,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    /// <summary>
+    /// Special node, used only during Data Flow Pass
+    /// </summary>
+    internal partial class BoundValuePlaceholder
+    {
+        public override void Accept(OperationVisitor visitor)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        protected override OperationKind ExpressionKind
+        {
+            get
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+    }
+
     internal class Expression
     {
         internal static BinaryOperationKind DeriveBinaryOperationKind(UnaryOperationKind incrementKind)
