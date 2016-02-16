@@ -181,17 +181,82 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         public void TestContainsPathComponent()
         {
             Assert.True(
-                PathUtilities.ContainsPathComponent(@"c:\packages\temp", "packages"));
+                PathUtilities.ContainsPathComponent(@"c:\packages\temp", "packages", ignoreCase: true));
             Assert.True(
-                PathUtilities.ContainsPathComponent(@"\\server\packages\temp", "packages"));
+                PathUtilities.ContainsPathComponent(@"\\server\packages\temp", "packages", ignoreCase: true));
             Assert.False(
-                PathUtilities.ContainsPathComponent(@"\\packages\temp", "packages"));
+                PathUtilities.ContainsPathComponent(@"\\packages\temp", "packages", ignoreCase: true));
             Assert.True(
-                PathUtilities.ContainsPathComponent(@"c:\packages", "packages"));
+                PathUtilities.ContainsPathComponent(@"c:\packages", "packages", ignoreCase: true));
             Assert.False(
-                PathUtilities.ContainsPathComponent(@"c:\packages1\temp", "packages"));
+                PathUtilities.ContainsPathComponent(@"c:\packages1\temp", "packages", ignoreCase: true));
             Assert.False(
-                PathUtilities.ContainsPathComponent(@"c:\package\temp", "packages"));
+                PathUtilities.ContainsPathComponent(@"c:\package\temp", "packages", ignoreCase: true));
+
+            Assert.True(
+                PathUtilities.ContainsPathComponent(@"c:\packages\temp", "packages", ignoreCase: false));
+            Assert.True(
+                PathUtilities.ContainsPathComponent(@"\\server\packages\temp", "packages", ignoreCase: false));
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"\\packages\temp", "packages", ignoreCase: false));
+            Assert.True(
+                PathUtilities.ContainsPathComponent(@"c:\packages", "packages", ignoreCase: false));
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"c:\packages1\temp", "packages", ignoreCase: false));
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"c:\package\temp", "packages", ignoreCase: false));
+
+            Assert.True(
+                PathUtilities.ContainsPathComponent(@"c:\packages\temp", "Packages", ignoreCase: true));
+            Assert.True(
+                PathUtilities.ContainsPathComponent(@"\\server\packages\temp", "Packages", ignoreCase: true));
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"\\packages\temp", "Packages", ignoreCase: true));
+            Assert.True(
+                PathUtilities.ContainsPathComponent(@"c:\packages", "Packages", ignoreCase: true));
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"c:\packages1\temp", "Packages", ignoreCase: true));
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"c:\package\temp", "Packages", ignoreCase: true));
+
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"c:\packages\temp", "Packages", ignoreCase: false));
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"\\server\packages\temp", "Packages", ignoreCase: false));
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"\\packages\temp", "Packages", ignoreCase: false));
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"c:\packages", "Packages", ignoreCase: false));
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"c:\packages1\temp", "Packages", ignoreCase: false));
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"c:\package\temp", "Packages", ignoreCase: false));
+
+            Assert.True(
+                PathUtilities.ContainsPathComponent(@"c:\Packages\temp", "packages", ignoreCase: true));
+            Assert.True(
+                PathUtilities.ContainsPathComponent(@"\\server\Packages\temp", "packages", ignoreCase: true));
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"\\Packages\temp", "packages", ignoreCase: true));
+            Assert.True(
+                PathUtilities.ContainsPathComponent(@"c:\Packages", "packages", ignoreCase: true));
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"c:\Packages1\temp", "packages", ignoreCase: true));
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"c:\Package\temp", "packages", ignoreCase: true));
+
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"c:\Packages\temp", "packages", ignoreCase: false));
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"\\server\Packages\temp", "packages", ignoreCase: false));
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"\\Packages\temp", "packages", ignoreCase: false));
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"c:\Packages", "packages", ignoreCase: false));
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"c:\Packages1\temp", "packages", ignoreCase: false));
+            Assert.False(
+                PathUtilities.ContainsPathComponent(@"c:\Package\temp", "packages", ignoreCase: false));
         }
     }
 }

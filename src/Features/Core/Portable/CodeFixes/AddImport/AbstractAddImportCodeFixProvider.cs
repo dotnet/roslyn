@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         /// </summary>
         private bool IsInPackagesDirectory(PortableExecutableReference reference)
         {
-            return PathUtilities.ContainsPathComponent(reference.FilePath, "packages");
+            return PathUtilities.ContainsPathComponent(reference.FilePath, "packages", ignoreCase: true);
         }
 
         /// <summary>

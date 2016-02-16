@@ -391,16 +391,19 @@ namespace Roslyn.Utilities
         /// not have "foo" as a component. That's because here "foo" is the server name portion
         /// of the UNC path, and not an actual directory or file name.
         /// </summary>
-        internal static bool ContainsPathComponent(string path, string component)
+        internal static bool ContainsPathComponent(string path, string component, bool ignoreCase)
         {
-            if (path?.IndexOf(component, StringComparison.OrdinalIgnoreCase) >= 0)
+            var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+            if (path?.IndexOf(component, comparison) >= 0)
             {
+                var comparer = ignoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+
                 int count = 0;
                 var currentPath = path;
                 while (currentPath != null)
                 {
                     var currentName = GetFileName(currentPath);
-                    if (StringComparer.OrdinalIgnoreCase.Equals(currentName, component))
+                    if (comparer.Equals(currentName, component))
                     {
                         return true;
                     }
