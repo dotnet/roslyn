@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IArgument IHasArgumentsExpression.GetArgumentMatchingParameter(IParameterSymbol parameter)
         {
-            return ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, parameter.ContainingSymbol as Symbols.MethodSymbol, parameter, this.Syntax);
+            return ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, parameter.ContainingSymbol, ((Symbols.MethodSymbol)parameter.ContainingSymbol).Parameters, parameter, this.Syntax);
         }
 
         protected override OperationKind ExpressionKind => OperationKind.InvocationExpression;
@@ -199,18 +199,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static IArgument ArgumentMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParameters, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, Symbols.MethodSymbol targetMethod, IParameterSymbol parameter, SyntaxNode invocationSyntax)
+        internal static IArgument ArgumentMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParameters, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, ISymbol targetMethod, ImmutableArray<Symbols.ParameterSymbol> parameters, IParameterSymbol parameter, SyntaxNode invocationSyntax)
         {
             int argumentIndex = ArgumentIndexMatchingParameter(arguments, argumentsToParameters, targetMethod, parameter);
             if (argumentIndex >= 0)
             {
-                return DeriveArgument(parameter.Ordinal, argumentIndex, arguments, argumentNames, argumentRefKinds, targetMethod.Parameters, invocationSyntax);
+                return DeriveArgument(parameter.Ordinal, argumentIndex, arguments, argumentNames, argumentRefKinds, parameters, invocationSyntax);
             }
 
             return null;
         }
 
-        private static int ArgumentIndexMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParameters, IMethodSymbol targetMethod, IParameterSymbol parameter)
+        private static int ArgumentIndexMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParameters, ISymbol targetMethod, IParameterSymbol parameter)
         {
             if (parameter.ContainingSymbol == targetMethod)
             {
@@ -346,6 +346,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal partial class BoundIndexerAccess : IIndexedPropertyReferenceExpression
+    {
+        IPropertySymbol IPropertyReferenceExpression.Property => this.Indexer;
+
+        IOperation IMemberReferenceExpression.Instance => this.Indexer.IsStatic ? null : this.ReceiverOpt;
+
+        ISymbol IMemberReferenceExpression.Member => this.Indexer;
+
+        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInParameterOrder => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Indexer.Parameters, this.Syntax);
+
+        IArgument IHasArgumentsExpression.GetArgumentMatchingParameter(IParameterSymbol parameter)
+        {
+            return BoundCall.ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Indexer, this.Indexer.Parameters, parameter, this.Syntax);
+        }
+
+        protected override OperationKind ExpressionKind => OperationKind.IndexedPropertyReferenceExpression;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitIndexedPropertyReferenceExpression(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitIndexedPropertyReferenceExpression(this, argument);
+        }
+    }
+
     internal partial class BoundEventAccess : IEventReferenceExpression
     {
         IEventSymbol IEventReferenceExpression.Event => this.EventSymbol;
@@ -473,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IArgument IHasArgumentsExpression.GetArgumentMatchingParameter(IParameterSymbol parameter)
         {
-            return BoundCall.ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Constructor, parameter, this.Syntax);
+            return BoundCall.ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Constructor, this.Constructor.Parameters, parameter, this.Syntax);
         }
 
         ImmutableArray<ISymbolInitializer> IObjectCreationExpression.MemberInitializers
@@ -761,22 +789,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundIsOperator : IIsExpression
+    internal partial class BoundIsOperator : IIsTypeExpression
     {
-        IOperation IIsExpression.Operand => this.Operand;
+        IOperation IIsTypeExpression.Operand => this.Operand;
 
-        ITypeSymbol IIsExpression.IsType => this.TargetType.Type;
+        ITypeSymbol IIsTypeExpression.IsType => this.TargetType.Type;
 
-        protected override OperationKind ExpressionKind => OperationKind.IsExpression;
+        protected override OperationKind ExpressionKind => OperationKind.IsTypeExpression;
 
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitIsExpression(this);
+            visitor.VisitIsTypeExpression(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitIsExpression(this, argument);
+            return visitor.VisitIsTypeExpression(this, argument);
         }
     }
 
@@ -1058,9 +1086,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         BinaryOperationKind IBinaryOperatorExpression.BinaryOperationKind => Expression.DeriveBinaryOperationKind(this.OperatorKind);
 
-        IOperation IBinaryOperatorExpression.Left => this.Left;
+        IOperation IBinaryOperatorExpression.LeftOperand => this.Left;
 
-        IOperation IBinaryOperatorExpression.Right => this.Right;
+        IOperation IBinaryOperatorExpression.RightOperand => this.Right;
 
         bool IHasOperatorMethodExpression.UsesOperatorMethod => (this.OperatorKind & BinaryOperatorKind.TypeMask) == BinaryOperatorKind.UserDefined;
 
@@ -1130,9 +1158,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundNullCoalescingOperator : INullCoalescingExpression
     {
-        IOperation INullCoalescingExpression.Primary => this.LeftOperand;
+        IOperation INullCoalescingExpression.PrimaryOperand => this.LeftOperand;
 
-        IOperation INullCoalescingExpression.Secondary => this.RightOperand;
+        IOperation INullCoalescingExpression.SecondaryOperand => this.RightOperand;
 
         protected override OperationKind ExpressionKind => OperationKind.NullCoalescingExpression;
 
@@ -1236,7 +1264,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundConditionalAccess : IConditionalAccessExpression
     {
-        IOperation IConditionalAccessExpression.Access => this.AccessExpression;
+        IOperation IConditionalAccessExpression.ConditionalValue => this.AccessExpression;
+
+        IOperation IConditionalAccessExpression.ConditionalInstance => this.Receiver;
 
         protected override OperationKind ExpressionKind => OperationKind.ConditionalAccessExpression;
 
@@ -1248,6 +1278,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitConditionalAccessExpression(this, argument);
+        }
+    }
+
+    internal partial class BoundConditionalReceiver : IConditionalAccessInstanceExpression
+    {
+        protected override OperationKind ExpressionKind => OperationKind.ConditionalAccessInstanceExpression;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitConditionalAccessInstanceExpression(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitConditionalAccessInstanceExpression(this, argument);
         }
     }
 
@@ -1563,21 +1608,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundIndexerAccess
-    {
-        protected override OperationKind ExpressionKind => OperationKind.None;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitNoneOperation(this);
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitNoneOperation(this, argument);
-        }
-    }
-
     internal partial class BoundSequencePointExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
@@ -1847,22 +1877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitNoneOperation(this, argument);
         }
     }
-
-    internal partial class BoundConditionalReceiver
-    {
-        protected override OperationKind ExpressionKind => OperationKind.None;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitNoneOperation(this);
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitNoneOperation(this, argument);
-        }
-    }
-
+    
     internal partial class BoundDynamicCollectionElementInitializer
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
@@ -2084,7 +2099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BinaryOperationKind.DynamicSubtract;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(incrementKind);
+                    return BinaryOperationKind.Invalid;
             }
         }
 
@@ -2311,7 +2326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            throw ExceptionUtilities.UnexpectedValue(operatorKind & UnaryOperatorKind.TypeMask);
+            return UnaryOperationKind.Invalid;
         }
 
         internal static BinaryOperationKind DeriveBinaryOperationKind(BinaryOperatorKind operatorKind)
@@ -2733,7 +2748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            throw ExceptionUtilities.UnexpectedValue(operatorKind & BinaryOperatorKind.TypeMask);
+            return BinaryOperationKind.Invalid;
         }
     }
 }

@@ -264,6 +264,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a reference to an indexed property.
+    /// </summary>
+    public interface IIndexedPropertyReferenceExpression : IPropertyReferenceExpression, IHasArgumentsExpression
+    {
+    }
+
+    /// <summary>
     /// Represents a reference to an event.
     /// </summary>
     public interface IEventReferenceExpression : IMemberReferenceExpression
@@ -301,14 +308,33 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a conditional access expression.
+    /// Represents an expression that includes a ? or ?. conditional access instance expression.
     /// </summary>
     public interface IConditionalAccessExpression : IOperation
     {
         /// <summary>
-        /// Expression subject to conditional access.
+        /// Expression to be evaluated if the conditional instance is non null.
         /// </summary>
-        IOperation Access { get; }
+        IOperation ConditionalValue { get; }
+        /// <summary>
+        /// Expresson that is conditionally accessed.
+        /// </summary>
+        IOperation ConditionalInstance { get; }
+    }
+
+    /// <summary>
+    /// Represents the value of a conditionally-accessed expression within an expression containing a conditional access.
+    /// </summary>
+    public interface IConditionalAccessInstanceExpression : IOperation
+    {
+    }
+
+    /// <summary>
+    /// Represents a general placeholder when no more specific kind of placeholder is available.
+    /// A placeholder is an expression whose meaning is inferred from context.
+    /// </summary>
+    public interface IPlaceholderExpression : IOperation
+    {
     }
 
     /// <summary>
@@ -355,7 +381,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         Minus = 0x8,
         True = 0x9,
         False = 0xa,
-        BitwiseOrLogicalNot = 0xb
+        BitwiseOrLogicalNot = 0xb,
+
+        Invalid = 0xff
     }
 
     public enum UnaryOperandKind
@@ -371,7 +399,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         Enum = 0x700,
         Dynamic = 0x800,
         Object = 0x900,
-        Pointer = 0xa00
+        Pointer = 0xa00,
+
+        Invalid = 0xff00
     }
 
     /// <summary>
@@ -445,7 +475,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         ObjectPlus = UnaryOperandKind.Object | SimpleUnaryOperationKind.Plus,
         ObjectMinus = UnaryOperandKind.Object | SimpleUnaryOperationKind.Minus,
-        ObjectNot = UnaryOperandKind.Object | SimpleUnaryOperationKind.BitwiseOrLogicalNot
+        ObjectNot = UnaryOperandKind.Object | SimpleUnaryOperationKind.BitwiseOrLogicalNot,
+
+        Invalid = UnaryOperandKind.Invalid | SimpleUnaryOperationKind.Invalid
     }
 
     
@@ -461,11 +493,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Left operand.
         /// </summary>
-        IOperation Left { get; }
+        IOperation LeftOperand { get; }
         /// <summary>
         /// Right operand.
         /// </summary>
-        IOperation Right { get; }
+        IOperation RightOperand { get; }
     }
 
     public enum SimpleBinaryOperationKind
@@ -499,7 +531,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         GreaterThanOrEqual = 0x16,
         GreaterThan = 0x17,
 
-        Like = 0x18
+        Like = 0x18,
+
+        Invalid = 0xff
     }
 
     public enum BinaryOperandsKind
@@ -520,7 +554,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         IntegerPointer = 0xc00,
         String = 0xd00,
         Delegate = 0xe00,
-        Nullable = 0xf00
+        Nullable = 0xf00,
+
+        Invalid = 0xff00
     }
 
     /// <summary>
@@ -700,7 +736,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         DynamicLessThan = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.LessThan,
         DynamicLessThanOrEqual = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.LessThanOrEqual,
         DynamicGreaterThanOrEqual = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.GreaterThanOrEqual,
-        DynamicGreaterThan = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.GreaterThan
+        DynamicGreaterThan = BinaryOperandsKind.Dynamic | SimpleBinaryOperationKind.GreaterThan,
+
+        Invalid = BinaryOperandsKind.Invalid | SimpleBinaryOperationKind.Invalid
     }
 
     public static class UnaryAndBinaryOperationExtensions
@@ -869,17 +907,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Value to be unconditionally evaluated.
         /// </summary>
-        IOperation Primary { get; }
+        IOperation PrimaryOperand { get; }
         /// <summary>
         /// Value to be evaluated if Primary evaluates to null/Nothing.
         /// </summary>
-        IOperation Secondary { get; }
+        IOperation SecondaryOperand { get; }
     }
 
     /// <summary>
     /// Represents an expression that tests if a value is of a specific type.
     /// </summary>
-    public interface IIsExpression : IOperation
+    public interface IIsTypeExpression : IOperation
     {
         /// <summary>
         /// Value to test.

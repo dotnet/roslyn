@@ -112,6 +112,7 @@
     <Compile Include="AnalyzersFolderItem\AnalyzersFolderItemSource.cs" />
     <Compile Include="AnalyzersFolderItem\AnalyzersFolderItemProvider.cs" />
     <Compile Include="BaseItem.cs" />
+    <Compile Include="BrowseObjectAttributes.cs" />
     <Compile Include="DiagnosticItem\DiagnosticItem.BrowseObject.cs" />
     <Compile Include="DiagnosticItem\DiagnosticItemProvider.cs" />
     <Compile Include="AnalyzerReferenceManager.cs" />

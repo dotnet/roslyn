@@ -10,8 +10,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.InteractiveEditorFeatures</AssemblyName>
-    <!-- Disable the architecture mismatch warning -->
-    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>

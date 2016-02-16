@@ -397,30 +397,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Body of the using, over which the resources of the using are maintained.
         /// </summary>
         IOperation Body { get; }
-    }
 
-    /// <summary>
-    /// Represents a C# using or VB Using statement that declares one or more local variables for the resources held by the using.
-    /// </summary>
-    public interface IUsingWithDeclarationStatement : IUsingStatement
-    {
         /// <summary>
-        /// Declaration of variables introduced by the using.
+        /// Declaration introduced by the using statement. Null if the using statement does not declare any variables.
         /// </summary>
         IVariableDeclarationStatement Declaration { get; }
-    }
 
-    /// <summary>
-    /// Represents a C# using or VB Using statement that uses an expression for the resource held by the using.
-    /// </summary>
-    public interface IUsingWithExpressionStatement : IUsingStatement
-    {
         /// <summary>
-        /// Resource held by the using.
+        /// Resource held by the using. Can be null if Declaration is not null.
         /// </summary>
         IOperation Value { get; }
     }
-
+    
     /// <summary>
     /// Represents a C# fixed staement.
     /// </summary>

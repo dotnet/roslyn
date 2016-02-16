@@ -385,8 +385,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return BinaryOperationKind.EnumEquals;
                     }
-                }
 
+                    return BinaryOperationKind.Invalid;
+                }
+                // Return None for `default` case.
                 return BinaryOperationKind.None;
             }
         }
@@ -485,33 +487,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundUsingStatement : IUsingWithDeclarationStatement, IUsingWithExpressionStatement
+    internal partial class BoundUsingStatement : IUsingStatement
     {
-        IVariableDeclarationStatement IUsingWithDeclarationStatement.Declaration => this.DeclarationsOpt;
+        IVariableDeclarationStatement IUsingStatement.Declaration => this.DeclarationsOpt;
 
-        IOperation IUsingWithExpressionStatement.Value => this.ExpressionOpt;
+        IOperation IUsingStatement.Value => this.ExpressionOpt;
 
         IOperation IUsingStatement.Body => this.Body;
 
-        protected override OperationKind StatementKind => this.ExpressionOpt != null ? OperationKind.UsingWithExpressionStatement : OperationKind.UsingWithDeclarationStatement;
+        protected override OperationKind StatementKind => OperationKind.UsingStatement;
 
         public override void Accept(OperationVisitor visitor)
         {
-            if (this.StatementKind == OperationKind.UsingWithExpressionStatement)
-            {
-                visitor.VisitUsingWithExpressionStatement(this);
-            }
-            else
-            {
-                visitor.VisitUsingWithDeclarationStatement(this);
-            }
+            visitor.VisitUsingStatement(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return this.StatementKind == OperationKind.UsingWithExpressionStatement
-                    ? visitor.VisitUsingWithExpressionStatement(this, argument)
-                    : visitor.VisitUsingWithDeclarationStatement(this, argument);
+            return visitor.VisitUsingStatement(this, argument);
         }
     }
 
