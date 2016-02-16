@@ -126,19 +126,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function DefaultErrorFormat(symbol As Symbol) As FormattedSymbol
             Return New FormattedSymbol(symbol, SymbolDisplayFormat.VisualBasicErrorMessageFormat)
         End Function
-
-        Public Shared Function DefaultErrorFormatIfSpecialType(arg As Object) As Object
-
-            Dim symbol = TryCast(arg, Symbol)
-            If symbol Is Nothing Then
-                Return arg
-            End If
-
-            If TypeOf symbol Is TypeSymbol AndAlso DirectCast(symbol, TypeSymbol).SpecialType <> SpecialType.None Then
-                Return DefaultErrorFormat(symbol)
-            End If
-
-            Return symbol
-        End Function
     End Class
 End Namespace

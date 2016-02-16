@@ -145,8 +145,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          if (forCondition.Kind == OperationKind.BinaryOperatorExpression)
                          {
                              IBinaryOperatorExpression condition = (IBinaryOperatorExpression)forCondition;
-                             IOperation conditionLeft = condition.Left;
-                             IOperation conditionRight = condition.Right;
+                             IOperation conditionLeft = condition.LeftOperand;
+                             IOperation conditionRight = condition.RightOperand;
 
                              if (conditionRight.ConstantValue.HasValue &&
                                  conditionRight.Type.SpecialType == SpecialType.System_Int32 &&
@@ -194,13 +194,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                                                              IBinaryOperatorExpression advanceOperation = (IBinaryOperatorExpression)advanceAssignment.Value;
                                                              if (!advanceOperation.UsesOperatorMethod &&
-                                                                 advanceOperation.Left.Kind == OperationKind.LocalReferenceExpression &&
-                                                                 ((ILocalReferenceExpression)advanceOperation.Left).Local == testVariable &&
-                                                                 advanceOperation.Right.ConstantValue.HasValue &&
-                                                                 advanceOperation.Right.Type.SpecialType == SpecialType.System_Int32)
+                                                                 advanceOperation.LeftOperand.Kind == OperationKind.LocalReferenceExpression &&
+                                                                 ((ILocalReferenceExpression)advanceOperation.LeftOperand).Local == testVariable &&
+                                                                 advanceOperation.RightOperand.ConstantValue.HasValue &&
+                                                                 advanceOperation.RightOperand.Type.SpecialType == SpecialType.System_Int32)
                                                              {
                                                                  // Advance binary operation is known to involve a reference to the local used in the test and a constant.
-                                                                 advanceIncrement = advanceOperation.Right;
+                                                                 advanceIncrement = advanceOperation.RightOperand;
                                                                  advanceOperationCode = advanceOperation.BinaryOperationKind;
                                                              }
                                                          }
@@ -1525,9 +1525,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                             Diagnostic.Create(ParamsArrayOperationDescriptor,
                                               paramsarrayArgumentOperation.Syntax.GetLocation()));
                     }
-
                 },
-            OperationKind.InvocationExpression);
+                OperationKind.InvocationExpression);
         }
 
         // this OperationWalker collect:
@@ -1562,6 +1561,129 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
                 base.Visit(operation);
             }
+        }
+    }
+
+    public class InvalidOperatorExpressionTestAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor InvalidBinaryDescriptor = new DiagnosticDescriptor(
+            "InvalidBinary",
+            "Invalid binary expression operation with BinaryOperationKind.Invalid",
+            "An Invalid binary expression operation with BinaryOperationKind.Invalid is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor InvalidUnaryDescriptor = new DiagnosticDescriptor(
+            "InvalidUnary",
+            "Invalid unary expression operation with UnaryOperationKind.Invalid",
+            "An Invalid unary expression operation with UnaryOperationKind.Invalid is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor InvalidIncrementDescriptor = new DiagnosticDescriptor(
+            "InvalidIncrement",
+            "Invalid increment expression operation with ICompoundAssignmentExpression.BinaryOperationKind == BinaryOperationKind.Invalid",
+            "An Invalid increment expression operation with ICompoundAssignmentExpression.BinaryOperationKind == BinaryOperationKind.Invalid is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(InvalidBinaryDescriptor,
+                                                                                                                  InvalidUnaryDescriptor,
+                                                                                                                  InvalidIncrementDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     var operation = operationContext.Operation;
+                     if (operation.Kind == OperationKind.BinaryOperatorExpression)
+                     {
+                         var binary = (IBinaryOperatorExpression)operation;
+                         if (binary.IsInvalid && binary.BinaryOperationKind == BinaryOperationKind.Invalid)
+                         {
+                             operationContext.ReportDiagnostic(Diagnostic.Create(InvalidBinaryDescriptor, binary.Syntax.GetLocation()));
+                         }
+                     }
+                     else if (operation.Kind == OperationKind.UnaryOperatorExpression)
+                     {
+                         var unary = (IUnaryOperatorExpression)operation;
+                         if (unary.IsInvalid && unary.UnaryOperationKind == UnaryOperationKind.Invalid)
+                         {
+                             operationContext.ReportDiagnostic(Diagnostic.Create(InvalidUnaryDescriptor, unary.Syntax.GetLocation()));
+                         }
+                     }
+                     else if (operation.Kind == OperationKind.IncrementExpression)
+                     {
+                         var inc = (IIncrementExpression)operation;
+                         if (inc.IsInvalid && inc.BinaryOperationKind == BinaryOperationKind.Invalid)
+                         {
+                             operationContext.ReportDiagnostic(Diagnostic.Create(InvalidIncrementDescriptor, inc.Syntax.GetLocation()));
+                         }
+                     }
+                 },
+                 OperationKind.BinaryOperatorExpression,
+                 OperationKind.UnaryOperatorExpression,
+                 OperationKind.IncrementExpression);
+        }
+    }
+
+    public class ConditionalAccessOperationTestAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor ConditionalAccessOperationDescriptor = new DiagnosticDescriptor(
+           "ConditionalAccessOperation",
+           "Conditional access operation found",
+           "Conditional access operation was found",
+           "Testing",
+           DiagnosticSeverity.Warning,
+           isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor ConditionalAccessInstanceOperationDescriptor = new DiagnosticDescriptor(
+           "ConditionalAccessInstanceOperation",
+           "Conditional access instance operation found",
+           "Conditional access instance operation was found",
+           "Testing",
+           DiagnosticSeverity.Warning,
+           isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(ConditionalAccessOperationDescriptor, ConditionalAccessInstanceOperationDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     IConditionalAccessExpression conditionalAccess = (IConditionalAccessExpression)operationContext.Operation;
+                     if (conditionalAccess.ConditionalValue != null && conditionalAccess.ConditionalInstance != null)
+                     {
+                         operationContext.ReportDiagnostic(Diagnostic.Create(ConditionalAccessOperationDescriptor, conditionalAccess.Syntax.GetLocation()));
+                     }
+                 },
+                 OperationKind.ConditionalAccessExpression);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     IConditionalAccessInstanceExpression conditionalAccessInstance = (IConditionalAccessInstanceExpression)operationContext.Operation;
+                     operationContext.ReportDiagnostic(Diagnostic.Create(ConditionalAccessInstanceOperationDescriptor, conditionalAccessInstance.Syntax.GetLocation()));
+                 },
+                 OperationKind.ConditionalAccessInstanceExpression);
+
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    IPlaceholderExpression placeholder = (IPlaceholderExpression)operationContext.Operation;
+                    operationContext.ReportDiagnostic(Diagnostic.Create(ConditionalAccessInstanceOperationDescriptor, placeholder.Syntax.GetLocation()));
+                },
+                OperationKind.PlaceholderExpression);
         }
     }
 }
