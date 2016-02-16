@@ -7,8 +7,7 @@
     ".NETFramework,Version=v4.5/osx.10.10-anycpu": {},
     ".NETFramework,Version=v4.5/ubuntu.14.04": {},
     ".NETFramework,Version=v4.5/ubuntu.14.04-anycpu": {},
-    ".NETFramework,Version=v4.5/win7": {},
-    ".NETFramework,Version=v4.5/win7-anycpu": {}
+    ".NETFramework,Version=v4.5/win7": {}
   },
   "libraries": {},
   "projectFileDependencyGroups": {
