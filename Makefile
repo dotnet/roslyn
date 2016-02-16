@@ -49,6 +49,7 @@ bootstrap: $(ROSLYN_TOOLSET_PATH) $(RESTORE_SEMAPHORE_PATH)
 	mkdir -p $(BOOTSTRAP_PATH) && \
 	cp -f Binaries/$(BUILD_CONFIGURATION)/csccore/* $(BOOTSTRAP_PATH) && \
 	cp -f Binaries/$(BUILD_CONFIGURATION)/vbccore/* $(BOOTSTRAP_PATH) && \
+	cp Binaries/$(BUILD_CONFIGURATION)/VBCSCompilerPortable/* $(BOOTSTRAP_PATH) ; \
 	build/scripts/crossgen.sh $(BOOTSTRAP_PATH) && \
 	rm -rf Binaries/$(BUILD_CONFIGURATION)
 
