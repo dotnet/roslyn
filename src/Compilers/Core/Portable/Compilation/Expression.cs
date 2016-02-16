@@ -334,17 +334,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         public Binary(BinaryOperationKind binaryOperationKind, IOperation left, IOperation right, ITypeSymbol resultType, SyntaxNode syntax)
         {
             this.BinaryOperationKind = binaryOperationKind;
-            this.Left = left;
-            this.Right = right;
+            this.LeftOperand = left;
+            this.RightOperand = right;
             this.Type = resultType;
             this.Syntax = syntax;
         }
 
         public BinaryOperationKind BinaryOperationKind { get; }
 
-        public IOperation Left { get; }
+        public IOperation LeftOperand { get; }
 
-        public IOperation Right { get; }
+        public IOperation RightOperand { get; }
 
         public bool UsesOperatorMethod => false;
 
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public OperationKind Kind => OperationKind.BinaryOperatorExpression;
 
-        public bool IsInvalid => Left == null || Left.IsInvalid || Right == null || Right.IsInvalid;
+        public bool IsInvalid => LeftOperand == null || LeftOperand.IsInvalid || RightOperand == null || RightOperand.IsInvalid;
 
         public Optional<object> ConstantValue => default(Optional<object>);
 
