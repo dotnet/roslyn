@@ -102,8 +102,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 {
                     clientConnectionHost = clientConnectionHost ?? new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
 
-                    var mutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
-                    ServerClient.RunServer(
+                    var mutexName = DesktopBuildClient.GetServerMutexName(pipeName);
+                    DesktopServerClient.RunServer(
                         mutexName,
                         clientConnectionHost,
                         listener,
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 var thread = new Thread(_ =>
                 {
-                    var mutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
+                    var mutexName = DesktopBuildClient.GetServerMutexName(pipeName);
                     bool holdsMutex;
                     using (var serverMutex = new Mutex(initiallyOwned: true,
                                                        name: mutexName,

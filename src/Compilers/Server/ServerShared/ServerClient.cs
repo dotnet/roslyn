@@ -41,12 +41,30 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         protected abstract Task<Stream> ConnectForShutdownAsync(string pipeName, int timeout);
 
-        internal int RunServer(string pipeName, CancellationToken cancellationToken = default(CancellationToken))
+        /// <summary>
+        /// Was a server running with the specified session key during the execution of this call?
+        /// </summary>
+        protected virtual bool? WasServerRunning(string pipeName)
         {
-            var keepAliveTimeout = GetKeepAliveTimeout();
-            var serverMutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
-            var clientConnectionHost = CreateClientConnectionHost(pipeName);
-            return RunServer(serverMutexName, clientConnectionHost, keepAliveTimeout, cancellationToken);
+            return null;
+        }
+
+        protected virtual int RunServerCore(string pipeName, IClientConnectionHost connectionHost, IDiagnosticListener listener, TimeSpan? keepAlive, CancellationToken cancellationToken)
+        {
+            CompilerServerLogger.Log("Keep alive timeout is: {0} milliseconds.", keepAlive?.TotalMilliseconds ?? 0);
+            FatalError.Handler = FailFast.OnFatalException;
+
+            var dispatcher = new ServerDispatcher(connectionHost, listener);
+            dispatcher.ListenAndDispatchConnections(keepAlive, cancellationToken);
+            return CommonCompiler.Succeeded;
+        }
+
+        internal int RunServer(string pipeName, IClientConnectionHost clientConnectionHost = null, IDiagnosticListener listener = null, TimeSpan? keepAlive = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            keepAlive = keepAlive ?? GetKeepAliveTimeout();
+            listener = listener ?? new EmptyDiagnosticListener();
+            clientConnectionHost = clientConnectionHost ?? CreateClientConnectionHost(pipeName);
+            return RunServerCore(pipeName, clientConnectionHost, listener, keepAlive, cancellationToken);
         }
 
         internal int RunShutdown(string pipeName, bool waitForProcess = true, TimeSpan? timeout = null, CancellationToken cancellationToken = default(CancellationToken))
@@ -63,8 +81,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         internal async Task<int> RunShutdownAsync(string pipeName, bool waitForProcess = true, TimeSpan? timeout = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var mutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
-            if (!BuildClient.WasServerMutexOpen(mutexName))
+            if (WasServerRunning(pipeName) == false)
             {
                 // The server holds the mutex whenever it is running, if it's not open then the 
                 // server simply isn't running.
@@ -102,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             catch (Exception)
             {
-                if (!BuildClient.WasServerMutexOpen(mutexName))
+                if (WasServerRunning(pipeName) == false)
                 {
                     // If the server was in the process of shutting down when we connected then it's reasonable
                     // for an exception to happen.  If the mutex has shutdown at this point then the server 
@@ -112,51 +129,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 return CommonCompiler.Failed;
             }
-        }
-
-        internal static int RunServer(string mutexName, IClientConnectionHost connectionHost, TimeSpan? keepAlive, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return RunServer(mutexName, connectionHost, new EmptyDiagnosticListener(), keepAlive, cancellationToken);
-        }
-
-        internal static int RunServer(string mutexName, IClientConnectionHost connectionHost, IDiagnosticListener listener, TimeSpan? keepAlive, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            // Grab the server mutex to prevent multiple servers from starting with the same
-            // pipename and consuming excess resources. If someone else holds the mutex
-            // exit immediately with a non-zero exit code
-            bool holdsMutex;
-            using (var serverMutex = new Mutex(initiallyOwned: true,
-                                               name: mutexName,
-                                               createdNew: out holdsMutex))
-            {
-                if (!holdsMutex)
-                {
-                    return CommonCompiler.Failed;
-                }
-
-                try
-                {
-                    return RunServerCore(connectionHost, listener, keepAlive, cancellationToken);
-                }
-                finally
-                {
-                    serverMutex.ReleaseMutex();
-                }
-            }
-        }
-
-        private static int RunServerCore(
-            IClientConnectionHost connectionHost,
-            IDiagnosticListener listener,
-            TimeSpan? keepAliveTimeout,
-            CancellationToken cancellationToken)
-        {
-            CompilerServerLogger.Log("Keep alive timeout is: {0} milliseconds.", keepAliveTimeout?.TotalMilliseconds ?? 0);
-            FatalError.Handler = FailFast.OnFatalException;
-
-            var dispatcher = new ServerDispatcher(connectionHost, listener);
-            dispatcher.ListenAndDispatchConnections(keepAliveTimeout, cancellationToken);
-            return CommonCompiler.Succeeded;
         }
 
         internal static bool ParseCommandLine(string[] args, out string pipeName, out bool shutdown)

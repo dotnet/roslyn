@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 using (var doneMre = new ManualResetEvent(initialState: false))
                 {
                     var pipeName = Guid.NewGuid().ToString();
-                    var mutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
+                    var mutexName = DesktopBuildClient.GetServerMutexName(pipeName);
                     bool created = false;
                     bool connected = false;
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 using (var doneMre = new ManualResetEvent(initialState: false))
                 {
                     var pipeName = Guid.NewGuid().ToString();
-                    var mutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
+                    var mutexName = DesktopBuildClient.GetServerMutexName(pipeName);
                     bool created = false;
                     bool connected = false;
 

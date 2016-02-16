@@ -311,7 +311,7 @@ class Hello
                 try
                 {
                     var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
-                    var result = ServerClient.RunServer(mutexName, host.Object, keepAlive: null);
+                    var result = DesktopServerClient.RunServer(mutexName, host.Object, keepAlive: null);
                     Assert.Equal(CommonCompiler.Failed, result);
                 }
                 finally
@@ -350,7 +350,7 @@ class Hello
                     return new TaskCompletionSource<IClientConnection>().Task;
                 });
 
-            var result = ServerClient.RunServer(mutexName, host.Object, keepAlive: TimeSpan.FromSeconds(1));
+            var result = DesktopServerClient.RunServer(mutexName, host.Object, keepAlive: TimeSpan.FromSeconds(1));
             Assert.Equal(CommonCompiler.Succeeded, result);
         }
 
