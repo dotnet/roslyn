@@ -11,6 +11,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
+using System.Collections.Generic;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -111,12 +112,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             var editorOptions = _editorOptionsFactoryService.GetOptions(interactiveWindow.CurrentLanguageBuffer);
             var importReferencesCommand = referencePaths.Select(_createReference);
-            var importNamespacesCommand = namespacesToImport.Select(_createImport).Join(editorOptions.GetNewLineCharacter());
-            await interactiveWindow.SubmitAsync(importReferencesCommand.Concat(new[]
+            await interactiveWindow.SubmitAsync(importReferencesCommand).ConfigureAwait(true);
+            IEnumerable<string> namespaces = await GetNamespacesToImport(interactiveWindow).ConfigureAwait(true);
+            var importNamespacesCommand = namespacesToImport.Where((ns) => namespaces.Contains(ns)).Select(_createImport).Join(editorOptions.GetNewLineCharacter());
+
+            if (!string.IsNullOrWhiteSpace(importNamespacesCommand))
             {
-                importNamespacesCommand
-            })).ConfigureAwait(true);
+                await interactiveWindow.SubmitAsync(new[] { importNamespacesCommand }).ConfigureAwait(true);
+            }
         }
+
+        protected abstract Task<IEnumerable<string>> GetNamespacesToImport(IInteractiveWindow interactiveWindow);
 
         /// <summary>
         /// Gets the properties of the currently selected projects necessary for reset.

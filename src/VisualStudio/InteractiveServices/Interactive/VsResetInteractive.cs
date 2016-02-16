@@ -17,6 +17,9 @@ using VSLangProj;
 using Project = EnvDTE.Project;
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.CodeAnalysis.Text;
+using System.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -258,6 +261,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         protected override IWaitIndicator GetWaitIndicator()
         {
             return _componentModel.GetService<IWaitIndicator>();
+        }
+
+        protected override async Task<IEnumerable<string>> GetNamespacesToImport(IInteractiveWindow interactiveWindow)
+        {
+            // Filter out namespace imports that do not exist in the compilation.
+            // Needed when project's default namespace is different from namespace used within project.
+            var document = interactiveWindow.CurrentLanguageBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var compilation = await document.Project.GetCompilationAsync().ConfigureAwait(true);
+            var namespaces = new HashSet<string>(compilation.GlobalNamespace.GetNamespaceMembers().Select((ns) => ns.Name));
+            return namespaces;
         }
     }
 }

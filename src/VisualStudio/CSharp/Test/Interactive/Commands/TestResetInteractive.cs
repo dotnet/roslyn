@@ -6,6 +6,8 @@ using Microsoft.VisualStudio.Text.Editor;
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.InteractiveWindow;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
@@ -26,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
         internal ImmutableArray<string> SourceSearchPaths { get; set; }
 
         internal ImmutableArray<string> NamespacesToImport { get; set; }
+
+        internal ImmutableArray<string> ExistingNamespaces { get; set; }
 
         internal string ProjectDirectory { get; set; }
 
@@ -70,6 +74,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
         protected override IWaitIndicator GetWaitIndicator()
         {
             return _waitIndicator;
+        }
+
+        protected override Task<IEnumerable<string>> GetNamespacesToImport(IInteractiveWindow interactiveWindow)
+        {
+            return Task.FromResult((IEnumerable<string>)ExistingNamespaces);
         }
     }
 }
