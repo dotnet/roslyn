@@ -224,8 +224,7 @@ d.cs
                 },
                 recursivePatterns: new Dictionary<string, string[]>()
                 {
-                    // TODO (tomat): Fix PathUtilities.GetDirectoryName to strip trailing \ and then the key should be @"C:\temp\a|*.cs"
-                    { @"C:\temp\a\|*.cs", new[] { @"a\x.cs", @"a\b\b.cs", @"a\c.cs" } },
+                    { @"C:\temp\a|*.cs", new[] { @"a\x.cs", @"a\b\b.cs", @"a\c.cs" } },
                 });
 
             var args = parser.Parse(new[] { @"*.cs", @"/recurse:a\*.cs" }, @"C:\temp", s_defaultSdkDirectory);

@@ -3833,7 +3833,7 @@ Class C
 
             Dim parsedArgs = DefaultParse({"/libpath:c:\lib2,", "@" & file.ToString(), "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, Path.GetDirectoryName(file.ToString()) + "\", "c:\lib2")
+            AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, Path.GetDirectoryName(file.ToString()), "c:\lib2")
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
