@@ -1,13 +1,6 @@
-{
-  "dependencies": {
-    "System.Collections": "4.0.10",
-    "System.Diagnostics.Debug": "4.0.10",
-    "System.Globalization": "4.0.10",
-    "System.Runtime": "4.0.20",
-    "System.Runtime.Extensions": "4.0.10",
-    "System.Threading": "4.0.10"
-  },
+﻿{
+  "dependencies": { },
   "frameworks": {
-    "net46": { }
+    "net46": {}
   }
 }

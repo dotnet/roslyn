@@ -1,6 +1,6 @@
 SHELL = /bin/bash
 OS_NAME = $(shell uname -s)
-NUGET_PACKAGE_NAME = nuget.54
+NUGET_PACKAGE_NAME = nuget.55
 BUILD_CONFIGURATION = Debug
 BOOTSTRAP_PATH = $(shell pwd)/Binaries/Bootstrap
 BUILD_LOG_PATH =
@@ -33,11 +33,11 @@ MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:MonoToolsetPath=$(MONO_PA
 TOOLSET_ARGS = $(MSBUILD_ADDITIONALARGS) /p:CscToolPath=$(ROSLYN_TOOLSET_PATH) /p:CscToolExe=csc /p:VbcToolPath=$(ROSLYN_TOOLSET_PATH) /p:VbcToolExe=vbc
 
 all: toolset
-	$(MONO_PATH) ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe $(TOOLSET_ARGS) CrossPlatform.sln
+	$(MONO_PATH) ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0/lib/MSBuild.exe $(TOOLSET_ARGS) CrossPlatform.sln
 
 bootstrap: toolset
-	$(MONO_PATH) ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe $(TOOLSET_ARGS) src/Compilers/CSharp/CscCore/CscCore.csproj ; \
-	$(MONO_PATH) ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe $(TOOLSET_ARGS) src/Compilers/VisualBasic/VbcCore/VbcCore.csproj ; \
+	$(MONO_PATH) ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0/lib/MSBuild.exe $(TOOLSET_ARGS) src/Compilers/CSharp/CscCore/CscCore.csproj ; \
+	$(MONO_PATH) ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0/lib/MSBuild.exe $(TOOLSET_ARGS) src/Compilers/VisualBasic/VbcCore/VbcCore.csproj ; \
 	mkdir -p $(BOOTSTRAP_PATH) ; \
 	cp Binaries/$(BUILD_CONFIGURATION)/csccore/* $(BOOTSTRAP_PATH) ; \
 	cp Binaries/$(BUILD_CONFIGURATION)/vbccore/* $(BOOTSTRAP_PATH) ; \
@@ -45,7 +45,7 @@ bootstrap: toolset
 	rm -rf Binaries/$(BUILD_CONFIGURATION)
 
 test:
-	build/scripts/tests.sh $(MONO_PATH) $(BUILD_CONFIGURATION) $(XUNIT_VERSION)
+	build/scripts/tests.sh $(BUILD_CONFIGURATION)
 
 clean:
 	@rm -rf Binaries
@@ -71,4 +71,4 @@ clean_toolset:
 	@pushd /tmp/ ; \
 	curl -O https://dotnetci.blob.core.windows.net/roslyn/$(NUGET_PACKAGE_NAME).zip ; \
 	unzip -uoq $(NUGET_PACKAGE_NAME).zip -d ~/ ; \
-	chmod +x ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe
+	chmod +x ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0/lib/MSBuild.exe

@@ -17,6 +17,7 @@
     <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
     <NuGetPackageRoot>$(UserProfile)\.nuget\packages</NuGetPackageRoot>
     <XunitVersion>2.1.0</XunitVersion>
+    <CoreClrTestDirectory>$(OutputDirectory)\CoreClrTest</CoreClrTestDirectory>
     <MSBuildCommonProperties>
       RestorePackages=false;
       TreatWarningsAsErrors=true;
@@ -75,12 +76,16 @@
 
       <!-- MakeConst unit tests tracked by https://github.com/dotnet/roslyn/issues/5918 -->
       <TestAssemblies Condition="'$(Test64)' != 'true'" 
-                      Include="$(OutputDirectory)\**\$(IncludePattern)" />
+                      Include="$(OutputDirectory)\$(IncludePattern)" />
 
       <TestAssemblies Condition="'$(Test64)' == 'true'" 
-                      Include="$(OutputDirectory)\**\$(IncludePattern)" 
-                      Exclude="$(OutputDirectory)\**\Roslyn.Interactive*" />
+                      Include="$(OutputDirectory)\$(IncludePattern)" 
+                      Exclude="$(OutputDirectory)\Roslyn.Interactive*" />
+
+      <CoreTestAssemblies Include="$(CoreClrTestDirectory)\$(IncludePattern)" />
     </ItemGroup>
+
+    <Exec Command="$(CoreClrTestDirectory)\CoreRun.exe $(CoreClrTestDirectory)\xunit.console.netcore.exe @(CoreTestAssemblies, ' ') -parallel all -xml $(CoreClrTestDirectory)\TestResults.xml" />
 
     <Exec Command="Binaries\$(Configuration)\RunTests.exe $(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
 

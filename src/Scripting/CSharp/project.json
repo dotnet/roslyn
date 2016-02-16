@@ -1,7 +1,12 @@
-{
-  "dependencies": {},
+﻿{
+  "dependencies": {
+    "Microsoft.CSharp": "4.0.1-beta-23504",
+    "System.AppContext": "4.0.1-beta-23504",
+    "System.Diagnostics.Tools": "4.0.1-beta-23504",
+    "System.Dynamic.Runtime": "4.0.11-beta-23504"
+  },
   "frameworks": {
-    "dotnet": {
+    "dotnet5.4": {
       "imports": "portable-net452"
     }
   }
