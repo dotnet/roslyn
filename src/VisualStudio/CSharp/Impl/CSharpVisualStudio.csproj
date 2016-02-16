@@ -205,6 +205,7 @@
     <Compile Include="ObjectBrowser\CSharpLibraryService.cs" />
     <Compile Include="ObjectBrowser\CSharpSyncClassViewCommandHandler.cs" />
     <Compile Include="ObjectBrowser\ListItemFactory.cs" />
+    <Compile Include="Options\NamingStylesOptionPage.cs" />
     <Compile Include="Options\AdvancedOptionPageStrings.cs" />
     <Compile Include="Options\IntelliSenseOptionPageStrings.cs" />
     <Compile Include="Options\SerializationHelpers.cs" />

@@ -10,7 +10,7 @@
     xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
     xmlns:imagingPlatformUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
     mc:Ignorable="d" d:DesignHeight="279" d:DesignWidth="514">
-
+    
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
@@ -29,7 +29,7 @@
                 <DataTemplate DataType="{x:Type options:CheckBoxOptionViewModel}">
                     <StackPanel Orientation="Horizontal">
                         <CheckBox x:Uid="OptionCheckBox" 
-                                        IsChecked="{Binding IsChecked, Mode=TwoWay}" 
+                                        IsChecked="{Binding IsChecked, Mode=TwoWay}"
                                         Width="Auto"
                                         Focusable="False"
                                         Margin="20, 0, 0, 0">
@@ -46,7 +46,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <CheckBox x:Uid="OptionCheckBox" 
-                                        IsChecked="{Binding IsChecked, Mode=TwoWay}" 
+                                        IsChecked="{Binding IsChecked, Mode=TwoWay}"
                                         Width="Auto"
                                         Focusable="False"
                                         Margin="20, 0, 0, 0"

@@ -15,7 +15,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 // NOTE(DustinCa): The EditorFactory registration is in VisualStudioComponents\CSharpPackageRegistration.pkgdef.
 // The reason for this is because the ProvideEditorLogicalView does not allow a name value to specified in addition to
@@ -31,15 +30,36 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [ProvideLanguageExtension(typeof(CSharpLanguageService), ".cs")]
     [ProvideLanguageService(Guids.CSharpLanguageServiceIdString, "CSharp", languageResourceID: 101, RequestStockColors = true, ShowDropDownOptions = true)]
-    [ProvideLanguageEditorToolsOptionCategory("CSharp", "Formatting", "#107")]
+
+    // C# option pages tree:
+    //   CSharp
+    //     General (from editor)
+    //     Scroll Bars (from editor)
+    //     Tabs (from editor)
+    //     Advanced
+    //     Code Style (category)
+    //       General
+    //       Formatting (category)
+    //         General
+    //         Indentation
+    //         New Lines
+    //         Spacing
+    //         Wrapping
+    //       Naming
+    //     IntelliSense
+    
     [ProvideLanguageEditorOptionPage(typeof(Options.AdvancedOptionPage), "CSharp", null, "Advanced", pageNameResourceId: "#102", keywordListResourceId: 306)]
-    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.CodeStylePage), "CSharp", null, @"Code Style", pageNameResourceId: "#114", keywordListResourceId: 313)]
+    [ProvideLanguageEditorToolsOptionCategory("CSharp", "Code Style", "#114")]
+    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.CodeStylePage), "CSharp", @"Code Style", "General", pageNameResourceId: "#108", keywordListResourceId: 313)]
+    [ProvideLanguageEditorToolsOptionCategory("CSharp", @"Code Style\Formatting", "#107")]
+    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingOptionPage), "CSharp", @"Code Style\Formatting", "General", pageNameResourceId: "#108", keywordListResourceId: 307)]
+    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingIndentationOptionPage), "CSharp", @"Code Style\Formatting", "Indentation", pageNameResourceId: "#109", keywordListResourceId: 308)]
+    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingWrappingPage), "CSharp", @"Code Style\Formatting", "Wrapping", pageNameResourceId: "#110", keywordListResourceId: 311)]
+    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingNewLinesPage), "CSharp", @"Code Style\Formatting", "NewLines", pageNameResourceId: "#111", keywordListResourceId: 309)]
+    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingSpacingPage), "CSharp", @"Code Style\Formatting", "Spacing", pageNameResourceId: "#112", keywordListResourceId: 310)]
+    [ProvideLanguageEditorOptionPage(typeof(Options.NamingStylesOptionPage), "CSharp", @"Code Style", "Naming", pageNameResourceId: "#115", keywordListResourceId: 314)]
     [ProvideLanguageEditorOptionPage(typeof(Options.IntelliSenseOptionPage), "CSharp", null, "IntelliSense", pageNameResourceId: "#103", keywordListResourceId: 312)]
-    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingOptionPage), "CSharp", "Formatting", "General", pageNameResourceId: "#108", keywordListResourceId: 307)]
-    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingIndentationOptionPage), "CSharp", "Formatting", "Indentation", pageNameResourceId: "#109", keywordListResourceId: 308)]
-    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingWrappingPage), "CSharp", "Formatting", "Wrapping", pageNameResourceId: "#110", keywordListResourceId: 311)]
-    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingNewLinesPage), "CSharp", "Formatting", "NewLines", pageNameResourceId: "#111", keywordListResourceId: 309)]
-    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingSpacingPage), "CSharp", "Formatting", "Spacing", pageNameResourceId: "#112", keywordListResourceId: 310)]
+
     [ProvideAutomationProperties("TextEditor", "CSharp", Guids.TextManagerPackageString, profileNodeLabelId: 101, profileNodeDescriptionId: 106, resourcePackageGuid: Guids.CSharpPackageIdString)]
     [ProvideAutomationProperties("TextEditor", "CSharp-Specific", packageGuid: Guids.CSharpPackageIdString, profileNodeLabelId: 104, profileNodeDescriptionId: 105)]
     [ProvideService(typeof(CSharpLanguageService), ServiceName = "C# Language Service")]
