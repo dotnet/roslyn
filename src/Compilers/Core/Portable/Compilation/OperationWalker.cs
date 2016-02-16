@@ -161,13 +161,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.Handler);
         }
 
-        public override void VisitUsingWithDeclarationStatement(IUsingWithDeclarationStatement operation)
+        public override void VisitUsingStatement(IUsingStatement operation)
         {
             Visit(operation.Declaration);
-        }
-
-        public override void VisitUsingWithExpressionStatement(IUsingWithExpressionStatement operation)
-        {
             Visit(operation.Value);
         }
 
@@ -261,7 +257,22 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitConditionalAccessExpression(IConditionalAccessExpression operation)
         {
-            Visit(operation.Access);
+            Visit(operation.ConditionalValue);
+            Visit(operation.ConditionalInstance);
+        }
+
+        public override void VisitConditionalAccessInstanceExpression(IConditionalAccessInstanceExpression operation)
+        {
+        }
+
+        public override void VisitPlaceholderExpression(IPlaceholderExpression operation)
+        {
+        }
+
+        public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
+        {
+            Visit(operation.Instance);
+            VisitArray(operation.ArgumentsInParameterOrder);
         }
 
         public override void VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)
@@ -271,8 +282,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitBinaryOperatorExpression(IBinaryOperatorExpression operation)
         {
-            Visit(operation.Left);
-            Visit(operation.Right);
+            Visit(operation.LeftOperand);
+            Visit(operation.RightOperand);
         }
 
         public override void VisitConversionExpression(IConversionExpression operation)
@@ -289,11 +300,11 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitNullCoalescingExpression(INullCoalescingExpression operation)
         {
-            Visit(operation.Primary);
-            Visit(operation.Secondary);
+            Visit(operation.PrimaryOperand);
+            Visit(operation.SecondaryOperand);
         }
 
-        public override void VisitIsExpression(IIsExpression operation)
+        public override void VisitIsTypeExpression(IIsTypeExpression operation)
         {
             Visit(operation.Operand);
         }

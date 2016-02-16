@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundExpression
         Implements IOperation
 
-        Private ReadOnly Property IConstantValue As [Optional](Of Object) Implements IOperation.ConstantValue
+        Private ReadOnly Property IOperation_ConstantValue As [Optional](Of Object) Implements IOperation.ConstantValue
             Get
                 Dim value As ConstantValue = Me.ConstantValueOpt
                 If value Is Nothing Then
@@ -19,25 +19,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IKind As OperationKind Implements IOperation.Kind
+        Private ReadOnly Property IOperation_Kind As OperationKind Implements IOperation.Kind
             Get
                 Return Me.ExpressionKind()
             End Get
         End Property
 
-        Private ReadOnly Property IIsInvalid As Boolean Implements IOperation.IsInvalid
+        Private ReadOnly Property IOperation_IsInvalid As Boolean Implements IOperation.IsInvalid
             Get
                 Return Me.HasErrors
             End Get
         End Property
 
-        Private ReadOnly Property IResultType As ITypeSymbol Implements IOperation.Type
+        Private ReadOnly Property IOperation_Type As ITypeSymbol Implements IOperation.Type
             Get
                 Return Me.Type
             End Get
         End Property
 
-        Private ReadOnly Property ISyntax As SyntaxNode Implements IOperation.Syntax
+        Private ReadOnly Property IOperation_Syntax As SyntaxNode Implements IOperation.Syntax
             Get
                 Return Me.Syntax
             End Get
@@ -54,13 +54,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements IAssignmentExpression
         Implements ICompoundAssignmentExpression
 
-        Private ReadOnly Property ITarget As IReferenceExpression Implements IAssignmentExpression.Target
+        Private ReadOnly Property IAssignmentExpression_Target As IReferenceExpression Implements IAssignmentExpression.Target
             Get
                 Return TryCast(Me.Left, IReferenceExpression)
             End Get
         End Property
 
-        Private ReadOnly Property IValue As IOperation Implements IAssignmentExpression.Value
+        Private ReadOnly Property IAssignmentExpression_Value As IOperation Implements IAssignmentExpression.Value
             Get
                 If ExpressionKind() = OperationKind.CompoundAssignmentExpression Then
                     Dim rightBinary As BoundBinaryOperator = TryCast(Me.Right, BoundBinaryOperator)
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements ICompoundAssignmentExpression.BinaryOperationKind
+        Private ReadOnly Property ICompoundAssignmentExpression_BinaryOperationKind As BinaryOperationKind Implements ICompoundAssignmentExpression.BinaryOperationKind
             Get
                 If ExpressionKind() = OperationKind.CompoundAssignmentExpression Then
                     Dim rightBinary As BoundBinaryOperator = TryCast(Me.Right, BoundBinaryOperator)
@@ -96,9 +96,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
-                If Me.IUsesOperatorMethod Then
+                If Me.IHasOperatorMethodExpression_UsesOperatorMethod Then
                     Return DirectCast(Me.Right, BoundUserDefinedBinaryOperator).Call.Method
                 End If
 
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_UsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 If ExpressionKind() = OperationKind.CompoundAssignmentExpression Then
                     Return TypeOf Me.Right Is BoundUserDefinedBinaryOperator
@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundMeReference
         Implements IInstanceReferenceExpression
 
-        Private ReadOnly Property IInstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
+        Private ReadOnly Property IInstanceReferenceExpression_InstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
             Get
                 Return If(Me.WasCompilerGenerated, InstanceReferenceKind.Implicit, InstanceReferenceKind.Explicit)
             End Get
@@ -176,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundMyBaseReference
         Implements IInstanceReferenceExpression
 
-        Private ReadOnly Property IInstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
+        Private ReadOnly Property IInstanceReferenceExpression_InstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
             Get
                 Return InstanceReferenceKind.BaseClass
             End Get
@@ -198,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundMyClassReference
         Implements IInstanceReferenceExpression
 
-        Private ReadOnly Property IInstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
+        Private ReadOnly Property IInstanceReferenceExpression_InstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
             Get
                 Return InstanceReferenceKind.ThisClass
             End Get
@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundLiteral
         Implements ILiteralExpression
 
-        Private ReadOnly Property ISpelling As String Implements ILiteralExpression.Text
+        Private ReadOnly Property ILiteralExpression_Text As String Implements ILiteralExpression.Text
             Get
                 Return Me.Syntax.ToString()
             End Get
@@ -242,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundAwaitOperator
         Implements IAwaitExpression
 
-        Private ReadOnly Property IUpon As IOperation Implements IAwaitExpression.AwaitedValue
+        Private ReadOnly Property IAwaitExpression_AwaitedValue As IOperation Implements IAwaitExpression.AwaitedValue
             Get
                 Return Me.Operand
             End Get
@@ -264,13 +264,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundLambda
         Implements ILambdaExpression
 
-        Private ReadOnly Property IBody As IBlockStatement Implements ILambdaExpression.Body
+        Private ReadOnly Property ILambdaExpression_Body As IBlockStatement Implements ILambdaExpression.Body
             Get
                 Return Me.Body
             End Get
         End Property
 
-        Private ReadOnly Property ISignature As IMethodSymbol Implements ILambdaExpression.Signature
+        Private ReadOnly Property ILambdaExpression_Signature As IMethodSymbol Implements ILambdaExpression.Signature
             Get
                 Return Me.LambdaSymbol
             End Get
@@ -292,23 +292,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundCall
         Implements IInvocationExpression
 
-        Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
+        Private Function IHasArgumentsExpression_GetArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
             Return ArgumentMatchingParameter(Me.Arguments, parameter, Me.Method.Parameters)
         End Function
 
-        Private ReadOnly Property IArgumentsInSourceOrder As ImmutableArray(Of IArgument) Implements IInvocationExpression.ArgumentsInSourceOrder
+        Private ReadOnly Property IInvocationExpression_ArgumentsInSourceOrder As ImmutableArray(Of IArgument) Implements IInvocationExpression.ArgumentsInSourceOrder
             Get
                 Return DeriveArguments(Me.Arguments, Me.Method.Parameters)
             End Get
         End Property
 
-        Private ReadOnly Property IArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
+        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
             Get
                 Return DeriveArguments(Me.Arguments, Me.Method.Parameters)
             End Get
         End Property
 
-        Private ReadOnly Property IIsVirtual As Boolean Implements IInvocationExpression.IsVirtual
+        Private ReadOnly Property IInvocationExpression_IsVirtual As Boolean Implements IInvocationExpression.IsVirtual
             Get
                 Dim method As IMethodSymbol = Me.Method
 
@@ -316,13 +316,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property TargetMethod As IMethodSymbol Implements IInvocationExpression.TargetMethod
+        Private ReadOnly Property IInvocationExpression_TargetMethod As IMethodSymbol Implements IInvocationExpression.TargetMethod
             Get
                 Return Me.Method
             End Get
         End Property
 
-        Private ReadOnly Property IInstance As IOperation Implements IInvocationExpression.Instance
+        Private ReadOnly Property IInvocationExpression_Instance As IOperation Implements IInvocationExpression.Instance
             Get
                 If Me.Method.IsShared Then
                     Return Nothing
@@ -421,13 +421,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return visitor.VisitArgument(Me, argument)
             End Function
 
-            Private ReadOnly Property IType As ITypeSymbol Implements IOperation.Type
+            Private ReadOnly Property IOperation_Type As ITypeSymbol Implements IOperation.Type
                 Get
                     Return Nothing
                 End Get
             End Property
 
-            Private ReadOnly Property IConstantValue As [Optional](Of Object) Implements IOperation.ConstantValue
+            Private ReadOnly Property IOperation_ConstantValue As [Optional](Of Object) Implements IOperation.ConstantValue
                 Get
                     Return New [Optional](Of Object)()
                 End Get
@@ -527,7 +527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundParenthesized
         Implements IParenthesizedExpression
 
-        Private ReadOnly Property IOperand As IOperation Implements IParenthesizedExpression.Operand
+        Private ReadOnly Property IParenthesizedExpression_Operand As IOperation Implements IParenthesizedExpression.Operand
             Get
                 Return Me.Expression
             End Get
@@ -549,13 +549,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundArrayAccess
         Implements IArrayElementReferenceExpression
 
-        Private ReadOnly Property IArrayReference As IOperation Implements IArrayElementReferenceExpression.ArrayReference
+        Private ReadOnly Property IArrayElementReferenceExpression_ArrayReference As IOperation Implements IArrayElementReferenceExpression.ArrayReference
             Get
                 Return Me.Expression
             End Get
         End Property
 
-        Private ReadOnly Property IIndices As ImmutableArray(Of IOperation) Implements IArrayElementReferenceExpression.Indices
+        Private ReadOnly Property IArrayElementReferenceExpression_Indices As ImmutableArray(Of IOperation) Implements IArrayElementReferenceExpression.Indices
             Get
                 Return Me.Indices.As(Of IOperation)()
             End Get
@@ -577,25 +577,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundUnaryOperator
         Implements IUnaryOperatorExpression
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 Return Nothing
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_UsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 Return False
             End Get
         End Property
 
-        Private ReadOnly Property IOperand As IOperation Implements IUnaryOperatorExpression.Operand
+        Private ReadOnly Property IUnaryOperatorExpression_Operand As IOperation Implements IUnaryOperatorExpression.Operand
             Get
                 Return Me.Operand
             End Get
         End Property
 
-        Private ReadOnly Property IUnaryOperationKind As UnaryOperationKind Implements IUnaryOperatorExpression.UnaryOperationKind
+        Private ReadOnly Property IUnaryOperatorExpression_UnaryOperationKind As UnaryOperationKind Implements IUnaryOperatorExpression.UnaryOperationKind
             Get
                 Return DeriveUnaryOperationKind(Me.OperatorKind, Me.Operand)
             End Get
@@ -617,25 +617,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundUserDefinedUnaryOperator
         Implements IUnaryOperatorExpression
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 Return Me.Call.Method
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_UsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 Return True
             End Get
         End Property
 
-        Private ReadOnly Property IOperand As IOperation Implements IUnaryOperatorExpression.Operand
+        Private ReadOnly Property IUnaryOperatorExpression_Operand As IOperation Implements IUnaryOperatorExpression.Operand
             Get
                 Return Me.Operand
             End Get
         End Property
 
-        Private ReadOnly Property IUnaryOperationKind As UnaryOperationKind Implements IUnaryOperatorExpression.UnaryOperationKind
+        Private ReadOnly Property IUnaryOperatorExpression_UnaryOperationKind As UnaryOperationKind Implements IUnaryOperatorExpression.UnaryOperationKind
             Get
                 Select Case OperatorKind And UnaryOperatorKind.OpMask
                     Case UnaryOperatorKind.Plus
@@ -666,31 +666,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundBinaryOperator
         Implements IBinaryOperatorExpression
 
-        Private ReadOnly Property ILeft As IOperation Implements IBinaryOperatorExpression.Left
+        Private ReadOnly Property IBinaryOperatorExpression_LeftOperand As IOperation Implements IBinaryOperatorExpression.LeftOperand
             Get
                 Return Me.Left
             End Get
         End Property
 
-        Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryOperationKind
+        Private ReadOnly Property IBinaryOperatorExpression_BinaryOperationKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryOperationKind
             Get
                 Return DeriveBinaryOperationKind(Me.OperatorKind, Me.Left)
             End Get
         End Property
 
-        Private ReadOnly Property IRight As IOperation Implements IBinaryOperatorExpression.Right
+        Private ReadOnly Property IBinaryOperatorExpression_RightOperand As IOperation Implements IBinaryOperatorExpression.RightOperand
             Get
                 Return Me.Right
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 Return Nothing
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_UsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 Return False
             End Get
@@ -709,16 +709,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundUserDefinedBinaryOperator
+    Partial Friend Class BoundUserDefinedBinaryOperator
         Implements IBinaryOperatorExpression
 
-        Private ReadOnly Property ILeft As IOperation Implements IBinaryOperatorExpression.Left
+        Private ReadOnly Property IBinaryOperatorExpression_LeftOperand As IOperation Implements IBinaryOperatorExpression.LeftOperand
             Get
                 Return Me.Left
             End Get
         End Property
 
-        Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryOperationKind
+        Private ReadOnly Property IBinaryOperatorExpression_BinaryOperationKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryOperationKind
             Get
                 Select Case OperatorKind And BinaryOperatorKind.OpMask
                     Case BinaryOperatorKind.Add
@@ -763,19 +763,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IRight As IOperation Implements IBinaryOperatorExpression.Right
+        Private ReadOnly Property IBinaryOperatorExpression_RightOperand As IOperation Implements IBinaryOperatorExpression.RightOperand
             Get
                 Return Me.Right
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 Return Me.Call.Method
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_UsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 Return True
             End Get
@@ -804,16 +804,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundBinaryConditionalExpression
+    Partial Friend Class BoundBinaryConditionalExpression
         Implements INullCoalescingExpression
 
-        Private ReadOnly Property IPrimary As IOperation Implements INullCoalescingExpression.Primary
+        Private ReadOnly Property INullCoalescingExpression_PrimaryOperand As IOperation Implements INullCoalescingExpression.PrimaryOperand
             Get
                 Return Me.TestExpression
             End Get
         End Property
 
-        Private ReadOnly Property ISecondary As IOperation Implements INullCoalescingExpression.Secondary
+        Private ReadOnly Property INullCoalescingExpression_SecondaryOperand As IOperation Implements INullCoalescingExpression.SecondaryOperand
             Get
                 Return Me.ElseExpression
             End Get
@@ -832,34 +832,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundUserDefinedShortCircuitingOperator
+    Partial Friend Class BoundUserDefinedShortCircuitingOperator
         Implements IBinaryOperatorExpression
 
-        Private ReadOnly Property ILeft As IOperation Implements IBinaryOperatorExpression.Left
+        Private ReadOnly Property IBinaryOperatorExpression_LeftOperand As IOperation Implements IBinaryOperatorExpression.LeftOperand
             Get
                 Return Me.LeftOperand
             End Get
         End Property
 
-        Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryOperationKind
+        Private ReadOnly Property IBinaryOperatorExpression_BinaryOperationKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryOperationKind
             Get
                 Return If((Me.BitwiseOperator.OperatorKind And BinaryOperatorKind.And) <> 0, BinaryOperationKind.OperatorMethodConditionalAnd, BinaryOperationKind.OperatorMethodConditionalOr)
             End Get
         End Property
 
-        Private ReadOnly Property IRight As IOperation Implements IBinaryOperatorExpression.Right
+        Private ReadOnly Property IBinaryOperatorExpression_RightOperand As IOperation Implements IBinaryOperatorExpression.RightOperand
             Get
                 Return Me.BitwiseOperator.Right
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 Return Me.BitwiseOperator.Call.Method
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_UsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 Return True
             End Get
@@ -897,31 +897,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundTryCast
         Implements IConversionExpression
 
-        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
+        Private ReadOnly Property IConversionExpression_ConversionKind As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
             Get
                 Return Semantics.ConversionKind.TryCast
             End Get
         End Property
 
-        Private ReadOnly Property IIsExplicit As Boolean Implements IConversionExpression.IsExplicit
+        Private ReadOnly Property IConversionExpresson_IsExplicit As Boolean Implements IConversionExpression.IsExplicit
             Get
                 Return True
             End Get
         End Property
 
-        Private ReadOnly Property IOperand As IOperation Implements IConversionExpression.Operand
+        Private ReadOnly Property IConversionExpression_Operand As IOperation Implements IConversionExpression.Operand
             Get
                 Return Me.Operand
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 Return Nothing
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_UsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 Return False
             End Get
@@ -943,31 +943,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundDirectCast
         Implements IConversionExpression
 
-        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
+        Private ReadOnly Property IConversionExpression_ConversionKind As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
             Get
                 Return Semantics.ConversionKind.Cast
             End Get
         End Property
 
-        Private ReadOnly Property IIsExplicit As Boolean Implements IConversionExpression.IsExplicit
+        Private ReadOnly Property IConversionExpression_IsExplicit As Boolean Implements IConversionExpression.IsExplicit
             Get
                 Return True
             End Get
         End Property
 
-        Private ReadOnly Property IOperand As IOperation Implements IConversionExpression.Operand
+        Private ReadOnly Property IConversionExpression_Operand As IOperation Implements IConversionExpression.Operand
             Get
                 Return Me.Operand
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 Return Nothing
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_UsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 Return False
             End Get
@@ -989,31 +989,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundConversion
         Implements IConversionExpression
 
-        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
+        Private ReadOnly Property IConversionExpression_ConversionKind As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
             Get
                 Return Semantics.ConversionKind.Basic
             End Get
         End Property
 
-        Private ReadOnly Property IIsExplicit As Boolean Implements IConversionExpression.IsExplicit
+        Private ReadOnly Property IConversionExpression_IsExplicit As Boolean Implements IConversionExpression.IsExplicit
             Get
                 Return Me.ExplicitCastInCode
             End Get
         End Property
 
-        Private ReadOnly Property IOperand As IOperation Implements IConversionExpression.Operand
+        Private ReadOnly Property IConversinExpression_Operand As IOperation Implements IConversionExpression.Operand
             Get
                 Return Me.Operand
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 Return Nothing
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_UsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 Return False
             End Get
@@ -1035,31 +1035,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundUserDefinedConversion
         Implements IConversionExpression
 
-        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
+        Private ReadOnly Property IConversionExpression_ConversionKind As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
             Get
                 Return Semantics.ConversionKind.OperatorMethod
             End Get
         End Property
 
-        Private ReadOnly Property IIsExplicit As Boolean Implements IConversionExpression.IsExplicit
+        Private ReadOnly Property IConversionExpression_IsExplicit As Boolean Implements IConversionExpression.IsExplicit
             Get
                 Return Not Me.WasCompilerGenerated
             End Get
         End Property
 
-        Private ReadOnly Property IOperand As IOperation Implements IConversionExpression.Operand
+        Private ReadOnly Property IConversionExpression_Operand As IOperation Implements IConversionExpression.Operand
             Get
                 Return Me.Operand
             End Get
         End Property
 
-        Private ReadOnly Property IOperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
             Get
                 Return Me.Call.Method
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
+        Private ReadOnly Property IHasOperatorMethodExpression_UsesOperatorMethod As Boolean Implements IHasOperatorMethodExpression.UsesOperatorMethod
             Get
                 Return True
             End Get
@@ -1081,19 +1081,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundTernaryConditionalExpression
         Implements IConditionalChoiceExpression
 
-        Private ReadOnly Property ICondition As IOperation Implements IConditionalChoiceExpression.Condition
+        Private ReadOnly Property IConditionalChoiceExpression_Condition As IOperation Implements IConditionalChoiceExpression.Condition
             Get
                 Return Me.Condition
             End Get
         End Property
 
-        Private ReadOnly Property IIfFalse As IOperation Implements IConditionalChoiceExpression.IfFalseValue
+        Private ReadOnly Property IConditionalChoiceExpression_IfFalseValue As IOperation Implements IConditionalChoiceExpression.IfFalseValue
             Get
                 Return Me.WhenFalse
             End Get
         End Property
 
-        Private ReadOnly Property IIfTrue As IOperation Implements IConditionalChoiceExpression.IfTrueValue
+        Private ReadOnly Property IConditionalChoiceExpression_IfTrueValue As IOperation Implements IConditionalChoiceExpression.IfTrueValue
             Get
                 Return Me.WhenTrue
             End Get
@@ -1113,30 +1113,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Friend Partial Class BoundTypeOf
-        Implements IIsExpression
+        Implements IIsTypeExpression
 
-        Private ReadOnly Property IIsType As ITypeSymbol Implements IIsExpression.IsType
+        Private ReadOnly Property IIsTypeExpression_IsType As ITypeSymbol Implements IIsTypeExpression.IsType
             Get
                 Return Me.TargetType
             End Get
         End Property
 
-        Private ReadOnly Property IOperand As IOperation Implements IIsExpression.Operand
+        Private ReadOnly Property IIsTypeExpression_Operand As IOperation Implements IIsTypeExpression.Operand
             Get
                 Return Me.Operand
             End Get
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.IsExpression
+            Return OperationKind.IsTypeExpression
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitIsExpression(Me)
+            visitor.VisitIsTypeExpression(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitIsExpression(Me, argument)
+            Return visitor.VisitIsTypeExpression(Me, argument)
         End Function
     End Class
 
@@ -1145,23 +1145,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ReadOnly s_memberInitializersMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundObjectCreationExpression, Object)
 
-        Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
+        Private Function IHasArgumentExpression_GetArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
             Return BoundCall.ArgumentMatchingParameter(Me.Arguments, parameter, Me.ConstructorOpt.Parameters)
         End Function
 
-        Private ReadOnly Property IConstructor As IMethodSymbol Implements IObjectCreationExpression.Constructor
+        Private ReadOnly Property IObjectCreationExpression_Constructor As IMethodSymbol Implements IObjectCreationExpression.Constructor
             Get
                 Return Me.ConstructorOpt
             End Get
         End Property
 
-        Private ReadOnly Property IConstructorArguments As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
+        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
             Get
                 Return BoundCall.DeriveArguments(Me.Arguments, Me.ConstructorOpt.Parameters)
             End Get
         End Property
 
-        Private ReadOnly Property IMemberInitializers As ImmutableArray(Of ISymbolInitializer) Implements IObjectCreationExpression.MemberInitializers
+        Private ReadOnly Property IObjectCreationExpression_MemberInitializers As ImmutableArray(Of ISymbolInitializer) Implements IObjectCreationExpression.MemberInitializers
             Get
                 Dim initializer = s_memberInitializersMappings.GetValue(Me, Function(objectCreationStatement)
                                                                                 Dim objectInitializerExpression As BoundObjectInitializerExpressionBase = Me.InitializerOpt
@@ -1252,13 +1252,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Private ReadOnly Property IType As ITypeSymbol Implements IOperation.Type
+            Private ReadOnly Property IOperation_Type As ITypeSymbol Implements IOperation.Type
                 Get
                     Return Nothing
                 End Get
             End Property
 
-            Private ReadOnly Property IConstantValue As [Optional](Of Object) Implements IOperation.ConstantValue
+            Private ReadOnly Property IOperation_ConstantValue As [Optional](Of Object) Implements IOperation.ConstantValue
                 Get
                     Return New [Optional](Of Object)()
                 End Get
@@ -1316,13 +1316,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Private ReadOnly Property IType As ITypeSymbol Implements IOperation.Type
+            Private ReadOnly Property IOperation_Type As ITypeSymbol Implements IOperation.Type
                 Get
                     Return Nothing
                 End Get
             End Property
 
-            Private ReadOnly Property IConstantValue As [Optional](Of Object) Implements IOperation.ConstantValue
+            Private ReadOnly Property IOperation_ConstantValue As [Optional](Of Object) Implements IOperation.ConstantValue
                 Get
                     Return New [Optional](Of Object)()
                 End Get
@@ -1350,13 +1350,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundArrayCreation
         Implements IArrayCreationExpression
 
-        Private ReadOnly Property IDimensionSizes As ImmutableArray(Of IOperation) Implements IArrayCreationExpression.DimensionSizes
+        Private ReadOnly Property IArrayCreationExpression_DimensionSizes As ImmutableArray(Of IOperation) Implements IArrayCreationExpression.DimensionSizes
             Get
                 Return Me.Bounds.As(Of IOperation)()
             End Get
         End Property
 
-        Private ReadOnly Property IElementType As ITypeSymbol Implements IArrayCreationExpression.ElementType
+        Private ReadOnly Property IArrayCreationExpression_ElementType As ITypeSymbol Implements IArrayCreationExpression.ElementType
             Get
                 Dim arrayType As IArrayTypeSymbol = TryCast(Me.Type, IArrayTypeSymbol)
                 If arrayType IsNot Nothing Then
@@ -1367,7 +1367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IInitializer As IArrayInitializer Implements IArrayCreationExpression.Initializer
+        Private ReadOnly Property IArrayCreationExpression_Initializer As IArrayInitializer Implements IArrayCreationExpression.Initializer
             Get
                 Dim initializer As BoundArrayInitialization = Me.InitializerOpt
                 Return initializer
@@ -1390,7 +1390,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundArrayInitialization
         Implements IArrayInitializer
 
-        Public ReadOnly Property ElementValues As ImmutableArray(Of IOperation) Implements IArrayInitializer.ElementValues
+        Private ReadOnly Property IArrayInitializer_ElementValues As ImmutableArray(Of IOperation) Implements IArrayInitializer.ElementValues
             Get
                 Return Me.Initializers.As(Of IOperation)()
             End Get
@@ -1409,9 +1409,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Friend Partial Class BoundPropertyAccess
-        Implements IPropertyReferenceExpression
+        Implements IIndexedPropertyReferenceExpression
 
-        Private ReadOnly Property IInstance As IOperation Implements IMemberReferenceExpression.Instance
+        Private ReadOnly Property IMemberReferenceExpression_Instance As IOperation Implements IMemberReferenceExpression.Instance
             Get
                 If Me.PropertySymbol.IsShared Then
                     Return Nothing
@@ -1421,35 +1421,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IMember As ISymbol Implements IMemberReferenceExpression.Member
+        Private ReadOnly Property IMemberReferenceExpression_Member As ISymbol Implements IMemberReferenceExpression.Member
             Get
                 Return Me.PropertySymbol
             End Get
         End Property
 
-        Private ReadOnly Property IProperty As IPropertySymbol Implements IPropertyReferenceExpression.Property
+        Private ReadOnly Property IPropertyReferenceExpression_Property As IPropertySymbol Implements IPropertyReferenceExpression.Property
             Get
                 Return Me.PropertySymbol
             End Get
         End Property
+
+        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
+            Get
+                Return BoundCall.DeriveArguments(Me.Arguments, Me.PropertySymbol.Parameters)
+            End Get
+        End Property
+
+        Private Function IHasArgumentsExpression_GetArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
+            Return BoundCall.ArgumentMatchingParameter(Me.Arguments, parameter, Me.PropertySymbol.Parameters)
+        End Function
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.PropertyReferenceExpression
+            Return If(Me.Arguments.Length > 0, OperationKind.IndexedPropertyReferenceExpression, OperationKind.PropertyReferenceExpression)
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitPropertyReferenceExpression(Me)
+            visitor.VisitIndexedPropertyReferenceExpression(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitPropertyReferenceExpression(Me, argument)
+            Return visitor.VisitIndexedPropertyReferenceExpression(Me, argument)
         End Function
     End Class
 
     Friend Partial Class BoundEventAccess
         Implements IEventReferenceExpression
 
-        Private ReadOnly Property IInstance As IOperation Implements IMemberReferenceExpression.Instance
+        Private ReadOnly Property IMemberReferenceExpression_Instance As IOperation Implements IMemberReferenceExpression.Instance
             Get
                 If Me.EventSymbol.IsShared Then
                     Return Nothing
@@ -1459,13 +1469,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IMember As ISymbol Implements IMemberReferenceExpression.Member
+        Private ReadOnly Property IMemberReferenceExpression_Member As ISymbol Implements IMemberReferenceExpression.Member
             Get
                 Return Me.EventSymbol
             End Get
         End Property
 
-        Private ReadOnly Property IEvent As IEventSymbol Implements IEventReferenceExpression.Event
+        Private ReadOnly Property IEventReferenceExpression_Event As IEventSymbol Implements IEventReferenceExpression.Event
             Get
                 Return Me.EventSymbol
             End Get
@@ -1487,7 +1497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundDelegateCreationExpression
         Implements IMethodBindingExpression
 
-        Private ReadOnly Property IInstance As IOperation Implements IMemberReferenceExpression.Instance
+        Private ReadOnly Property IMemberReferenceExpression_Instance As IOperation Implements IMemberReferenceExpression.Instance
             Get
                 If Me.Method.IsShared Then
                     Return Nothing
@@ -1497,19 +1507,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IIsVirtual As Boolean Implements IMethodBindingExpression.IsVirtual
+        Private ReadOnly Property IMethodBindingExpression_IsVirtual As Boolean Implements IMethodBindingExpression.IsVirtual
             Get
                 Return Me.Method IsNot Nothing AndAlso (Me.Method.IsOverridable OrElse Me.Method.IsOverrides OrElse Me.Method.IsMustOverride) AndAlso Not Me.SuppressVirtualCalls
             End Get
         End Property
 
-        Private ReadOnly Property IMember As ISymbol Implements IMemberReferenceExpression.Member
+        Private ReadOnly Property IMemberReferenceExpression_Member As ISymbol Implements IMemberReferenceExpression.Member
             Get
                 Return Me.Method
             End Get
         End Property
 
-        Private ReadOnly Property IMethod As IMethodSymbol Implements IMethodBindingExpression.Method
+        Private ReadOnly Property IMethodBindingExpression_Method As IMethodSymbol Implements IMethodBindingExpression.Method
             Get
                 Return Me.Method
             End Get
@@ -1531,13 +1541,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundFieldAccess
         Implements IFieldReferenceExpression
 
-        Private ReadOnly Property IField As IFieldSymbol Implements IFieldReferenceExpression.Field
+        Private ReadOnly Property IFieldReferenceExpression_Field As IFieldSymbol Implements IFieldReferenceExpression.Field
             Get
                 Return Me.FieldSymbol
             End Get
         End Property
 
-        Private ReadOnly Property IInstance As IOperation Implements IMemberReferenceExpression.Instance
+        Private ReadOnly Property IMemberReferenceExpression_Instance As IOperation Implements IMemberReferenceExpression.Instance
             Get
                 If Me.FieldSymbol.IsShared Then
                     Return Nothing
@@ -1547,7 +1557,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IMember As ISymbol Implements IMemberReferenceExpression.Member
+        Private ReadOnly Property IMemberReferenceExpression_Member As ISymbol Implements IMemberReferenceExpression.Member
             Get
                 Return Me.FieldSymbol
             End Get
@@ -1569,9 +1579,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundConditionalAccess
         Implements IConditionalAccessExpression
 
-        Private ReadOnly Property IAccess As IOperation Implements IConditionalAccessExpression.Access
+        Private ReadOnly Property IConditionalAccessExpression_ConditionalValue As IOperation Implements IConditionalAccessExpression.ConditionalValue
             Get
                 Return Me.AccessExpression
+            End Get
+        End Property
+
+        Private ReadOnly Property IConditionalAccessExpression_ConditionalInstance As IOperation Implements IConditionalAccessExpression.ConditionalInstance
+            Get
+                Return Me.Receiver
             End Get
         End Property
 
@@ -1588,10 +1604,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    Partial Friend Class BoundConditionalAccessReceiverPlaceholder
+        Implements IConditionalAccessInstanceExpression
+
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.ConditionalAccessInstanceExpression
+        End Function
+
+        Public Overrides Sub Accept(visitor As OperationVisitor)
+            visitor.VisitConditionalAccessInstanceExpression(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitConditionalAccessInstanceExpression(Me, argument)
+        End Function
+    End Class
+
     Friend Partial Class BoundParameter
         Implements IParameterReferenceExpression
 
-        Private ReadOnly Property IParameter As IParameterSymbol Implements IParameterReferenceExpression.Parameter
+        Private ReadOnly Property IParameterReferenceExpression_Parameter As IParameterSymbol Implements IParameterReferenceExpression.Parameter
             Get
                 Return Me.ParameterSymbol
             End Get
@@ -1613,7 +1645,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundLocal
         Implements ILocalReferenceExpression
 
-        Private ReadOnly Property ILocal As ILocalSymbol Implements ILocalReferenceExpression.Local
+        Private ReadOnly Property ILocalReferenceExpression_Local As ILocalSymbol Implements ILocalReferenceExpression.Local
             Get
                 Return Me.LocalSymbol
             End Get
@@ -1635,13 +1667,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundLateMemberAccess
         Implements ILateBoundMemberReferenceExpression
 
-        Private ReadOnly Property IInstance As IOperation Implements ILateBoundMemberReferenceExpression.Instance
+        Private ReadOnly Property ILateBoundMemberReferenceExpression_Instance As IOperation Implements ILateBoundMemberReferenceExpression.Instance
             Get
                 Return Me.ReceiverOpt
             End Get
         End Property
 
-        Private ReadOnly Property IMemberName As String Implements ILateBoundMemberReferenceExpression.MemberName
+        Private ReadOnly Property ILateBoundMemberReferenceExpression_MemberName As String Implements ILateBoundMemberReferenceExpression.MemberName
             Get
                 Return Me.NameOpt
             End Get
@@ -1663,13 +1695,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundFieldInitializer
         Implements IFieldInitializer
 
-        Private ReadOnly Property IInitializedFields As ImmutableArray(Of IFieldSymbol) Implements IFieldInitializer.InitializedFields
+        Private ReadOnly Property IFieldInitializer_InitializedFields As ImmutableArray(Of IFieldSymbol) Implements IFieldInitializer.InitializedFields
             Get
                 Return ImmutableArray(Of IFieldSymbol).CastUp(Me.InitializedFields)
             End Get
         End Property
 
-        Private ReadOnly Property IValue As IOperation Implements ISymbolInitializer.Value
+        Private ReadOnly Property ISymbolInitializer_Value As IOperation Implements ISymbolInitializer.Value
             Get
                 Return Me.InitialValue
             End Get
@@ -1691,13 +1723,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundPropertyInitializer
         Implements IPropertyInitializer
 
-        Private ReadOnly Property IInitializedProperty As IPropertySymbol Implements IPropertyInitializer.InitializedProperty
+        Private ReadOnly Property IPropertyInitializer_InitializedProperty As IPropertySymbol Implements IPropertyInitializer.InitializedProperty
             Get
                 Return Me.InitializedProperties.FirstOrDefault()
             End Get
         End Property
 
-        Private ReadOnly Property IValue As IOperation Implements ISymbolInitializer.Value
+        Private ReadOnly Property ISymbolInitializer_Value As IOperation Implements ISymbolInitializer.Value
             Get
                 Return Me.InitialValue
             End Get
@@ -1719,43 +1751,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundParameterEqualsValue
         Implements IParameterInitializer
 
-        Private ReadOnly Property IIsInvalid As Boolean Implements IOperation.IsInvalid
+        Private ReadOnly Property IOperation_IsInvalid As Boolean Implements IOperation.IsInvalid
             Get
                 Return DirectCast(Me.Value, IOperation).IsInvalid
             End Get
         End Property
 
-        Private ReadOnly Property IKind As OperationKind Implements IOperation.Kind
+        Private ReadOnly Property IOperation_Kind As OperationKind Implements IOperation.Kind
             Get
                 Return OperationKind.ParameterInitializerAtDeclaration
             End Get
         End Property
 
-        Private ReadOnly Property ISyntax As SyntaxNode Implements IOperation.Syntax
+        Private ReadOnly Property IOperation_Syntax As SyntaxNode Implements IOperation.Syntax
             Get
                 Return Me.Syntax
             End Get
         End Property
 
-        Private ReadOnly Property IValue As IOperation Implements ISymbolInitializer.Value
+        Private ReadOnly Property ISymbolInitializer_Value As IOperation Implements ISymbolInitializer.Value
             Get
                 Return Me.Value
             End Get
         End Property
 
-        Private ReadOnly Property IParameter As IParameterSymbol Implements IParameterInitializer.Parameter
+        Private ReadOnly Property IParameterInitializer_Parameter As IParameterSymbol Implements IParameterInitializer.Parameter
             Get
                 Return Me._Parameter
             End Get
         End Property
 
-        Private ReadOnly Property IType As ITypeSymbol Implements IOperation.Type
+        Private ReadOnly Property IOperation_Type As ITypeSymbol Implements IOperation.Type
             Get
                 Return Nothing
             End Get
         End Property
 
-        Private ReadOnly Property IConstantValue As [Optional](Of Object) Implements IOperation.ConstantValue
+        Private ReadOnly Property IOperation_ConstantValue As [Optional](Of Object) Implements IOperation.ConstantValue
             Get
                 Return New [Optional](Of Object)()
             End Get
@@ -1826,17 +1858,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundRValuePlaceholder
+    Partial Friend Class BoundRValuePlaceholder
+        Implements IPlaceholderExpression
+
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.None
+            Return OperationKind.PlaceholderExpression
         End Function
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
+            visitor.VisitPlaceholderExpression(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
+            Return visitor.VisitPlaceholderExpression(Me, argument)
         End Function
     End Class
 
@@ -2709,20 +2743,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Friend Partial Class BoundMidResult
-        Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
-    End Class
-
-    Friend Partial Class BoundConditionalAccessReceiverPlaceholder
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
