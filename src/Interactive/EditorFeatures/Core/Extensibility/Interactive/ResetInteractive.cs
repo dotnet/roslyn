@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             // If the user hits the cancel button on the wait indicator, then we want to stop the
             // build.
-            waitContext.CancellationToken.Register(() =>
+            var buildCancellation = waitContext.CancellationToken.Register(() =>
                 CancelBuildProject(), useSynchronizationContext: true);
 
             // First, start a build.
@@ -93,6 +93,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             {
                 return;
             }
+
+            buildCancellation.Dispose();
 
             // Then reset the REPL
             waitContext.Message = InteractiveEditorFeaturesResources.ResettingInteractive;
