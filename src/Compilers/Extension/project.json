@@ -6,6 +6,5 @@
   },
   "runtimes": {
     "win7": { },
-    "win7-anycpu": { }
   }
 }
