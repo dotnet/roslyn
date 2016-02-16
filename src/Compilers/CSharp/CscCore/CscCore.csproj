@@ -41,7 +41,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <NoWarn>1591</NoWarn>
     <NoStdLib>true</NoStdLib>
-    <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
@@ -50,7 +49,6 @@
     <Optimize>true</Optimize>
     <NoWarn>1591</NoWarn>
     <NoStdLib>true</NoStdLib>
-    <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
@@ -61,7 +59,9 @@
     <Compile Include="..\..\Shared\CoreClrBuildClient.cs">
       <Link>CoreClrBuildClient.cs</Link>
     </Compile>
-    <Compile Include="Csc.cs" />
+    <Compile Include="..\..\Shared\Csc.cs">
+      <Link>Csc.cs</Link>
+    </Compile>
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -69,12 +69,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="csc.cmd">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="csc.exe.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="csc.rsp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="csc">

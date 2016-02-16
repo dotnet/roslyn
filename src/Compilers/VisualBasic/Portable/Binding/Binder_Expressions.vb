@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return BindNamespaceOrTypeExpression(DirectCast(node, TypeSyntax), diagnostics)
 
                 Case SyntaxKind.SimpleMemberAccessExpression
-                    Return BindMemberAccess(DirectCast(node, MemberAccessExpressionSyntax), eventContext, allowIntrinsicAliases:=False, diagnostics:=diagnostics)
+                    Return BindMemberAccess(DirectCast(node, MemberAccessExpressionSyntax), eventContext, diagnostics:=diagnostics)
 
                 Case SyntaxKind.DictionaryAccessExpression
                     Return BindDictionaryAccess(DirectCast(node, MemberAccessExpressionSyntax), diagnostics)
@@ -378,7 +378,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This function is only needed for SemanticModel to perform binding for erroneous cases.
         ''' </summary>
         Private Function BindQualifiedName(name As QualifiedNameSyntax, diagnostics As DiagnosticBag) As BoundExpression
-            Return Me.BindMemberAccess(name, BindExpression(name.Left, diagnostics), name.Right, eventContext:=False, allowIntrinsicAliases:=False, diagnostics:=diagnostics)
+            Return Me.BindMemberAccess(name, BindExpression(name.Left, diagnostics), name.Right, eventContext:=False, diagnostics:=diagnostics)
         End Function
 
         Private Function BindGetTypeExpression(node As GetTypeExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
@@ -2149,6 +2149,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 options = options Or LookupOptions.MustNotBeLocalOrParameter
             End If
 
+            ' Handle a case of being able to refer to System.Int32 through System.Integer.
+            ' Same for other intrinsic types with intrinsic name different from emitted name.
+            If node.Kind = SyntaxKind.IdentifierName AndAlso DirectCast(node, IdentifierNameSyntax).Identifier.IsBracketed AndAlso
+               MemberLookup.GetTypeForIntrinsicAlias(name) <> SpecialType.None Then
+                options = options Or LookupOptions.AllowIntrinsicAliases
+            End If
+
             Dim arity As Integer = If(typeArguments IsNot Nothing, typeArguments.Arguments.Count, 0)
             Dim result As LookupResult = LookupResult.GetInstance()
 
@@ -2282,7 +2289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Private Function BindMemberAccess(node As MemberAccessExpressionSyntax, eventContext As Boolean, allowIntrinsicAliases As Boolean, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindMemberAccess(node As MemberAccessExpressionSyntax, eventContext As Boolean, diagnostics As DiagnosticBag) As BoundExpression
             Dim leftOpt = node.Expression
             Dim boundLeft As BoundExpression = Nothing
             Dim rightName As SimpleNameSyntax = node.Name
@@ -2321,7 +2328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundLeft = BindLeftOfPotentialColorColorMemberAccess(node, leftOpt, diagnostics)
             End If
 
-            Return Me.BindMemberAccess(node, boundLeft, rightName, eventContext, allowIntrinsicAliases, diagnostics)
+            Return Me.BindMemberAccess(node, boundLeft, rightName, eventContext, diagnostics)
         End Function
 
         Private Function BindLeftOfPotentialColorColorMemberAccess(parentNode As MemberAccessExpressionSyntax, leftOpt As ExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
@@ -2436,7 +2443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Not a Color Color case; just bind the LHS as an expression.
             If leftOpt.Kind = SyntaxKind.SimpleMemberAccessExpression Then
-                Return BindMemberAccess(DirectCast(leftOpt, MemberAccessExpressionSyntax), eventContext:=False, allowIntrinsicAliases:=True, diagnostics:=diagnostics)
+                Return BindMemberAccess(DirectCast(leftOpt, MemberAccessExpressionSyntax), eventContext:=False, diagnostics:=diagnostics)
             Else
                 Return Me.BindExpression(leftOpt, diagnostics)
             End If
@@ -2450,7 +2457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The method is protected, so that it can be called from other 
         ''' binders overriding TryBindMemberAccessWithLeftOmitted
         ''' </remarks>
-        Protected Function BindMemberAccess(node As VisualBasicSyntaxNode, left As BoundExpression, right As SimpleNameSyntax, eventContext As Boolean, allowIntrinsicAliases As Boolean, diagnostics As DiagnosticBag) As BoundExpression
+        Protected Function BindMemberAccess(node As VisualBasicSyntaxNode, left As BoundExpression, right As SimpleNameSyntax, eventContext As Boolean, diagnostics As DiagnosticBag) As BoundExpression
             Debug.Assert(node IsNot Nothing)
             Debug.Assert(left IsNot Nothing)
             Debug.Assert(right IsNot Nothing)
@@ -2535,7 +2542,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim rightArity As Integer = If(typeArguments IsNot Nothing, typeArguments.Arguments.Count, 0)
             Dim lookupResult As LookupResult = LookupResult.GetInstance()
-            Const options As LookupOptions = LookupOptions.AllMethodsOfAnyArity
+            Dim options As LookupOptions = LookupOptions.AllMethodsOfAnyArity
 
             Try
                 If left.Kind = BoundKind.NamespaceExpression Then
@@ -2546,42 +2553,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     Dim ns As NamespaceSymbol = DirectCast(left, BoundNamespaceExpression).NamespaceSymbol
-                    Dim intrinsic As New SingleLookupResult()
 
-                    ' Handle a case of being able to refer to System.Int32 through System.Integer,
+                    ' Handle a case of being able to refer to System.Int32 through System.Integer.
                     ' Same for other intrinsic types with intrinsic name different from emitted name.
-                    If allowIntrinsicAliases AndAlso right.Kind = SyntaxKind.IdentifierName Then
-                        Debug.Assert(rightArity = 0)
-                        Dim container As Symbol = ns.ContainingSymbol
-
-                        If container IsNot Nothing AndAlso container.Kind = SymbolKind.Namespace Then
-                            Dim containingNs = DirectCast(container, NamespaceSymbol)
-
-                            If containingNs.IsGlobalNamespace AndAlso CaseInsensitiveComparison.Equals(ns.Name, "System") Then
-                                Dim rightAsKeyword As SyntaxKind = SyntaxFacts.GetKeywordKind(rightName)
-
-                                Select Case rightAsKeyword
-                                    Case SyntaxKind.ShortKeyword,
-                                         SyntaxKind.UShortKeyword,
-                                         SyntaxKind.IntegerKeyword,
-                                         SyntaxKind.UIntegerKeyword,
-                                         SyntaxKind.LongKeyword,
-                                         SyntaxKind.ULongKeyword,
-                                         SyntaxKind.DateKeyword
-                                        ' Note, we are not interested in any diagnostics from this lookup.
-                                        intrinsic = TypeBinder.LookupPredefinedTypeName(node, rightAsKeyword, Me,
-                                                                                        New DiagnosticBag(),
-                                                                                        reportedAnError:=Nothing, suppressUseSiteError:=True)
-                                End Select
-                            End If
-                        End If
+                    If right.Kind = SyntaxKind.IdentifierName AndAlso node.Kind = SyntaxKind.SimpleMemberAccessExpression Then
+                        options = options Or LookupOptions.AllowIntrinsicAliases
                     End If
 
-                    If intrinsic.Kind <> LookupResultKind.Empty Then
-                        lookupResult.SetFrom(intrinsic)
-                    Else
-                        MemberLookup.Lookup(lookupResult, ns, rightName, rightArity, options, Me, useSiteDiagnostics) ' overload resolution filters methods by arity.
-                    End If
+                    MemberLookup.Lookup(lookupResult, ns, rightName, rightArity, options, Me, useSiteDiagnostics) ' overload resolution filters methods by arity.
 
                     If lookupResult.HasSymbol Then
                         Return BindSymbolAccess(node, lookupResult, options, left, typeArguments, QualificationKind.QualifiedViaNamespace, diagnostics)

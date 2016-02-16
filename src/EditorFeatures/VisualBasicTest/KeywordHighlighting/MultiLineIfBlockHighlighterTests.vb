@@ -91,7 +91,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <WorkItem(542614)>
+        <WorkItem(542614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542614")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestMultilineIf6() As Task
             Await TestAsync(<Text><![CDATA[

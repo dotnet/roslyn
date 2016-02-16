@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
-                    return Tuple.Create(analyzerDiagnostics,spans);
+                    return Tuple.Create(analyzerDiagnostics, spans);
                 }
             }
         }

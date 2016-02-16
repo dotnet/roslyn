@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 binary = childAsBinary;
             }
 
-            child.WriteTo(writer, leading:leading , trailing: true);
+            child.WriteTo(writer, leading: leading, trailing: true);
 
             do
             {

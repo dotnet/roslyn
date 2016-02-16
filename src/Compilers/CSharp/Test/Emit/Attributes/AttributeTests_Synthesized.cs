@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return (DebuggerBrowsableState)attributes.Single(a => a.AttributeClass.Name == "DebuggerBrowsableAttribute").ConstructorArguments.First().Value;
         }
 
-        [Fact, WorkItem(546632, "DevDiv")]
+        [Fact, WorkItem(546632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546632")]
         public void PrivateImplementationDetails()
         {
             string source = @"
@@ -48,7 +48,7 @@ class C
             AssertEx.SetEqual(expectedAttrs, actualAttrs);
         }
 
-        [Fact, WorkItem(546958, "DevDiv")]
+        [Fact, WorkItem(546958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546958")]
         public void FixedSizeBuffers()
         {
             string source = @"
@@ -69,7 +69,7 @@ unsafe struct S
             AssertEx.SetEqual(expectedAttrs, actualAttrs);
         }
 
-        [Fact, WorkItem(546927, "DevDiv")]
+        [Fact, WorkItem(546927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546927")]
         public void BackingFields()
         {
             string source = @"
@@ -106,7 +106,7 @@ class Test
             }
         }
 
-        [Fact, WorkItem(546927, "DevDiv")]
+        [Fact, WorkItem(546927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546927")]
         public void Accessors()
         {
             string source = @"
@@ -1622,7 +1622,7 @@ public class Test
 
         #endregion
 
-        [Fact, WorkItem(431)]
+        [Fact, WorkItem(431, "https://github.com/dotnet/roslyn/issues/431")]
         public void BaseMethodWrapper()
         {
             string source = @"

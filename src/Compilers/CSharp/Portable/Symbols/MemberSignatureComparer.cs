@@ -657,9 +657,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var type2 = SubstituteType(typeMap2, param2.Type);
 
                 if (!type1.Equals(type2, typeSymbolEqualityOptions))
-                {
-                    return false;
-                }
+                    {
+                        return false;
+                    }
 
                 if ((typeSymbolEqualityOptions & TypeSymbolEqualityOptions.IgnoreCustomModifiers) == 0 &&
                     param1.CountOfCustomModifiersPrecedingByRef != param2.CountOfCustomModifiersPrecedingByRef)

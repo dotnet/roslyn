@@ -37,7 +37,7 @@ End Class</a>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <WorkItem(530075)>
+        <WorkItem(530075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530075")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotInArgumentList() As Task
             Dim text = <a>Public Class C
@@ -194,7 +194,7 @@ End Program</a>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <WorkItem(544326)>
+        <WorkItem(544326, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544326")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInactiveInRValue() As Task
             Dim text = <a>Class C
@@ -243,7 +243,7 @@ End Class</a>.Value
             Await VerifyItemIsAbsentAsync(text, "Bar")
         End Function
 
-        <WorkItem(545881)>
+        <WorkItem(545881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545881")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoReadonlyFieldsOrProperties() As Task
             Dim text = <a>Module M
@@ -255,7 +255,7 @@ End Module
             Await VerifyItemIsAbsentAsync(text, "Data")
         End Function
 
-        <WorkItem(545844)>
+        <WorkItem(545844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545844")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoParameterizedProperties() As Task
             Dim text = <a>Module M
@@ -268,7 +268,7 @@ End Module
             Await VerifyItemIsAbsentAsync(text, "Item")
         End Function
 
-        <WorkItem(545844)>
+        <WorkItem(545844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545844")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestShowParameterizedPropertiesWithAllOptionalArguments() As Task
             Dim text = <a>Imports System
@@ -291,7 +291,7 @@ End Class</a>.Value
             Await VerifyItemExistsAsync(text, "P")
         End Function
 
-        <WorkItem(545844)>
+        <WorkItem(545844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545844")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestDoNotShowParameterizedPropertiesWithSomeMandatoryArguments() As Task
             Dim text = <a>Imports System
@@ -314,7 +314,7 @@ End Class</a>.Value
             Await VerifyItemIsAbsentAsync(text, "P")
         End Function
 
-        <WorkItem(545844)>
+        <WorkItem(545844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545844")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestParameterizedPropertiesWithParamArrays() As Task
             Dim text = <a>Option Strict On
@@ -343,7 +343,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "Q")
         End Function
 
-        <WorkItem(530491)>
+        <WorkItem(530491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530491")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestObjectInitializerOnInterface() As Task
             Dim text = <a><![CDATA[Option Strict On
@@ -402,7 +402,7 @@ End Program</Document>
                            </Project>
                        </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(text)
+            Using workspace = Await TestWorkspace.CreateAsync(text)
                 Dim hostDocument = workspace.Documents.First()
                 Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)

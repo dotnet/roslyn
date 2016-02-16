@@ -7,16 +7,16 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
+using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class LocalsTests : ExpressionCompilerTestBase
     {
@@ -31,10 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
@@ -42,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(assembly);
             Assert.Equal(assembly.Count, 0);
             Assert.Equal(locals.Count, 0);
+            });
         }
 
         [Fact]
@@ -63,11 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M",
-                atLineNumber: 999);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M", atLineNumber: 999);
 
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -123,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0001:  ret
 }");
             locals.Free();
+            });
         }
 
         /// <summary>
@@ -148,17 +147,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            compilation0.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-            var runtime = CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                references,
-                exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes),
-                includeLocalSignatures: false);
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(comp, references: null, includeLocalSignatures: false, validator: runtime =>
+            {
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M",
@@ -203,6 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0002:  ldelem.i4
   IL_0003:  ret
 }");
+            });
         }
 
         [Fact]
@@ -215,14 +208,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                "C.M");
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
             var aliases = ImmutableArray.Create(
                 ExceptionAlias(typeof(System.IO.IOException)),
                 ReturnValueAlias(2, typeof(string)),
@@ -254,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 typeName: out typeName,
                 testData: testData);
             diagnostics.Free();
-            Assert.Equal(locals.Count, 7);
+                Assert.Equal(locals.Count, 6);
             VerifyLocal(testData, typeName, locals[0], "<>m0", "$exception", "Error", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
 @"{
   // Code size       11 (0xb)
@@ -263,6 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0005:  castclass  ""System.IO.IOException""
   IL_000a:  ret
 }");
+                // $ReturnValue is suppressed since it always matches the last $ReturnValueN
             VerifyLocal(testData, typeName, locals[1], "<>m1", "$ReturnValue2", "Method M2 returned", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
 @"{
   // Code size       12 (0xc)
@@ -272,15 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0006:  castclass  ""string""
   IL_000b:  ret
 }");
-            VerifyLocal(testData, typeName, locals[2], "<>m2", "$ReturnValue", "Method M returned", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
-@"{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldc.i4.0
-  IL_0001:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(int)""
-  IL_0006:  ret
-}");
-            VerifyLocal(testData, typeName, locals[3], "<>m3", "$2", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "$2", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
 @"{
   // Code size       16 (0x10)
   .maxstack  1
@@ -289,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_000a:  unbox.any  ""bool""
   IL_000f:  ret
 }");
-            VerifyLocal(testData, typeName, locals[4], "<>m4", "o", expectedILOpt:
+                VerifyLocal(testData, typeName, locals[3], "<>m3", "o", expectedILOpt:
 @"{
   // Code size       16 (0x10)
   .maxstack  1
@@ -298,14 +281,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_000a:  castclass  ""C""
   IL_000f:  ret
 }");
-            VerifyLocal(testData, typeName, locals[5], "<>m5", "this", expectedILOpt:
+                VerifyLocal(testData, typeName, locals[4], "<>m4", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
-            VerifyLocal(testData, typeName, locals[6], "<>m6", "o", expectedILOpt:
+                VerifyLocal(testData, typeName, locals[5], "<>m5", "o", expectedILOpt:
 @"{
   // Code size        2 (0x2)
   .maxstack  1
@@ -313,6 +296,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0001:  ret
 }");
             locals.Free();
+
+                // Confirm that the Watch window is unaffected by the filtering in the Locals window.
+                string error;
+                context.CompileExpression("$ReturnValue", DkmEvaluationFlags.TreatAsExpression, aliases, out error);
+                Assert.Null(error);
+            });
         }
 
         [Fact]
@@ -326,11 +315,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
@@ -352,6 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0001:  ret
 }");
             locals.Free();
+            });
         }
 
         [Fact]
@@ -366,11 +354,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
@@ -387,6 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }",
                 expectedGeneric: true);
             locals.Free();
+            });
         }
 
         /// <summary>
@@ -413,12 +400,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.F",
-                atLineNumber: 999);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.F", atLineNumber: 999);
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
@@ -453,9 +437,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0002:  ret
 }");
             locals.Free();
+            });
         }
 
-        [WorkItem(928113)]
+        [WorkItem(928113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/928113")]
         [Fact]
         public void Constants()
         {
@@ -480,12 +465,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.F",
-                atLineNumber: 888);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.F", atLineNumber: 888);
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
@@ -537,6 +519,7 @@ IL_0000:  ldstr      ""str""
 IL_0005:  ret
 }");
             locals.Free();
+            });
         }
 
         [Fact]
@@ -556,15 +539,9 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            compilation0.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes));
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -594,6 +571,7 @@ class C
   IL_0001:  ret
 }");
             locals.Free();
+            });
         }
 
         [Fact]
@@ -617,15 +595,10 @@ class P
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            compilation0.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes));
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
@@ -669,6 +642,7 @@ class P
 }");
 
             locals.Free();
+            });
         }
 
         [Fact]
@@ -694,8 +668,8 @@ class P
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-
-            var runtime = CreateRuntimeInstance(compilation0);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M",
@@ -766,6 +740,7 @@ class P
 }");
             Assert.Equal(locals.Count, 5);
             locals.Free();
+            });
         }
 
         [Fact]
@@ -790,11 +765,9 @@ class P
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.<>c__DisplayClass1_1.<M>b__0");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass1_1.<M>b__0");
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
@@ -841,6 +814,7 @@ class P
 }");
             Assert.Equal(locals.Count, 4);
             locals.Free();
+            });
         }
 
         [Fact]
@@ -874,10 +848,9 @@ class C
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.<>c.<Main>b__0_0");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c.<Main>b__0_0");
 
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -1016,6 +989,7 @@ class C
 }");
             Assert.Equal(locals.Count, 7);
             locals.Free();
+            });
         }
 
         /// <summary>
@@ -1042,10 +1016,9 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.<>c__DisplayClass0_0.<M>b__0");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass0_0.<M>b__0");
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
@@ -1068,6 +1041,7 @@ class C
             VerifyLocal(testData, "<>x<T>", locals[2], "<>m2", "x");
             VerifyLocal(testData, "<>x<T>", locals[3], "<>m3", "<>TypeVariables", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult);
             locals.Free();
+            });
         }
 
         [Fact]
@@ -1087,10 +1061,9 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "A.B.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "A.B.M");
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
@@ -1206,6 +1179,7 @@ class C
             }
 
             locals.Free();
+            });
         }
 
         [Fact]
@@ -1222,11 +1196,9 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.<>c__DisplayClass0_0.<M>b__0");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass0_0.<M>b__0");
 
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -1252,6 +1224,7 @@ class C
             Assert.Equal(containingType.TypeParameters[1], method.ReturnType.TypeSymbol);
 
             locals.Free();
+            });
         }
 
         [Fact]
@@ -1276,12 +1249,9 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.<F>d__2.MoveNext",
-                atLineNumber: 999);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<F>d__2.MoveNext", atLineNumber: 999);
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
@@ -1306,6 +1276,7 @@ class C
   IL_0006:  ret
 }");
             locals.Free();
+            });
         }
 
         [Fact]
@@ -1328,7 +1299,8 @@ class C
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
-            var runtime = CreateRuntimeInstance(compilation0);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.<F>d__0.MoveNext",
@@ -1375,6 +1347,7 @@ class C
             VerifyLocal(testData, "<>x<T>", locals[3], "<>m3", "<>TypeVariables", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult);
             Assert.Equal(locals.Count, 4);
             locals.Free();
+            });
         }
 
         [Fact]
@@ -1396,10 +1369,9 @@ struct S<T> where T : class
                 options: TestOptions.DebugDll,
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
 
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "S.<F>d__1.MoveNext");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "S.<F>d__1.MoveNext");
 
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -1443,6 +1415,7 @@ struct S<T> where T : class
 
             Assert.Equal(locals.Count, 4);
             locals.Free();
+            });
         }
 
         [Fact]
@@ -1467,10 +1440,9 @@ class C
                 options: TestOptions.DebugDll,
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
 
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.<M>d__1.MoveNext");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<M>d__1.MoveNext");
 
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -1507,9 +1479,10 @@ class C
 }");
             Assert.Equal(locals.Count, 2);
             locals.Free();
+            });
         }
 
-        [WorkItem(995976)]
+        [WorkItem(995976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995976")]
         [Fact]
         public void AsyncAndLambda()
         {
@@ -1539,10 +1512,9 @@ class C
                 options: TestOptions.DebugDll,
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
 
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.<M>d__2.MoveNext");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<M>d__2.MoveNext");
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
@@ -1576,9 +1548,10 @@ class C
   IL_000b:  ret
 }");
             locals.Free();
+            });
         }
 
-        [WorkItem(2240)]
+        [WorkItem(2240, "https://github.com/dotnet/roslyn/issues/2240")]
         [Fact]
         public void AsyncLambda()
         {
@@ -1595,8 +1568,9 @@ class C
         };
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(compilation);
+            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
             var context = CreateMethodContext(runtime, methodName: "C.<>c.<<M>b__0_0>d.MoveNext");
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
@@ -1624,9 +1598,10 @@ class C
   IL_0006:  ret
 }");
             locals.Free();
+            });
         }
 
-        [WorkItem(996571)]
+        [WorkItem(996571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/996571")]
         [Fact]
         public void MissingReference()
         {
@@ -1654,20 +1629,10 @@ public struct B
                 options: TestOptions.DebugDll,
                 references: new[] { compilation0.EmitToImageReference() });
 
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            compilation1.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-
-            var runtime = CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                ImmutableArray.Create(MscorlibRef), // no reference to compilation0
-                exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes));
-
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
+            // no reference to compilation0
+            WithRuntimeInstance(compilation1, new[] { MscorlibRef }, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -1680,9 +1645,10 @@ public struct B
 
             Assert.Equal(locals.Count, 0);
             locals.Free();
+            });
         }
 
-        [WorkItem(996571)]
+        [WorkItem(996571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/996571")]
         [Fact]
         public void MissingReference_2()
         {
@@ -1707,19 +1673,10 @@ public struct B
                 options: TestOptions.DebugDll,
                 references: new[] { compilation0.EmitToImageReference() });
 
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            compilation1.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-            var runtime = CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                ImmutableArray.Create(MscorlibRef), // no reference to compilation0
-                exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes));
-
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
+            // no reference to compilation0
+            WithRuntimeInstance(compilation1, new[] { MscorlibRef }, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -1733,6 +1690,7 @@ public struct B
 
             Assert.Equal(locals.Count, 0);
             locals.Free();
+            });
         }
 
         [Fact]
@@ -1751,9 +1709,9 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-
-            var runtime = CreateRuntimeInstance(comp);
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M",
@@ -1792,9 +1750,10 @@ class C
   IL_0001:  starg.s    V_1
   IL_0003:  ret
 }");
+            });
         }
 
-        [WorkItem(1015887)]
+        [WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
         [Fact]
         public void LocalDoubleConstant()
         {
@@ -1807,16 +1766,10 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes));
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -1830,9 +1783,10 @@ class C
   IL_0000:  ldc.r8     2.74745778612482E-266
   IL_0009:  ret
 }");
+            });
         }
 
-        [WorkItem(1015887)]
+        [WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
         [Fact]
         public void LocalByteConstant()
         {
@@ -1846,16 +1800,10 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes));
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
             var testData = new CompilationTestData();
 
@@ -1873,9 +1821,10 @@ class C
   IL_0002:  ret
 }
 ");
+            });
         }
 
-        [WorkItem(1015887)]
+        [WorkItem(1015887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015887")]
         [Fact]
         public void LocalDecimalConstant()
         {
@@ -1888,16 +1837,10 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> references;
-            comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes));
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, methodName: "C.M");
 
             string errorMessage;
             var testData = new CompilationTestData();
@@ -1920,9 +1863,10 @@ class C
   IL_0006:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
   IL_000b:  ret
 }");
+            });
         }
 
-        [Fact, WorkItem(1022165), WorkItem(1028883), WorkItem(1034204)]
+        [Fact, WorkItem(1022165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022165"), WorkItem(1028883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028883"), WorkItem(1034204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034204")]
         public void KeywordIdentifiers()
         {
             var source = @"
@@ -1936,10 +1880,9 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -2000,6 +1943,7 @@ class C
   IL_0001:  ret
 }");
             locals.Free();
+            });
         }
 
         [Fact]
@@ -2025,10 +1969,9 @@ static class C
 }";
 
             var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.<F>d__0.MoveNext");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<F>d__0.MoveNext");
 
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -2049,9 +1992,10 @@ static class C
             var methodData = testData.GetMethodData("<>x.<>m0");
             methodData.VerifyIL(expectedIL);
             Assert.Equal(SpecialType.System_Int32, methodData.Method.ReturnType.SpecialType);
+            });
         }
 
-        [Fact, WorkItem(1063254)]
+        [Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")]
         public void OverloadedIteratorDifferentParameterTypes_ArgumentsOnly()
         {
             var source = @"
@@ -2085,7 +2029,8 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(compilation);
+            WithRuntimeInstance(compilation, runtime =>
+            {
             string displayClassName;
             string typeName;
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -2138,9 +2083,10 @@ class C
             locals.Clear();
 
             locals.Free();
+            });
         }
 
-        [Fact, WorkItem(1063254)]
+        [Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")]
         public void OverloadedAsyncDifferentParameterTypes_ArgumentsOnly()
         {
             var source = @"
@@ -2174,7 +2120,8 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(compilation);
+            WithRuntimeInstance(compilation, runtime =>
+            {
             string displayClassName;
             string typeName;
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -2224,9 +2171,10 @@ class C
             locals.Clear();
 
             locals.Free();
+            });
         }
 
-        [Fact, WorkItem(1063254)]
+        [Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")]
         public void MultipleLambdasDifferentParameterNames_ArgumentsOnly()
         {
             var source = @"
@@ -2246,7 +2194,8 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(compilation);
+            WithRuntimeInstance(compilation, runtime =>
+            {
             string displayClassName;
             string typeName;
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -2297,9 +2246,10 @@ class C
             locals.Clear();
 
             locals.Free();
+            });
         }
 
-        [Fact, WorkItem(1063254)]
+        [Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")]
         public void OverloadedRegularMethodDifferentParameterTypes_ArgumentsOnly()
         {
             var source = @"
@@ -2330,7 +2280,8 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(compilation);
+            WithRuntimeInstance(compilation, runtime =>
+            {
             string typeName;
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             CompilationTestData testData;
@@ -2393,9 +2344,10 @@ class C
             locals.Clear();
 
             locals.Free();
+            });
         }
 
-        [Fact, WorkItem(1063254)]
+        [Fact, WorkItem(1063254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063254")]
         public void MultipleMethodsLocalConflictsWithParameterName_ArgumentsOnly()
         {
             var source = @"
@@ -2441,7 +2393,8 @@ class C<T>
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(compilation);
+            WithRuntimeInstance(compilation, runtime =>
+            {
             string displayClassName;
             string typeName;
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -2512,9 +2465,10 @@ class C<T>
             locals.Clear();
 
             locals.Free();
+            });
         }
 
-        [WorkItem(1115030)]
+        [WorkItem(1115030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115030")]
         [Fact]
         public void CatchInAsyncStateMachine()
         {
@@ -2541,12 +2495,10 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.<M>d__1.MoveNext",
-                atLineNumber: 999);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<M>d__1.MoveNext", atLineNumber: 999);
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
@@ -2572,9 +2524,10 @@ class C
   IL_0006:  ret
 }");
             locals.Free();
+            });
         }
 
-        [WorkItem(1115030)]
+        [WorkItem(1115030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115030")]
         [Fact]
         public void CatchInIteratorStateMachine()
         {
@@ -2603,11 +2556,9 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.<M>d__1.MoveNext",
-                atLineNumber: 999);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<M>d__1.MoveNext", atLineNumber: 999);
             var testData = new CompilationTestData();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
@@ -2633,9 +2584,9 @@ class C
   IL_0006:  ret
 }");
             locals.Free();
+            });
         }
 
-        [WorkItem(947)]
         [Fact]
         public void DuplicateEditorBrowsableAttributes()
         {
@@ -2669,20 +2620,15 @@ class C
             var libRef = CreateCompilationWithMscorlib(libSource).EmitToImageReference();
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemRef }, TestOptions.DebugDll);
 
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> unusedReferences;
-            var result = comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out unusedReferences);
-            Assert.True(result);
-
-            var runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.Create(MscorlibRef, SystemRef, SystemCoreRef, SystemXmlLinqRef, libRef), exeBytes, SymReaderFactory.CreateReader(pdbBytes));
-
+            WithRuntimeInstance(comp, new[] { MscorlibRef, SystemRef, SystemCoreRef, SystemXmlLinqRef, libRef }, runtime =>
+            {
             string typeName;
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             CompilationTestData testData;
             GetLocals(runtime, "C.M", argumentsOnly: false, locals: locals, count: 1, typeName: out typeName, testData: out testData);
             Assert.Equal("this", locals.Single().LocalName);
             locals.Free();
+            });
         }
 
         [WorkItem(2089, "https://github.com/dotnet/roslyn/issues/2089")]
@@ -2708,7 +2654,8 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(compilation);
+            WithRuntimeInstance(compilation, runtime =>
+            {
             var context = CreateMethodContext(runtime, "C.<M>d__2.MoveNext()");
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
@@ -2741,6 +2688,7 @@ class C
   IL_000b:  ret
 }");
             locals.Free();
+            });
         }
 
         [WorkItem(2336, "https://github.com/dotnet/roslyn/issues/2336")]
@@ -2759,7 +2707,8 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(compilation);
+            WithRuntimeInstance(compilation, runtime =>
+            {
             var context = CreateMethodContext(runtime, "C.<M>d__0.MoveNext()", atLineNumber: 999);
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
@@ -2769,9 +2718,10 @@ class C
             VerifyLocal(testData, "<>x", locals[0], "<>m0", "this");
             VerifyLocal(testData, "<>x", locals[1], "<>m1", "s");
             locals.Free();
+            });
         }
 
-        [WorkItem(1139013, "DevDiv")]
+        [WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")]
         [Fact]
         public void TransparentIdentifiers_FromParameter()
         {
@@ -2824,8 +2774,8 @@ class C
 ";
 
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(comp);
-
+            WithRuntimeInstance(comp, runtime =>
+            {
             string typeName;
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             CompilationTestData testData;
@@ -2853,9 +2803,10 @@ class C
             context.CompileExpression("y", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(yIL);
+            });
         }
 
-        [WorkItem(1139013, "DevDiv")]
+        [WorkItem(1139013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1139013")]
         [Fact]
         public void TransparentIdentifiers_FromDisplayClassField()
         {
@@ -2919,8 +2870,8 @@ class C
 ";
 
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(comp);
-
+            WithRuntimeInstance(comp, runtime =>
+            {
             string typeName;
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             CompilationTestData testData;
@@ -2955,6 +2906,7 @@ class C
             context.CompileExpression("y", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(yIL);
+            });
         }
 
         [WorkItem(3236, "https://github.com/dotnet/roslyn/pull/3236")]
@@ -2990,8 +2942,8 @@ class C
 ";
 
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
-            var runtime = CreateRuntimeInstance(comp);
-
+            WithRuntimeInstance(comp, runtime =>
+            {
             string typeName;
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             CompilationTestData testData;
@@ -3008,6 +2960,7 @@ class C
             context.CompileExpression("t", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(tIL);
+            });
         }
 
         [WorkItem(955, "https://github.com/aspnet/Home/issues/955")]
@@ -3023,7 +2976,8 @@ class Program
     }
 }";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
-            var runtime = CreateRuntimeInstance(comp);
+            WithRuntimeInstance(comp, runtime =>
+            {
             var badConst = new MockSymUnmanagedConstant(
                 "a",
                 1,
@@ -3032,12 +2986,13 @@ class Program
                     count = 0;
                     return DiaSymReader.SymUnmanagedReaderExtensions.E_NOTIMPL;
                 });
-            var debugInfo = new MethodDebugInfoBytes.Builder(constants: new[] {badConst}).Build();
+                var debugInfo = new MethodDebugInfoBytes.Builder(constants: new[] { badConst }).Build();
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
 
             GetLocals(runtime, "Program.Main", debugInfo, locals, count: 0);
 
             locals.Free();
+            });
         }
 
         private static void GetLocals(RuntimeInstance runtime, string methodName, bool argumentsOnly, ArrayBuilder<LocalAndMethod> locals, int count, out string typeName, out CompilationTestData testData)

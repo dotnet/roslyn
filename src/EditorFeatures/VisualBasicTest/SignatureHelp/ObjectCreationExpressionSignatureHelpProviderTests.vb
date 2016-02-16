@@ -103,7 +103,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WorkItem(545931)>
+        <WorkItem(545931, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545931")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestUnsupportedParameters() As Task
             Dim markup = <a><![CDATA[

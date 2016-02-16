@@ -243,8 +243,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (isExplicitInterfaceImplementation)
                     {
                         TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this, overriddenOrImplementedProperty, true, diagnostics);
-                    }
                 }
+            }
             }
 
             if (!hasAccessorList)
@@ -1029,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var compilation = this.DeclaringCompilation;
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(type));
-            }
+        }
         }
 
         internal override bool HasSpecialName

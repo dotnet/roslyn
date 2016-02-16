@@ -54,7 +54,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 var project2 = CreateCSharpProject(environment, "project2");
                 environment.ProjectTracker.UpdateProjectBinPath(project2, null, @"c:\project2.dll");
 
-                project1.AddProjectReference(project2);
+                project1.AddProjectReference(new ProjectReference(project2.Id));
 
                 // normally this metadata reference would be elevated to a project reference, but fails because of cyclicness
                 project2.OnImportAdded(@"c:\project1.dll", "project1");
@@ -76,8 +76,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 var project1 = CreateCSharpProject(environment, "project1");
                 var project2 = CreateCSharpProject(environment, "project2");
 
-                project1.AddProjectReference(project2);
-                project2.AddProjectReference(project1);
+                project1.AddProjectReference(new ProjectReference(project2.Id));
+                project2.AddProjectReference(new ProjectReference(project1.Id));
 
                 Assert.Equal(true, project1.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project2.Id));
                 Assert.Equal(false, project2.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project1.Id));
@@ -98,10 +98,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 var project3 = CreateCSharpProject(environment, "project3");
                 var project4 = CreateCSharpProject(environment, "project4");
 
-                project1.AddProjectReference(project2);
-                project2.AddProjectReference(project3);
-                project3.AddProjectReference(project4);
-                project4.AddProjectReference(project1);
+                project1.AddProjectReference(new ProjectReference(project2.Id));
+                project2.AddProjectReference(new ProjectReference(project3.Id));
+                project3.AddProjectReference(new ProjectReference(project4.Id));
+                project4.AddProjectReference(new ProjectReference(project1.Id));
 
                 Assert.Equal(true, project1.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project2.Id));
                 Assert.Equal(true, project2.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project3.Id));

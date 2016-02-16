@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class AliasTests
-        <WorkItem(543759)>
+        <WorkItem(543759, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543759")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameNamespaceAlias()
             Using result = RenameEngineResult.Create(
@@ -307,7 +307,7 @@ public class C3
         End Sub
 
         <Fact>
-        <WorkItem(586743)>
+        <WorkItem(586743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586743")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameOneDuplicateAliasToNoConflict()
             Using result = RenameEngineResult.Create(
@@ -336,7 +336,7 @@ public class C3
 
 
         <Fact>
-        <WorkItem(542693)>
+        <WorkItem(542693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542693")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameOuterAliasWithNestedAlias()
             Using result = RenameEngineResult.Create(
@@ -392,7 +392,7 @@ class C1
         End Sub
 
         <Fact>
-        <WorkItem(579200)>
+        <WorkItem(579200, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579200")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug579200_RenameNestedAliasTarget()
             Using result = RenameEngineResult.Create(
@@ -420,7 +420,7 @@ namespace N
         End Sub
 
         <Fact>
-        <WorkItem(579214)>
+        <WorkItem(579214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579214")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug579214_RenameAttributeNamedDynamic()
             Using result = RenameEngineResult.Create(
@@ -437,7 +437,7 @@ class C : [|$$dynamic|]::Object { }
         End Sub
 
         <Fact>
-        <WorkItem(629695)>
+        <WorkItem(629695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629695")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug629695_DetectConflictWithAliasInSameBlockCompUnit()
             Using result = RenameEngineResult.Create(
@@ -482,7 +482,7 @@ class Program
         End Sub
 
         <Fact>
-        <WorkItem(629695)>
+        <WorkItem(629695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629695")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug629695_DetectConflictWithAliasInSameBlockNSDecl()
             Using result = RenameEngineResult.Create(
@@ -530,7 +530,7 @@ namespace X
         End Sub
 
         <Fact>
-        <WorkItem(629695)>
+        <WorkItem(629695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629695")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug629695_DetectConflictWithAliasInSameBlockWithEscaping()
             Using result = RenameEngineResult.Create(
@@ -578,7 +578,7 @@ namespace X
         End Sub
 
         <Fact>
-        <WorkItem(603365), WorkItem(745833)>
+        <WorkItem(603365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/603365"), WorkItem(745833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/745833")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug603365_RenameAliasToClassNameOnlyFixesAliasUsages_1()
             Using result = RenameEngineResult.Create(
@@ -606,7 +606,7 @@ namespace N
         End Sub
 
         <Fact>
-        <WorkItem(603365)>
+        <WorkItem(603365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/603365")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug603365_RenameAliasToClassNameOnlyFixesAliasUsages_2()
             Using result = RenameEngineResult.Create(
@@ -635,8 +635,8 @@ namespace N
         End Sub
 
         <Fact>
-        <WorkItem(633860)>
-        <WorkItem(632303)>
+        <WorkItem(633860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633860")>
+        <WorkItem(632303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632303")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToAttributeAndEndingWithAttributeAttribute()
             Using result = RenameEngineResult.Create(
@@ -670,8 +670,8 @@ class Program
         End Sub
 
         <Fact>
-        <WorkItem(633860)>
-        <WorkItem(632303)>
+        <WorkItem(633860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633860")>
+        <WorkItem(632303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632303")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToAttributeAndEndingWithAttributeAttributeWithResolvedConflict()
             Using result = RenameEngineResult.Create(
@@ -708,7 +708,7 @@ class Program
         End Sub
 
         <Fact>
-        <WorkItem(529531)>
+        <WorkItem(529531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529531")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAliasToNullableWithResolvedConflict()
             Using result = RenameEngineResult.Create(

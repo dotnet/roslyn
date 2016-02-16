@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Sub
 
         <WpfFact>
-        <WorkItem(883263)>
+        <WorkItem(883263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883263")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenameCandidateSymbol()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -243,7 +243,7 @@ class Program
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(543018)>
+        <WorkItem(543018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543018")>
         Public Sub CannotRenameSynthesizedParameters()
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -266,7 +266,7 @@ class Program
         End Sub
 
         <WpfFact>
-        <WorkItem(539554)>
+        <WorkItem(539554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539554")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenamePredefinedType()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -285,7 +285,7 @@ class Program
         End Sub
 
         <WpfFact>
-        <WorkItem(542937)>
+        <WorkItem(542937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542937")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenameContextualKeyword()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -313,7 +313,7 @@ class Program
         End Sub
 
         <WpfFact>
-        <WorkItem(543714)>
+        <WorkItem(543714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543714")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenameOperator()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -341,7 +341,7 @@ class Program
         End Sub
 
         <WpfFact>
-        <WorkItem(529751)>
+        <WorkItem(529751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529751")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenameExternAlias()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -362,7 +362,7 @@ class Program
             End Using
         End Sub
 
-        <WorkItem(543969)>
+        <WorkItem(543969, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543969")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenameElementFromPreviousSubmission()
@@ -380,7 +380,7 @@ class Program
             End Using
         End Sub
 
-        <WorkItem(689002)>
+        <WorkItem(689002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689002")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenameHiddenElement()
@@ -401,7 +401,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem(767187)>
+        <WorkItem(767187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenameConstructorInVb()
@@ -430,7 +430,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem(767187)>
+        <WorkItem(767187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenameConstructorInVb2()
@@ -453,7 +453,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem(767187)>
+        <WorkItem(767187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenameConstructorInVb3()

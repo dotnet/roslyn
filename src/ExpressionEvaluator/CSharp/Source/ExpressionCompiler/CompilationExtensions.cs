@@ -18,15 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return (PENamedTypeSymbol)metadataDecoder.GetTypeOfToken(typeHandle);
         }
 
-        internal static PENamedTypeSymbol GetType(this CSharpCompilation compilation, Guid moduleVersionId, int typeToken, out MetadataDecoder metadataDecoder)
+        internal static PENamedTypeSymbol GetType(this CSharpCompilation compilation, Guid moduleVersionId, int typeToken)
         {
-            var module = compilation.GetModule(moduleVersionId);
-            CheckModule(module, moduleVersionId);
-            var reader = module.Module.MetadataReader;
-            var typeHandle = (TypeDefinitionHandle)MetadataTokens.Handle(typeToken);
-            var type = GetType(module, typeHandle);
-            metadataDecoder = new MetadataDecoder(module, type);
-            return type;
+            return GetType(compilation.GetModule(moduleVersionId), (TypeDefinitionHandle)MetadataTokens.Handle(typeToken));
         }
 
         internal static PEMethodSymbol GetSourceMethod(this CSharpCompilation compilation, Guid moduleVersionId, int methodToken)
@@ -63,7 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal static PEMethodSymbol GetMethod(this CSharpCompilation compilation, Guid moduleVersionId, MethodDefinitionHandle methodHandle)
         {
             var module = compilation.GetModule(moduleVersionId);
-            CheckModule(module, moduleVersionId);
             var reader = module.Module.MetadataReader;
             var typeHandle = reader.GetMethodDefinition(methodHandle).GetDeclaringType();
             var type = GetType(module, typeHandle);
@@ -87,15 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
             }
 
-            return null;
-        }
-
-        private static void CheckModule(PEModuleSymbol module, Guid moduleVersionId)
-        {
-            if ((object)module == null)
-            {
-                throw new ArgumentException($"No module found with MVID '{moduleVersionId}'", nameof(moduleVersionId));
-            }
+            throw new ArgumentException($"No module found with MVID '{moduleVersionId}'", nameof(moduleVersionId));
         }
 
         internal static CSharpCompilation ToCompilation(this ImmutableArray<MetadataBlock> metadataBlocks)
@@ -110,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return references.ToCompilation();
         }
 
-        private static CSharpCompilation ToCompilation(this ImmutableArray<MetadataReference> references)
+        internal static CSharpCompilation ToCompilation(this ImmutableArray<MetadataReference> references)
         {
             return CSharpCompilation.Create(
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),
@@ -127,6 +112,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             platform: Platform.AnyCpu, // Platform should match PEModule.Machine, in this case I386.
             optimizationLevel: OptimizationLevel.Release,
             assemblyIdentityComparer: IdentityComparer).
-            WithMetadataImportOptions(MetadataImportOptions.All);
+            WithMetadataImportOptions(MetadataImportOptions.All).
+            WithTopLevelBinderFlags(
+                BinderFlags.SuppressObsoleteChecks |
+                BinderFlags.IgnoreAccessibility |
+                BinderFlags.UnsafeRegion |
+                BinderFlags.UncheckedRegion |
+                BinderFlags.AllowManagedAddressOf |
+                BinderFlags.AllowAwaitInUnsafeContext |
+                BinderFlags.IgnoreCorLibraryDuplicatedTypes);
     }
 }

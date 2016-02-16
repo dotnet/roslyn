@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
 {|Cursor:[|#End If|]|}</Text>)
         End Function
 
-        <WorkItem(544469)>
+        <WorkItem(544469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544469")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestConditionalWithMissingIf1() As Task
             Await TestAsync(<Text>
@@ -91,7 +91,7 @@ True : #If foo Then
 (ifDirective.Kind == ElseDirective)</Text>)
         End Function
 
-        <WorkItem(544469)>
+        <WorkItem(544469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544469")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestConditionalWithMissingIf2() As Task
             Await TestAsync(<Text>

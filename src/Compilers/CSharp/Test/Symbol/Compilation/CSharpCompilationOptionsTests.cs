@@ -86,6 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestProperty((old, value) => old.WithMetadataReferenceResolver(value), opt => opt.MetadataReferenceResolver, new TestMetadataReferenceResolver());
             TestProperty((old, value) => old.WithAssemblyIdentityComparer(value), opt => opt.AssemblyIdentityComparer, new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy()));
             TestProperty((old, value) => old.WithStrongNameProvider(value), opt => opt.StrongNameProvider, new DesktopStrongNameProvider());
+
+            TestProperty((old, value) => old.WithTopLevelBinderFlags(value), opt => opt.TopLevelBinderFlags, BinderFlags.IgnoreCorLibraryDuplicatedTypes);
+            TestProperty((old, value) => old.WithMetadataImportOptions(value), opt => opt.MetadataImportOptions, MetadataImportOptions.Internal);
         }
 
         [Fact]
@@ -319,7 +322,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
                 typeof(CSharpCompilationOptions),
                 "AllowUnsafe",
-                "Usings");
+                "Usings",
+                "TopLevelBinderFlags");
         }
 
         [Fact]
@@ -356,12 +360,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             StrongNameProvider strongNameProvider = new DesktopStrongNameProvider();
             MetadataImportOptions metadataImportOptions = 0;
             bool reportSuppressedDiagnostics = false;
+            var topLevelBinderFlags = BinderFlags.None;
+            var publicSign = false;
+
             return new CSharpCompilationOptions(OutputKind.ConsoleApplication, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings,
                 optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                 platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
                 concurrentBuild, deterministic, extendedCustomDebugInformation, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
-                assemblyIdentityComparer, strongNameProvider, metadataImportOptions,
-                publicSign: false);
+                assemblyIdentityComparer, strongNameProvider, metadataImportOptions, publicSign, topLevelBinderFlags);
         }
 
         private sealed class MetadataReferenceResolverWithEquality : MetadataReferenceResolver

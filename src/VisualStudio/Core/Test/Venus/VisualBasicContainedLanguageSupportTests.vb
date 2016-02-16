@@ -607,7 +607,7 @@ End Sub</text>.NormalizedValue
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        <WorkItem(850035)>
+        <WorkItem(850035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850035")>
         Public Async Function TestEnsureEventHandler_WithHandlesAndNullObjectName() As Task
             Dim code As String = "
 Imports System

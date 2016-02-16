@@ -244,8 +244,8 @@ class C
 
         #region "Setting fields in attributes"
 
-        [WorkItem(545425)]
-        [WorkItem(544139)]
+        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
+        [WorkItem(544139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544139")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestAttributeWithValidField()
         {
@@ -330,8 +330,8 @@ class D
 
         #region "Setting properties in attributes"
 
-        [WorkItem(545425)]
-        [WorkItem(544139)]
+        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
+        [WorkItem(544139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544139")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestAttributeWithValidProperty()
         {
@@ -457,8 +457,8 @@ class D
 
         #region "Setting fields and arguments"
 
-        [WorkItem(545425)]
-        [WorkItem(544139)]
+        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
+        [WorkItem(544139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544139")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestAttributeWithArgumentsAndNamedParameters1()
         {
@@ -484,8 +484,8 @@ class D
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
-        [WorkItem(545425)]
-        [WorkItem(544139)]
+        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
+        [WorkItem(544139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544139")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestAttributeWithArgumentsAndNamedParameters2()
         {
@@ -511,8 +511,8 @@ class D
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
-        [WorkItem(545425)]
-        [WorkItem(544139)]
+        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
+        [WorkItem(544139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544139")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestAttributeWithArgumentsAndNamedParameters3()
         {
@@ -538,8 +538,8 @@ class D
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
-        [WorkItem(545425)]
-        [WorkItem(544139)]
+        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
+        [WorkItem(544139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544139")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestAttributeWithOptionalArgumentAndNamedParameterWithSameName1()
         {
@@ -563,8 +563,8 @@ class D
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
-        [WorkItem(545425)]
-        [WorkItem(544139)]
+        [WorkItem(545425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545425")]
+        [WorkItem(544139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544139")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestAttributeWithOptionalArgumentAndNamedParameterWithSameName2()
         {
@@ -877,7 +877,7 @@ class C
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
-        [WorkItem(1067933)]
+        [WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InvokedWithNoToken()
         {
@@ -887,7 +887,7 @@ class C
             await TestAsync(markup);
         }
 
-        [WorkItem(1081535)]
+        [WorkItem(1081535, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081535")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationWithBadParameterList()
         {

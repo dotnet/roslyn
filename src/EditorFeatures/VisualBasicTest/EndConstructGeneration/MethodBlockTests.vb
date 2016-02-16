@@ -199,7 +199,7 @@ End Class",
                 caret:={2, -1})
         End Function
 
-        <WorkItem(528961)>
+        <WorkItem(528961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528961")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestVerifyInvalidLocation02() As Task
             Await VerifyStatementEndConstructAppliedAsync(

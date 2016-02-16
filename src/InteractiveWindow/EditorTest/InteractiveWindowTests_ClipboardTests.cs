@@ -22,8 +22,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Window.InsertCode("1 + 2");
             Window.Operations.SelectAll();
             Window.Operations.Copy();
-            VerifyClipboardData("1 + 2", 
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;\\red255\\green255\\blue255;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 1 + 2}", 
+            VerifyClipboardData("1 + 2",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;\\red255\\green255\\blue255;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 1 + 2}",
                 "[{\"content\":\"1 + 2\",\"kind\":2}]");
 
             // Shrink the selection.
@@ -218,7 +218,7 @@ System.Console.WriteLine(o);",
             // > 222|
             Window.Operations.SelectAll();
             Window.Operations.Cut();
-            
+
             Assert.Equal("> ", GetTextFromCurrentSnapshot());
             Assert.True(Window.TextView.Selection.IsEmpty);
 
@@ -257,7 +257,7 @@ System.Console.WriteLine();",
             Window.Operations.Cut();
 
             // expect nothing got deleted
-            Assert.Equal("> foreach (var o in new[] { 1, 2, 3 })\r\n> System.Console.WriteLine();\r\n1\r\n2\r\n3\r\n> 1 + 2", 
+            Assert.Equal("> foreach (var o in new[] { 1, 2, 3 })\r\n> System.Console.WriteLine();\r\n1\r\n2\r\n3\r\n> 1 + 2",
                 GetTextFromCurrentSnapshot());
             Assert.False(Window.TextView.Selection.IsEmpty);
 
@@ -404,7 +404,7 @@ System.Console.WriteLine();",
             Window.InsertCode("1 + 2");
 
             // readonly buffer
-            CopyNoSelectionAndVerify(0, 7, "> s +\r\n", 
+            CopyNoSelectionAndVerify(0, 7, "> s +\r\n",
                 "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;\\red255\\green255\\blue255;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > s +\\par }",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"s +\\u000d\\u000a\",\"kind\":2}]");
             CopyNoSelectionAndVerify(7, 11, "> \r\n",
@@ -1093,7 +1093,7 @@ System.Console.WriteLine();",
         {
             var caret = Window.TextView.Caret;
             var selection = Window.TextView.Selection;
-            
+
             Window.InsertCode("111");
             Window.Operations.BreakLine();
             Window.InsertCode("222");
@@ -1267,7 +1267,7 @@ System.Console.WriteLine();",
         {
             var caret = Window.TextView.Caret;
             var selection = Window.TextView.Selection;
-            
+
             Window.InsertCode("111");
             Window.Operations.BreakLine();
             Window.InsertCode("222");
@@ -1483,7 +1483,7 @@ System.Console.WriteLine();",
 
             _testClipboard.Clear();
             Window.Operations.ClearView();
-            
+
             await Submit(
 @"111",
 @"111
@@ -1529,7 +1529,7 @@ System.Console.WriteLine();",
             Window.InsertCode("111");
             Window.Operations.BreakLine();
             Window.InsertCode("222");
-            
+
             // Make a selection as follows:
             // |> 111
             // > 222|
@@ -1623,7 +1623,7 @@ System.Console.WriteLine();",
                 new BufferBlock(ReplSpanKind.Prompt, "> "),
                 new BufferBlock(ReplSpanKind.Input, "TextCopiedFromStreamSelection"),
             };
-            
+
             CopyToClipboard(blocks, includeRepl: true);
         }
 
@@ -1735,7 +1735,7 @@ System.Console.WriteLine();",
         private void MoveCaretToPreviousPosition(int moves = 1)
         {
             var caret = Window.TextView.Caret;
-            for (int i = 0; i< moves; ++i)
+            for (int i = 0; i < moves; ++i)
             {
                 caret.MoveToPreviousCaretPosition();
             }

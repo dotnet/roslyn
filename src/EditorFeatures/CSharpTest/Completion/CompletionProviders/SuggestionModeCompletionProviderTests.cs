@@ -111,7 +111,7 @@ class a
             await VerifyBuilderAsync(markup);
         }
 
-        [Fact, WorkItem(817145), Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem(817145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817145"), Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExplicitArrayInitializer()
         {
             var markup = @"using System;
@@ -254,7 +254,7 @@ class a
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(860580)]
+        [WorkItem(860580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860580")]
         public async Task ReturnStatement()
         {
             var markup = @"using System;
@@ -329,7 +329,7 @@ class a
             await VerifyBuilderAsync(markup.ToString());
         }
 
-        [WorkItem(823968)]
+        [WorkItem(823968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/823968")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task BuilderInJoinClause()
         {
@@ -349,7 +349,7 @@ class a
             await VerifyBuilderAsync(markup.ToString());
         }
 
-        [WorkItem(544290)]
+        [WorkItem(544290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544290")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ParenthesizedLambdaArgument()
         {
@@ -364,7 +364,7 @@ class Program
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(544379)]
+        [WorkItem(544379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544379")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IncompleteParenthesizedLambdaArgument()
         {
@@ -379,7 +379,7 @@ class Program
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(544379)]
+        [WorkItem(544379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544379")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IncompleteNestedParenthesizedLambdaArgument()
         {
@@ -394,7 +394,7 @@ class Program
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(546363)]
+        [WorkItem(546363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546363")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task BuilderForLinqExpression()
         {
@@ -411,7 +411,7 @@ public class Class
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(546363)]
+        [WorkItem(546363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546363")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInTypeParameter()
         {
@@ -428,7 +428,7 @@ public class Class
             await VerifyNotBuilderAsync(markup);
         }
 
-        [WorkItem(611477)]
+        [WorkItem(611477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611477")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExtensionMethodFaultTolerance()
         {
@@ -475,7 +475,7 @@ namespace Outer
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(834609)]
+        [WorkItem(834609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834609")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LambdaWithAutomaticBraceCompletion()
         {
@@ -492,7 +492,7 @@ public class Class
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(858112)]
+        [WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ThisConstructorInitializer()
         {
@@ -504,7 +504,7 @@ class X
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(858112)]
+        [WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task BaseConstructorInitializer()
         {
@@ -521,7 +521,7 @@ class D : B
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(887842)]
+        [WorkItem(887842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/887842")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PreprocessorExpression()
         {
@@ -532,7 +532,7 @@ class D : B
             await VerifyBuilderAsync(markup);
         }
 
-        [WorkItem(967254)]
+        [WorkItem(967254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/967254")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ImplicitArrayInitializerAfterNew()
         {

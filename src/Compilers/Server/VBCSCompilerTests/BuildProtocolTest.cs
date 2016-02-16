@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         [Fact]
         public async Task ReadWriteCompleted()
         {
-            var response = new CompletedBuildResponse(42, utf8output: false, output: "a string", errorOutput: "b string");
+            var response = new CompletedBuildResponse(42, utf8output: false, output: "a string");
             var memoryStream = new MemoryStream();
             await response.WriteAsync(memoryStream, default(CancellationToken));
             Assert.True(memoryStream.Position > 0);
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.Equal(42, read.ReturnCode);
             Assert.False(read.Utf8Output);
             Assert.Equal("a string", read.Output);
-            Assert.Equal("b string", read.ErrorOutput);
+            Assert.Equal("", read.ErrorOutput);
         }
 
         [Fact]

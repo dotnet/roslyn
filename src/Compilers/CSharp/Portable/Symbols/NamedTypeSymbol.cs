@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            if (((thisIsNotConstructed || otherIsNotConstructed) &&
+            if (((thisIsNotConstructed || otherIsNotConstructed) && 
                 (options & TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0) || 
                 this.IsUnboundGenericType != other.IsUnboundGenericType)
             {
@@ -696,11 +696,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool ContainsNullableReferenceTypes()
-        {
+                {
             if (IsDefinition)
             {
-                return false;
-            }
+                    return false;
+                }
 
             if (ContainingType?.ContainsNullableReferenceTypes() == true)
             {
@@ -713,8 +713,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (arg.ContainsNullableReferenceTypes())
                     {
-                        return true;
-                    }
+            return true;
+        }
                 }
             }
 

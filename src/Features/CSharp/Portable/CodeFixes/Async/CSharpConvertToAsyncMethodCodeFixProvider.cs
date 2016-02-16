@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         /// <summary>
         /// Cannot await void.
         /// </summary>
-        private const string CS4008 = "CS4008";
+        private const string CS4008 = nameof(CS4008);
 
         public override ImmutableArray<string> FixableDiagnosticIds
         {

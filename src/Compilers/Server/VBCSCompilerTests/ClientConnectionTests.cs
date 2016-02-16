@@ -14,7 +14,7 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
-    public class ClientConnectionTests 
+    public class ClientConnectionTests
     {
         private sealed class TestableClientConnection : ClientConnection
         {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             internal Action<BuildRequest> ValidateBuildRequestFunc;
 
             internal TestableClientConnection(ICompilerServerHost compilerServerHost, Stream stream)
-                :base(compilerServerHost, "identifier", stream)
+                : base(compilerServerHost, "identifier", stream)
             {
                 Stream = stream;
                 CreateMonitorDisconnectTaskFunc = ct => Task.Delay(-1, ct);
@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             public override void Close()
             {
-
             }
 
             protected override void ValidateBuildRequest(BuildRequest request)
@@ -73,7 +72,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             public override void Flush()
             {
-
             }
 
             public override int Read(byte[] buffer, int offset, int count)
@@ -115,8 +113,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         private static readonly BuildResponse s_emptyBuildResponse = new CompletedBuildResponse(
             returnCode: 0,
             utf8output: false,
-            output: string.Empty,
-            errorOutput: string.Empty);
+            output: string.Empty);
 
         private static TestableClientConnection CreateConnection(Stream stream, ICompilerServerHost compilerServerHost = null)
         {

@@ -79,19 +79,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             Await VerifyRecommendationsContainAsync(<MethodBody>Foo(|</MethodBody>, "Of")
         End Function
 
-        <WorkItem(541636)>
+        <WorkItem(541636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541636")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OfInGenericArrayBoundRankSpecifierTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>Dim i As List(|</MethodBody>, "Of")
         End Function
 
-        <WorkItem(541636)>
+        <WorkItem(541636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541636")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoOfInNonGenericArrayBoundRankSpecifierTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>Dim i As Integer(|</MethodBody>, "Of")
         End Function
 
-        <WorkItem(543270)>
+        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotInNonGenericDelegateCreationTest() As Task
             Dim code =
@@ -108,7 +108,7 @@ End Class
             Await VerifyRecommendationsMissingAsync(code, "Of")
         End Function
 
-        <WorkItem(529552)>
+        <WorkItem(529552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529552")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function InGenericDelegateCreationTest() As Task
             Dim code = <ModuleDeclaration><![CDATA[
@@ -123,7 +123,7 @@ End Class
             Await VerifyRecommendationsContainAsync(code, "Of")
         End Function
 
-        <WorkItem(529552)>
+        <WorkItem(529552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529552")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function InPotentiallyGenericDelegateCreationTest() As Task
             Dim code = <ModuleDeclaration><![CDATA[
@@ -139,7 +139,7 @@ End Class
             Await VerifyRecommendationsContainAsync(code, "Of")
         End Function
 
-        <WorkItem(529552)>
+        <WorkItem(529552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529552")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotInNonGenericDelegateCreationWithGenericTypeOfSameNameTest() As Task
             Dim code =
@@ -158,7 +158,7 @@ End Class
             Await VerifyRecommendationsMissingAsync(code, "Of")
         End Function
 
-        <WorkItem(530953)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AfterEolTest() As Task
             Await VerifyRecommendationsContainAsync(

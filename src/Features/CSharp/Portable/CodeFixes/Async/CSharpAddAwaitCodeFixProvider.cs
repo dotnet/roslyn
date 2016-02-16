@@ -24,17 +24,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         /// <summary>
         /// Because this call is not awaited, execution of the current method continues before the call is completed.
         /// </summary>
-        private const string CS4014 = "CS4014";
+        private const string CS4014 = nameof(CS4014);
 
         /// <summary>
         /// Since this is an async method, the return expression must be of type 'blah' rather than 'baz'
         /// </summary>
-        private const string CS4016 = "CS4016";
+        private const string CS4016 = nameof(CS4016);
 
         /// <summary>
         /// cannot implicitly convert from 'X' to 'Y'.
         /// </summary>
-        private const string CS0029 = "CS0029";
+        private const string CS0029 = nameof(CS0029);
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0029, CS4014, CS4016);
 

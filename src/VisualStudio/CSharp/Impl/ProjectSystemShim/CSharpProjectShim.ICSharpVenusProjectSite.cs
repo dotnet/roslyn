@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         public void RemoveReferenceToCodeDirectory(string assemblyFileName, ICSharpProjectRoot project)
         {
-            CSharpProject projectSite = GetProjectSite(project);
+            CSharpProjectShim projectSite = GetProjectSite(project);
 
             if (!this.CurrentProjectReferencesContains(projectSite.Id))
             {
@@ -39,14 +39,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         public void OnCodeDirectoryAliasesChanged(ICSharpProjectRoot project, int previousAliasesCount, string[] previousAliases, int currentAliasesCount, string[] currentAliases)
         {
-            CSharpProject projectSite = GetProjectSite(project);
+            CSharpProjectShim projectSite = GetProjectSite(project);
 
             UpdateProjectReferenceAliases(projectSite, ImmutableArray.Create(currentAliases));
         }
 
         public void AddReferenceToCodeDirectoryEx(string assemblyFileName, ICSharpProjectRoot project, CompilerOptions optionID)
         {
-            CSharpProject projectSite = GetProjectSite(project);
+            CSharpProjectShim projectSite = GetProjectSite(project);
 
             AddProjectReference(new ProjectReference(projectSite.Id));
         }
@@ -55,11 +55,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         /// Given a ICSharpProjectRoot instance, it returns the ProjectSite instance, throwing if it
         /// could not be obtained.
         /// </summary>
-        private static CSharpProject GetProjectSite(ICSharpProjectRoot project)
+        private static CSharpProjectShim GetProjectSite(ICSharpProjectRoot project)
         {
             // Get the host back for the project
             Guid projectSiteGuid = typeof(ICSharpProjectSite).GUID;
-            CSharpProject projectSite = project.GetProjectSite(ref projectSiteGuid) as CSharpProject;
+            CSharpProjectShim projectSite = project.GetProjectSite(ref projectSiteGuid) as CSharpProjectShim;
 
             // We should have gotten a ProjectSite back. If we didn't, that means we're being given
             // a project site that we didn't get BindToProject called on first which is a no-no by

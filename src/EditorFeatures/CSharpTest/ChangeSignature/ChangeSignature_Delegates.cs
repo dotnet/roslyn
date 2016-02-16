@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 
         protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
         {
-            return CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(definition, (CSharpParseOptions)parseOptions, (CSharpCompilationOptions)compilationOptions);
+            return TestWorkspace.CreateCSharpAsync(definition, (CSharpParseOptions)parseOptions, (CSharpCompilationOptions)compilationOptions);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]

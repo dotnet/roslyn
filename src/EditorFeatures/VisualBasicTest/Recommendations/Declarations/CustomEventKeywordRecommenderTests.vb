@@ -17,13 +17,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
         End Function
 
         <Fact>
-        <WorkItem(544999)>
+        <WorkItem(544999, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544999")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function CustomEventNotInInterfaceDeclarationTest() As Task
             Await VerifyRecommendationsMissingAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Custom Event")
         End Function
 
-        <WorkItem(674791)>
+        <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotAfterHashTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>

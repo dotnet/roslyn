@@ -147,7 +147,7 @@ FixedRankArray_19 = New Short() (1,
             </errors>)
     End Sub
 
-    <WorkItem(527021, "DevDiv")>
+    <WorkItem(527021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527021")>
     <Fact>
     Public Sub BC30036_ParseErrorMismatchExpectedExpression()
         ParseAndVerify(<![CDATA[
@@ -162,7 +162,7 @@ FixedRankArray_19 = New Short() (1,
             </errors>)
     End Sub
 
-    <WorkItem(538746, "DevDiv")>
+    <WorkItem(538746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538746")>
     <Fact>
     Public Sub ParseDecimalLiteralWithExponent()
         ParseAndVerify(<![CDATA[
@@ -196,7 +196,7 @@ FixedRankArray_19 = New Short() (1,
         End If
     End Sub
 
-    <WorkItem(541293, "DevDiv")>
+    <WorkItem(541293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541293")>
     <Fact>
     Public Sub ParsePropertyWithFromInitializer()
         ParseAndVerify(<![CDATA[
@@ -216,7 +216,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(541293, "DevDiv")>
+    <WorkItem(541293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541293")>
     <Fact>
     Public Sub ParsePropertyWithFromInitializer_2()
         ParseAndVerify(<![CDATA[
@@ -229,7 +229,7 @@ End Class
 ]]>)
     End Sub
 
-    <WorkItem(543755, "DevDiv")>
+    <WorkItem(543755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543755")>
     <Fact()>
     Public Sub Bug11682()
 

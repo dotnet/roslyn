@@ -218,7 +218,7 @@ Imports System.Diagnostics
         }
 
         [Fact]
-        [WorkItem(774295, "DevDiv")]
+        [WorkItem(774295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774295")]
         public async Task DontCrash_VB_2()
         {
             var code = @"
@@ -255,7 +255,7 @@ End Class
         }
 
         [Fact]
-        [WorkItem(547075, "DevDiv")]
+        [WorkItem(547075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547075")]
         public void TestCodeCleanupWithinNonStructuredTrivia()
         {
             var code = @"

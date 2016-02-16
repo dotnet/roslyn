@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal abstract partial class MethodToClassRewriter 
+    internal abstract partial class MethodToClassRewriter
     {
         private sealed partial class BaseMethodWrapperSymbol : SynthesizedMethodBaseSymbol
         {

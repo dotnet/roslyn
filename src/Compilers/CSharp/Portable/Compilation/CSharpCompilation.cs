@@ -225,8 +225,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options ?? s_defaultSubmissionOptions,
                 (syntaxTree != null) ? new[] { syntaxTree } : SpecializedCollections.EmptyEnumerable<SyntaxTree>(),
                 references,
-                previousScriptCompilation, 
-                returnType, 
+                previousScriptCompilation,
+                returnType,
                 globalsType,
                 isSubmission: true);
         }
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return this;
             }
-            
+
             // Reference binding doesn't depend on previous submission so we can reuse it.
 
             return new CSharpCompilation(
@@ -3038,7 +3038,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (includeNamespace && predicate(current.Name))
                     {
                         var container = GetSpineSymbol(spine);
-                        set.Add(GetSymbol(container, current));
+                        var symbol = GetSymbol(container, current);
+                        if (symbol != null)
+                        {
+                            set.Add(symbol);
+                        }
                     }
                 }
                 else
@@ -3046,7 +3050,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (includeType && predicate(current.Name))
                     {
                         var container = GetSpineSymbol(spine);
-                        set.Add(GetSymbol(container, current));
+                        var symbol = GetSymbol(container, current);
+                        if (symbol != null)
+                        {
+                            set.Add(symbol);
+                        }
                     }
 
                     if (includeMember)
@@ -3082,13 +3090,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 spine.Add(current);
 
                 var container = GetSpineSymbol(spine);
-                foreach (var member in container.GetMembers())
+                if (container != null)
                 {
-                    if (!member.IsTypeOrTypeAlias() &&
-                        (member.CanBeReferencedByName || member.IsExplicitInterfaceImplementation() || member.IsIndexer()) &&
-                        predicate(member.Name))
+                    foreach (var member in container.GetMembers())
                     {
-                        set.Add(member);
+                        if (!member.IsTypeOrTypeAlias() &&
+                            (member.CanBeReferencedByName || member.IsExplicitInterfaceImplementation() || member.IsIndexer()) &&
+                            predicate(member.Name))
+                        {
+                            set.Add(member);
+                        }
                     }
                 }
 

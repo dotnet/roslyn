@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private static SourceText CreateMemoryStreamBasedEncodedText(byte[] bytes, 
+        private static SourceText CreateMemoryStreamBasedEncodedText(byte[] bytes,
             Func<Encoding> getEncoding,
             Encoding readEncodingOpt = null,
             SourceHashAlgorithm algorithm = SourceHashAlgorithm.Sha1)
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [WorkItem(611805, "DevDiv")]
+        [WorkItem(611805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611805")]
         [Fact]
         public void TestMultithreadedDecoding()
         {

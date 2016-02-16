@@ -46,7 +46,7 @@ End Class
 
             Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
             Dim expectedIssues = "
-      ""issues"": [
+      ""results"": [
       ]
     }
   ]
@@ -91,9 +91,10 @@ End Class
 
             Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
             Dim expectedIssues = String.Format("
-      ""issues"": [
+      ""results"": [
         {{
           ""ruleId"": ""BC42024"",
+          ""kind"": ""warning"",
           ""locations"": [
             {{
               ""analysisTarget"": [
@@ -110,29 +111,37 @@ End Class
             }}
           ],
           ""fullMessage"": ""Unused local variable: 'x'."",
+          ""isSuppressedInSource"": false,
+          ""tags"": [
+            ""Compiler"",
+            ""Telemetry""
+          ],
           ""properties"": {{
             ""severity"": ""Warning"",
             ""warningLevel"": ""1"",
             ""defaultSeverity"": ""Warning"",
             ""title"": ""Unused local variable"",
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True"",
-            ""isSuppressedInSource"": ""False"",
-            ""customTags"": ""Compiler;Telemetry""
+            ""isEnabledByDefault"": ""True""
           }}
         }},
         {{
           ""ruleId"": ""BC30420"",
+          ""kind"": ""error"",
           ""locations"": [
           ],
           ""fullMessage"": ""'Sub Main' was not found in '{1}'."",
+          ""isSuppressedInSource"": false,
+          ""tags"": [
+            ""Compiler"",
+            ""Telemetry"",
+            ""NotConfigurable""
+          ],
           ""properties"": {{
             ""severity"": ""Error"",
             ""defaultSeverity"": ""Error"",
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True"",
-            ""isSuppressedInSource"": ""False"",
-            ""customTags"": ""Compiler;Telemetry;NotConfigurable""
+            ""isEnabledByDefault"": ""True""
           }}
         }}
       ]
@@ -182,9 +191,10 @@ End Class
 
             Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
             Dim expectedIssues = String.Format("
-      ""issues"": [
+      ""results"": [
         {{
           ""ruleId"": ""BC42024"",
+          ""kind"": ""warning"",
           ""locations"": [
             {{
               ""analysisTarget"": [
@@ -201,29 +211,37 @@ End Class
             }}
           ],
           ""fullMessage"": ""Unused local variable: 'x'."",
+          ""isSuppressedInSource"": true,
+          ""tags"": [
+            ""Compiler"",
+            ""Telemetry""
+          ],
           ""properties"": {{
             ""severity"": ""Warning"",
             ""warningLevel"": ""1"",
             ""defaultSeverity"": ""Warning"",
             ""title"": ""Unused local variable"",
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True"",
-            ""isSuppressedInSource"": ""True"",
-            ""customTags"": ""Compiler;Telemetry""
+            ""isEnabledByDefault"": ""True""
           }}
         }},
         {{
           ""ruleId"": ""BC30420"",
+          ""kind"": ""error"",
           ""locations"": [
           ],
           ""fullMessage"": ""'Sub Main' was not found in '{1}'."",
+          ""isSuppressedInSource"": false,
+          ""tags"": [
+            ""Compiler"",
+            ""Telemetry"",
+            ""NotConfigurable""
+          ],
           ""properties"": {{
             ""severity"": ""Error"",
             ""defaultSeverity"": ""Error"",
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True"",
-            ""isSuppressedInSource"": ""False"",
-            ""customTags"": ""Compiler;Telemetry;NotConfigurable""
+            ""isEnabledByDefault"": ""True""
           }}
         }}
       ]
@@ -271,7 +289,7 @@ End Class
             Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
 
             Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
-            Dim expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogIssuesText(cmd.Compilation)
+            Dim expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogResultsText(cmd.Compilation)
 
             Dim expectedText = expectedHeader + expectedIssues
             Assert.Equal(expectedText, actualOutput)

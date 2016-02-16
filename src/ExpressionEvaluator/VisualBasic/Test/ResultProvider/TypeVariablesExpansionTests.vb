@@ -6,7 +6,7 @@ Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports System.Collections.Immutable
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 
     Public Class TypeVariablesExpansionTests
         Inherits VisualBasicResultProviderTestBase

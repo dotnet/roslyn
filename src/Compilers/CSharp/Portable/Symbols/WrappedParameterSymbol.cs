@@ -124,6 +124,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return underlyingParameter.Name; }
         }
 
+        public sealed override string MetadataName
+        {
+            get { return underlyingParameter.MetadataName; }
+        }
+
         internal override MarshalPseudoCustomAttributeData MarshallingInformation
         {
             get { return underlyingParameter.MarshallingInformation; }

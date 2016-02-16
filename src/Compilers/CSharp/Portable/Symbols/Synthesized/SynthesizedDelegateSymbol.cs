@@ -8,13 +8,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    /// <summary>
+    /// Dynamic call-site delegate, for call-sites that do not
+    /// match System.Action or System.Func signatures.
+    /// </summary>
     internal sealed class SynthesizedDelegateSymbol : SynthesizedContainer
     {
         private readonly NamespaceOrTypeSymbol _containingSymbol;
         private readonly MethodSymbol _constructor;
         private readonly MethodSymbol _invoke;
 
-        // constructor for dynamic call-site delegate:
         public SynthesizedDelegateSymbol(
             NamespaceOrTypeSymbol containingSymbol,
             string name,

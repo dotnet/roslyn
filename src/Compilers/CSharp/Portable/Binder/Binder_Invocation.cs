@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // we want to force any unbound lambda arguments to cache an appropriate conversion if possible; see 9448.
                         DiagnosticBag discarded = DiagnosticBag.GetInstance();
-                        result = BindInvocationExpressionContinued(syntax, expression, methodName, resolution.OverloadResolutionResult, resolution.AnalyzedArguments, resolution.MethodGroup, null, discarded, 
+                        result = BindInvocationExpressionContinued(syntax, expression, methodName, resolution.OverloadResolutionResult, resolution.AnalyzedArguments, resolution.MethodGroup, null, discarded,
                                                                    resolution.ExtensionMethodsOfSameViabilityAreAvailable, queryClause);
                         discarded.Free();
                     }

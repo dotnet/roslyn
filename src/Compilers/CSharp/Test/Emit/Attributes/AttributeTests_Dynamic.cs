@@ -1018,7 +1018,7 @@ System.Console.WriteLine(typeof(X));";
                 Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)"));
         }
 
-        [Fact, WorkItem(531108, "DevDiv")]
+        [Fact, WorkItem(531108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531108")]
         public void DynamicAttributeCtorCS1980BreakingChange()
         {
             var customDynamicAttrSource = @"
@@ -1141,7 +1141,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(552843, "DevDiv")]
+        [WorkItem(552843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552843")]
         public void IteratorYieldingDynamic()
         {
             string source = @"
@@ -1202,7 +1202,7 @@ class C
             CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature(
-                    "C+<>c", 
+                    "C+<>c",
                     "<Main>b__0_0",
                     ".method assembly hidebysig instance System.Object <Main>b__0_0(System.Object x, System.Object[] y) cil managed")
             });
@@ -1227,7 +1227,7 @@ class C
             CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, expectedSignatures: new[]
             {
                 Signature(
-                    "C+<>c", 
+                    "C+<>c",
                     "<Main>b__0_0",
                     ".method assembly hidebysig instance System.Object <Main>b__0_0([System.Runtime.CompilerServices.DynamicAttribute()] System.Object x, [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] System.Object[] y) cil managed")
             });

@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        [WorkItem(6104)]
+        [WorkItem(6104, "https://github.com/dotnet/roslyn/issues/6104")]
         [Fact]
         public void DiagnosticEquivalence()
         {

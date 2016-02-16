@@ -5,7 +5,7 @@ Imports Microsoft.VisualStudio.Debugger.Clr
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 
     Public Class DebuggerTypeProxyAttributeTests
         Inherits VisualBasicResultProviderTestBase

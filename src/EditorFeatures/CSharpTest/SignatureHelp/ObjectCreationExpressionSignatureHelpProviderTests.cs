@@ -542,7 +542,7 @@ class C
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
-        [WorkItem(1067933)]
+        [WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InvokedWithNoToken()
         {
@@ -552,7 +552,7 @@ class C
             await TestAsync(markup);
         }
 
-        [WorkItem(1078993)]
+        [WorkItem(1078993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078993")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestSigHelpInIncorrectObjectCreationExpression()
         {

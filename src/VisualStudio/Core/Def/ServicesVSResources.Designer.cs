@@ -106,15 +106,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Building Project.
-        /// </summary>
-        internal static string BuildingProject {
-            get {
-                return ResourceManager.GetString("BuildingProject", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to C#/VB Build Table Data Source.
         /// </summary>
         internal static string BuildTableSourceName {
@@ -435,6 +426,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string FromBing {
             get {
                 return ResourceManager.GetString("FromBing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Low memory detected. Full solution analysis disabled for this solution..
+        /// </summary>
+        internal static string FullSolutionAnalysisOff {
+            get {
+                return ResourceManager.GetString("FullSolutionAnalysisOff", resourceCulture);
             }
         }
         
@@ -994,15 +994,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Resetting Interactive.
-        /// </summary>
-        internal static string ResettingInteractive {
-            get {
-                return ResourceManager.GetString("ResettingInteractive", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Resolving breakpoint location....
         /// </summary>
         internal static string ResolvingBreakpointLocation {
@@ -1134,6 +1125,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string TypeDetails {
             get {
                 return ResourceManager.GetString("TypeDetails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;Unknown&gt;.
+        /// </summary>
+        internal static string Unknown {
+            get {
+                return ResourceManager.GetString("Unknown", resourceCulture);
             }
         }
         

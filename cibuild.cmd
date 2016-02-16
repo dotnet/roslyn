@@ -3,7 +3,7 @@
 REM Parse Arguments.
 
 set NugetZipUrlRoot=https://dotnetci.blob.core.windows.net/roslyn
-set NugetZipUrl=%NuGetZipUrlRoot%/nuget.future.5.zip
+set NugetZipUrl=%NuGetZipUrlRoot%/nuget.future.12.zip
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 set BuildRestore=false
@@ -20,31 +20,20 @@ if /I "%1" == "/debug" set BuildConfiguration=Debug&&shift&& goto :ParseArgument
 if /I "%1" == "/release" set BuildConfiguration=Release&&shift&& goto :ParseArguments
 if /I "%1" == "/test32" set Test64=false&&shift&& goto :ParseArguments
 if /I "%1" == "/test64" set Test64=true&&shift&& goto :ParseArguments
-if /I "%1" == "/perf" set Perf=true&&shift&& goto :ParseArguments
+if /I "%1" == "/testDeterminism" set TestDeterminism=true&&shift&& goto :ParseArguments
 if /I "%1" == "/restore" set BuildRestore=true&&shift&& goto :ParseArguments
 call :Usage && exit /b 1
 :DoneParsing
 
-if defined Perf (
-  if defined Test64 (
-    echo ERROR: Cannot combine /perf with either /test32 or /test64
-    call :Usage && exit /b 1
-  )
-
-  if "%BuildConfiguration%" == "Debug" (
-    echo Warning: Running perf tests on a Debug build is not recommended. Use /release for a Release build.
-  )
-)
-
 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat" || goto :BuildFailed
 
-powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
+powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
 
 REM Restore the NuGet packages 
 if "%BuildRestore%" == "true" (
     call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
 ) else (
-    powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\restore.ps1 %NugetZipUrl%" || goto :BuildFailed
+    powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\restore.ps1" "%NugetZipUrl%" || goto :BuildFailed
 )
 
 REM Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
@@ -54,24 +43,24 @@ if not exist "%bindir%" mkdir "%bindir%" || goto :BuildFailed
 REM Set the build version only so the assembly version is set to the semantic version,
 REM which allows analyzers to load because the compiler has binding redirects to the
 REM semantic version
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BuildVersion=0.0.0.0 %RoslynRoot%build/Toolset.sln /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile=%bindir%\Bootstrap.log || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BuildVersion=0.0.0.0 "%RoslynRoot%build\Toolset.sln" /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile="%bindir%\Bootstrap.log" || goto :BuildFailed
 
 if not exist "%bindir%\Bootstrap" mkdir "%bindir%\Bootstrap" || goto :BuildFailed
 move "Binaries\%BuildConfiguration%\*" "%bindir%\Bootstrap" || goto :BuildFailed
 copy "build\scripts\*" "%bindir%\Bootstrap" || goto :BuildFailed
 
 REM Clean the previous build
-msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%  /fileloggerparameters:LogFile=%bindir%\BootstrapClean.log || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%  /fileloggerparameters:LogFile="%bindir%\BootstrapClean.log" || goto :BuildFailed
 
 call :TerminateBuildProcesses
 
-if defined Perf (
-  set Target=Build
-) else (
-  set Target=BuildAndTest
+if defined TestDeterminism (
+    powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\test-determinism.ps1" "%bindir%\Bootstrap" || goto :BuildFailed
+    call :TerminateBuildProcesses
+    exit /b 0
 )
 
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath=%bindir%\Bootstrap BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /fileloggerparameters:LogFile=%bindir%\Build.log;verbosity=diagnostic || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
 
 call :TerminateBuildProcesses
 
@@ -85,25 +74,16 @@ REM    git diff --exit-code
 REM    exit /b 1
 REM )
 
-if defined Perf (
-  if DEFINED JenkinsCIPerfCredentials (
-    powershell .\ciperf.ps1 -BinariesDirectory %bindir%\%BuildConfiguration% %JenkinsCIPerfCredentials% || goto :BuildFailed
-  ) else (
-    powershell .\ciperf.ps1 -BinariesDirectory %bindir%\%BuildConfiguration% -StorageAccountName roslynscratch -StorageContainer drops -SCRAMScope 'Roslyn\Azure' || goto :BuildFailed
-  )
-)
 
 REM Ensure caller sees successful exit.
 exit /b 0
 
 :Usage
-@echo Usage: cibuild.cmd [/debug^|/release] [/test32^|/test64^|/perf] [/restore]
+@echo Usage: cibuild.cmd [/debug^|/release] [/test32^|/test64] [/restore]
 @echo   /debug   Perform debug build.  This is the default.
 @echo   /release Perform release build.
 @echo   /test32  Run unit tests in the 32-bit runner.  This is the default.
 @echo   /test64  Run units tests in the 64-bit runner.
-@echo   /perf    Submit a job to the performance test system. Usually combined
-@echo            with /release. May not be combined with /test32 or /test64.
 @echo   /restore Perform actual nuget restore instead of using zip drops.
 @echo.
 @goto :eof

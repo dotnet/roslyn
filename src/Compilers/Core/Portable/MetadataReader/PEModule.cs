@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        private class TypesByNamespaceSortComparer : IComparer<IGrouping<string, TypeDefinitionHandle>>
+        internal class TypesByNamespaceSortComparer : IComparer<IGrouping<string, TypeDefinitionHandle>>
         {
             private readonly StringComparer _nameComparer;
 
@@ -2605,6 +2605,13 @@ namespace Microsoft.CodeAnalysis
             Parameter parameter = MetadataReader.GetParameter(parameterDef);
             name = MetadataReader.GetString(parameter.Name);
             flags = parameter.Attributes;
+        }
+
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        internal string GetParamNameOrThrow(ParameterHandle parameterDef)
+        {
+            Parameter parameter = MetadataReader.GetParameter(parameterDef);
+            return MetadataReader.GetString(parameter.Name);
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>

@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Outlining
             builder.Add<MethodDeclarationSyntax, MethodDeclarationOutliner, MetadataAsSource.MethodDeclarationOutliner>();
             builder.Add<NamespaceDeclarationSyntax, NamespaceDeclarationOutliner>();
             builder.Add<OperatorDeclarationSyntax, OperatorDeclarationOutliner, MetadataAsSource.OperatorDeclarationOutliner>();
+            builder.Add<ParenthesizedLambdaExpressionSyntax, ParenthesizedLambdaExpressionOutliner>();
             builder.Add<PropertyDeclarationSyntax, PropertyDeclarationOutliner, MetadataAsSource.PropertyDeclarationOutliner>();
             builder.Add<RegionDirectiveTriviaSyntax, RegionDirectiveOutliner, MetadataAsSource.RegionDirectiveOutliner>();
             builder.Add<SimpleLambdaExpressionSyntax, SimpleLambdaExpressionOutliner>();

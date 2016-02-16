@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBLambdaTests : CSharpPDBTestBase
     {
-        [WorkItem(539898, "DevDiv")]
+        [WorkItem(539898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539898")]
         [Fact]
         public void SequencePoints_Body()
         {
@@ -66,7 +66,7 @@ class C
 </symbols>");
         }
 
-        [Fact, WorkItem(543479, "DevDiv")]
+        [Fact, WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
         public void Nested()
         {
             var source = @"
@@ -189,7 +189,7 @@ class Test
 </symbols>");
         }
 
-        [Fact, WorkItem(543479, "DevDiv")]
+        [Fact, WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
         public void InitialSequencePoints()
         {
             var source = @"
@@ -246,7 +246,7 @@ class Test
 </symbols>");
         }
 
-        [Fact, WorkItem(543479, "DevDiv")]
+        [Fact, WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
         public void Nested_InitialSequencePoints()
         {
             var source = @"

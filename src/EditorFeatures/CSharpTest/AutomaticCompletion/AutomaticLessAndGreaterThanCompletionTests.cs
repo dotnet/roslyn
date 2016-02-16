@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [WorkItem(531637)]
+        [WorkItem(531637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task TypeParameterReturnType()
         {
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [WorkItem(531637)]
+        [WorkItem(531637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task TypeParameterInDecl()
         {
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [WorkItem(531637)]
+        [WorkItem(531637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task TypeParameterInDeclWithAsync()
         {
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [WorkItem(530864)]
+        [WorkItem(530864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530864")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task TypeArgumentWithUsing()
         {
@@ -260,7 +260,7 @@ class C
             }
         }
 
-        [WorkItem(530864)]
+        [WorkItem(530864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530864")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task TypeArgumentNoUsing()
         {
@@ -444,7 +444,7 @@ public class Inner
         internal async Task<Holder> CreateSessionAsync(string code)
         {
             return CreateSession(
-                await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code),
+                await TestWorkspace.CreateCSharpAsync(code),
                 BraceCompletionSessionProvider.LessAndGreaterThan.OpenCharacter, BraceCompletionSessionProvider.LessAndGreaterThan.CloseCharacter);
         }
     }

@@ -3113,7 +3113,7 @@ class C : INormal, IWinRT
             }
         }
 
-        [WorkItem(547321, "DevDiv")]
+        [WorkItem(547321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547321")]
         [Fact(Skip = "547321")]
         public void ERR_MixingWinRTEventWithRegular_BaseTypeImplementsInterface()
         {
@@ -3425,7 +3425,7 @@ namespace System.Runtime.InteropServices.WindowsRuntime
         }
 
         [Fact]
-        [WorkItem(1055825)]
+        [WorkItem(1055825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1055825")]
         public void AssociatedField()
         {
             var ilSource = @"

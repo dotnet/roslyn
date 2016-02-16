@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
             If token.Parent.IsKind(SyntaxKind.XmlString) AndAlso token.Parent.Parent.IsKind(SyntaxKind.XmlAttribute) Then
                 Dim attribute = DirectCast(token.Parent.Parent, XmlAttributeSyntax)
                 Dim name = TryCast(attribute.Name, XmlNameSyntax)
-                If name IsNot Nothing AndAlso name.LocalName.ValueText = "cref" Then
+                If name IsNot Nothing AndAlso name.LocalName.ValueText = CrefAttributeName Then
                     Return Nothing
                 End If
             End If
@@ -99,21 +99,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
             If grandParent.IsKind(SyntaxKind.XmlElement) Then
                 items.AddRange(GetNestedTags(span))
 
-                If GetStartTagName(grandParent) = "list" Then
+                If GetStartTagName(grandParent) = ListTagName Then
                     items.AddRange(GetListItems(span))
                 End If
 
-                If GetStartTagName(grandParent) = "listheader" Then
+                If GetStartTagName(grandParent) = ListHeaderTagName Then
                     items.AddRange(GetListHeaderItems(span))
                 End If
             ElseIf token.Parent.IsKind(SyntaxKind.XmlText) AndAlso token.Parent.Parent.IsKind(SyntaxKind.XmlElement) Then
                 items.AddRange(GetNestedTags(span))
 
-                If GetStartTagName(token.Parent.Parent) = "list" Then
+                If GetStartTagName(token.Parent.Parent) = ListTagName Then
                     items.AddRange(GetListItems(span))
                 End If
 
-                If GetStartTagName(token.Parent.Parent) = "listheader" Then
+                If GetStartTagName(token.Parent.Parent) = ListHeaderTagName Then
                     items.AddRange(GetListHeaderItems(span))
                 End If
             ElseIf grandParent.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
@@ -123,11 +123,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
 
             If token.Parent.IsKind(SyntaxKind.XmlElementStartTag, SyntaxKind.XmlName) Then
                 If parentElement.IsParentKind(SyntaxKind.XmlElement) Then
-                    If GetStartTagName(parentElement.Parent) = "list" Then
+                    If GetStartTagName(parentElement.Parent) = ListTagName Then
                         items.AddRange(GetListItems(span))
                     End If
 
-                    If GetStartTagName(parentElement.Parent) = "listheader" Then
+                    If GetStartTagName(parentElement.Parent) = ListHeaderTagName Then
                         items.AddRange(GetListHeaderItems(span))
                     End If
                 End If
@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
 
             Dim nameToken = name.LocalName
             If Not nameToken.IsMissing AndAlso nameToken.ValueText.Length > 0 Then
-                Return SpecializedCollections.SingletonEnumerable(Of CompletionItem)(New XmlDocCommentCompletionItem(Me, span, nameToken.ValueText, nameToken.ValueText + ">", String.Empty, GetCompletionItemRules()))
+                Return SpecializedCollections.SingletonEnumerable(Of CompletionItem)(New XmlDocCommentCompletionItem(Me, span, nameToken.ValueText, nameToken.ValueText & ">", String.Empty, GetCompletionItemRules()))
             End If
 
             Return Nothing
@@ -209,12 +209,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
                         attributeName = DirectCast(targetToken.GetAncestor(Of XmlAttributeSyntax)().Name, XmlNameSyntax).LocalName.ValueText
                     End If
 
-                    If attributeName = "name" Then
-                        If tagName = "param" Then
+                    If attributeName = NameAttributeName Then
+                        If tagName = ParamTagName Then
                             items.AddRange(symbol.GetParameters().Select(Function(s) New XmlDocCommentCompletionItem(Me, span, s.Name, GetCompletionItemRules())))
                         End If
 
-                        If tagName = "typeparam" Then
+                        If tagName = TypeParamTagName Then
                             items.AddRange(symbol.GetTypeArguments().Select(Function(s) New XmlDocCommentCompletionItem(Me, span, s.Name, GetCompletionItemRules())))
                         End If
                     End If
@@ -256,9 +256,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
             Dim items = New List(Of CompletionItem)
 
             Dim typeParameters = type.GetTypeArguments().Select(Function(t) t.Name).ToSet()
-            RemoveExistingTags(parent, typeParameters, Function(e) FindName("typeparam", e))
+            RemoveExistingTags(parent, typeParameters, Function(e) FindName(TypeParamTagName, e))
 
-            items.AddRange(typeParameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter("typeparam", p), GetCompletionItemRules())))
+            items.AddRange(typeParameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter(TypeParamTagName, p), GetCompletionItemRules())))
 
             Return items
         End Function
@@ -276,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
                 If element IsNot Nothing AndAlso Not element.StartTag.IsMissing AndAlso Not element.EndTag.IsMissing Then
                     Dim startTag = element.StartTag
 
-                    If startTag.ToString() = "value" Then
+                    If startTag.ToString() = ValueTagName Then
                         value = False
                     End If
                 End If
@@ -284,14 +284,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
 
             If [property].IsIndexer Then
                 Dim parameters = [property].Parameters.Select(Function(p) p.Name).ToSet()
-                RemoveExistingTags(parent, parameters, Function(e) FindName("param", e))
-                items.AddRange(parameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter("param", p), GetCompletionItemRules())))
+                RemoveExistingTags(parent, parameters, Function(e) FindName(ParamTagName, e))
+                items.AddRange(parameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter(ParamTagName, p), GetCompletionItemRules())))
             End If
 
-            items.AddRange(typeParameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter("typeparam", p), GetCompletionItemRules())))
+            items.AddRange(typeParameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter(TypeParamTagName, p), GetCompletionItemRules())))
 
             If value Then
-                items.Add(GetItem("value", span))
+                items.Add(GetItem(ValueTagName, span))
             End If
 
             Return items
@@ -304,25 +304,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
             Dim typeParameters = method.TypeParameters.Select(Function(t) t.Name).ToSet()
             Dim returns = True
 
-            RemoveExistingTags(parent, parameters, Function(e) FindName("param", e))
-            RemoveExistingTags(parent, typeParameters, Function(e) FindName("typeparam", e))
+            RemoveExistingTags(parent, parameters, Function(e) FindName(ParamTagName, e))
+            RemoveExistingTags(parent, typeParameters, Function(e) FindName(TypeParamTagName, e))
 
             For Each node In parent.ChildNodes
                 Dim element = TryCast(node, XmlElementSyntax)
                 If element IsNot Nothing AndAlso Not element.StartTag.IsMissing AndAlso Not element.EndTag.IsMissing Then
                     Dim startTag = element.StartTag
 
-                    If startTag.ToString() = "returns" Then
+                    If startTag.ToString() = ReturnsTagName Then
                         returns = False
                     End If
                 End If
             Next
 
-            items.AddRange(parameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter("param", p), GetCompletionItemRules())))
-            items.AddRange(typeParameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter("typeparam", p), GetCompletionItemRules())))
+            items.AddRange(parameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter(ParamTagName, p), GetCompletionItemRules())))
+            items.AddRange(typeParameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter(TypeParamTagName, p), GetCompletionItemRules())))
 
             If returns Then
-                items.Add(GetItem("return", span))
+                items.Add(GetItem(ReturnsTagName, span))
             End If
 
             Return items
@@ -334,7 +334,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
 
             If nameSyntax.LocalName.ValueText = name Then
                 Return startTag.Attributes.OfType(Of XmlNameAttributeSyntax)() _
-                    .Where(Function(a) a.Name.ToString() = NameOf(name)) _
+                    .Where(Function(a) a.Name.ToString() = NameAttributeName) _
                     .Select(Function(a) a.Reference.Identifier.ValueText) _
                     .FirstOrDefault()
             End If
@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
         End Function
 
         Private Function GetSingleUseTopLevelItems(parentTrivia As DocumentationCommentTriviaSyntax, span As TextSpan) As IEnumerable(Of CompletionItem)
-            Dim names = New HashSet(Of String)({"summary", "remarks", "exception", "include", "permission", "example", "completionlist"})
+            Dim names = New HashSet(Of String)({SummaryTagName, RemarksTagName, ExceptionTagName, IncludeTagName, PermissionTagName, ExampleTagName, CompletionListTagName})
 
             RemoveExistingTags(parentTrivia, names, Function(x) DirectCast(x.StartTag.Name, XmlNameSyntax).LocalName.ValueText)
 

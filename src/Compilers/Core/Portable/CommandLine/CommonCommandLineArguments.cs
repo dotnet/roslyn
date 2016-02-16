@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         /// command line were resolved against.
         /// </remarks>
         public string BaseDirectory { get; internal set; }
-        
+
         /// <summary>
         /// A list of pairs of paths. This stores the value of the command-line compiler
         /// option /pathMap:X1=Y1;X2=Y2... which causes a prefix of X1 followed by a path

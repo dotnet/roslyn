@@ -125,7 +125,7 @@ class MyClass
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
-        <WorkItem(608534)>
+        <WorkItem(608534, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608534")>
         Public Async Function TestRQNameClassInModule() As Task
             Dim markup = <Text><![CDATA[
 Module Module1
@@ -156,7 +156,7 @@ class MyClass
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
-        <WorkItem(792487)>
+        <WorkItem(792487, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792487")>
         Public Async Function TestRQNameForOperator() As Task
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -177,7 +177,6 @@ class MyClass
 
 
         <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
-        <WorkItem(7924037)>
         Public Async Function TestRQNameForAnonymousTypeReturnsNull() As Task
             Dim markup = <Text><![CDATA[
 class Program
@@ -193,7 +192,7 @@ class Program
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
-        <WorkItem(837914)>
+        <WorkItem(837914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837914")>
         Public Async Function TestRQNameForMethodInConstructedTypeReturnsNull() As Task
             Dim markup = <Text><![CDATA[
 class G<T>
@@ -219,7 +218,7 @@ class C
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
-        <WorkItem(885151)>
+        <WorkItem(885151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/885151")>
         Public Async Function TestRQNameForAlias() As Task
             Dim markup = <Text><![CDATA[
 using d = System.Globalization.DigitShapes;
@@ -247,7 +246,7 @@ class G<T>
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml)
                 Dim doc = workspace.Documents.Single()
 
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
