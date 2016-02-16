@@ -94,6 +94,40 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         <WpfFact>
+        Public Sub DownKeyShouldNotBlockOnModelComputation()
+            Dim mre = New ManualResetEvent(False)
+            Dim controller = CreateController(items:=CreateItems(2), waitForPresentation:=False)
+            Dim slowProvider = New Mock(Of ISignatureHelpProvider)
+            slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken))) _
+                .Returns(Function()
+                             mre.WaitOne()
+                             Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing))
+                         End Function)
+
+
+            Dim handled = controller.TryHandleDownKey()
+
+            Assert.False(handled)
+        End Sub
+
+        <WpfFact>
+        Public Sub UpKeyShouldNotBlockOnModelComputation()
+            Dim mre = New ManualResetEvent(False)
+            Dim controller = CreateController(items:=CreateItems(2), waitForPresentation:=False)
+            Dim slowProvider = New Mock(Of ISignatureHelpProvider)
+            slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken))) _
+                .Returns(Function()
+                             mre.WaitOne()
+                             Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing))
+                         End Function)
+
+
+            Dim handled = controller.TryHandleUpKey()
+
+            Assert.False(handled)
+        End Sub
+
+        <WpfFact>
         Public Sub DownKeyShouldNavigateWhenThereAreMultipleItems()
             Dim controller = CreateController(items:=CreateItems(2), waitForPresentation:=True)
 
@@ -195,6 +229,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim presenter = New Mock(Of IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)) With {.DefaultValue = DefaultValue.Mock}
             presenterSession = If(presenterSession, New Mock(Of ISignatureHelpPresenterSession) With {.DefaultValue = DefaultValue.Mock})
             presenter.Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of ISignatureHelpSession))).Returns(presenterSession.Object)
+            presenterSession.Setup(Sub(p) p.PresentItems(It.IsAny(Of ITrackingSpan), It.IsAny(Of IList(Of SignatureHelpItem)), It.IsAny(Of SignatureHelpItem), It.IsAny(Of Integer?))) _
+                .Callback(Sub() presenterSession.SetupGet(Function(p) p.EditorSessionIsActive).Returns(True))
+
 
             Dim controller = New Controller(
                 view.Object,
