@@ -87,7 +87,7 @@
 
     <Exec Command="$(CoreClrTestDirectory)\CoreRun.exe $(CoreClrTestDirectory)\xunit.console.netcore.exe @(CoreTestAssemblies, ' ') -parallel all -xml $(CoreClrTestDirectory)\TestResults.xml" />
 
-    <Exec Command="Binaries\$(Configuration)\RunTests.exe $(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
+    <Exec Command="Binaries\$(Configuration)\RunTests.exe &quot;$(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools&quot; $(RunTestArgs) @(TestAssemblies, ' ')" />
 
   </Target>
 
