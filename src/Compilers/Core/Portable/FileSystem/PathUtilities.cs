@@ -399,11 +399,6 @@ namespace Roslyn.Utilities
                 var currentPath = path;
                 while (currentPath != null)
                 {
-                    if (count > 64)
-                    {
-                        throw new InvalidOperationException("Iterated too many times on: " + path);
-                    }
-
                     var currentName = GetFileName(currentPath);
                     if (StringComparer.OrdinalIgnoreCase.Equals(currentName, component))
                     {
