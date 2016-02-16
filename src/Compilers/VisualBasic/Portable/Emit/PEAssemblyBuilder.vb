@@ -135,39 +135,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Next
         End Sub
 
-        Private ReadOnly Property IAssemblyReferenceCulture As String Implements Cci.IAssemblyReference.Culture
+        Private ReadOnly Property Identity As AssemblyIdentity Implements Cci.IAssembly.Identity
             Get
-                Return m_SourceAssembly.Identity.CultureName
+                Return m_SourceAssembly.Identity
             End Get
         End Property
-
-        Private ReadOnly Property IAssemblyReferenceIsRetargetable As Boolean Implements Cci.IAssemblyReference.IsRetargetable
-            Get
-                Return m_SourceAssembly.Identity.IsRetargetable
-            End Get
-        End Property
-
-        Private ReadOnly Property IAssemblyReferenceContentType As AssemblyContentType Implements Cci.IAssemblyReference.ContentType
-            Get
-                Return m_SourceAssembly.Identity.ContentType
-            End Get
-        End Property
-
-        Private ReadOnly Property IAssemblyReferencePublicKeyToken As ImmutableArray(Of Byte) Implements Cci.IAssemblyReference.PublicKeyToken
-            Get
-                Return m_SourceAssembly.Identity.PublicKeyToken
-            End Get
-        End Property
-
-        Private ReadOnly Property IAssemblyReferenceVersion As Version Implements Cci.IAssemblyReference.Version
-            Get
-                Return m_SourceAssembly.Identity.Version
-            End Get
-        End Property
-
-        Private Function IAssemblyReferenceGetDisplayName() As String Implements Cci.IAssemblyReference.GetDisplayName
-            Return m_SourceAssembly.Identity.GetDisplayName()
-        End Function
 
         Friend Overrides ReadOnly Property Name As String
             Get
