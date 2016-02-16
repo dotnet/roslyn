@@ -31,6 +31,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             private ISignatureHelpSession _editorSessionOpt;
             private bool _ignoreSelectionStatusChangedEvent;
 
+            public bool EditorSessionIsActive
+            {
+                get
+                {
+                    return _editorSessionOpt != null && !_editorSessionOpt.IsDismissed;
+                }
+            }
+
             public SignatureHelpPresenterSession(
                 ISignatureHelpBroker sigHelpBroker,
                 ITextView textView,
