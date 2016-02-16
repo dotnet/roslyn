@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,76 +11,42 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
 {
     public class PathUtilitiesTests
     {
+        private void TestGetDirectoryNameAndCompareToDotnet(string expectedDirectoryName, string fullPath)
+        {
+            var roslynName = PathUtilities.GetDirectoryName(fullPath, isUnixLike: false);
+            Assert.Equal(expectedDirectoryName, roslynName);
+
+            var dotnetName = Path.GetDirectoryName(fullPath);
+            Assert.Equal(dotnetName, roslynName);
+        }
+
         [Fact]
         public void TestGetDirectoryName_WindowsPaths_Absolute()
         {
-            Assert.Equal(
-                @"C:\temp",
-                PathUtilities.GetDirectoryName(@"C:\temp\foo.txt", isUnixLike: false));
+            TestGetDirectoryNameAndCompareToDotnet(@"C:\temp", @"C:\temp\foo.txt");
+            TestGetDirectoryNameAndCompareToDotnet(@"C:\temp", @"C:\temp\foo");
+            TestGetDirectoryNameAndCompareToDotnet(@"C:\temp", @"C:\temp\");
+            TestGetDirectoryNameAndCompareToDotnet(@"C:\", @"C:\temp");
+            TestGetDirectoryNameAndCompareToDotnet(null, @"C:\");
+            TestGetDirectoryNameAndCompareToDotnet(null, @"C:");
 
-            Assert.Equal(
-                @"C:\temp",
-                PathUtilities.GetDirectoryName(@"C:\temp\foo", isUnixLike: false));
-
-            Assert.Equal(
-                @"C:\temp",
-                PathUtilities.GetDirectoryName(@"C:\temp\", isUnixLike: false));
-
-            Assert.Equal(
-                @"C:\",
-                PathUtilities.GetDirectoryName(@"C:\temp", isUnixLike: false));
-
-            Assert.Equal(
-                null,
-                PathUtilities.GetDirectoryName(@"C:\", isUnixLike: false));
-
-            Assert.Equal(
-                null,
-                PathUtilities.GetDirectoryName(@"C:", isUnixLike: false));
-
+            // dotnet throws on empty argument.  But not on null... go figure.
             Assert.Equal(
                 null,
                 PathUtilities.GetDirectoryName(@"", isUnixLike: false));
-
-            Assert.Equal(
-                null,
-                PathUtilities.GetDirectoryName(null, isUnixLike: false));
+            
+            TestGetDirectoryNameAndCompareToDotnet(null, null);
         }
 
         [Fact]
         public void TestGetDirectoryName_WindowsPaths_Relative()
         {
-            Assert.Equal(
-                @"foo\temp",
-                PathUtilities.GetDirectoryName(@"foo\temp\foo.txt", isUnixLike: false));
-
-            Assert.Equal(
-                @"foo\temp",
-                PathUtilities.GetDirectoryName(@"foo\temp\foo", isUnixLike: false));
-
-            Assert.Equal(
-                @"foo\temp",
-                PathUtilities.GetDirectoryName(@"foo\temp\", isUnixLike: false));
-
-            Assert.Equal(
-                @"foo",
-                PathUtilities.GetDirectoryName(@"foo\temp", isUnixLike: false));
-
-            Assert.Equal(
-                @"foo",
-                PathUtilities.GetDirectoryName(@"foo\", isUnixLike: false));
-
-            Assert.Equal(
-                "",
-                PathUtilities.GetDirectoryName(@"foo", isUnixLike: false));
-
-            Assert.Equal(
-                null,
-                PathUtilities.GetDirectoryName(@"", isUnixLike: false));
-
-            Assert.Equal(
-                null,
-                PathUtilities.GetDirectoryName(null, isUnixLike: false));
+            TestGetDirectoryNameAndCompareToDotnet(@"foo\temp", @"foo\temp\foo.txt");
+            TestGetDirectoryNameAndCompareToDotnet(@"foo\temp", @"foo\temp\foo");
+            TestGetDirectoryNameAndCompareToDotnet(@"foo\temp", @"foo\temp\");
+            TestGetDirectoryNameAndCompareToDotnet(@"foo", @"foo\temp");
+            TestGetDirectoryNameAndCompareToDotnet(@"foo", @"foo\");
+            TestGetDirectoryNameAndCompareToDotnet("", @"foo");
         }
 
         [Fact]
@@ -153,54 +120,23 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         [Fact]
         public void TestGetDirectoryName_WindowsSharePaths()
         {
-            Assert.Equal(
-                @"\\server\temp",
-                PathUtilities.GetDirectoryName(@"\\server\temp\foo.txt", isUnixLike: false));
-
-            Assert.Equal(
-                @"\\server\temp",
-                PathUtilities.GetDirectoryName(@"\\server\temp\foo", isUnixLike: false));
-
-            Assert.Equal(
-                @"\\server\temp",
-                PathUtilities.GetDirectoryName(@"\\server\temp\", isUnixLike: false));
-
-            Assert.Equal(
-                null,
-                PathUtilities.GetDirectoryName(@"\\server\temp", isUnixLike: false));
-
-            Assert.Equal(
-                null,
-                PathUtilities.GetDirectoryName(@"\\server\", isUnixLike: false));
-
-            Assert.Equal(
-                null,
-                PathUtilities.GetDirectoryName(@"\\server", isUnixLike: false));
-
-            Assert.Equal(
-                null,
-                PathUtilities.GetDirectoryName(@"\\", isUnixLike: false));
-
-            Assert.Equal(
-                null,
-                PathUtilities.GetDirectoryName(@"\", isUnixLike: false));
-
-            Assert.Equal(
-                null,
-                PathUtilities.GetDirectoryName(null, isUnixLike: false));
+            TestGetDirectoryNameAndCompareToDotnet(@"\\server\temp", @"\\server\temp\foo.txt");
+            TestGetDirectoryNameAndCompareToDotnet(@"\\server\temp", @"\\server\temp\foo");
+            TestGetDirectoryNameAndCompareToDotnet(@"\\server\temp", @"\\server\temp\");
+            TestGetDirectoryNameAndCompareToDotnet(null, @"\\server\temp");
+            TestGetDirectoryNameAndCompareToDotnet(null, @"\\server\");
+            TestGetDirectoryNameAndCompareToDotnet(null, @"\\server");
+            TestGetDirectoryNameAndCompareToDotnet(null, @"\\");
+            TestGetDirectoryNameAndCompareToDotnet(null, @"\");
         }
 
         [Fact]
         public void TestGetDirectoryName_EsotericCases()
         {
-            Assert.Equal(
-                @"C:\temp",
-                PathUtilities.GetDirectoryName(@"C:\temp\\foo.txt", isUnixLike: false));
+            TestGetDirectoryNameAndCompareToDotnet(@"C:\temp", @"C:\temp\\foo.txt");
+            TestGetDirectoryNameAndCompareToDotnet(@"C:\temp", @"C:\temp\\\foo.txt");
 
-            Assert.Equal(
-                @"C:\temp",
-                PathUtilities.GetDirectoryName(@"C:\temp\\\foo.txt", isUnixLike: false));
-
+            // Dotnet does normalization of dots, so we can't compare against it here.
             Assert.Equal(
                 @"C:\temp\..",
                 PathUtilities.GetDirectoryName(@"C:\temp\..\foo.txt", isUnixLike: false));
@@ -216,6 +152,29 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             Assert.Equal(
                 @"C:\temp",
                 PathUtilities.GetDirectoryName(@"C:\temp\.", isUnixLike: false));
+
+            TestGetDirectoryNameAndCompareToDotnet(@"C:temp", @"C:temp\\foo.txt");
+            TestGetDirectoryNameAndCompareToDotnet(@"C:temp", @"C:temp\\\foo.txt");
+
+            Assert.Equal(
+                @"C:temp\..",
+                PathUtilities.GetDirectoryName(@"C:temp\..\foo.txt", isUnixLike: false));
+
+            Assert.Equal(
+                @"C:temp",
+                PathUtilities.GetDirectoryName(@"C:temp\..", isUnixLike: false));
+
+            Assert.Equal(
+                @"C:temp\.",
+                PathUtilities.GetDirectoryName(@"C:temp\.\foo.txt", isUnixLike: false));
+
+            Assert.Equal(
+                @"C:temp",
+                PathUtilities.GetDirectoryName(@"C:temp\.", isUnixLike: false));
+
+            TestGetDirectoryNameAndCompareToDotnet(@"C:temp", @"C:temp\");
+            TestGetDirectoryNameAndCompareToDotnet(@"C:", @"C:temp");
+            TestGetDirectoryNameAndCompareToDotnet(null, @"C:");
         }
 
         [Fact]
