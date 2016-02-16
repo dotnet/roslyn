@@ -86,7 +86,7 @@ namespace Roslyn.Utilities
         {
             if (path != null)
             {
-                var rootLength = GetRoot(path, isUnixLike).Length;
+                var rootLength = GetPathRoot(path, isUnixLike).Length;
                 if (path.Length > rootLength)
                 {
                     var i = path.Length;
@@ -111,7 +111,12 @@ namespace Roslyn.Utilities
             return null;
         }
 
-        private static string GetRoot(string path, bool isUnixLike)
+        public static string GetPathRoot(string path)
+        {
+            return GetPathRoot(path, IsUnixLikePlatform);
+        }
+
+        private static string GetPathRoot(string path, bool isUnixLike)
         {
             if (path == null)
             {
@@ -179,8 +184,8 @@ namespace Roslyn.Utilities
             {
                 // handles c: and c:\
                 return length >= 3 && IsDirectorySeparator(path[2])
-                    ? path.Substring(0, @"c:\".Length)
-                    : path.Substring(0, @"c:".Length);
+                    ? path.Substring(0, 3)
+                    : path.Substring(0, 2);
             }
             else
             {
@@ -191,17 +196,10 @@ namespace Roslyn.Utilities
 
         private static string GetUnixRoot(string path)
         {
-            if (path.Length > 0)
-            {
-                if (IsDirectorySeparator(path[0]))
-                {
-                    //  "/..."
-                    return path.Substring(0, 1);
-                }
-            }
-
-            // No path root.
-            return "";
+            // either it starts with "/" and thus has "/" as the root.  Or it has no root.
+            return path.Length > 0 && IsDirectorySeparator(path[0])
+                ? path.Substring(0, 1)
+                : "";
         }
 
         internal static PathKind GetPathKind(string path)
@@ -293,115 +291,6 @@ namespace Roslyn.Utilities
         {
             Debug.Assert(!IsUnixLikePlatform);
             return path.Length >= 3 && path[1] == VolumeSeparatorChar && IsDirectorySeparator(path[2]);
-        }
-
-        /// <summary>
-        /// Get a prefix of given path which is the root of the path.
-        /// </summary>
-        /// <returns>
-        /// Root of an absolute path or null if the path isn't absolute or has invalid format (e.g. "\\").
-        /// It may or may not end with a directory separator (e.g. "C:\", "C:\foo", "\\machine\share", etc.) .
-        /// </returns>
-        internal static string GetPathRoot(string path)
-        {
-            if (string.IsNullOrWhiteSpace(path))
-            {
-                return null;
-            }
-
-            int length = GetPathRootLength(path);
-            return (length != -1) ? path.Substring(0, length) : null;
-        }
-
-        private static int GetPathRootLength(string path)
-        {
-            Debug.Assert(!string.IsNullOrEmpty(path));
-
-            if (IsUnixLikePlatform)
-            {
-                if (IsDirectorySeparator(path[0]))
-                {
-                    //  "/*"
-                    return 1;
-                }
-            }
-            else
-            {
-                // "C:\"
-                if (IsDriveRootedAbsolutePath(path))
-                {
-                    return 3;
-                }
-
-                if (IsDirectorySeparator(path[0]))
-                {
-                    // "\\machine\share"
-                    return GetUncPathRootLength(path);
-                }
-            }
-
-            return -1;
-        }
-
-        /// <summary>
-        /// Calculates the length of root of an UNC path.
-        /// </summary>
-        /// <remarks>
-        /// "\\server\share" is root of UNC path "\\server\share\dir1\dir2\file".
-        /// </remarks>
-        private static int GetUncPathRootLength(string path)
-        {
-            Debug.Assert(IsDirectorySeparator(path[0]));
-
-            // root:
-            // [directory-separator]{2,}[^directory-separator]+[directory-separator]+[^directory-separator]+
-
-            int serverIndex = IndexOfNonDirectorySeparator(path, 1);
-            if (serverIndex < 2)
-            {
-                return -1;
-            }
-
-            int separator = IndexOfDirectorySeparator(path, serverIndex);
-            if (separator == -1)
-            {
-                return -1;
-            }
-
-            int shareIndex = IndexOfNonDirectorySeparator(path, separator);
-            if (shareIndex == -1)
-            {
-                return -1;
-            }
-
-            int rootEnd = IndexOfDirectorySeparator(path, shareIndex);
-            return rootEnd == -1 ? path.Length : rootEnd;
-        }
-
-        private static int IndexOfDirectorySeparator(string path, int start)
-        {
-            for (int i = start; i < path.Length; i++)
-            {
-                if (IsDirectorySeparator(path[i]))
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
-        private static int IndexOfNonDirectorySeparator(string path, int start)
-        {
-            for (int i = start; i < path.Length; i++)
-            {
-                if (!IsDirectorySeparator(path[i]))
-                {
-                    return i;
-                }
-            }
-
-            return -1;
         }
 
         /// <summary>
