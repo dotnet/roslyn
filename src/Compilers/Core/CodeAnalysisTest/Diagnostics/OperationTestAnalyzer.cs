@@ -145,8 +145,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          if (forCondition.Kind == OperationKind.BinaryOperatorExpression)
                          {
                              IBinaryOperatorExpression condition = (IBinaryOperatorExpression)forCondition;
-                             IOperation conditionLeft = condition.Left;
-                             IOperation conditionRight = condition.Right;
+                             IOperation conditionLeft = condition.LeftOperand;
+                             IOperation conditionRight = condition.RightOperand;
 
                              if (conditionRight.ConstantValue.HasValue &&
                                  conditionRight.Type.SpecialType == SpecialType.System_Int32 &&
@@ -194,13 +194,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                                                              IBinaryOperatorExpression advanceOperation = (IBinaryOperatorExpression)advanceAssignment.Value;
                                                              if (!advanceOperation.UsesOperatorMethod &&
-                                                                 advanceOperation.Left.Kind == OperationKind.LocalReferenceExpression &&
-                                                                 ((ILocalReferenceExpression)advanceOperation.Left).Local == testVariable &&
-                                                                 advanceOperation.Right.ConstantValue.HasValue &&
-                                                                 advanceOperation.Right.Type.SpecialType == SpecialType.System_Int32)
+                                                                 advanceOperation.LeftOperand.Kind == OperationKind.LocalReferenceExpression &&
+                                                                 ((ILocalReferenceExpression)advanceOperation.LeftOperand).Local == testVariable &&
+                                                                 advanceOperation.RightOperand.ConstantValue.HasValue &&
+                                                                 advanceOperation.RightOperand.Type.SpecialType == SpecialType.System_Int32)
                                                              {
                                                                  // Advance binary operation is known to involve a reference to the local used in the test and a constant.
-                                                                 advanceIncrement = advanceOperation.Right;
+                                                                 advanceIncrement = advanceOperation.RightOperand;
                                                                  advanceOperationCode = advanceOperation.BinaryOperationKind;
                                                              }
                                                          }

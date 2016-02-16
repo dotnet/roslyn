@@ -1086,9 +1086,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         BinaryOperationKind IBinaryOperatorExpression.BinaryOperationKind => Expression.DeriveBinaryOperationKind(this.OperatorKind);
 
-        IOperation IBinaryOperatorExpression.Left => this.Left;
+        IOperation IBinaryOperatorExpression.LeftOperand => this.Left;
 
-        IOperation IBinaryOperatorExpression.Right => this.Right;
+        IOperation IBinaryOperatorExpression.RightOperand => this.Right;
 
         bool IHasOperatorMethodExpression.UsesOperatorMethod => (this.OperatorKind & BinaryOperatorKind.TypeMask) == BinaryOperatorKind.UserDefined;
 
@@ -1158,9 +1158,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundNullCoalescingOperator : INullCoalescingExpression
     {
-        IOperation INullCoalescingExpression.Primary => this.LeftOperand;
+        IOperation INullCoalescingExpression.PrimaryOperand => this.LeftOperand;
 
-        IOperation INullCoalescingExpression.Secondary => this.RightOperand;
+        IOperation INullCoalescingExpression.SecondaryOperand => this.RightOperand;
 
         protected override OperationKind ExpressionKind => OperationKind.NullCoalescingExpression;
 

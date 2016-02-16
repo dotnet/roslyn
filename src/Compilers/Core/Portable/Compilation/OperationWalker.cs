@@ -282,8 +282,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitBinaryOperatorExpression(IBinaryOperatorExpression operation)
         {
-            Visit(operation.Left);
-            Visit(operation.Right);
+            Visit(operation.LeftOperand);
+            Visit(operation.RightOperand);
         }
 
         public override void VisitConversionExpression(IConversionExpression operation)
@@ -300,8 +300,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitNullCoalescingExpression(INullCoalescingExpression operation)
         {
-            Visit(operation.Primary);
-            Visit(operation.Secondary);
+            Visit(operation.PrimaryOperand);
+            Visit(operation.SecondaryOperand);
         }
 
         public override void VisitIsTypeExpression(IIsTypeExpression operation)

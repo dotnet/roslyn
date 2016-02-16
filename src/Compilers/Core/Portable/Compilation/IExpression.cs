@@ -493,11 +493,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Left operand.
         /// </summary>
-        IOperation Left { get; }
+        IOperation LeftOperand { get; }
         /// <summary>
         /// Right operand.
         /// </summary>
-        IOperation Right { get; }
+        IOperation RightOperand { get; }
     }
 
     public enum SimpleBinaryOperationKind
@@ -907,11 +907,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Value to be unconditionally evaluated.
         /// </summary>
-        IOperation Primary { get; }
+        IOperation PrimaryOperand { get; }
         /// <summary>
         /// Value to be evaluated if Primary evaluates to null/Nothing.
         /// </summary>
-        IOperation Secondary { get; }
+        IOperation SecondaryOperand { get; }
     }
 
     /// <summary>
