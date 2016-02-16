@@ -55,10 +55,16 @@ done
 run_make()
 {
     local is_good=false
-    
+ 
+    MAKE="make"
+    case "$OSTYPE" in
+	    linux*)	MAKE='make';;
+	    freebsd*)	MAKE='gmake';;
+	    *)		MAKE='make';;
+    esac
     for i in `seq 1 $RETRY_COUNT`
     do
-        make "$@" BUILD_CONFIGURATION=$BUILD_CONFIGURATION
+        $MAKE "$@" BUILD_CONFIGURATION=$BUILD_CONFIGURATION
         if [ $? -eq 0 ]; then
             is_good=true
             break
