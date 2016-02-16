@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 return CommonCompiler.Failed;
             }
 
+            pipeName = pipeName ?? GetDefaultPipeName();
             var cancellationTokenSource = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, e) => { cancellationTokenSource.Cancel(); };
 
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         protected abstract TimeSpan? GetKeepAliveTimeout();
 
-        protected abstract string GetShutdownDefaultPipeName();
+        protected abstract string GetDefaultPipeName();
 
         protected abstract IClientConnectionHost CreateClientConnectionHost(string pipeName);
 
@@ -42,11 +43,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         internal int RunServer(string pipeName, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (string.IsNullOrEmpty(pipeName))
-            {
-                return CommonCompiler.Failed;
-            }
-
             var keepAliveTimeout = GetKeepAliveTimeout();
             var serverMutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
             var clientConnectionHost = CreateClientConnectionHost(pipeName);
@@ -67,11 +63,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         internal async Task<int> RunShutdownAsync(string pipeName, bool waitForProcess = true, TimeSpan? timeout = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (string.IsNullOrEmpty(pipeName))
-            {
-                pipeName = GetShutdownDefaultPipeName();
-            }
-
             var mutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
             if (!BuildClient.WasServerMutexOpen(mutexName))
             {
@@ -85,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 var realTimeout = timeout != null
                     ? (int)timeout.Value.TotalMilliseconds
                     : Timeout.Infinite;
-                using (var client = await ConnectForShutdownAsync(pipeName, realTimeout))
+                using (var client = await ConnectForShutdownAsync(pipeName, realTimeout).ConfigureAwait(false))
                 {
                     var request = BuildRequest.CreateShutdown();
                     await request.WriteAsync(client, cancellationToken).ConfigureAwait(false);

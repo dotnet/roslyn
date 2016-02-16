@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return Task.FromResult<Stream>(client);
         }
 
-        protected override string GetShutdownDefaultPipeName()
+        protected override string GetDefaultPipeName()
         {
             var clientDirectory = AppDomain.CurrentDomain.BaseDirectory;
             return DesktopBuildClient.GetPipeNameForPath(clientDirectory);
