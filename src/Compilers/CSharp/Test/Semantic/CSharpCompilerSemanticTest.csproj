@@ -115,6 +115,7 @@
     <Compile Include="Semantics\OperatorTests.cs" />
     <Compile Include="Semantics\OverloadResolutionTestBase.cs" />
     <Compile Include="Semantics\OverloadResolutionTests.cs" />
+    <Compile Include="Semantics\PatternMatchingTests.cs" />
     <Compile Include="Semantics\PropertyAccessTests.cs" />
     <Compile Include="Semantics\QueryTests.cs" />
     <Compile Include="Semantics\InteractiveUsingTests.cs" />

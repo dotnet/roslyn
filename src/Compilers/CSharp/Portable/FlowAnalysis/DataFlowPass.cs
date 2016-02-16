@@ -784,6 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="node"></param>
         protected void CheckAssigned(Symbol symbol, CSharpSyntaxNode node)
         {
+            Debug.Assert(!IsConditionalState);
             if ((object)symbol != null)
             {
                 if (this.State.Reachable)
@@ -1016,6 +1017,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (node.Kind)
             {
+                case BoundKind.DeclarationPattern:
+                    {
+                        var local = (BoundDeclarationPattern)node;
+                        LocalSymbol symbol = local.LocalSymbol;
+                        int slot = GetOrCreateSlot(symbol);
+                        SetSlotState(slot, assigned: written || !this.State.Reachable);
+                        if (written) NoteWrite(symbol, value, read);
+                        break;
+                    }
+
                 case BoundKind.LocalDeclaration:
                     {
                         var local = (BoundLocalDeclaration)node;
@@ -1299,6 +1310,51 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Visitors
 
+        public override void VisitPattern(BoundExpression expression, BoundPattern pattern)
+        {
+            base.VisitPattern(expression, pattern);
+            var whenFail = StateWhenFalse;
+            SetState(StateWhenTrue);
+            AssignPatternVariables(pattern);
+            SetConditionalState(this.State, whenFail);
+        }
+
+        private void AssignPatternVariables(BoundPattern pattern)
+        {
+            switch (pattern.Kind)
+            {
+                case BoundKind.DeclarationPattern:
+                    {
+                        var pat = (BoundDeclarationPattern)pattern;
+                        Assign(pat, null, RefKind.None, false);
+                        break;
+                    }
+                case BoundKind.PropertyPattern:
+                    {
+                        var pat = (BoundPropertyPattern)pattern;
+                        foreach (var prop in pat.Patterns)
+                        {
+                            AssignPatternVariables(prop);
+                        }
+                        break;
+                    }
+                case BoundKind.RecursivePattern:
+                    {
+                        var pat = (BoundRecursivePattern)pattern;
+                        foreach (var prop in pat.Patterns)
+                        {
+                            AssignPatternVariables(prop);
+                        }
+                        break;
+                    }
+
+                case BoundKind.WildcardPattern:
+                case BoundKind.ConstantPattern:
+                default:
+                    break;
+            }
+        }
+
         public override BoundNode VisitBlock(BoundBlock node)
         {
             DeclareVariables(node.Locals);
@@ -1315,6 +1371,63 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportUnusedVariables(node.InnerLocals);
             ReportUnusedVariables(node.InnerLocalFunctions);
             return result;
+        }
+
+        public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
+        {
+            DeclareVariables(node.InnerLocals);
+            var result = base.VisitPatternSwitchStatement(node);
+            ReportUnusedVariables(node.InnerLocals);
+            ReportUnusedVariables(node.InnerLocalFunctions);
+            return result;
+        }
+
+        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
+        {
+            // TODO: this an probably depend more heavily on the base class implementation.
+            DeclareVariables(node.Locals);
+            base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
+        }
+
+        public override BoundNode VisitLetStatement(BoundLetStatement node)
+        {
+            CreateSlots(node.Pattern);
+            return base.VisitLetStatement(node);
+        }
+
+        private void CreateSlots(BoundPattern pattern)
+        {
+            switch (pattern.Kind)
+            {
+                case BoundKind.DeclarationPattern:
+                    {
+                        int slot = GetOrCreateSlot(((BoundDeclarationPattern)pattern).LocalSymbol);
+                        break;
+                    }
+                case BoundKind.PropertyPattern:
+                    {
+                        var pat = (BoundPropertyPattern)pattern;
+                        foreach (var prop in pat.Patterns)
+                        {
+                            CreateSlots(prop);
+                        }
+                        break;
+                    }
+                case BoundKind.RecursivePattern:
+                    {
+                        var pat = (BoundRecursivePattern)pattern;
+                        foreach (var prop in pat.Patterns)
+                        {
+                            CreateSlots(prop);
+                        }
+                        break;
+                    }
+
+                case BoundKind.WildcardPattern:
+                case BoundKind.ConstantPattern:
+                default:
+                    break;
+            }
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)
@@ -1473,7 +1586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!_usedVariables.Contains(symbol))
             {
-                if (!string.IsNullOrEmpty(symbol.Name)) // avoid diagnostics for parser-inserted names
+                if (symbol.DeclarationKind != LocalDeclarationKind.PatternVariable && !string.IsNullOrEmpty(symbol.Name)) // avoid diagnostics for parser-inserted names
                 {
                     Diagnostics.Add(assigned && _writtenVariables.Contains(symbol) ? ErrorCode.WRN_UnreferencedVarAssg : ErrorCode.WRN_UnreferencedVar, symbol.Locations[0], symbol.Name);
                 }

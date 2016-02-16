@@ -2839,9 +2839,9 @@ class Program
 }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-    // (6,9): error CS8058: Feature 'local functions' is only available in 'experimental' language version.
+    // (6,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
     //         void f() { if () const int i = 0; }
-    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "void f() { if () const int i = 0; }").WithArguments("local functions").WithLocation(6, 9),
+    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "void f() { if () const int i = 0; }").WithArguments("local functions", "localFunctions").WithLocation(6, 9),
     // (6,24): error CS1525: Invalid expression term ')'
     //         void f() { if () const int i = 0; }
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 24),

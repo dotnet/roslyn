@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Field:
                     FieldSymbol field = (FieldSymbol)member;
                     returnType = field.Type;
-                    returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    returnTypeCustomModifiers = field.CustomModifiers;
                     break;
                 case SymbolKind.Method:
                     MethodSymbol method = (MethodSymbol)member;

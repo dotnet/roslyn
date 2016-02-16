@@ -208,6 +208,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeOfArgument = typeOfExpression.Type;
                     typeOfEncounteredBeforeUnexpectedAnonymousFunction = unexpectedAnonymousFunction == null;
                 }
+                else if (current.Kind() == SyntaxKind.SwitchSection)
+                {
+                    if (LookupPosition.IsInSwitchSectionScope(position, (SwitchSectionSyntax)current))
+                    {
+                        binder = RootBinder.GetBinder(current);
+                    }
+                }
                 else
                 {
                     // If this ever breaks, make sure that all callers of
@@ -486,12 +493,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(declarationSyntax);
 
-            var binder = this.GetEnclosingBinder(GetAdjustedNodePosition(declarationSyntax));
-            foreach (var local in binder.Locals)
+            for (var binder = this.GetEnclosingBinder(GetAdjustedNodePosition(declarationSyntax)); binder != null; binder = binder.Next)
             {
-                if (local.IdentifierToken == declarationSyntax.Identifier)
+                foreach (var local in binder.Locals)
                 {
-                    return local;
+                    if (local.IdentifierToken == declarationSyntax.Identifier)
+                    {
+                        return local;
+                    }
                 }
             }
 
@@ -520,12 +529,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSyntaxNode(declarationSyntax);
 
             var binder = this.GetEnclosingBinder(GetAdjustedNodePosition(declarationSyntax));
-            foreach (var label in binder.Labels)
+            while (binder != null && !(binder is SwitchBinder))
             {
-                if (label.IdentifierNodeOrToken.IsNode &&
-                    label.IdentifierNodeOrToken.AsNode() == declarationSyntax)
+                binder = binder.Next;
+            }
+
+            if (binder != null)
+            {
+                foreach (var label in binder.Labels)
                 {
-                    return label;
+                    if (label.IdentifierNodeOrToken.IsNode &&
+                        label.IdentifierNodeOrToken.AsNode() == declarationSyntax)
+                    {
+                        return label;
+                    }
                 }
             }
 
@@ -1366,6 +1383,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (current.IsAnonymousFunction())
                 {
                     if (LookupPosition.IsInAnonymousFunctionOrQuery(position, current))
+                    {
+                        Binder binder = lambdaBinder.GetBinder(current);
+                        if (binder != null)
+                        {
+                            return binder;
+                        }
+                    }
+                }
+                else if (current.Kind() == SyntaxKind.SwitchSection)
+                {
+                    if (LookupPosition.IsInSwitchSectionScope(position, (SwitchSectionSyntax)current))
                     {
                         Binder binder = lambdaBinder.GetBinder(current);
                         if (binder != null)

@@ -99,6 +99,7 @@
     <Compile Include="Parsing\ParserErrorMessageTests.cs" />
     <Compile Include="Parsing\ParsingErrorRecoveryTests.cs" />
     <Compile Include="Parsing\ParsingTests.cs" />
+    <Compile Include="Parsing\PatternParsingTests.cs" />
     <Compile Include="Parsing\RoundTrippingTests.cs" />
     <Compile Include="Parsing\SeparatedSyntaxListParsingTests.cs" />
     <Compile Include="Parsing\StatementParsingTests.cs" />
