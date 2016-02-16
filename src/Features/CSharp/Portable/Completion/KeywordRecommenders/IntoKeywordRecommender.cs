@@ -40,6 +40,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             var lastToken = select.Expression.GetLastToken(includeSkipped: true);
 
+            var memberAccessExpression = select.Expression as MemberAccessExpressionSyntax;
+            if(memberAccessExpression  != null && string.IsNullOrEmpty(memberAccessExpression.Name.ToString()))
+            {
+                return false;
+            }
+
+            //if(lastToken.Kind() == SyntaxKind.DotToken)
+            //{
+            //    return false;
+            //}
+
             if (lastToken == token)
             {
                 return true;
