@@ -233,5 +233,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
             // The first argument will be the executable name hence we skip it. 
             return CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: false).Skip(1);
         }
+
+        internal static bool WasServerMutexOpen(string mutexName)
+        {
+            Mutex mutex;
+            var open = Mutex.TryOpenExisting(mutexName, out mutex);
+            if (open)
+            {
+                mutex.Dispose();
+                return true;
+            }
+
+            return false;
+        }
     }
 }

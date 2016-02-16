@@ -166,19 +166,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
         }
 
-        internal static bool WasServerMutexOpen(string mutexName)
-        {
-            Mutex mutex;
-            var open = Mutex.TryOpenExisting(mutexName, out mutex);
-            if (open)
-            {
-                mutex.Close();
-                return true;
-            }
-
-            return false;
-        }
-
         /// <summary>
         /// Try to compile using the server. Returns a null-containing Task if a response
         /// from the server cannot be retrieved.

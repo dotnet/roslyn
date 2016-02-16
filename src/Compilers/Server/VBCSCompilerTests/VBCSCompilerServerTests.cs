@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
     {
         public class ShutdownTests : VBCSCompilerServerTests
         {
+            private static Task<int> RunShutdownAsync(string pipeName, bool waitForProcess = true, TimeSpan? timeout = null, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                return new DesktopServerClient().RunShutdownAsync(pipeName, waitForProcess, timeout, cancellationToken);
+            }
+
             [Fact]
             public async Task Standard()
             {
@@ -22,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 {
                     // Make sure the server is listening for this particular test. 
                     await serverData.ListenTask;
-                    var exitCode = await VBCSCompiler.RunShutdownAsync(serverData.PipeName, waitForProcess: false).ConfigureAwait(false);
+                    var exitCode = await RunShutdownAsync(serverData.PipeName, waitForProcess: false).ConfigureAwait(false);
                     Assert.Equal(CommonCompiler.Succeeded, exitCode);
                     await serverData.Verify(connections: 1, completed: 1);
                 }
@@ -37,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public async Task NoServerMutex()
             {
                 var pipeName = Guid.NewGuid().ToString();
-                var exitCode = await VBCSCompiler.RunShutdownAsync(pipeName, waitForProcess: false).ConfigureAwait(false);
+                var exitCode = await RunShutdownAsync(pipeName, waitForProcess: false).ConfigureAwait(false);
                 Assert.Equal(CommonCompiler.Succeeded, exitCode);
             }
 
@@ -73,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     thread.Start();
                     readyMre.WaitOne();
 
-                    var exitCode = await VBCSCompiler.RunShutdownAsync(pipeName, waitForProcess: false);
+                    var exitCode = await RunShutdownAsync(pipeName, waitForProcess: false);
 
                     // Let the fake server exit.
                     doneMre.Set();
@@ -125,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     thread.Start();
                     readyMre.WaitOne();
 
-                    var exitCode = await VBCSCompiler.RunShutdownAsync(pipeName, waitForProcess: false);
+                    var exitCode = await RunShutdownAsync(pipeName, waitForProcess: false);
 
                     // Let the fake server exit.
                     doneMre.Set();
@@ -145,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             private bool Parse(params string[] args)
             {
-                return VBCSCompiler.ParseCommandLine(args, out _pipeName, out _shutdown);
+                return ServerClient.ParseCommandLine(args, out _pipeName, out _shutdown);
             }
 
             [Fact]

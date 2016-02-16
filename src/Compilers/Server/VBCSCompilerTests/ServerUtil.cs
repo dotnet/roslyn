@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     clientConnectionHost = clientConnectionHost ?? new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
 
                     var mutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
-                    VBCSCompiler.Run(
+                    ServerClient.RunServer(
                         mutexName,
                         clientConnectionHost,
                         listener,
