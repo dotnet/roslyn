@@ -54,12 +54,17 @@ $$");
 @"$$"));
         }
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInSelectMemberExpression()
+        public async Task TestNotInSelectMemberExpressionOnlyADot()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"var y = from x in new [] { 1,2,3 } select x.$$"));
         }
-         
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInSelectMemberExpression()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"var y = from x in new [] { 1,2,3 } select x.i$$"));
+        }
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterJoinRightExpr()
         {
@@ -90,6 +95,15 @@ $$");
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = from x in y
           select z
+          $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterSelectClauseWithMemberExpression()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"var q = from x in y
+          select z.i
           $$"));
         }
 
