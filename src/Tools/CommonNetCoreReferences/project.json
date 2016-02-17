@@ -5,7 +5,7 @@
     "Microsoft.NETCore.TestHost": "1.0.0-beta-23504",
     "System.AppContext": "4.0.1-beta-23504",
     "System.Collections": "4.0.11-beta-23504",
-    "System.Collections.Immutable": "[1.1.37]",
+    "System.Collections.Immutable": "1.1.38-beta-23504",
     "System.Console": "4.0.0-beta-23504",
     "System.Diagnostics.Debug": "4.0.11-beta-23504",
     "System.Diagnostics.FileVersionInfo": "4.0.0-beta-23504",

@@ -118,13 +118,21 @@
     <Compile Include="SigningTestHelpers.cs" />
     <Compile Include="TestHelpers.cs" />
     <Compile Include="TestResource.Designer.cs">
-      <DependentUpon>TestResource.resx</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
+      <DependentUpon>TestResource.resx</DependentUpon>
     </Compile>
     <Compile Include="ThrowingTraceListener.cs" />
     <Compile Include="Traits.cs" />
     <Compile Include="Win32Res.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestResource.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>TestResource.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>Roslyn.Test.Utilities</CustomToolNamespace>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
@@ -163,13 +171,6 @@
   <ItemGroup>
     <None Include="..\app.config" />
     <None Include="project.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestResource.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>TestResource.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>Roslyn.Test.Utilities</CustomToolNamespace>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="..\Shared\TestUtilities.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

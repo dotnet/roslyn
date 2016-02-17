@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
         /// </summary>
-        public static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string text, params ErrorDescription[] expectedErrorDesp)
+        internal protected static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string text, params ErrorDescription[] expectedErrorDesp)
         {
             return VerifyErrorsAndGetCompilationWithMscorlib(new string[] { text }, expectedErrorDesp);
         }

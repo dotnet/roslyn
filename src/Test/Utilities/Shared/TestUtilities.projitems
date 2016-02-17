@@ -35,7 +35,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\ThrowingDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\TrackingDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\ConsoleOutput.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FX\CultureHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\DirectoryHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\EncodingUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\EnsureEnglishUICulture.cs" />

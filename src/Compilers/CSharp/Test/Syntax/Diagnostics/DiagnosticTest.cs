@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             MockMessageProvider provider = new MockMessageProvider();
             SyntaxTree syntaxTree = new MockSyntaxTree();
-            CultureInfo englishCulture = CultureHelpers.EnglishCulture;
+            CultureInfo englishCulture = CultureInfo.GetCultureInfo("en");
 
             DiagnosticInfo di1 = new DiagnosticInfo(provider, 1);
             Assert.Equal(1, di1.Code);

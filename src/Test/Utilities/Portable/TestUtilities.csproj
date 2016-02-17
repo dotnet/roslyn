@@ -118,19 +118,6 @@
     <Compile Include="ICompilationVerifier.cs" />
     <Compile Include="MetadataSignatureUnitTestHelper.cs" />
     <Compile Include="ModuleData.cs" />
-    <Compile Include="ReflectionAssert.cs" />
-    <Compile Include="TestResource.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>TestResource.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestResource.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>TestResource.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>Roslyn.Test.Utilities</CustomToolNamespace>
-    </EmbeddedResource>
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />

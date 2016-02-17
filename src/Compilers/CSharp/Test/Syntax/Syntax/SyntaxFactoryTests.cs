@@ -340,8 +340,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestLiteralToStringDifferentCulture()
         {
-            var culture = CultureInfo.CurrentCulture;
-            CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+            var culture = Thread.CurrentThread.CurrentCulture;
+            Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("de-DE");
 
             // If we are using the current culture to format the string then
             // decimal values should render as , instead of .
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var literal = SyntaxFactory.Literal(3.14);
             Assert.Equal("3.14", literal.ValueText);
 
-            CultureInfo.CurrentCulture = culture;
+            Thread.CurrentThread.CurrentCulture = culture;
         }
 
         private static void CheckLiteralToString(dynamic value, string expected)

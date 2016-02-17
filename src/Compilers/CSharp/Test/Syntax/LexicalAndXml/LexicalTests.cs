@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotEqual('\\', text[0]);
-            Assert.Equal(System.Globalization.UnicodeCategory.UppercaseLetter, CharUnicodeInfo.GetUnicodeCategory(text[0]));
+            Assert.Equal(System.Globalization.UnicodeCategory.UppercaseLetter, Char.GetUnicodeCategory(text[0]));
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
@@ -2588,12 +2588,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void DecimalLiteralsOtherCulture()
         {
-            var oldCulture = CultureInfo.CurrentCulture;
+            var oldCulture = Thread.CurrentThread.CurrentCulture;
             try
             {
-                CultureInfo.CurrentCulture = (CultureInfo)oldCulture.Clone();
-                CultureInfo.CurrentCulture.NumberFormat.NegativeSign = "~";
-                CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = ",";
+                Thread.CurrentThread.CurrentCulture = (CultureInfo)oldCulture.Clone();
+                Thread.CurrentThread.CurrentCulture.NumberFormat.NegativeSign = "~";
+                Thread.CurrentThread.CurrentCulture.NumberFormat.NumberDecimalSeparator = ",";
 
                 // If the exponent ("-1") is parsed using the current culture, then
                 // parsing will raise a FormatException because the current culture
@@ -2603,7 +2603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             finally
             {
-                CultureInfo.CurrentCulture = oldCulture;
+                Thread.CurrentThread.CurrentCulture = oldCulture;
             }
         }
 

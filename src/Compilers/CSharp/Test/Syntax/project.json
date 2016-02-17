@@ -1,8 +1,12 @@
 ﻿{
-  "dependencies": { },
+  "dependencies": {
+    "xunit": "2.1.0",
+    "xunit.runner.console": "2.1.0"
+  },
   "frameworks": {
-    "dotnet5.4": {
-      "imports": "portable-net452"
-    }
+    "net45": {}
+  },
+  "runtimes": {
+    "win7": { }
   }
 }
