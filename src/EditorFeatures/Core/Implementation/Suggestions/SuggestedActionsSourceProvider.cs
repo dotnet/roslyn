@@ -274,12 +274,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 this.AssertIsForeground();
 
-                var applicableFixes = collection.Fixes.Where(f => f.Action.IsApplicable(workspace)).ToList();
+                var applicableFixes = collection.Fixes.Where(f => IsApplicable(f.Action, workspace)).ToList();
                 return applicableFixes.Count == 0
                     ? null
                     : applicableFixes.Count == collection.Fixes.Length
                         ? collection
                         : new CodeFixCollection(collection.Provider, collection.TextSpan, applicableFixes, collection.FixAllContext);
+            }
+
+            private bool IsApplicable(CodeAction action, Workspace workspace)
+            {
+                if (!action.PerformFinalApplicabilityCheck)
+                {
+                    // If we don't even need to perform the final applicability check,
+                    // then the code actoin is applicable.
+                    return true;
+                }
+
+                // Otherwise, defer to the action to make the decision.
+                this.AssertIsForeground();
+                return action.IsApplicable(workspace);
             }
 
             private List<CodeRefactoring> FilterOnUIThread(List<CodeRefactoring> refactorings, Workspace workspace)
@@ -289,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private CodeRefactoring FilterOnUIThread(CodeRefactoring refactoring, Workspace workspace)
             {
-                var actions = refactoring.Actions.Where(a => a.IsApplicable(workspace)).ToList();
+                var actions = refactoring.Actions.Where(a => IsApplicable(a, workspace)).ToList();
                 return actions.Count == 0
                     ? null
                     : actions.Count == refactoring.Actions.Count
