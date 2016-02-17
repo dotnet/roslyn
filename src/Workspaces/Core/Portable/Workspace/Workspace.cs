@@ -704,6 +704,23 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Call this method when status of project has changed to incomplete.
+        /// See <see cref="ProjectInfo.HasAllInformation"/> for more information.
+        /// </summary>
+        protected internal void OnHasAllInformationChanged(ProjectId projectId, bool hasAllInformation)
+        {
+            // this can't be null
+            var state = CurrentSolution.GetProjectState(projectId);
+            Contract.ThrowIfNull(state);
+
+            // if state is different than what we have
+            if (hasAllInformation != state.ProjectInfo.HasAllInformation)
+            {
+                OnProjectReloaded(state.ProjectInfo.WithHasAllInformation(hasAllInformation));
+            }
+        }
+
+        /// <summary>
         /// Call this method when the text of a document is updated in the host environment.
         /// </summary>
         protected internal void OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)

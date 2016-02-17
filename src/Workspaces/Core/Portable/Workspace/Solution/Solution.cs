@@ -2020,11 +2020,16 @@ namespace Microsoft.CodeAnalysis
                 : SpecializedTasks.Default<Compilation>();
         }
 
-        internal Task<bool> HasCompleteReferencesAsync(Project project, CancellationToken cancellationToken)
+        /// <summary>
+        /// Return reference completeness for the given project and all projects this references.
+        /// </summary>
+        internal Task<bool> HasSuccessfullyLoadedAsync(Project project, CancellationToken cancellationToken)
         {
+            // return HasAllInformation when compilation is not supported. 
+            // regardless whether project support compilation or not, if projectInfo is not complete, we can't gurantee its reference completeness
             return project.SupportsCompilation
-                ? this.GetCompilationTracker(project.Id).HasCompleteReferencesAsync(this, cancellationToken)
-                : SpecializedTasks.False;
+                ? this.GetCompilationTracker(project.Id).HasSuccessfullyLoadedAsync(this, cancellationToken)
+                : project.HasAllInformation ? SpecializedTasks.True : SpecializedTasks.False;
         }
 
         private static readonly ConditionalWeakTable<MetadataReference, ProjectId> s_metadataReferenceToProjectMap =

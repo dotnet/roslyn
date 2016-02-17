@@ -1131,7 +1131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// A trivial implementation of <see cref="IVisualStudioWorkspaceHost" /> that just
         /// forwards the calls down to the underlying Workspace.
         /// </summary>
-        protected class VisualStudioWorkspaceHost : IVisualStudioWorkspaceHost, IVisualStudioWorkingFolder
+        protected sealed class VisualStudioWorkspaceHost : IVisualStudioWorkspaceHost, IVisualStudioWorkspaceHost2, IVisualStudioWorkingFolder
         {
             private readonly VisualStudioWorkspaceImpl _workspace;
 
@@ -1365,6 +1365,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             void IVisualStudioWorkspaceHost.OnAdditionalDocumentTextUpdatedOnDisk(DocumentId id)
             {
                 _workspace.OnAdditionalDocumentTextUpdatedOnDisk(id);
+            }
+
+            void IVisualStudioWorkspaceHost2.OnHasAllInformation(ProjectId projectId, bool hasAllInformation)
+            {
+                _workspace.OnHasAllInformationChanged(projectId, hasAllInformation);
             }
 
             void IVisualStudioWorkingFolder.OnBeforeWorkingFolderChange()

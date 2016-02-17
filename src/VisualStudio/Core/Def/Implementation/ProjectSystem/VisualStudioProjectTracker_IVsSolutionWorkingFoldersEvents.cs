@@ -14,16 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             // notify the working folder change
-            NotifyWorkspaceHosts(host =>
-            {
-                var workingFolder = host as IVisualStudioWorkingFolder;
-                if (workingFolder == null)
-                {
-                    return;
-                }
-
-                workingFolder.OnAfterWorkingFolderChange();
-            });
+            NotifyWorkspaceHosts(host => (host as IVisualStudioWorkingFolder)?.OnAfterWorkingFolderChange());
         }
 
         void IVsSolutionWorkingFoldersEvents.OnQueryLocationChange(uint location, out bool pfCanMoveContent)
@@ -36,16 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // notify the working folder change
             pfCanMoveContent = true;
-            NotifyWorkspaceHosts(host =>
-            {
-                var workingFolder = host as IVisualStudioWorkingFolder;
-                if (workingFolder == null)
-                {
-                    return;
-                }
-
-                workingFolder.OnBeforeWorkingFolderChange();
-            });
+            NotifyWorkspaceHosts(host => (host as IVisualStudioWorkingFolder)?.OnBeforeWorkingFolderChange());
         }
     }
 }
