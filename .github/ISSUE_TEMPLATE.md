@@ -5,6 +5,6 @@
 2.
 3.
 
-**Expected Behavior**
+**Expected Behavior**:
 
-**Actual Behavior**
+**Actual Behavior**:
