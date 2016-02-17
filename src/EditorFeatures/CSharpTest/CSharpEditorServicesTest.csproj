@@ -17,9 +17,9 @@
       <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
       <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj">
-      <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F9}</Project>
-      <Name>CSharpCompilerTestUtilities</Name>
+    <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj">
+      <Project>{7a4b2176-7bfd-4b75-a61a-e25a1fdd0a1e}</Project>
+      <Name>CSharpCompilerTestUtilities.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj">
       <Project>{fe2cbea6-d121-4faa-aa8b-fc9900bf8c83}</Project>
