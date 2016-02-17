@@ -948,7 +948,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return semanticModel;
                     });
 
-                    _compilation.EventQueue.Enqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol, lazySemanticModel));
+                    _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol, lazySemanticModel));
                 }
 
                 // Don't lower if we're not emitting or if there were errors. 
