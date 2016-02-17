@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis
                 // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource.
                 // As a policy, all partial-state projects are said to have incomplete references, since the state has no guarantees.
                 return new CompilationTracker(inProgressProject,
-                    new FinalState(new ConstantValueSource<Compilation>(inProgressCompilation), hasCompleteReferences: false));
+                    new FinalState(new ConstantValueSource<Compilation>(inProgressCompilation), isComplete: false, isDependentComplete: false));
             }
 
             /// <summary>
@@ -313,21 +313,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public Task<bool> HasCompleteReferencesAsync(Solution solution, CancellationToken cancellationToken)
-            {
-                var state = this.ReadState();
-
-                if (state.HasCompleteReferences.HasValue)
-                {
-                    return Task.FromResult(state.HasCompleteReferences.Value);
-                }
-                else
-                {
-                    return GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken)
-                        .ContinueWith(t => t.Result.HasCompleteReferences, cancellationToken, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
-                }
-            }
-
             private static string LogBuildCompilationAsync(ProjectState state)
             {
                 return string.Join(",", state.AssemblyName, state.DocumentIds.Count);
@@ -406,7 +391,7 @@ namespace Microsoft.CodeAnalysis
                         var finalCompilation = state.FinalCompilation.GetValue(cancellationToken);
                         if (finalCompilation != null)
                         {
-                            return new CompilationInfo(finalCompilation, hasCompleteReferences: state.HasCompleteReferences.Value);
+                            return new CompilationInfo(finalCompilation, state.IsComplete.Value, state.IsDependentComplete.Value);
                         }
 
                         // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
@@ -447,7 +432,7 @@ namespace Microsoft.CodeAnalysis
                 var compilation = state.FinalCompilation.GetValue(cancellationToken);
                 if (compilation != null)
                 {
-                    return Task.FromResult(new CompilationInfo(compilation, state.HasCompleteReferences.Value));
+                    return Task.FromResult(new CompilationInfo(compilation, state.IsComplete.Value, state.IsDependentComplete.Value));
                 }
 
                 compilation = state.Compilation.GetValue(cancellationToken);
@@ -582,12 +567,15 @@ namespace Microsoft.CodeAnalysis
             private struct CompilationInfo
             {
                 public Compilation Compilation { get; }
-                public bool HasCompleteReferences { get; }
+                public bool IsComplete { get; }
+                public bool IsDependentComplete { get; }
 
-                public CompilationInfo(Compilation compilation, bool hasCompleteReferences)
+                public CompilationInfo(Compilation compilation, bool isComplete, bool isDependentComplete)
                 {
                     this.Compilation = compilation;
-                    this.HasCompleteReferences = hasCompleteReferences;
+
+                    this.IsComplete = isComplete;
+                    this.IsDependentComplete = isDependentComplete;
                 }
             }
 
@@ -602,8 +590,16 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    bool hasCompleteReferences = true;
+                    // if projectInfo.IsComplete is false, then this project is always not completed.
+                    bool isComplete = this.ProjectState.ProjectInfo.IsComplete;
+
                     var newReferences = new List<MetadataReference>();
+
+                    // we don't consider metadata reference being actually exist on disk as a part of complete reference
+                    // since we know some projects do have those but many just work fine since those dlls are not actually used.
+                    // and if that actually causes issues, current system already shows that quite clearly to users and it is easy to fix.
+                    // right now, only things that are hard for users to figure out (broken intellisense build, skeleton assembly build failure)
+                    // are included in completereference. 
                     newReferences.AddRange(this.ProjectState.MetadataReferences);
 
                     foreach (var projectReference in this.ProjectState.ProjectReferences)
@@ -639,7 +635,7 @@ namespace Microsoft.CodeAnalysis
                                 }
                                 else
                                 {
-                                    hasCompleteReferences = false;
+                                    isComplete = false;
                                 }
                             }
                         }
@@ -650,14 +646,39 @@ namespace Microsoft.CodeAnalysis
                         compilation = compilation.WithReferences(newReferences);
                     }
 
-                    this.WriteState(new FinalState(State.CreateValueSource(compilation, solution.Services), hasCompleteReferences), solution);
+                    bool isDependentComplete = await ComputeDependentCompleteAsync(solution, isComplete, cancellationToken).ConfigureAwait(false);
 
-                    return new CompilationInfo(compilation, hasCompleteReferences);
+                    this.WriteState(new FinalState(State.CreateValueSource(compilation, solution.Services), isComplete, isDependentComplete), solution);
+                    return new CompilationInfo(compilation, isComplete, isDependentComplete);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
+            }
+
+            private async Task<bool> ComputeDependentCompleteAsync(Solution solution, bool isComplete, CancellationToken cancellationToken)
+            {
+                if (!isComplete)
+                {
+                    return false;
+                }
+
+                foreach (var projectReference in this.ProjectState.ProjectReferences)
+                {
+                    var project = solution.GetProject(projectReference.ProjectId);
+                    if (project == null)
+                    {
+                        return false;
+                    }
+
+                    if (!await solution.IsDependentCompleteAsync(project, cancellationToken).ConfigureAwait(false))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
 
             /// <summary>
@@ -792,6 +813,36 @@ namespace Microsoft.CodeAnalysis
                 // use cloned compilation since this will cause symbols to be created.
                 var clone = state.DeclarationOnlyCompilation.Clone();
                 return clone.GetSymbolsWithName(predicate, filter, cancellationToken).SelectMany(s => s.DeclaringSyntaxReferences.Select(r => r.SyntaxTree));
+            }
+
+            public Task<bool> IsCompleteAsync(Solution solution, CancellationToken cancellationToken)
+            {
+                var state = this.ReadState();
+
+                if (state.IsComplete.HasValue)
+                {
+                    return state.IsComplete.Value ? SpecializedTasks.True : SpecializedTasks.False;
+                }
+                else
+                {
+                    return GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken)
+                        .ContinueWith(t => t.Result.IsComplete, cancellationToken, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+                }
+            }
+
+            public Task<bool> IsDependentCompleteAsync(Solution solution, CancellationToken cancellationToken)
+            {
+                var state = this.ReadState();
+
+                if (state.IsDependentComplete.HasValue)
+                {
+                    return state.IsDependentComplete.Value ? SpecializedTasks.True : SpecializedTasks.False;
+                }
+                else
+                {
+                    return GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken)
+                        .ContinueWith(t => t.Result.IsDependentComplete, cancellationToken, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+                }
             }
 
             #region Versions

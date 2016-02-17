@@ -96,6 +96,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Type HostObjectType { get; }
 
+        /// <summary>
+        /// True if project information is complete. In some workspace hosts, it is possible
+        /// a project only has partial information. In such cases, a project might not have all
+        /// information on its files or references.
+        /// </summary>
+        public bool IsComplete { get; }
+
         private ProjectInfo(
             ProjectId id,
             VersionStamp version,
@@ -112,7 +119,8 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<AnalyzerReference> analyzerReferences,
             IEnumerable<DocumentInfo> additionalDocuments,
             bool isSubmission,
-            Type hostObjectType)
+            Type hostObjectType,
+            bool isComplete)
         {
             if (id == null)
             {
@@ -150,6 +158,36 @@ namespace Microsoft.CodeAnalysis
             this.AdditionalDocuments = additionalDocuments.ToImmutableReadOnlyListOrEmpty();
             this.IsSubmission = isSubmission;
             this.HostObjectType = hostObjectType;
+            this.IsComplete = isComplete;
+        }
+
+        /// <summary>
+        /// Create a new instance of a ProjectInfo.
+        /// </summary>
+        // 1.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        public static ProjectInfo Create(
+            ProjectId id,
+            VersionStamp version,
+            string name,
+            string assemblyName,
+            string language,
+            string filePath,
+            string outputFilePath,
+            CompilationOptions compilationOptions,
+            ParseOptions parseOptions,
+            IEnumerable<DocumentInfo> documents,
+            IEnumerable<ProjectReference> projectReferences,
+            IEnumerable<MetadataReference> metadataReferences,
+            IEnumerable<AnalyzerReference> analyzerReferences,
+            IEnumerable<DocumentInfo> additionalDocuments,
+            bool isSubmission,
+            Type hostObjectType)
+        {
+            return Create(
+                id, version, name, assemblyName, language,
+                filePath, outputFilePath, compilationOptions, parseOptions,
+                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
+                isSubmission, hostObjectType, isComplete: true);
         }
 
         /// <summary>
@@ -171,7 +209,8 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<AnalyzerReference> analyzerReferences = null,
             IEnumerable<DocumentInfo> additionalDocuments = null,
             bool isSubmission = false,
-            Type hostObjectType = null)
+            Type hostObjectType = null,
+            bool isComplete = true)
         {
             return new ProjectInfo(
                 id,
@@ -189,7 +228,8 @@ namespace Microsoft.CodeAnalysis
                 analyzerReferences,
                 additionalDocuments,
                 isSubmission,
-                hostObjectType);
+                hostObjectType,
+                isComplete);
         }
 
         private ProjectInfo With(
@@ -208,7 +248,8 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<AnalyzerReference> analyzerReferences = null,
             IEnumerable<DocumentInfo> additionalDocuments = null,
             Optional<bool> isSubmission = default(Optional<bool>),
-            Optional<Type> hostObjectType = default(Optional<Type>))
+            Optional<Type> hostObjectType = default(Optional<Type>),
+            Optional<bool> isComplete = default(Optional<bool>))
         {
             var newId = id ?? this.Id;
             var newVersion = version.HasValue ? version.Value : this.Version;
@@ -226,6 +267,7 @@ namespace Microsoft.CodeAnalysis
             var newAdditionalDocuments = additionalDocuments ?? this.AdditionalDocuments;
             var newIsSubmission = isSubmission.HasValue ? isSubmission.Value : this.IsSubmission;
             var newHostObjectType = hostObjectType.HasValue ? hostObjectType.Value : this.HostObjectType;
+            var newIsComplete = isComplete.HasValue ? isComplete.Value : this.IsComplete;
 
             if (newId == this.Id &&
                 newVersion == this.Version &&
@@ -242,7 +284,8 @@ namespace Microsoft.CodeAnalysis
                 newAnalyzerReferences == this.AnalyzerReferences &&
                 newAdditionalDocuments == this.AdditionalDocuments &&
                 newIsSubmission == this.IsSubmission &&
-                newHostObjectType == this.HostObjectType)
+                newHostObjectType == this.HostObjectType &&
+                newIsComplete == this.IsComplete)
             {
                 return this;
             }
@@ -263,7 +306,8 @@ namespace Microsoft.CodeAnalysis
                     newAnalyzerReferences,
                     newAdditionalDocuments,
                     newIsSubmission,
-                    newHostObjectType);
+                    newHostObjectType,
+                    newIsComplete);
         }
 
         public ProjectInfo WithDocuments(IEnumerable<DocumentInfo> documents)
@@ -324,6 +368,11 @@ namespace Microsoft.CodeAnalysis
         public ProjectInfo WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
         {
             return this.With(analyzerReferences: analyzerReferences.ToImmutableReadOnlyListOrEmpty());
+        }
+
+        public ProjectInfo WithIsComplete(bool isComplete)
+        {
+            return this.With(isComplete: isComplete);
         }
 
         internal string GetDebuggerDisplay()

@@ -39,10 +39,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return _state[(int)stateType];
             }
 
-            public void Remove(object documentOrProjectId)
+            public void Remove(object documentOrProjectId, bool includeProjectState = true)
             {
                 for (var stateType = 0; stateType < s_stateTypeCount; stateType++)
                 {
+                    if (!includeProjectState && stateType == (int)StateType.Project)
+                    {
+                        continue;
+                    }
+
                     _state[stateType].Remove(documentOrProjectId);
                 }
             }

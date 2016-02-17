@@ -59,7 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     projectReferences: SpecializedCollections.EmptyEnumerable<ProjectReference>(),
                     metadataReferences: _metadataReferences,
                     isSubmission: false,
-                    hostObjectType: null);
+                    hostObjectType: null,
+                    isComplete: false);
             }
 
             public Microsoft.VisualStudio.Shell.Interop.IVsHierarchy Hierarchy => null;

@@ -57,49 +57,67 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void RaiseDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs args)
         {
-            var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
-            if (ev.HasHandlers)
-            {
-                var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
-                _eventQueue.ScheduleTask(() =>
-                {
-                    UpdateDataMap(sender, args);
-                    ev.RaiseEvent(handler => handler(sender, args));
-                }).CompletesAsyncOperation(eventToken);
-            }
-        }
+            Contract.ThrowIfNull(sender);
+            var source = (IDiagnosticUpdateSource)sender;
 
-        private void UpdateDataMap(object sender, DiagnosticsUpdatedArgs args)
-        {
-            var updateSource = sender as IDiagnosticUpdateSource;
-            if (updateSource == null)
+            var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
+            if (!RequireRunningEventTasks(source, ev))
             {
                 return;
             }
 
-            Contract.Requires(_updateSources.Contains(updateSource));
+            var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
+            _eventQueue.ScheduleTask(() =>
+            {
+                if (!UpdateDataMap(source, args))
+                {
+                    // there is no change, nothing to raise events for.
+                    return;
+                }
+
+                ev.RaiseEvent(handler => handler(sender, args));
+            }).CompletesAsyncOperation(eventToken);
+        }
+
+        private bool RequireRunningEventTasks(
+            IDiagnosticUpdateSource source, EventMap.EventHandlerSet<EventHandler<DiagnosticsUpdatedArgs>> ev)
+        {
+            // if source doesn't support GetDiagnostics, regardless whether there is event subscriber we need to enqueue task
+            if (!source.SupportGetDiagnostics)
+            {
+                return true;
+            }
+
+            return ev.HasHandlers;
+        }
+
+        private bool UpdateDataMap(IDiagnosticUpdateSource source, DiagnosticsUpdatedArgs args)
+        {
+            Contract.Requires(_updateSources.Contains(source));
 
             // we expect someone who uses this ability to small.
             lock (_gate)
             {
                 // check cheap early bail out
-                if (args.Diagnostics.Length == 0 && !_map.ContainsKey(updateSource))
+                if (args.Diagnostics.Length == 0 && !_map.ContainsKey(source))
                 {
                     // no new diagnostic, and we don't have update source for it.
-                    return;
+                    return false;
                 }
 
-                var list = _map.GetOrAdd(updateSource, _ => new Dictionary<object, Data>());
-                var data = updateSource.SupportGetDiagnostics ? new Data(args) : new Data(args, args.Diagnostics);
+                var list = _map.GetOrAdd(source, _ => new Dictionary<object, Data>());
 
-                list.Remove(data.Id);
+                list.Remove(args.Id);
                 if (list.Count == 0 && args.Diagnostics.Length == 0)
                 {
-                    _map.Remove(updateSource);
-                    return;
+                    _map.Remove(source);
+                    return true;
                 }
 
+                var data = source.SupportGetDiagnostics ? new Data(args) : new Data(args, args.Diagnostics);
                 list.Add(args.Id, data);
+
+                return true;
             }
         }
 

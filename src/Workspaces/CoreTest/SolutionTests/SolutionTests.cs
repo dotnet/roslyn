@@ -1404,8 +1404,8 @@ public class C : A {
                     projectReferences: new[] { new ProjectReference(project1.Id) }));
 
             // Nothing should have incomplete references, and everything should build
-            Assert.True(project1.HasCompleteReferencesAsync().Result);
-            Assert.True(project2.HasCompleteReferencesAsync().Result);
+            Assert.True(project1.IsCompleteAsync().Result);
+            Assert.True(project2.IsCompleteAsync().Result);
             Assert.Single(project2.GetCompilationAsync().Result.ExternalReferences);
         }
 
@@ -1425,8 +1425,8 @@ public class C : A {
                     LanguageNames.VisualBasic,
                     projectReferences: new[] { new ProjectReference(project1.Id) }));
 
-            Assert.True(project1.HasCompleteReferencesAsync().Result);
-            Assert.False(project2.HasCompleteReferencesAsync().Result);
+            Assert.True(project1.IsCompleteAsync().Result);
+            Assert.False(project2.IsCompleteAsync().Result);
             Assert.Empty(project2.GetCompilationAsync().Result.ExternalReferences);
         }
 
@@ -1450,8 +1450,8 @@ public class C : A {
             // Nothing should have incomplete references, and everything should build
             var frozenSolution = document.WithFrozenPartialSemanticsAsync(CancellationToken.None).Result.Project.Solution;
 
-            Assert.True(frozenSolution.GetProject(project1.Id).HasCompleteReferencesAsync().Result);
-            Assert.True(frozenSolution.GetProject(project2.Id).HasCompleteReferencesAsync().Result);
+            Assert.True(frozenSolution.GetProject(project1.Id).IsCompleteAsync().Result);
+            Assert.True(frozenSolution.GetProject(project2.Id).IsCompleteAsync().Result);
         }
     }
 }
