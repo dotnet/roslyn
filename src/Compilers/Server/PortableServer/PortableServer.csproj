@@ -27,10 +27,6 @@
     <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Tools\CommonNetCoreReferences\CommonNetCoreReferences.csproj">
-      <Project>{b5a6057a-eb4c-49fb-987d-943137e72e47}</Project>
-      <Name>CommonNetCoreReferences</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>

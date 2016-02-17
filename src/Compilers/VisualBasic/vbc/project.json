@@ -1,6 +1,8 @@
 ﻿{
   "dependencies": {
     "Microsoft.DiaSymReader.Native": "1.3.3",
+    "System.Collections.Immutable": "1.1.37",
+    "System.Reflection.Metadata": "1.2.0-rc3-23811",
   },
   "frameworks": {
     "net45": { }

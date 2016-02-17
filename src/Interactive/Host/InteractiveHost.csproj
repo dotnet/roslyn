@@ -42,6 +42,10 @@
     <Compile Include="InteractiveHostEntryPoint.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Runtime.Remoting" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">

@@ -2079,7 +2079,7 @@ new List<ArgumentException>()
             Assert.Equal(1, r1.Result);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/8332")]
+        [Fact]
         public void HostObjectAssemblyReference1()
         {
             var scriptCompilation = CSharpScript.Create(
