@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
         End Function
 
         <Fact>
-        <WorkItem(1107492)>
+        <WorkItem(1107492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107492")>
         Public Async Function TestProjectThatDoesntSupportCompilations() As Tasks.Task
             Dim workspaceDefinition =
 <Workspace>

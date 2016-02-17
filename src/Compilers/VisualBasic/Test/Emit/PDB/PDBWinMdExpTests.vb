@@ -77,7 +77,7 @@ End Module
             AssertEqual(expected, actual)
         End Sub
 
-        <WorkItem(693206, "DevDiv")>
+        <WorkItem(693206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/693206")>
         <Fact()>
         Public Sub Bug693206()
             Dim source =

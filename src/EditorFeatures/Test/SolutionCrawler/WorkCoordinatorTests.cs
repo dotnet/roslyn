@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 {
     public class WorkCoordinatorTests
     {
-        private const string SolutionCrawler = "SolutionCrawler";
+        private const string SolutionCrawler = nameof(SolutionCrawler);
 
         [Fact]
         public void RegisterService()
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [Fact, WorkItem(747226)]
+        [Fact, WorkItem(747226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747226")]
         public async Task SolutionAdded_Simple()
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [WorkItem(670335)]
+        [WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         public async Task Document_Change()
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [WorkItem(670335)]
+        [WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         public async Task Document_Cancellation()
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [WorkItem(670335)]
+        [WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         public async Task Document_Cancellation_MultipleTimes()
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [WorkItem(670335)]
+        [WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         public async Task Document_InvocationReasons()
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
@@ -695,7 +695,7 @@ End Class";
             Assert.Equal(0, memberId);
         }
 
-        [Fact, WorkItem(739943)]
+        [Fact, WorkItem(739943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739943")]
         public async Task SemanticChange_Propagation()
         {
             var solution = GetInitialSolutionInfoWithP2P();

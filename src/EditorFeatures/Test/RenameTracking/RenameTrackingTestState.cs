@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         {
             document = document ?? this.Workspace.CurrentSolution.GetDocument(_hostDocument.Id);
             var analyzer = new RenameTrackingDiagnosticAnalyzer();
-            return (await DiagnosticProviderTestUtilities.GetDocumentDiagnosticsAsync(analyzer, document, 
+            return (await DiagnosticProviderTestUtilities.GetDocumentDiagnosticsAsync(analyzer, document,
                 (await document.GetSyntaxRootAsync()).FullSpan)).ToList();
         }
 

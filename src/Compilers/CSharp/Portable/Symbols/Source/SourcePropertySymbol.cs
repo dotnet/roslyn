@@ -176,9 +176,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (notRegularProperty)
                 {
-                    Binder.CheckFeatureAvailability(location, 
-                                                    isReadOnly ? MessageID.IDS_FeatureReadonlyAutoImplementedProperties : 
-                                                                 MessageID.IDS_FeatureAutoImplementedProperties, 
+                    Binder.CheckFeatureAvailability(location,
+                                                    isReadOnly ? MessageID.IDS_FeatureReadonlyAutoImplementedProperties :
+                                                                 MessageID.IDS_FeatureAutoImplementedProperties,
                                                     diagnostics);
                 }
             }
@@ -236,9 +236,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // We do an extra check before copying the type to handle the case where the overriding
                     // property (incorrectly) has a different type than the overridden property.  In such cases,
                     // we want to retain the original (incorrect) type to avoid hiding the type given in source.
-                    if (_lazyType.Equals(overriddenPropertyType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: false))
+                    if (_lazyType.Equals(overriddenPropertyType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
                     {
-                        _lazyType = overriddenPropertyType;
+                        _lazyType = CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType, _lazyType, RefKind.None, this.ContainingAssembly);
                     }
 
                     _lazyParameters = CustomModifierUtils.CopyParameterCustomModifiers(overriddenOrImplementedProperty.Parameters, _lazyParameters, alsoCopyParamsModifier: isOverride);

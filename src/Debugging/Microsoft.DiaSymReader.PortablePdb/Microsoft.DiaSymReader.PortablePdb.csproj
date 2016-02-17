@@ -34,23 +34,35 @@
     <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\ArrayShape.cs">
       <Link>System.Reflection.Metadata.Decoding\ArrayShape.cs</Link>
     </Compile>
-    <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\CustomModifier.cs">
-      <Link>System.Reflection.Metadata.Decoding\CustomModifier.cs</Link>
+    <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\IConstructedTypeProvider.cs">
+      <Link>System.Reflection.Metadata.Decoding\IConstructedTypeProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\IPrimitiveTypeProvider.cs">
+      <Link>System.Reflection.Metadata.Decoding\IPrimitiveTypeProvider.cs</Link>
     </Compile>
     <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs">
       <Link>System.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
     </Compile>
+    <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\ISZArrayTypeProvider.cs">
+      <Link>System.Reflection.Metadata.Decoding\ISZArrayTypeProvider.cs</Link>
+    </Compile>
     <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\ITypeProvider.cs">
-      <Link>System.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+      <Link>System.Reflection.Metadata.Decoding\ITypeProvider.cs</Link>
     </Compile>
     <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\MethodSignature.cs">
-      <Link>System.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+      <Link>System.Reflection.Metadata.Decoding\MethodSignature.cs</Link>
     </Compile>
     <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\PrimitiveTypeCode.cs">
-      <Link>System.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+      <Link>System.Reflection.Metadata.Decoding\PrimitiveTypeCode.cs</Link>
     </Compile>
     <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\SignatureDecoder.cs">
-      <Link>System.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+      <Link>System.Reflection.Metadata.Decoding\SignatureDecoder.cs</Link>
+    </Compile>
+    <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\SignatureDecoderOptions.cs">
+      <Link>System.Reflection.Metadata.Decoding\SignatureDecoderOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\SignatureTypeHandleCode.cs">
+      <Link>System.Reflection.Metadata.Decoding\SignatureTypeHandleCode.cs</Link>
     </Compile>
     <Compile Include="AsyncMethodData.cs" />
     <Compile Include="MethodMap.cs" />

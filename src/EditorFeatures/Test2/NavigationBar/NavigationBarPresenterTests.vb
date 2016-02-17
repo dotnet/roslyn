@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             Inherits AsynchronousOperationListener
         End Class
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
         Public Async Function TestDoNotRecomputeAfterFullRecompute() As Task
             Using workspace = Await TestWorkspace.CreateAsync(
                 <Workspace>
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
         Public Async Function ProjectionBuffersWork() As Task
             Using workspace = Await TestWorkspace.CreateAsync(
                 <Workspace>

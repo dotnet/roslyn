@@ -392,7 +392,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(654403)>
+        <WorkItem(654403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654403")>
         <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Async Function TestVB_ExtensionMethodRewriteRoundTripsTrivia() As Task
             Dim input =
@@ -1142,7 +1142,7 @@ public static class ProgramExtensions
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(654403)>
+        <WorkItem(654403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654403")>
         <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Async Function TestCSharp_ExtensionMethodRewriteRoundTripsTrivia() As Task
             Dim input =

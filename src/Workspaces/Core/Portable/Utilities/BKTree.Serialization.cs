@@ -14,13 +14,13 @@ namespace Roslyn.Utilities
                 writer.WriteChar(c);
             }
 
-            writer.WriteInt32(this._nodes.Length);
+            writer.WriteInt32(_nodes.Length);
             foreach (var node in _nodes)
             {
                 node.WriteTo(writer);
             }
 
-            writer.WriteInt32(this._edges.Length);
+            writer.WriteInt32(_edges.Length);
             foreach (var edge in _edges)
             {
                 edge.WriteTo(writer);

@@ -251,7 +251,7 @@ $$");
     void D<T>() where T : IList<T> $$");
         }
 
-        [WorkItem(550715)]
+        [WorkItem(550715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/550715")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterWhereTypeConstraint()
         {
@@ -279,7 +279,7 @@ $$");
 }");
         }
 
-        [WorkItem(550720)]
+        [WorkItem(550720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/550720")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNoWhereAfterDot()
         {

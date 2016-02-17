@@ -116,7 +116,7 @@ namespace RunTests
                 Console.WriteLine(testResult.ErrorOutput);
             }
             else
-            { 
+            {
                 Console.WriteLine($"xunit produced no error output but had exit code {testResult.ExitCode}");
             }
 

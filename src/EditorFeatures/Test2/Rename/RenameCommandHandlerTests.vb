@@ -309,7 +309,7 @@ Foo f;
         End Function
 
         <WpfFact>
-        <WorkItem(851629)>
+        <WorkItem(851629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/851629")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function WordDeleteDuringRename() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -524,7 +524,7 @@ Foo f;
         End Function
 
         <WpfFact()>
-        <WorkItem(820248)>
+        <WorkItem(820248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820248")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function DeletingInEditSpanPropagatesEdit() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -562,7 +562,7 @@ Foo f;
         End Function
 
         <WpfFact>
-        <WorkItem(820248)>
+        <WorkItem(820248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820248")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function BackspacingInEditSpanPropagatesEdit() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -644,7 +644,7 @@ Foo f;
             End Using
         End Function
 
-        <WorkItem(577178)>
+        <WorkItem(577178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577178")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function TypingInOtherFileTriggersCommit() As Task
@@ -700,7 +700,7 @@ Foo f;
             End Using
         End Function
 
-        <WorkItem(577178)>
+        <WorkItem(577178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577178")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function TypingInOtherFileWithConflictTriggersCommit() As Task
@@ -798,7 +798,7 @@ class Program
             End Using
         End Function
 
-        <WpfFact, WorkItem(878173), Trait(Traits.Feature, Traits.Features.Rename)>
+        <WpfFact, WorkItem(878173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/878173"), Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameInDocumentsWithoutOpenTextViews() As Task
             Using workspace = CreateWorkspaceWithWaiter(
                 <Workspace>
@@ -840,7 +840,7 @@ partial class [|Program|]
         End Function
 
         <WpfFact>
-        <WorkItem(942811)>
+        <WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TypingCtrlEnterDuringRenameCSharp()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -879,7 +879,7 @@ partial class [|Program|]
         End Sub
 
         <WpfFact>
-        <WorkItem(942811)>
+        <WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TypingCtrlEnterOutsideSpansDuringRenameCSharp()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -921,7 +921,7 @@ partial class [|Program|]
         End Sub
 
         <WpfFact>
-        <WorkItem(942811)>
+        <WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TypingCtrlShiftEnterDuringRenameCSharp()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -960,7 +960,7 @@ partial class [|Program|]
         End Sub
 
         <WpfFact>
-        <WorkItem(942811)>
+        <WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TypingCtrlEnterDuringRenameBasic()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -996,7 +996,7 @@ partial class [|Program|]
         End Sub
 
         <WpfFact>
-        <WorkItem(942811)>
+        <WorkItem(942811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942811")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TypingCtrlShiftEnterDuringRenameBasic()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1032,7 +1032,7 @@ partial class [|Program|]
         End Sub
 
         <WpfFact>
-        <WorkItem(1142095)>
+        <WorkItem(1142095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142095")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function SaveDuringRenameCommits() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1073,7 +1073,7 @@ partial class [|Program|]
         End Function
 
         <WpfFact>
-        <WorkItem(1142701)>
+        <WorkItem(1142701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142701")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub MoveSelectedLinesUpDuringRename()
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
@@ -1083,7 +1083,7 @@ partial class [|Program|]
         End Sub
 
         <WpfFact>
-        <WorkItem(1142701)>
+        <WorkItem(1142701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142701")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub MoveSelectedLinesDownDuringRename()
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
@@ -1093,7 +1093,7 @@ partial class [|Program|]
         End Sub
 
         <WpfFact>
-        <WorkItem(991517)>
+        <WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ReorderParametersDuringRename()
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
@@ -1103,7 +1103,7 @@ partial class [|Program|]
         End Sub
 
         <WpfFact>
-        <WorkItem(991517)>
+        <WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RemoveParametersDuringRename()
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
@@ -1113,7 +1113,7 @@ partial class [|Program|]
         End Sub
 
         <WpfFact>
-        <WorkItem(991517)>
+        <WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ExtractInterfaceDuringRename()
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
@@ -1123,7 +1123,7 @@ partial class [|Program|]
         End Sub
 
         <WpfFact>
-        <WorkItem(991517)>
+        <WorkItem(991517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991517")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EncapsulateFieldDuringRename()
             VerifyCommandCommitsRenameSessionAndExecutesCommand(

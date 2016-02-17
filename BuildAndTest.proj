@@ -17,41 +17,46 @@
     <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
     <NuGetPackageRoot>$(UserProfile)\.nuget\packages</NuGetPackageRoot>
     <XunitVersion>2.1.0</XunitVersion>
+    <MSBuildCommonProperties>
+      RestorePackages=false;
+      TreatWarningsAsErrors=true;
+      DeployExtension=false;
+    </MSBuildCommonProperties>
   </PropertyGroup>
 
   <Target Name="Build">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
-             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
+             Properties="$(MSBuildCommonProperties)"
              Targets="Build"/>
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
-             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
+             Properties="$(MSBuildCommonProperties)"
              Targets="Build"/>
   </Target>
 
   <Target Name="Clean">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
-             Properties="RestorePackages=false"
+             Properties="$(MSBuildCommonProperties)"
              Targets="Clean"/>
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
-             Properties="RestorePackages=false"
+             Properties="$(MSBuildCommonProperties)"
              Targets="Clean"/>
   </Target>
 
   <Target Name="Rebuild">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
-             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
+             Properties="$(MSBuildCommonProperties)"
              Targets="Rebuild"/>
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
-             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
+             Properties="$(MSBuildCommonProperties)"
              Targets="Rebuild"/>
   </Target>
 

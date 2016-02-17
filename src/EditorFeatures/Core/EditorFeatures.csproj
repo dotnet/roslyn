@@ -14,8 +14,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.EditorFeatures</AssemblyName>
-    <!-- Disable the architecture mismatch warning -->
-    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
@@ -134,6 +132,7 @@
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
     <InternalsVisibleToTypeScript Include="Microsoft.Test.Apex.VisualStudio" />
     <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
+    <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
@@ -320,6 +319,7 @@
     <Compile Include="Implementation\AutomaticCompletion\BraceCompletionSessionProvider.BraceCompletionSession.cs" />
     <Compile Include="Implementation\AutomaticCompletion\IEditorBraceCompletionSession.cs" />
     <Compile Include="Implementation\AutomaticCompletion\Sessions\AbstractTokenBraceCompletionSession.cs" />
+    <Compile Include="Implementation\BlockCommentEditing\AbstractBlockCommentEditingCommandHandler.cs" />
     <Compile Include="Implementation\BraceMatching\AbstractBraceMatcher.cs" />
     <Compile Include="Implementation\BraceMatching\BraceCharacterAndKind.cs" />
     <Compile Include="Implementation\BraceMatching\BraceHighlightingViewTaggerProvider.cs" />

@@ -381,7 +381,7 @@ public class E : B.N
                 Diagnostic(ErrorCode.ERR_BadProtectedAccess, "iField").WithArguments("A.iField", "D", "B.N.NN").WithLocation(19, 27));
         }
 
-        [WorkItem(539561, "DevDiv")]
+        [WorkItem(539561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539561")]
         [Fact]
         public void AccessCheckProtected02()
         {
@@ -402,7 +402,7 @@ class C : I<C.D.E>
             c.VerifyDiagnostics();
         }
 
-        [WorkItem(539561, "DevDiv")]
+        [WorkItem(539561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539561")]
         [Fact]
         public void AccessCheckProtected03()
         {
@@ -569,7 +569,7 @@ namespace CS1540
             c.VerifyDiagnostics();
         }
 
-        [WorkItem(539561, "DevDiv")]
+        [WorkItem(539561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539561")]
         [Fact]
         public void AccessCheckPrivate()
         {
@@ -590,7 +590,7 @@ class C : I<C.D.E>
             c.VerifyDiagnostics();
         }
 
-        [WorkItem(539561, "DevDiv")]
+        [WorkItem(539561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539561")]
         [Fact]
         public void AccessCheckPrivate02()
         {
@@ -843,7 +843,7 @@ public class A
             Assert.Empty(c.GetDiagnostics());
         }
 
-        [WorkItem(543745, "DevDiv")]
+        [WorkItem(543745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543745")]
         [Fact]
         public void InternalInaccessibleProperty()
         {
@@ -875,7 +875,7 @@ public class A
                 Diagnostic(ErrorCode.ERR_BadAccess, "PropIntProProSet").WithArguments("InstancePropertyContainer.PropIntProProSet"));
         }
 
-        [WorkItem(546209, "DevDiv")]
+        [WorkItem(546209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546209")]
         [Fact]
         public void OverriddenMemberFromInternalType()
         {
@@ -948,7 +948,7 @@ internal abstract class B3 : A
                 Diagnostic(ErrorCode.ERR_InaccessibleGetter, "b3.P").WithArguments("B3.P").WithLocation(14, 13));
         }
 
-        [WorkItem(546209, "DevDiv")]
+        [WorkItem(546209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546209")]
         [Fact]
         public void InternalOverriddenMember()
         {
@@ -987,7 +987,7 @@ public abstract class B : A
             compilation3.VerifyDiagnostics();
         }
 
-        [WorkItem(530360, "DevDiv")]
+        [WorkItem(530360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530360")]
         [Fact]
         public void InaccessibleReturnType()
         {
@@ -1029,7 +1029,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadAccess, "b.M").WithArguments("B.M()"));
         }
 
-        [WorkItem(530360, "DevDiv")]
+        [WorkItem(530360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530360")]
         [Fact]
         public void InaccessibleReturnType_Dynamic()
         {
@@ -1070,7 +1070,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadAccess, "b.M(d)").WithArguments("B.M(int)"));
         }
 
-        [WorkItem(563573, "DevDiv")]
+        [WorkItem(563573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563573")]
         [Fact]
         public void MissingIdentifier01()
         {
@@ -1097,7 +1097,7 @@ class C
             CreateCompilationWithMscorlib(source).GetDiagnostics();
         }
 
-        [WorkItem(563563, "DevDiv"), WorkItem(563573, "DevDiv")]
+        [WorkItem(563563, "DevDiv"), WorkItem(563573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563573")]
         [Fact]
         public void MissingIdentifier02()
         {
@@ -1125,7 +1125,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(552452, "DevDiv")]
+        [WorkItem(552452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552452")]
         public void AccessTestInBadCode01()
         {
             var source =

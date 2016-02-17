@@ -99,7 +99,7 @@ $@"{FeaturesResources.Exceptions}
             TestFormat(comment, expected);
         }
 
-        [Fact, WorkItem(530760)]
+        [Fact, WorkItem(530760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530760")]
         [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void MultipleExceptionTagsWithSameType()
         {

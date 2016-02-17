@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             Await VerifyRecommendationsContainAsync(<NamespaceDeclaration>|</NamespaceDeclaration>, "Namespace")
         End Function
 
-        <Fact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NestedNamespaceFollowsTypeDeclarationTest() As Task
             Dim code =
@@ -37,7 +37,7 @@ End Namespace
             Await VerifyRecommendationsContainAsync(code, "Namespace")
         End Function
 
-        <Fact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NamespaceFollowsNamespaceTest() As Task
             Dim code =
@@ -52,7 +52,7 @@ End Namespace
             Await VerifyRecommendationsContainAsync(code, "Namespace")
         End Function
 
-        <Fact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NamespaceFollowsNamespaceWithoutMatchingEndTest() As Task
             Dim code =
@@ -63,7 +63,7 @@ Namespace N1
             Await VerifyRecommendationsContainAsync(code, "Namespace")
         End Function
 
-        <Fact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NamespaceFollowsMismatchedEnd1Test() As Task
             Dim code =
@@ -76,7 +76,7 @@ End Namespace
             Await VerifyRecommendationsContainAsync(code, "Namespace")
         End Function
 
-        <Fact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NamespaceFollowsMismatchedEnd2Test() As Task
             Dim code =
@@ -88,7 +88,7 @@ End Class
             Await VerifyRecommendationsContainAsync(code, "Namespace")
         End Function
 
-        <Fact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NamespaceFollowsMismatchedEnd3Test() As Task
             Dim code =
@@ -99,7 +99,7 @@ End Class
             Await VerifyRecommendationsContainAsync(code, "Namespace")
         End Function
 
-        <Fact, WorkItem(530727)>
+        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NamespaceFollowsMismatchedEnd4Test() As Task
             Dim code =

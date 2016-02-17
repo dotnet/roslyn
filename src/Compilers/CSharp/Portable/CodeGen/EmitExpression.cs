@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
             {
-                _diagnostics.Add(ErrorCode.ERR_InsufficientStack, 
+                _diagnostics.Add(ErrorCode.ERR_InsufficientStack,
                                  BoundTreeVisitor.CancelledByStackGuardException.GetTooLongOrComplexExpressionErrorLocation(expression));
                 throw new EmitCancelledException();
             }

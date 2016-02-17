@@ -605,7 +605,7 @@
           "lib/DNXCore50/System.Reflection.Extensions.dll": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc3-23721": {
+      "System.Reflection.Metadata/1.2.0-rc3-23811": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
           "System.Collections.Immutable": "[1.1.37, )",
@@ -1952,7 +1952,7 @@
           "lib/DNXCore50/System.Reflection.Extensions.dll": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc3-23721": {
+      "System.Reflection.Metadata/1.2.0-rc3-23811": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
           "System.Collections.Immutable": "[1.1.37, )",
@@ -3363,7 +3363,7 @@
           "lib/DNXCore50/System.Reflection.Extensions.dll": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc3-23721": {
+      "System.Reflection.Metadata/1.2.0-rc3-23811": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
           "System.Collections.Immutable": "[1.1.37, )",
@@ -4921,7 +4921,7 @@
           "lib/DNXCore50/System.Reflection.Extensions.dll": {}
         }
       },
-      "System.Reflection.Metadata/1.2.0-rc3-23721": {
+      "System.Reflection.Metadata/1.2.0-rc3-23811": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
           "System.Collections.Immutable": "[1.1.37, )",
@@ -8318,18 +8318,20 @@
         "System.Reflection.Extensions.nuspec"
       ]
     },
-    "System.Reflection.Metadata/1.2.0-rc3-23721": {
-      "sha512": "MHnJWfhANEcGdavFd1ftoo669vjCUvCT6H7N6sNzcLkd1EsLaMgVJshVfA4RNUmUITDKKLAnPxxXIHQRW5mH9Q==",
+    "System.Reflection.Metadata/1.2.0-rc3-23811": {
+      "sha512": "gAOQV1dsGyQfQUuzsCYFLMlI6BhfK1/2aA7JGf6gJphaLgjU4dV4hzjbE0iZXgo61VUuda2LtCBrWWZBw5897Q==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
+        "dotnet_library_license.txt",
         "lib/dotnet5.2/System.Reflection.Metadata.dll",
         "lib/dotnet5.2/System.Reflection.Metadata.xml",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml",
-        "package/services/metadata/core-properties/68cb3065f6c849c58eee471ee8bb094b.psmdcp",
-        "System.Reflection.Metadata.nuspec"
+        "package/services/metadata/core-properties/9aa921f066b94690988804574c5d2231.psmdcp",
+        "System.Reflection.Metadata.nuspec",
+        "ThirdPartyNotices.txt"
       ]
     },
     "System.Reflection.Primitives/4.0.1-beta-23504": {

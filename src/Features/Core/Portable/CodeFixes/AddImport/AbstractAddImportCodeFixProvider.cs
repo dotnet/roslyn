@@ -100,8 +100,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                             var description = this.GetDescription(reference.SearchResult.Symbol, semanticModel, node);
                             if (description != null)
                             {
-                                var action = new MyCodeAction(description, c =>
-                                    this.AddImportAndReferenceAsync(node, reference, document, placeSystemNamespaceFirst, c));
+                                var action = new MyCodeAction(description, reference.GetGlyph(document),
+                                    c => this.AddImportAndReferenceAsync(node, reference, document, placeSystemNamespaceFirst, c));
                                 context.RegisterCodeFix(action, diagnostic);
                             }
                         }
@@ -383,10 +383,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution) :
+            private readonly Glyph? _glyph;
+
+            public MyCodeAction(string title, Glyph? glyph, Func<CancellationToken, Task<Solution>> createChangedSolution) :
                 base(title, createChangedSolution, equivalenceKey: title)
             {
+                _glyph = glyph;
             }
+
+            internal override int? Glyph => _glyph.HasValue ? (int)_glyph.Value : (int?)null;
         }
 
         private struct SearchResult<T> where T : ISymbol

@@ -768,7 +768,7 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"throw $$")), @"System");
         }
 
-        [WorkItem(760097)]
+        [WorkItem(760097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760097")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task YieldReturnStatement()
         {
@@ -1111,14 +1111,14 @@ $$";
             await VerifyItemIsAbsentAsync(AddInsideMethod(@"var x = 0; default($$"), @"x");
         }
 
-        [WorkItem(543819)]
+        [WorkItem(543819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543819")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Checked()
         {
             await VerifyItemExistsAsync(AddInsideMethod(@"var x = 0; checked($$"), @"x");
         }
 
-        [WorkItem(543819)]
+        [WorkItem(543819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543819")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Unchecked()
         {
@@ -1265,14 +1265,14 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { (1 + 1).$$"), "Equals");
         }
 
-        [WorkItem(539332)]
+        [WorkItem(539332, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539332")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InstanceTypesAvailableInUsingAlias()
         {
             await VerifyItemExistsAsync(@"using S = System.$$", "String");
         }
 
-        [WorkItem(539812)]
+        [WorkItem(539812, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539812")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InheritedMember1()
         {
@@ -1294,7 +1294,7 @@ class B : A
             await VerifyItemExistsAsync(markup, "Foo");
         }
 
-        [WorkItem(539812)]
+        [WorkItem(539812, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539812")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InheritedMember2()
         {
@@ -1316,7 +1316,7 @@ class B : A
             await VerifyItemExistsAsync(markup, "Foo");
         }
 
-        [WorkItem(539812)]
+        [WorkItem(539812, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539812")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InheritedMember3()
         {
@@ -1339,7 +1339,7 @@ class B : A
             await VerifyItemIsAbsentAsync(markup, "Bar");
         }
 
-        [WorkItem(539812)]
+        [WorkItem(539812, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539812")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InheritedStaticMember1()
         {
@@ -1361,7 +1361,7 @@ class B : A
             await VerifyItemExistsAsync(markup, "Foo");
         }
 
-        [WorkItem(539812)]
+        [WorkItem(539812, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539812")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InheritedStaticMember2()
         {
@@ -1383,7 +1383,7 @@ class B : A
             await VerifyItemExistsAsync(markup, "Foo");
         }
 
-        [WorkItem(539812)]
+        [WorkItem(539812, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539812")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InheritedStaticMember3()
         {
@@ -1405,7 +1405,7 @@ class B : A
             await VerifyItemExistsAsync(markup, "Foo");
         }
 
-        [WorkItem(539812)]
+        [WorkItem(539812, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539812")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InheritedInstanceAndStaticMembers()
         {
@@ -1432,7 +1432,7 @@ class B : A
             await VerifyItemExistsAsync(markup, "FooInstance");
         }
 
-        [WorkItem(540155)]
+        [WorkItem(540155, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540155")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ForLoopIndexer1()
         {
@@ -1446,7 +1446,7 @@ class C
             await VerifyItemExistsAsync(markup, "i");
         }
 
-        [WorkItem(540155)]
+        [WorkItem(540155, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540155")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ForLoopIndexer2()
         {
@@ -1460,7 +1460,7 @@ class C
             await VerifyItemExistsAsync(markup, "i");
         }
 
-        [WorkItem(540012)]
+        [WorkItem(540012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540012")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoInstanceMembersAfterType1()
         {
@@ -1475,7 +1475,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "Dispose");
         }
 
-        [WorkItem(540012)]
+        [WorkItem(540012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540012")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoInstanceMembersAfterType2()
         {
@@ -1489,7 +1489,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "Dispose");
         }
 
-        [WorkItem(540012)]
+        [WorkItem(540012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540012")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoInstanceMembersAfterType3()
         {
@@ -1505,7 +1505,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "Dispose");
         }
 
-        [WorkItem(540012)]
+        [WorkItem(540012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540012")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoInstanceMembersAfterType4()
         {
@@ -1521,7 +1521,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "Dispose");
         }
 
-        [WorkItem(540012)]
+        [WorkItem(540012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540012")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticMembersAfterType1()
         {
@@ -1536,7 +1536,7 @@ class C
             await VerifyItemExistsAsync(markup, "ReferenceEquals");
         }
 
-        [WorkItem(540012)]
+        [WorkItem(540012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540012")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticMembersAfterType2()
         {
@@ -1550,7 +1550,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "ReferenceEquals");
         }
 
-        [WorkItem(540012)]
+        [WorkItem(540012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540012")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticMembersAfterType3()
         {
@@ -1566,7 +1566,7 @@ class C
             await VerifyItemExistsAsync(markup, "ReferenceEquals");
         }
 
-        [WorkItem(540012)]
+        [WorkItem(540012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540012")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticMembersAfterType4()
         {
@@ -1582,7 +1582,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "ReferenceEquals");
         }
 
-        [WorkItem(540197)]
+        [WorkItem(540197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540197")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeParametersInClass()
         {
@@ -1595,7 +1595,7 @@ class C<T, R>
             await VerifyItemExistsAsync(markup, "T");
         }
 
-        [WorkItem(540212)]
+        [WorkItem(540212, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540212")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterRefInLambda()
         {
@@ -1612,7 +1612,7 @@ class C
             await VerifyItemExistsAsync(markup, "String");
         }
 
-        [WorkItem(540212)]
+        [WorkItem(540212, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540212")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterOutInLambda()
         {
@@ -1629,7 +1629,7 @@ class C
             await VerifyItemExistsAsync(markup, "String");
         }
 
-        [WorkItem(539217)]
+        [WorkItem(539217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedType1()
         {
@@ -1647,7 +1647,7 @@ class Q
             await VerifyItemExistsAsync(markup, "R");
         }
 
-        [WorkItem(539217)]
+        [WorkItem(539217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedType2()
         {
@@ -1664,7 +1664,7 @@ class Q
             await VerifyItemExistsAsync(markup, "R");
         }
 
-        [WorkItem(539217)]
+        [WorkItem(539217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedType3()
         {
@@ -1681,7 +1681,7 @@ class Q
             await VerifyItemExistsAsync(markup, "R");
         }
 
-        [WorkItem(539217)]
+        [WorkItem(539217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedType4_Regular()
         {
@@ -1697,7 +1697,7 @@ $$"; // At EOF
             await VerifyItemIsAbsentAsync(markup, "R", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WorkItem(539217)]
+        [WorkItem(539217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedType4_Script()
         {
@@ -1713,7 +1713,7 @@ $$"; // At EOF
             await VerifyItemIsAbsentAsync(markup, "R", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [WorkItem(539217)]
+        [WorkItem(539217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedType5()
         {
@@ -1728,7 +1728,7 @@ class Q
             await VerifyItemExistsAsync(markup, "R");
         }
 
-        [WorkItem(539217)]
+        [WorkItem(539217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedType6()
         {
@@ -1742,7 +1742,7 @@ class Q
             await VerifyItemExistsAsync(markup, "R");
         }
 
-        [WorkItem(540574)]
+        [WorkItem(540574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540574")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AmbiguityBetweenTypeAndLocal()
         {
@@ -1763,7 +1763,7 @@ class Program
             await VerifyItemExistsAsync(markup, "CompareTo");
         }
 
-        [WorkItem(540750)]
+        [WorkItem(540750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540750")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionAfterNewInScript()
         {
@@ -1775,7 +1775,7 @@ new $$";
             await VerifyItemExistsAsync(markup, "String", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [WorkItem(540933)]
+        [WorkItem(540933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540933")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExtensionMethodsInScript()
         {
@@ -1787,7 +1787,7 @@ a.$$";
             await VerifyItemExistsAsync(markup, "ElementAt<>", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [WorkItem(541019)]
+        [WorkItem(541019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541019")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExpressionsInForLoopInitializer()
         {
@@ -1803,7 +1803,7 @@ public class C
             await VerifyItemExistsAsync(markup, "count");
         }
 
-        [WorkItem(541108)]
+        [WorkItem(541108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541108")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterLambdaExpression1()
         {
@@ -1820,7 +1820,7 @@ public class C
             await VerifyItemIsAbsentAsync(markup, "ToString");
         }
 
-        [WorkItem(541108)]
+        [WorkItem(541108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541108")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterLambdaExpression2()
         {
@@ -1838,7 +1838,7 @@ public class C
             await VerifyItemExistsAsync(markup, "Invoke");
         }
 
-        [WorkItem(541216)]
+        [WorkItem(541216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541216")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InMultiLineCommentAtEndOfFile()
         {
@@ -1849,7 +1849,7 @@ using System;
             await VerifyItemIsAbsentAsync(markup, "Console", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [WorkItem(541218)]
+        [WorkItem(541218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541218")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeParametersAtEndOfFile()
         {
@@ -1873,7 +1873,7 @@ Outer<$$";
             await VerifyItemExistsAsync(markup, "T");
         }
 
-        [WorkItem(552717)]
+        [WorkItem(552717, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552717")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LabelInCaseSwitchAbsentForCase()
         {
@@ -1891,7 +1891,7 @@ class Program
             await VerifyItemIsAbsentAsync(markup, "case 0:");
         }
 
-        [WorkItem(552717)]
+        [WorkItem(552717, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552717")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LabelInCaseSwitchAbsentForDefaultWhenAbsent()
         {
@@ -1909,7 +1909,7 @@ class Program
             await VerifyItemIsAbsentAsync(markup, "default:");
         }
 
-        [WorkItem(552717)]
+        [WorkItem(552717, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552717")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LabelInCaseSwitchPresentForDefault()
         {
@@ -1957,7 +1957,7 @@ class Program
             await VerifyItemIsAbsentAsync(markup, "Foo");
         }
 
-        [WorkItem(542225)]
+        [WorkItem(542225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeName()
         {
@@ -1969,7 +1969,7 @@ using System;
             await VerifyItemIsAbsentAsync(markup, "CLSCompliantAttribute");
         }
 
-        [WorkItem(542225)]
+        [WorkItem(542225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterSpecifier()
         {
@@ -1982,7 +1982,7 @@ using System;
             await VerifyItemIsAbsentAsync(markup, "CLSCompliantAttribute");
         }
 
-        [WorkItem(542225)]
+        [WorkItem(542225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameInAttributeList()
         {
@@ -1994,7 +1994,7 @@ using System;
             await VerifyItemIsAbsentAsync(markup, "CLSCompliantAttribute");
         }
 
-        [WorkItem(542225)]
+        [WorkItem(542225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameBeforeClass()
         {
@@ -2007,7 +2007,7 @@ class C { }";
             await VerifyItemIsAbsentAsync(markup, "CLSCompliantAttribute");
         }
 
-        [WorkItem(542225)]
+        [WorkItem(542225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterSpecifierBeforeClass()
         {
@@ -2020,7 +2020,7 @@ class C { }";
             await VerifyItemIsAbsentAsync(markup, "CLSCompliantAttribute");
         }
 
-        [WorkItem(542225)]
+        [WorkItem(542225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameInAttributeArgumentList()
         {
@@ -2033,7 +2033,7 @@ class C { }";
             await VerifyItemIsAbsentAsync(markup, "CLSCompliant");
         }
 
-        [WorkItem(542225)]
+        [WorkItem(542225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameInsideClass()
         {
@@ -2045,7 +2045,7 @@ class C { $$ }";
             await VerifyItemIsAbsentAsync(markup, "CLSCompliant");
         }
 
-        [WorkItem(542954)]
+        [WorkItem(542954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542954")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NamespaceAliasInAttributeName1()
         {
@@ -2058,7 +2058,7 @@ class C { }";
             await VerifyItemExistsAsync(markup, "Alias");
         }
 
-        [WorkItem(542954)]
+        [WorkItem(542954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542954")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NamespaceAliasInAttributeName2()
         {
@@ -2073,7 +2073,7 @@ class C { }";
             await VerifyItemIsAbsentAsync(markup, "Alias");
         }
 
-        [WorkItem(542954)]
+        [WorkItem(542954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542954")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NamespaceAliasInAttributeName3()
         {
@@ -2089,7 +2089,7 @@ class C { }";
         }
 
         [Fact]
-        [WorkItem(545121)]
+        [WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterNamespace()
         {
@@ -2105,7 +2105,7 @@ namespace Test
         }
 
         [Fact]
-        [WorkItem(545121)]
+        [WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterNamespace2()
         {
@@ -2124,7 +2124,7 @@ namespace Test
         }
 
         [Fact]
-        [WorkItem(545121)]
+        [WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameWhenSuffixlessFormIsKeyword()
         {
@@ -2141,7 +2141,7 @@ namespace Test
         }
 
         [Fact]
-        [WorkItem(545121)]
+        [WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterNamespaceWhenSuffixlessFormIsKeyword()
         {
@@ -2158,7 +2158,7 @@ namespace Test
         }
 
         [Fact]
-        [WorkItem(545348)]
+        [WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task KeywordsUsedAsLocals()
         {
@@ -2188,7 +2188,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(545348)]
+        [WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task QueryContextualKeywords1()
         {
@@ -2207,7 +2207,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(545348)]
+        [WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task QueryContextualKeywords2()
         {
@@ -2230,7 +2230,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(545348)]
+        [WorkItem(545348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task QueryContextualKeywords3()
         {
@@ -2253,7 +2253,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(545121)]
+        [WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterGlobalAlias()
         {
@@ -2266,7 +2266,7 @@ class Program { }";
         }
 
         [Fact]
-        [WorkItem(545121)]
+        [WorkItem(545121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterGlobalAliasWhenSuffixlessFormIsKeyword()
         {
@@ -2279,7 +2279,7 @@ class Program { }";
             await VerifyItemIsAbsentAsync(markup, "@namespace", sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WorkItem(542230)]
+        [WorkItem(542230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542230")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task RangeVariableInQuerySelect()
         {
@@ -2296,7 +2296,7 @@ class P
             await VerifyItemExistsAsync(markup, "Length");
         }
 
-        [WorkItem(542429)]
+        [WorkItem(542429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInSwitchCase()
         {
@@ -2314,7 +2314,7 @@ class C
             await VerifyItemExistsAsync(markup, "MAX_SIZE");
         }
 
-        [WorkItem(542429)]
+        [WorkItem(542429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInSwitchGotoCase()
         {
@@ -2335,7 +2335,7 @@ class C
             await VerifyItemExistsAsync(markup, "MAX_SIZE");
         }
 
-        [WorkItem(542429)]
+        [WorkItem(542429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInEnumMember()
         {
@@ -2350,7 +2350,7 @@ class C
             await VerifyItemExistsAsync(markup, "FOO");
         }
 
-        [WorkItem(542429)]
+        [WorkItem(542429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInAttribute1()
         {
@@ -2363,7 +2363,7 @@ class C
             await VerifyItemExistsAsync(markup, "FOO");
         }
 
-        [WorkItem(542429)]
+        [WorkItem(542429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInAttribute2()
         {
@@ -2376,7 +2376,7 @@ class C
             await VerifyItemExistsAsync(markup, "FOO");
         }
 
-        [WorkItem(542429)]
+        [WorkItem(542429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInAttribute3()
         {
@@ -2389,7 +2389,7 @@ class C
             await VerifyItemExistsAsync(markup, "FOO");
         }
 
-        [WorkItem(542429)]
+        [WorkItem(542429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInAttribute4()
         {
@@ -2402,7 +2402,7 @@ class C
             await VerifyItemExistsAsync(markup, "FOO");
         }
 
-        [WorkItem(542429)]
+        [WorkItem(542429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInParameterDefaultValue()
         {
@@ -2415,7 +2415,7 @@ class C
             await VerifyItemExistsAsync(markup, "FOO");
         }
 
-        [WorkItem(542429)]
+        [WorkItem(542429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInConstField()
         {
@@ -2428,7 +2428,7 @@ class C
             await VerifyItemExistsAsync(markup, "FOO");
         }
 
-        [WorkItem(542429)]
+        [WorkItem(542429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInConstLocal()
         {
@@ -2561,7 +2561,7 @@ $@"({FeaturesResources.LocalVariable}) 'a a
             await VerifyItemExistsAsync(markup, "a", expectedDescription);
         }
 
-        [WorkItem(543288)]
+        [WorkItem(543288, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543288")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterNewInAnonymousType()
         {
@@ -2577,7 +2577,7 @@ class Program {
             await VerifyItemExistsAsync(markup, "Program");
         }
 
-        [WorkItem(543601)]
+        [WorkItem(543601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543601")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoInstanceFieldsInStaticMethod()
         {
@@ -2595,7 +2595,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "x");
         }
 
-        [WorkItem(543601)]
+        [WorkItem(543601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543601")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoInstanceFieldsInStaticFieldInitializer()
         {
@@ -2610,7 +2610,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "x");
         }
 
-        [WorkItem(543601)]
+        [WorkItem(543601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543601")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticFieldsInStaticMethod()
         {
@@ -2628,7 +2628,7 @@ class C
             await VerifyItemExistsAsync(markup, "x");
         }
 
-        [WorkItem(543601)]
+        [WorkItem(543601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543601")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticFieldsInStaticFieldInitializer()
         {
@@ -2643,7 +2643,7 @@ class C
             await VerifyItemExistsAsync(markup, "x");
         }
 
-        [WorkItem(543680)]
+        [WorkItem(543680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543680")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoInstanceFieldsFromOuterClassInInstanceMethod()
         {
@@ -2664,7 +2664,7 @@ class outer
             await VerifyItemIsAbsentAsync(markup, "i");
         }
 
-        [WorkItem(543680)]
+        [WorkItem(543680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543680")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticFieldsFromOuterClassInInstanceMethod()
         {
@@ -2685,7 +2685,7 @@ class outer
             await VerifyItemExistsAsync(markup, "i");
         }
 
-        [WorkItem(543104)]
+        [WorkItem(543104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543104")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OnlyEnumMembersInEnumMemberAccess()
         {
@@ -2706,7 +2706,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "Equals");
         }
 
-        [WorkItem(543104)]
+        [WorkItem(543104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543104")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoEnumMembersInEnumLocalAccess()
         {
@@ -2728,7 +2728,7 @@ class C
             await VerifyItemExistsAsync(markup, "Equals");
         }
 
-        [WorkItem(529138)]
+        [WorkItem(529138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529138")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterLambdaParameterDot()
         {
@@ -2884,7 +2884,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 "value");
         }
 
-        [WorkItem(544205)]
+        [WorkItem(544205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterNullableType()
         {
@@ -2896,7 +2896,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 "foo");
         }
 
-        [WorkItem(544205)]
+        [WorkItem(544205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterNullableTypeAlias()
         {
@@ -2909,7 +2909,7 @@ class C {
 "foo");
         }
 
-        [WorkItem(544205)]
+        [WorkItem(544205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotAfterNullableTypeAndPartialIdentifier()
         {
@@ -2921,7 +2921,7 @@ class C {
 "foo");
         }
 
-        [WorkItem(544205)]
+        [WorkItem(544205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterQuestionMarkInConditional()
         {
@@ -2934,7 +2934,7 @@ class C {
 "foo");
         }
 
-        [WorkItem(544205)]
+        [WorkItem(544205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterQuestionMarkAndPartialIdentifierInConditional()
         {
@@ -2947,7 +2947,7 @@ class C {
 "foo");
         }
 
-        [WorkItem(544205)]
+        [WorkItem(544205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterPointerType()
         {
@@ -2959,7 +2959,7 @@ class C {
 "foo");
         }
 
-        [WorkItem(544205)]
+        [WorkItem(544205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterPointerTypeAlias()
         {
@@ -2972,7 +2972,7 @@ class C {
 "foo");
         }
 
-        [WorkItem(544205)]
+        [WorkItem(544205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterPointerTypeAndPartialIdentifier()
         {
@@ -2984,7 +2984,7 @@ class C {
 "foo");
         }
 
-        [WorkItem(544205)]
+        [WorkItem(544205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterAsteriskInMultiplication()
         {
@@ -2997,7 +2997,7 @@ class C {
 "foo");
         }
 
-        [WorkItem(544205)]
+        [WorkItem(544205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544205")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterAsteriskAndPartialIdentifierInMultiplication()
         {
@@ -3010,7 +3010,7 @@ class C {
 "foo");
         }
 
-        [WorkItem(543868)]
+        [WorkItem(543868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543868")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterEventFieldDeclaredInSameType()
         {
@@ -3022,7 +3022,7 @@ class C {
 "Invoke");
         }
 
-        [WorkItem(543868)]
+        [WorkItem(543868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543868")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterFullEventDeclaredInSameType()
         {
@@ -3034,7 +3034,7 @@ class C {
 "Invoke");
         }
 
-        [WorkItem(543868)]
+        [WorkItem(543868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543868")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterEventDeclaredInDifferentType()
         {
@@ -3045,7 +3045,7 @@ class C {
 "Invoke");
         }
 
-        [WorkItem(544219)]
+        [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotInObjectInitializerMemberContext()
         {
@@ -3059,7 +3059,7 @@ class C
 "x");
         }
 
-        [WorkItem(544219)]
+        [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task AfterPointerMemberAccess()
         {
@@ -3102,7 +3102,7 @@ class Class3 { }
             await Assert.ThrowsAsync<Xunit.Sdk.TrueException>(async () => await VerifyItemExistsAsync(code, "XAttribute"));
         }
 
-        [WorkItem(544928)]
+        [WorkItem(544928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544928")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task InForLoopIncrementor1()
         {
@@ -3119,7 +3119,7 @@ class Program
 ", "Console");
         }
 
-        [WorkItem(544928)]
+        [WorkItem(544928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544928")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task InForLoopIncrementor2()
         {
@@ -3136,7 +3136,7 @@ class Program
 ", "Console");
         }
 
-        [WorkItem(544931)]
+        [WorkItem(544931, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544931")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task InForLoopInitializer1()
         {
@@ -3153,7 +3153,7 @@ class Program
 ", "Console");
         }
 
-        [WorkItem(544931)]
+        [WorkItem(544931, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544931")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task InForLoopInitializer2()
         {
@@ -4224,8 +4224,8 @@ public class Foo
                 hideAdvancedMembers: false);
         }
 
-        [WorkItem(522440)]
-        [WorkItem(674611)]
+        [WorkItem(522440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522440")]
+        [WorkItem(674611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674611")]
         [WpfFact(Skip = "674611"), Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Property_BrowsableStateNever()
         {
@@ -6076,7 +6076,7 @@ public class Foo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WorkItem(545557)]
+        [WorkItem(545557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545557")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestColorColor1()
         {
@@ -6097,7 +6097,7 @@ class A
             await VerifyItemExistsAsync(markup, "Bar");
         }
 
-        [WorkItem(545647)]
+        [WorkItem(545647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545647")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestLaterLocalHidesType1()
         {
@@ -6115,7 +6115,7 @@ class C
             await VerifyItemExistsAsync(markup, "Console");
         }
 
-        [WorkItem(545647)]
+        [WorkItem(545647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545647")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestLaterLocalHidesType2()
         {
@@ -6183,7 +6183,7 @@ End Class";
                 referencedLanguage: LanguageNames.VisualBasic);
         }
 
-        [WorkItem(546841)]
+        [WorkItem(546841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546841")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestDeclarationAmbiguity()
         {
@@ -6349,7 +6349,7 @@ class Program
             await VerifyItemExistsAsync(markup, "foo", $"[{CSharpFeaturesResources.Deprecated}] void Program.foo()");
         }
 
-        [WorkItem(568986)]
+        [WorkItem(568986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568986")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoMembersOnDottingIntoUnboundType()
         {
@@ -6366,7 +6366,7 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(550717)]
+        [WorkItem(550717, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/550717")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeArgumentsInConstraintAfterBaselist()
         {
@@ -6377,7 +6377,7 @@ public class Foo<T> : System.Object where $$
             await VerifyItemExistsAsync(markup, "T");
         }
 
-        [WorkItem(647175)]
+        [WorkItem(647175, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/647175")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoDestructor()
         {
@@ -6391,7 +6391,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "Finalize");
         }
 
-        [WorkItem(669624)]
+        [WorkItem(669624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/669624")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExtensionMethodOnCovariantInterface()
         {
@@ -6424,7 +6424,7 @@ class Program
             await VerifyItemExistsAsync(markup, "ForSchemaSet<>", sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WorkItem(667752)]
+        [WorkItem(667752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667752")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ForEachInsideParentheses()
         {
@@ -6440,7 +6440,7 @@ class C
             await VerifyItemExistsAsync(markup, "String");
         }
 
-        [WorkItem(766869)]
+        [WorkItem(766869, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766869")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestFieldInitializerInP2P()
         {
@@ -6458,7 +6458,7 @@ public static class Consts
             await VerifyItemWithProjectReferenceAsync(markup, referencedCode, "C", 1, LanguageNames.CSharp, LanguageNames.CSharp, false);
         }
 
-        [WorkItem(834605)]
+        [WorkItem(834605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834605")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ShowWithEqualsSign()
         {
@@ -6476,7 +6476,7 @@ class d
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(825661)]
+        [WorkItem(825661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/825661")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NothingAfterThisDotInStaticContext()
         {
@@ -6494,7 +6494,7 @@ class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(825661)]
+        [WorkItem(825661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/825661")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NothingAfterBaseDotInStaticContext()
         {
@@ -6512,7 +6512,7 @@ class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WorkItem(858086)]
+        [WorkItem(858086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858086")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoNestedTypeWhenDisplayingInstance()
         {
@@ -6532,7 +6532,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "D");
         }
 
-        [WorkItem(876031)]
+        [WorkItem(876031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876031")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CatchVariableInExceptionFilter()
         {
@@ -6549,7 +6549,7 @@ class C
             await VerifyItemExistsAsync(markup, "myExn");
         }
 
-        [WorkItem(849698)]
+        [WorkItem(849698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849698")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionAfterExternAlias()
         {
@@ -6565,7 +6565,7 @@ class C
             await VerifyItemExistsAsync(markup, "System", usePreviousCharAsTrigger: true);
         }
 
-        [WorkItem(849698)]
+        [WorkItem(849698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849698")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExternAliasSuggested()
         {
@@ -6581,7 +6581,7 @@ class C
             await VerifyItemWithAliasedMetadataReferencesAsync(markup, "Bar", "Bar", 1, "C#", "C#", false);
         }
 
-        [WorkItem(635957)]
+        [WorkItem(635957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635957")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ClassDestructor()
         {
@@ -6597,7 +6597,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "C");
         }
 
-        [WorkItem(635957)]
+        [WorkItem(635957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635957")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TildeOutsideClass()
         {
@@ -6612,7 +6612,7 @@ class C
             await VerifyNoItemsExistAsync(markup, SourceCodeKind.Regular);
         }
 
-        [WorkItem(635957)]
+        [WorkItem(635957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635957")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StructDestructor()
         {
@@ -6780,7 +6780,7 @@ class C
             await VerifyItemInLinkedFilesAsync(markup, "DoGStuff", expectedDescription);
         }
 
-        [WorkItem(1020944)]
+        [WorkItem(1020944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LocalsValidInLinkedDocuments()
         {
@@ -6806,7 +6806,7 @@ class C
             await VerifyItemInLinkedFilesAsync(markup, "xyz", expectedDescription);
         }
 
-        [WorkItem(1020944)]
+        [WorkItem(1020944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LocalWarningInLinkedDocuments()
         {
@@ -6834,7 +6834,7 @@ class C
             await VerifyItemInLinkedFilesAsync(markup, "xyz", expectedDescription);
         }
 
-        [WorkItem(1020944)]
+        [WorkItem(1020944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LabelsValidInLinkedDocuments()
         {
@@ -6860,7 +6860,7 @@ LABEL:  int xyz;
             await VerifyItemInLinkedFilesAsync(markup, "LABEL", expectedDescription);
         }
 
-        [WorkItem(1020944)]
+        [WorkItem(1020944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task RangeVariablesValidInLinkedDocuments()
         {
@@ -6886,7 +6886,7 @@ class C
             await VerifyItemInLinkedFilesAsync(markup, "y", expectedDescription);
         }
 
-        [WorkItem(1063403)]
+        [WorkItem(1063403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063403")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodOverloadDifferencesIgnored()
         {
@@ -7207,7 +7207,7 @@ class A
             await VerifyItemExistsAsync(markup, "System", experimental: true);
         }
 
-        [WorkItem(1109319)]
+        [WorkItem(1109319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task WithinChainOfConditionalAccesses()
         {
@@ -7228,7 +7228,7 @@ class D { public int e; }";
             await VerifyItemExistsAsync(markup, "b");
         }
 
-        [WorkItem(843466)]
+        [WorkItem(843466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843466")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedAttributeAccessibleOnSelf()
         {
@@ -7245,7 +7245,7 @@ class X
             await VerifyItemExistsAsync(markup, "My");
         }
 
-        [WorkItem(843466)]
+        [WorkItem(843466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843466")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedAttributeAccessibleOnOuterType()
         {
@@ -7406,7 +7406,7 @@ class Derived : Base<int>
             await VerifyItemIsAbsentAsync(markup, "X");
         }
 
-        [WorkItem(983367)]
+        [WorkItem(983367, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/983367")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoTypeParametersDefinedInCrefs()
         {
@@ -7417,7 +7417,7 @@ class Program<T> { }";
             await VerifyItemIsAbsentAsync(markup, "T");
         }
 
-        [WorkItem(988025)]
+        [WorkItem(988025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ShowTypesInGenericMethodTypeParameterList1()
         {
@@ -7443,7 +7443,7 @@ class Program
             await VerifyItemExistsAsync(markup, "Class1<>", sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WorkItem(988025)]
+        [WorkItem(988025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ShowTypesInGenericMethodTypeParameterList2()
         {
@@ -7469,7 +7469,7 @@ class Program
             await VerifyItemExistsAsync(markup, "Class1<>", sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WorkItem(991466)]
+        [WorkItem(991466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DescriptionInAliasedType()
         {
@@ -7500,7 +7500,7 @@ class C
             await VerifyAnyItemExistsAsync(markup);
         }
 
-        [WorkItem(997410)]
+        [WorkItem(997410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997410")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InstanceMemberInNameOfInStaticContext()
         {
@@ -7514,7 +7514,7 @@ class C
             await VerifyItemExistsAsync(markup, "y1");
         }
 
-        [WorkItem(997410)]
+        [WorkItem(997410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997410")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticMemberInNameOfInStaticContext()
         {
@@ -7528,7 +7528,7 @@ class C
             await VerifyItemExistsAsync(markup, "y2");
         }
 
-        [WorkItem(883293)]
+        [WorkItem(883293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883293")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IncompleteDeclarationExpressionType()
         {
@@ -7546,7 +7546,7 @@ class C
             await VerifyItemExistsAsync(markup, "WriteLine", experimental: true);
         }
 
-        [WorkItem(1024380)]
+        [WorkItem(1024380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024380")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticAndInstanceInNameOf()
         {
@@ -7595,7 +7595,7 @@ public class U
             await VerifyItemExistsAsync(markup, "nope");
         }
 
-        [WorkItem(1029522)]
+        [WorkItem(1029522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029522")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NameOfMembersListedForNamespacesAndTypes2()
         {
@@ -7620,7 +7620,7 @@ public class U
             await VerifyItemExistsAsync(markup, "nope");
         }
 
-        [WorkItem(1029522)]
+        [WorkItem(1029522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029522")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NameOfMembersListedForNamespacesAndTypes3()
         {
@@ -7642,7 +7642,7 @@ public class U
             await VerifyItemExistsAsync(markup, "U");
         }
 
-        [WorkItem(1029522)]
+        [WorkItem(1029522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029522")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NameOfMembersListedForNamespacesAndTypes4()
         {
@@ -7752,7 +7752,7 @@ class C
             await VerifyItemExistsAsync(markup, "b");
         }
 
-        [WorkItem(1064811)]
+        [WorkItem(1064811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotBeforeFirstStringHole()
         {
@@ -7760,7 +7760,7 @@ class C
 @"var x = ""\{0}$$\{1}\{2}"""));
         }
 
-        [WorkItem(1064811)]
+        [WorkItem(1064811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotBetweenStringHoles()
         {
@@ -7768,7 +7768,7 @@ class C
 @"var x = ""\{0}\{1}$$\{2}"""));
         }
 
-        [WorkItem(1064811)]
+        [WorkItem(1064811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotAfterStringHoles()
         {
@@ -7776,7 +7776,7 @@ class C
 @"var x = ""\{0}\{1}\{2}$$"""));
         }
 
-        [WorkItem(1087171)]
+        [WorkItem(1087171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087171")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task CompletionAfterTypeOfGetType()
         {
@@ -8249,7 +8249,7 @@ public static class Test
 ";
             await VerifyItemExistsAsync(markup, "TestA");
         }
-        
+
         [WorkItem(7932, "https://github.com/dotnet/roslyn/issues/7932")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExtensionMethodWithinParentClassOfferedForCompletion()

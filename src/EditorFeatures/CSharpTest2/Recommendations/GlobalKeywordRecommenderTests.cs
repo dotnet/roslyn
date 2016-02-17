@@ -27,14 +27,14 @@ namespace foo
 }");
         }
 
-        [WorkItem(543628)]
+        [WorkItem(543628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543628")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInEnumDeclaration()
         {
             await VerifyAbsenceAsync(@"enum Foo { $$ }");
         }
 
-        [WorkItem(544219)]
+        [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInObjectInitializerMemberContext()
         {

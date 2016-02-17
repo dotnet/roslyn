@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger;

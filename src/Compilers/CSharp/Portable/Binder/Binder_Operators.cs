@@ -635,7 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 child = binary.Left;
                 var childAsBinary = child as BinaryExpressionSyntax;
 
-                if (childAsBinary == null || 
+                if (childAsBinary == null ||
                     (childAsBinary.Kind() != SyntaxKind.LogicalOrExpression && childAsBinary.Kind() != SyntaxKind.LogicalAndExpression))
                 {
                     break;

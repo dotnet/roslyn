@@ -18,12 +18,14 @@ static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLineF
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLineForFinally.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLineForMembersInAnonymousTypes.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLineForMembersInObjectInit.get -> Microsoft.CodeAnalysis.Options.Option<bool>
+static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInAccessors.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInControlBlocks.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInMethods.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers.get -> Microsoft.CodeAnalysis.Options.Option<bool>
+static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInProperties.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.NewLinesForBracesInTypes.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceAfterCast.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.SpaceAfterColonInBaseTypeDeclaration.get -> Microsoft.CodeAnalysis.Options.Option<bool>

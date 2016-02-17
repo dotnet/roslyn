@@ -1,23 +1,23 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.ExpressionEvaluator;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
-using Roslyn.Test.PdbUtilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class HoistedThisTests : ExpressionCompilerTestBase
     {
-        [WorkItem(1067379)]
+        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         [Fact]
         public void InstanceIterator_NoCapturing()
         {
@@ -43,7 +43,7 @@ class C
             VerifyHasThis(source, "C.<F>d__0.MoveNext", "C", expectedIL);
         }
 
-        [WorkItem(1067379)]
+        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         [Fact]
         public void InstanceAsync_NoCapturing()
         {
@@ -75,7 +75,7 @@ class C
             VerifyHasThis(source, "C.<F>d__0.MoveNext", "C", expectedIL);
         }
 
-        [WorkItem(1067379)]
+        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         [Fact]
         public void InstanceLambda_NoCapturing()
         {
@@ -202,7 +202,7 @@ class C
             VerifyHasThis(source, "C.<>c__DisplayClass1_0.<M>b__0", "C", expectedIL, thisCanBeElided: false);
         }
 
-        [WorkItem(1067379)]
+        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         [Fact]
         public void InstanceLambda_CapturedThis_NoDisplayClass()
         {
@@ -508,7 +508,7 @@ class C : I<int>
             VerifyHasThis(source, "C.<>c__DisplayClass1_0.<I<System.Int32>.M>b__0", "C", expectedIL, thisCanBeElided: false);
         }
 
-        [WorkItem(1066489)]
+        [WorkItem(1066489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066489")]
         [Fact]
         public void InstanceIterator_ExplicitInterfaceImplementation_OldName()
         {
@@ -627,18 +627,10 @@ class C : I<int>
 
 } // end of class C
 ";
-
-            ImmutableArray<byte> ilBytes;
-            ImmutableArray<byte> ilPdbBytes;
-            EmitILToArray(ilSource, appendDefaultHeader: true, includePdb: true, assemblyBytes: out ilBytes, pdbBytes: out ilPdbBytes);
-
-            var runtime = CreateRuntimeInstance(
-                assemblyName: GetUniqueName(),
-                references: ImmutableArray.Create(MscorlibRef),
-                exeBytes: ilBytes.ToArray(),
-                symReader: SymReaderFactory.CreateReader(ilPdbBytes));
-
+            var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var context = CreateMethodContext(runtime, "C.<I<System.Int32>.F>d__0.MoveNext");
+
             VerifyHasThis(context, "C", @"
 {
   // Code size        7 (0x7)
@@ -751,7 +743,7 @@ static class C
             VerifyNoThis(source, "C.<>c__DisplayClass0_0.<F>b__0");
         }
 
-        [WorkItem(1072296)]
+        [WorkItem(1072296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072296")]
         [Fact]
         public void OldStyleNonCapturingLambda()
         {
@@ -782,22 +774,13 @@ static class C
   }
 } // end of class C
 ";
-
-            ImmutableArray<byte> ilBytes;
-            ImmutableArray<byte> ilPdbBytes;
-            EmitILToArray(ilSource, appendDefaultHeader: true, includePdb: true, assemblyBytes: out ilBytes, pdbBytes: out ilPdbBytes);
-
-            var runtime = CreateRuntimeInstance(
-                assemblyName: GetUniqueName(),
-                references: ImmutableArray.Create(MscorlibRef),
-                exeBytes: ilBytes.ToArray(),
-                symReader: SymReaderFactory.CreateReader(ilPdbBytes.ToArray()));
-
+            var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(ilSource);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var context = CreateMethodContext(runtime, "C.<M>b__0");
             VerifyNoThis(context);
         }
 
-        [WorkItem(1067379)]
+        [WorkItem(1067379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067379")]
         [Fact]
         public void LambdaLocations_Instance()
         {
@@ -866,24 +849,25 @@ class C
 }}";
 
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(comp);
-
-            var dummyComp = CreateCompilationWithMscorlib("", new[] { comp.EmitToImageReference() }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            var typeC = dummyComp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var displayClassTypes = typeC.GetMembers().OfType<NamedTypeSymbol>();
-            Assert.True(displayClassTypes.Any());
-            foreach (var displayClassType in displayClassTypes)
+            WithRuntimeInstance(comp, runtime =>
             {
-                var displayClassName = displayClassType.Name;
-                Assert.Equal(GeneratedNameKind.LambdaDisplayClass, GeneratedNames.GetKind(displayClassName));
-                foreach (var displayClassMethod in displayClassType.GetMembers().OfType<MethodSymbol>().Where(m => GeneratedNames.GetKind(m.Name) == GeneratedNameKind.LambdaMethod))
+                var dummyComp = CreateCompilationWithMscorlib("", new[] { comp.EmitToImageReference() }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+                var typeC = dummyComp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var displayClassTypes = typeC.GetMembers().OfType<NamedTypeSymbol>();
+                Assert.True(displayClassTypes.Any());
+                foreach (var displayClassType in displayClassTypes)
                 {
-                    var lambdaMethodName = string.Format("C.{0}.{1}", displayClassName, displayClassMethod.Name);
-                    var context = CreateMethodContext(runtime, lambdaMethodName);
-                    var expectedIL = string.Format(expectedILTemplate, displayClassName);
-                    VerifyHasThis(context, "C", expectedIL);
+                    var displayClassName = displayClassType.Name;
+                    Assert.Equal(GeneratedNameKind.LambdaDisplayClass, GeneratedNames.GetKind(displayClassName));
+                    foreach (var displayClassMethod in displayClassType.GetMembers().OfType<MethodSymbol>().Where(m => GeneratedNames.GetKind(m.Name) == GeneratedNameKind.LambdaMethod))
+                    {
+                        var lambdaMethodName = string.Format("C.{0}.{1}", displayClassName, displayClassMethod.Name);
+                        var context = CreateMethodContext(runtime, lambdaMethodName);
+                        var expectedIL = string.Format(expectedILTemplate, displayClassName);
+                        VerifyHasThis(context, "C", expectedIL);
+                    }
                 }
-            }
+            });
         }
 
         [Fact]
@@ -928,52 +912,56 @@ class C
 ";
 
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(comp);
-
-            var dummyComp = CreateCompilationWithMscorlib("", new[] { comp.EmitToImageReference() }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            var typeC = dummyComp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var displayClassTypes = typeC.GetMembers().OfType<NamedTypeSymbol>();
-            Assert.True(displayClassTypes.Any());
-            foreach (var displayClassType in displayClassTypes)
+            WithRuntimeInstance(comp, runtime =>
             {
-                var displayClassName = displayClassType.Name;
-                Assert.Equal(GeneratedNameKind.LambdaDisplayClass, GeneratedNames.GetKind(displayClassName));
-                foreach (var displayClassMethod in displayClassType.GetMembers().OfType<MethodSymbol>().Where(m => GeneratedNames.GetKind(m.Name) == GeneratedNameKind.LambdaMethod))
+                var dummyComp = CreateCompilationWithMscorlib("", new[] { comp.EmitToImageReference() }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+                var typeC = dummyComp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var displayClassTypes = typeC.GetMembers().OfType<NamedTypeSymbol>();
+                Assert.True(displayClassTypes.Any());
+                foreach (var displayClassType in displayClassTypes)
                 {
-                    var lambdaMethodName = string.Format("C.{0}.{1}", displayClassName, displayClassMethod.Name);
-                    var context = CreateMethodContext(runtime, lambdaMethodName);
-                    VerifyNoThis(context);
+                    var displayClassName = displayClassType.Name;
+                    Assert.Equal(GeneratedNameKind.LambdaDisplayClass, GeneratedNames.GetKind(displayClassName));
+                    foreach (var displayClassMethod in displayClassType.GetMembers().OfType<MethodSymbol>().Where(m => GeneratedNames.GetKind(m.Name) == GeneratedNameKind.LambdaMethod))
+                    {
+                        var lambdaMethodName = string.Format("C.{0}.{1}", displayClassName, displayClassMethod.Name);
+                        var context = CreateMethodContext(runtime, lambdaMethodName);
+                        VerifyNoThis(context);
+                    }
                 }
-            }
+            });
         }
 
         private void VerifyHasThis(string source, string methodName, string expectedType, string expectedIL, bool thisCanBeElided = true)
         {
             var sourceCompilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(sourceCompilation);
-            var context = CreateMethodContext(runtime, methodName);
-
-            VerifyHasThis(context, expectedType, expectedIL);
+            WithRuntimeInstance(sourceCompilation, runtime =>
+            {
+                var context = CreateMethodContext(runtime, methodName);
+                VerifyHasThis(context, expectedType, expectedIL);
+            });
 
             // Now recompile and test CompileExpression with optimized code.
             sourceCompilation = sourceCompilation.WithOptions(sourceCompilation.Options.WithOptimizationLevel(OptimizationLevel.Release));
-            runtime = CreateRuntimeInstance(sourceCompilation);
-            context = CreateMethodContext(runtime, methodName);
-            // In C#, "this" may be optimized away.
-            if (thisCanBeElided)
+            WithRuntimeInstance(sourceCompilation, runtime =>
             {
-                VerifyNoThis(context);
-            }
-            else
-            {
-                VerifyHasThis(context, expectedType, expectedIL: null);
-            }
-            // Verify that binding a trivial expression succeeds.
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression("42", out error, testData);
-            Assert.Null(error);
-            Assert.Equal(1, testData.Methods.Count);
+                var context = CreateMethodContext(runtime, methodName);
+                // In C#, "this" may be optimized away.
+                if (thisCanBeElided)
+                {
+                    VerifyNoThis(context);
+                }
+                else
+                {
+                    VerifyHasThis(context, expectedType, expectedIL: null);
+                }
+                // Verify that binding a trivial expression succeeds.
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("42", out error, testData);
+                Assert.Null(error);
+                Assert.Equal(1, testData.Methods.Count);
+            });
         }
 
         private static void VerifyHasThis(EvaluationContext context, string expectedType, string expectedIL)
@@ -1011,10 +999,8 @@ class C
 
         private void VerifyNoThis(string source, string methodName)
         {
-            var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(comp);
-            var context = CreateMethodContext(runtime, methodName);
-            VerifyNoThis(context);
+            var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugDll);
+            WithRuntimeInstance(comp, runtime => VerifyNoThis(CreateMethodContext(runtime, methodName)));
         }
 
         private static void VerifyNoThis(EvaluationContext context)
@@ -1045,7 +1031,7 @@ class C
             locals.Free();
         }
 
-        [WorkItem(1024137)]
+        [WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         [Fact]
         public void InstanceMembersInIterator()
         {
@@ -1058,16 +1044,14 @@ class C
         yield return this.x;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(runtime, "C.<F>d__1.MoveNext");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression("this.x", out error, testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<F>d__1.MoveNext");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("this.x", out error, testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -1077,9 +1061,10 @@ class C
   IL_0006:  ldfld      ""object C.x""
   IL_000b:  ret
 }");
+            });
         }
 
-        [WorkItem(1024137)]
+        [WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         [Fact]
         public void InstanceMembersInAsync()
         {
@@ -1095,16 +1080,14 @@ class C
         await Console.Out.WriteLineAsync(this.ToString());
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(runtime, "C.<F>d__1.MoveNext");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression("this.x", out error, testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<F>d__1.MoveNext");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("this.x", out error, testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -1117,9 +1100,10 @@ class C
   IL_0006:  ldfld      ""object C.x""
   IL_000b:  ret
 }");
+            });
         }
 
-        [WorkItem(1024137)]
+        [WorkItem(1024137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024137")]
         [Fact]
         public void InstanceMembersInLambda()
         {
@@ -1133,16 +1117,14 @@ class C
         a();
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(runtime, "C.<F>b__1_0");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression("this.x", out error, testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<F>b__1_0");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("this.x", out error, testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -1150,6 +1132,7 @@ class C
   IL_0001:  ldfld      ""object C.x""
   IL_0006:  ret
 }");
+            });
         }
 
         [Fact]
@@ -1170,16 +1153,14 @@ class Derived : Base
         yield return base.x;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(runtime, "Derived.<M>d__1.MoveNext");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression("base.x", out error, testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "Derived.<M>d__1.MoveNext");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("base.x", out error, testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -1189,6 +1170,7 @@ class Derived : Base
   IL_0006:  ldfld      ""int Base.x""
   IL_000b:  ret
 }");
+            });
         }
 
         [Fact]
@@ -1212,16 +1194,14 @@ class Derived : Base
         await Console.Out.WriteLineAsync(this.ToString());
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(runtime, "Derived.<M>d__1.MoveNext");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression("base.x", out error, testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "Derived.<M>d__1.MoveNext");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("base.x", out error, testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -1234,6 +1214,7 @@ class Derived : Base
   IL_0006:  ldfld      ""int Base.x""
   IL_000b:  ret
 }");
+            });
         }
 
         [Fact]
@@ -1255,16 +1236,14 @@ class Derived : Base
         a();
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
-                source,
-                options: TestOptions.DebugDll,
-                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(runtime, "Derived.<F>b__1_0");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression("this.x", out error, testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "Derived.<F>b__1_0");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("this.x", out error, testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -1272,6 +1251,7 @@ class Derived : Base
   IL_0001:  ldfld      ""object Derived.x""
   IL_0006:  ret
 }");
+            });
         }
 
         [Fact]

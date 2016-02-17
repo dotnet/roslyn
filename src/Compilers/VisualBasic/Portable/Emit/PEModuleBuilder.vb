@@ -139,10 +139,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Private Sub ValidateReferencedAssembly(assembly As AssemblySymbol, asmRef As AssemblyReference, diagnostics As DiagnosticBag)
             Dim asmIdentity As AssemblyIdentity = SourceModule.ContainingAssembly.Identity
-            Dim refIdentity As AssemblyIdentity = asmRef.MetadataIdentity
+            Dim refIdentity As AssemblyIdentity = asmRef.Identity
 
             If asmIdentity.IsStrongName AndAlso Not refIdentity.IsStrongName AndAlso
-               DirectCast(asmRef, Cci.IAssemblyReference).ContentType <> Reflection.AssemblyContentType.WindowsRuntime Then
+               asmRef.Identity.ContentType <> Reflection.AssemblyContentType.WindowsRuntime Then
                 ' Dev12 reported error, we have changed it to a warning to allow referencing libraries 
                 ' built for platforms that don't support strong names.
                 diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.WRN_ReferencedAssemblyDoesNotHaveStrongName, assembly), NoLocation.Singleton)
@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                Not (refMachine = Machine.I386 AndAlso Not assembly.Bit32Required) Then
                 Dim machine = SourceModule.Machine
 
-                If Not (machine = machine.I386 AndAlso Not SourceModule.Bit32Required) AndAlso
+                If Not (machine = Machine.I386 AndAlso Not SourceModule.Bit32Required) AndAlso
                     machine <> refMachine Then
                     ' Different machine types, and neither is agnostic
                     diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.WRN_ConflictingMachineAssembly, assembly), NoLocation.Singleton)
@@ -427,8 +427,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                                     context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_ExportedTypeConflictsWithDeclaration, exportedType, exportedType.ContainingModule),
                                             NoLocation.Singleton))
                                 Else
-                                    context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_ForwardedTypeConflictsWithDeclaration, exportedType),
-                                            NoLocation.Singleton))
+                                    context.Diagnostics.Add(New VBDiagnostic(
+                                        ErrorFactory.ErrorInfo(ERRID.ERR_ForwardedTypeConflictsWithDeclaration,
+                                                               CustomSymbolDisplayFormatter.DefaultErrorFormat(exportedType)), NoLocation.Singleton))
                                 End If
 
                                 Continue For
@@ -443,23 +444,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                                     ' all exported types precede forwarded types, therefore contender cannot be a forwarded type.
                                     Debug.Assert(contender.ContainingAssembly Is sourceAssembly)
 
-                                    context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_ExportedTypesConflict,
-                                                                                                exportedType, exportedType.ContainingModule,
-                                                                                                contender, contender.ContainingModule),
-                                        NoLocation.Singleton))
+                                    context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(
+                                                                                ERRID.ERR_ExportedTypesConflict,
+                                                                                CustomSymbolDisplayFormatter.DefaultErrorFormat(exportedType),
+                                                                                CustomSymbolDisplayFormatter.DefaultErrorFormat(exportedType.ContainingModule),
+                                                                                CustomSymbolDisplayFormatter.DefaultErrorFormat(contender),
+                                                                                CustomSymbolDisplayFormatter.DefaultErrorFormat(contender.ContainingModule)),
+                                                                             NoLocation.Singleton))
                                 Else
                                     If contender.ContainingAssembly Is sourceAssembly Then
                                         ' Forwarded type conflicts with exported type
-                                        context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_ForwardedTypeConflictsWithExportedType,
-                                                                                                    exportedType, exportedType.ContainingAssembly,
-                                                                                                    contender, contender.ContainingModule),
-                                            NoLocation.Singleton))
+                                        context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(
+                                                                                    ERRID.ERR_ForwardedTypeConflictsWithExportedType,
+                                                                                    CustomSymbolDisplayFormatter.DefaultErrorFormat(exportedType),
+                                                                                    exportedType.ContainingAssembly,
+                                                                                    CustomSymbolDisplayFormatter.DefaultErrorFormat(contender),
+                                                                                    CustomSymbolDisplayFormatter.DefaultErrorFormat(contender.ContainingModule)),
+                                                                                 NoLocation.Singleton))
                                     Else
                                         ' Forwarded type conflicts with another forwarded type
-                                        context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_ForwardedTypesConflict,
-                                                                                                    exportedType, exportedType.ContainingAssembly,
-                                                                                                    contender, contender.ContainingAssembly),
-                                            NoLocation.Singleton))
+                                        context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(
+                                                                                    ERRID.ERR_ForwardedTypesConflict,
+                                                                                    CustomSymbolDisplayFormatter.DefaultErrorFormat(exportedType),
+                                                                                    exportedType.ContainingAssembly,
+                                                                                    CustomSymbolDisplayFormatter.DefaultErrorFormat(contender),
+                                                                                    contender.ContainingAssembly),
+                                                                                 NoLocation.Singleton))
                                     End If
                                 End If
 

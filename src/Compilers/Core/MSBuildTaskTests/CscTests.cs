@@ -40,18 +40,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
 
-        [Fact] 
+        [Fact]
         public void DeterministicFlag()
         {
             var csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             csc.Deterministic = true;
-            Assert.Equal("/deterministic+ /out:test.exe test.cs", csc.GenerateResponseFileContents());
+            Assert.Equal("/out:test.exe /deterministic+ test.cs", csc.GenerateResponseFileContents());
 
             csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             csc.Deterministic = false;
-            Assert.Equal("/deterministic- /out:test.exe test.cs", csc.GenerateResponseFileContents());
+            Assert.Equal("/out:test.exe /deterministic- test.cs", csc.GenerateResponseFileContents());
 
             csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
@@ -64,12 +64,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             csc.PublicSign = true;
-            Assert.Equal("/publicsign+ /out:test.exe test.cs", csc.GenerateResponseFileContents());
+            Assert.Equal("/out:test.exe /publicsign+ test.cs", csc.GenerateResponseFileContents());
 
             csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             csc.PublicSign = false;
-            Assert.Equal("/publicsign- /out:test.exe test.cs", csc.GenerateResponseFileContents());
+            Assert.Equal("/out:test.exe /publicsign- test.cs", csc.GenerateResponseFileContents());
 
             csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");

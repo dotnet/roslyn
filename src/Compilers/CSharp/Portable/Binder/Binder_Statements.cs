@@ -1656,6 +1656,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PointerMemberAccessExpression:
                     eventSyntax = ((MemberAccessExpressionSyntax)syntax).Name;
                     break;
+                case SyntaxKind.QualifiedName:
+                    // This case is reachable only through SemanticModel
+                    eventSyntax = ((QualifiedNameSyntax)syntax).Right;
+                    break;
                 case SyntaxKind.IdentifierName:
                     eventSyntax = syntax;
                     break;

@@ -115,11 +115,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     var ctorParameter = ctor.Parameters[i];
                     var result = SymbolEquivalenceComparer.Instance.Equals(ctorParameter.Type, this.ParameterTypes[i]) &&
                         ctorParameter.RefKind == this.ParameterRefKinds[i];
-                    
+
                     string parameterName = GetParameterName(service, i);
                     if (!string.IsNullOrEmpty(parameterName))
                     {
-                        result &= service.IsCaseSensitive 
+                        result &= service.IsCaseSensitive
                             ? ctorParameter.Name == parameterName
                             : string.Equals(ctorParameter.Name, parameterName, StringComparison.OrdinalIgnoreCase);
                     }

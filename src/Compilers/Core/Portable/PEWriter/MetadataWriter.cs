@@ -422,6 +422,7 @@ namespace Microsoft.Cci
         private int[] _pseudoSymbolTokenToTokenMap;
         private IReference[] _pseudoSymbolTokenToReferenceMap;
         private int[] _pseudoStringTokenToTokenMap;
+        private bool _userStringTokenOverflow;
         private List<string> _pseudoStringTokenToStringMap;
         private ReferenceIndexer _referenceVisitor;
 
@@ -2268,8 +2269,8 @@ namespace Microsoft.Cci
 
         private void SerializeMetadataTables(
             BlobBuilder writer,
-            MetadataSizes metadataSizes, 
-            int methodBodyStreamRva, 
+            MetadataSizes metadataSizes,
+            int methodBodyStreamRva,
             int mappedFieldDataStreamRva)
         {
             int startPosition = writer.Position;
@@ -2567,16 +2568,18 @@ namespace Microsoft.Cci
             foreach (var assemblyRef in assemblyRefs)
             {
                 AssemblyRefTableRow r = new AssemblyRefTableRow();
-                r.Version = assemblyRef.Version;
-                r.PublicKeyToken = heaps.GetBlobIndex(assemblyRef.PublicKeyToken);
+                var identity = assemblyRef.Identity;
+
+                r.Version = identity.Version;
+                r.PublicKeyToken = heaps.GetBlobIndex(identity.PublicKeyToken);
 
                 Debug.Assert(!string.IsNullOrEmpty(assemblyRef.Name));
                 r.Name = this.GetStringIndexForPathAndCheckLength(assemblyRef.Name, assemblyRef);
 
-                r.Culture = heaps.GetStringIndex(assemblyRef.Culture);
+                r.Culture = heaps.GetStringIndex(identity.CultureName);
 
-                r.IsRetargetable = assemblyRef.IsRetargetable;
-                r.ContentType = assemblyRef.ContentType;
+                r.IsRetargetable = identity.IsRetargetable;
+                r.ContentType = identity.ContentType;
                 _assemblyRefTable.Add(r);
             }
         }
@@ -2593,24 +2596,12 @@ namespace Microsoft.Cci
 
             public bool Equals(IAssemblyReference x, IAssemblyReference y)
             {
-                if (ReferenceEquals(x, y))
-                {
-                    return true;
-                }
-
-                return
-                    x.Version.Equals(y.Version) &&
-                    ByteSequenceComparer.Equals(x.PublicKeyToken, y.PublicKeyToken) &&
-                    x.Name == y.Name &&
-                    x.Culture == y.Culture;
+                return x.Identity == y.Identity;
             }
 
             public int GetHashCode(IAssemblyReference reference)
             {
-                return Hash.Combine(reference.Version,
-                       Hash.Combine(ByteSequenceComparer.GetHashCode(reference.PublicKeyToken),
-                       Hash.Combine(reference.Name.GetHashCode(),
-                       Hash.Combine(reference.Culture, 0))));
+                return reference.Identity.GetHashCode();
             }
         }
 
@@ -2626,7 +2617,7 @@ namespace Microsoft.Cci
             IAssembly assembly = this.module.AsAssembly;
             _assemblyKey = heaps.GetBlobIndex(assembly.PublicKey);
             _assemblyName = this.GetStringIndexForPathAndCheckLength(assembly.Name, assembly);
-            _assemblyCulture = heaps.GetStringIndex(assembly.Culture);
+            _assemblyCulture = heaps.GetStringIndex(assembly.Identity.CultureName);
         }
 
         private BlobIdx _assemblyKey;
@@ -4117,11 +4108,13 @@ namespace Microsoft.Cci
             }
 
             IAssembly assembly = this.module.AsAssembly;
+            var identity = assembly.Identity;
+
             writer.WriteUInt32((uint)assembly.HashAlgorithm);
-            writer.WriteUInt16((ushort)assembly.Version.Major);
-            writer.WriteUInt16((ushort)assembly.Version.Minor);
-            writer.WriteUInt16((ushort)assembly.Version.Build);
-            writer.WriteUInt16((ushort)assembly.Version.Revision);
+            writer.WriteUInt16((ushort)identity.Version.Major);
+            writer.WriteUInt16((ushort)identity.Version.Minor);
+            writer.WriteUInt16((ushort)identity.Version.Build);
+            writer.WriteUInt16((ushort)identity.Version.Revision);
             writer.WriteUInt32(assembly.Flags);
             writer.WriteReference((uint)heaps.ResolveBlobIndex(_assemblyKey), metadataSizes.BlobIndexSize);
 
@@ -4294,7 +4287,10 @@ namespace Microsoft.Cci
             // If so, use the RVA of the already serialized one.
             // Note that we don't need to rewrite the fake tokens in the body before looking it up.
             int bodyRva;
-            if (isSmallBody && _smallMethodBodies.TryGetValue(methodBody.IL, out bodyRva))
+
+            // Don't do small body method caching during deterministic builds until this issue is fixed
+            // https://github.com/dotnet/roslyn/issues/7595
+            if (!_deterministic && isSmallBody && _smallMethodBodies.TryGetValue(methodBody.IL, out bodyRva))
             {
                 return bodyRva;
             }
@@ -4304,7 +4300,12 @@ namespace Microsoft.Cci
                 bodyRva = ilWriter.Position;
                 ilWriter.WriteByte((byte)((ilLength << 2) | 2));
 
-                _smallMethodBodies.Add(methodBody.IL, bodyRva);
+                // Don't do small body method caching during deterministic builds until this issue is fixed
+                // https://github.com/dotnet/roslyn/issues/7595
+                if (!_deterministic)
+                {
+                    _smallMethodBodies.Add(methodBody.IL, bodyRva);
+                }
             }
             else
             {
@@ -4479,7 +4480,23 @@ namespace Microsoft.Cci
             var str = _pseudoStringTokenToStringMap[index];
             if (str != null)
             {
-                var token = heaps.GetUserStringToken(str);
+                const int overflowToken = 0x70000000; // 0x70 is a token type for a user string
+                int token;
+                if (!_userStringTokenOverflow)
+                {
+                    if (!heaps.TryGetUserStringToken(str, out token))
+                    {
+                        this.Context.Diagnostics.Add(this.messageProvider.CreateDiagnostic(this.messageProvider.ERR_TooManyUserStrings,
+                                                                                           NoLocation.Singleton));
+                        _userStringTokenOverflow = true;
+                        token = overflowToken;
+                    }
+                }
+                else
+                {
+                    token = overflowToken;
+                }
+
                 _pseudoStringTokenToTokenMap[index] = token;
                 _pseudoStringTokenToStringMap[index] = null; // Set to null to bypass next lookup
                 return token;
@@ -4923,13 +4940,15 @@ namespace Microsoft.Cci
         /// </summary>
         internal static string StrongName(IAssemblyReference assemblyReference)
         {
+            var identity = assemblyReference.Identity;
+
             var pooled = PooledStringBuilder.GetInstance();
             StringBuilder sb = pooled.Builder;
-            sb.Append(assemblyReference.Name);
-            sb.AppendFormat(CultureInfo.InvariantCulture, ", Version={0}.{1}.{2}.{3}", assemblyReference.Version.Major, assemblyReference.Version.Minor, assemblyReference.Version.Build, assemblyReference.Version.Revision);
-            if (!string.IsNullOrEmpty(assemblyReference.Culture))
+            sb.Append(identity.Name);
+            sb.AppendFormat(CultureInfo.InvariantCulture, ", Version={0}.{1}.{2}.{3}", identity.Version.Major, identity.Version.Minor, identity.Version.Build, identity.Version.Revision);
+            if (!string.IsNullOrEmpty(identity.CultureName))
             {
-                sb.AppendFormat(CultureInfo.InvariantCulture, ", Culture={0}", assemblyReference.Culture);
+                sb.AppendFormat(CultureInfo.InvariantCulture, ", Culture={0}", identity.CultureName);
             }
             else
             {
@@ -4937,9 +4956,9 @@ namespace Microsoft.Cci
             }
 
             sb.Append(", PublicKeyToken=");
-            if (assemblyReference.PublicKeyToken.Length > 0)
+            if (identity.PublicKeyToken.Length > 0)
             {
-                foreach (byte b in assemblyReference.PublicKeyToken)
+                foreach (byte b in identity.PublicKeyToken)
                 {
                     sb.Append(b.ToString("x2"));
                 }
@@ -4949,18 +4968,18 @@ namespace Microsoft.Cci
                 sb.Append("null");
             }
 
-            if (assemblyReference.IsRetargetable)
+            if (identity.IsRetargetable)
             {
                 sb.Append(", Retargetable=Yes");
             }
 
-            if (assemblyReference.ContentType == AssemblyContentType.WindowsRuntime)
+            if (identity.ContentType == AssemblyContentType.WindowsRuntime)
             {
                 sb.Append(", ContentType=WindowsRuntime");
             }
             else
             {
-                Debug.Assert(assemblyReference.ContentType == AssemblyContentType.Default);
+                Debug.Assert(identity.ContentType == AssemblyContentType.Default);
             }
 
             return pooled.ToStringAndFree();

@@ -50,26 +50,45 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             {
                 var implementations =
                     SymbolFinder.FindImplementationsAsync(mapping.Symbol, mapping.Solution, cancellationToken: cancellationToken)
-                        .WaitAndGetResult(cancellationToken)
-                        .Where(s => s.Locations.Any(l => l.IsInSource))
-                        .ToList();
+                        .WaitAndGetResult(cancellationToken);
 
-                return TryGoToImplementations(mapping, implementations, cancellationToken, out message);
+                // It's important we use a HashSet here -- we may have cases in an inheritence hierarchy where more than one method
+                // in an overrides chain implements the same interface method, and we want to duplicate those. The easiest way to do it
+                // is to just use a HashSet.
+                var implementationsAndOverrides = new HashSet<ISymbol>();
+
+                foreach (var implementation in implementations)
+                {
+                    implementationsAndOverrides.Add(implementation);
+
+                    // FindImplementationsAsync will only return the base virtual/abstract method, not that method and the overrides
+                    // of the method. We should also include those.
+                    if (implementation.IsOverridable())
+                    {
+                        implementationsAndOverrides.AddRange(
+                            SymbolFinder.FindOverridesAsync(implementation, mapping.Solution, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken));
+                    }
+                }
+
+                return TryGoToImplementations(implementationsAndOverrides, mapping, cancellationToken, out message);
+            }
+            else if ((mapping.Symbol as INamedTypeSymbol)?.TypeKind == TypeKind.Class)
+            {
+                var implementations =
+                    SymbolFinder.FindDerivedClassesAsync((INamedTypeSymbol)mapping.Symbol, mapping.Solution, cancellationToken: cancellationToken)
+                        .WaitAndGetResult(cancellationToken)
+                        .Concat(mapping.Symbol);
+
+                return TryGoToImplementations(implementations, mapping, cancellationToken, out message);
             }
             else if (mapping.Symbol.IsOverridable())
             {
-                var overrides =
+                var implementations =
                     SymbolFinder.FindOverridesAsync(mapping.Symbol, mapping.Solution, cancellationToken: cancellationToken)
                         .WaitAndGetResult(cancellationToken)
-                        .ToList();
+                        .Concat(mapping.Symbol);
 
-                // If the original symbol isn't abstract, then it's an implementation too
-                if (!mapping.Symbol.IsAbstract)
-                {
-                    overrides.Add(mapping.Symbol);
-                }
-
-                return TryGoToImplementations(mapping, overrides, cancellationToken, out message);
+                return TryGoToImplementations(implementations, mapping, cancellationToken, out message);
             }
             else
             {
@@ -87,8 +106,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             }
         }
 
-        private bool TryGoToImplementations(SymbolMappingResult mapping, IList<ISymbol> implementations, CancellationToken cancellationToken, out string message)
+        private bool TryGoToImplementations(IEnumerable<ISymbol> candidateImplementations, SymbolMappingResult mapping, CancellationToken cancellationToken, out string message)
         {
+            var implementations = candidateImplementations
+                .Where(s => !s.IsAbstract && s.Locations.Any(l => l.IsInSource))
+                .ToList();
+
             if (implementations.Count == 0)
             {
                 message = EditorFeaturesResources.SymbolHasNoImplementations;

@@ -118,7 +118,7 @@ Loop Until |</MethodBody>, "AddressOf")
             Await VerifyRecommendationsContainAsync(<MethodBody>RemoveHandler foo, |</MethodBody>, "AddressOf")
         End Function
 
-        <WorkItem(543270)>
+        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddressOfInDelegateCreationTest() As Task
             Dim code = <ModuleDeclaration><![CDATA[
@@ -138,7 +138,7 @@ End Module
         End Function
 
         <Fact>
-        <WorkItem(545206)>
+        <WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddressOfNotAfterAddressOfTest() As Task
             Dim code = <ModuleDeclaration><![CDATA[
@@ -153,7 +153,7 @@ End Function
         End Function
 
         <Fact>
-        <WorkItem(545206)>
+        <WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddressOfNotAfterAddressOfInDelegateCreationTest() As Task
             Dim code = <ModuleDeclaration><![CDATA[
@@ -166,7 +166,7 @@ Delegate Sub Foo()
         End Function
 
         <Fact>
-        <WorkItem(545206)>
+        <WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddressOfNestedInsideAddressOfExpressionTest() As Task
             Dim code = <ModuleDeclaration><![CDATA[

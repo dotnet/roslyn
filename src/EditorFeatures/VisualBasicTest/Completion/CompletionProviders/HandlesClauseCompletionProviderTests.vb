@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(546497)>
+        <WorkItem(546497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546497")>
         Public Async Function TestSuggestMeEventInDerived() As Task
             Dim text = <text>Public Class Base
     Public Event Click()
@@ -50,7 +50,7 @@ End Class</text>.Value
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(546497)>
+        <WorkItem(546497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546497")>
         Public Async Function TestSuggestMeEventInIndirectDerived() As Task
             Dim text = <text>Public Class Base
     Public Event Click()
@@ -139,7 +139,7 @@ End Class</text>.Value
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(546508)>
+        <WorkItem(546508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546508")>
         Public Async Function TestSuggestGenericFieldEvent() As Task
             Dim text = <text>Class A
     Event Ev_Event()
@@ -155,7 +155,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "Ev_Event")
         End Function
 
-        <WorkItem(546494)>
+        <WorkItem(546494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546494")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSuggestFieldDerivedEvent() As Task
             Dim text = <text>Public Class Base
@@ -173,7 +173,7 @@ End Class
             Await VerifyItemExistsAsync(text, "Click")
         End Function
 
-        <WorkItem(546513)>
+        <WorkItem(546513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546513")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInheritedFieldOfNestedType() As Task
             Dim text = <text>Class container
@@ -191,7 +191,7 @@ End Class
             Await VerifyItemExistsAsync(text, "obj")
         End Function
 
-        <WorkItem(546511)>
+        <WorkItem(546511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546511")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestDoNotShowMeShadowedEvents() As Task
             Dim text = <text>Public Class Base
@@ -225,6 +225,27 @@ Public Class Handler
 
     Public Sub foo Handles '$$
 End Class</text>.Value
+
+            Await VerifyNoItemsExistAsync(text)
+        End Function
+
+        <WorkItem(8307, "https://github.com/dotnet/roslyn/issues/8307")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function DontCrashOnDotAfterCompleteHandlesClause() As Task
+            Dim text = "
+Imports System
+
+Class C
+    Public Event E As EventHandler
+End Class
+
+Class D
+    WithEvents c As New C
+
+    Sub OnE(sender As Object, e As EventArgs) Handles c.E.$$
+
+    End Sub
+End Class"
 
             Await VerifyNoItemsExistAsync(text)
         End Function

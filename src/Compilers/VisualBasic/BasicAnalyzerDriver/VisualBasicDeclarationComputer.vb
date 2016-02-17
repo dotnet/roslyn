@@ -172,10 +172,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return initializer
         End Function
 
-        Private Shared Function GetAsNewClauseIntializer(asClause As AsClauseSyntax) As ExpressionSyntax
-            Return If(asClause.IsKind(SyntaxKind.AsNewClause),
-                CType(asClause, AsNewClauseSyntax).NewExpression,
-                Nothing)
+        Private Shared Function GetAsNewClauseIntializer(asClause As AsClauseSyntax) As SyntaxNode
+            ' The As New clause itself is necessary rather than the embedded New expression, so that the
+            ' code block associated with the declaration appears as an initializer for the purposes
+            ' of executing analyzer actions.
+            Return If(asClause.IsKind(SyntaxKind.AsNewClause), asClause, Nothing)
         End Function
     End Class
 End Namespace

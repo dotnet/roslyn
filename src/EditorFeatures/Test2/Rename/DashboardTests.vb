@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Function
 
         <WpfFact>
-        <WorkItem(883263)>
+        <WorkItem(883263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883263")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameWithInvalidOverload() As Task
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
@@ -104,7 +104,7 @@ class Program
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(853839)>
+        <WorkItem(853839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853839")>
         Public Async Function RenameAttributeAlias() As Task
             Await VerifyDashboard(
                     (<Workspace>
@@ -124,7 +124,7 @@ class AttributeAttribute : System.Attribute { }
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(700923), WorkItem(700925)>
+        <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameWithOverloadAndInStringsAndComments() As Task
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameOverloads, True)
@@ -163,7 +163,7 @@ class AttributeAttribute : System.Attribute { }
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(700923), WorkItem(700925)>
+        <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameInComments() As Task
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameInComments, True)
@@ -203,7 +203,7 @@ class $$Program
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(700923), WorkItem(700925)>
+        <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameInStrings() As Task
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameInStrings, True)
@@ -243,7 +243,7 @@ class $$Program
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(700923), WorkItem(700925)>
+        <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameInCommentsAndStrings() As Task
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameInComments, True)

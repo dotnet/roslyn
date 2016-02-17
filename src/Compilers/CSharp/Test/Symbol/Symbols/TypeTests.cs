@@ -149,7 +149,7 @@ interface B {
             Assert.Equal(3, type33.AllInterfaces.Length);
         }
 
-        [WorkItem(537752, "DevDiv")]
+        [WorkItem(537752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537752")]
         [Fact]
         public void InheritedTypesCrossComps()
         {
@@ -234,7 +234,7 @@ interface B {
             Assert.Equal(4, type33.AllInterfaces.Length);
         }
 
-        [WorkItem(537746, "DevDiv")]
+        [WorkItem(537746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537746")]
         [Fact]
         public void NestedTypes()
         {
@@ -350,7 +350,7 @@ namespace NS {
             Assert.Equal(2, i1.Locations.Length);
         }
 
-        [WorkItem(537752, "DevDiv")]
+        [WorkItem(537752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537752")]
         [Fact]
         public void TypeCrossComps()
         {
@@ -435,7 +435,7 @@ public partial class A { }
             #endregion
         }
 
-        [Fact, WorkItem(537233, "DevDiv"), WorkItem(537313, "DevDiv")]
+        [Fact, WorkItem(537233, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537233"), WorkItem(537313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537313")]
         public void ArrayTypes()
         {
             var text =
@@ -515,7 +515,7 @@ public partial class A { }
         // .Net 2/3.0 (7) IList&[T] -> ICollection&[T] ->IEnumerable&[T]; ICloneable;
         // .Net 4.0 (9) IList&[T] -> ICollection&[T] ->IEnumerable&[T]; ICloneable; IStructuralComparable; IStructuralEquatable
         // Array T[] impl IList[T] only
-        [Fact, WorkItem(537300, "DevDiv"), WorkItem(527247, "DevDiv")]
+        [Fact, WorkItem(537300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537300"), WorkItem(527247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527247")]
         public void ArrayTypeInterfaces()
         {
             var text = @"
@@ -598,7 +598,7 @@ public class A {
             Assert.Equal(v1, v2);
         }
 
-        [Fact, WorkItem(527114, "DevDiv")]
+        [Fact, WorkItem(527114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527114")]
         public void DynamicType()
         {
             var text =
@@ -644,7 +644,7 @@ public class A {
             Assert.NotEqual(SymbolKind.ErrorType, dynType.Kind);
         }
 
-        [WorkItem(537187, "DevDiv")]
+        [WorkItem(537187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537187")]
         [Fact]
         public void EnumFields()
         {
@@ -676,8 +676,8 @@ public class A {
             Assert.Equal(isStatic, symbol.IsStatic);
         }
 
-        [WorkItem(542479, "DevDiv")]
-        [WorkItem(538320, "DevDiv")]
+        [WorkItem(542479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542479")]
+        [WorkItem(538320, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538320")]
         [Fact] // TODO: Dev10 does not report ERR_SameFullNameAggAgg here - source wins.
         public void SourceAndMetadata_SpecialType()
         {
@@ -705,8 +705,8 @@ namespace System
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
         }
 
-        [WorkItem(542479, "DevDiv")]
-        [WorkItem(538320, "DevDiv")]
+        [WorkItem(542479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542479")]
+        [WorkItem(538320, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538320")]
         [Fact] // TODO: Dev10 does not report ERR_SameFullNameAggAgg here - source wins.
         public void SourceAndMetadata_NonSpecialType()
         {
@@ -742,7 +742,7 @@ namespace N
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
         }
 
-        [WorkItem(542479, "DevDiv")]
+        [WorkItem(542479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542479")]
         [Fact]
         public void DuplicateType()
         {
@@ -817,8 +817,8 @@ Foo();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo"));
 
             var main2 = CreateCompilation(
-                new[] { Parse(mainSrc, options: TestOptions.Script) }, 
-                new[] { MscorlibRef_v46, sysConsoleRef, SystemRuntimeFacadeRef }, 
+                new[] { Parse(mainSrc, options: TestOptions.Script) },
+                new[] { MscorlibRef_v46, sysConsoleRef, SystemRuntimeFacadeRef },
                 TestOptions.ReleaseDll.WithUsings("System.Console").WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
 
             main2.VerifyDiagnostics();
@@ -878,7 +878,7 @@ Foo();
             Assert.Equal(3, structS.TypeArguments.Length);
         }
 
-        [WorkItem(537199, "DevDiv")]
+        [WorkItem(537199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537199")]
         [Fact]
         public void UseTypeInNetModule()
         {
@@ -900,7 +900,7 @@ Foo();
             Assert.Equal(SymbolKind.NamedType, varA.Type.Kind);
         }
 
-        [WorkItem(537344, "DevDiv")]
+        [WorkItem(537344, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537344")]
         [Fact]
         public void ClassNameWithPrecedingAtChar()
         {
@@ -938,7 +938,7 @@ static class @main
             Assert.Equal("void Test.Main()", methodSymbol.ToTestDisplayString());
         }
 
-        [WorkItem(537437, "DevDiv")]
+        [WorkItem(537437, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537437")]
         [Fact]
         public void ClassWithMultipleConstr()
         {
@@ -960,7 +960,7 @@ static class @main
             Assert.Equal("MyClass..ctor(), MyClass..ctor(System.Int32 DummyInt)", actual);
         }
 
-        [WorkItem(537446, "DevDiv")]
+        [WorkItem(537446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537446")]
         [Fact]
         public void BaseTypeNotDefinedInSrc()
         {
@@ -973,7 +973,7 @@ public class MyClass : T1
             Assert.Equal("T1", testTypeSymbol.BaseType.ToTestDisplayString());
         }
 
-        [WorkItem(537447, "DevDiv")]
+        [WorkItem(537447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537447")]
         [Fact]
         public void IllegalTypeArgumentInBaseType()
         {
@@ -986,7 +986,7 @@ public class X : GC1<BOGUS> {}
             Assert.Equal("GC1<BOGUS>", testTypeSymbol.BaseType.ToTestDisplayString());
         }
 
-        [WorkItem(537449, "DevDiv")]
+        [WorkItem(537449, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537449")]
         [Fact]
         public void MethodInDerivedGenericClassWithParamOfIllegalGenericType()
         {
@@ -1011,7 +1011,7 @@ public class SubGenericClass<T> : BaseT<T>
             Assert.Equal("SubGenericClass<T>..ctor(), void SubGenericClass<T>.Meth3(GC1<T> t), void SubGenericClass<T>.Meth4(System.NonexistentType t)", actual);
         }
 
-        [WorkItem(537449, "DevDiv")]
+        [WorkItem(537449, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537449")]
         [Fact]
         public void TestAllInterfaces()
         {
@@ -1055,7 +1055,7 @@ namespace Convert
             var mems = type1.GetMembers();
         }
 
-        [WorkItem(537685, "DevDiv")]
+        [WorkItem(537685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537685")]
         [Fact]
         public void NamespaceMemberArity()
         {
@@ -1095,7 +1095,7 @@ namespace Collections {
             var mems = type1.GetMembers();
         }
 
-        [WorkItem(537957, "DevDiv")]
+        [WorkItem(537957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537957")]
         [Fact]
         public void EmptyNameErrorSymbolErr()
         {
@@ -1114,7 +1114,7 @@ namespace NS
             Assert.Equal("Object", bt.Name);
         }
 
-        [WorkItem(538210, "DevDiv")]
+        [WorkItem(538210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538210")]
         [Fact]
         public void NestedTypeAccessibility01()
         {
@@ -1131,7 +1131,7 @@ class A
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
         }
 
-        [WorkItem(538242, "DevDiv")]
+        [WorkItem(538242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538242")]
         [Fact]
         public void PartialClassWithBaseType()
         {
@@ -1145,7 +1145,7 @@ partial class C2 : C1 {}
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
         }
 
-        [WorkItem(537873, "DevDiv")]
+        [WorkItem(537873, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537873")]
         [Fact]
         public void InaccessibleTypesSkipped()
         {
@@ -1174,7 +1174,7 @@ class D : C
             Assert.Equal("B.A.X", x.Type.ToTestDisplayString());
         }
 
-        [WorkItem(537970, "DevDiv")]
+        [WorkItem(537970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537970")]
         [Fact]
         public void ImportedVersusSource()
         {
@@ -1196,7 +1196,7 @@ namespace System
                 .Count(m => !(m is MethodSymbol) || (m as MethodSymbol).MethodKind != MethodKind.Constructor));
         }
 
-        [Fact, WorkItem(538012, "DevDiv"), WorkItem(538580, "DevDiv")]
+        [Fact, WorkItem(538012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538012"), WorkItem(538580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538580")]
         public void ErrorTypeSymbolWithArity()
         {
             var text = @"
@@ -1421,7 +1421,7 @@ class NonGen
             Assert.Equal("IEquatable`1", equatable.MetadataName);
         }
 
-        [WorkItem(545154, "DevDiv")]
+        [WorkItem(545154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545154")]
         [ClrOnlyFact]
         public void MultiDimArray()
         {
@@ -1438,7 +1438,7 @@ class Program
             CompileAndVerify(source, new[] { r });
         }
 
-        [Fact, WorkItem(530171, "DevDiv")]
+        [Fact, WorkItem(530171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530171")]
         public void ErrorTypeTest01()
         {
             var comp = CreateCompilationWithMscorlib(@"public void TopLevelMethod() {}");
@@ -1452,7 +1452,7 @@ class Program
 
         #region "Nullable"
 
-        [Fact, WorkItem(537195, "DevDiv")]
+        [Fact, WorkItem(537195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537195")]
         public void SimpleNullable()
         {
             var text =

@@ -372,8 +372,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
                     CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
+                    // Try to get the location of the user-provided build client and server,
+                    // which should be located next to the build task. If not, fall back to
+                    // "pathToTool", which is the compiler in the MSBuild default bin directory.
+                    var clientDir = TryGetClientDir() ?? Path.GetDirectoryName(pathToTool);
+                    pathToTool = Path.Combine(clientDir, ToolExe);
+
+                    // Note: we can't change the "tool path" printed to the console when we run
+                    // the Csc/Vbc task since MSBuild logs it for us before we get here. Instead,
+                    // we'll just print our own message that contains the real client location
+                    Log.LogMessage(ErrorString.UsingSharedCompilation, clientDir);
+
                     var buildPaths = new BuildPaths(
-                        clientDir: TryGetClientDir() ?? Path.GetDirectoryName(pathToTool),
+                        clientDir: clientDir,
                         // MSBuild doesn't need the .NET SDK directory
                         sdkDir: null,
                         workingDir: CurrentDirectoryToUse());
@@ -395,6 +406,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     }
                     else
                     {
+                        Log.LogMessage(ErrorString.SharedCompilationFallback, pathToTool);
+
                         ExitCode = base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                     }
                 }
@@ -652,8 +665,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendWhenTrue("/nologo", _store, nameof(NoLogo));
             commandLine.AppendWhenTrue("/nowin32manifest", _store, nameof(NoWin32Manifest));
             commandLine.AppendPlusOrMinusSwitch("/optimize", _store, nameof(Optimize));
-            commandLine.AppendPlusOrMinusSwitch("/deterministic", _store, nameof(Deterministic));
-            commandLine.AppendPlusOrMinusSwitch("/publicsign", _store, nameof(PublicSign));
             commandLine.AppendSwitchIfNotNull("/pathmap:", PathMap);
             commandLine.AppendSwitchIfNotNull("/out:", OutputAssembly);
             commandLine.AppendSwitchIfNotNull("/ruleset:", CodeAnalysisRuleSet);
@@ -668,12 +679,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/win32icon:", Win32Icon);
             commandLine.AppendSwitchIfNotNull("/win32manifest:", Win32Manifest);
 
-            AddFeatures(commandLine, Features);
+            AddResponseFileCommandsForSwitchesSinceInitialReleaseThatAreNeededByTheHost(commandLine);
             AddAnalyzersToCommandLine(commandLine, Analyzers);
             AddAdditionalFilesToCommandLine(commandLine);
 
             // Append the sources.
             commandLine.AppendFileNamesIfNotNull(Sources, " ");
+        }
+
+        internal void AddResponseFileCommandsForSwitchesSinceInitialReleaseThatAreNeededByTheHost(CommandLineBuilderExtension commandLine)
+        {
+            commandLine.AppendPlusOrMinusSwitch("/deterministic", _store, nameof(Deterministic));
+            commandLine.AppendPlusOrMinusSwitch("/publicsign", _store, nameof(PublicSign));
+
+            AddFeatures(commandLine, Features);
         }
 
         /// <summary>
@@ -906,6 +925,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 Log.LogMessageFromResources(MessageImportance.Normal, "General_ParameterUnsupportedOnHostCompiler", parameterName);
                 _hostCompilerSupportsAllParameters = false;
+            }
+        }
+
+        internal void InitializeHostObjectSupportForNewSwitches(ITaskHost hostObject, ref string param)
+        {
+            var compilerOptionsHostObject = hostObject as ICompilerOptionsHostObject;
+
+            if (compilerOptionsHostObject != null)
+            {
+                var commandLineBuilder = new CommandLineBuilderExtension();
+                AddResponseFileCommandsForSwitchesSinceInitialReleaseThatAreNeededByTheHost(commandLineBuilder);
+                param = "CompilerOptions";
+                CheckHostObjectSupport(param, compilerOptionsHostObject.SetCompilerOptions(commandLineBuilder.ToString()));
             }
         }
 

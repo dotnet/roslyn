@@ -128,13 +128,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Characters_QuotesAndEscaping()
         {
-            Assert.Equal(QuoteAndEscapingCombinations('a'), new[] 
+            Assert.Equal(QuoteAndEscapingCombinations('a'), new[]
             {
                 "a", "a", "'a'", "'a'",
                 "97 a", "97 a", "97 'a'", "97 'a'",
             });
 
-            Assert.Equal(QuoteAndEscapingCombinations('\t'), new[] 
+            Assert.Equal(QuoteAndEscapingCombinations('\t'), new[]
             {
                 "\t", "\\t", "'\t'", "'\\t'",
                 "9 \t", "9 \\t", "9 '\t'", "9 '\\t'",
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("@\"\"\"\n\"", ObjectDisplay.FormatLiteral("\"\n", ObjectDisplayOptions.UseQuotes));
         }
 
-        [Fact, WorkItem(529850)]
+        [Fact, WorkItem(529850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529850")]
         public void CultureInvariance()
         {
             var originalCulture = Thread.CurrentThread.CurrentCulture;

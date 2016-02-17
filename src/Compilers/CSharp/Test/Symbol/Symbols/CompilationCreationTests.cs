@@ -2665,7 +2665,7 @@ class Module1
             var xml = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System_Xml).Path;
             var system = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System).Path;
 
-            var trees = new[] 
+            var trees = new[]
             {
                 SyntaxFactory.ParseSyntaxTree($@"
 #r ""System.Data""
@@ -2692,8 +2692,8 @@ System.Diagnostics.Process.GetCurrentProcess();
 
             var boundRefs = compilation.Assembly.BoundReferences();
 
-            AssertEx.Equal(new[] 
-            { 
+            AssertEx.Equal(new[]
+            {
                 "System.Data",
                 "System.Xml",
                 "System.Core",
@@ -2949,7 +2949,7 @@ Console.WriteLine(2);
             CheckCompilationSyntaxTrees(compilation4, tree2, tree3);
         }
 
-        [WorkItem(578706, "DevDiv")]
+        [WorkItem(578706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578706")]
         [Fact]
         public void DeclaringCompilationOfAddedModule()
         {

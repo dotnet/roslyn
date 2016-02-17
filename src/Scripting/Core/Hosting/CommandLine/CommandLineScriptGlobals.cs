@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// </summary>
         public IList<string> Args { get; }
 
+        public PrintOptions PrintOptions { get; }
+
         /// <summary>
         /// Pretty-prints an object.
         /// </summary>
@@ -32,8 +34,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         {
             _outputWriter.WriteLine(_objectFormatter.FormatObject(value, PrintOptions));
         }
-
-        internal ObjectFormattingOptions PrintOptions { get; }
 
         public CommandLineScriptGlobals(TextWriter outputWriter, ObjectFormatter objectFormatter)
         {
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 throw new ArgumentNullException(nameof(objectFormatter));
             }
 
-            PrintOptions = ObjectFormattingOptions.Default;
+            PrintOptions = new PrintOptions();
 
             _outputWriter = outputWriter;
             _objectFormatter = objectFormatter;

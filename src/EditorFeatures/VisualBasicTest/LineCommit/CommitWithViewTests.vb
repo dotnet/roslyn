@@ -58,7 +58,7 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(539305)>
+        <WorkItem(539305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539305")>
         Public Async Function TestCommitAfterTypingAndUpArrowInLambdaFooter() As Task
             Using testData = Await CommitTestData.CreateAsync(
                 <Workspace>
@@ -84,7 +84,7 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(539469)>
+        <WorkItem(539469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539469")>
         Public Async Function TestCommitAfterTypingAndUpArrowInLambdaFooter2() As Task
             Using testData = Await CommitTestData.CreateAsync(
                 <Workspace>
@@ -112,7 +112,7 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(539457)>
+        <WorkItem(539457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539457")>
         Public Async Function TestCommitAfterTypingAndUpArrowIntoBlankLine() As Task
             Using testData = Await CommitTestData.CreateAsync(
                 <Workspace>
@@ -137,7 +137,7 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(539411)>
+        <WorkItem(539411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539411")>
         Public Async Function TestCommitAfterTypingInTrivia() As Task
             Using testData = Await CommitTestData.CreateAsync(
                 <Workspace>
@@ -160,8 +160,8 @@ $$</Document>
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(539599)>
-        <WorkItem(631913)>
+        <WorkItem(539599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539599")>
+        <WorkItem(631913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631913")>
         Public Async Function TestCommitAfterTypingInTrivia2() As Task
             Using testData = Await CommitTestData.CreateAsync(
                 <Workspace>
@@ -187,7 +187,7 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(545355)>
+        <WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
         Public Async Function TestCommitAfterTypingAttributeOfType() As Task
             Using testData = Await CommitTestData.CreateAsync(
                 <Workspace>
@@ -209,7 +209,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(545355)>
+        <WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
         Public Async Function TestCommitAfterTypingAttributeOfMethod() As Task
             Using testData = Await CommitTestData.CreateAsync(
                 <Workspace>
@@ -233,7 +233,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(545355)>
+        <WorkItem(545355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545355")>
         Public Async Function TestCommitAfterTypingInMethodNameAndThenMovingToAttribute() As Task
             Using testData = Await CommitTestData.CreateAsync(
                 <Workspace>
@@ -281,7 +281,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(539599)>
+        <WorkItem(539599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539599")>
         Public Async Function TestCommitAfterLeavingStatementAfterLineContinuation() As Task
             Using testData = Await CommitTestData.CreateAsync(
                 <Workspace>
@@ -313,7 +313,7 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(539318)>
+        <WorkItem(539318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539318")>
         Public Async Function TestCommitAfterDeletingIndentationFixesIndentation() As Task
             Using testData = Await CommitTestData.CreateAsync(
                 <Workspace>
@@ -605,7 +605,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(539613)>
+        <WorkItem(539613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539613")>
         Public Async Function TestRelativeIndentationBug() As Task
             Using testData = Await CommitTestData.CreateAsync(
                 <Workspace>
@@ -656,7 +656,7 @@ End Module
         End Function
 
         <WorkItem(16493, "DevDiv_Projects/Roslyn")>
-        <WorkItem(539544)>
+        <WorkItem(539544, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539544")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestBetterStartIndentation() As Task
@@ -715,7 +715,7 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(544104)>
+        <WorkItem(544104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544104")>
         Public Async Function TestCommitAfterMoveDownAfterIfStatement() As Task
             Using testData = Await CommitTestData.CreateAsync(
                 <Workspace>
@@ -772,7 +772,7 @@ End Class</Code>
         End Function
 
         <WpfFact>
-        <WorkItem(545358)>
+        <WorkItem(545358, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545358")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestCommitWithNextStatementWithMultipleControlVariables() As Task
             Using testData = Await CommitTestData.CreateAsync(
@@ -808,7 +808,7 @@ End Module</Code>
         End Function
 
         <WpfFact>
-        <WorkItem(608438)>
+        <WorkItem(608438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608438")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Async Function TestBugfix_608438() As Task
             Using testData = Await CommitTestData.CreateAsync(
@@ -837,7 +837,7 @@ End Module|]</Document>
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(924578)>
+        <WorkItem(924578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924578")>
         Public Async Function TestMultiLineString1() As Task
             Using testData = Await CommitTestData.CreateAsync(
                 <Workspace>
@@ -868,7 +868,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(924578)>
+        <WorkItem(924578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924578")>
         Public Async Function TestMultiLineString2() As Task
             Using testData = Await CommitTestData.CreateAsync(
                 <Workspace>
@@ -899,7 +899,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(924578)>
+        <WorkItem(924578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924578")>
         Public Async Function TestMultiLineString3() As Task
             Using testData = Await CommitTestData.CreateAsync(
                 <Workspace>

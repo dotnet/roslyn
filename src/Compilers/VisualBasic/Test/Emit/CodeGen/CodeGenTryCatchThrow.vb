@@ -754,7 +754,7 @@ End Module
 }]]>)
         End Sub
 
-        <WorkItem(542208, "DevDiv")>
+        <WorkItem(542208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542208")>
         <Fact()>
         Public Sub OverlappingCatch()
             CompileAndVerify(
@@ -775,7 +775,7 @@ End Module
             expectedOutput:="")
         End Sub
 
-        <WorkItem(542208, "DevDiv")>
+        <WorkItem(542208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542208")>
         <Fact>
         Public Sub DuplicateCatch()
             CompileAndVerify(
@@ -859,7 +859,7 @@ Unhandled
 ]]>)
         End Sub
 
-        <WorkItem(542510, "DevDiv")>
+        <WorkItem(542510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542510")>
         <Fact()>
         Public Sub ExitTryFromCatch()
             CompileAndVerify(

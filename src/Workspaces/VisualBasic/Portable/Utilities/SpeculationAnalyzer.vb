@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
     ''' </summary>
     Friend Class SpeculationAnalyzer
         Inherits AbstractSpeculationAnalyzer(Of SyntaxNode, ExpressionSyntax, TypeSyntax, AttributeSyntax,
-                                             ArgumentSyntax, ForEachStatementSyntax, ThrowStatementSyntax, SemanticModel)
+                                             ArgumentSyntax, ForEachStatementSyntax, ThrowStatementSyntax, SemanticModel, Conversion)
 
         ''' <summary>
         ''' Creates a semantic analyzer for speculative syntax replacement.
@@ -519,20 +519,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Function
 
         Protected Overrides Function ConversionsAreCompatible(originalModel As SemanticModel, originalExpression As ExpressionSyntax, newModel As SemanticModel, newExpression As ExpressionSyntax) As Boolean
-            If originalExpression Is Nothing OrElse originalModel Is Nothing OrElse newExpression Is Nothing OrElse newModel Is Nothing Then
-                Return False
-            End If
-
             Return ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression))
         End Function
 
         Protected Overrides Function ConversionsAreCompatible(originalExpression As ExpressionSyntax, originalTargetType As ITypeSymbol, newExpression As ExpressionSyntax, newTargetType As ITypeSymbol) As Boolean
-            If originalExpression Is Nothing OrElse originalTargetType Is Nothing OrElse newExpression Is Nothing OrElse newTargetType Is Nothing Then
+            Dim originalConversion As Conversion?
+            Dim newConversion As Conversion?
+
+            Me.GetConversions(originalExpression, originalTargetType, newExpression, newTargetType, originalConversion, newConversion)
+
+            If originalConversion Is Nothing OrElse newConversion Is Nothing
                 Return False
             End If
-
-            Dim originalConversion = Me.OriginalSemanticModel.ClassifyConversion(originalExpression, originalTargetType)
-            Dim newConversion = Me.SpeculativeSemanticModel.ClassifyConversion(newExpression, newTargetType)
 
             ' When Option Strict is not Off and the new expression has a constant value, it's possible that
             ' there Is a hidden narrowing conversion that will be missed. In that case, use the
@@ -540,12 +538,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
             If Me.OriginalSemanticModel.OptionStrict() <> OptionStrict.Off AndAlso
                Me.SpeculativeSemanticModel.GetConstantValue(newExpression).HasValue Then
-
-                Dim newExpressionType = Me.SpeculativeSemanticModel.GetTypeInfo(newExpression).Type
+                Dim newExpressionType = Me.SpeculativeSemanticModel.GetTypeInfo(newExpression).ConvertedType
                 newConversion = Me.OriginalSemanticModel.Compilation.ClassifyConversion(newExpressionType, newTargetType)
             End If
 
-            Return ConversionsAreCompatible(originalConversion, newConversion)
+            Return ConversionsAreCompatible(originalConversion.Value, newConversion.Value)
         End Function
 
         Private Overloads Function ConversionsAreCompatible(originalConversion As Conversion, newConversion As Conversion) As Boolean
@@ -582,6 +579,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
         Protected Overrides Function IsReferenceConversion(compilation As Compilation, sourceType As ITypeSymbol, targetType As ITypeSymbol) As Boolean
             Return compilation.ClassifyConversion(sourceType, targetType).IsReference
+        End Function
+
+        Protected Overrides Function ClassifyConversion(model As SemanticModel, expression As ExpressionSyntax, targetType As ITypeSymbol) As Conversion
+            Return model.ClassifyConversion(expression, targetType)
+        End Function
+
+        Protected Overrides Function ClassifyConversion(model As SemanticModel, originalType As ITypeSymbol, targetType As ITypeSymbol) As Conversion
+            Return model.Compilation.ClassifyConversion(originalType, targetType)
         End Function
     End Class
 End Namespace

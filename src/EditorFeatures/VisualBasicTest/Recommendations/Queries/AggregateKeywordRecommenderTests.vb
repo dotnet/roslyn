@@ -117,7 +117,7 @@ Dim ordersTotal = _
 </MethodBody>, "Aggregate")
         End Function
 
-        <WorkItem(543173)>
+        <WorkItem(543173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543173")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AggregateAfterMultiLineFunctionLambdaExprTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>Dim q2 = From i1 In arr Order By Function()
@@ -125,25 +125,25 @@ Dim ordersTotal = _
                                          End Function |</MethodBody>, "Aggregate")
         End Function
 
-        <WorkItem(543174)>
+        <WorkItem(543174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543174")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AggregateAfterAnonymousObjectCreationExprTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>Dim q2 = From i1 In arr Order By New With {.Key = 10} |</MethodBody>, "Aggregate")
         End Function
 
-        <WorkItem(543219)>
+        <WorkItem(543219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543219")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AggregateAfterIntoClauseTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>Dim q1 = From i1 In arr Group By i1 Into Count |</MethodBody>, "Aggregate")
         End Function
 
-        <WorkItem(543232)>
+        <WorkItem(543232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543232")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AggregateAfterNestedAggregateFromClauseTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>Dim q1 = Aggregate i1 In arr From i4 In arr |</MethodBody>, "Aggregate")
         End Function
 
-        <WorkItem(543270)>
+        <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotInDelegateCreationTest() As Task
             Dim code =

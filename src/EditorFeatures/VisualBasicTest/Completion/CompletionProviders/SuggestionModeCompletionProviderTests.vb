@@ -220,7 +220,7 @@ End Class</a>
             Await VerifyBuilderAsync(markup)
         End Function
 
-        <WorkItem(545351)>
+        <WorkItem(545351, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545351")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBuilderWhenOptionExplicitOff() As Task
             Dim markup = <a>Option Explicit Off
@@ -235,7 +235,7 @@ End Class
             Await VerifyBuilderAsync(markup)
         End Function
 
-        <WorkItem(546659)>
+        <WorkItem(546659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546659")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestUsingStatement() As Task
             Dim markup = <a> 
@@ -248,7 +248,7 @@ End Class
             Await VerifyBuilderAsync(markup)
         End Function
 
-        <WorkItem(734596)>
+        <WorkItem(734596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734596")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestOptionExplicitOffStatementLevel1() As Task
             Dim markup = <a> 
@@ -262,7 +262,7 @@ End Class
             Await VerifyBuilderAsync(markup)
         End Function
 
-        <WorkItem(734596)>
+        <WorkItem(734596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734596")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestOptionExplicitOffStatementLevel2() As Task
             Dim markup = <a> 
@@ -276,7 +276,7 @@ End Class
             Await VerifyBuilderAsync(markup)
         End Function
 
-        <WorkItem(960416)>
+        <WorkItem(960416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960416")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestReadonlyField() As Task
             Dim markup = <a> 
@@ -289,7 +289,7 @@ End Class
             Await VerifyBuilderAsync(markup)
         End Function
 
-        <WorkItem(1044441)>
+        <WorkItem(1044441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044441")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function BuilderInDebugger() As Task
             Dim markup = <a> 

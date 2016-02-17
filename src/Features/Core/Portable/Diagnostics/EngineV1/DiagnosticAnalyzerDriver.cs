@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             bool concurrentAnalysis,
             bool reportSuppressedDiagnostics,
             CancellationToken cancellationToken)
-            : this (project, owner, concurrentAnalysis, reportSuppressedDiagnostics, cachedCompilationWithAnalyzersOpt: null, cancellationToken: cancellationToken)
+            : this(project, owner, concurrentAnalysis, reportSuppressedDiagnostics, cachedCompilationWithAnalyzersOpt: null, cancellationToken: cancellationToken)
         {
         }
 

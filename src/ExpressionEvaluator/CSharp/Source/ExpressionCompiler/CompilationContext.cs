@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal readonly CSharpCompilation Compilation;
         internal readonly Binder NamespaceBinder; // Internal for test purposes.
 
-        private readonly MetadataDecoder _metadataDecoder;
         private readonly MethodSymbol _currentFrame;
         private readonly ImmutableArray<LocalSymbol> _locals;
         private readonly ImmutableDictionary<string, DisplayClassVariable> _displayClassVariables;
@@ -47,14 +46,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// </summary>
         internal CompilationContext(
             CSharpCompilation compilation,
-            MetadataDecoder metadataDecoder,
             MethodSymbol currentFrame,
             ImmutableArray<LocalSymbol> locals,
             InScopeHoistedLocals inScopeHoistedLocals,
-            MethodDebugInfo methodDebugInfo,
+            MethodDebugInfo<TypeSymbol, LocalSymbol> methodDebugInfo,
             CSharpSyntaxNode syntax)
         {
-            Debug.Assert(string.IsNullOrEmpty(methodDebugInfo.DefaultNamespaceName));
             Debug.Assert((syntax == null) || (syntax is ExpressionSyntax) || (syntax is LocalDeclarationStatementSyntax));
 
             // TODO: syntax.SyntaxTree should probably be added to the compilation,
@@ -68,7 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // could be cached.  
             // (Catch: what happens in a type context without a method def?)
             this.Compilation = GetCompilationWithExternAliases(compilation, methodDebugInfo.ExternAliasRecords);
-            _metadataDecoder = metadataDecoder;
 
             // Each expression compile should use a unique compilation
             // to ensure expression-specific synthesized members can be
@@ -79,8 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 this.Compilation,
                 (PEModuleSymbol)currentFrame.ContainingModule,
                 currentFrame.ContainingNamespace,
-                methodDebugInfo.ImportRecordGroups,
-                _metadataDecoder);
+                methodDebugInfo.ImportRecordGroups);
 
             if (_methodNotType)
             {
@@ -297,6 +292,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             var typeNameDecoder = new EETypeNameDecoder(Compilation, (PEModuleSymbol)_currentFrame.ContainingModule);
                             foreach (var alias in aliases)
                             {
+                                if (alias.IsReturnValueWithoutIndex())
+                                {
+                                    Debug.Assert(aliases.Count(a => a.Kind == DkmClrAliasKind.ReturnValue) > 1);
+                                    continue;
+                                }
+
                                 var local = PlaceholderLocalSymbol.Create(
                                     typeNameDecoder,
                                     _currentFrame,
@@ -631,8 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             CSharpCompilation compilation,
             PEModuleSymbol module,
             NamespaceSymbol @namespace,
-            ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups,
-            MetadataDecoder metadataDecoder)
+            ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups)
         {
             var stack = ArrayBuilder<string>.GetInstance();
             while ((object)@namespace != null)
@@ -678,7 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     }
 
                     var importsBinder = new InContainerBinder(@namespace, binder);
-                    imports = BuildImports(compilation, module, importRecordGroups[currentStringGroup], importsBinder, metadataDecoder);
+                    imports = BuildImports(compilation, module, importRecordGroups[currentStringGroup], importsBinder);
                     currentStringGroup--;
                 }
 
@@ -717,7 +717,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             foreach (var externAliasRecord in externAliasRecords)
             {
-                int index = externAliasRecord.GetIndexOfTargetAssembly(assembliesAndModules, compilation.Options.AssemblyIdentityComparer);
+                var targetAssembly = externAliasRecord.TargetAssembly as AssemblySymbol;
+                int index;
+                if (targetAssembly != null)
+                {
+                    index = assembliesAndModules.IndexOf(targetAssembly);
+                }
+                else
+                {
+                    index = IndexOfMatchingAssembly((AssemblyIdentity)externAliasRecord.TargetAssembly, assembliesAndModules, compilation.Options.AssemblyIdentityComparer);
+                }
+
                 if (index < 0)
                 {
                     Debug.WriteLine($"Unable to find corresponding assembly reference for extern alias '{externAliasRecord}'");
@@ -751,6 +761,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             updatedReferences.Free();
 
             return compilation;
+        }
+
+        private static int IndexOfMatchingAssembly(AssemblyIdentity referenceIdentity, ImmutableArray<Symbol> assembliesAndModules, AssemblyIdentityComparer assemblyIdentityComparer)
+        {
+            for (int i = 0; i < assembliesAndModules.Length; i++)
+            {
+                var assembly = assembliesAndModules[i] as AssemblySymbol;
+                if (assembly != null && assemblyIdentityComparer.ReferenceMatchesDefinition(referenceIdentity, assembly.Identity))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
 
         private static Binder ExtendBinderChain(
@@ -810,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return binder;
         }
 
-        private static Imports BuildImports(CSharpCompilation compilation, PEModuleSymbol module, ImmutableArray<ImportRecord> importRecords, InContainerBinder binder, MetadataDecoder metadataDecoder)
+        private static Imports BuildImports(CSharpCompilation compilation, PEModuleSymbol module, ImmutableArray<ImportRecord> importRecords, InContainerBinder binder)
         {
             // We make a first pass to extract all of the extern aliases because other imports may depend on them.
             var externsBuilder = ArrayBuilder<AliasAndExternAliasDirective>.GetInstance();
@@ -856,11 +880,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     case ImportTargetKind.Type:
                         {
-                            var portableImportRecord = importRecord as PortableImportRecord;
-
-                            TypeSymbol typeSymbol = portableImportRecord != null
-                                    ? portableImportRecord.GetTargetType(metadataDecoder)
-                                    : metadataDecoder.GetTypeSymbolForSerializedType(importRecord.TargetString);
+                            TypeSymbol typeSymbol = (TypeSymbol)importRecord.TargetType;
                             Debug.Assert((object)typeSymbol != null);
 
                             if (typeSymbol.IsErrorType())
@@ -895,54 +915,46 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                 continue;
                             }
 
-                            NamespaceSymbol namespaceSymbol;
-                            var portableImportRecord = importRecord as PortableImportRecord;
-                            if (portableImportRecord != null)
+                            NamespaceSymbol globalNamespace;
+                            AssemblySymbol targetAssembly = (AssemblySymbol)importRecord.TargetAssembly;
+
+                            if (targetAssembly != null)
                             {
-                                var targetAssembly = portableImportRecord.GetTargetAssembly<ModuleSymbol, AssemblySymbol>(module, module.Module);
-                                if ((object)targetAssembly == null)
-                                {
-                                    namespaceSymbol = BindNamespace(namespaceName, compilation.GlobalNamespace);
-                                }
-                                else if (targetAssembly.IsMissing)
+                                if (targetAssembly.IsMissing)
                                 {
                                     Debug.WriteLine($"Import record '{importRecord}' has invalid assembly reference '{targetAssembly.Identity}'");
                                     continue;
                                 }
-                                else
+
+                                globalNamespace = targetAssembly.GlobalNamespace;
+                            }
+                            else if (importRecord.TargetAssemblyAlias != null)
+                            {
+                                IdentifierNameSyntax externAliasSyntax = null;
+                                if (!TryParseIdentifierNameSyntax(importRecord.TargetAssemblyAlias, out externAliasSyntax))
                                 {
-                                    namespaceSymbol = BindNamespace(namespaceName, targetAssembly.GlobalNamespace);
+                                    Debug.WriteLine($"Import record '{importRecord}' has syntactically invalid extern alias '{importRecord.TargetAssemblyAlias}'");
+                                    continue;
                                 }
+
+                                var unusedDiagnostics = DiagnosticBag.GetInstance();
+                                var aliasSymbol = (AliasSymbol)binder.BindNamespaceAliasSymbol(externAliasSyntax, unusedDiagnostics);
+                                unusedDiagnostics.Free();
+
+                                if ((object)aliasSymbol == null)
+                                {
+                                    Debug.WriteLine($"Import record '{importRecord}' requires unknown extern alias '{importRecord.TargetAssemblyAlias}'");
+                                    continue;
+                                }
+
+                                globalNamespace = (NamespaceSymbol)aliasSymbol.Target;
                             }
                             else
                             {
-                                var globalNamespace = compilation.GlobalNamespace;
-
-                                var externAlias = ((NativeImportRecord)importRecord).ExternAlias;
-                                if (externAlias != null)
-                                {
-                                    IdentifierNameSyntax externAliasSyntax = null;
-                                    if (!TryParseIdentifierNameSyntax(externAlias, out externAliasSyntax))
-                                    {
-                                        Debug.WriteLine($"Import record '{importRecord}' has syntactically invalid extern alias '{externAlias}'");
-                                        continue;
-                                    }
-
-                                    var unusedDiagnostics = DiagnosticBag.GetInstance();
-                                    var aliasSymbol = (AliasSymbol)binder.BindNamespaceAliasSymbol(externAliasSyntax, unusedDiagnostics);
-                                    unusedDiagnostics.Free();
-
-                                    if ((object)aliasSymbol == null)
-                                    {
-                                        Debug.WriteLine($"Import record '{importRecord}' requires unknown extern alias '{externAlias}'");
-                                        continue;
-                                    }
-
-                                    globalNamespace = (NamespaceSymbol)aliasSymbol.Target;
-                                }
-
-                                namespaceSymbol = BindNamespace(namespaceName, globalNamespace);
+                                globalNamespace = compilation.GlobalNamespace;
                             }
+
+                            var namespaceSymbol = BindNamespace(namespaceName, globalNamespace);
 
                             if ((object)namespaceSymbol == null)
                             {

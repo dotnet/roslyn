@@ -106,7 +106,7 @@ class A { }";
         }
 
         [Fact]
-        [WorkItem(554160, "DevDiv")]
+        [WorkItem(554160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554160")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSpanNullReference01()
         {
@@ -131,7 +131,7 @@ class A { }";
         }
 
         [Fact]
-        [WorkItem(554160, "DevDiv")]
+        [WorkItem(554160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554160")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSpanNullReference02()
         {
@@ -155,7 +155,7 @@ class A { }";
             await AssertFormatAsync(code, expected, changedOptionSet: changingOptions);
         }
 
-        [WorkItem(539231, "DevDiv")]
+        [WorkItem(539231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539231")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task EmptySpan()
         {

@@ -78,7 +78,7 @@ $$");
     int $$");
         }
 
-        [WorkItem(542271)]
+        [WorkItem(542271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542271")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterPublicStaticType()
         {
@@ -87,7 +87,7 @@ $$");
     public static int $$");
         }
 
-        [WorkItem(542271)]
+        [WorkItem(542271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542271")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterPublicStaticExternType()
         {
@@ -96,7 +96,7 @@ $$");
     public static extern int $$");
         }
 
-        [WorkItem(542271)]
+        [WorkItem(542271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542271")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterGenericType()
         {

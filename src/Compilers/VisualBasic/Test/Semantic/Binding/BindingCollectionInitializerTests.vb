@@ -893,7 +893,7 @@ BC30521: Overload resolution failed because no accessible 'Add' is most specific
                                                 </expected>)
         End Sub
 
-        <WorkItem(529265, "DevDiv")>
+        <WorkItem(529265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529265")>
         <Fact()>
         Public Sub CollectionInitializerCollectionInitializerArityCheck()
             Dim source =
@@ -1345,7 +1345,7 @@ Hello World!!!
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(529787, "DevDiv")>
+        <Fact(), WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
         Public Sub GetCollectionInitializerSymbolInfo_01()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1398,7 +1398,7 @@ End Class
             End If
         End Sub
 
-        <Fact(), WorkItem(529787, "DevDiv")>
+        <Fact(), WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
         Public Sub GetCollectionInitializerSymbolInfo_02()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1440,7 +1440,7 @@ End Class
                          symbolInfo.CandidateSymbols.Select(Function(s) s.ToTestDisplayString()).Order().ToArray())
         End Sub
 
-        <Fact(), WorkItem(529787, "DevDiv")>
+        <Fact(), WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
         Public Sub GetCollectionInitializerSymbolInfo_03()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1482,7 +1482,7 @@ End Class
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
         End Sub
 
-        <Fact(), WorkItem(529787, "DevDiv")>
+        <Fact(), WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
         Public Sub GetCollectionInitializerSymbolInfo_04()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1519,7 +1519,7 @@ End Class
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
         End Sub
 
-        <Fact(), WorkItem(529787, "DevDiv")>
+        <Fact(), WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
         Public Sub GetCollectionInitializerSymbolInfo_05()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>

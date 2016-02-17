@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Step three: Now fill in the optional arguments.
             InsertMissingOptionalArguments(syntax, optionalParametersMethod.Parameters, actualArguments, enableCallerInfo);
-            
+
             if (isComReceiver)
             {
                 RewriteArgumentsForComCall(parameters, actualArguments, refKinds, temporariesBuilder);

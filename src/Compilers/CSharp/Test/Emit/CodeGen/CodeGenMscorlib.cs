@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public partial class CodeGenMscorlibTests : EmitMetadataTestBase
     {
-        [WorkItem(544591, "DevDiv")]
-        [WorkItem(544609, "DevDiv")]
-        [WorkItem(544595, "DevDiv")]
-        [WorkItem(544596, "DevDiv")]
-        [WorkItem(544624, "DevDiv")]
-        [WorkItem(544592, "DevDiv")]
-        [WorkItem(544927, "DevDiv")]
+        [WorkItem(544591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544591")]
+        [WorkItem(544609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544609")]
+        [WorkItem(544595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544595")]
+        [WorkItem(544596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544596")]
+        [WorkItem(544624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544624")]
+        [WorkItem(544592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544592")]
+        [WorkItem(544927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544927")]
         [Fact]
         public void CoreLibrary1()
         {
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             c.VerifyDiagnostics();
         }
 
-        [WorkItem(544918, "DevDiv")]
+        [WorkItem(544918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544918")]
         [Fact]
         public void CoreLibrary2()
         {
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [WorkItem(546832, "DevDiv")]
+        [WorkItem(546832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546832")]
         [Fact]
         public void CoreLibrary3()
         {
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// Report CS0518 for missing System.Void
         /// when generating synthesized .ctor.
         /// </summary>
-        [WorkItem(530859, "DevDiv")]
+        [WorkItem(530859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530859")]
         [Fact()]
         public void NoVoidForSynthesizedCtor()
         {
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// <summary>
         /// Report CS0656 for missing Decimal to int conversion.
         /// </summary>
-        [WorkItem(530860, "DevDiv")]
+        [WorkItem(530860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530860")]
         [Fact(Skip = "530860")]
         public void NoDecimalConversion()
         {
@@ -368,7 +368,7 @@ public class C1
 );
         }
 
-        [WorkItem(530861, "DevDiv")]
+        [WorkItem(530861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530861")]
         [Fact]
         public void MissingStringLengthForEach()
         {
@@ -432,7 +432,7 @@ namespace System.Collections
           );
         }
 
-        [WorkItem(631443, "DevDiv")]
+        [WorkItem(631443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631443")]
         [Fact]
         public void CoreLibrary4()
         {

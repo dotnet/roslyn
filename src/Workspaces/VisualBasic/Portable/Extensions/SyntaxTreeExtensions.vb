@@ -114,6 +114,13 @@ recurse:
                 Return True
             End If
 
+            ' If it is a numeric literal, all checks are done and we're okay. 
+            If token.IsKind(SyntaxKind.IntegerLiteralToken, SyntaxKind.DecimalLiteralToken,
+                            SyntaxKind.DateLiteralToken, SyntaxKind.FloatingLiteralToken) Then
+                Return False
+            End If
+
+            ' For char or string literals, check if we're at the end of an incomplete literal.
             Dim lastChar = If(token.IsKind(SyntaxKind.CharacterLiteralToken), "'", """")
 
             Return AtEndOfIncompleteStringOrCharLiteral(token, position, lastChar)

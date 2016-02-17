@@ -70,7 +70,7 @@ End Class
             Await VerifyTypingCharacterAsync(code, expected)
         End Function
 
-        <WorkItem(538715)>
+        <WorkItem(538715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538715")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Async Function TestTypingCharacter_NoReturnType() As Task
             Const code = "
@@ -133,7 +133,7 @@ End Class
             Await VerifyTypingCharacterAsync(code, expected)
         End Function
 
-        <WorkItem(537506)>
+        <WorkItem(537506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537506")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Async Function TestTypingCharacter_NotAfterClassName() As Task
             Const code = "
@@ -147,7 +147,7 @@ End Class
             Await VerifyTypingCharacterAsync(code, expected)
         End Function
 
-        <WorkItem(537508)>
+        <WorkItem(537508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537508")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Async Function TestTypingCharacter_NotInsideClass() As Task
             Const code = "
@@ -163,7 +163,7 @@ End Class
             Await VerifyTypingCharacterAsync(code, expected)
         End Function
 
-        <WorkItem(537510)>
+        <WorkItem(537510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537510")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Async Function TestTypingCharacter_NotAfterConstructorName() As Task
             Const code = "
@@ -179,7 +179,7 @@ End Class
             Await VerifyTypingCharacterAsync(code, expected)
         End Function
 
-        <WorkItem(537511)>
+        <WorkItem(537511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537511")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Async Function TestTypingCharacter_NotInsideConstructor() As Task
             Const code = "
@@ -199,7 +199,7 @@ End Class
             Await VerifyTypingCharacterAsync(code, expected)
         End Function
 
-        <WorkItem(537512)>
+        <WorkItem(537512, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537512")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Async Function TestTypingCharacter_NotInsideMethodBody() As Task
             Const code = "
@@ -219,7 +219,7 @@ End Class
             Await VerifyTypingCharacterAsync(code, expected)
         End Function
 
-        <WorkItem(540004)>
+        <WorkItem(540004, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540004")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Async Function TestTypingCharacter_NoReturnsOnWriteOnlyProperty() As Task
             Const code = "
@@ -310,7 +310,7 @@ End Class
             Await VerifyPressingEnterAsync(code, expected)
         End Function
 
-        <WorkItem(538717)>
+        <WorkItem(538717, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538717")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Async Function TestPressingEnter_Module() As Task
             Const code = "
@@ -512,7 +512,7 @@ End Class
             Await VerifyPressingEnterAsync(code, expected)
         End Function
 
-        <WorkItem(540017)>
+        <WorkItem(540017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540017")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Async Function TestPressingEnter_InsertApostrophes8() As Task
             Const code = "
@@ -546,7 +546,7 @@ End Class
             Await VerifyPressingEnterAsync(code, expected, autoGenerateXmlDocComments:=False)
         End Function
 
-        <WorkItem(540017)>
+        <WorkItem(540017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540017")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Async Function TestPressingEnter_DontInsertApostrophes1() As Task
             Const code = "
@@ -585,7 +585,7 @@ End Class
             Await VerifyPressingEnterAsync(code, expected)
         End Function
 
-        <WorkItem(537534)>
+        <WorkItem(537534, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537534")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Async Function TestPressingEnter_NotInsideMethodBody() As Task
             Const code = "
@@ -606,7 +606,7 @@ End Class
             Await VerifyPressingEnterAsync(code, expected)
         End Function
 
-        <WorkItem(537550)>
+        <WorkItem(537550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537550")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Async Function TestPressingEnter_NotBeforeDocComment() As Task
             Const code = "
@@ -881,7 +881,7 @@ End Class
             Await VerifyInsertCommentCommandAsync(code, expected)
         End Function
 
-        <WorkItem(538715)>
+        <WorkItem(538715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538715")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Async Function TestCommand_Method1() As Task
             Const code = "
@@ -949,7 +949,7 @@ End Class
             Await VerifyInsertCommentCommandAsync(code, expected)
         End Function
 
-        <WorkItem(538482)>
+        <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Async Function TestCommand_FirstModuleOnLine() As Task
             Const code = "
@@ -965,7 +965,7 @@ Module M : End Module : Module N : End Module
             Await VerifyInsertCommentCommandAsync(code, expected)
         End Function
 
-        <WorkItem(538482)>
+        <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Async Function TestCommand_NotOnSecondModuleOnLine() As Task
             Const code = "Module M : End Module : $$Module N : End Module"
@@ -974,7 +974,7 @@ Module M : End Module : Module N : End Module
             Await VerifyInsertCommentCommandAsync(code, expected)
         End Function
 
-        <WorkItem(538482)>
+        <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Async Function TestCommand_FirstPropertyOnLine() As Task
             Const code = "
@@ -1044,7 +1044,7 @@ End Class
             Await VerifyOpenLineAboveAsync(code, expected)
         End Function
 
-        <WorkItem(538482)>
+        <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TestCommand_NotOnSecondPropertyOnLine()
             Dim code =

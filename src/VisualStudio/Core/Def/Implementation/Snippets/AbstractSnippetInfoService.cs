@@ -215,7 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// pointer we passed and substituting the null reference. This then causes a null
         /// reference exception in the shim. Calling from the UI thread avoids this marshaller.
         /// </remarks>
-        void PopulateSnippetCacheFromExpansionEnumeration(IVsExpansionEnumeration expansionEnumerator)
+        private void PopulateSnippetCacheFromExpansionEnumeration(IVsExpansionEnumeration expansionEnumerator)
         {
             AssertIsForeground();
 

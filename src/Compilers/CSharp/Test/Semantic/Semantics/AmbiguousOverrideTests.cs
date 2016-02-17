@@ -64,7 +64,7 @@ class EntryPoint
             CompileAndVerify(source, expectedOutput: "121314");
         }
 
-        [WorkItem(544936, "DevDiv")]
+        [WorkItem(544936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544936")]
         [Fact]
         public void TestAmbiguousInvocationError()
         {
@@ -355,7 +355,7 @@ class CBar : IFoo // CS0535 * 2
             );
         }
 
-        [WorkItem(540518, "DevDiv")]
+        [WorkItem(540518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540518")]
         [Fact]
         public void TestExplicitImplementInterfaceMethodsWithCustomModifiers()
         {

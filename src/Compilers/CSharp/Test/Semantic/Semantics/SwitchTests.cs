@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region "Common Error Tests"
 
-        [WorkItem(543285, "DevDiv")]
+        [WorkItem(543285, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543285")]
         [Fact]
         public void NoCS0029ForUsedLocalConstInSwitch()
         {
@@ -77,7 +77,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("Test.eTypes").WithLocation(23, 18));
         }
 
-        [WorkItem(542773, "DevDiv")]
+        [WorkItem(542773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542773")]
         [Fact]
         public void CS0119_TypeUsedAsSwitchExpression()
         {
@@ -891,7 +891,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.2f").WithArguments("float", "int").WithLocation(10, 12));
         }
 
-        [Fact, WorkItem(546812, "DevDiv")]
+        [Fact, WorkItem(546812, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546812")]
         public void Bug16878()
         {
             var text = @"
@@ -1256,7 +1256,7 @@ class C
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "b1.F()").WithLocation(20, 17));
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_1()
         {
@@ -1305,7 +1305,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a").WithLocation(28, 20));
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_2()
         {
@@ -1357,7 +1357,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_3()
         {
@@ -1405,7 +1405,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_4()
         {
@@ -1453,7 +1453,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_5()
         {
@@ -1502,7 +1502,7 @@ struct A
                 );
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_6()
         {
@@ -1551,7 +1551,7 @@ struct A
                 );
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_1()
         {
@@ -1605,7 +1605,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_2()
         {
@@ -1663,7 +1663,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_3()
         {
@@ -1717,7 +1717,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_4()
         {
@@ -1775,7 +1775,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_4_1()
         {
@@ -2396,7 +2396,7 @@ class SwitchTest
 
         #region regressions
 
-        [WorkItem(543849, "DevDiv")]
+        [WorkItem(543849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543849")]
         [Fact()]
         public void NamespaceInCaseExpression()
         {

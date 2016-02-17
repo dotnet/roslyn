@@ -360,7 +360,7 @@ End Class</File>
             Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Function
 
-        <WorkItem(576176)>
+        <WorkItem(576176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576176")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestFormatWrappedBlock() As Task
             Dim text = <File>
@@ -392,7 +392,7 @@ End Class</File>
             Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Function
 
-        <WorkItem(578253)>
+        <WorkItem(578253, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578253")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestDoNotWrapCLass() As Task
             Dim text = <File>
@@ -424,14 +424,14 @@ End Module</File>
             Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Function
 
-        <WorkItem(578260)>
+        <WorkItem(578260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578260")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestNotOnLambda() As Task
             Await TestMissingAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n End Sub \n Function foo() \n Dim op = Sub[||](c) \n Dim kl = Sub(g) \n End Sub \n End Function \n End Module"))
         End Function
 
-        <WorkItem(578271)>
+        <WorkItem(578271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578271")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestNamespaceThatEndsAtFile() As Task
             Dim text = <File>

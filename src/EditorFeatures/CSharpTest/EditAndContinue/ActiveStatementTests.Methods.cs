@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         #region Methods
 
-        [WorkItem(740443)]
+        [WorkItem(740443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/740443")]
         [Fact]
         public void Method_Delete_Leaf1()
         {
@@ -226,7 +226,7 @@ class C
         }
 
         // Async
-        [WorkItem(749458)]
+        [WorkItem(749458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749458")]
         [Fact]
         public void Update_Leaf_AsyncMethod()
         {
@@ -266,7 +266,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(749440)]
+        [WorkItem(749440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749440")]
         [Fact]
         public void Update_Inner_AsyncMethod()
         {
@@ -307,7 +307,7 @@ class Test
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "string result = f.WaitAsync(6).Result;"));
         }
 
-        [WorkItem(749440)]
+        [WorkItem(749440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749440")]
         [Fact]
         public void Update_Initializer_MultipleVariables1()
         {
@@ -354,7 +354,7 @@ class Test
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "int a = G()"));
         }
 
-        [WorkItem(749440)]
+        [WorkItem(749440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749440")]
         [Fact]
         public void Update_Initializer_MultipleVariables2()
         {
@@ -651,7 +651,7 @@ class SampleCollection<T>
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "set", CSharpFeaturesResources.IndexerSetter));
         }
 
-        [WorkItem(750244)]
+        [WorkItem(750244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750244")]
         [Fact]
         public void Update_Inner_Indexers1()
         {
@@ -755,7 +755,7 @@ class SampleCollection<T>
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "get", CSharpFeaturesResources.IndexerGetter));
         }
 
-        [WorkItem(750244)]
+        [WorkItem(750244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750244")]
         [Fact]
         public void Update_Inner_Indexers2()
         {
@@ -1057,7 +1057,7 @@ class SampleCollection<T>
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(754274)]
+        [WorkItem(754274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754274")]
         [Fact]
         public void Update_Leaf_OverloadedOperator()
         {
@@ -1095,7 +1095,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(754274)]
+        [WorkItem(754274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754274")]
         [Fact]
         public void Update_Inner_OverloadedOperator()
         {

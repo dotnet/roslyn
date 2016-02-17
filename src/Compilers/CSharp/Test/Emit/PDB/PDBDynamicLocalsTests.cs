@@ -2055,7 +2055,7 @@ class Program
 </symbols>");
         }
 
-        [WorkItem(637465, "DevDiv")]
+        [WorkItem(637465, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637465")]
         [Fact]
         public void DynamicLocalOptimizedAway()
         {

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
             return PortableShim.File.Exists(fullPath);
         }
 
-        public RelativePathResolver WithSearchPaths(ImmutableArray<string> searchPaths) => 
+        public RelativePathResolver WithSearchPaths(ImmutableArray<string> searchPaths) =>
             new RelativePathResolver(searchPaths, BaseDirectory);
 
         public RelativePathResolver WithBaseDirectory(string baseDirectory) =>

@@ -106,7 +106,6 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 throw new InvalidDataException(e.Message);
             }
-
         }
 
         /// <summary>

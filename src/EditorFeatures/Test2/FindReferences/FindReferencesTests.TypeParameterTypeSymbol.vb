@@ -107,7 +107,7 @@ class Bar<T> { public static void StaticDoSomething() { } }]]></Document>
             Await TestAsync(input)
         End Function
 
-        <WorkItem(542598)>
+        <WorkItem(542598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542598")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestMethodTypeParameterExplicitImplementation1() As Task
             Dim input =
@@ -129,7 +129,7 @@ class A : I
             Await TestAsync(input)
         End Function
 
-        <WorkItem(542598)>
+        <WorkItem(542598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542598")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestMethodTypeParameterExplicitImplementation2() As Task
             Dim input =
@@ -151,7 +151,7 @@ class A : I
             Await TestAsync(input)
         End Function
 
-        <WorkItem(542598)>
+        <WorkItem(542598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542598")>
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestMethodTypeParameterExplicitImplementation3() As Task
             Dim input =

@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Implem
                 NewLines("Imports System \n Structure S \n End Structure \n MustInherit Class b \n Public MustOverride Sub g(Optional x As S = Nothing) \n End Class \n Class c \n Inherits b \n Public Overrides Sub g(Optional x As S = Nothing) \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(916114)>
+        <WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalNullableStructParameter() As Task
             Await TestAsync(
@@ -129,7 +129,7 @@ NewLines("Structure S \n End Structure \n MustInherit Class b \n Public MustOver
 NewLines("Imports System \n Structure S \n End Structure \n MustInherit Class b \n Public MustOverride Sub g(Optional x As S? = Nothing) \n End Class \n Class c \n Inherits b \n Public Overrides Sub g(Optional x As S? = Nothing) \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(916114)>
+        <WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalNullableIntParameter() As Task
             Await TestAsync(
@@ -144,7 +144,7 @@ NewLines("Imports System \n MustInherit Class b \n Public MustOverride Sub g(Opt
                 NewLines("Imports System \n Class S \n End Class \n MustInherit Class b \n Public MustOverride Sub g(Optional x As S = Nothing) \n End Class \n Class c \n Inherits b \n Public Overrides Sub g(Optional x As S = Nothing) \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(544641)>
+        <WorkItem(544641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544641")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestClassStatementTerminators1() As Task
             Await TestAsync(
@@ -152,7 +152,7 @@ NewLines("Imports System \n MustInherit Class D \n MustOverride Sub Foo() \n End
 NewLines("Imports System \n MustInherit Class D \n MustOverride Sub Foo() \n End Class \n Class C : Inherits D \n Public Overrides Sub Foo() \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(544641)>
+        <WorkItem(544641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544641")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestClassStatementTerminators2() As Task
             Await TestAsync(
@@ -160,7 +160,7 @@ NewLines("Imports System \n MustInherit Class D \n MustOverride Sub Foo() \n End
 NewLines("Imports System \n MustInherit Class D \n MustOverride Sub Foo() \n End Class \n Class C : Inherits D : Implements IDisposable \n Public Overrides Sub Foo() \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(530737)>
+        <WorkItem(530737, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530737")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestRenameTypeParameters() As Task
             Await TestAsync(

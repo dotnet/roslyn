@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(667962)>
+        <WorkItem(667962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667962")>
         Public Async Function TestMultipleAliasSymbols() As Task
             Dim input =
 <Workspace>
@@ -140,7 +140,7 @@ namespace NS
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(667962)>
+        <WorkItem(667962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667962")>
         Public Async Function TestMultipleAliasSymbols2() As Task
             Dim input =
 <Workspace>

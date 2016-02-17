@@ -15,9 +15,9 @@ rather adds information that is specific to the implementation provided
 by the C# and Visual Basic Compilers.
 
 
-Issue Properties
+Result Properties
 ================
-The SARIF standard allows the `properties` property of `issue` objects
+The SARIF standard allows the `properties` property of `result` objects
 to contain arbitrary (string, string) key-value pairs.
 
 The keys and values used by the C# and VB compilers are serialized from
@@ -33,6 +33,4 @@ Key                      | Value
 "category"               | `Diagnostic.Category`
 "helpLink"               | `DiagnosticDescriptor.HelpLink` (omitted if null or empty)
 "isEnabledByDefault"     | `Diagnostic.IsEnabledByDefault` ("True" or "False")
-"isSuppressedInSource"   | `Diagnostic.IsSuppressedInSource` ("True" or "False")
-"customTags"             | `Diagnostic.CustomTags` (joined together in a `;`-delimted list)
 "customProperties.[key]" | `Diagnostic.Properties[key]` (for each key in the dictionary)

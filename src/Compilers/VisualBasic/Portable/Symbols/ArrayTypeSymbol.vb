@@ -436,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Private ReadOnly _customModifiers As ImmutableArray(Of CustomModifier)
             Private ReadOnly _systemArray As NamedTypeSymbol ' The base class - System.Array
 
-            Sub New(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), systemArray As NamedTypeSymbol)
+            Public Sub New(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), systemArray As NamedTypeSymbol)
                 Debug.Assert(elementType IsNot Nothing)
                 Debug.Assert(systemArray IsNot Nothing)
 
@@ -506,7 +506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Private ReadOnly _interfaces As ImmutableArray(Of NamedTypeSymbol) ' Empty or IList(Of ElementType) and possibly IReadOnlyList(Of ElementType)
 
-            Sub New(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), systemArray As NamedTypeSymbol, interfaces As ImmutableArray(Of NamedTypeSymbol))
+            Public Sub New(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), systemArray As NamedTypeSymbol, interfaces As ImmutableArray(Of NamedTypeSymbol))
                 MyBase.New(elementType, customModifiers, systemArray)
 
                 Debug.Assert(interfaces.Length <= 2)
@@ -546,7 +546,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Private ReadOnly _rank As Integer
 
-            Sub New(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), rank As Integer, systemArray As NamedTypeSymbol)
+            Public Sub New(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), rank As Integer, systemArray As NamedTypeSymbol)
                 MyBase.New(elementType, customModifiers, systemArray)
 
                 Debug.Assert(rank >= 1)
@@ -584,7 +584,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Private ReadOnly _sizes As ImmutableArray(Of Integer)
             Private ReadOnly _lowerBounds As ImmutableArray(Of Integer)
 
-            Sub New(
+            Public Sub New(
                 elementType As TypeSymbol,
                 customModifiers As ImmutableArray(Of CustomModifier),
                 rank As Integer,

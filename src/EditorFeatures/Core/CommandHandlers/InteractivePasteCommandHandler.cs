@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                     editorOperations.InsertText(text);
                 }
                 else if (dataHasBoxCutCopyTag)
-                {                    
+                {
                     // If the caret is on a blank line, treat this like a normal stream insertion
                     if (textView.Selection.IsEmpty && !HasNonWhiteSpaceCharacter(textView.Caret.Position.BufferPosition.GetContainingLine()))
                     {

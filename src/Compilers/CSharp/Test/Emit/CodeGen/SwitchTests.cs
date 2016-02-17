@@ -53,7 +53,7 @@ public class Test
             );
         }
 
-        [WorkItem(542298, "DevDiv")]
+        [WorkItem(542298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542298")]
         [Fact]
         public void DefaultOnlySwitch_02()
         {
@@ -551,7 +551,7 @@ public class Test
             );
         }
 
-        [WorkItem(740058, "DevDiv")]
+        [WorkItem(740058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/740058")]
         [Fact]
         public void LongTypeSwitchArgumentExpressionOverflow()
         {
@@ -1623,7 +1623,7 @@ public class Test
             );
         }
 
-        [WorkItem(542398, "DevDiv")]
+        [WorkItem(542398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542398")]
         [Fact]
         public void MaxValueGotoCaseExpression()
         {
@@ -1646,7 +1646,7 @@ class Program
             CompileAndVerify(text, expectedOutput: "");
         }
 
-        [WorkItem(543967, "DevDiv")]
+        [WorkItem(543967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543967")]
         [Fact()]
         public void NullableAsSwitchExpression()
         {
@@ -1715,7 +1715,7 @@ class Program
 }");
         }
 
-        [WorkItem(543967, "DevDiv")]
+        [WorkItem(543967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543967")]
         [Fact()]
         public void NullableAsSwitchExpression_02()
         {
@@ -2238,7 +2238,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem(546632, "DevDiv")]
+        [WorkItem(546632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546632")]
         public void StringSwitch_HashTableSwitch_01()
         {
             var text = @"using System;
@@ -2974,7 +2974,7 @@ class Test
             VerifySynthesizedStringHashMethod(compVerifier, expected: true);
         }
 
-        [WorkItem(544322, "DevDiv")]
+        [WorkItem(544322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544322")]
         [Fact]
         public void StringSwitch_HashTableSwitch_03()
         {
@@ -3082,8 +3082,8 @@ class Foo
 
         #region "Implicit user defined conversion tests"
 
-        [WorkItem(543602, "DevDiv")]
-        [WorkItem(543660, "DevDiv")]
+        [WorkItem(543602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543602")]
+        [WorkItem(543660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543660")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_01()
         {
@@ -3123,7 +3123,7 @@ public class Test
             var verifier = CompileAndVerify(source, expectedOutput: @"0");
         }
 
-        [WorkItem(543660, "DevDiv")]
+        [WorkItem(543660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543660")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_02()
         {
@@ -3164,7 +3164,7 @@ class Conv
             CompileAndVerify(text, expectedOutput: "Pass");
         }
 
-        [WorkItem(543660, "DevDiv")]
+        [WorkItem(543660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543660")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_03()
         {
@@ -3298,7 +3298,7 @@ struct Conv
             CompileAndVerify(text, expectedOutput: "Pass");
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_3()
         {
@@ -3335,7 +3335,7 @@ struct A
             CompileAndVerify(text, expectedOutput: "0");
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_4()
         {
@@ -3372,7 +3372,7 @@ struct A
             CompileAndVerify(text, expectedOutput: "1");
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_1()
         {
@@ -3415,7 +3415,7 @@ struct A
             CompileAndVerify(text, expectedOutput: "1");
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_3()
         {
@@ -3460,7 +3460,7 @@ struct A
 
         #endregion
 
-        [WorkItem(634404, "DevDiv")]
+        [WorkItem(634404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634404")]
         [Fact()]
         public void MissingCharsProperty()
         {
@@ -3588,7 +3588,7 @@ class Program
 ");
         }
 
-        [WorkItem(642186, "DevDiv")]
+        [WorkItem(642186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642186")]
         [Fact()]
         public void IsWarningSwitchEmit()
         {
@@ -6191,7 +6191,7 @@ public class Test
             );
         }
 
-        [WorkItem(913556, "DevDiv")]
+        [WorkItem(913556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913556")]
         [Fact]
         public void DifferentStrategiesForDifferentSwitches()
         {
@@ -6362,8 +6362,8 @@ public class Test
 ");
         }
 
-        [WorkItem(634404, "DevDiv")]
-        [WorkItem(913556, "DevDiv")]
+        [WorkItem(634404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634404")]
+        [WorkItem(913556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913556")]
         [Fact]
         public void LargeStringSwitchWithoutStringChars()
         {
@@ -6601,7 +6601,7 @@ public class Test
 ");
         }
 
-        [WorkItem(947580, "DevDiv")]
+        [WorkItem(947580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947580")]
         [Fact]
         public void Regress947580()
         {
@@ -6651,7 +6651,7 @@ class Program {
             );
         }
 
-        [WorkItem(947580, "DevDiv")]
+        [WorkItem(947580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947580")]
         [Fact]
         public void Regress947580a()
         {
@@ -6696,7 +6696,7 @@ class Program {
             );
         }
 
-        [WorkItem(1035228, "DevDiv")]
+        [WorkItem(1035228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1035228")]
         [Fact]
         public void Regress1035228()
         {
@@ -6751,7 +6751,7 @@ class Program {
             );
         }
 
-        [WorkItem(1035228, "DevDiv")]
+        [WorkItem(1035228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1035228")]
         [Fact]
         public void Regress1035228a()
         {
@@ -6950,7 +6950,6 @@ namespace ConsoleApplication1
 "
             );
         }
-
 
         #endregion
     }

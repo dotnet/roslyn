@@ -86,6 +86,7 @@
     <Compile Include="Interactive\CompletionProviders\VisualBasicReplCommandCompletionProvider.vb" />
     <Compile Include="Interactive\VisualBasicInteractiveEvaluator.vb" />
     <Compile Include="Interactive\VisualBasicReplServiceProvider.vb" />
+    <Compile Include="Interactive\VisualBasicSendToInteractiveSubmissionProvider.vb" />
     <Compile Include="VBInteractiveEditorResources.Designer.vb">
       <DependentUpon>VBInteractiveEditorResources.resx</DependentUpon>
       <AutoGen>True</AutoGen>
