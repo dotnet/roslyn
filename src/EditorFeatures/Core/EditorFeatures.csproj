@@ -283,6 +283,9 @@
     <Compile Include="Implementation\Classification\SemanticClassificationBufferTaggerProvider.cs" />
     <Compile Include="Implementation\Classification\SemanticClassificationBufferTaggerProvider.Tagger.cs" />
     <Compile Include="Implementation\Classification\SemanticClassificationUtilities.cs" />
+    <Compile Include="Implementation\CodeFixes\CodeFixService.cs" />
+    <Compile Include="Implementation\CodeFixes\CodeFixService.ProjectCodeFixProvider.cs" />
+    <Compile Include="Implementation\CodeFixes\ICodeFixService.cs" />
     <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />
     <Compile Include="Implementation\GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
