@@ -48,7 +48,7 @@ namespace Microsoft.Cci
         // On the other hand, we do want to use a fairly large buffer as the hashing operations
         // are invoked through reflection, which is fairly slow.
         private readonly bool _logging;
-        private readonly PooledBlobBuilder _logData;
+        private readonly BlobBuilder _logData;
         private const int bufferFlushLimit = 64 * 1024;
         private readonly HashAlgorithm _hashAlgorithm;
 
@@ -57,7 +57,11 @@ namespace Microsoft.Cci
             _logging = logging;
             if (logging)
             {
-                _logData = PooledBlobBuilder.GetInstance();
+                // do not get this from pool
+                // we need a fairly large buffer here (where the pool typically contains small ones)
+                // and we need just on per compile session
+                // pooling will be couterproductive in such scenario
+                _logData = new BlobBuilder(bufferFlushLimit);
                 _hashAlgorithm = new SHA1CryptoServiceProvider();
                 Debug.Assert(_hashAlgorithm.SupportsTransform);
             }
@@ -68,9 +72,9 @@ namespace Microsoft.Cci
             }
         }
 
-        private void MaybeFlush()
+        private void EnsureSpace(int space)
         {
-            if (_logData.Count >= bufferFlushLimit)
+            if (_logData.Count + space >= bufferFlushLimit)
             {
                 foreach (var blob in _logData.GetBlobs())
                 {
@@ -110,7 +114,6 @@ namespace Microsoft.Cci
         internal void Close()
         {
             _hashAlgorithm?.Dispose();
-            _logData?.Free();
         }
 
         internal enum PdbWriterOperation : byte
@@ -146,54 +149,60 @@ namespace Microsoft.Cci
             return logging;
         }
 
-        public void LogArgument(uint[] data)
+        public void LogArgument(uint[] data, int cnt)
         {
-            _logData.WriteInt32(data.Length);
-            for (int i = 0; i < data.Length; i++)
+            EnsureSpace((cnt + 1) * 4);
+            _logData.WriteInt32(cnt);
+            for (int i = 0; i < cnt; i++)
             {
                 _logData.WriteUInt32(data[i]);
             }
-            MaybeFlush();
+        }
+
+        [Obsolete("must pass count", true)]
+        public void LogArgument(uint[] data)
+        {
         }
 
         public void LogArgument(string data)
         {
+            EnsureSpace(data.Length * 2);
             _logData.WriteUTF8(data, allowUnpairedSurrogates: true);
-            MaybeFlush();
         }
 
         public void LogArgument(uint data)
         {
+            EnsureSpace(4);
             _logData.WriteUInt32(data);
         }
 
         public void LogArgument(byte data)
         {
+            EnsureSpace(1);
             _logData.WriteByte(data);
         }
 
         public void LogArgument(byte[] data)
         {
-            LogArgument(data.Length);
+            EnsureSpace(data.Length + 4);
+            _logData.WriteInt32(data.Length);
             _logData.WriteBytes(data);
-            MaybeFlush();
         }
 
         public void LogArgument(int[] data)
         {
-            LogArgument(data.Length);
-            foreach (int d in data) LogArgument(d);
-            MaybeFlush();
+            EnsureSpace((data.Length + 1) * 4);
+            _logData.WriteInt32(data.Length);
+            foreach (int d in data)
+            {
+                _logData.WriteInt32(d);
+            }
         }
 
         public void LogArgument(long data)
         {
+            EnsureSpace(8);
             _logData.WriteInt64(data);
-        }
-
-        public void LogArgument(int data)
-        {
-            _logData.WriteInt32(data);
         }
 
         public void LogArgument(object data)
@@ -213,10 +222,12 @@ namespace Microsoft.Cci
             }
             else
             {
+                // being conservative here
+                // string and decimal are handled above, 
+                // everything else is 8 bytes or less.
+                EnsureSpace(8);
                 _logData.WriteConstant(data);
             }
-
-            MaybeFlush();
         }
     }
 
@@ -1153,11 +1164,11 @@ namespace Microsoft.Cci
                 if (_callLogger.LogOperation(OP.DefineSequencePoints))
                 {
                     _callLogger.LogArgument((uint)count);
-                    _callLogger.LogArgument(_sequencePointOffsets);
-                    _callLogger.LogArgument(_sequencePointStartLines);
-                    _callLogger.LogArgument(_sequencePointStartColumns);
-                    _callLogger.LogArgument(_sequencePointEndLines);
-                    _callLogger.LogArgument(_sequencePointEndColumns);
+                    _callLogger.LogArgument(_sequencePointOffsets, count);
+                    _callLogger.LogArgument(_sequencePointStartLines, count);
+                    _callLogger.LogArgument(_sequencePointStartColumns, count);
+                    _callLogger.LogArgument(_sequencePointEndLines, count);
+                    _callLogger.LogArgument(_sequencePointEndColumns, count);
                 }
             }
             catch (Exception ex)
@@ -1345,9 +1356,9 @@ namespace Microsoft.Cci
                         if (_callLogger.LogOperation(OP.DefineAsyncStepInfo))
                         {
                             _callLogger.LogArgument((uint)count);
-                            _callLogger.LogArgument(yields);
-                            _callLogger.LogArgument(resumes);
-                            _callLogger.LogArgument(methods);
+                            _callLogger.LogArgument(yields, count);
+                            _callLogger.LogArgument(resumes, count);
+                            _callLogger.LogArgument(methods, count);
                         }
                     }
                     catch (Exception ex)
