@@ -39,10 +39,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                        hierarchy As IVsHierarchy,
                        serviceProvider As IServiceProvider,
                        reportExternalErrorCreatorOpt As Func(Of ProjectId, IVsReportExternalErrors),
-                       miscellaneousFilesWorkspaceOpt As MiscellaneousFilesWorkspace,
                        visualStudioWorkspaceOpt As VisualStudioWorkspaceImpl,
                        hostDiagnosticUpdateSourceOpt As HostDiagnosticUpdateSource)
-            MyBase.New(projectTracker, reportExternalErrorCreatorOpt, ProjectSystemName, hierarchy, LanguageNames.VisualBasic, serviceProvider, miscellaneousFilesWorkspaceOpt, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt)
+            MyBase.New(projectTracker, reportExternalErrorCreatorOpt, ProjectSystemName, hierarchy, LanguageNames.VisualBasic, serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt)
 
             _compilerHost = compilerHost
 
