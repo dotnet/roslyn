@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         : ICommandHandler<ExecuteInInteractiveCommandArgs>
     {
         private readonly IEnumerable<Lazy<IExecuteInInteractiveCommandHandler, ContentTypeMetadata>> _executeInInteractiveHandlers;
+        private IExecuteInInteractiveCommandHandler _executeInInteractiveHandler;
 
         [ImportingConstructor]
         public CSharpExecuteInInteractiveCommandHandler(
@@ -29,9 +30,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         {
             get
             {
-                return _executeInInteractiveHandlers
-                    .Where(handler => handler.Metadata.ContentTypes.Contains(ContentTypeNames.CSharpContentType))
-                    .SingleOrDefault().Value;
+                if (_executeInInteractiveHandler == null)
+                {
+                    _executeInInteractiveHandler = _executeInInteractiveHandlers
+                        .Where(handler => handler.Metadata.ContentTypes.Contains(ContentTypeNames.CSharpContentType))
+                        .SingleOrDefault().Value;
+                }
+                return _executeInInteractiveHandler;
             }
         }
 

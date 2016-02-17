@@ -24,14 +24,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
         private readonly IComponentModel _componentModel;
         private readonly string _contentType;
 
-        private AbstractResetInteractiveCommand ResetInteractiveService
+        private AbstractResetInteractiveCommand _resetInteractiveCommand;
+
+        private AbstractResetInteractiveCommand ResetInteractiveCommand
         {
             get
             {
-                return _componentModel.DefaultExportProvider
-                    .GetExports<AbstractResetInteractiveCommand, ContentTypeMetadata>()
-                    .Where(resetInteractiveService => resetInteractiveService.Metadata.ContentTypes.Contains(_contentType))
-                    .Single().Value;
+                if (_resetInteractiveCommand == null)
+                {
+                    _resetInteractiveCommand = _componentModel.DefaultExportProvider
+                        .GetExports<AbstractResetInteractiveCommand, ContentTypeMetadata>()
+                        .Where(resetInteractiveService => resetInteractiveService.Metadata.ContentTypes.Contains(_contentType))
+                        .Single().Value;
+                }
+                return _resetInteractiveCommand;
             }
         }
 
@@ -52,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
             var resetInteractiveFromProjectCommand = new OleMenuCommand(
                 (sender, args) =>
                 {
-                    ResetInteractiveService.ExecuteResetInteractive();
+                    ResetInteractiveCommand.ExecuteResetInteractive();
                 },
                 GetResetInteractiveFromProjectCommandID());
 
