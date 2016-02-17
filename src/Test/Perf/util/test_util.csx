@@ -1,10 +1,14 @@
+#r "System.IO.Compression.FileSystem"
+
 using System.IO;
+using System.IO.Compression;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Net;
 
 //
 // Directory Locating Functions
@@ -27,6 +31,8 @@ string MyWorkingDirectory()
     return Directory.GetParent(_myWorkingFile).FullName;
 }
 
+/// Returns the directory that you can put artifacts like
+/// etl traces or compiled binaries
 string MyArtifactsDirectory()
 {
     var path = Path.Combine(MyWorkingDirectory(), "artifacts");
@@ -34,9 +40,10 @@ string MyArtifactsDirectory()
     return path;
 }
 
-string MyResultsDirectory()
+string MyTempDirectory()
 {
-    var path = Path.Combine(MyWorkingDirectory(), "results");
+    var workingDir = MyWorkingDirectory();
+    var path = Path.Combine(workingDir, "temp");
     Directory.CreateDirectory(path);
     return path;
 }
@@ -97,13 +104,19 @@ class ProcessResult
 ProcessResult ShellOut(
         string file,
         string args,
+        string workingDirectory = null,
         CancellationToken? cancelationToken = null)
 {
+    if (workingDirectory == null) {
+        workingDirectory = MyWorkingDirectory();
+    }
+
     var tcs = new TaskCompletionSource<ProcessResult>();
     var startInfo = new ProcessStartInfo(file, args);
     startInfo.RedirectStandardOutput = true;
     startInfo.RedirectStandardError = true;
     startInfo.UseShellExecute = false;
+    startInfo.WorkingDirectory = workingDirectory;
     var process = new Process
     {
         StartInfo = startInfo,
@@ -114,21 +127,35 @@ ProcessResult ShellOut(
         cancelationToken.Value.Register(() => process.Kill());
     }
 
-    process.Exited += (s, a) => {
-        var result = new ProcessResult {
-            ExecutablePath = file,
-            Args = args,
-            Code = process.ExitCode,
-            StdOut = process.StandardOutput.ReadToEnd(),
-            StdErr = process.StandardError.ReadToEnd(),
-        };
-        tcs.SetResult(result);
-        process.Dispose();
-    };
-
+    Log($"running \"{file}\" with arguments \"{args}\" from directory {workingDirectory}");
     process.Start();
 
-    return tcs.Task.GetAwaiter().GetResult();
+    var output = new StringWriter();
+    var error = new StringWriter();
+
+    process.OutputDataReceived += (s, e) => {
+        if (!String.IsNullOrEmpty(e.Data)) {
+            output.WriteLine(e.Data);
+        }
+    };
+
+    process.ErrorDataReceived += (s, e) => {
+        if (!String.IsNullOrEmpty(e.Data)) {
+            error.WriteLine(e.Data);
+        }
+    };
+
+    process.BeginOutputReadLine(); 
+    process.BeginErrorReadLine();
+    process.WaitForExit();
+
+    return new ProcessResult {
+        ExecutablePath = file,
+        Args = args,
+        Code = process.ExitCode,
+        StdOut = output.ToString(),
+        StdErr = error.ToString(),
+    };
 }
 
 //
@@ -166,7 +193,7 @@ void LogProcessResult(ProcessResult result) {
         result.Failed ? "failed" : "succeeded",
         result.Code));
     Log($"Standard Out:\n{result.StdOut}");
-    Log($"Standard Error:\n{result.StdErr}");
+    Log($"\nStandard Error:\n{result.StdErr}");
 }
 
 /// Reports a metric to be recorded in the performance monitor.
@@ -174,4 +201,39 @@ void Report(string description, object value)
 {
     Metrics.Add(Tuple.Create(description, value));
     Log(description + ": " + value.ToString());
+}
+
+/// Downloads a zip from azure store and extracts it into
+/// the ./temp directory.
+///
+/// If this current version has already been downloaded
+/// and extracted, do nothing.
+void DownloadProject(string name, int version) {
+    var zipFileName = $"{name}.{version}.zip";
+    var zipPath = Path.Combine(MyTempDirectory(), zipFileName);
+    // If we've already downloaded the zip, assume that it
+    // has been downloaded *and* extracted.
+    if (File.Exists(zipPath))
+    {
+        Log($"Didn't download and extract {zipFileName} because one already exists.");
+        return;
+    }
+
+    // Remove all .zip files that were downloaded before.
+    foreach (var path in Directory.EnumerateFiles(MyTempDirectory(), $"{name}.*.zip")) {
+        Log($"Removing old zip {path}");
+        File.Delete(path);
+    }
+
+    // Download zip file to temp directory
+    var downloadTarget = $"https://dotnetci.blob.core.windows.net/roslyn-perf/{zipFileName}";
+    Log($"Downloading {downloadTarget}");
+    var client = new WebClient();
+    client.DownloadFile(downloadTarget, zipPath);
+    Log($"Done Downloading");
+
+    // Extract to temp directory
+    Log($"Extracting {zipPath} to {MyTempDirectory()}");
+    ZipFile.ExtractToDirectory(zipPath, MyTempDirectory());
+    Log($"Done Extracting");
 }

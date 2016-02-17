@@ -4,14 +4,13 @@ using System.IO;
 
 InitUtilities();
 
-var pathToCsc = Path.Combine(ReleaseCscPath());
 var pathToHelloWorld = Path.Combine(MyWorkingDirectory(), "HelloWorld.cs");
 var pathToOutput = Path.Combine(MyArtifactsDirectory(), "HelloWorld.exe");
 
 ProcessResult result;
 
 var msToCompile = WalltimeMs(out result,
-    () => ShellOut(pathToCsc, pathToHelloWorld + " /out:" + pathToOutput));
+    () => ShellOut(ReleaseCscPath(), pathToHelloWorld + " /out:" + pathToOutput));
 
 if (result.Failed)
 {

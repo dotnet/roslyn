@@ -13,6 +13,8 @@ var skip = new HashSet<string> {
 };
 
 foreach (var script in AllCsiRecursive(myDir, skip)) {
+    Log("");
     Log("Running " + script);
+    Log("");
     await RunFile(script);
 }
