@@ -910,6 +910,25 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub PropertyTypeChar_NoChange1()
+            Dim src1 = ToCode(<text>
+Class C
+    Property Foo$ = "" Implements I.P
+End Class
+</text>)
+
+            Dim src2 = ToCode(<text>
+Class C
+    Property Foo$ = "" _
+                       Implements I.P
+End Class
+</text>)
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyLineEdits({}, {})
+        End Sub
+
+        <Fact>
         Public Sub PropertyAsNew_NoChange1()
             Dim src1 = ToCode(<text>
 Class C
@@ -959,6 +978,25 @@ End Class
 Class C
     Property _
              Foo As Integer = 1
+End Class
+</text>)
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyLineEdits({New LineChange(2, 3)}, {})
+        End Sub
+
+        <Fact>
+        Public Sub PropertyTypeChar_LineChange2()
+            Dim src1 = ToCode(<text>
+Class C
+    Property Foo$ = ""
+End Class
+</text>)
+
+            Dim src2 = ToCode(<text>
+Class C
+    Property _
+             Foo$ = ""
 End Class
 </text>)
 
@@ -1078,6 +1116,25 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({}, {"Property Foo As _"})
+        End Sub
+
+        <Fact>
+        Public Sub PropertyTypeChar_Recompile1()
+            Dim src1 = ToCode(<text>
+Class C
+    Property Foo$ = ""
+End Class
+</text>)
+
+            Dim src2 = ToCode(<text>
+Class C
+    Property Foo$ = _
+                    ""
+End Class
+</text>)
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyLineEdits({}, {"Property Foo$ = _"})
         End Sub
 #End Region
 
