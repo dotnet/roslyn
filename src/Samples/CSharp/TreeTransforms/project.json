@@ -9,5 +9,6 @@
   "runtimes": {
     "win7": {},
     "win7-x86" : {},
+    "win7-anycpu": {}
   }
 }
