@@ -472,6 +472,28 @@ class C<T>
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarOnSeeminglyConflictingType()
+        {
+            await TestAsync(
+@"using System;
+class var<T>
+{
+    void M()
+    {
+        [|var<int>|] c = new var<int>();
+    }
+}",
+@"using System;
+class var<T>
+{
+    void M()
+    {
+        var c = new var<int>();
+    }
+}", options: ImplicitTypingEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
         public async Task SuggestVarOnSingleDimensionalArrayTypeWithNewOperator()
         {
             await TestAsync(

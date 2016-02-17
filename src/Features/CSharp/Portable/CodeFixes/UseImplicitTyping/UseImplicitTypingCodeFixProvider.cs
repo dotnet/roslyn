@@ -45,12 +45,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping
 
             var codeAction = new MyCodeAction(
                                 CSharpFeaturesResources.UseImplicitTyping,
-                                c => ReplaceTypeWithVar(context, document, root, node));
+                                c => ReplaceTypeWithVar(document, root, node));
 
             context.RegisterCodeFix(codeAction, context.Diagnostics.First());
         }
 
-        private static Task<Document> ReplaceTypeWithVar(CodeFixContext context, Document document, SyntaxNode root, SyntaxNode node)
+        private static Task<Document> ReplaceTypeWithVar(Document document, SyntaxNode root, SyntaxNode node)
         {
             var implicitType = SyntaxFactory.IdentifierName("var")
                                             .WithLeadingTrivia(node.GetLeadingTrivia())

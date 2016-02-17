@@ -18,15 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
 {
     internal abstract class CSharpTypingStyleDiagnosticAnalyzerBase : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
+        [Flags]
         protected enum TypingStyles
         {
             None = 0,
             VarForIntrinsic = 1 << 0,
-            NoVarForIntrinsic = 1 << 1,
-            VarWhereApparent = 1 << 2,
-            NoVarWhereApparent = 1 << 3,
-            VarWherePossible = 1 << 4,
-            NoVarWherePossible = 1 << 5
+            VarWhereApparent = 1 << 1,
+            VarWherePossible = 1 << 2,
         }
 
         private readonly DiagnosticDescriptor _typingStyleDescriptor;
@@ -48,38 +46,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         }
 
         protected abstract bool IsStylePreferred(SyntaxNode declarationStatement, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
-        protected abstract bool AnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan);
-        protected abstract bool AnalyzeAssignment(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
+        protected abstract bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan);
+        protected abstract bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
 
         protected TypingStyles GetCurrentTypingStylePreferences(OptionSet optionSet)
         {
             var stylePreferences = TypingStyles.None;
 
-            stylePreferences |= optionSet.GetOption(CSharpCodeStyleOptions.UseVarForIntrinsicTypes)
-                             ? TypingStyles.VarForIntrinsic
-                             : TypingStyles.NoVarForIntrinsic;
+            if (optionSet.GetOption(CSharpCodeStyleOptions.UseVarForIntrinsicTypes))
+            {
+                stylePreferences |= TypingStyles.VarForIntrinsic;
+            }
 
-            stylePreferences |= optionSet.GetOption(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent)
-                             ? TypingStyles.VarWhereApparent
-                             : TypingStyles.NoVarWhereApparent;
+            if (optionSet.GetOption(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent))
+            {
+                stylePreferences |= TypingStyles.VarWhereApparent;
+            }
 
-            stylePreferences |= optionSet.GetOption(CSharpCodeStyleOptions.UseVarWherePossible)
-                             ? TypingStyles.VarWherePossible
-                             : TypingStyles.NoVarWherePossible;
+            if (optionSet.GetOption(CSharpCodeStyleOptions.UseVarWherePossible))
+            {
+                stylePreferences |= TypingStyles.VarWherePossible;
+            }
 
             return stylePreferences;
         }
 
-        protected bool IsTypeApparentInDeclaration(SyntaxNode declarationStatement, SemanticModel semanticModel, TypingStyles stylePreferences, CancellationToken cancellationToken)
+        /// <summary>
+        /// Returns true if type information could be gleaned by simply looking at the given statement.
+        /// This typically means that the type name occurs in either left hand or right hand side of an assignment.
+        /// </summary>
+        protected bool IsTypeApparentInDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, TypingStyles stylePreferences, CancellationToken cancellationToken)
         {
-            // use var in foreach statement to make it concise.
-            if (declarationStatement.IsKind(SyntaxKind.ForEachStatement))
-            {
-                return true;
-            }
-
-            // variable declaration cases.
-            var variableDeclaration = (VariableDeclarationSyntax)declarationStatement;
             var initializer = variableDeclaration.Variables.Single().Initializer;
             var initializerExpression = GetInitializerExpression(initializer);
 
@@ -125,17 +122,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                 return false;
             }
 
-            var possibleMethodSymbol = semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol;
-            if (possibleMethodSymbol == null || !possibleMethodSymbol.IsKind(SymbolKind.Method))
+            var methodSymbol = semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol as IMethodSymbol;
+            if (methodSymbol == null)
             {
                 return false;
             }
 
-            var methodSymbol = (IMethodSymbol)possibleMethodSymbol;
             if (memberName.IsRightSideOfDot())
             {
                 var typeName = memberName.GetLeftSideOfDot();
-                return PossibleConversionMethod(methodSymbol, declaredTypeSymbol, semanticModel, typeName, cancellationToken);
+                return IsPossibleConversionMethod(methodSymbol, declaredTypeSymbol, semanticModel, typeName, cancellationToken);
             }
 
             return false;
@@ -151,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                 ? ((CheckedExpressionSyntax)initializer.Value).Expression
                 : initializer.Value;
 
-        private bool PossibleConversionMethod(IMethodSymbol methodSymbol, ITypeSymbol declaredType, SemanticModel semanticModel, ExpressionSyntax typeName, CancellationToken cancellationToken)
+        private bool IsPossibleConversionMethod(IMethodSymbol methodSymbol, ITypeSymbol declaredType, SemanticModel semanticModel, ExpressionSyntax typeName, CancellationToken cancellationToken)
         {
             if (methodSymbol.ReturnsVoid)
             {
@@ -194,13 +190,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
 
             if (declarationStatement.IsKind(SyntaxKind.VariableDeclaration))
             {
-                var declaration = ((VariableDeclarationSyntax)declarationStatement);
+                var declaration = (VariableDeclarationSyntax)declarationStatement;
                 declaredType = declaration.Type;
                 shouldAnalyze = ShouldAnalyze(declaration, context.SemanticModel, optionSet, context.CancellationToken);
             }
             else if (declarationStatement.IsKind(SyntaxKind.ForEachStatement))
             {
-                var declaration = ((ForEachStatementSyntax)declarationStatement);
+                var declaration = (ForEachStatementSyntax)declarationStatement;
                 declaredType = declaration.Type;
                 shouldAnalyze = ShouldAnalyze(declaration, context.SemanticModel, optionSet, context.CancellationToken);
             }
@@ -213,9 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
             if (shouldAnalyze)
             {
                 TextSpan diagnosticSpan;
-                var hasDiagnostic = AnalyzeVariableDeclaration(declaredType, context.SemanticModel, optionSet, context.CancellationToken, out diagnosticSpan);
 
-                if (hasDiagnostic)
+                if (TryAnalyzeVariableDeclaration(declaredType, context.SemanticModel, optionSet, context.CancellationToken, out diagnosticSpan))
                 {
                     context.ReportDiagnostic(CreateDiagnostic(declarationStatement, diagnosticSpan));
                 }

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -35,12 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping
             }
 
             var node = token.GetAncestors<SyntaxNode>().First(n => n.Span.Contains(span));
-            if (node == null ||
-                !(node.IsKind(SyntaxKind.PredefinedType) ||
-                  node.IsKind(SyntaxKind.ArrayType) ||
-                  node.IsKind(SyntaxKind.IdentifierName) ||
-                  node.IsKind(SyntaxKind.GenericName) ||
-                  node.IsKind(SyntaxKind.AliasQualifiedName)))
+            if (node?.IsKind(SyntaxKind.PredefinedType,
+                             SyntaxKind.ArrayType,
+                             SyntaxKind.IdentifierName,
+                             SyntaxKind.GenericName,
+                             SyntaxKind.AliasQualifiedName) == false)
             {
                 return;
             }
@@ -79,8 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping
                                             .WithTrailingTrivia(node.GetTrailingTrivia())
                                             .WithAdditionalAnnotations(Simplifier.Annotation);
 
-            var typeNameBinding = semanticModel.GetSpeculativeSymbolInfo(node.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace).Symbol;
-            Debug.Assert(typeNameBinding != null, "Explicit type replacement didn't bind to an actual type");
+            Debug.Assert(!typeName.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");
 
             var newRoot = root.ReplaceNode(node, typeName);
             return document.WithSyntaxRoot(newRoot);

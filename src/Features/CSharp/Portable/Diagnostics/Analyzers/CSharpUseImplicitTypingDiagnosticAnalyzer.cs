@@ -32,14 +32,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
 
         public CSharpUseImplicitTypingDiagnosticAnalyzer() : base(s_descriptorUseImplicitTyping)
         {
-
         }
 
         protected override bool IsStylePreferred(SyntaxNode declarationStatement, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
         {
             var stylePreferences = GetCurrentTypingStylePreferences(optionSet);
 
-            var isTypeApparent = IsTypeApparentInDeclaration(declarationStatement, semanticModel, stylePreferences, cancellationToken);
+            var isTypeApparent = declarationStatement is VariableDeclarationSyntax
+                ? IsTypeApparentInDeclaration((VariableDeclarationSyntax)declarationStatement,
+                                               semanticModel, stylePreferences, cancellationToken)
+                : false;
             var isIntrinsicType = IsIntrinsicType(declarationStatement);
 
             return stylePreferences.HasFlag(TypingStyles.VarForIntrinsic) && isIntrinsicType
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                 || stylePreferences.HasFlag(TypingStyles.VarWherePossible) && !(isIntrinsicType || isTypeApparent);
         }
 
-        protected override bool AnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)
+        protected override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)
         {
             issueSpan = default(TextSpan);
 
@@ -65,30 +67,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
 
             // If there exists a type named var, return.
             var conflict = semanticModel.GetSpeculativeSymbolInfo(typeName.SpanStart, candidateReplacementNode, SpeculativeBindingOption.BindAsTypeOrNamespace).Symbol;
-            if (conflict != null && conflict.IsKind(SymbolKind.NamedType))
+            if (conflict?.IsKind(SymbolKind.NamedType) == true)
             {
                 return false;
             }
 
             if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration) &&
-                typeName.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
+                typeName.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
             {
                 var variableDeclaration = (VariableDeclarationSyntax)typeName.Parent;
 
                 // implicitly typed variables cannot be constants.
-                var localDeclarationStatement = variableDeclaration.Parent as LocalDeclarationStatementSyntax;
-                if (localDeclarationStatement != null && localDeclarationStatement.IsConst)
+                if ((variableDeclaration.Parent as LocalDeclarationStatementSyntax)?.IsConst == true)
                 {
                     return false;
                 }
 
                 var variable = variableDeclaration.Variables.Single();
-                if (AnalyzeAssignment(variable.Identifier, typeName, variable.Initializer, semanticModel, optionSet, cancellationToken))
+                if (AssignmentSupportsStylePreference(variable.Identifier, typeName, variable.Initializer, semanticModel, optionSet, cancellationToken))
                 {
                     issueSpan = candidateIssueSpan;
                 }
             }
-            else if (typeName.Parent.IsKind(SyntaxKind.ForEachStatement))
+            else if (typeName.IsParentKind(SyntaxKind.ForEachStatement))
             {
                 issueSpan = candidateIssueSpan;
             }
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         /// false, if implicit typing cannot be used.
         /// true, otherwise.
         /// </returns>
-        protected override bool AnalyzeAssignment(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
+        protected override bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
         {
             var expression = initializer.Value;
 
@@ -124,8 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
 
             // variables declared using var cannot be used further in the same initialization expression.
             if (initializer.DescendantNodesAndSelf()
-                    .Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText.Equals(identifier.ValueText))
-                    .Any(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol?.IsKind(SymbolKind.Local) ?? false))
+                    .Where(n => (n as IdentifierNameSyntax)?.Identifier.ValueText.Equals(identifier.ValueText) == true)
+                    .Any(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol?.IsKind(SymbolKind.Local) == true))
             {
                 return false;
             }

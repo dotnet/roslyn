@@ -30,22 +30,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
 
         public CSharpUseExplicitTypingDiagnosticAnalyzer() : base(s_descriptorUseImplicitTyping)
         {
-
         }
 
         protected override bool IsStylePreferred(SyntaxNode declarationStatement, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
         {
             var stylePreferences = GetCurrentTypingStylePreferences(optionSet);
 
-            var isTypeApparent = IsTypeApparentInDeclaration(declarationStatement, semanticModel, stylePreferences, cancellationToken);
+            var isTypeApparent = declarationStatement is VariableDeclarationSyntax
+                ? IsTypeApparentInDeclaration((VariableDeclarationSyntax)declarationStatement,
+                                               semanticModel, stylePreferences, cancellationToken)
+                : false;
+
             var isIntrinsicType = IsIntrinsicType(declarationStatement);
 
-            return stylePreferences.HasFlag(TypingStyles.NoVarForIntrinsic) && isIntrinsicType
-                || stylePreferences.HasFlag(TypingStyles.NoVarWhereApparent) && isTypeApparent
-                || stylePreferences.HasFlag(TypingStyles.NoVarWherePossible) && !(isIntrinsicType || isTypeApparent);
+            return !stylePreferences.HasFlag(TypingStyles.VarForIntrinsic) && isIntrinsicType
+                || !stylePreferences.HasFlag(TypingStyles.VarWhereApparent) && isTypeApparent
+                || !stylePreferences.HasFlag(TypingStyles.VarWherePossible) && !(isIntrinsicType || isTypeApparent);
         }
 
-        protected override bool AnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)
+        protected override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)
         {
             issueSpan = default(TextSpan);
 
@@ -61,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
             {
                 // check assignment for variable declarations.
                 var variable = ((VariableDeclarationSyntax)typeName.Parent).Variables.First();
-                if (!AnalyzeAssignment(variable.Identifier, typeName, variable.Initializer, semanticModel, optionSet, cancellationToken))
+                if (!AssignmentSupportsStylePreference(variable.Identifier, typeName, variable.Initializer, semanticModel, optionSet, cancellationToken))
                 {
                     return false;
                 }
@@ -71,7 +74,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
             return true;
         }
 
-        protected override bool AnalyzeAssignment(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
+        /// <summary>
+        /// Analyzes the assignment expression and rejects a given declaration if it is unsuitable for explicit typing.
+        /// </summary>
+        /// <returns>
+        /// false, if explicit typing cannot be used.
+        /// true, otherwise.
+        /// </returns>
+        protected override bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
         {
             // is or contains an anonymous type
             // cases :
