@@ -268,6 +268,57 @@ namespace CSAssembly2
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Async Function TestAddProjectReference_CSharpToCSharp_WithProjectRenamed() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language='C#' AssemblyName='CSAssembly1' CommonReferences='true'>
+                        <Document FilePath='Test1.cs'>
+using System.Collections.Generic;
+namespace CSAssembly1
+{
+    public class Class1
+    {
+    }
+}
+                        </Document>
+                    </Project>
+                    <Project Language='C#' AssemblyName='CSAssembly2' CommonReferences='true'>
+                        <CompilationOptions></CompilationOptions>
+                        <Document FilePath="Test2.cs">
+namespace CSAssembly2
+{
+    public class Class2
+    {
+        $$Class1 c;
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+using CSAssembly1;
+
+namespace CSAssembly2
+{
+    public class Class2
+    {
+        Class1 c;
+    }
+}
+                </text>.Value.Trim()
+
+            Await TestAsync(input, expected, codeActionIndex:=0, addedReference:="NewName", onAfterWorkspaceCreated:=
+                            Sub(workspace As TestWorkspace)
+                                WaitForSolutionCrawler(workspace)
+                                Dim project = workspace.CurrentSolution.Projects.Single(Function(p) p.AssemblyName = "CSAssembly1")
+                                workspace.OnProjectNameChanged(project.Id, "NewName", "NewFilePath")
+                                WaitForSolutionCrawler(workspace)
+                            End Sub)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestAddProjectReference_VBToVB() As Task
             Dim input =
                 <Workspace>
