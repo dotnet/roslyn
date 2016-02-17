@@ -24,22 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
         private readonly IComponentModel _componentModel;
         private readonly string _contentType;
 
-        private AbstractResetInteractiveCommand _resetInteractiveCommand;
+        private Lazy<IResetInteractiveCommand> _resetInteractiveCommand;
 
-        private AbstractResetInteractiveCommand ResetInteractiveCommand
-        {
-            get
-            {
-                if (_resetInteractiveCommand == null)
-                {
-                    _resetInteractiveCommand = _componentModel.DefaultExportProvider
-                        .GetExports<AbstractResetInteractiveCommand, ContentTypeMetadata>()
-                        .Where(resetInteractiveService => resetInteractiveService.Metadata.ContentTypes.Contains(_contentType))
-                        .Single().Value;
-                }
-                return _resetInteractiveCommand;
-            }
-        }
+        private Lazy<IResetInteractiveCommand> ResetInteractiveCommand => _resetInteractiveCommand;
 
         public AbstractResetInteractiveMenuCommand(
             string contentType,
@@ -51,6 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
             _menuCommandService = menuCommandService;
             _monitorSelection = monitorSelection;
             _componentModel = componentModel;
+            _resetInteractiveCommand = _componentModel.DefaultExportProvider
+                .GetExports<IResetInteractiveCommand, ContentTypeMetadata>()
+                .Where(resetInteractiveService => resetInteractiveService.Metadata.ContentTypes.Contains(_contentType))
+                .SingleOrDefault();
         }
 
         internal void InitializeResetInteractiveFromProjectCommand()
@@ -58,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
             var resetInteractiveFromProjectCommand = new OleMenuCommand(
                 (sender, args) =>
                 {
-                    ResetInteractiveCommand.ExecuteResetInteractive();
+                    ResetInteractiveCommand.Value.ExecuteResetInteractive();
                 },
                 GetResetInteractiveFromProjectCommandID());
 
@@ -69,8 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
                 EnvDTE.Project project;
                 FrameworkName frameworkName;
                 GetActiveProject(out project, out frameworkName);
-                var targetFramework = project.Properties.Item("TargetFramework");
-                var available = project != null && project.Kind == ProjectKind
+                var available = ResetInteractiveCommand != null
+                    && project != null && project.Kind == ProjectKind
                     && frameworkName != null && frameworkName.Identifier == ".NETFramework";
 
                 resetInteractiveFromProjectCommand.Enabled = available;

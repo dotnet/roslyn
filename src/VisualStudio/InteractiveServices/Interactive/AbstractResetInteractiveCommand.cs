@@ -1,29 +1,26 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using EnvDTE;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Interactive;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.VisualStudio.Services.Interactive;
 using System;
-using System.ComponentModel.Composition;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
+namespace Roslyn.VisualStudio.Services.Interactive
 {
-    [ExportInteractive(typeof(AbstractResetInteractiveCommand), ContentTypeNames.CSharpContentType)]
-    internal sealed class CSharpVsResetInteractiveFactory
-        : AbstractResetInteractiveCommand
+    internal abstract class AbstractResetInteractiveCommand : IResetInteractiveCommand
     {
         private readonly IComponentModel _componentModel;
-        private readonly CSharpVsInteractiveWindowProvider _interactiveWindowProvider;
+        private readonly VsInteractiveWindowProvider _interactiveWindowProvider;
         private readonly IServiceProvider _serviceProvider;
 
-        [ImportingConstructor]
-        public CSharpVsResetInteractiveFactory(
-            [Import]CSharpVsInteractiveWindowProvider interactiveWindowProvider,
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        protected abstract string LanguageName { get; }
+        protected abstract string CreateReference(string referenceName);
+        protected abstract string CreateImport(string namespaceName);
+
+        public AbstractResetInteractiveCommand(
+            VsInteractiveWindowProvider interactiveWindowProvider,
+            IServiceProvider serviceProvider)
         {
             _interactiveWindowProvider = interactiveWindowProvider;
             _serviceProvider = serviceProvider;
@@ -35,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
             return _serviceProvider.GetService(type);
         }
 
-        internal override void ExecuteResetInteractive()
+        public void ExecuteResetInteractive()
         {
             var resetInteractive = new VsResetInteractive(
                         (DTE)this.GetService(typeof(SDTE)),
@@ -57,26 +54,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
 
             resetInteractive.Execute(vsInteractiveWindow.InteractiveWindow, LanguageName + " Interactive");
             resetInteractive.ExecutionCompleted += focusWindow;
-        }
-
-        protected override string LanguageName
-        {
-            get { return "C#"; }
-        }
-
-        protected override string ProjectKind
-        {
-            get { return VSLangProj.PrjKind.prjKindCSharpProject; }
-        }
-
-        protected override string CreateReference(string referenceName)
-        {
-            return string.Format("#r \"{0}\"", referenceName);
-        }
-
-        protected override string CreateImport(string namespaceName)
-        {
-            return string.Format("using {0};", namespaceName);
         }
     }
 }

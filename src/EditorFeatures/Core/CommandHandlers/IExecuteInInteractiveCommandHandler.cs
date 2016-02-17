@@ -4,6 +4,11 @@ using Microsoft.CodeAnalysis.Editor.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
+    /// <summary>
+    /// Interface for the ExecuteInInteractiveCommand handler.
+    /// Ensures that the command handler can be exported via MEF
+    /// without actually being instantiated as all other command handlers.
+    /// </summary>
     internal interface IExecuteInInteractiveCommandHandler
         : ICommandHandler<ExecuteInInteractiveCommandArgs>
     {

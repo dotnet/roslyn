@@ -351,6 +351,16 @@
           <LocCanonicalName>ResetC#InteractiveFromProject</LocCanonicalName>
         </Strings>
       </Button>
+      <Button guid="guidVisualBasicInteractiveCommandSet" id="cmdidResetInteractiveFromProject" priority="0x0100" type="Button">
+        <Parent guid="guidVisualBasicInteractiveCommandSet" id="IDG_INTERACTIVE_PROJECT"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Reset Visual Basic Interactive from Project</ButtonText>
+          <CanonicalName>ResetVisualBasicInteractiveFromProject</CanonicalName>
+          <LocCanonicalName>ResetVisualBasicInteractiveFromProject</LocCanonicalName>
+        </Strings>
+      </Button>
     </Buttons>
 
     <Menus>
@@ -525,6 +535,13 @@
       <IDSymbol name="IDG_INTERACTIVE_PROJECT" value="0x0100" />
 
       <IDSymbol name="cmdidCSharpInteractiveToolWindow" value="0x0001" />
+      <IDSymbol name="cmdidResetInteractiveFromProject" value="0x0002"/>
+    </GuidSymbol>
+
+    <GuidSymbol name="guidVisualBasicInteractiveCommandSet" value="{93DF185E-D75B-4FDB-9D47-E90F111971C5}">
+      <IDSymbol name="IDG_INTERACTIVE_PROJECT" value="0x100" />
+
+      <IDSymbol name="cmdidVisualBasicInteractiveToolWindow" value="0x0001" />
       <IDSymbol name="cmdidResetInteractiveFromProject" value="0x0002"/>
     </GuidSymbol>
   </Symbols>

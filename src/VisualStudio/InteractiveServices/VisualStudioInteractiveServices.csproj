@@ -196,6 +196,7 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Interactive\AbstractResetInteractiveCommand.cs" />
     <Compile Include="Interactive\LogMessage.cs" />
     <Compile Include="Interactive\VsInteractiveWindowPackage.cs" />
     <Compile Include="Interactive\VsInteractiveWindowProvider.cs" />
