@@ -353,7 +353,7 @@ False for 1.2";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/206")] // need to diagnose this
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/8778")]
         public void PatternInExpressionBodiedLocalFunction()
         {
             var source =
@@ -386,7 +386,7 @@ False for 1.2";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/206")] // need to diagnose this
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/8778")]
         public void PatternInExpressionBodiedLambda()
         {
             var source =

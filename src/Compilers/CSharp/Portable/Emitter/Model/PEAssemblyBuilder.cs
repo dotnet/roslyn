@@ -161,44 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        string Cci.IAssemblyReference.Culture
-        {
-            get
-            {
-                return _sourceAssembly.Identity.CultureName;
-            }
-        }
-
-        bool Cci.IAssemblyReference.IsRetargetable
-        {
-            get
-            {
-                return _sourceAssembly.Identity.IsRetargetable;
-            }
-        }
-
-        AssemblyContentType Cci.IAssemblyReference.ContentType
-        {
-            get
-            {
-                return _sourceAssembly.Identity.ContentType;
-            }
-        }
-
-        ImmutableArray<byte> Cci.IAssemblyReference.PublicKeyToken
-        {
-            get { return _sourceAssembly.Identity.PublicKeyToken; }
-        }
-
-        Version Cci.IAssemblyReference.Version
-        {
-            get { return _sourceAssembly.Identity.Version; }
-        }
-
-        string Cci.IAssemblyReference.GetDisplayName()
-        {
-            return _sourceAssembly.Identity.GetDisplayName();
-        }
+        AssemblyIdentity Cci.IAssemblyReference.Identity => _sourceAssembly.Identity;
 
         internal override string Name
         {
