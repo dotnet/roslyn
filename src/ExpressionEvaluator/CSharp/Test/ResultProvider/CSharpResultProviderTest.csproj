@@ -99,7 +99,6 @@
     <Compile Include="ValueFormattingTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\Source\ResultProvider\CSharpResultProvider.projitems" Label="Shared" />

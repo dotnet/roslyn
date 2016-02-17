@@ -41,17 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             // Get the analyzer assets for installed VSIX extensions through the VSIX extension manager.
             var extensionManager = workspace.GetVsService(assembly.GetType("Microsoft.VisualStudio.ExtensionManager.SVsExtensionManager"));
 
-            // get rootfolder and shellfolder location
-            string rootFolder;
-            string shellFolder;
-            if (TryGetRootAndShellFolder(extensionManager, out shellFolder, out rootFolder))
-            {
-                _hostDiagnosticAnalyzerInfo = GetHostAnalyzerPackagesWithName(extensionManager, rootFolder, shellFolder);
-                return;
-            }
-
-            // if we can't get rootFolder/shellFolder location, use old behavior.
-            _hostDiagnosticAnalyzerInfo = GetHostAnalyzerPackages(extensionManager);
+            _hostDiagnosticAnalyzerInfo = GetHostAnalyzerPackagesWithName(extensionManager);
         }
 
         public IEnumerable<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages()
@@ -71,136 +61,56 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         }
 
         // internal for testing purpose
-        // we have to use reflection in here because Microsoft.VisualStudio.ExtensionManager is non-versioned, and reflection allows us to build once and deploy to multiple different versions of VS SxS.
-        internal static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostAnalyzerPackagesWithName(object extensionManager, string rootFolder, string shellFolder)
+        internal static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostAnalyzerPackagesWithName(dynamic extensionManager)
         {
             var builder = ImmutableArray.CreateBuilder<HostDiagnosticAnalyzerPackage>();
-
-            // var enabledExtensions = extensionManager.GetEnabledExtensions(AnalyzerContentTypeName);
-            var extensionManagerType = extensionManager.GetType();
-            var extensionManager_GetEnabledExtensionsMethod = extensionManagerType.GetRuntimeMethod("GetEnabledExtensions", new Type[] { typeof(string) });
-            var enabledExtensions = extensionManager_GetEnabledExtensionsMethod.Invoke(extensionManager, new object[] { AnalyzerContentTypeName }) as IEnumerable<object>;
-
-            foreach (var extension in enabledExtensions)
+            foreach (var extension in extensionManager.GetEnabledExtensions(AnalyzerContentTypeName))
             {
-                // var name = extension.Header.LocalizedName;
-                var extensionType = extension.GetType();
-                var extensionType_HeaderProperty = extensionType.GetRuntimeProperty("Header");
-                var extension_Header = extensionType_HeaderProperty.GetValue(extension);
-                var extension_HeaderType = extension_Header.GetType();
-                var extension_HeaderType_LocalizedNameProperty = extension_HeaderType.GetRuntimeProperty("LocalizedName");
-                var name = extension_HeaderType_LocalizedNameProperty.GetValue(extension_Header) as string;
+                var name = extension.Header.LocalizedName;
 
-                var assemblies = new List<string>();
-
-                // var extension_Content = extension.Content;
-                var extensionType_ContentProperty = extensionType.GetRuntimeProperty("Content");
-                var extension_Content = extensionType_ContentProperty.GetValue(extension) as IEnumerable<object>;
-
-                foreach (var content in extension_Content)
+                var assemblies = ImmutableArray.CreateBuilder<string>();
+                foreach (var content in extension.Content)
                 {
-                    if (ShouldInclude(content))
+                    if (!ShouldInclude(content))
                     {
-                        // var extension_InstallPath = extension.InstallPath;
-                        var extensionType_InstallPathProperty = extensionType.GetRuntimeProperty("InstallPath");
-                        var extension_InstallPath = extensionType_InstallPathProperty.GetValue(extension) as string;
-
-                        // var content_RelativePath = content.RelativePath;
-                        var contentType = content.GetType();
-                        var contentType_RelativePathProperty = contentType.GetRuntimeProperty("RelativePath");
-                        var content_RelativePath = contentType_RelativePathProperty.GetValue(content) as string;
-
-                        var assembly = GetContentLocation(shellFolder, rootFolder, extension_InstallPath, content_RelativePath);
-
-                        if (assembly != null)
-                        {
-                            assemblies.Add(assembly);
-                        }
+                        continue;
                     }
+
+                    var assembly = (string)extension.GetContentLocation(content);
+                    if (assembly == null)
+                    {
+                        continue;
+                    }
+
+                    assemblies.Add(assembly);
                 }
 
-                builder.Add(new HostDiagnosticAnalyzerPackage(name, assemblies.ToImmutableArray()));
+                builder.Add(new HostDiagnosticAnalyzerPackage(name, assemblies.ToImmutable()));
             }
 
             return builder.ToImmutable();
         }
 
         // internal for testing purpose
-        // we have to use reflection in here because Microsoft.VisualStudio.ExtensionManager is non-versioned, and reflection allows us to build once and deploy to multiple different versions of VS SxS.
-        internal static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostAnalyzerPackages(object extensionManager)
+        internal static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostAnalyzerPackages(dynamic extensionManager)
         {
             var references = ImmutableArray.CreateBuilder<string>();
-
-            // var enabledExtensionContentLocations = extension.GetEnabledExtensionContentLocations(AnalyzerContentTypeName);
-            var extensionManagerType = extensionManager.GetType();
-            var extensionManager_GetEnabledExtensionContentLocationsMethod = extensionManagerType.GetRuntimeMethod("GetEnabledExtensionContentLocations", new Type[] { typeof(string) });
-            var enabledExtensionContentLocations = extensionManager_GetEnabledExtensionContentLocationsMethod.Invoke(extensionManager, new object[] { AnalyzerContentTypeName }) as IEnumerable<string>;
-
-            foreach (var reference in enabledExtensionContentLocations)
+            foreach (var reference in extensionManager.GetEnabledExtensionContentLocations(AnalyzerContentTypeName))
             {
-                if (string.IsNullOrEmpty(reference))
+                if (string.IsNullOrEmpty((string)reference))
                 {
                     continue;
                 }
 
-                references.Add(reference);
+                references.Add((string)reference);
             }
 
             return ImmutableArray.Create(new HostDiagnosticAnalyzerPackage(name: null, assemblies: references.ToImmutable()));
         }
 
-        private static bool TryGetRootAndShellFolder(object extensionManager, out string shellFolder, out string rootFolder)
+        private static bool ShouldInclude(dynamic content)
         {
-            // use reflection to get this information. currently there is no other way to get this information
-            shellFolder = GetProperty(extensionManager, "ShellFolder");
-            rootFolder = GetProperty(extensionManager, "RootFolder");
-
-            return !string.IsNullOrEmpty(rootFolder) && !string.IsNullOrEmpty(shellFolder);
-        }
-
-        private static string GetContentLocation(string shellFolder, string rootFolder, string installPath, string relativePath)
-        {
-            // extension manager should expose an API that doesn't require this.
-            const string ShellFolderToken = "$ShellFolder$";
-            const string RootFolderToken = "$RootFolder$";
-
-            if (relativePath.StartsWith(ShellFolderToken))
-            {
-                return relativePath.Replace(ShellFolderToken, shellFolder);
-            }
-            else if (relativePath.StartsWith(RootFolderToken))
-            {
-                return relativePath.Replace(RootFolderToken, rootFolder);
-            }
-
-            string contentLocation = null;
-            try
-            {
-                contentLocation = Path.Combine(installPath, relativePath);
-            }
-            //Path.Combine will throw an ArgumentException if either of the two path arguments contain illegal characters.
-            //We'll just catch this exception here and ignore the paths with illegal characters.
-            catch (ArgumentException)
-            {
-            }
-
-            return contentLocation;
-        }
-
-        private static string GetProperty(object extensionManager, string propertyName)
-        {
-            return (string)extensionManager.GetType().GetProperty(propertyName, BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(extensionManager);
-        }
-
-        // we have to use reflection in here because Microsoft.VisualStudio.ExtensionManager is non-versioned, and reflection allows us to build once and deploy to multiple different versions of VS SxS.
-        private static bool ShouldInclude(object content)
-        {
-            // var content_ContentTypeName = content.ContentTypeName;
-            var contentType = content.GetType();
-            var contentType_ContentTypeNameProperty = contentType.GetRuntimeProperty("ContentTypeName");
-            var content_ContentTypeName = contentType_ContentTypeNameProperty.GetValue(content) as string;
-
-            return string.Equals(content_ContentTypeName, AnalyzerContentTypeName, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals((string)content.ContentTypeName, AnalyzerContentTypeName, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }
