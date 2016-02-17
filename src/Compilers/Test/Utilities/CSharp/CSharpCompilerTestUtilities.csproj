@@ -66,6 +66,19 @@
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.WinRT.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.EnC.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Semantic.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Symbol.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Syntax.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.CSharp.ExpressionCompiler.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
+  </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />

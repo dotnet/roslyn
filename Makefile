@@ -45,7 +45,7 @@ bootstrap: toolset
 	rm -rf Binaries/$(BUILD_CONFIGURATION)
 
 test:
-	build/scripts/tests.sh $(MONO_PATH) $(BUILD_CONFIGURATION) $(XUNIT_VERSION)
+	build/scripts/tests.sh $(BUILD_CONFIGURATION)
 
 clean:
 	@rm -rf Binaries
