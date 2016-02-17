@@ -1,9 +1,9 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.ComponentModel.Composition.Hosting
 Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports System.Windows.Threading
 Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
@@ -13,7 +13,6 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.Text.Projection
 Imports Moq
 
 #Disable Warning RS0007 ' Avoid zero-length array allocations. This is non-shipping test code.
@@ -126,6 +125,42 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Assert.False(handled)
         End Sub
+
+        <WpfFact>
+        Public Async Function UpKeyShouldBlockOnRecomputationAfterPresentation() As Task
+            Dim dispatcher = System.Windows.Threading.Dispatcher.CurrentDispatcher
+            Dim worker = Async Function()
+                             Dim slowProvider = New Mock(Of ISignatureHelpProvider)
+                             slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken))) _
+                                 .Returns(Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)))
+
+                             Dim controller = dispatcher.Invoke(Function() CreateController(provider:=slowProvider.Object, waitForPresentation:=True))
+
+                             ' Update session so that providers are requeried.
+                             ' SlowProvider now blocks on the checkpoint's task.
+                             Dim checkpoint = New Checkpoint()
+                             slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken))) _
+                                 .Returns(Function()
+                                              checkpoint.Task.Wait()
+                                              Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 2), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing))
+                                          End Function)
+
+                             dispatcher.Invoke(Sub() DirectCast(controller, ICommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
+                                 New TypeCharCommandArgs(CreateMock(Of ITextView), CreateMock(Of ITextBuffer), " "c),
+                                 Sub() GetMocks(controller).Buffer.Insert(0, " ")))
+
+                             Dim handled = dispatcher.InvokeAsync(Function() controller.TryHandleUpKey()) ' Send the controller an up key, which should block on the computation
+                             checkpoint.Release() ' Allow slowprovider to finish
+                             Await handled.Task.ConfigureAwait(False)
+
+                             ' We expect 2 calls to the presenter (because we had an existing presentation session when we started the second computation).
+                             Assert.True(handled.Result)
+                             GetMocks(controller).PresenterSession.Verify(Sub(p) p.PresentItems(It.IsAny(Of ITrackingSpan), It.IsAny(Of IList(Of SignatureHelpItem)),
+                                                                                                It.IsAny(Of SignatureHelpItem), It.IsAny(Of Integer?)), Times.Exactly(2))
+                         End Function
+            Await worker().ConfigureAwait(False)
+
+        End Function
 
         <WpfFact>
         Public Sub DownKeyShouldNavigateWhenThereAreMultipleItems()
