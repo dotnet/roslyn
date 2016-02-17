@@ -529,7 +529,9 @@
     }
   },
   "projectFileDependencyGroups": {
-    "": [],
+    "": [
+      "Microsoft.Composition >= 1.0.27"
+    ],
     ".NETFramework,Version=v4.6": []
   }
 }

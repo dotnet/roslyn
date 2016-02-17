@@ -98,7 +98,7 @@
           "lib/dotnet/System.Collections.Concurrent.dll": {}
         }
       },
-      "System.Collections.Immutable/1.1.37": {
+      "System.Collections.Immutable/1.1.38-beta-23504": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
           "System.Diagnostics.Debug": "[4.0.0, )",
@@ -110,10 +110,10 @@
           "System.Threading": "[4.0.0, )"
         },
         "compile": {
-          "lib/dotnet/System.Collections.Immutable.dll": {}
+          "lib/dotnet5.1/System.Collections.Immutable.dll": {}
         },
         "runtime": {
-          "lib/dotnet/System.Collections.Immutable.dll": {}
+          "lib/dotnet5.1/System.Collections.Immutable.dll": {}
         }
       },
       "System.Collections.NonGeneric/4.0.0": {
@@ -301,15 +301,15 @@
           "ref/dotnet5.4/System.IO.FileSystem.dll": {}
         }
       },
-      "System.IO.FileSystem.Primitives/4.0.1-beta-23504": {
+      "System.IO.FileSystem.Primitives/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.20, )"
         },
         "compile": {
-          "ref/dotnet5.4/System.IO.FileSystem.Primitives.dll": {}
+          "ref/dotnet/System.IO.FileSystem.Primitives.dll": {}
         },
         "runtime": {
-          "lib/dotnet5.4/System.IO.FileSystem.Primitives.dll": {}
+          "lib/dotnet/System.IO.FileSystem.Primitives.dll": {}
         }
       },
       "System.IO.FileSystem.Watcher/4.0.0-beta-23504": {
@@ -6300,20 +6300,6 @@
         "System.Collections.Concurrent.nuspec"
       ]
     },
-    "System.Collections.Immutable/1.1.37": {
-      "sha512": "fTpqwZYBzoklTT+XjTRK8KxvmrGkYHzBiylCcKyQcxiOM8k+QvhNBxRvFHDWzy4OEP5f8/9n+xQ9mEgEXY+muA==",
-      "type": "Package",
-      "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "lib/dotnet/System.Collections.Immutable.dll",
-        "lib/dotnet/System.Collections.Immutable.xml",
-        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
-        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
-        "package/services/metadata/core-properties/a02fdeabe1114a24bba55860b8703852.psmdcp",
-        "System.Collections.Immutable.nuspec"
-      ]
-    },
     "System.Collections.Immutable/1.1.38-beta-23504": {
       "sha512": "OJDxjX1yliiB3pe4XtP9Eg5IpNGPhbehD7GSXwkZAEnAVKtvrVRQqjCxubpFH1JiL18EAjyF+K8MqWQtXutMzg==",
       "type": "Package",
@@ -7095,6 +7081,38 @@
         "ref/xamarinmac20/_._",
         "runtime.json",
         "System.IO.FileSystem.nuspec"
+      ]
+    },
+    "System.IO.FileSystem.Primitives/4.0.0": {
+      "sha512": "7pJUvYi/Yq3A5nagqCCiOw3+aJp3xXc/Cjr8dnJDnER3/6kX3LEencfqmXUcPl9+7OvRNyPMNhqsLAcMK6K/KA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dotnet/System.IO.FileSystem.Primitives.dll",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/System.IO.FileSystem.Primitives.dll",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/2cf3542156f0426483f92b9e37d8d381.psmdcp",
+        "ref/dotnet/de/System.IO.FileSystem.Primitives.xml",
+        "ref/dotnet/es/System.IO.FileSystem.Primitives.xml",
+        "ref/dotnet/fr/System.IO.FileSystem.Primitives.xml",
+        "ref/dotnet/it/System.IO.FileSystem.Primitives.xml",
+        "ref/dotnet/ja/System.IO.FileSystem.Primitives.xml",
+        "ref/dotnet/ko/System.IO.FileSystem.Primitives.xml",
+        "ref/dotnet/ru/System.IO.FileSystem.Primitives.xml",
+        "ref/dotnet/System.IO.FileSystem.Primitives.dll",
+        "ref/dotnet/System.IO.FileSystem.Primitives.xml",
+        "ref/dotnet/zh-hans/System.IO.FileSystem.Primitives.xml",
+        "ref/dotnet/zh-hant/System.IO.FileSystem.Primitives.xml",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/System.IO.FileSystem.Primitives.dll",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "System.IO.FileSystem.Primitives.nuspec"
       ]
     },
     "System.IO.FileSystem.Primitives/4.0.1-beta-23504": {
@@ -9481,7 +9499,51 @@
     }
   },
   "projectFileDependencyGroups": {
-    "": [],
+    "": [
+      "Microsoft.NETCore.Platforms >= 1.0.1-beta-23504",
+      "Microsoft.NETCore.Runtime.CoreCLR >= 1.0.1-beta-23504",
+      "Microsoft.NETCore.TestHost >= 1.0.0-beta-23504",
+      "System.AppContext >= 4.0.1-beta-23504",
+      "System.Collections >= 4.0.11-beta-23504",
+      "System.Collections.Immutable >= 1.1.38-beta-23504",
+      "System.Console >= 4.0.0-beta-23504",
+      "System.Diagnostics.Debug >= 4.0.11-beta-23504",
+      "System.Diagnostics.FileVersionInfo >= 4.0.0-beta-23504",
+      "System.Diagnostics.Process >= 4.1.0-beta-23504",
+      "System.Diagnostics.StackTrace >= 4.0.1-beta-23504",
+      "System.Diagnostics.Tools >= 4.0.1-beta-23504",
+      "System.Dynamic.Runtime >= 4.0.11-beta-23504",
+      "System.IO.FileSystem >= 4.0.1-beta-23504",
+      "System.IO.FileSystem.Watcher >= 4.0.0-beta-23504",
+      "System.IO.Pipes >= 4.0.0-beta-23504",
+      "System.Linq >= 4.0.1-beta-23504",
+      "System.Net.NameResolution >= 4.0.0-beta-23504",
+      "System.Net.Sockets >= 4.1.0-beta-23504",
+      "System.Private.Uri >= 4.0.1-beta-23504",
+      "System.Reflection >= 4.1.0-beta-23504",
+      "System.Reflection.Primitives >= 4.0.1-beta-23504",
+      "System.Resources.ResourceManager >= 4.0.1-beta-23504",
+      "System.Runtime >= 4.0.21-beta-23504",
+      "System.Runtime.Extensions >= 4.0.11-beta-23504",
+      "System.Runtime.Handles >= 4.0.1-beta-23504",
+      "System.Runtime.InteropServices >= 4.0.21-beta-23504",
+      "System.Runtime.Loader >= 4.0.0-beta-23504",
+      "System.Runtime.Numerics >= 4.0.1-beta-23504",
+      "System.Runtime.Serialization.Json >= 4.0.1-beta-23504",
+      "System.Security.Cryptography.Algorithms >= 4.0.0-beta-23504",
+      "System.Security.Cryptography.Encoding >= 4.0.0-beta-23504",
+      "System.Security.Cryptography.X509Certificates >= 4.0.0-beta-23504",
+      "System.Text.Encoding >= 4.0.11-beta-23504",
+      "System.Text.Encoding.CodePages >= 4.0.1-beta-23504",
+      "System.Text.Encoding.Extensions >= 4.0.11-beta-23504",
+      "System.Threading >= 4.0.11-beta-23504",
+      "System.Threading.Tasks >= 4.0.11-beta-23504",
+      "System.Threading.Tasks.Parallel >= 4.0.1-beta-23504",
+      "System.Threading.Thread >= 4.0.0-beta-23504",
+      "System.Xml.XDocument >= 4.0.11-beta-23504",
+      "System.Xml.XmlDocument >= 4.0.1-beta-23504",
+      "System.Xml.XPath.XDocument >= 4.0.1-beta-23504"
+    ],
     "DNXCore,Version=v5.0": []
   }
 }
