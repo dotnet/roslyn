@@ -339,6 +339,18 @@
           <CommandName>GoToImplementation</CommandName>
         </Strings>
       </Button>
+
+      <!-- Interactive context menu in solution explorer. -->
+      <Button guid="guidCSharpInteractiveCommandSet" id="cmdidResetInteractiveFromProject" priority="0x0100" type="Button">
+        <Parent guid="guidCSharpInteractiveCommandSet" id="IDG_INTERACTIVE_PROJECT"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Initialize Interactive with Project</ButtonText>
+          <CanonicalName>ResetC#InteractiveFromProject</CanonicalName>
+          <LocCanonicalName>ResetC#InteractiveFromProject</LocCanonicalName>
+        </Strings>
+      </Button>
     </Buttons>
 
     <Menus>
@@ -507,6 +519,13 @@
       <IDSymbol name="cmdidRemoveSuppressions"        value="0x0121" />
 
       <IDSymbol name="cmdidGoToImplementation"        value="0x0200" />
+    </GuidSymbol>
+
+    <GuidSymbol name="guidCSharpInteractiveCommandSet" value="{1492db0a-85a2-4e43-bf0d-ce55b89a8cc6}">
+      <IDSymbol name="IDG_INTERACTIVE_PROJECT" value="0x0100" />
+
+      <IDSymbol name="cmdidCSharpInteractiveToolWindow" value="0x0001" />
+      <IDSymbol name="cmdidResetInteractiveFromProject" value="0x0002"/>
     </GuidSymbol>
   </Symbols>
 </CommandTable>

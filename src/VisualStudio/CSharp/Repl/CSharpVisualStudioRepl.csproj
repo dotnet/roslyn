@@ -145,6 +145,7 @@
     <Compile Include="CSharpVsInteractiveWindowProvider.cs" />
     <Compile Include="CSharpVsInteractiveWindowPackage.cs" />
     <Compile Include="CSharpVsInteractiveWindowCommandProvider.cs" />
+    <Compile Include="CSharpVsResetInteractiveService.cs" />
     <Content Include="CSharpInteractive.rsp" />
     <Content Include="Resources\ScriptFile.ico" />
   </ItemGroup>
