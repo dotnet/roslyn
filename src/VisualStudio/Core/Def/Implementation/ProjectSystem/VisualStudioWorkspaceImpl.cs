@@ -1047,6 +1047,66 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return this.ServiceProvider.GetService(typeof(TService)) as TInterface;
         }
 
+        internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
+        {
+            _foregroundObject.AssertIsForeground();
+
+            IVsHierarchy referencingHierarchy;
+            IVsHierarchy referencedHierarchy;
+            if (!TryGetHierarchy(referencingProject, out referencingHierarchy) ||
+                !TryGetHierarchy(referencedProject, out referencedHierarchy))
+            {
+                return false;
+            }
+
+            var referencingProjectFlavor3 = referencingHierarchy as IVsProjectFlavorReferences3;
+            var referencedProjectFlavor3 = referencedHierarchy as IVsProjectFlavorReferences3;
+
+            if (referencingProjectFlavor3 != null && referencedProjectFlavor3 != null)
+            {
+                const int ContextFlags = (int)__VSQUERYFLAVORREFERENCESCONTEXT.VSQUERYFLAVORREFERENCESCONTEXT_RefreshReference;
+
+                uint canAddProjectReference;
+                uint canBeReferenced;
+                string unused;
+                if (ErrorHandler.Failed(referencingProjectFlavor3.QueryAddProjectReferenceEx(referencedHierarchy, ContextFlags, out canAddProjectReference, out unused)) ||
+                    ErrorHandler.Failed(referencedProjectFlavor3.QueryCanBeReferencedEx(referencingHierarchy, ContextFlags, out canBeReferenced, out unused)))
+                {
+                    // Something went wrong even trying to see if the reference would be allowed.
+                    // Assume it won't be allowed.
+                    return false;
+                }
+
+                if (canAddProjectReference == (uint)__VSREFERENCEQUERYRESULT.REFERENCE_DENY ||
+                    canBeReferenced == (uint)__VSREFERENCEQUERYRESULT.REFERENCE_DENY)
+                {
+                    // If either of them deny then add a project reference is not allowed.
+                    return false;
+                }
+
+                if (canAddProjectReference == (int)__VSREFERENCEQUERYRESULT.REFERENCE_ALLOW ||
+                    canBeReferenced == (int)__VSREFERENCEQUERYRESULT.REFERENCE_ALLOW)
+                {
+                    // At least one allows this, and neither deny.  So this is allowed.
+                    return true;
+                }
+
+                // Both are unknown if they should allow this.  Fall through and use the regular 
+                // matrix check.
+            }
+
+            // Normal matrix check for projects that don't implement IVsProjectFlavorReferences3.
+            var referenceManager = GetVsService<SVsReferenceManager, IVsReferenceManager>();
+            if (referenceManager == null)
+            {
+                return false;
+            }
+
+            var result = referenceManager.QueryCanReferenceProject(referencingHierarchy, referencedHierarchy);
+            return result == (uint)__VSREFERENCEQUERYRESULT.REFERENCE_ALLOW ||
+                result == (uint)__VSREFERENCEQUERYRESULT.REFERENCE_UNKNOWN;
+        }
+
         /// <summary>
         /// A trivial implementation of <see cref="IVisualStudioWorkspaceHost" /> that just
         /// forwards the calls down to the underlying Workspace.
