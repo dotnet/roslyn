@@ -59,8 +59,8 @@ namespace Microsoft.Cci
             {
                 // do not get this from pool
                 // we need a fairly large buffer here (where the pool typically contains small ones)
-                // and we need just on per compile session
-                // pooling will be couterproductive in such scenario
+                // and we need just one per compile session
+                // pooling will be couter-productive in such scenario
                 _logData = new BlobBuilder(bufferFlushLimit);
                 _hashAlgorithm = new SHA1CryptoServiceProvider();
                 Debug.Assert(_hashAlgorithm.SupportsTransform);
@@ -74,6 +74,8 @@ namespace Microsoft.Cci
 
         private void EnsureSpace(int space)
         {
+            // note that if space > bufferFlushLimit, the buffer will need to expand anyways
+            // that should be very rare though.
             if (_logData.Count + space >= bufferFlushLimit)
             {
                 foreach (var blob in _logData.GetBlobs())
@@ -157,11 +159,6 @@ namespace Microsoft.Cci
             {
                 _logData.WriteUInt32(data[i]);
             }
-        }
-
-        [Obsolete("must pass count", true)]
-        public void LogArgument(uint[] data)
-        {
         }
 
         public void LogArgument(string data)
