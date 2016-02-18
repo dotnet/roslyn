@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 bool supportsCSharp = false;
                 bool supportsVB = false;
 
-                var namedTypeAttributes = namedType.GetApplicableAttributes();
-                foreach (var attribute in namedTypeAttributes)
+                System.Collections.Generic.IEnumerable<AttributeData> namedTypeAttributes = namedType.GetApplicableAttributes();
+                foreach (AttributeData attribute in namedTypeAttributes)
                 {
                     if (attribute.AttributeClass.DerivesFrom(DiagnosticAnalyzerAttribute))
                     {
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                 if (!hasAttribute)
                 {
-                    var diagnostic = Diagnostic.Create(MissingDiagnosticAnalyzerAttributeRule, namedType.Locations[0]);
+                    Diagnostic diagnostic = Diagnostic.Create(MissingDiagnosticAnalyzerAttributeRule, namedType.Locations[0]);
                     symbolContext.ReportDiagnostic(diagnostic);
                 }
                 else if (supportsCSharp ^ supportsVB)
@@ -116,13 +116,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                     // If the analyzer assembly doesn't reference either C# or VB CodeAnalysis assemblies, 
                     // then the analyzer is pretty likely a language-agnostic analyzer.
-                    var compilation = symbolContext.Compilation;
-                    var compilationTypeNameToCheck = supportsCSharp ? s_csharpCompilationFullName : s_basicCompilationFullName;
-                    var compilationType = compilation.GetTypeByMetadataName(compilationTypeNameToCheck);
+                    Compilation compilation = symbolContext.Compilation;
+                    string compilationTypeNameToCheck = supportsCSharp ? s_csharpCompilationFullName : s_basicCompilationFullName;
+                    INamedTypeSymbol compilationType = compilation.GetTypeByMetadataName(compilationTypeNameToCheck);
                     if (compilationType == null)
                     {
-                        var missingLanguage = supportsCSharp ? LanguageNames.VisualBasic : LanguageNames.CSharp;
-                        var diagnostic = Diagnostic.Create(AddLanguageSupportToAnalyzerRule, attributeSyntax.GetLocation(), namedType.Name, missingLanguage);
+                        string missingLanguage = supportsCSharp ? LanguageNames.VisualBasic : LanguageNames.CSharp;
+                        Diagnostic diagnostic = Diagnostic.Create(AddLanguageSupportToAnalyzerRule, attributeSyntax.GetLocation(), namedType.Name, missingLanguage);
                         symbolContext.ReportDiagnostic(diagnostic);
                     }
                 }

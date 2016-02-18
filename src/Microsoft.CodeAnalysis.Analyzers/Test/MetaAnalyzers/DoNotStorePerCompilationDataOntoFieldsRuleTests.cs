@@ -49,7 +49,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }";
-            var expected = new[]
+            DiagnosticResult[] expected = new[]
             {
                 GetCSharpExpectedDiagnostic(17, 29, violatingTypeName: typeof(ITypeSymbol).FullName),
                 GetCSharpExpectedDiagnostic(18, 28, violatingTypeName: typeof(CSharpCompilation).FullName),
@@ -94,7 +94,7 @@ Class MyAnalyzer
     End Sub
 End Class
 ";
-            var expected = new[]
+            DiagnosticResult[] expected = new[]
             {
                 GetBasicExpectedDiagnostic(17, 35, violatingTypeName: typeof(ITypeSymbol).FullName),
                 GetBasicExpectedDiagnostic(18, 34, violatingTypeName: typeof(VisualBasicCompilation).FullName),
@@ -269,7 +269,7 @@ End Class
 
         private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string violatingTypeName)
         {
-            var fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
+            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
             return new DiagnosticResult
             {
                 Id = DiagnosticIds.DoNotStorePerCompilationDataOntoFieldsRuleId,

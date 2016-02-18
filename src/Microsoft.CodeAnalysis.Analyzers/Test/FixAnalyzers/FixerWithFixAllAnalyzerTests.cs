@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Analyzers.FixAnalyzers
     {
         #region CSharp tests
 
-        private static string s_CSharpCustomCodeActions = @"
+        private static readonly string s_CSharpCustomCodeActions = @"
 public class MyCodeActionNoEquivalenceKey : CodeAction
 {
     public override string Title
@@ -247,7 +247,7 @@ class C1 : CodeFixProvider
 
         #region VisualBasic tests
 
-        private static string s_VisualBasicCustomCodeActions = @"
+        private static readonly string s_VisualBasicCustomCodeActions = @"
 
 Public Class MyCodeActionNoEquivalenceKey
 	Inherits CodeAction
@@ -484,31 +484,31 @@ Class C1
 
         private static DiagnosticResult GetCSharpCustomCodeActionExpectedDiagnostic(int line, int column, string customCodeActionName)
         {
-            var message = string.Format(CodeAnalysisDiagnosticsResources.OverrideCodeActionEquivalenceKeyMessage, customCodeActionName, "EquivalenceKey");
+            string message = string.Format(CodeAnalysisDiagnosticsResources.OverrideCodeActionEquivalenceKeyMessage, customCodeActionName, "EquivalenceKey");
             return GetExpectedDiagnostic(LanguageNames.CSharp, line, column, CSharpFixerWithFixAllAnalyzer.OverrideCodeActionEquivalenceKeyRule.Id, message);
         }
 
         private static DiagnosticResult GetBasicCustomCodeActionExpectedDiagnostic(int line, int column, string customCodeActionName)
         {
-            var message = string.Format(CodeAnalysisDiagnosticsResources.OverrideCodeActionEquivalenceKeyMessage, customCodeActionName, "EquivalenceKey");
+            string message = string.Format(CodeAnalysisDiagnosticsResources.OverrideCodeActionEquivalenceKeyMessage, customCodeActionName, "EquivalenceKey");
             return GetExpectedDiagnostic(LanguageNames.VisualBasic, line, column, BasicFixerWithFixAllAnalyzer.OverrideCodeActionEquivalenceKeyRule.Id, message);
         }
 
         private static DiagnosticResult GetCSharpCodeActionCreateExpectedDiagnostic(int line, int column)
         {
-            var message = string.Format(CodeAnalysisDiagnosticsResources.CreateCodeActionWithEquivalenceKeyMessage, "equivalenceKey");
+            string message = string.Format(CodeAnalysisDiagnosticsResources.CreateCodeActionWithEquivalenceKeyMessage, "equivalenceKey");
             return GetExpectedDiagnostic(LanguageNames.CSharp, line, column, CSharpFixerWithFixAllAnalyzer.CreateCodeActionEquivalenceKeyRule.Id, message);
         }
 
         private static DiagnosticResult GetBasicCodeActionCreateExpectedDiagnostic(int line, int column)
         {
-            var message = string.Format(CodeAnalysisDiagnosticsResources.CreateCodeActionWithEquivalenceKeyMessage, "equivalenceKey");
+            string message = string.Format(CodeAnalysisDiagnosticsResources.CreateCodeActionWithEquivalenceKeyMessage, "equivalenceKey");
             return GetExpectedDiagnostic(LanguageNames.VisualBasic, line, column, BasicFixerWithFixAllAnalyzer.CreateCodeActionEquivalenceKeyRule.Id, message);
         }
 
         private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string id, string message)
         {
-            var fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
+            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
             return new DiagnosticResult
             {
                 Id = id,

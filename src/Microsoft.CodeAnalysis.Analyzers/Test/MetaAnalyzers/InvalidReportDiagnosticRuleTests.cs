@@ -54,7 +54,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         context.ReportDiagnostic(diag);
     }
 }";
-            var expected = new[]
+            DiagnosticResult[] expected = new[]
             {
                 GetCSharpExpectedDiagnostic(27, 9, unsupportedDescriptorName: "descriptor2"),
                 GetCSharpExpectedDiagnostic(30, 9, unsupportedDescriptorName: "descriptor2"),
@@ -105,7 +105,7 @@ Class MyAnalyzer
     End Sub
 End Class
 ";
-            var expected = new[]
+            DiagnosticResult[] expected = new[]
             {
                 GetBasicExpectedDiagnostic(24, 9, unsupportedDescriptorName: "descriptor2"),
                 GetBasicExpectedDiagnostic(27, 9, unsupportedDescriptorName: "descriptor2"),
@@ -234,7 +234,7 @@ End Class
 
         private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string unsupportedDescriptorName)
         {
-            var fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
+            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
             return new DiagnosticResult
             {
                 Id = DiagnosticIds.InvalidReportDiagnosticRuleId,
