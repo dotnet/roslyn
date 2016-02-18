@@ -93,7 +93,7 @@ End Class
             Await VerifyRecommendationsMissingAsync(code, _keywordList)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function Preselection() As Task
             Dim code =
 <File>
@@ -108,7 +108,7 @@ Class Program
 End Class
 </File>
 
-            Await VerifyRecommendationsWithPriority(code, CodeAnalysis.Completion.MatchPriority.Prefer, "Integer")
+            Await VerifyRecommendationsWithPriority(code, CodeAnalysis.Completion.MatchPriority.PreferLess, "Integer")
         End Function
 
     End Class
