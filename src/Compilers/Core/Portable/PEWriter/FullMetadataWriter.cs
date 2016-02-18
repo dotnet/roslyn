@@ -222,6 +222,11 @@ namespace Microsoft.Cci
             return _assemblyRefIndex.Rows;
         }
 
+        protected override AssemblyIdentity MapAssemblyReferenceIdentity(AssemblyIdentity identity)
+        {
+            return identity;
+        }
+
         protected override int GetOrAddModuleRefIndex(string reference)
         {
             return _moduleRefIndex.GetOrAdd(reference);

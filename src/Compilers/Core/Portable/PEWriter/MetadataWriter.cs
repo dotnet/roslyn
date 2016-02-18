@@ -2560,6 +2560,8 @@ namespace Microsoft.Cci
             public bool IsRetargetable;
         }
 
+        protected abstract AssemblyIdentity MapAssemblyReferenceIdentity(AssemblyIdentity identity);
+
         private void PopulateAssemblyRefTableRows()
         {
             var assemblyRefs = this.GetAssemblyRefs();
@@ -2568,7 +2570,7 @@ namespace Microsoft.Cci
             foreach (var assemblyRef in assemblyRefs)
             {
                 AssemblyRefTableRow r = new AssemblyRefTableRow();
-                var identity = assemblyRef.Identity;
+                var identity = MapAssemblyReferenceIdentity(assemblyRef.Identity);
 
                 r.Version = identity.Version;
                 r.PublicKeyToken = heaps.GetBlobIndex(identity.PublicKeyToken);

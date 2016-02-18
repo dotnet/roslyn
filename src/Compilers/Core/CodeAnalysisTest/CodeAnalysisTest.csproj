@@ -41,6 +41,7 @@
     <Compile Include="InternalUtilities\StreamExtensionsTests.cs" />
     <Compile Include="InternalUtilities\StringExtensionsTests.cs" />
     <Compile Include="MetadataReferences\AssemblyIdentityExtensions.cs" />
+    <Compile Include="MetadataReferences\AssemblyIdentityMapTests.cs" />
     <Compile Include="PEWriter\BlobUtilitiesTests.cs" />
     <Compile Include="PEWriter\BlobTests.cs" />
     <Compile Include="PEWriter\UsedNamespaceOrTypeTests.cs" />

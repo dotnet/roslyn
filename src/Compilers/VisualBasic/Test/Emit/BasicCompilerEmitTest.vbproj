@@ -175,6 +175,7 @@
     <Content Include="CodeGen\ConversionsILGenTestSource.vb" />
     <Content Include="CodeGen\ConversionsILGenTestSource1.vb" />
     <Content Include="CodeGen\ConversionsILGenTestSource2.vb" />
+    <Compile Include="Emit\EditAndContinue\AssemblyReferencesTests.vb" />
     <Content Include="ExpressionTrees\Results\CheckedAndOrXor.txt" />
     <Content Include="ExpressionTrees\Results\CheckedAndUncheckedIsIsNot.txt" />
     <Content Include="ExpressionTrees\Results\CheckedAndUncheckedIsIsNotNothing.txt" />
