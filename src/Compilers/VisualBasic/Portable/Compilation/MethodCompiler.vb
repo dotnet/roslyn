@@ -626,7 +626,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If method.IsPartial() Then
                             Dim impl = method.PartialImplementationPart
                             If impl IsNot method Then
-                                If CType(method, SourceMethodSymbol).SetDiagnostics(ImmutableArray(Of Diagnostic).Empty) Then
+                                If CType(method, SourceMethodSymbol).SetDiagnostics(ImmutableArray(Of Diagnostic).Empty) AndAlso impl Is Nothing Then
                                     method.DeclaringCompilation.SymbolDeclaredEvent(method)
                                 End If
 
@@ -1193,7 +1193,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 End If
                                 Return semanticModel
                             End Function)
-                        compilation.EventQueue.Enqueue(New SymbolDeclaredCompilationEvent(compilation, method, lazySemanticModel))
+                        Dim symbolToProduce = If(method.PartialDefinitionPart, method)
+                        compilation.EventQueue.Enqueue(New SymbolDeclaredCompilationEvent(compilation, symbolToProduce, lazySemanticModel))
                     End If
                 End If
             End If
