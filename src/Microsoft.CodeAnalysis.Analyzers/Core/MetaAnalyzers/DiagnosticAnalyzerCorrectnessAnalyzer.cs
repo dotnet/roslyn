@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                var diagnosticAnalyzer = compilationContext.Compilation.GetTypeByMetadataName(DiagnosticAnalyzerTypeFullName);
-                var diagnosticAnalyzerAttribute = compilationContext.Compilation.GetTypeByMetadataName(DiagnosticAnalyzerAttributeFullName);
+                INamedTypeSymbol diagnosticAnalyzer = compilationContext.Compilation.GetTypeByMetadataName(DiagnosticAnalyzerTypeFullName);
+                INamedTypeSymbol diagnosticAnalyzerAttribute = compilationContext.Compilation.GetTypeByMetadataName(DiagnosticAnalyzerAttributeFullName);
 
                 if (diagnosticAnalyzer == null || diagnosticAnalyzerAttribute == null)
                 {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     return;
                 }
 
-                var analyzer = GetDiagnosticAnalyzerSymbolAnalyzer(compilationContext, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
+                DiagnosticAnalyzerSymbolAnalyzer analyzer = GetDiagnosticAnalyzerSymbolAnalyzer(compilationContext, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
                 if (analyzer != null)
                 {
                     compilationContext.RegisterSymbolAction(c => analyzer.AnalyzeSymbol(c), SymbolKind.NamedType);

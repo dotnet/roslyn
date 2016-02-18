@@ -39,7 +39,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }";
-            var expected = GetCSharpExpectedDiagnostic(11, 13);
+            DiagnosticResult expected = GetCSharpExpectedDiagnostic(11, 13);
             VerifyCSharp(source, expected);
         }
 
@@ -67,7 +67,7 @@ Class MyAnalyzer
 	End Sub
 End Class
 ";
-            var expected = GetBasicExpectedDiagnostic(10, 70);
+            DiagnosticResult expected = GetBasicExpectedDiagnostic(10, 70);
             VerifyBasic(source, expected);
         }
 
@@ -165,7 +165,7 @@ End Class
 
         private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column)
         {
-            var fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
+            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
             return new DiagnosticResult
             {
                 Id = DiagnosticIds.UseLocalizableStringsInDescriptorRuleId,

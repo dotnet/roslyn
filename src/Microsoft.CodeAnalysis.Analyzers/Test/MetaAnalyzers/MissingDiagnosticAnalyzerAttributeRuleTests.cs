@@ -35,7 +35,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }";
-            var expected = GetCSharpExpectedDiagnostic(7, 7);
+            DiagnosticResult expected = GetCSharpExpectedDiagnostic(7, 7);
             VerifyCSharp(source, expected);
 
             var fixedCode_WithCSharpAttribute = @"
@@ -108,7 +108,7 @@ Class MyAnalyzer
 	End Sub
 End Class
 ";
-            var expected = GetBasicExpectedDiagnostic(7, 7);
+            DiagnosticResult expected = GetBasicExpectedDiagnostic(7, 7);
             VerifyBasic(source, expected);
 
             var fixedCode_WithVBAttribute = @"
@@ -249,7 +249,7 @@ End Class
 
         private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column)
         {
-            var fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
+            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
             return new DiagnosticResult
             {
                 Id = DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId,

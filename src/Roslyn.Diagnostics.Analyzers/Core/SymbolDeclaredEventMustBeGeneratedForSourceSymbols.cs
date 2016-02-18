@@ -43,10 +43,10 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                var symbolType = compilationContext.Compilation.GetTypeByMetadataName(s_fullNameOfSymbol);
+                INamedTypeSymbol symbolType = compilationContext.Compilation.GetTypeByMetadataName(s_fullNameOfSymbol);
                 if (symbolType != null)
                 {
-                    var compilationAnalyzer = GetCompilationAnalyzer(compilationContext.Compilation, symbolType);
+                    CompilationAnalyzer compilationAnalyzer = GetCompilationAnalyzer(compilationContext.Compilation, symbolType);
                     if (compilationAnalyzer != null)
                     {
                         compilationContext.RegisterSyntaxNodeAction(compilationAnalyzer.AnalyzeNode, InvocationExpressionSyntaxKind);
@@ -75,7 +75,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 _compilationType = compilationType;
 
                 // If the below assert fire then probably the definition of "SymbolDeclaredEvent" has changed and we need to fix this analyzer.
-                var symbolDeclaredEvent = compilationType.GetMembers(SymbolDeclaredEventName).Single();
+                ISymbol symbolDeclaredEvent = compilationType.GetMembers(SymbolDeclaredEventName).Single();
                 Debug.Assert(symbolDeclaredEvent.GetParameters().Count() == 1);
             }
 
@@ -84,7 +84,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             internal void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                var invocationSymbol = context.SemanticModel.GetSymbolInfo(context.Node, context.CancellationToken).Symbol;
+                ISymbol invocationSymbol = context.SemanticModel.GetSymbolInfo(context.Node, context.CancellationToken).Symbol;
                 if (invocationSymbol != null &&
                     invocationSymbol.Kind == SymbolKind.Method)
                 {
@@ -97,7 +97,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 if (invocationSymbol.Name.Equals(SymbolDeclaredEventName) &&
                     _compilationType.Equals(invocationSymbol.ContainingType))
                 {
-                    var argument = GetFirstArgumentOfInvocation(context.Node);
+                    SyntaxNode argument = GetFirstArgumentOfInvocation(context.Node);
                     AnalyzeSymbolDeclaredEventInvocation(argument, context);
                 }
             }
@@ -106,7 +106,7 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 if (argument != null)
                 {
-                    var argumentType = context.SemanticModel.GetTypeInfo(argument, context.CancellationToken).Type;
+                    ITypeSymbol argumentType = context.SemanticModel.GetTypeInfo(argument, context.CancellationToken).Type;
                     return AnalyzeSymbolDeclaredEventInvocation(argumentType);
                 }
 
@@ -145,10 +145,10 @@ namespace Roslyn.Diagnostics.Analyzers
 
             internal void AnalyzeCompilationEnd(CompilationAnalysisContext context)
             {
-                foreach (var sourceSymbol in _sourceSymbolsToCheck)
+                foreach (INamedTypeSymbol sourceSymbol in _sourceSymbolsToCheck)
                 {
                     var found = false;
-                    foreach (var type in sourceSymbol.GetBaseTypesAndThis())
+                    foreach (INamedTypeSymbol type in sourceSymbol.GetBaseTypesAndThis())
                     {
                         if (_typesWithSymbolDeclaredEventInvoked.Contains(type))
                         {
@@ -159,7 +159,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
                     if (!found)
                     {
-                        var diagnostic = Diagnostic.Create(SymbolDeclaredEventRule, sourceSymbol.Locations[0], sourceSymbol.Name, _compilationType.Name, SymbolDeclaredEventName);
+                        Diagnostic diagnostic = Diagnostic.Create(SymbolDeclaredEventRule, sourceSymbol.Locations[0], sourceSymbol.Name, _compilationType.Name, SymbolDeclaredEventName);
                         context.ReportDiagnostic(diagnostic);
                     }
                 }

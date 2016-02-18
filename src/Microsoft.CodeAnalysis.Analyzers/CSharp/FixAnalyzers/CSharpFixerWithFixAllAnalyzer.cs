@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.FixAnalyzers
 
                 var seenNamedArgument = false;
                 var indexOfArgument = 0;
-                foreach (var argument in invocation.ArgumentList.Arguments)
+                foreach (ArgumentSyntax argument in invocation.ArgumentList.Arguments)
                 {
                     if (argument.NameColon != null)
                     {

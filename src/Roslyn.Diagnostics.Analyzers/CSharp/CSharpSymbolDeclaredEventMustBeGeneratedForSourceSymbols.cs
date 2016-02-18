@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -17,7 +16,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         protected override CompilationAnalyzer GetCompilationAnalyzer(Compilation compilation, INamedTypeSymbol symbolType)
         {
-            var compilationType = compilation.GetTypeByMetadataName(typeof(CSharpCompilation).FullName);
+            INamedTypeSymbol compilationType = compilation.GetTypeByMetadataName(typeof(CSharpCompilation).FullName);
             if (compilationType == null)
             {
                 return null;
@@ -50,7 +49,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 var invocation = (InvocationExpressionSyntax)node;
                 if (invocation.ArgumentList != null)
                 {
-                    var argument = invocation.ArgumentList.Arguments.FirstOrDefault();
+                    ArgumentSyntax argument = invocation.ArgumentList.Arguments.FirstOrDefault();
                     if (argument != null)
                     {
                         return argument.Expression;

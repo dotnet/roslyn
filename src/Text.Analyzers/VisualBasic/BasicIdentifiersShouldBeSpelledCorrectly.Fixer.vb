@@ -7,13 +7,13 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Text.Analyzers     
+Namespace Text.Analyzers
     ''' <summary>
     ''' CA1704: Identifiers should be spelled correctly
     ''' </summary>
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
     Public NotInheritable Class BasicIdentifiersShouldBeSpelledCorrectlyFixer
-        Inherits IdentifiersShouldBeSpelledCorrectlyFixer 
+        Inherits IdentifiersShouldBeSpelledCorrectlyFixer
 
     End Class
 End Namespace
