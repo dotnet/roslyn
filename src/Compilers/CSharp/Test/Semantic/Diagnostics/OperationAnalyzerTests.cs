@@ -1145,6 +1145,27 @@ class C
         M0(1, new int[] { 2, 3, 4 });
         M0(1, new int[] { 2, 3, 4, 5 });
         M0(1, new int[] { 2, 3, 4, 5, 6 });
+        M2(1, c: 2);
+        D d = new D(3, c: 40);
+        d = new D(""Hello"", 1, 2, 3, 4);
+        d = new D(""Hello"", new int[] { 1, 2, 3, 4 });
+        d = new D(""Hello"", 1, 2, 3);
+        d = new D(""Hello"", new int[] { 1, 2, 3 });
+    }
+
+    public void M2(int a, int b = 10, int c = 20, params int[] d)
+    {
+    }
+
+    class D
+    {
+        public D(int a, int b = 10, int c = 20, params int[] d)
+        {
+        }
+
+        public D(string a, params int[] b)
+        {
+        }
     }
 }
 ";
@@ -1158,7 +1179,9 @@ class C
                 Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5 }").WithLocation(16, 15),
                 Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5 }").WithLocation(16, 15),
                 Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5, 6 }").WithLocation(17, 15),
-                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5, 6 }").WithLocation(17, 15)
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5, 6 }").WithLocation(17, 15),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "1").WithLocation(20, 28),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 1, 2, 3, 4 }").WithLocation(21, 28)
                 );
         }
 
