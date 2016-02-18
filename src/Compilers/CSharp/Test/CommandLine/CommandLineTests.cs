@@ -965,6 +965,111 @@ d.cs
         }
 
         [Fact]
+        public void Target_SimpleTestsNoSource()
+        {
+            var parsedArgs = DefaultParse(new[] { "/target:exe"}, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // warning CS2008: No source files specified.
+                Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
+                // error CS1562: Outputs without source must have the /out option specified
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1) );
+            Assert.Equal(OutputKind.ConsoleApplication, parsedArgs.CompilationOptions.OutputKind);
+
+            parsedArgs = DefaultParse(new[] { "/t:module"}, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // warning CS2008: No source files specified.
+                Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
+                // error CS1562: Outputs without source must have the /out option specified
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1) );
+            Assert.Equal(OutputKind.NetModule, parsedArgs.CompilationOptions.OutputKind);
+
+            parsedArgs = DefaultParse(new[] { "/target:library"}, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // warning CS2008: No source files specified.
+                Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
+                // error CS1562: Outputs without source must have the /out option specified
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1) );
+            Assert.Equal(OutputKind.DynamicallyLinkedLibrary, parsedArgs.CompilationOptions.OutputKind);
+
+            parsedArgs = DefaultParse(new[] { "/TARGET:winexe"}, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // warning CS2008: No source files specified.
+                Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
+                // error CS1562: Outputs without source must have the /out option specified
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1) );
+            Assert.Equal(OutputKind.WindowsApplication, parsedArgs.CompilationOptions.OutputKind);
+
+            parsedArgs = DefaultParse(new[] { "/target:appcontainerexe"}, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // warning CS2008: No source files specified.
+                Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
+                // error CS1562: Outputs without source must have the /out option specified
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1) );
+            Assert.Equal(OutputKind.WindowsRuntimeApplication, parsedArgs.CompilationOptions.OutputKind);
+
+            parsedArgs = DefaultParse(new[] { "/target:winmdobj"}, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // warning CS2008: No source files specified.
+                Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
+                // error CS1562: Outputs without source must have the /out option specified
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1) );
+            Assert.Equal(OutputKind.WindowsRuntimeMetadata, parsedArgs.CompilationOptions.OutputKind);
+
+            parsedArgs = DefaultParse(new[] { "/target:winexe", "/T:exe", "/target:module"}, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // warning CS2008: No source files specified.
+                Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
+                // error CS1562: Outputs without source must have the /out option specified
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1) );
+            Assert.Equal(OutputKind.NetModule, parsedArgs.CompilationOptions.OutputKind);
+
+            parsedArgs = DefaultParse(new[] { "/t"}, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2007: Unrecognized option: '/t'
+                Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/t").WithLocation(1, 1),
+                // warning CS2008: No source files specified.
+                Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
+                // error CS1562: Outputs without source must have the /out option specified
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1) );
+
+            parsedArgs = DefaultParse(new[] { "/target:"}, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2019: Invalid target type for /target: must specify 'exe', 'winexe', 'library', or 'module'
+                Diagnostic(ErrorCode.FTL_InvalidTarget).WithLocation(1, 1),
+                // warning CS2008: No source files specified.
+                Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
+                // error CS1562: Outputs without source must have the /out option specified
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1));
+
+            parsedArgs = DefaultParse(new[] { "/target:xyz"}, _baseDirectory);
+            parsedArgs.Errors.Verify(    
+                // error CS2019: Invalid target type for /target: must specify 'exe', 'winexe', 'library', or 'module'
+                Diagnostic(ErrorCode.FTL_InvalidTarget).WithLocation(1, 1),
+                // warning CS2008: No source files specified.
+                Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
+                // error CS1562: Outputs without source must have the /out option specified
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1));
+
+            parsedArgs = DefaultParse(new[] { "/T+"}, _baseDirectory);
+            parsedArgs.Errors.Verify(    
+                // error CS2007: Unrecognized option: '/T+'
+                Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/T+").WithLocation(1, 1),
+                // warning CS2008: No source files specified.
+                Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
+                // error CS1562: Outputs without source must have the /out option specified
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1));
+
+            parsedArgs = DefaultParse(new[] { "/TARGET-:"}, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2007: Unrecognized option: '/TARGET-:'
+                Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/TARGET-:").WithLocation(1, 1),
+                // warning CS2008: No source files specified.
+                Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
+                // error CS1562: Outputs without source must have the /out option specified
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1));
+        }
+
+        [Fact]
         public void ModuleManifest()
         {
             CSharpCommandLineArguments args = DefaultParse(new[] { "/win32manifest:blah", "/target:module", "a.cs" }, _baseDirectory);
