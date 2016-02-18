@@ -2694,7 +2694,7 @@ class C {{ }}
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath1), actual);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment, Skip = "https://github.com/dotnet/roslyn/issues/8807")]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
         public void WRN_XMLParseIncludeError_Source()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText("<OpenWithoutClose>");
@@ -2724,7 +2724,7 @@ class C {{ }}
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
+            Assert.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFilePath)), actual);
         }
 
         [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
@@ -3679,7 +3679,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment, Skip = "https://github.com/dotnet/roslyn/issues/8807")]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
         public void IncludedName_DuplicateNameAttribute()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText(@"<param name=""x"" name=""y""/>");
@@ -3713,7 +3713,7 @@ class C
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
+            Assert.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFilePath)), actual);
         }
 
         [Fact]
@@ -3762,7 +3762,7 @@ partial class C
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
+            Assert.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFilePath)), actual);
         }
 
         #endregion Included names
@@ -4513,7 +4513,7 @@ class C
         }
 
         // As in dev11, the pragma has no effect.
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment, Skip = "https://github.com/dotnet/roslyn/issues/8807")]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
         public void PragmaDisableWarningInXmlFile()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText("&");
@@ -4541,7 +4541,7 @@ class C {{ }}
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, xmlFile.Path), actual);
+            Assert.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFile.Path)), actual);
         }
 
         [Fact]
@@ -6144,6 +6144,38 @@ class Module1
     //     static void Main()
     Diagnostic(ErrorCode.WRN_XMLParseError, "").WithArguments("summary").WithLocation(7, 1)
                 );
+        }
+
+        /// <summary>
+        /// "--" is not valid within an XML comment.
+        /// </summary>
+        [WorkItem(8807, "https://github.com/dotnet/roslyn/issues/8807")]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        public void IncludeErrorDashDashInName()
+        {
+            var dir = Temp.CreateDirectory();
+            var path = dir.Path;
+            var xmlFile = dir.CreateFile("---.xml").WriteAllText(@"<summary attrib="""" attrib=""""/>");
+            var source =
+$@"/// <include file='{Path.Combine(path, "---.xml")}' path='//summary'/>
+class C {{ }}";
+            var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
+                // warning CS1592: Badly formed XML in included comments file -- ''attrib' is a duplicate attribute name.'
+                Diagnostic(ErrorCode.WRN_XMLParseIncludeError).WithArguments("'attrib' is a duplicate attribute name.").WithLocation(1, 1));
+            var expected =
+$@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:C"">
+            <!-- Badly formed XML file ""{Path.Combine(TestHelpers.AsXmlCommentText(path), "- - -.xml")}"" cannot be included -->
+        </member>
+    </members>
+</doc>";
+            Assert.Equal(expected, actual);
         }
     }
 }
