@@ -1,6 +1,6 @@
 ﻿{
   "dependencies": {
-    "System.Reflection.TypeExtensions": "4.1.0-beta-23504"
+    "System.Reflection.TypeExtensions": "4.0.0"
   },
   "frameworks": {
     "dotnet5.4": {

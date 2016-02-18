@@ -1,9 +1,8 @@
 ﻿{
   "dependencies": {
-    "Microsoft.CSharp": "4.0.1-beta-23504",
-    "System.AppContext": "4.0.1-beta-23504",
-    "System.Diagnostics.Tools": "4.0.1-beta-23504",
-    "System.Dynamic.Runtime": "4.0.11-beta-23504"
+    "Microsoft.CSharp": "4.0.0",
+    "System.AppContext": "4.0.0",
+    "System.Dynamic.Runtime": "4.0.10"
   },
   "frameworks": {
     "dotnet5.4": {

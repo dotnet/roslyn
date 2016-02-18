@@ -1,10 +1,11 @@
 ﻿{
   "dependencies": {
-    "System.Collections": "4.0.11-beta-23504",
-    "System.Diagnostics.Debug": "4.0.11-beta-23504",
-    "System.Runtime": "4.0.21-beta-23504",
-    "System.Runtime.Extensions": "4.0.11-beta-23504",
-    "System.IO.FileSystem": "4.0.1-beta-23504",
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.1-beta-23504",
+    "System.Collections": "4.0.10",
+    "System.Diagnostics.Debug": "4.0.10",
+    "System.Runtime": "4.0.20",
+    "System.Runtime.Extensions": "4.0.10",
+    "System.IO.FileSystem": "4.0.0",
     "xunit": "2.1.0"
   },
   "frameworks": {
