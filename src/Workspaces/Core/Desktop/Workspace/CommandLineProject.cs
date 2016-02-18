@@ -165,7 +165,8 @@ namespace Microsoft.CodeAnalysis
                 documents: docs,
                 additionalDocuments: additionalDocs,
                 metadataReferences: boundMetadataReferences,
-                analyzerReferences: boundAnalyzerReferences);
+                analyzerReferences: boundAnalyzerReferences,
+                emitOptions: commandLineArguments.EmitOptions);
 
             return projectInfo;
         }

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Notification;
@@ -56,6 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string _assemblyName;
 
         private CompilationOptions _compilationOptions;
+        private EmitOptions _emitOptions;
         private ParseOptions _parseOptions;
         private readonly List<ProjectReference> _projectReferences = new List<ProjectReference>();
         private readonly List<VisualStudioMetadataReference> _metadataReferences = new List<VisualStudioMetadataReference>();
@@ -317,7 +319,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 metadataReferences: _metadataReferences.Select(r => r.CurrentSnapshot),
                 projectReferences: _projectReferences,
                 analyzerReferences: _analyzers.Values.Select(a => a.GetReference()),
-                additionalDocuments: _additionalDocuments.Values.Select(d => d.GetInitialState()));
+                additionalDocuments: _additionalDocuments.Values.Select(d => d.GetInitialState()),
+                emitOptions: _emitOptions);
 
             return info.WithHasAllInformation(_intellisenseBuildSucceeded);
         }
@@ -426,14 +429,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected void SetOptions(CompilationOptions compilationOptions, ParseOptions parseOptions)
+        protected void SetOptions(CompilationOptions compilationOptions, ParseOptions parseOptions, EmitOptions emitOptions)
         {
             _compilationOptions = compilationOptions;
             _parseOptions = parseOptions;
+            _emitOptions = emitOptions;
 
             if (_pushingChangesToWorkspaceHosts)
             {
-                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOptionsChanged(_id, compilationOptions, parseOptions));
+                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOptionsChanged(_id, compilationOptions, parseOptions, emitOptions));
             }
         }
 
@@ -1203,7 +1207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (_pushingChangesToWorkspaceHosts)
                 {
-                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOptionsChanged(this.Id, _compilationOptions, _parseOptions));
+                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOptionsChanged(this.Id, _compilationOptions, _parseOptions, _emitOptions));
                     this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOutputFilePathChanged(this.Id, _objOutputPathOpt));
                 }
             }

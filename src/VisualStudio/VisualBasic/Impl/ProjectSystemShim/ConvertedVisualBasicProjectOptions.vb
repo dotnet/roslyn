@@ -5,6 +5,7 @@ Imports System.Collections.ObjectModel
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
@@ -35,6 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         ''' <remarks></remarks>
         Public ReadOnly OutputPath As String
         Public ReadOnly ParseOptions As VisualBasicParseOptions
+        Public ReadOnly EmitOptions As EmitOptions
 
         ''' <summary>
         ''' Maps a string to the parsed conditional compilation symbols.
@@ -50,6 +52,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             CompilationOptions = Nothing
             OutputPath = Nothing
             ParseOptions = Nothing
+            EmitOptions = Nothing
             RuntimeLibraries = SpecializedCollections.EmptyEnumerable(Of String)
         End Sub
 
@@ -185,6 +188,26 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                                     xmlReferenceResolver:=New XmlFileResolver(projectDirectoryOpt),
                                     assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default,
                                     strongNameProvider:=New DesktopStrongNameProvider(strongNameKeyPaths))
+
+            Dim subsystemVersion As SubsystemVersion
+
+            If (Not SubsystemVersion.TryParse(options.wszSubsystemVersion, subsystemVersion)) Then
+                subsystemVersion = SubsystemVersion.None
+            End If
+
+            EmitOptions = New EmitOptions(
+                metadataOnly:=parsedCommandLineArguments.EmitOptions.EmitMetadataOnly,
+                debugInformationFormat:=If(options.bGenerateSymbolInfo Or options.bGeneratePdbOnly, DebugInformationFormat.Pdb, CType(0, DebugInformationFormat)),
+                pdbFilePath:=parsedCommandLineArguments.EmitOptions.PdbFilePath,
+                outputNameOverride:=parsedCommandLineArguments.EmitOptions.OutputNameOverride,
+                fileAlignment:=CType(options.dwAlign, Integer),
+                baseAddress:=options.dwLoadAddress,
+                highEntropyVirtualAddressSpace:=options.bHighEntropyVA,
+                subsystemVersion:=subsystemVersion,
+                runtimeMetadataVersion:=parsedCommandLineArguments.EmitOptions.RuntimeMetadataVersion,
+                tolerateErrors:=parsedCommandLineArguments.EmitOptions.TolerateErrors,
+                includePrivateMembers:=parsedCommandLineArguments.EmitOptions.IncludePrivateMembers
+                )
         End Sub
 
         Private Shared Function GetConditionalCompilationSymbols(kind As OutputKind, str As String) As ImmutableArray(Of KeyValuePair(Of String, Object))

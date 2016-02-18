@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -39,7 +40,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         private OutputKind _outputKind = OutputKind.DynamicallyLinkedLibrary;
         private Platform _platform = Platform.AnyCpu;
+        private ulong _baseAddress;
         private string _mainTypeName;
+        private string _pdbFilePath;
+        private uint _fileAlignment;
         private object[] _options = new object[(int)CompilerOptions.LARGEST_OPTION_ID];
 
         public CSharpProjectShim(
@@ -77,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         protected override void UpdateOptions()
         {
-            this.SetOptions(this.CreateCompilationOptions(), this.CreateParseOptions());
+            this.SetOptions(this.CreateCompilationOptions(), this.CreateParseOptions(), this.CreateEmitOptions());
         }
 
         public override void Disconnect()
@@ -308,6 +312,39 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 preprocessorSymbols: symbols.AsImmutable(),
                 documentationMode: documentationMode)
                 .WithFeatures(GetParsedCommandLineArguments().ParseOptions.Features);
+        }
+
+        protected EmitOptions CreateEmitOptions()
+        {
+            SubsystemVersion subsystemVersion;
+
+            if (!SubsystemVersion.TryParse(GetStringOption(CompilerOptions.OPTID_SUBSYSTEMVERSION, defaultValue: null), out subsystemVersion))
+            {
+                subsystemVersion = SubsystemVersion.None;
+            }
+
+            DebugInformationFormat debugInformationFormat;
+
+            if (!Enum.TryParse(GetStringOption(CompilerOptions.OPTID_DEBUGTYPE, defaultValue: null), ignoreCase: true, result: out debugInformationFormat))
+            {
+                debugInformationFormat = 0;
+            }
+
+            var emitOptions = GetParsedCommandLineArguments().EmitOptions;
+
+            return new EmitOptions(
+                metadataOnly: emitOptions.EmitMetadataOnly,
+                debugInformationFormat: debugInformationFormat,
+                pdbFilePath: _pdbFilePath,
+                outputNameOverride: emitOptions.OutputNameOverride,
+                fileAlignment: (int)_fileAlignment,
+                baseAddress: _baseAddress,
+                highEntropyVirtualAddressSpace: GetBooleanOption(CompilerOptions.OPTID_HIGHENTROPYASLR),
+                subsystemVersion: subsystemVersion,
+                runtimeMetadataVersion: emitOptions.RuntimeMetadataVersion,
+                tolerateErrors: emitOptions.TolerateErrors,
+                includePrivateMembers: emitOptions.IncludePrivateMembers
+            );
         }
 
         ~CSharpProjectShim()

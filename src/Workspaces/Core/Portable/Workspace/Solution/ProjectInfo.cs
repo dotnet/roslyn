@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using System.Diagnostics;
 
@@ -53,6 +54,11 @@ namespace Microsoft.CodeAnalysis
         /// The initial compilation options for the project, or null if the default options should be used.
         /// </summary>
         public CompilationOptions CompilationOptions { get; }
+
+        /// <summary>
+        /// The initial emit options for the project, or null if the default options should be used.
+        /// </summary>
+        public EmitOptions EmitOptions { get; }
 
         /// <summary>
         /// The initial parse options for the source code documents in this project, or null if the default options should be used.
@@ -110,6 +116,7 @@ namespace Microsoft.CodeAnalysis
             string filePath,
             string outputFilePath,
             CompilationOptions compilationOptions,
+            EmitOptions emitOptions,
             ParseOptions parseOptions,
             IEnumerable<DocumentInfo> documents,
             IEnumerable<ProjectReference> projectReferences,
@@ -148,6 +155,7 @@ namespace Microsoft.CodeAnalysis
             this.FilePath = filePath;
             this.OutputFilePath = outputFilePath;
             this.CompilationOptions = compilationOptions;
+            this.EmitOptions = emitOptions;
             this.ParseOptions = parseOptions;
             this.Documents = documents.ToImmutableReadOnlyListOrEmpty();
             this.ProjectReferences = projectReferences.ToImmutableReadOnlyListOrEmpty();
@@ -171,6 +179,7 @@ namespace Microsoft.CodeAnalysis
             string filePath,
             string outputFilePath,
             CompilationOptions compilationOptions,
+            EmitOptions emitOptions,
             ParseOptions parseOptions,
             IEnumerable<DocumentInfo> documents,
             IEnumerable<ProjectReference> projectReferences,
@@ -190,6 +199,7 @@ namespace Microsoft.CodeAnalysis
                 filePath,
                 outputFilePath,
                 compilationOptions,
+                emitOptions,
                 parseOptions,
                 documents,
                 projectReferences,
@@ -220,13 +230,54 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<AnalyzerReference> analyzerReferences = null,
             IEnumerable<DocumentInfo> additionalDocuments = null,
             bool isSubmission = false,
-            Type hostObjectType = null)
+            Type hostObjectType = null,
+            EmitOptions emitOptions = null)
         {
             return Create(
                 id, version, name, assemblyName, language,
-                filePath, outputFilePath, compilationOptions, parseOptions,
+                filePath, outputFilePath, compilationOptions, emitOptions, parseOptions,
                 documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
                 isSubmission, hostObjectType, hasAllInformation: true);
+        }
+
+        // 1.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        public static ProjectInfo Create(
+            ProjectId id,
+            VersionStamp version,
+            string name,
+            string assemblyName,
+            string language,
+            string filePath,
+            string outputFilePath,
+            CompilationOptions compilationOptions,
+            ParseOptions parseOptions,
+            IEnumerable<DocumentInfo> documents,
+            IEnumerable<ProjectReference> projectReferences,
+            IEnumerable<MetadataReference> metadataReferences,
+            IEnumerable<AnalyzerReference> analyzerReferences,
+            IEnumerable<DocumentInfo> additionalDocuments,
+            bool isSubmission,
+            Type hostObjectType)
+        {
+            return Create(
+                id,
+                version,
+                name,
+                assemblyName,
+                language,
+                filePath,
+                outputFilePath,
+                compilationOptions,
+                parseOptions,
+                documents,
+                projectReferences,
+                metadataReferences,
+                analyzerReferences,
+                additionalDocuments,
+                isSubmission,
+                hostObjectType,
+                emitOptions: null
+            );
         }
 
         private ProjectInfo With(
@@ -238,6 +289,7 @@ namespace Microsoft.CodeAnalysis
             Optional<string> filePath = default(Optional<string>),
             Optional<string> outputPath = default(Optional<string>),
             CompilationOptions compilationOptions = null,
+            EmitOptions emitOptions = null,
             ParseOptions parseOptions = null,
             IEnumerable<DocumentInfo> documents = null,
             IEnumerable<ProjectReference> projectReferences = null,
@@ -256,6 +308,7 @@ namespace Microsoft.CodeAnalysis
             var newFilepath = filePath.HasValue ? filePath.Value : this.FilePath;
             var newOutputPath = outputPath.HasValue ? outputPath.Value : this.OutputFilePath;
             var newCompilationOptions = compilationOptions ?? this.CompilationOptions;
+            var newEmitOptions = emitOptions ?? this.EmitOptions;
             var newParseOptions = parseOptions ?? this.ParseOptions;
             var newDocuments = documents ?? this.Documents;
             var newProjectReferences = projectReferences ?? this.ProjectReferences;
@@ -274,6 +327,7 @@ namespace Microsoft.CodeAnalysis
                 newFilepath == this.FilePath &&
                 newOutputPath == this.OutputFilePath &&
                 newCompilationOptions == this.CompilationOptions &&
+                newEmitOptions == this.EmitOptions &&
                 newParseOptions == this.ParseOptions &&
                 newDocuments == this.Documents &&
                 newProjectReferences == this.ProjectReferences &&
@@ -296,6 +350,7 @@ namespace Microsoft.CodeAnalysis
                     newFilepath,
                     newOutputPath,
                     newCompilationOptions,
+                    newEmitOptions,
                     newParseOptions,
                     newDocuments,
                     newProjectReferences,
@@ -345,6 +400,11 @@ namespace Microsoft.CodeAnalysis
         public ProjectInfo WithCompilationOptions(CompilationOptions compilationOptions)
         {
             return this.With(compilationOptions: compilationOptions);
+        }
+
+        public ProjectInfo WithEmitOptions(EmitOptions emitOptions)
+        {
+            return this.With(emitOptions: emitOptions);
         }
 
         public ProjectInfo WithParseOptions(ParseOptions parseOptions)

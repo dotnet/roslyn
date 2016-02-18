@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
@@ -282,6 +283,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public EmitOptions EmitOptions => ProjectInfo.EmitOptions;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public ParseOptions ParseOptions
         {
             get { return this.ProjectInfo.ParseOptions; }
@@ -441,6 +445,16 @@ namespace Microsoft.CodeAnalysis
             }
 
             return this.With(projectInfo: this.ProjectInfo.WithCompilationOptions(options).WithVersion(this.Version.GetNewerVersion()));
+        }
+
+        public ProjectState UpdateEmitOptions(EmitOptions options)
+        {
+            if (options == this.EmitOptions)
+            {
+                return this;
+            }
+
+            return this.With(projectInfo: this.ProjectInfo.WithEmitOptions(options).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState UpdateParseOptions(ParseOptions options)

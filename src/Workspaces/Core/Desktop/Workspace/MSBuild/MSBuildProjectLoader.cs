@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.Build.Construction;
 #endif
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -449,6 +450,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     .WithStrongNameProvider(new DesktopStrongNameProvider(ImmutableArray.Create(projectDirectory, outputFilePath)))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
+            var emitOptions = commandLineArgs.EmitOptions;
+
             loadedProjects.Add(
                 ProjectInfo.Create(
                     projectId,
@@ -466,7 +469,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     analyzerReferences: analyzerReferences,
                     additionalDocuments: additionalDocs,
                     isSubmission: false,
-                    hostObjectType: null));
+                    hostObjectType: null,
+                    emitOptions: emitOptions));
 
             return projectId;
         }

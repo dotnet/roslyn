@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -797,6 +798,35 @@ namespace Microsoft.CodeAnalysis
             }
 
             return this.ForkProject(newProject, CompilationTranslationAction.ProjectCompilationOptions(options));
+        }
+
+        /// <summary>
+        /// Create a new solution instance with the project specified updated to have
+        /// the specified emit options.
+        /// </summary>
+        public Solution WithProjectEmitOptions(ProjectId projectId, EmitOptions options)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            CheckContainsProject(projectId);
+
+            var oldProject = this.GetProjectState(projectId);
+            var newProject = oldProject.UpdateEmitOptions(options);
+
+            if (oldProject == newProject)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProject, CompilationTranslationAction.ProjectEmitOptions(options));
         }
 
         /// <summary>

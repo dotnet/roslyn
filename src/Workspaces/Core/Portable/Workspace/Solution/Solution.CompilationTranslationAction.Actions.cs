@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -68,6 +69,17 @@ namespace Microsoft.CodeAnalysis
 
                 public ProjectParseOptionsAction(ProjectState state)
                     : base(state, s_action)
+                {
+                }
+            }
+
+            private class ProjectEmitOptionsAction : SimpleCompilationTranslationAction<EmitOptions>
+            {
+                private static readonly Func<Compilation, EmitOptions, CancellationToken, Task<Compilation>> s_action =
+                    (o, d, c) => null;
+
+                public ProjectEmitOptionsAction(EmitOptions option)
+                    : base(option, s_action)
                 {
                 }
             }
