@@ -2,7 +2,7 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -12,7 +12,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.TestRuntime.FX46</AssemblyName>
     <Nonshipping>true</Nonshipping>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <TargetFrameworkIdentifier />
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
@@ -25,28 +25,28 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Debugging\Microsoft.DiaSymReader.PortablePdb.Tests\Microsoft.DiaSymReader.PortablePdb.UnitTests.csproj">
+    <ProjectReference Include="..\..\Debugging\Microsoft.DiaSymReader.PortablePdb.Tests\Microsoft.DiaSymReader.PortablePdb.UnitTests.csproj">
       <Project>{deb3d675-5a3c-46da-8945-f2efab135ea0}</Project>
       <Name>Microsoft.DiaSymReader.PortablePdb.UnitTests</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Scripting\CoreTest\ScriptingTest.csproj">
+    <ProjectReference Include="..\..\Scripting\CoreTest\ScriptingTest.csproj">
       <Project>{2dae4406-7a89-4b5f-95c3-bc5472ce47ce}</Project>
       <Name>ScriptingTest</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Scripting\CSharpTest\CSharpScriptingTest.csproj">
+    <ProjectReference Include="..\..\Scripting\CSharpTest\CSharpScriptingTest.csproj">
       <Project>{2dae4406-7a89-4b5f-95c3-bc5422ce47ce}</Project>
       <Name>CSharpScriptingTest</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Scripting\VisualBasicTest\BasicScriptingTest.vbproj">
+    <ProjectReference Include="..\..\Scripting\VisualBasicTest\BasicScriptingTest.vbproj">
       <Project>{abc7262e-1053-49f3-b846-e3091bb92e8c}</Project>
       <Name>BasicScriptingTest</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Portable\TestUtilities.csproj">
+    <ProjectReference Include="..\Utilities\Portable\TestUtilities.csproj">
       <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
       <Name>TestUtilities</Name>
     </ProjectReference>
   </ItemGroup>
   <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
 </Project>
