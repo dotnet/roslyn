@@ -172,6 +172,14 @@ namespace Microsoft.CodeAnalysis
         internal MetadataImportOptions MetadataImportOptions_internal_protected_set { set { MetadataImportOptions = value; } }
 
         /// <summary>
+        /// Apply additional disambiguation rules during resolution of referenced assemblies.
+        /// </summary>
+        internal bool ReferencesSupersedeLowerVersions { get; private set; }
+
+        // TODO: change visibility of the ReferencesSupersedeLowerVersions setter to internal & protected
+        internal bool ReferencesSupersedeLowerVersions_internal_protected_set { set { ReferencesSupersedeLowerVersions = value; } }
+
+        /// <summary>
         /// Modifies the incoming diagnostic, for example escalating its severity, or discarding it (returning null) based on the compilation options.
         /// </summary>
         /// <param name="diagnostic"></param>
@@ -263,7 +271,8 @@ namespace Microsoft.CodeAnalysis
             MetadataReferenceResolver metadataReferenceResolver,
             AssemblyIdentityComparer assemblyIdentityComparer,
             StrongNameProvider strongNameProvider,
-            MetadataImportOptions metadataImportOptions)
+            MetadataImportOptions metadataImportOptions,
+            bool referencesSupersedeLowerVersions)
         {
             this.OutputKind = outputKind;
             this.ModuleName = moduleName;
@@ -290,6 +299,7 @@ namespace Microsoft.CodeAnalysis
             this.StrongNameProvider = strongNameProvider;
             this.AssemblyIdentityComparer = assemblyIdentityComparer ?? AssemblyIdentityComparer.Default;
             this.MetadataImportOptions = metadataImportOptions;
+            this.ReferencesSupersedeLowerVersions = referencesSupersedeLowerVersions;
             this.PublicSign = publicSign;
 
             _lazyErrors = new Lazy<ImmutableArray<Diagnostic>>(() =>
@@ -307,6 +317,7 @@ namespace Microsoft.CodeAnalysis
             // Can't reuse when file resolver or identity comparers change.
             // Can reuse even if StrongNameProvider changes. When resolving a cyclic reference only the simple name is considered, not the strong name.
             return this.MetadataImportOptions == other.MetadataImportOptions
+                && this.ReferencesSupersedeLowerVersions == other.ReferencesSupersedeLowerVersions
                 && this.OutputKind.IsNetModule() == other.OutputKind.IsNetModule()
                 && object.Equals(this.XmlReferenceResolver, other.XmlReferenceResolver)
                 && object.Equals(this.MetadataReferenceResolver, other.MetadataReferenceResolver)
@@ -487,6 +498,7 @@ namespace Microsoft.CodeAnalysis
                    this.GeneralDiagnosticOption == other.GeneralDiagnosticOption &&
                    string.Equals(this.MainTypeName, other.MainTypeName, StringComparison.Ordinal) &&
                    this.MetadataImportOptions == other.MetadataImportOptions &&
+                   this.ReferencesSupersedeLowerVersions == other.ReferencesSupersedeLowerVersions &&
                    string.Equals(this.ModuleName, other.ModuleName, StringComparison.Ordinal) &&
                    this.OptimizationLevel == other.OptimizationLevel &&
                    this.OutputKind == other.OutputKind &&
@@ -520,6 +532,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine((int)this.GeneralDiagnosticOption,
                    Hash.Combine(this.MainTypeName != null ? StringComparer.Ordinal.GetHashCode(this.MainTypeName) : 0,
                    Hash.Combine((int)this.MetadataImportOptions,
+                   Hash.Combine(this.ReferencesSupersedeLowerVersions,
                    Hash.Combine(this.ModuleName != null ? StringComparer.Ordinal.GetHashCode(this.ModuleName) : 0,
                    Hash.Combine((int)this.OptimizationLevel,
                    Hash.Combine((int)this.OutputKind,
@@ -533,7 +546,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
                    Hash.Combine(this.AssemblyIdentityComparer,
-                   Hash.Combine(this.PublicSign, 0)))))))))))))))))))))))));
+                   Hash.Combine(this.PublicSign, 0))))))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)

@@ -415,6 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             switch ((ErrorCode)diagnostic.Code)
             {
                 case ErrorCode.ERR_DuplicateImport:
+                case ErrorCode.ERR_DuplicateImportSimple:
                 case ErrorCode.ERR_SameFullNameAggAgg:
                 case ErrorCode.ERR_AmbigCall:
                     return true;
