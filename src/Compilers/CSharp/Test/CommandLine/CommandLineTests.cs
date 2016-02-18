@@ -6368,6 +6368,82 @@ class Program3
             }
         }
 
+        /// <summary>
+        /// When the output file is open with <see cref="FileShare.Read"/> | <see cref="FileShare.Delete"/>
+        /// the compiler should delete the file to unblock build while allowing the reader to continue 
+        /// reading the previous snapshot of the file content.
+        /// </summary>
+        [Fact]
+        public void FileShareDeleteCompatibility()
+        {
+            var dir = Temp.CreateDirectory();
+            var libSrc = dir.CreateFile("Lib.cs").WriteAllText("class C { }");
+            var libDll = dir.CreateFile("Lib.dll").WriteAllText("DLL");
+            var libPdb = dir.CreateFile("Lib.pdb").WriteAllText("PDB");
+
+            var fsDll = new FileStream(libDll.Path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+            var fsPdb = new FileStream(libPdb.Path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            int exitCode = new MockCSharpCompiler(null, dir.Path, new[] { "/target:library", "/debug:full", libSrc.Path }).Run(outWriter);
+            Assert.Equal(0, exitCode);
+
+            AssertEx.Equal(new byte[] { 0x4D, 0x5A }, ReadBytes(libDll.Path, 2));
+            AssertEx.Equal(new[] { (byte)'D', (byte)'L', (byte)'L' }, ReadBytes(fsDll, 3));
+
+            AssertEx.Equal(new byte[] { 0x4D, 0x69 }, ReadBytes(libPdb.Path, 2));
+            AssertEx.Equal(new[] { (byte)'P', (byte)'D', (byte)'B' }, ReadBytes(fsPdb, 3));
+
+            fsDll.Dispose();
+            fsPdb.Dispose();
+
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
+        }
+
+        [Fact]
+        public void FileShareDeleteCompatibility_ReadOnlyFiles()
+        {
+            var dir = Temp.CreateDirectory();
+            var libSrc = dir.CreateFile("Lib.cs").WriteAllText("class C { }");
+            var libDll = dir.CreateFile("Lib.dll").WriteAllText("DLL");
+            var libPdb = dir.CreateFile("Lib.pdb").WriteAllText("PDB");
+
+            File.SetAttributes(libDll.Path, FileAttributes.ReadOnly);
+            File.SetAttributes(libPdb.Path, FileAttributes.ReadOnly);
+
+            var fsDll = new FileStream(libDll.Path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+            var fsPdb = new FileStream(libPdb.Path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            int exitCode = new MockCSharpCompiler(null, dir.Path, new[] { "/target:library", libSrc.Path }).Run(outWriter);
+            Assert.Contains($"error CS2012: Cannot open '{libDll.Path}' for writing", outWriter.ToString());
+
+            AssertEx.Equal(new[] { (byte)'D', (byte)'L', (byte)'L' }, ReadBytes(libDll.Path, 3));
+            AssertEx.Equal(new[] { (byte)'D', (byte)'L', (byte)'L' }, ReadBytes(fsDll, 3));
+
+            AssertEx.Equal(new[] { (byte)'P', (byte)'D', (byte)'B' }, ReadBytes(libPdb.Path, 3));
+            AssertEx.Equal(new[] { (byte)'P', (byte)'D', (byte)'B' }, ReadBytes(fsPdb, 3));
+
+            fsDll.Dispose();
+            fsPdb.Dispose();
+
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
+        }
+
+        private byte[] ReadBytes(Stream stream, int count)
+        {
+            var buffer = new byte[count];
+            stream.Read(buffer, 0, count);
+            return buffer;
+        }
+
+        private byte[] ReadBytes(string path, int count)
+        {
+            var buffer = new byte[count];
+            File.OpenRead(path).Read(buffer, 0, count);
+            return buffer;
+        }
+
         [Fact]
         public void IOFailure_OpenOutputFile()
         {
