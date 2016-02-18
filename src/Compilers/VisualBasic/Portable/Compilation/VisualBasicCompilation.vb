@@ -1652,6 +1652,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If completedCompilation Then
                 EventQueue.TryEnqueue(New CompilationCompletedEvent(Me))
+                EventQueue.PromiseNotToEnqueue()
                 EventQueue.TryComplete() ' signal the End Of compilation events
             End If
         End Sub
