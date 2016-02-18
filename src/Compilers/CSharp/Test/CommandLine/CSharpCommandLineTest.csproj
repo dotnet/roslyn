@@ -18,7 +18,7 @@
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj">
-      <Project>{4371944a-d3ba-4b5b-8285-82e5ffc6d1f9}</Project>
+      <Project>{7a4b2176-7bfd-4b75-a61a-e25a1fdd0a1e}</Project>
       <Name>CSharpCompilerTestUtilities.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\csc\csc.csproj">
