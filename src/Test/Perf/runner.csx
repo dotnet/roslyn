@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 #load ".\util\runner_util.csx"
 #load ".\util\test_util.csx"
 
@@ -10,6 +12,7 @@ var myDir = MyWorkingDirectory();
 var skip = new HashSet<string> {
     Path.Combine(myDir, "runner.csx"),
     Path.Combine(myDir, "util"),
+    Path.Combine(myDir, "infra"),
 };
 
 foreach (var script in AllCsiRecursive(myDir, skip)) {
