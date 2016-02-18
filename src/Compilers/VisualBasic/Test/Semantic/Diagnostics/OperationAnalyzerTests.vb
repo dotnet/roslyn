@@ -1191,6 +1191,15 @@ Class C
         M0(1, New Integer() { 2, 3, 4 })
         M0(1, New Integer() { 2, 3, 4, 5 })
         M0(1, New Integer() { 2, 3, 4, 5, 6 })
+        Dim local As D = new D(1, 2, 3, 4, 5)
+        local = new D(1, New Integer() { 2, 3, 4, 5 })
+        local = new D(1, 2, 3, 4)
+        local = new D(1, New Integer() { 2, 3, 4 })
+    End Sub
+End Class
+
+Class D
+    Public Sub New(a As Integer, ParamArray b As Integer())
     End Sub
 End Class
 ]]>
@@ -1207,7 +1216,9 @@ End Class
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5 }").WithLocation(12, 15),
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5 }").WithLocation(12, 15),
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15),
-                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15))
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15),
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "D").WithLocation(14, 30),
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5 }").WithLocation(15, 26))
         End Sub
 
         <Fact>

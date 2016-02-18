@@ -1070,6 +1070,29 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      }
                  },
                  OperationKind.InvocationExpression);
+
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    IObjectCreationExpression creation = (IObjectCreationExpression)operationContext.Operation;
+                    
+                    foreach (IArgument argument in creation.ArgumentsInParameterOrder)
+                    {
+                        if (argument.Parameter.IsParams)
+                        {
+                            IArrayCreationExpression arrayValue = argument.Value as IArrayCreationExpression;
+                            if (arrayValue != null)
+                            {
+                                Optional<object> dimensionSize = arrayValue.DimensionSizes[0].ConstantValue;
+                                if (dimensionSize.HasValue && IntegralValue(dimensionSize.Value) > 3)
+                                {
+                                    operationContext.ReportDiagnostic(Diagnostic.Create(LongParamsDescriptor, argument.Value.Syntax.GetLocation()));
+                                }
+                            }
+                        }
+                    }
+                },
+                OperationKind.ObjectCreationExpression);
         }
 
         private static long IntegralValue(object value)
