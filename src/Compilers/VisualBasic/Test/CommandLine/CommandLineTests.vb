@@ -2190,6 +2190,62 @@ a.vb
         End Sub
 
         <Fact>
+        Public Sub Target_SimpleTestsNoSourceFile()
+            Dim parsedArgs = DefaultParse({"/target:exe"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.ConsoleApplication, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/t:module"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.NetModule, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/target:library"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.DynamicallyLinkedLibrary, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/TARGET:winexe"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.WindowsApplication, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/target:winmdobj"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.WindowsRuntimeMetadata, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/target:appcontainerexe"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.WindowsRuntimeApplication, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/target:winexe", "/T:exe", "/target:module"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.NetModule, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/t"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("t", ":exe|winexe|library|module|appcontainerexe|winmdobj"),
+                Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+
+            parsedArgs = DefaultParse({"/target:"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("target", ":exe|winexe|library|module|appcontainerexe|winmdobj"),
+                Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+
+            parsedArgs = DefaultParse({"/target:xyz"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("target", "xyz"),
+                Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+
+            parsedArgs = DefaultParse({"/T+"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/T+"),
+                Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1)) ' TODO: Dev11 reports ERR_ArgumentRequired
+
+            parsedArgs = DefaultParse({"/TARGET-:"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/TARGET-:"),
+                Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1)) ' TODO: Dev11 reports ERR_ArgumentRequired
+        End Sub
+
+        <Fact>
         Public Sub Utf8Output()
             Dim parsedArgs = DefaultParse({"/utf8output", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
