@@ -93,6 +93,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         <WpfFact>
+        <WorkItem(179726, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
         Public Sub DownKeyShouldNotBlockOnModelComputation()
             Dim mre = New ManualResetEvent(False)
             Dim controller = CreateController(items:=CreateItems(2), waitForPresentation:=False)
@@ -110,6 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         <WpfFact>
+        <WorkItem(179726, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
         Public Sub UpKeyShouldNotBlockOnModelComputation()
             Dim mre = New ManualResetEvent(False)
             Dim controller = CreateController(items:=CreateItems(2), waitForPresentation:=False)
@@ -127,6 +129,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         <WpfFact>
+        <WorkItem(179726, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
         Public Async Function UpKeyShouldBlockOnRecomputationAfterPresentation() As Task
             Dim dispatcher = System.Windows.Threading.Dispatcher.CurrentDispatcher
             Dim worker = Async Function()
