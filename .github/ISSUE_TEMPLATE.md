@@ -1,4 +1,4 @@
-**Version Used**: Visual Studio 2015 Update 1
+**Version Used**: 
 
 **Steps to Reproduce**
 1.
