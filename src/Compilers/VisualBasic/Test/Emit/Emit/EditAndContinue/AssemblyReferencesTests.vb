@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.MetadataUtilities
 Imports Roslyn.Test.Utilities
 Imports Xunit
+Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class AssemblyReferencesTests
@@ -81,6 +82,98 @@ End Class
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2)))
 
             diff2.EmitResult.Diagnostics.Verify()
+        End Sub
+
+        <Fact>
+        Public Sub DependencyVersionWildcards()
+            Dim srcLib = "
+<Assembly: System.Reflection.AssemblyVersion(""1.0.0.*"")>
+
+Public Class D
+End Class
+"
+            Dim src0 As String = "
+Class C 
+    Public Shared Function F(a As D) As Integer 
+        Return 1
+    End Function
+End Class
+"
+            Dim src1 As String = "
+Class C 
+    Public Shared Function F(a As D) As Integer 
+        Return 2
+    End Function
+End Class
+"
+            Dim src2 As String = "
+Class C 
+    Public Shared Function F(a As D) As Integer 
+        Return 3
+    End Function
+
+    Public Shared Function G(a As D) As Integer
+        Return 4
+    End Function
+End Class
+"
+            Dim lib0 = CreateCompilationWithMscorlib({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
+            lib0.VerifyDiagnostics()
+            Dim lib1 As Compilation, lib2 As Compilation
+            Do
+                Thread.Sleep(1000)
+                lib1 = CreateCompilationWithMscorlib({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
+            Loop While lib0.Assembly.Identity.Version = lib1.Assembly.Identity.Version
+
+            lib1.VerifyDiagnostics()
+            Do
+                Thread.Sleep(1000)
+                lib2 = CreateCompilationWithMscorlib({srcLib}, assemblyName:="Lib", options:=TestOptions.DebugDll)
+            Loop While lib1.Assembly.Identity.Version = lib2.Assembly.Identity.Version
+
+            lib2.VerifyDiagnostics()
+            Dim compilation0 = CreateCompilationWithMscorlib({src0}, {lib0.ToMetadataReference()}, assemblyName:="C", options:=TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(src1).WithReferences({MscorlibRef, lib1.ToMetadataReference()})
+            Dim compilation2 = compilation1.WithSource(src2).WithReferences({MscorlibRef, lib2.ToMetadataReference()})
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim v1 = CompileAndVerify(compilation1)
+            Dim v2 = CompileAndVerify(compilation2)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+            Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
+            Dim g2 = compilation2.GetMember(Of MethodSymbol)("C.G")
+
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1)))
+
+            Dim diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2),
+                                      New SemanticEdit(SemanticEditKind.Insert, Nothing, g2)))
+
+            Dim md1 = diff1.GetMetadata()
+            Dim md2 = diff2.GetMetadata()
+
+            Dim aggReader = New AggregatedMetadataReader(md0.MetadataReader, md1.Reader, md2.Reader)
+            VerifyAssemblyReferences(aggReader,
+            {
+                "mscorlib, 4.0.0.0",
+                "Lib, " & lib0.Assembly.Identity.Version.ToString(),
+                "mscorlib, 4.0.0.0",
+                "Lib, " & lib0.Assembly.Identity.Version.ToString(),
+                "mscorlib, 4.0.0.0",
+                "Lib, " & lib0.Assembly.Identity.Version.ToString()
+            })
+        End Sub
+
+        Public Sub VerifyAssemblyReferences(reader As AggregatedMetadataReader, expected As String())
+            AssertEx.Equal(expected, reader.GetAssemblyReferences().Select(Function(aref) $"{reader.GetString(aref.Name)}, {aref.Version}"))
         End Sub
     End Class
 End Namespace

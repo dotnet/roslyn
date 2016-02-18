@@ -388,14 +388,20 @@ namespace Microsoft.CodeAnalysis
             {
                 // Do not include PK/PKT in the hash - collisions on PK/PKT are rare (assembly identities differ only in PKT/PK)
                 // and we can't calculate hash of PKT if only PK is available
-                _lazyHashCode = Hash.Combine(AssemblyIdentityComparer.SimpleNameComparer.GetHashCode(_name),
-                               Hash.Combine(_version.GetHashCode(),
-                               Hash.Combine((int)_contentType,
-                               Hash.Combine(_isRetargetable,
-                                            AssemblyIdentityComparer.CultureComparer.GetHashCode(_cultureName)))));
+                _lazyHashCode =
+                    Hash.Combine(AssemblyIdentityComparer.SimpleNameComparer.GetHashCode(_name),
+                    Hash.Combine(_version.GetHashCode(), GetHashCodeIgnoringNameAndVersion()));
             }
 
             return _lazyHashCode;
+        }
+
+        internal int GetHashCodeIgnoringNameAndVersion()
+        {
+            return 
+                Hash.Combine((int)_contentType, 
+                Hash.Combine(_isRetargetable, 
+                AssemblyIdentityComparer.CultureComparer.GetHashCode(_cultureName)));
         }
 
         // internal for testing
@@ -434,16 +440,21 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            if (x._version.Equals(y._version) &&
-                x._isRetargetable == y._isRetargetable &&
-                x.ContentType == y.ContentType &&
-                AssemblyIdentityComparer.CultureComparer.Equals(x._cultureName, y._cultureName) &&
-                KeysEqual(x, y))
+            if (x._version.Equals(y._version) && EqualIgnoringNameAndVersion(x, y))
             {
                 return true;
             }
 
             return null;
+        }
+
+        internal static bool EqualIgnoringNameAndVersion(AssemblyIdentity x, AssemblyIdentity y)
+        {
+            return
+                x.IsRetargetable == y.IsRetargetable &&
+                x.ContentType == y.ContentType &&
+                AssemblyIdentityComparer.CultureComparer.Equals(x.CultureName, y.CultureName) &&
+                KeysEqual(x, y);
         }
 
         internal static bool KeysEqual(AssemblyIdentity x, AssemblyIdentity y)

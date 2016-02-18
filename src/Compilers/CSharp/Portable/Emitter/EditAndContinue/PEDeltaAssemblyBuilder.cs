@@ -38,10 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
             // in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
             var metadataSymbols = GetOrCreateMetadataSymbols(initialBaseline, sourceAssembly.DeclaringCompilation);
+
             var metadataDecoder = (MetadataDecoder)metadataSymbols.MetadataDecoder;
             var metadataAssembly = (PEAssemblySymbol)metadataDecoder.ModuleSymbol.ContainingAssembly;
+            var assemblyRefMap = initialBaseline.LazyMetadataSymbols.AssemblyReferenceIdentityMap;
 
-            var matchToMetadata = new CSharpSymbolMatcher(metadataSymbols.AnonymousTypes, sourceAssembly, context, metadataAssembly);
+            var matchToMetadata = new CSharpSymbolMatcher(metadataSymbols.AnonymousTypes, assemblyRefMap, sourceAssembly, context, metadataAssembly);
 
             CSharpSymbolMatcher matchToPrevious = null;
             if (previousGeneration.Ordinal > 0)
@@ -51,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 matchToPrevious = new CSharpSymbolMatcher(
                     previousGeneration.AnonymousTypeMap,
+                    assemblyReferenceIdentityBaselineMap: assemblyRefMap,
                     sourceAssembly: sourceAssembly,
                     sourceContext: context,
                     otherAssembly: previousAssembly,
@@ -102,10 +105,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // We need to transfer the references from the current source compilation but don't need its syntax trees.
             var metadataCompilation = compilation.RemoveAllSyntaxTrees();
 
-            var metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All);
+            ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> assemblyReferenceIdentityMap;
+            var metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All, out assemblyReferenceIdentityMap);
             var metadataDecoder = new MetadataDecoder(metadataAssembly.PrimaryModule);
             var metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder);
-            var metadataSymbols = new EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataDecoder);
+            var metadataSymbols = new EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataDecoder, assemblyReferenceIdentityMap);
 
             return InterlockedOperations.Initialize(ref initialBaseline.LazyMetadataSymbols, metadataSymbols);
         }

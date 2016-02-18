@@ -275,7 +275,7 @@ namespace Microsoft.Cci
             // <import> ::= AliasAssemblyReference <alias> <target-assembly>
             writer.WriteByte((byte)ImportDefinitionKind.AliasAssemblyReference);
             writer.WriteCompressedInteger((uint)_debugHeapsOpt.ResolveBlobIndex(_debugHeapsOpt.GetBlobIndexUtf8(alias.Name)));
-            writer.WriteCompressedInteger((uint)GetOrAddAssemblyRefIndex(alias.Assembly));
+            writer.WriteCompressedInteger((uint)GetOrAddAssemblyRefIndex(alias.Assembly.Identity));
         }
 
         private void SerializeImport(BlobBuilder writer, UsedNamespaceOrType import)

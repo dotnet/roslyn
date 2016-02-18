@@ -485,6 +485,76 @@ namespace Microsoft.CodeAnalysis
             aliasesOfReferencedAssemblies = aliasesOfReferencedAssembliesBuilder.ToImmutableAndFree();
         }
 
+        /// <summary>
+        /// Calculates map from the identities of specified symbols to the corresponding identities in the original EnC baseline metadata.
+        /// The map only includes an entry for identities that differ, i.e. for symbols representing assembly references of the current compilation that have different identities 
+        /// than the corresponding identity in baseline metadata AssemblyRef table. The key comparer of the map ignores build and revision parts of the version number, 
+        /// since these might change if the original version included wildcard.
+        /// </summary>
+        /// <param name="symbols">Assembly symbols for references of the current compilation.</param>
+        /// <param name="originalIdentities">Identities in the baseline. <paramref name="originalIdentities"/>[i] corresponds to <paramref name="symbols"/>[i].</param>
+        internal ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> GetAssemblyReferenceIdentityBaselineMap(ImmutableArray<TAssemblySymbol> symbols, ImmutableArray<AssemblyIdentity> originalIdentities)
+        {
+            Debug.Assert(originalIdentities.Length == symbols.Length);
+
+            ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Builder lazyBuilder = null;
+            for (int i = 0; i < originalIdentities.Length; i++)
+            {
+                var symbolIdentity = symbols[i].Identity;
+                var originalIdentity = originalIdentities[i];
+
+                if (originalIdentity.Version != symbolIdentity.Version)
+                {
+                    lazyBuilder = lazyBuilder ?? ImmutableDictionary.CreateBuilder<AssemblyIdentity, AssemblyIdentity>(AssemblyIdentityEqualityIgnoringBuildAndRevisionComparer.Instance);
+
+                    AssemblyIdentity anotherOriginalIdentity;
+                    if (lazyBuilder.TryGetValue(symbolIdentity, out anotherOriginalIdentity))
+                    {
+                        // We have two assembly symbols with same identity modulo build and revision versions.
+                        // Pick the higher version. This si somewhat arbitrary since we don't really know whether 
+                        // the versions had a wildcard and on what position they had it. To be precise we'd need
+                        // the compiler to store the original form of the version (including the wildcard) to metadata.
+                        lazyBuilder[symbolIdentity] = (originalIdentity.Version > anotherOriginalIdentity.Version) ? originalIdentity : anotherOriginalIdentity;
+                    }
+                    else
+                    {
+                        lazyBuilder.Add(symbolIdentity, originalIdentity);
+                    }
+                }
+                else
+                {
+                    Debug.Assert(originalIdentity == symbolIdentity);
+                }
+            }
+
+            return lazyBuilder?.ToImmutable() ?? ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Empty;
+        }
+
+        /// <summary>
+        /// Compares assembly identities for exact equality ignoring build and revision version parts.
+        /// Used for comparison of assembly identities resulting from AssemblyVersion attribute with a wildcard.
+        /// </summary>
+        private sealed class AssemblyIdentityEqualityIgnoringBuildAndRevisionComparer : IEqualityComparer<AssemblyIdentity>
+        {
+            internal static readonly IEqualityComparer<AssemblyIdentity> Instance = new AssemblyIdentityEqualityIgnoringBuildAndRevisionComparer();
+
+            public bool Equals(AssemblyIdentity x, AssemblyIdentity y)
+            {
+                return AssemblyIdentityComparer.SimpleNameComparer.Equals(x.Name, y.Name) &&
+                       AssemblyIdentity.EqualIgnoringNameAndVersion(x, y) &&
+                       x.Version.Major == y.Version.Major &&
+                       x.Version.Minor == y.Version.Minor;
+            }
+
+            public int GetHashCode(AssemblyIdentity identity)
+            {
+                return
+                    Hash.Combine(AssemblyIdentityComparer.SimpleNameComparer.GetHashCode(identity.Name),
+                    Hash.Combine(identity.Version.Major,
+                    Hash.Combine(identity.Version.Minor, identity.GetHashCodeIgnoringNameAndVersion())));
+            }
+        }
+
         // #r references are recursive, their aliases should be merged into all their dependencies.
         //
         // For example, if a compilation has a reference to LibA with alias A and the user #r's LibB with alias B,

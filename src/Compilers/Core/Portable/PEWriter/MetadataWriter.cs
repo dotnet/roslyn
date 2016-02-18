@@ -268,13 +268,13 @@ namespace Microsoft.Cci
         /// The index is into the full metadata. However, deltas
         /// are not required to return rows from previous generations.
         /// </summary>
-        protected abstract int GetOrAddAssemblyRefIndex(IAssemblyReference reference);
+        protected abstract int GetOrAddAssemblyRefIndex(AssemblyIdentity reference);
 
         /// <summary>
         /// The assembly references to be emitted, in row order. These
         /// are just the assembly references from the current generation.
         /// </summary>
-        protected abstract IReadOnlyList<IAssemblyReference> GetAssemblyRefs();
+        protected abstract IReadOnlyList<AssemblyIdentity> GetAssemblyRefs();
 
         // ModuleRef table contains module names for TypeRefs that target types in netmodules (represented by IModuleReference),
         // and module names specified by P/Invokes (plain strings). Names in the table must be unique and are case sensitive.
@@ -710,7 +710,7 @@ namespace Microsoft.Cci
             Debug.Assert(!_tableIndicesAreComplete);
             foreach (IAssemblyReference assemblyRef in this.module.GetAssemblyReferences(Context))
             {
-                this.GetOrAddAssemblyRefIndex(assemblyRef);
+                this.GetOrAddAssemblyRefIndex(assemblyRef.Identity);
             }
         }
 
@@ -760,7 +760,7 @@ namespace Microsoft.Cci
                 return 0;
             }
 
-            return this.GetOrAddAssemblyRefIndex(assemblyReference);
+            return this.GetOrAddAssemblyRefIndex(assemblyReference.Identity);
         }
 
         internal int GetModuleRefIndex(string moduleName)
@@ -2565,43 +2565,21 @@ namespace Microsoft.Cci
             var assemblyRefs = this.GetAssemblyRefs();
             _assemblyRefTable.Capacity = assemblyRefs.Count;
 
-            foreach (var assemblyRef in assemblyRefs)
+            foreach (var identity in assemblyRefs)
             {
                 AssemblyRefTableRow r = new AssemblyRefTableRow();
-                var identity = assemblyRef.Identity;
 
                 r.Version = identity.Version;
                 r.PublicKeyToken = heaps.GetBlobIndex(identity.PublicKeyToken);
 
-                Debug.Assert(!string.IsNullOrEmpty(assemblyRef.Name));
-                r.Name = this.GetStringIndexForPathAndCheckLength(assemblyRef.Name, assemblyRef);
+                Debug.Assert(!string.IsNullOrEmpty(identity.Name));
+                r.Name = this.GetStringIndexForPathAndCheckLength(identity.Name);
 
                 r.Culture = heaps.GetStringIndex(identity.CultureName);
 
                 r.IsRetargetable = identity.IsRetargetable;
                 r.ContentType = identity.ContentType;
                 _assemblyRefTable.Add(r);
-            }
-        }
-
-        /// <summary>
-        /// Compares quality of assembly references to achieve unique rows in AssemblyRef table.
-        /// Metadata spec: "The AssemblyRef table shall contain no duplicates (where duplicate rows are deemed to 
-        /// be those having the same MajorVersion, MinorVersion, BuildNumber, RevisionNumber, PublicKeyOrToken, 
-        /// Name, and Culture)".
-        /// </summary>
-        protected sealed class AssemblyReferenceComparer : IEqualityComparer<IAssemblyReference>
-        {
-            internal static readonly AssemblyReferenceComparer Instance = new AssemblyReferenceComparer();
-
-            public bool Equals(IAssemblyReference x, IAssemblyReference y)
-            {
-                return x.Identity == y.Identity;
-            }
-
-            public int GetHashCode(IAssemblyReference reference)
-            {
-                return reference.Identity.GetHashCode();
             }
         }
 
@@ -5413,11 +5391,6 @@ namespace Microsoft.Cci
 
             public HeapOrReferenceIndex(MetadataWriter writer, int lastRowId = 0)
                 : this(writer, new Dictionary<T, int>(), lastRowId)
-            {
-            }
-
-            public HeapOrReferenceIndex(MetadataWriter writer, IEqualityComparer<T> comparer, int lastRowId = 0)
-                : this(writer, new Dictionary<T, int>(comparer), lastRowId)
             {
             }
 

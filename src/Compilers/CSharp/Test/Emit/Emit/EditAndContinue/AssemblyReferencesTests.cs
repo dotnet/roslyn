@@ -1,10 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -223,6 +227,103 @@ class C
                     new SemanticEdit(SemanticEditKind.Update, f1, f2)));
 
             diff2.EmitResult.Diagnostics.Verify();
+        }
+
+        [Fact]
+        public void DependencyVersionWildcards()
+        {
+            string srcLib = @"
+[assembly: System.Reflection.AssemblyVersion(""1.0.*"")]
+
+public class D { }
+";
+
+            string src0 = @"
+class C 
+{ 
+    public static int F(D a) { return 1; }
+}
+";
+            string src1 = @"
+class C 
+{ 
+    public static int F(D a) { return 2; }
+}
+";
+            string src2 = @"
+class C 
+{ 
+    public static int F(D a) { return 3; }
+    public static int G(D a) { return 4; }
+}
+";
+            var lib0 = CreateCompilationWithMscorlib(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            lib0.VerifyDiagnostics();
+
+            Compilation lib1, lib2;
+
+            do
+            {
+                Thread.Sleep(1000);
+                lib1 = CreateCompilationWithMscorlib(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            }
+            while (lib0.Assembly.Identity.Version == lib1.Assembly.Identity.Version);
+            lib1.VerifyDiagnostics();
+
+            do
+            {
+                Thread.Sleep(1000);
+                lib2 = CreateCompilationWithMscorlib(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            }
+            while (lib1.Assembly.Identity.Version == lib2.Assembly.Identity.Version);
+            lib2.VerifyDiagnostics();
+
+            var compilation0 = CreateCompilation(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.ToMetadataReference() });
+            var compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.ToMetadataReference() });
+
+            var v0 = CompileAndVerify(compilation0);
+            var v1 = CompileAndVerify(compilation1);
+            var v2 = CompileAndVerify(compilation2);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+            var g2 = compilation2.GetMember<MethodSymbol>("C.G");
+
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f1, f2),
+                    new SemanticEdit(SemanticEditKind.Insert, null, g2)));
+
+            var md1 = diff1.GetMetadata();
+            var md2 = diff2.GetMetadata();
+
+            var aggReader = new AggregatedMetadataReader(md0.MetadataReader, md1.Reader, md2.Reader);
+
+            // all references to Lib should be to the baseline version:
+            VerifyAssemblyReferences(aggReader, new[]
+            {
+                "mscorlib, 4.0.0.0",
+                "Lib, " + lib0.Assembly.Identity.Version,
+                "mscorlib, 4.0.0.0",
+                "Lib, " + lib0.Assembly.Identity.Version,
+                "mscorlib, 4.0.0.0",
+                "Lib, " + lib0.Assembly.Identity.Version,
+            });
+        }
+
+        public void VerifyAssemblyReferences(AggregatedMetadataReader reader, string[] expected)
+        {
+            AssertEx.Equal(expected, reader.GetAssemblyReferences().Select(aref => $"{reader.GetString(aref.Name)}, {aref.Version}"));
         }
     }
 }
