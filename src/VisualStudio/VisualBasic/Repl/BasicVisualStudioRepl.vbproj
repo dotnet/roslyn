@@ -145,6 +145,7 @@
     <Compile Include="VisualBasicVsInteractiveWindowProvider.vb" />
     <Compile Include="VisualBasicVsInteractiveWindowPackage.vb" />
     <Compile Include="VisualBasicVsInteractiveWindowCommandProvider.vb" />
+    <Compile Include="VisualBasicVsResetInteractiveCommand.vb" />
     <Content Include="Resources\ScriptFile.ico" />
     <Content Include="VisualBasicInteractive.rsp" />
   </ItemGroup>
