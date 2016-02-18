@@ -125,6 +125,7 @@
     <Compile Include="AssemblyRedirects.cs" />
     <Compile Include="CommandIds.cs" />
     <Compile Include="Guids.cs" />
+    <Compile Include="VsInteractiveWindowPane.cs" />
     <Compile Include="VsInteractiveWindowEditorFactoryService.cs" />
     <Compile Include="InteractiveWindowPackage.cs" />
     <Compile Include="IVsInteractiveWindow.cs" />
