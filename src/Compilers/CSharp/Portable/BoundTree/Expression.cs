@@ -97,22 +97,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentIndex = argumentsToParameters.IndexOf(parameterIndex);
                 }
 
-                // No argument has been supplied for the parameter at `parameterIndex`:
-                // 1. `argumentIndex == -1' when the arguments are specified out of parameter order, and no argument is provided for parameter corresponding to `parameters[parameterIndex]`.
-                // 2. `argumentIndex >= boundArguments.Length` when the arguments are specified in parameter order, and no argument is provided at `parameterIndex`.
                 if (argumentIndex == -1 || argumentIndex >= boundArguments.Length)
                 {
+                    // No argument has been supplied for the parameter at `parameterIndex`:
+                    // 1. `argumentIndex == -1' when the arguments are specified out of parameter order, and no argument is provided for parameter corresponding to `parameters[parameterIndex]`.
+                    // 2. `argumentIndex >= boundArguments.Length` when the arguments are specified in parameter order, and no argument is provided at `parameterIndex`.
+
                     Symbols.ParameterSymbol parameter = parameters[parameterIndex];
-                    // Corresponding parameter is optional with default value.
                     if (parameter.HasExplicitDefaultValue)
                     {
+                        // The parameter is optional with a default value.
                         arguments.Add(new Argument(ArgumentKind.DefaultValue, parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, null)));
                     }
                     else
                     {
-                        // If corresponding parameter is Param array, then this means 0 element is provided and an Argument of kind == ParamArray will be added, 
-                        // otherwise it is an error and null is added.
-                        arguments.Add(DeriveArgument(parameterIndex, argumentIndex, boundArguments, argumentNames, argumentRefKinds, parameters, invocationSyntax));
+                        // The parameter might be a params array, in which case an empty array will be provided.
+                        arguments.Add(DeriveArgument(parameterIndex, boundArguments.Length, boundArguments, argumentNames, argumentRefKinds, parameters, invocationSyntax));
                     }
                 }
                 else
