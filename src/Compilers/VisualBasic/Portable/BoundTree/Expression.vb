@@ -370,7 +370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BoundKind.ByRefArgumentWithCopyBack
                     Return s_argumentMappings.GetValue(
                         argument,
-                        Function(argumentValue) New ByRefArgument(If(index < parameters.Length, parameters(index), Nothing), DirectCast(argumentValue, BoundByRefArgumentWithCopyBack)))
+                        Function(argumentValue) New ByRefArgument(If(CUInt(index) < CUInt(parameters.Length), parameters(index), Nothing), DirectCast(argumentValue, BoundByRefArgumentWithCopyBack)))
                 Case Else
                     ' Apparently the VB bound trees don't encode named arguments, which seems unnecesarily lossy.
                     Return s_argumentMappings.GetValue(
@@ -379,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If index >= parameters.Length - 1 AndAlso parameters.Length > 0 AndAlso parameters(parameters.Length - 1).IsParamArray Then
                                 Return New Argument(ArgumentKind.ParamArray, parameters(parameters.Length - 1), argumentValue)
                             Else
-                                Return New Argument(ArgumentKind.Positional, If(index < parameters.Length, parameters(index), Nothing), argumentValue)
+                                Return New Argument(ArgumentKind.Positional, If(CUInt(index) < CUInt(parameters.Length), parameters(index), Nothing), argumentValue)
                             End If
                         End Function)
             End Select
@@ -414,7 +414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property Syntax As SyntaxNode Implements IOperation.Syntax
                 Get
-                    Return Me.Value.Syntax
+                    Return Me.Value?.Syntax
                 End Get
             End Property
 

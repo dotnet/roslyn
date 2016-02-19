@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentIndex = argumentsToParameters.IndexOf(parameterIndex);
                 }
 
-                if (argumentIndex == -1 || argumentIndex >= boundArguments.Length)
+                if ((uint)argumentIndex >= (uint)boundArguments.Length)
                 {
                     // No argument has been supplied for the parameter at `parameterIndex`:
                     // 1. `argumentIndex == -1' when the arguments are specified out of parameter order, and no argument is provided for parameter corresponding to `parameters[parameterIndex]`.
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (parameter.HasExplicitDefaultValue)
                     {
                         // The parameter is optional with a default value.
-                        arguments.Add(new Argument(ArgumentKind.DefaultValue, parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, null)));
+                        arguments.Add(new Argument(ArgumentKind.DefaultValue, parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, invocationSyntax)));
                     }
                     else
                     {
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static IArgument DeriveArgument(int parameterIndex, int argumentIndex, ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, ImmutableArray<Symbols.ParameterSymbol> parameters, SyntaxNode invocationSyntax)
         {
-            if (argumentIndex >= boundArguments.Length)
+            if ((uint)argumentIndex >= (uint)boundArguments.Length)
             {
                 // Check for an omitted argument that becomes an empty params array.
                 if (parameters.Length > 0)
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // There is no supplied argument and there is no params parameter. Any action is suspect at this point.
-                return null;
+                return new SimpleArgument(null, null);
             }
 
             return s_argumentMappings.GetValue(
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (argument) =>
                 {
                     string name = !argumentNames.IsDefaultOrEmpty ? argumentNames[argumentIndex] : null;
-                    Symbols.ParameterSymbol parameter = parameterIndex < parameters.Length ? parameters[parameterIndex] : null;
+                    Symbols.ParameterSymbol parameter = (uint)parameterIndex < (uint)parameters.Length ? parameters[parameterIndex] : null;
 
                     if (name == null)
                     {
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             OperationKind IOperation.Kind => OperationKind.Argument;
 
-            SyntaxNode IOperation.Syntax => this.Value.Syntax;
+            SyntaxNode IOperation.Syntax => this.Value?.Syntax;
 
             public ITypeSymbol Type => null;
 
