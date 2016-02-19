@@ -169,8 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
             }
 
-            var returnsVoid = returnType.SpecialType == SpecialType.System_Void;
-            if (this.RefKind != RefKind.None && returnsVoid)
+            if (this.RefKind != RefKind.None && returnType.SpecialType == SpecialType.System_Void)
             {
                 diagnostics.Add(ErrorCode.ERR_VoidReturningMethodCannotReturnByRef, this.Locations[0]);
             }
