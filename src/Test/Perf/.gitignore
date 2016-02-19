@@ -1,3 +1,5 @@
 artifacts/
 results/
 temp/
+*.json
+*.csv

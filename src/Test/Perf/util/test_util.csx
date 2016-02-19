@@ -103,6 +103,20 @@ class ProcessResult
     public bool Succeeded => !Failed;
 }
 
+/// Shells out, and if the process fails, log the error
+/// and quit the script.
+void ShellOutVital(
+        string file,
+        string args,
+        string workingDirectory = null,
+        CancellationToken? cancelationToken = null) {
+    var result = ShellOut(file, args, workingDirectory, cancelationToken);
+    if (result.Failed) {
+        LogProcessResult(result);
+        throw new System.Exception("ShellOutVital Failed");
+    }
+}
+
 ProcessResult ShellOut(
         string file,
         string args,
@@ -164,11 +178,19 @@ ProcessResult ShellOut(
 // Timing and Testing
 //
 
-long WalltimeMs<R>(out R result, Func<R> action)
+long WalltimeMs(Action action)
 {
     var stopwatch = new Stopwatch();
     stopwatch.Start();
-    result = action();
+    action();
+    return stopwatch.ElapsedMilliseconds;
+}
+
+long WalltimeMs<R>(Func<R> action)
+{
+    var stopwatch = new Stopwatch();
+    stopwatch.Start();
+    action();
     return stopwatch.ElapsedMilliseconds;
 }
 
@@ -176,8 +198,14 @@ long WalltimeMs<R>(out R result, Func<R> action)
 // Reporting and logging
 //
 
+enum ReportKind: int {
+    CompileTime,
+    RunTime,
+    FileSize,
+}
+
 /// A list of 
-var Metrics = new List<Tuple<string, object>>();
+var Metrics = new List<Tuple<int, string, object>>();
 
 /// Logs a message.
 ///
@@ -199,9 +227,9 @@ void LogProcessResult(ProcessResult result) {
 }
 
 /// Reports a metric to be recorded in the performance monitor.
-void Report(string description, object value)
+void Report(ReportKind reportKind, string description, object value)
 {
-    Metrics.Add(Tuple.Create(description, value));
+    Metrics.Add(Tuple.Create((int) reportKind, description, value));
     Log(description + ": " + value.ToString());
 }
 

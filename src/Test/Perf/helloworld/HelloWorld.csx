@@ -9,16 +9,5 @@ InitUtilities();
 var pathToHelloWorld = Path.Combine(MyWorkingDirectory(), "HelloWorld.cs");
 var pathToOutput = Path.Combine(MyArtifactsDirectory(), "HelloWorld.exe");
 
-ProcessResult result;
-
-var msToCompile = WalltimeMs(out result,
-    () => ShellOut(ReleaseCscPath(), pathToHelloWorld + " /out:" + pathToOutput));
-
-if (result.Failed)
-{
-    LogProcessResult(result);
-    return 1;
-}
-
-Report("compile duration (ms)", msToCompile);
-return 0;
+var msToCompile = WalltimeMs(() => ShellOutVital(ReleaseCscPath(), pathToHelloWorld + " /out:" + pathToOutput));
+Report(ReportKind.CompileTime, "compile duration (ms)", msToCompile);
