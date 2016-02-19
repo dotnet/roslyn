@@ -368,10 +368,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function DeriveArgument(index As Integer, argument As BoundExpression, parameters As ImmutableArray(Of Symbols.ParameterSymbol)) As IArgument
             Select Case argument.Kind
                 Case BoundKind.ByRefArgumentWithCopyBack
-                    Return s_argumentMappings.GetValue(argument, Function(a) New ByRefArgument(parameters(index), DirectCast(argument, BoundByRefArgumentWithCopyBack)))
+                    Return s_argumentMappings.GetValue(
+                        argument,
+                        Function(argumentValue) New ByRefArgument(If(index < parameters.Length, parameters(index), Nothing), DirectCast(argumentValue, BoundByRefArgumentWithCopyBack)))
                 Case Else
                     ' Apparently the VB bound trees don't encode named arguments, which seems unnecesarily lossy.
-                    Return s_argumentMappings.GetValue(argument, Function(a) If(index >= parameters.Length - 1 AndAlso parameters.Length > 0 AndAlso parameters(parameters.Length - 1).IsParamArray, New Argument(ArgumentKind.ParamArray, parameters(parameters.Length - 1), a), New Argument(ArgumentKind.Positional, parameters(index), a)))
+                    Return s_argumentMappings.GetValue(
+                        argument,
+                        Function(argumentValue)
+                            If index >= parameters.Length - 1 AndAlso parameters.Length > 0 AndAlso parameters(parameters.Length - 1).IsParamArray Then
+                                Return New Argument(ArgumentKind.ParamArray, parameters(parameters.Length - 1), argumentValue)
+                            Else
+                                Return New Argument(ArgumentKind.Positional, If(index < parameters.Length, parameters(index), Nothing), argumentValue)
+                            End If
+                        End Function)
             End Select
         End Function
 

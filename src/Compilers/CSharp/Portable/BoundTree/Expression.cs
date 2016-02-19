@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (argument) =>
                 {
                     string name = !argumentNames.IsDefaultOrEmpty ? argumentNames[argumentIndex] : null;
+                    Symbols.ParameterSymbol parameter = parameterIndex < parameters.Length ? parameters[parameterIndex] : null;
 
                     if (name == null)
                     {
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (refMode != RefKind.None)
                         {
-                            return new Argument(ArgumentKind.Positional, parameters[parameterIndex], argument);
+                            return new Argument(ArgumentKind.Positional, parameter, argument);
                         }
 
                         if (argumentIndex >= parameters.Length - 1 &&
@@ -172,11 +173,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            return new SimpleArgument(parameters[parameterIndex], argument);
+                            return new SimpleArgument(parameter, argument);
                         }
                     }
 
-                    return new Argument(ArgumentKind.Named, parameters[parameterIndex], argument);
+                    return new Argument(ArgumentKind.Named, parameter, argument);
                 });
         }
         
