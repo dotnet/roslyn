@@ -57,9 +57,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                     null,
                     title,
                     null,
-                    out frame
-                )
-            );
+                    out frame));
+
             var guid = GetType().GUID;
             ErrorHandler.ThrowOnFailure(frame.SetGuidProperty((int)__VSFPROPID.VSFPROPID_CmdUIGuid, ref guid));
             this.Frame = frame;

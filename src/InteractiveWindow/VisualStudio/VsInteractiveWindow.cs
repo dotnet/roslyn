@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
     /// on the interactive window.
     /// </summary>
     [Guid(Guids.InteractiveToolWindowIdString)]
-    internal sealed class VsInteractiveWindow : IOleCommandTarget, IVsInteractiveWindow
+    internal sealed class VsInteractiveWindow : IOleCommandTarget, IVsInteractiveWindow2
     {
         private readonly VsInteractiveWindowPane _windowPane;
 
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 
         void IVsInteractiveWindow.Show(bool focus)
         {
-            var windowFrame = (IVsWindowFrame)_windowPane.Frame;
+            var windowFrame = (IVsWindowFrame)WindowFrame;
             ErrorHandler.ThrowOnFailure(focus ? windowFrame.Show() : windowFrame.ShowNoActivate());
 
             if (focus)
@@ -60,5 +60,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
         }
 
         public IInteractiveWindow InteractiveWindow => _windowPane.InteractiveWindow;
+
+        public object WindowFrame => _windowPane.Frame;
     }
 }
