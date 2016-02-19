@@ -330,21 +330,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return char.IsLetterOrDigit(typedChar);
             }
 
-            var filterText = GetCurrentFilterText(model, selectedItem);
+            var snapshot = this.TextView.TextSnapshot;
+            var editSpan = model.GetCurrentSpanInSnapshot(model.GetSubjectBufferFilterSpanInViewBuffer(selectedItem.FilterSpan), snapshot);
+            var spanStart = (int)editSpan.Start;
+            var caretPosition = (int)GetCaretPointInViewBuffer();
+
+            var filterText = snapshot.GetText(Span.FromBounds(spanStart, caretPosition));
             var isCommitCharacter = GetCompletionRules().IsCommitCharacter(selectedItem, typedChar, filterText);
 
-            // When a character, even appears to be a commit character, was typed at the begining of the filter span when it was empty,
+            // When a character, even appears to be a commit character, was typed at the begining of the filter span when it was not empty,
             // it's most likely that the user just realized he/she forgot to do something, pressed Ctrl+Left and typed it.
             // i.e. blah| -> |blah -> !|blah
-            // but not: A a = new | -> A a = new (|
-            // Hence we should not commit the selected item.
-            if (isCommitCharacter && filterText.Length == 1)
+            // We should not commit the selected item in the above case.
+            // But be careful we still want completion in the following case: A a = new | -> A a = new (|
+            if (isCommitCharacter && caretPosition == spanStart + 1 && editSpan.Length > 1)
             {
-                var typedText = GetCurrentFilterText(model, selectedItem, stopBeforeCaret: false);
-                if (typedText.Length != 1)
-                {
-                    return false;
-                }
+                return false;
             }
 
             return isCommitCharacter;
