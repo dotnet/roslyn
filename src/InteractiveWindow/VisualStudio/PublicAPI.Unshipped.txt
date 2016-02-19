@@ -1,0 +1,2 @@
+Microsoft.VisualStudio.InteractiveWindow.Shell.IVsInteractiveWindow2
+Microsoft.VisualStudio.InteractiveWindow.Shell.IVsInteractiveWindow2.WindowFrame.get -> object
