@@ -1138,7 +1138,7 @@ lVbRuntimePlus:
                 specificDiagnosticOptions(item.Key) = item.Value
             Next
 
-            If Not IsScriptRunner AndAlso Not hasSourceFiles AndAlso managedResources.IsEmpty() AndAlso outputKind.IsApplication Then
+            If Not IsScriptRunner AndAlso Not hasSourceFiles AndAlso managedResources.IsEmpty() Then
                 ' VB displays help when there is nothing specified on the command line
                 If flattenedArgs.Any Then
                     AddDiagnostic(diagnostics, ERRID.ERR_NoSources)
