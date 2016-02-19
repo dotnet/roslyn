@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(InvokeDelegateWithConditionalAccessCodeFixProvider)), Shared]
+    //[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(InvokeDelegateWithConditionalAccessCodeFixProvider)), Shared]
     internal class InvokeDelegateWithConditionalAccessCodeFixProvider : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId);
@@ -45,32 +45,23 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
             if (diagnostic.Properties[Constants.Kind] == Constants.VariableAndIfStatementForm)
             {
-                return HandVariableAndIfStatementFormAsync(document, root, diagnostic, cancellationToken);
+                return HandVariableAndIfStatementFormAsync(document, root, diagnostic);
             }
             else
             {
                 Debug.Assert(diagnostic.Properties[Constants.Kind] == Constants.SingleIfStatementForm);
-                return HandleSingleIfStatementForm(document, root, diagnostic, cancellationToken);
+                return HandleSingleIfStatementForm(document, root, diagnostic);
             }
         }
 
-        private Document HandleSingleIfStatementForm(
-            Document document,
-            SyntaxNode root,
-            Diagnostic diagnostic,
-            CancellationToken cancellationToken)
+        private Document HandleSingleIfStatementForm(Document document, SyntaxNode root, Diagnostic diagnostic)
         {
             var ifStatementLocation = diagnostic.AdditionalLocations[0];
             var expressionStatementLocation = diagnostic.AdditionalLocations[1];
 
             var ifStatement = (IfStatementSyntax)root.FindNode(ifStatementLocation.SourceSpan);
-            cancellationToken.ThrowIfCancellationRequested();
-
             var expressionStatement = (ExpressionStatementSyntax)root.FindNode(expressionStatementLocation.SourceSpan);
-            cancellationToken.ThrowIfCancellationRequested();
-
             var invocationExpression = (InvocationExpressionSyntax)expressionStatement.Expression;
-            cancellationToken.ThrowIfCancellationRequested();
 
             StatementSyntax newStatement = expressionStatement.WithExpression(
                 SyntaxFactory.ConditionalAccessExpression(
@@ -85,27 +76,20 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             }
 
             newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);
-            cancellationToken.ThrowIfCancellationRequested();
 
             var newRoot = root.ReplaceNode(ifStatement, newStatement);
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private static Document HandVariableAndIfStatementFormAsync(
-            Document document, SyntaxNode root, Diagnostic diagnostic, CancellationToken cancellationToken)
+        private static Document HandVariableAndIfStatementFormAsync(Document document, SyntaxNode root, Diagnostic diagnostic)
         {
             var localDeclarationLocation = diagnostic.AdditionalLocations[0];
             var ifStatementLocation = diagnostic.AdditionalLocations[1];
             var expressionStatementLocation = diagnostic.AdditionalLocations[2];
 
             var localDeclarationStatement = (LocalDeclarationStatementSyntax)root.FindNode(localDeclarationLocation.SourceSpan);
-            cancellationToken.ThrowIfCancellationRequested();
-
             var ifStatement = (IfStatementSyntax)root.FindNode(ifStatementLocation.SourceSpan);
-            cancellationToken.ThrowIfCancellationRequested();
-
             var expressionStatement = (ExpressionStatementSyntax)root.FindNode(expressionStatementLocation.SourceSpan);
-            cancellationToken.ThrowIfCancellationRequested();
 
             var invocationExpression = (InvocationExpressionSyntax)expressionStatement.Expression;
             var parentBlock = (BlockSyntax)localDeclarationStatement.Parent;
@@ -121,7 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
             editor.ReplaceNode(ifStatement, newStatement);
             editor.RemoveNode(localDeclarationStatement, SyntaxRemoveOptions.KeepLeadingTrivia | SyntaxRemoveOptions.AddElasticMarker);
-            cancellationToken.ThrowIfCancellationRequested();
 
             var newRoot = editor.GetChangedRoot();
             return document.WithSyntaxRoot(newRoot);
