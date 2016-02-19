@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion;
@@ -57,6 +58,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private const string SpaceAroundBinaryOperator = nameof(AutomationObject.Space_AroundBinaryOperator);
         private const string UnindentLabels = nameof(AutomationObject.Indent_UnindentLabels);
         private const string FlushLabelsLeft = nameof(AutomationObject.Indent_FlushLabelsLeft);
+        private const string Style_UseVarForIntrinsicTypes = nameof(AutomationObject.Style_UseVarForIntrinsicTypes);
+        private const string Style_UseVarWhenTypeIsApparent = nameof(AutomationObject.Style_UseVarWhenTypeIsApparent);
+        private const string Style_UseVarWherePossible = nameof(AutomationObject.Style_UseVarWherePossible);
 
         private KeyValuePair<string, IOption> GetOptionInfoForOnOffOptions(FieldInfo fieldInfo)
         {
@@ -206,8 +210,26 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 return true;
             }
 
+            // code style: use var options.
+            if (optionKey.Option == CSharpCodeStyleOptions.UseVarForIntrinsicTypes)
+            {
+                var useVarValue = this.Manager.GetValueOrDefault(Style_UseVarForIntrinsicTypes, defaultValue: 0);
+                return FetchUseVarOption(useVarValue, out value);
+            }
+            else if (optionKey.Option == CSharpCodeStyleOptions.UseVarWhenTypeIsApparent)
+            {
+                var useVarValue = this.Manager.GetValueOrDefault(Style_UseVarWhenTypeIsApparent, defaultValue: 0);
+                return FetchUseVarOption(useVarValue, out value);
+            }
+            else if (optionKey.Option == CSharpCodeStyleOptions.UseVarWherePossible)
+            {
+                var useVarValue = this.Manager.GetValueOrDefault(Style_UseVarWherePossible, defaultValue: 0);
+                return FetchUseVarOption(useVarValue, out value);
+            }
+
             return base.TryFetch(optionKey, out value);
         }
+
 
         public override bool TryPersist(OptionKey optionKey, object value)
         {
@@ -274,7 +296,80 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 }
             }
 
+            // code style: use var options.
+            if (optionKey.Option == CSharpCodeStyleOptions.UseVarForIntrinsicTypes)
+            {
+                return PersistUseVarOption(Style_UseVarForIntrinsicTypes, value);
+            }
+            else if (optionKey.Option == CSharpCodeStyleOptions.UseVarWhenTypeIsApparent)
+            {
+                return PersistUseVarOption(Style_UseVarWhenTypeIsApparent, value);
+            }
+            else if (optionKey.Option == CSharpCodeStyleOptions.UseVarWherePossible)
+            {
+                return PersistUseVarOption(Style_UseVarWherePossible, value);
+            }
+
             return base.TryPersist(optionKey, value);
+        }
+
+        private bool PersistUseVarOption(string option, object value)
+        {
+            var convertedValue = (CodeStyleOption)value;
+
+            if (!convertedValue.IsChecked)
+            {
+                this.Manager.SetValueAsync(option, value: 0, isMachineLocal: false);
+                return true;
+            }
+            else
+            {
+                switch (convertedValue.Notification.Value)
+                {
+                    case DiagnosticSeverity.Hidden:
+                        this.Manager.SetValueAsync(option, value: 1, isMachineLocal: false);
+                        break;
+                    case DiagnosticSeverity.Info:
+                        this.Manager.SetValueAsync(option, value: 2, isMachineLocal: false);
+                        break;
+                    case DiagnosticSeverity.Warning:
+                        this.Manager.SetValueAsync(option, value: 3, isMachineLocal: false);
+                        break;
+                    case DiagnosticSeverity.Error:
+                        this.Manager.SetValueAsync(option, value: 4, isMachineLocal: false);
+                        break;
+                    default:
+                        break;
+                }
+                return true;
+            }
+        }
+
+        private static bool FetchUseVarOption(int useVarOptionValue, out object value)
+        {
+            switch (useVarOptionValue)
+            {
+                case 0:
+                    value = new CodeStyleOption(false, NotificationOption.None);
+                    break;
+                case 1:
+                    value = new CodeStyleOption(true, NotificationOption.None);
+                    break;
+                case 2:
+                    value = new CodeStyleOption(true, NotificationOption.Info);
+                    break;
+                case 3:
+                    value = new CodeStyleOption(true, NotificationOption.Warning);
+                    break;
+                case 4:
+                    value = new CodeStyleOption(true, NotificationOption.Error);
+                    break;
+                default:
+                    value = null;
+                    break;
+            }
+
+            return value != null;
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
@@ -16,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         // TODO: get sign off on public api changes.
         public static readonly Option<bool> UseVarWhenDeclaringLocals = new Option<bool>(FeatureName, "UseVarWhenDeclaringLocals", defaultValue: true);
 
-        public static readonly Option<bool> UseVarForIntrinsicTypes = new Option<bool>(FeatureName, "UseImplicitTypingForIntrinsics", defaultValue: false);
-        public static readonly Option<bool> UseVarWhenTypeIsApparent = new Option<bool>(FeatureName, "UseImplicitTypingWhereApparent", defaultValue: false);
-        public static readonly Option<bool> UseVarWherePossible = new Option<bool>(FeatureName, "UseImplicitTypingWherePossible", defaultValue: false);
+        public static readonly Option<CodeStyleOption> UseVarForIntrinsicTypes = new Option<CodeStyleOption>(FeatureName, "UseImplicitTypingForIntrinsics", defaultValue: CodeStyleOption.Default);
+        public static readonly Option<CodeStyleOption> UseVarWhenTypeIsApparent = new Option<CodeStyleOption>(FeatureName, "UseImplicitTypingWhereApparent", defaultValue: CodeStyleOption.Default);
+        public static readonly Option<CodeStyleOption> UseVarWherePossible = new Option<CodeStyleOption>(FeatureName, "UseImplicitTypingWherePossible", defaultValue: CodeStyleOption.Default);
     }
 }

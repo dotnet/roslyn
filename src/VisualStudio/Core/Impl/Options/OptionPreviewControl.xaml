@@ -6,6 +6,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:options="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options"
+    xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+    xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+    xmlns:imagingPlatformUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
     mc:Ignorable="d" d:DesignHeight="279" d:DesignWidth="514">
 
     <Grid>
@@ -33,6 +36,55 @@
                         </CheckBox>
                         <TextBlock x:Uid="Description" Text="{Binding Description}"/>
                     </StackPanel>
+                </DataTemplate>
+
+                <DataTemplate DataType="{x:Type options:CheckBoxWithComboOptionViewModel}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <CheckBox x:Uid="OptionCheckBox" 
+                                        IsChecked="{Binding IsChecked, Mode=TwoWay}" 
+                                        Width="Auto"
+                                        Focusable="False"
+                                        Margin="20, 0, 0, 0"
+                                        Grid.Column="0"/>
+
+                        <!-- TODO: remove hardcoded width -->
+                        <ComboBox x:Uid="ComboBoxOptions"
+                                  ItemsSource="{Binding Items}"
+                                  SelectedItem="{Binding SelectedItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  HorizontalContentAlignment="Left"
+                                  VerticalContentAlignment="Center"
+                                  Margin="5, 0, 0, 0"
+                                  Width="100"
+                                  Grid.Column="1">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <imaging:CrispImage
+                                            Height="16" 
+                                            Width="16" 
+                                            Moniker="{Binding Moniker}"
+                                            Grid.Column="0"/>
+                                        <TextBlock 
+                                            Margin="5, 0, 0, 0" 
+                                            Text="{Binding Notification}"
+                                            Grid.Column="1"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+
+                        <TextBlock x:Uid="Description" Text="{Binding Description}"
+                                   Margin="5, 0, 0, 0" Grid.Column="2" TextWrapping="WrapWithOverflow"/>
+                    </Grid>
                 </DataTemplate>
 
                 <DataTemplate DataType="{x:Type options:HeaderItemViewModel}">

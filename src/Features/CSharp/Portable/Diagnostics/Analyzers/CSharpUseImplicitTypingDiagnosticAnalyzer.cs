@@ -22,31 +22,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         private static readonly LocalizableString s_Message =
             new LocalizableResourceString(nameof(CSharpFeaturesResources.UseImplicitTyping), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
-        private static readonly DiagnosticDescriptor s_descriptorUseImplicitTyping = new DiagnosticDescriptor(
-            id: IDEDiagnosticIds.UseImplicitTypingDiagnosticId,
-            title: s_Title,
-            messageFormat: s_Message,
-            category: DiagnosticCategory.Style,
-            defaultSeverity: DiagnosticSeverity.Info,
-            isEnabledByDefault: true);
-
-        public CSharpUseImplicitTypingDiagnosticAnalyzer() : base(s_descriptorUseImplicitTyping)
+        public CSharpUseImplicitTypingDiagnosticAnalyzer()
+            : base(diagnosticId: IDEDiagnosticIds.UseImplicitTypingDiagnosticId,
+                   title: s_Title,
+                   message: s_Message)
         {
         }
 
-        protected override bool IsStylePreferred(SyntaxNode declarationStatement, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
+        protected override bool IsStylePreferred(SyntaxNode declarationStatement, SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken)
         {
-            var stylePreferences = GetCurrentTypingStylePreferences(optionSet);
+            var stylePreferences = state.StylePreferences;
 
-            var isTypeApparent = declarationStatement is VariableDeclarationSyntax
-                ? IsTypeApparentInDeclaration((VariableDeclarationSyntax)declarationStatement,
-                                               semanticModel, stylePreferences, cancellationToken)
-                : false;
-            var isIntrinsicType = IsIntrinsicType(declarationStatement);
-
-            return stylePreferences.HasFlag(TypingStyles.VarForIntrinsic) && isIntrinsicType
-                || stylePreferences.HasFlag(TypingStyles.VarWhereApparent) && isTypeApparent
-                || stylePreferences.HasFlag(TypingStyles.VarWherePossible) && !(isIntrinsicType || isTypeApparent);
+            return stylePreferences.HasFlag(TypingStyles.VarForIntrinsic) && state.IsInIntrinsicTypeContext
+                || stylePreferences.HasFlag(TypingStyles.VarWhereApparent) && state.IsTypingApparentInContext
+                || stylePreferences.HasFlag(TypingStyles.VarWherePossible) && !(state.IsInIntrinsicTypeContext || state.IsTypingApparentInContext);
         }
 
         protected override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)

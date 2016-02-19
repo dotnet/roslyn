@@ -3,9 +3,11 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
@@ -181,9 +183,17 @@ class C{
 
             Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.SetTypeInferencePreferences });
 
-            Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, CSharpVSResources.UseVarForIntrinsicTypes, s_varForIntrinsicsPreviewTrue, s_varForIntrinsicsPreviewFalse, this, optionSet));
-            Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, CSharpVSResources.UseVarWhenTypeIsApparent, s_varWhereApparentPreviewTrue, s_varWhereApparentPreviewFalse, this, optionSet));
-            Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWherePossible, CSharpVSResources.UseVarWhenPossible, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet));
+            var notificationOptions = new List<CodeStyleOptionsViewModel>
+                                      {
+                                          new CodeStyleOptionsViewModel(NotificationOption.None, KnownMonikers.None),
+                                          new CodeStyleOptionsViewModel(NotificationOption.Info, KnownMonikers.StatusInformation),
+                                          new CodeStyleOptionsViewModel(NotificationOption.Warning, KnownMonikers.StatusWarning),
+                                          new CodeStyleOptionsViewModel(NotificationOption.Error, KnownMonikers.StatusError)
+                                      };
+
+            Items.Add(new CheckBoxWithComboOptionViewModel(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, CSharpVSResources.UseVarForIntrinsicTypes, s_varForIntrinsicsPreviewTrue, s_varForIntrinsicsPreviewFalse, this, optionSet, notificationOptions));
+            Items.Add(new CheckBoxWithComboOptionViewModel(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, CSharpVSResources.UseVarWhenTypeIsApparent, s_varWhereApparentPreviewTrue, s_varWhereApparentPreviewFalse, this, optionSet, notificationOptions));
+            Items.Add(new CheckBoxWithComboOptionViewModel(CSharpCodeStyleOptions.UseVarWherePossible, CSharpVSResources.UseVarWhenPossible, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, notificationOptions));
         }
     }
 }

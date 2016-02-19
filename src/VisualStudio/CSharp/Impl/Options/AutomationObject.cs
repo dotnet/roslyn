@@ -1,7 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion;
@@ -459,20 +461,41 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Style_UseVarWherePossible
         {
-            get { return GetBooleanOption(CSharpCodeStyleOptions.UseVarWherePossible); }
-            set { SetBooleanOption(CSharpCodeStyleOptions.UseVarWherePossible, value); }
+            get
+            {
+                var option = _optionService.GetOption(CSharpCodeStyleOptions.UseVarWherePossible);
+                return GetUseVarOption(option);
+            }
+            set
+            {
+                SetUseVarOption(CSharpCodeStyleOptions.UseVarWherePossible, value);
+            }
         }
 
         public int Style_UseVarWhenTypeIsApparent
         {
-            get { return GetBooleanOption(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent); }
-            set { SetBooleanOption(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, value); }
+            get
+            {
+                var option = _optionService.GetOption(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent);
+                return GetUseVarOption(option);
+            }
+            set
+            {
+                SetUseVarOption(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, value);
+            }
         }
 
         public int Style_UseVarForIntrinsicTypes
         {
-            get { return GetBooleanOption(CSharpCodeStyleOptions.UseVarForIntrinsicTypes); }
-            set { SetBooleanOption(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, value); }
+            get
+            {
+                var option = _optionService.GetOption(CSharpCodeStyleOptions.UseVarForIntrinsicTypes);
+                return GetUseVarOption(option);
+            }
+            set
+            {
+                SetUseVarOption(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, value);
+            }
         }
 
         public int WarnOnBuildErrors
@@ -536,6 +559,60 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             var optionSet = _optionService.GetOptions();
             optionSet = optionSet.WithChangedOption(key, LanguageNames.CSharp, value != 0);
+            _optionService.SetOptions(optionSet);
+        }
+
+        private static int GetUseVarOption(CodeStyleOption option)
+        {
+            if (!option.IsChecked)
+            {
+                return 0;
+            }
+            else
+            {
+                switch (option.Notification.Value)
+                {
+                    case DiagnosticSeverity.Hidden:
+                        return (int)DiagnosticSeverity.Hidden + 1;
+                    case DiagnosticSeverity.Info:
+                        return (int)DiagnosticSeverity.Info + 1;
+                    case DiagnosticSeverity.Warning:
+                        return (int)DiagnosticSeverity.Warning + 1;
+                    case DiagnosticSeverity.Error:
+                        return (int)DiagnosticSeverity.Error + 1;
+                    default:
+                        return 0;
+                }
+            }
+        }
+
+        private void SetUseVarOption(Option<CodeStyleOption> option, int value)
+        {
+            CodeStyleOption convertedValue = CodeStyleOption.Default;
+
+            var optionSet = _optionService.GetOptions();
+            switch (value)
+            {
+                case 0:
+                    convertedValue = new CodeStyleOption(false, NotificationOption.None);
+                    break;
+                case 1:
+                    convertedValue = new CodeStyleOption(true, NotificationOption.None);
+                    break;
+                case 2:
+                    convertedValue = new CodeStyleOption(true, NotificationOption.Info);
+                    break;
+                case 3:
+                    convertedValue = new CodeStyleOption(true, NotificationOption.Warning);
+                    break;
+                case 4:
+                    convertedValue = new CodeStyleOption(true, NotificationOption.Error);
+                    break;
+                default:
+                    break;
+            }
+
+            optionSet = optionSet.WithChangedOption(option, convertedValue);
             _optionService.SetOptions(optionSet);
         }
     }
