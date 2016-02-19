@@ -2698,10 +2698,16 @@ class C
             var compilation = CreateCompilationWithMscorlib(source);
 
             var output = new BrokenStream();
-            Assert.Throws<IOException>(() => compilation.Emit(output));
+            var result = compilation.Emit(output);
+            result.Diagnostics.Verify(
+                // error CS8104: An error occurred while writing the Portable Executable file.
+                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments("I/O error occurred.").WithLocation(1, 1));
 
             output.BreakHow = 1;
-            Assert.Throws<NotSupportedException>(() => compilation.Emit(output));
+            result = compilation.Emit(output);
+            result.Diagnostics.Verify(    
+                // error CS8104: An error occurred while writing the Portable Executable file.
+                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments("Specified method is not supported.").WithLocation(1, 1));
 
             // disposed stream is not writable
             var outReal = new MemoryStream();
@@ -2968,8 +2974,8 @@ public class X
             var result = compilation.Emit(broken);
             Assert.False(result.Success);
             result.Diagnostics.Verify(
-// error CS8104: An error occurred while writing the Portable Executable file.
-Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments("I/O error occurred.").WithLocation(1, 1));
+                // error CS8104: An error occurred while writing the Portable Executable file.
+                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments("I/O error occurred.").WithLocation(1, 1));
         }
     }
 }
