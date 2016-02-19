@@ -1909,7 +1909,6 @@ namespace Microsoft.CodeAnalysis
                 catch (Cci.PeWritingException e)
                 {
                     diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PeWritingFailure, Location.None, e.Message));
-                    return false;
                 }
                 catch (ResourceException e)
                 {
