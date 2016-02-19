@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
     /// on the interactive window.
     /// </summary>
     [Guid(Guids.InteractiveToolWindowIdString)]
-    internal sealed class VsInteractiveWindow : IOleCommandTarget, IVsInteractiveWindow2
+    internal sealed class VsInteractiveWindow : IOleCommandTarget, IVsInteractiveWindow2, IDisposable
     {
         private readonly VsInteractiveWindowPane _windowPane;
 
@@ -34,6 +34,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
         {
             _windowPane = new VsInteractiveWindowPane(model, providerId, instanceId, title, evaluator, creationFlags);
         }
+
+        void IDisposable.Dispose() => _windowPane.Dispose();
 
         int IOleCommandTarget.Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut) =>
             _windowPane.CommandTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
