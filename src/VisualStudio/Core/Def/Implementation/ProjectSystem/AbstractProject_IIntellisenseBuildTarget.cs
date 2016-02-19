@@ -63,16 +63,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // log intellisense build failure
             Logger.Log(FunctionId.IntellisenseBuild_Failed, KeyValueLogMessage.Create(m => m["Reason"] = reason ?? string.Empty));
 
-            var isEnabledByDefault = true;
-            var warningLevel = 0;
-
             return new DiagnosticData(
                 IDEDiagnosticIds.IntellisenseBuildFailedDiagnosticId,
                 FeaturesResources.ErrorCategory,
                 ServicesVSResources.IntellisenseBuildFailedMessage,
                 ServicesVSResources.ResourceManager.GetString(nameof(ServicesVSResources.IntellisenseBuildFailedMessage), CodeAnalysis.Diagnostics.Extensions.s_USCultureInfo),
                 DiagnosticSeverity.Warning,
-                isEnabledByDefault, warningLevel, Workspace, Id,
+                isEnabledByDefault: true, 
+                warningLevel: 0, 
+                workspace: Workspace, 
+                projectId: Id,
                 title: ServicesVSResources.IntellisenseBuildFailedTitle,
                 description: GetDescription(reason));
         }
