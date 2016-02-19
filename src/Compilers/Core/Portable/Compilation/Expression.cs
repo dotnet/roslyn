@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 return SynthesizeNumeric(((INamedTypeSymbol)type).EnumUnderlyingType, value);
             }
 
-            return null;
+            return ConstantValue.Bad;
         }
 
         public static BinaryOperationKind DeriveAdditionKind(ITypeSymbol type)
