@@ -1720,9 +1720,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (completedCompilation)
             {
+                // signal the end of compilation events
                 EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
-                EventQueue.PromiseNotToEnqueue(); // Trigger an assertion if any further events are queued
-                EventQueue.TryComplete(); // signal the end of compilation events
+                EventQueue.PromiseNotToEnqueue();
+                EventQueue.TryComplete();
             }
         }
 
