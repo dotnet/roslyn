@@ -2073,6 +2073,28 @@ static class C
         }
 
         [Fact]
+        public void RefReturningVoidMethodNested()
+        {
+            var source = @"
+static class C
+{
+    static void Main()
+    {
+        ref void M() { }
+    }
+}
+";
+
+            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
+    // (6,18): error CS8898: Void-returning methods cannot return by reference
+    //         ref void M() { }
+    Diagnostic(ErrorCode.ERR_VoidReturningMethodCannotReturnByRef, "M").WithLocation(6, 18),
+    // (6,18): warning CS0168: The variable 'M' is declared but never used
+    //         ref void M() { }
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "M").WithArguments("M").WithLocation(6, 18));
+        }
+
+        [Fact]
         public void RefReturningAsyncMethod()
         {
             var source = @"
