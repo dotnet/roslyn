@@ -841,7 +841,7 @@
     <value>A readonly field cannot be assigned to (except in a constructor or a variable initializer)</value>
   </data>
   <data name="ERR_RefReadonly" xml:space="preserve">
-    <value>A readonly field cannot be passed ref or out (except in a constructor)</value>
+    <value>A readonly field cannot be used as a ref or out value (except in a constructor)</value>
   </data>
   <data name="ERR_PtrExpected" xml:space="preserve">
     <value>The * or -&gt; operator must be applied to a pointer</value>
@@ -850,16 +850,16 @@
     <value>A pointer must be indexed by only one value</value>
   </data>
   <data name="WRN_ByRefNonAgileField" xml:space="preserve">
-    <value>Passing '{0}' as ref or out or taking its address may cause a runtime exception because it is a field of a marshal-by-reference class</value>
+    <value>Using '{0}' as a ref or out value or taking its address may cause a runtime exception because it is a field of a marshal-by-reference class</value>
   </data>
   <data name="WRN_ByRefNonAgileField_Title" xml:space="preserve">
-    <value>Passing a field of a marshal-by-reference class as ref or out or taking its address may cause a runtime exception</value>
+    <value>Using a field of a marshal-by-reference class as a ref or out value or taking its address may cause a runtime exception</value>
   </data>
   <data name="ERR_AssgReadonlyStatic" xml:space="preserve">
     <value>A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)</value>
   </data>
   <data name="ERR_RefReadonlyStatic" xml:space="preserve">
-    <value>A static readonly field cannot be passed ref or out (except in a static constructor)</value>
+    <value>A static readonly field cannot be used as a ref or out value (except in a static constructor)</value>
   </data>
   <data name="ERR_AssgReadonlyProp" xml:space="preserve">
     <value>Property or indexer '{0}' cannot be assigned to -- it is read only</value>
@@ -1207,7 +1207,7 @@
     <value>A reference to a volatile field will not be treated as volatile</value>
   </data>
   <data name="WRN_VolatileByRef_Description" xml:space="preserve">
-    <value>A volatile field should not normally be passed using a ref or out parameter, since it will not be treated as volatile within the scope of the function. There are exceptions to this, such as when calling an interlocked API.</value>
+    <value>A volatile field should not normally be used as a ref or out value, since it will not be treated as volatile. There are exceptions to this, such as when calling an interlocked API.</value>
   </data>
   <data name="ERR_ComImportWithImpl" xml:space="preserve">
     <value>Since '{1}' has the ComImport attribute, '{0}' must be extern or abstract</value>
@@ -2369,7 +2369,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>The referenced file '{0}' is not an assembly</value>
   </data>
   <data name="ERR_RefLvalueExpected" xml:space="preserve">
-    <value>A ref or out argument must be an assignable variable</value>
+    <value>A ref or out value must be an assignable variable</value>
   </data>
   <data name="ERR_BaseInStaticMeth" xml:space="preserve">
     <value>Keyword 'base' is not available in a static method</value>
@@ -2615,7 +2615,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Cannot assign to '{0}' because it is read-only</value>
   </data>
   <data name="ERR_RefReadonlyLocal" xml:space="preserve">
-    <value>Cannot pass '{0}' as a ref or out argument because it is read-only</value>
+    <value>Cannot use '{0}' as a ref or out value because it is read-only</value>
   </data>
   <data name="ERR_CantUseRequiredAttribute" xml:space="preserve">
     <value>The RequiredAttribute attribute is not permitted on C# types</value>
@@ -2744,25 +2744,25 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Members of readonly field '{0}' cannot be modified (except in a constructor or a variable initializer)</value>
   </data>
   <data name="ERR_RefReadonly2" xml:space="preserve">
-    <value>Members of readonly field '{0}' cannot be passed ref or out (except in a constructor)</value>
+    <value>Members of readonly field '{0}' cannot be used as a ref or out value (except in a constructor)</value>
   </data>
   <data name="ERR_AssgReadonlyStatic2" xml:space="preserve">
     <value>Fields of static readonly field '{0}' cannot be assigned to (except in a static constructor or a variable initializer)</value>
   </data>
   <data name="ERR_RefReadonlyStatic2" xml:space="preserve">
-    <value>Fields of static readonly field '{0}' cannot be passed ref or out (except in a static constructor)</value>
+    <value>Fields of static readonly field '{0}' cannot be used as a ref or out value (except in a static constructor)</value>
   </data>
   <data name="ERR_AssgReadonlyLocal2Cause" xml:space="preserve">
     <value>Cannot modify members of '{0}' because it is a '{1}'</value>
   </data>
   <data name="ERR_RefReadonlyLocal2Cause" xml:space="preserve">
-    <value>Cannot pass fields of '{0}' as a ref or out argument because it is a '{1}'</value>
+    <value>Cannot use fields of '{0}' as a ref or out value because it is a '{1}'</value>
   </data>
   <data name="ERR_AssgReadonlyLocalCause" xml:space="preserve">
     <value>Cannot assign to '{0}' because it is a '{1}'</value>
   </data>
   <data name="ERR_RefReadonlyLocalCause" xml:space="preserve">
-    <value>Cannot pass '{0}' as a ref or out argument because it is a '{1}'</value>
+    <value>Cannot use '{0}' as a ref or out value because it is a '{1}'</value>
   </data>
   <data name="WRN_ErrorOverride" xml:space="preserve">
     <value>{0}. See also error CS{1}.</value>
@@ -4155,6 +4155,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_Namespace1" xml:space="preserve">
     <value>&lt;namespace&gt;</value>
   </data>
+  <data name="IDS_FeatureRefLocalsReturns" xml:space="preserve">
+    <value>byref locals and returns</value>
+  </data>
   <data name="CompilationC" xml:space="preserve">
     <value>Compilation (C#): </value>
   </data>
@@ -4677,6 +4680,129 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InvalidReal" xml:space="preserve">
     <value>Invalid real literal.</value>
+  </data>
+  <data name="ERR_AutoPropertyCannotBeRefReturning" xml:space="preserve">
+    <value>Auto-implemented properties cannot return by reference</value>
+  </data>
+  <data name="ERR_RefPropertyMustHaveGetAccessor" xml:space="preserve">
+    <value>Properties which return by reference must have a get accessor</value>
+  </data>
+  <data name="ERR_RefPropertyCannotHaveSetAccessor" xml:space="preserve">
+    <value>Properties which return by reference cannot have set accessors</value>
+  </data>
+  <data name="ERR_CantChangeRefReturnOnOverride" xml:space="preserve">
+    <value>'{0}' must {2}return by reference to match overridden member '{1}'</value>
+  </data>
+  <data name="ERR_MustNotHaveRefReturn" xml:space="preserve">
+    <value>By-reference returns may only be used in methods that return by reference</value>
+  </data>
+  <data name="ERR_MustHaveRefReturn" xml:space="preserve">
+    <value>By-value returns may only be used in methods that return by value</value>
+  </data>
+  <data name="ERR_RefReturnMustHaveIdentityConversion" xml:space="preserve">
+    <value>The return expression must be of type '{0}' because this method returns by reference</value>
+  </data>
+  <data name="ERR_CloseUnimplementedInterfaceMemberWrongRefReturn" xml:space="preserve">
+    <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because it does not return by {3}</value>
+  </data>
+  <data name="ERR_VoidReturningMethodCannotReturnByRef" xml:space="preserve">
+    <value>Void-returning methods cannot return by reference</value>
+  </data>
+  <data name="ERR_BadIteratorReturnRef" xml:space="preserve">
+    <value>The body of '{0}' cannot be an iterator block because '{0}' returns by reference</value>
+  </data>
+  <data name="ERR_BadRefReturnExpressionTree" xml:space="preserve">
+    <value>Lambda expressions that return by reference cannot be converted to expression trees</value>
+  </data>
+  <data name="ERR_RefReturningCallInExpressionTree" xml:space="preserve">
+    <value>An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference</value>
+  </data>
+  <data name="ERR_RefReturnLvalueExpected" xml:space="preserve">
+    <value>An expression cannot be used in this context because it may not be returned by reference</value>
+  </data>
+  <data name="ERR_RefReturnNonreturnableLocal" xml:space="preserve">
+    <value>Cannot return '{0}' by reference because it was initialized to a value that cannot be returned by reference</value>
+  </data>
+  <data name="ERR_RefReturnNonreturnableLocal2" xml:space="preserve">
+    <value>Cannot return by reference a member of '{0}' because it was initialized to a value that cannot be returned by reference</value>
+  </data>
+  <data name="ERR_RefReturnReadonlyLocal" xml:space="preserve">
+    <value>Cannot return '{0}' by reference because it is read-only</value>
+  </data>
+  <data name="ERR_RefReturnRangeVariable" xml:space="preserve">
+    <value>Cannot return the range variable '{0}' by reference</value>
+  </data>
+  <data name="ERR_RefReturnReadonlyLocalCause" xml:space="preserve">
+    <value>Cannot return '{0}' by reference because it is a '{1}'</value>
+  </data>
+  <data name="ERR_RefReturnReadonlyLocal2Cause" xml:space="preserve">
+    <value>Cannot return fields of '{0}' by reference because it is a '{1}'</value>
+  </data>
+  <data name="ERR_RefReturnReadonly" xml:space="preserve">
+    <value>A readonly field cannot be returned by reference</value>
+  </data>
+  <data name="ERR_RefReturnReadonlyStatic" xml:space="preserve">
+    <value>A static readonly field cannot be returned by reference</value>
+  </data>
+  <data name="ERR_RefReturnReadonly2" xml:space="preserve">
+    <value>Members of readonly field '{0}' cannot be returned by reference</value>
+  </data>
+  <data name="ERR_RefReturnReadonlyStatic2" xml:space="preserve">
+    <value>Fields of static readonly field '{0}' cannot be returned by reference</value>
+  </data>
+  <data name="ERR_RefReturnCall" xml:space="preserve">
+    <value>Cannot return by reference a result of '{0}' because the argument passed to parameter '{1}' cannot be returned by reference</value>
+  </data>
+  <data name="ERR_RefReturnCall2" xml:space="preserve">
+    <value>Cannot return by reference a member of result of '{0}' because the argument passed to parameter '{1}' cannot be returned by reference</value>
+  </data>
+  <data name="ERR_RefReturnParameter" xml:space="preserve">
+    <value>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</value>
+  </data>
+  <data name="ERR_RefReturnParameter2" xml:space="preserve">
+    <value>Cannot return or a member of parameter '{0}' by reference because it is not a ref or out parameter</value>
+  </data>
+  <data name="ERR_RefReturnLocal" xml:space="preserve">
+    <value>Cannot return local '{0}' by reference because it is not a ref local</value>
+  </data>
+  <data name="ERR_RefReturnLocal2" xml:space="preserve">
+    <value>Cannot return a member of local '{0}' by reference because it is not a ref local</value>
+  </data>
+  <data name="ERR_RefReturnReceiver" xml:space="preserve">
+    <value>Cannot return '{0}' by reference because its receiver may not be returned by reference</value>
+  </data>
+  <data name="ERR_RefReturnStructThis" xml:space="preserve">
+    <value>Struct members cannot return 'this' or other instance members by reference</value>
+  </data>
+  <data name="ERR_MustBeRefAssignable" xml:space="preserve">
+    <value>'{0}' cannot be assigned a reference because it is not a by-reference local</value>
+  </data>
+  <data name="ERR_MustBeRefAssignableLocal" xml:space="preserve">
+    <value>Expected a by-reference local</value>
+  </data>
+  <data name="ERR_InitializeByValueVariableWithReference" xml:space="preserve">
+    <value>Cannot initialize a by-value variable with a reference</value>
+  </data>
+  <data name="ERR_InitializeByReferenceVariableWithValue" xml:space="preserve">
+    <value>Cannot initialize a by-reference variable with a value</value>
+  </data>
+  <data name="ERR_RefAssignmentMustHaveIdentityConversion" xml:space="preserve">
+    <value>The expression must be of type '{0}' because it is being assigned by reference</value>
+  </data>
+  <data name="ERR_ByReferenceVariableMustBeInitialized" xml:space="preserve">
+    <value>A declaration of a by-reference variable must have an initializer</value>
+  </data>
+  <data name="ERR_AnonDelegateCantUseLocal" xml:space="preserve">
+    <value>Cannot use ref local '{0}' inside an anonymous method, lambda expression, or query expression</value>
+  </data>
+  <data name="ERR_BadIteratorLocalType" xml:space="preserve">
+    <value>Iterators cannot have by reference locals</value>
+  </data>
+  <data name="ERR_BadAsyncLocalType" xml:space="preserve">
+    <value>Async methods cannot have by reference locals</value>
+  </data>
+  <data name="ERR_RefReturningCallAndAwait" xml:space="preserve">
+    <value>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</value>
   </data>
   <data name="ERR_ExpressionTreeContainsLocalFunction" xml:space="preserve">
     <value>An expression tree may not contain a reference to a local function</value>

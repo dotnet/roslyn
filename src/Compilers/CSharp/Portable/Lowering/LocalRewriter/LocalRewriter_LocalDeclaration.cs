@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         localSymbol.Type
                     ),
                     rewrittenInitializer,
-                    localSymbol.Type),
+                    localSymbol.Type,
+                    localSymbol.RefKind),
                 hasErrors);
 
             return AddLocalDeclarationSequencePointIfNecessary(syntax, localSymbol, rewrittenLocalDeclaration, wasCompilerGenerated);

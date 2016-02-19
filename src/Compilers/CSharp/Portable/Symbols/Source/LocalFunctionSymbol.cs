@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using System.Diagnostics;
 using System.Threading;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private ImmutableArray<ParameterSymbol> _parameters;
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
+        private readonly RefKind _refKind;
         private TypeSymbol _returnType;
         private bool _isVararg;
         private TypeSymbol _iteratorElementType;
@@ -38,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _syntax = syntax;
             _containingSymbol = containingSymbol;
+            _refKind = syntax.RefKeyword.Kind().GetRefKind();
 
             _declarationModifiers =
                 DeclarationModifiers.Private |
@@ -134,6 +137,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return ComputeReturnType();
+            }
+        }
+
+        internal override RefKind RefKind
+        {
+            get
+            {
+                return _refKind;
             }
         }
 

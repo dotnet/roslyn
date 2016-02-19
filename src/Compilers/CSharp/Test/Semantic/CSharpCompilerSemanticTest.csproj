@@ -95,6 +95,7 @@
     <Compile Include="Semantics\InheritanceBindingTests.cs" />
     <Compile Include="Semantics\InteractiveSemanticModelTests.cs" />
     <Compile Include="Semantics\InterpolationTests.cs" />
+    <Compile Include="Semantics\RefLocalsAndReturns.cs" />
     <Compile Include="Semantics\IteratorTests.cs" />
     <Compile Include="Semantics\LambdaTests.cs" />
     <Compile Include="Semantics\LocalFunctionTests.cs" />

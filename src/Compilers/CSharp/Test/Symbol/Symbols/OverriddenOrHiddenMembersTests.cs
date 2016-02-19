@@ -512,8 +512,12 @@ class DerivedClass : BaseClass<int>
             var text = @"
 class BaseClass
 {
+    public int field;
     public virtual void Method() { }
     public virtual int Property { get; set; }
+    public virtual ref int Method1() { return ref field; }
+    public virtual ref int Property1 { get { return ref field; } }
+    public virtual ref int this[int i] { get { return ref field; } }
 }
 
 class DerivedClass : BaseClass
@@ -521,9 +525,12 @@ class DerivedClass : BaseClass
     public override void Method() { }
     public override void Method(int x) { } //this is incorrect, but doesn't break the test
     public override int Property { get; set; }
+    public override ref int Method1() { return ref field; }
+    public override ref int Property1 { get { return ref field; } }
+    public override ref int this[int i] { get { return ref field; } }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateExperimentalCompilationWithMscorlib45(text);
             var global = comp.GlobalNamespace;
 
             var baseClass = (NamedTypeSymbol)global.GetMembers("BaseClass").Single();
@@ -531,10 +538,16 @@ class DerivedClass : BaseClass
 
             var baseClassMethod = (MethodSymbol)baseClass.GetMembers("Method").Single();
             var baseClassProperty = (PropertySymbol)baseClass.GetMembers("Property").Single();
+            var baseClassRefMethod = (MethodSymbol)baseClass.GetMembers("Method1").Single();
+            var baseClassRefProperty = (PropertySymbol)baseClass.GetMembers("Property1").Single();
+            var baseClassRefIndexer = (PropertySymbol)baseClass.GetMembers("this[]").Single();
 
             var derivedClassMethod = (MethodSymbol)derivedClass.GetMembers("Method").First();
             var derivedClassMethodInt = (MethodSymbol)derivedClass.GetMembers("Method").Last();
             var derivedClassProperty = (PropertySymbol)derivedClass.GetMembers("Property").Single();
+            var derivedClassRefMethod = (MethodSymbol)derivedClass.GetMembers("Method1").Single();
+            var derivedClassRefProperty = (PropertySymbol)derivedClass.GetMembers("Property1").Single();
+            var derivedClassRefIndexer = (PropertySymbol)derivedClass.GetMembers("this[]").Single();
 
             Assert.Same(OverriddenOrHiddenMembersResult.Empty, baseClassMethod.OverriddenOrHiddenMembers);
             Assert.Same(OverriddenOrHiddenMembersResult.Empty, baseClassProperty.OverriddenOrHiddenMembers);
@@ -551,12 +564,33 @@ class DerivedClass : BaseClass
             Assert.Same(baseClassProperty, derivedClassPropertyOverriddenOrHidden.OverriddenMembers.Single());
             Assert.Same(baseClassProperty, derivedClassPropertyOverriddenOrHidden.RuntimeOverriddenMembers.Single());
 
+            var derivedClassRefMethodOverriddenOrHidden = derivedClassRefMethod.OverriddenOrHiddenMembers;
+            Assert.False(derivedClassRefMethodOverriddenOrHidden.HiddenMembers.Any());
+            Assert.Same(baseClassRefMethod, derivedClassRefMethodOverriddenOrHidden.OverriddenMembers.Single());
+            Assert.Same(baseClassRefMethod, derivedClassRefMethodOverriddenOrHidden.RuntimeOverriddenMembers.Single());
+
+            var derivedClassRefPropertyOverriddenOrHidden = derivedClassRefProperty.OverriddenOrHiddenMembers;
+            Assert.False(derivedClassRefPropertyOverriddenOrHidden.HiddenMembers.Any());
+            Assert.Same(baseClassRefProperty, derivedClassRefPropertyOverriddenOrHidden.OverriddenMembers.Single());
+            Assert.Same(baseClassRefProperty, derivedClassRefPropertyOverriddenOrHidden.RuntimeOverriddenMembers.Single());
+
+            var derivedClassRefIndexerOverriddenOrHidden = derivedClassRefIndexer.OverriddenOrHiddenMembers;
+            Assert.False(derivedClassRefIndexerOverriddenOrHidden.HiddenMembers.Any());
+            Assert.Same(baseClassRefIndexer, derivedClassRefIndexerOverriddenOrHidden.OverriddenMembers.Single());
+            Assert.Same(baseClassRefIndexer, derivedClassRefIndexerOverriddenOrHidden.RuntimeOverriddenMembers.Single());
+
             Assert.Null(baseClassMethod.OverriddenMethod);
             Assert.Null(baseClassProperty.OverriddenProperty);
+            Assert.Null(baseClassRefMethod.OverriddenMethod);
+            Assert.Null(baseClassRefProperty.OverriddenProperty);
+            Assert.Null(baseClassRefIndexer.OverriddenProperty);
             Assert.Null(derivedClassMethodInt.OverriddenMethod);
 
             Assert.Same(baseClassMethod, derivedClassMethod.OverriddenMethod);
             Assert.Same(baseClassProperty, derivedClassProperty.OverriddenProperty);
+            Assert.Same(baseClassRefMethod, derivedClassRefMethod.OverriddenMethod);
+            Assert.Same(baseClassRefProperty, derivedClassRefProperty.OverriddenProperty);
+            Assert.Same(baseClassRefIndexer, derivedClassRefIndexer.OverriddenProperty);
         }
 
         [Fact]
@@ -784,11 +818,14 @@ abstract class Base<T, U>
 {
     public abstract T Property { get; set; }
     public virtual void Method(T x, U y) { }
+    public abstract ref T RefProperty { get; }
 }
 
 class Base2<A, B> : Base<A, B>
 {
+    A field = default(A);
     public override A Property { set { } }
+    public override ref A RefProperty { get { return ref field; } }
 }
 
 abstract class Base3<T, U> : Base2<T, U>
@@ -801,7 +838,7 @@ class Base4<U, V> : Base3<U, V>
 {
     public override U Property { set { } }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Base2").WithArguments("Base2<A, B>", "Base<A, B>.Property.get"),
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Base4").WithArguments("Base4<U, V>", "Base3<U, V>.Method(U, V)"));
         }

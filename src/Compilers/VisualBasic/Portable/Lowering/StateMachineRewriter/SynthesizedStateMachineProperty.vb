@@ -100,6 +100,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ReturnsByRef As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
                 Return Me._getter.ReturnType

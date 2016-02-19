@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     noLocalFunctions,
                     ImmutableArray.Create<BoundStatement>(
                         new BoundExpressionStatement(syntax, initializerInvocation),
-                        new BoundReturnStatement(syntax, null))));
+                        new BoundReturnStatement(syntax, RefKind.None, null))));
         }
     }
 }
