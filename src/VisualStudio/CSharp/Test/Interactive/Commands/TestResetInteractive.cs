@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
             return _waitIndicator;
         }
 
-        protected override Task<IEnumerable<string>> GetNamespacesToImport(IInteractiveWindow interactiveWindow)
+        protected override Task<IEnumerable<string>> GetNamespacesToImport(IEnumerable<string> namespacesToImport, IInteractiveWindow interactiveWindow)
         {
             return Task.FromResult((IEnumerable<string>)ExistingNamespaces);
         }

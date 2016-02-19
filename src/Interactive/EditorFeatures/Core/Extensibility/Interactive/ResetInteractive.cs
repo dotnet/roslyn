@@ -113,8 +113,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             var editorOptions = _editorOptionsFactoryService.GetOptions(interactiveWindow.CurrentLanguageBuffer);
             var importReferencesCommand = referencePaths.Select(_createReference);
             await interactiveWindow.SubmitAsync(importReferencesCommand).ConfigureAwait(true);
-            IEnumerable<string> namespaces = await GetNamespacesToImport(interactiveWindow).ConfigureAwait(true);
-            var importNamespacesCommand = namespacesToImport.Where((ns) => namespaces.Contains(ns)).Select(_createImport).Join(editorOptions.GetNewLineCharacter());
+
+            // Project's default namespace might be different from namespace used within project.
+            // Filter out namespace imports that do not exist in interactive compilation.
+            IEnumerable<string> existingNamespaces = await GetNamespacesToImport(namespacesToImport, interactiveWindow).ConfigureAwait(true);
+            var importNamespacesCommand = existingNamespaces.Select(_createImport).Join(editorOptions.GetNewLineCharacter());
 
             if (!string.IsNullOrWhiteSpace(importNamespacesCommand))
             {
@@ -122,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             }
         }
 
-        protected abstract Task<IEnumerable<string>> GetNamespacesToImport(IInteractiveWindow interactiveWindow);
+        protected abstract Task<IEnumerable<string>> GetNamespacesToImport(IEnumerable<string> namespacesToImport, IInteractiveWindow interactiveWindow);
 
         /// <summary>
         /// Gets the properties of the currently selected projects necessary for reset.

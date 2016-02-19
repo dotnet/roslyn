@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.CodeAnalysis.Text;
 using System.Linq;
+using core::Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -263,14 +264,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             return _componentModel.GetService<IWaitIndicator>();
         }
 
-        protected override async Task<IEnumerable<string>> GetNamespacesToImport(IInteractiveWindow interactiveWindow)
+        /// <summary>
+        /// Return namespaces that can be resolved in the latest interactive compilation.
+        /// </summary>
+        protected override async Task<IEnumerable<string>> GetNamespacesToImport(IEnumerable<string> namespacesToImport, IInteractiveWindow interactiveWindow)
         {
-            // Filter out namespace imports that do not exist in the compilation.
-            // Needed when project's default namespace is different from namespace used within project.
             var document = interactiveWindow.CurrentLanguageBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var compilation = await document.Project.GetCompilationAsync().ConfigureAwait(true);
-            var namespaces = new HashSet<string>(compilation.GlobalNamespace.GetNamespaceMembers().Select((ns) => ns.Name));
-            return namespaces;
+            return namespacesToImport.Where(ns => compilation.GlobalNamespace.GetQualifiedNamespace(ns) != null);
         }
     }
 }
