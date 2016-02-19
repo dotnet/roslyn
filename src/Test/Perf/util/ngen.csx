@@ -14,14 +14,12 @@ var ngen64 = Path.GetFullPath(Environment.GetFolderPath(Environment.SpecialFolde
 
 void NGen(string file, bool x86Only = false)
 {
-    // Have to remove the "fake sign" bit in order to ngen...
-    var result = ShellOut(fakeSign + " -u " + destinationFile);
-    if (!result.Succeeded)
-    {
-        return result.Code;
-    }
+    // We'll have to remove the "fake sign" bit in order to ngen.
+    // Note: "FakeSign -u" may fail for reasons that should not prevent us from trying to ngen
+    // (for instance, if the binary was not "fake signed" to begin with).
+    ShellOut(fakeSign + " -u " + destinationFile);
 
-    result = ShellOut(ngen, $"install {destinationFile} /nodependencies");
+    var result = ShellOut(ngen, $"install {destinationFile} /nodependencies");
     if (!result.Succeeded)
     {
         return result.Code;
