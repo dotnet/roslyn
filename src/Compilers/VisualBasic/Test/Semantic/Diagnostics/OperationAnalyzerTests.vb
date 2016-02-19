@@ -1654,5 +1654,43 @@ End Class
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?.M0(Nothing)").WithLocation(32, 9),
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1?.M0(Nothing)").WithLocation(32, 9))
         End Sub
+
+        <WorkItem(8955, "https://github.com/dotnet/roslyn/issues/8955")>
+        <Fact>
+        Public Sub ForToLoopConditionCrashVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Module M1
+    Class C1(Of t)
+        Shared Widening Operator CType(ByVal p1 As C1(Of t)) As Integer
+            Return 1
+        End Operator
+        Shared Widening Operator CType(ByVal p1 As Integer) As C1(Of t)
+            Return Nothing
+        End Operator
+        Shared Operator -(ByVal p1 As C1(Of t), ByVal p2 As C1(Of t)) As C1(Of Short)
+            Return Nothing
+        End Operator
+        Shared Operator +(ByVal p1 As C1(Of t), ByVal p2 As C1(Of t)) As C1(Of Integer)
+            Return Nothing
+        End Operator
+    End Class
+    Sub foo()
+        For i As C1(Of Integer) = 1 To 10
+        Next
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_UnacceptableForLoopOperator2, "For i As C1(Of Integer) = 1 To 10").WithArguments("Public Shared Operator -(p1 As M1.C1(Of Integer), p2 As M1.C1(Of Integer)) As M1.C1(Of Short)", "M1.C1(Of Integer)").WithLocation(17, 9),
+                                   Diagnostic(ERRID.ERR_ForLoopOperatorRequired2, "For i As C1(Of Integer) = 1 To 10").WithArguments("M1.C1(Of Integer)", "<=").WithLocation(17, 9),
+                                   Diagnostic(ERRID.ERR_ForLoopOperatorRequired2, "For i As C1(Of Integer) = 1 To 10").WithArguments("M1.C1(Of Integer)", ">=").WithLocation(17, 9))
+            comp.VerifyAnalyzerDiagnostics({New ForLoopConditionCrashVBTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(ForLoopConditionCrashVBTestAnalyzer.ForLoopConditionCrashDescriptor.Id, "10").WithLocation(17, 40))
+        End Sub
     End Class
 End Namespace
