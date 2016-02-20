@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly IReadOnlyList<Node> _nodes;
 
         /// <summary>
-        /// The task that produces he spell checker we use for fuzzy match queries.
+        /// The task that produces the spell checker we use for fuzzy match queries.
         /// We use a task so that we can generate the symbol tree info without having
         /// to wait for the spell checker construction to finish.
         /// 
