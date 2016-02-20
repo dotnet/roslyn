@@ -879,6 +879,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Returns <code>true</code> if a reference to referencedProject can be added to 
+        /// referencingProject.  <code>false</code> otherwise.
+        /// </summary>
+        internal virtual bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
+        {
+            return false;
+        }
+
+        /// <summary>
         /// Apply changes made to a solution back to the workspace.
         /// 
         /// The specified solution must be one that originated from this workspace. If it is not, or the workspace
