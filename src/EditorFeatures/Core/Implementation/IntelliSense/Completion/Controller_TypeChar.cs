@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return completionService.IsTriggerCharacter(previousPosition.Snapshot.AsText(), previousPosition, GetCompletionProviders(), options);
         }
 
-        private bool IsCommitCharacter(char typedChar)
+        private bool IsCommitCharacter(char ch)
         {
             AssertIsForeground();
 
@@ -327,28 +327,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var selectedItem = GetExternallyUsableCompletionItem(model.SelectedItem);
             if (selectedItem.IsBuilder)
             {
-                return char.IsLetterOrDigit(typedChar);
+                return char.IsLetterOrDigit(ch);
             }
 
-            var snapshot = this.TextView.TextSnapshot;
-            var editSpan = model.GetCurrentSpanInSnapshot(model.GetSubjectBufferFilterSpanInViewBuffer(selectedItem.FilterSpan), snapshot);
-            var spanStart = (int)editSpan.Start;
-            var caretPosition = (int)GetCaretPointInViewBuffer();
+            var filterText = GetCurrentFilterText(model, selectedItem);
 
-            var filterText = snapshot.GetText(Span.FromBounds(spanStart, caretPosition));
-            var isCommitCharacter = GetCompletionRules().IsCommitCharacter(selectedItem, typedChar, filterText);
-
-            // When a character, even appears to be a commit character, was typed at the begining of the filter span when it was not empty,
-            // it's most likely that the user just realized he/she forgot to do something, pressed Ctrl+Left and typed it.
-            // i.e. blah| -> |blah -> !|blah
-            // We should not commit the selected item in the above case.
-            // But be careful we still want completion in the following case: A a = new | -> A a = new (|
-            if (isCommitCharacter && caretPosition == spanStart + 1 && editSpan.Length > 1)
-            {
-                return false;
-            }
-
-            return isCommitCharacter;
+            return GetCompletionRules().IsCommitCharacter(selectedItem, ch, filterText);
         }
 
         private bool IsFilterCharacter(char ch)
@@ -373,12 +357,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return GetCompletionRules().IsFilterCharacter(selectedItem, ch, filterText);
         }
 
-        private string GetCurrentFilterText(Model model, CompletionItem selectedItem, bool stopBeforeCaret = true)
+        private string GetCurrentFilterText(Model model, CompletionItem selectedItem)
         {
             var textSnapshot = this.TextView.TextSnapshot;
             var viewSpan = model.GetSubjectBufferFilterSpanInViewBuffer(selectedItem.FilterSpan);
             var filterText = model.GetCurrentTextInSnapshot(
-                viewSpan, textSnapshot, endPoint: stopBeforeCaret ? (int?)GetCaretPointInViewBuffer() : null);
+                viewSpan, textSnapshot, GetCaretPointInViewBuffer());
             return filterText;
         }
 
