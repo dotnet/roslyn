@@ -102,7 +102,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                             if (description != null)
                             {
                                 var action = new MyCodeAction(description, reference.GetGlyph(document),
-                                    c => this.AddImportAndReferenceAsync(node, reference, document, placeSystemNamespaceFirst, c));
+                                    c => this.AddImportAndReferenceAsync(node, reference, document, placeSystemNamespaceFirst, c),
+                                    reference.GetIsApplicableCheck(document.Project));
                                 context.RegisterCodeFix(action, diagnostic);
                             }
                         }
@@ -442,14 +443,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
             private readonly Glyph? _glyph;
+            private readonly Func<Workspace, bool> _isApplicable;
 
-            public MyCodeAction(string title, Glyph? glyph, Func<CancellationToken, Task<Solution>> createChangedSolution) :
+            public MyCodeAction(
+                string title,
+                Glyph? glyph,
+                Func<CancellationToken, Task<Solution>> createChangedSolution,
+                Func<Workspace, bool> isApplicable = null) :
                 base(title, createChangedSolution, equivalenceKey: title)
             {
                 _glyph = glyph;
+                _isApplicable = isApplicable;
             }
 
             internal override int? Glyph => _glyph.HasValue ? (int)_glyph.Value : (int?)null;
+
+            internal override bool PerformFinalApplicabilityCheck => _isApplicable != null;
+
+            internal override bool IsApplicable(Workspace workspace)
+            {
+                return _isApplicable == null ? true : _isApplicable(workspace);
+            }
         }
 
         private struct SearchResult<T> where T : ISymbol
