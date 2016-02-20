@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Func<T, VersionStamp> getVersion,
             Func<ObjectReader, T> readObject,
             Action<ObjectWriter, T> writeObject,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken) where T : class
         {
             // See if we can even use serialization.  If not, we'll just have to make the value
             // from scratch.
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             VersionStamp version;
             if (ShouldCreateFromScratch(solution, assembly, filePath, out prefix, out version, cancellationToken))
             {
-                return loadOnly ? default(T) : create(VersionStamp.Default);
+                return loadOnly ? null : create(VersionStamp.Default);
             }
 
             // Ok, we can use persistence.  First try to load from the persistence service.
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // to do at this point.
                 if (loadOnly)
                 {
-                    return default(T);
+                    return null;
                 }
 
                 // Now, try to create a new instance and write it to the persistence service.
