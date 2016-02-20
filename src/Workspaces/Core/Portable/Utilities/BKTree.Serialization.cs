@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Roslyn.Utilities
 {
@@ -29,7 +30,8 @@ namespace Roslyn.Utilities
 
         internal static BKTree ReadFrom(ObjectReader reader)
         {
-            try {
+            try
+            {
                 var concatenatedLowerCaseWords = new char[reader.ReadInt32()];
                 for (var i = 0; i < concatenatedLowerCaseWords.Length; i++)
                 {
@@ -54,6 +56,7 @@ namespace Roslyn.Utilities
             }
             catch
             {
+                Logger.Log(FunctionId.BKTree_ExceptionInCacheRead);
                 return null;
             }
         }

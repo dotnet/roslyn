@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Roslyn.Utilities
 {
@@ -60,6 +61,7 @@ namespace Roslyn.Utilities
             }
             catch
             {
+                Logger.Log(FunctionId.SpellChecker_ExceptionInCacheRead);
             }
 
             return null;

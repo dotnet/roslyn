@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -222,8 +223,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return new SymbolTreeInfo(version, nodes, spellCheckerTask);
                 }
             }
-            catch (Exception)
+            catch
             {
+                Logger.Log(FunctionId.SymbolTreeInfo_ExceptionInCacheRead);
             }
 
             return null;
