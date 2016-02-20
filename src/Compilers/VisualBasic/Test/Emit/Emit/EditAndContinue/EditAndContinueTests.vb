@@ -4273,6 +4273,120 @@ End Class
             diff2.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "2"))
         End Sub
 
+        <Fact>
+        Public Sub AnonymousDelegates1()
+            Dim source0 = MarkedSource("
+Class C
+    Private Sub F()
+        Dim <N:0>g</N:0> = <N:1>Function(ByRef arg As String) arg</N:1>
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+")
+            Dim source1 = MarkedSource("
+Class C
+    Private Sub F()
+        Dim <N:0>g</N:0> = <N:1>Function(ByRef arg As String) arg</N:1>
+        System.Console.WriteLine(2)
+    End Sub
+End Class
+")
+            Dim source2 = MarkedSource("
+Class C
+    Private Sub F()
+        Dim <N:0>g</N:0> = <N:1>Function(ByRef arg As String) arg</N:1>
+        System.Console.WriteLine(3)
+    End Sub
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib({source0.Tree}, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+            Dim compilation2 = compilation1.WithSource(source2.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            v0.VerifyIL("C.F", "
+{
+  // Code size       46 (0x2e)
+  .maxstack  2
+  .locals init (VB$AnonymousDelegate_0(Of String, String) V_0) //g
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
+  IL_0006:  brfalse.s  IL_000f
+  IL_0008:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
+  IL_000d:  br.s       IL_0025
+  IL_000f:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
+  IL_0014:  ldftn      ""Function C._Closure$__._Lambda$__1-0(ByRef String) As String""
+  IL_001a:  newobj     ""Sub VB$AnonymousDelegate_0(Of String, String)..ctor(Object, System.IntPtr)""
+  IL_001f:  dup
+  IL_0020:  stsfld     ""C._Closure$__.$I1-0 As <generated method>""
+  IL_0025:  stloc.0
+  IL_0026:  ldc.i4.1
+  IL_0027:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_002c:  nop
+  IL_002d:  ret
+}
+")
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+            Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
+
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.VerifyIL("C.F", "
+{
+  // Code size       46 (0x2e)
+  .maxstack  2
+  .locals init (VB$AnonymousDelegate_0(Of String, String) V_0) //g
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
+  IL_0006:  brfalse.s  IL_000f
+  IL_0008:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
+  IL_000d:  br.s       IL_0025
+  IL_000f:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
+  IL_0014:  ldftn      ""Function C._Closure$__._Lambda$__1-0(ByRef String) As String""
+  IL_001a:  newobj     ""Sub VB$AnonymousDelegate_0(Of String, String)..ctor(Object, System.IntPtr)""
+  IL_001f:  dup
+  IL_0020:  stsfld     ""C._Closure$__.$I1-0 As <generated method>""
+  IL_0025:  stloc.0
+  IL_0026:  ldc.i4.2
+  IL_0027:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_002c:  nop
+  IL_002d:  ret
+}
+")
+            Dim diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+
+            diff2.VerifyIL("C.F", "
+{
+  // Code size       46 (0x2e)
+  .maxstack  2
+  .locals init (VB$AnonymousDelegate_0(Of String, String) V_0) //g
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
+  IL_0006:  brfalse.s  IL_000f
+  IL_0008:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
+  IL_000d:  br.s       IL_0025
+  IL_000f:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
+  IL_0014:  ldftn      ""Function C._Closure$__._Lambda$__1-0(ByRef String) As String""
+  IL_001a:  newobj     ""Sub VB$AnonymousDelegate_0(Of String, String)..ctor(Object, System.IntPtr)""
+  IL_001f:  dup
+  IL_0020:  stsfld     ""C._Closure$__.$I1-0 As <generated method>""
+  IL_0025:  stloc.0
+  IL_0026:  ldc.i4.3
+  IL_0027:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_002c:  nop
+  IL_002d:  ret
+}
+")
+        End Sub
+
         ''' <summary>
         ''' Should not re-use locals with custom modifiers.
         ''' </summary>
