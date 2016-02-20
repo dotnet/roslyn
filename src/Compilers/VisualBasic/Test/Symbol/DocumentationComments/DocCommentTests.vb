@@ -7646,7 +7646,7 @@ AssemblyName
                 stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8807")>
         Public Sub Include_Cycle_WRN_XMLDocInvalidXMLFragment()
             Dim xmlText =
 <root>
