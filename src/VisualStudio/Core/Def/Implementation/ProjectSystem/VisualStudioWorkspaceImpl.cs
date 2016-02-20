@@ -1040,6 +1040,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             this.OnAdditionalDocumentTextLoaderChanged(documentId, vsDoc.Loader);
         }
 
+        internal void OnIsComplete(ProjectId projectId, bool succeeded)
+        {
+            // this can't be null
+            var state = CurrentSolution.GetProjectState(projectId);
+            Contract.ThrowIfNull(state);
+
+            // if state is different than what we have
+            if (succeeded != state.ProjectInfo.IsComplete)
+            {
+                OnProjectReloaded(state.ProjectInfo.WithIsComplete(succeeded));
+            }
+        }
+
         public TInterface GetVsService<TService, TInterface>()
             where TService : class
             where TInterface : class
@@ -1131,7 +1144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// A trivial implementation of <see cref="IVisualStudioWorkspaceHost" /> that just
         /// forwards the calls down to the underlying Workspace.
         /// </summary>
-        protected class VisualStudioWorkspaceHost : IVisualStudioWorkspaceHost, IVisualStudioWorkingFolder
+        protected sealed class VisualStudioWorkspaceHost : IVisualStudioWorkspaceHost, IVisualStudioWorkspaceHost2, IVisualStudioWorkingFolder
         {
             private readonly VisualStudioWorkspaceImpl _workspace;
 
@@ -1365,6 +1378,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             void IVisualStudioWorkspaceHost.OnAdditionalDocumentTextUpdatedOnDisk(DocumentId id)
             {
                 _workspace.OnAdditionalDocumentTextUpdatedOnDisk(id);
+            }
+
+            void IVisualStudioWorkspaceHost2.OnIsComplete(ProjectId projectId, bool succeeded)
+            {
+                _workspace.OnIsComplete(projectId, succeeded);
             }
 
             void IVisualStudioWorkingFolder.OnBeforeWorkingFolderChange()

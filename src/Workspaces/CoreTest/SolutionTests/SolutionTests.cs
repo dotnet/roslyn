@@ -1404,8 +1404,8 @@ public class C : A {
                     projectReferences: new[] { new ProjectReference(project1.Id) }));
 
             // Nothing should have incomplete references, and everything should build
-            Assert.True(project1.HasCompleteReferencesAsync().Result);
-            Assert.True(project2.HasCompleteReferencesAsync().Result);
+            Assert.True(project1.IsCompleteAsync().Result);
+            Assert.True(project2.IsCompleteAsync().Result);
             Assert.Single(project2.GetCompilationAsync().Result.ExternalReferences);
         }
 
@@ -1425,8 +1425,8 @@ public class C : A {
                     LanguageNames.VisualBasic,
                     projectReferences: new[] { new ProjectReference(project1.Id) }));
 
-            Assert.True(project1.HasCompleteReferencesAsync().Result);
-            Assert.False(project2.HasCompleteReferencesAsync().Result);
+            Assert.True(project1.IsCompleteAsync().Result);
+            Assert.False(project2.IsCompleteAsync().Result);
             Assert.Empty(project2.GetCompilationAsync().Result.ExternalReferences);
         }
 
@@ -1450,8 +1450,81 @@ public class C : A {
             // Nothing should have incomplete references, and everything should build
             var frozenSolution = document.WithFrozenPartialSemanticsAsync(CancellationToken.None).Result.Project.Solution;
 
-            Assert.True(frozenSolution.GetProject(project1.Id).HasCompleteReferencesAsync().Result);
-            Assert.True(frozenSolution.GetProject(project2.Id).HasCompleteReferencesAsync().Result);
+            Assert.True(frozenSolution.GetProject(project1.Id).IsCompleteAsync().Result);
+            Assert.True(frozenSolution.GetProject(project2.Id).IsCompleteAsync().Result);
+        }
+
+        [Fact]
+        public void TestProjectCompletenessWithMultipleProjects()
+        {
+            var workspace = new AdhocWorkspace();
+            var csBrokenProject = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "CSharpProject",
+                    "CSharpProject",
+                    LanguageNames.CSharp).WithIsComplete(isComplete: false));
+
+            var vbProject = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "VisualBasicProject",
+                    "VisualBasicProject",
+                    LanguageNames.VisualBasic));
+
+            var dependsOnBrokenProject = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "VisualBasicProject",
+                    "VisualBasicProject",
+                    LanguageNames.VisualBasic,
+                    projectReferences: new[] { new ProjectReference(csBrokenProject.Id), new ProjectReference(vbProject.Id) }));
+
+            var dependsOnVbProject = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "CSharpProject",
+                    "CSharpProject",
+                    LanguageNames.CSharp,
+                    projectReferences: new[] { new ProjectReference(vbProject.Id) }));
+
+            var transitivelyDependsOnBrokenProjects = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "CSharpProject",
+                    "CSharpProject",
+                    LanguageNames.CSharp,
+                    projectReferences: new[] { new ProjectReference(dependsOnBrokenProject.Id) }));
+
+            var transitivelyDependsOnProjects = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "VisualBasicProject",
+                    "VisualBasicProject",
+                    LanguageNames.VisualBasic,
+                    projectReferences: new[] { new ProjectReference(dependsOnVbProject.Id) }));
+
+            Assert.False(csBrokenProject.IsCompleteAsync().Result);
+            Assert.True(vbProject.IsCompleteAsync().Result);
+            Assert.True(dependsOnBrokenProject.IsCompleteAsync().Result);
+            Assert.True(dependsOnVbProject.IsCompleteAsync().Result);
+            Assert.True(transitivelyDependsOnBrokenProjects.IsCompleteAsync().Result);
+            Assert.True(transitivelyDependsOnProjects.IsCompleteAsync().Result);
+
+            Assert.False(csBrokenProject.IsDependentCompleteAsync().Result);
+            Assert.True(vbProject.IsDependentCompleteAsync().Result);
+            Assert.False(dependsOnBrokenProject.IsDependentCompleteAsync().Result);
+            Assert.True(dependsOnVbProject.IsDependentCompleteAsync().Result);
+            Assert.False(transitivelyDependsOnBrokenProjects.IsDependentCompleteAsync().Result);
+            Assert.True(transitivelyDependsOnProjects.IsDependentCompleteAsync().Result);
+
+            Assert.Equal(2, dependsOnBrokenProject.GetCompilationAsync().Result.ExternalReferences.Count());
         }
     }
 }

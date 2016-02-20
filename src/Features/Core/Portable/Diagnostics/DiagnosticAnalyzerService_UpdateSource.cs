@@ -42,17 +42,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal void RaiseDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs args)
+        internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
         {
-            // raise serialized events
+            // all diagnostics events are serialized.
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
             if (ev.HasHandlers)
             {
                 var asyncToken = Listener.BeginAsyncOperation(nameof(RaiseDiagnosticsUpdated));
-                _eventQueue.ScheduleTask(() =>
-                {
-                    ev.RaiseEvent(handler => handler(sender, args));
-                }).CompletesAsyncOperation(asyncToken);
+                _eventQueue.ScheduleTask(() => ev.RaiseEvent(handler => handler(this, args))).CompletesAsyncOperation(asyncToken);
+            }
+        }
+
+        internal void RaiseBulkDiagnosticsUpdated(Action<Action<DiagnosticsUpdatedArgs>> eventAction)
+        {
+            // all diagnostics events are serialized.
+            var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
+            if (ev.HasHandlers)
+            {
+                Action<DiagnosticsUpdatedArgs> raiseEvents = args => ev.RaiseEvent(handler => handler(this, args));
+
+                var asyncToken = Listener.BeginAsyncOperation(nameof(RaiseDiagnosticsUpdated));
+                _eventQueue.ScheduleTask(() => eventAction(raiseEvents)).CompletesAsyncOperation(asyncToken);
             }
         }
 

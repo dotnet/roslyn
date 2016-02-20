@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis
         private readonly IReadOnlyList<DocumentId> _additionalDocumentIds;
         private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentVersion;
         private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentTopLevelChangeVersion;
-        private AnalyzerOptions _analyzerOptions;
+
+        // this will be initialized lazily.
+        private AnalyzerOptions _doNotAccessDirectlyAnalyzerOptions;
 
         private ProjectState(
             ProjectInfo projectInfo,
@@ -231,12 +233,12 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_analyzerOptions == null)
+                if (_doNotAccessDirectlyAnalyzerOptions == null)
                 {
-                    _analyzerOptions = new AnalyzerOptions(_additionalDocumentStates.Values.Select(d => new AdditionalTextDocument(d)).ToImmutableArray<AdditionalText>());
+                    _doNotAccessDirectlyAnalyzerOptions = new AnalyzerOptions(_additionalDocumentStates.Values.Select(d => new AdditionalTextDocument(d)).ToImmutableArray<AdditionalText>());
                 }
 
-                return _analyzerOptions;
+                return _doNotAccessDirectlyAnalyzerOptions;
             }
         }
 

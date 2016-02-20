@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public ProjectInfo CreateProjectInfoForCurrentState()
             {
-                return ProjectInfo.Create(
+                var info = ProjectInfo.Create(
                     this.Id,
                     _version,
                     name: ServicesVSResources.MiscellaneousFiles,
@@ -60,6 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     metadataReferences: _metadataReferences,
                     isSubmission: false,
                     hostObjectType: null);
+
+                return info.WithIsComplete(isComplete: false);
             }
 
             public Microsoft.VisualStudio.Shell.Interop.IVsHierarchy Hierarchy => null;
