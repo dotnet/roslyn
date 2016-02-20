@@ -554,6 +554,17 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to To see what caused the issue, see the log file below.
+        ///
+        ///Open &apos;{0}&apos; and look for the failed tasks (FAILED).
+        /// </summary>
+        internal static string IntellisenseBuildFailedDescriptionWithLog {
+            get {
+                return ResourceManager.GetString("IntellisenseBuildFailedDescriptionWithLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error encountered while loading the project. Some project features, such as full solution analysis for the failed project and projects that depend on it, have been disabled..
         /// </summary>
         internal static string IntellisenseBuildFailedMessage {

@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void SetIntellisenseBuildResult(bool succeeded, string reason)
         {
-            
+
             // set intellisense related info
             _intellisenseBuildSucceeded = succeeded;
             _intellisenseBuildFailureReason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
@@ -69,9 +69,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ServicesVSResources.IntellisenseBuildFailedMessage,
                 ServicesVSResources.ResourceManager.GetString(nameof(ServicesVSResources.IntellisenseBuildFailedMessage), CodeAnalysis.Diagnostics.Extensions.s_USCultureInfo),
                 DiagnosticSeverity.Warning,
-                isEnabledByDefault: true, 
-                warningLevel: 0, 
-                workspace: Workspace, 
+                isEnabledByDefault: true,
+                warningLevel: 0,
+                workspace: Workspace,
                 projectId: Id,
                 title: ServicesVSResources.IntellisenseBuildFailedTitle,
                 description: GetDescription(reason));
@@ -79,13 +79,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private string GetDescription(string reason)
         {
-            var logFile = string.Format(ServicesVSResources.IntellisenseBuildFailedDescription, GetLogFile());
+            var logFilePath = GetLogFile();
+            var logFileDescription = string.Format(
+                    logFilePath == null ? ServicesVSResources.IntellisenseBuildFailedDescription : ServicesVSResources.IntellisenseBuildFailedDescriptionWithLog,
+                    logFilePath ?? GeneralLogFile);
+
             if (string.IsNullOrWhiteSpace(reason))
             {
-                return logFile;
+                return logFileDescription;
             }
 
-            return string.Join(Environment.NewLine, logFile, string.Empty, ServicesVSResources.IntellisenseBuildFailedDescriptionExtra, reason);
+            return string.Join(Environment.NewLine, logFileDescription, string.Empty, ServicesVSResources.IntellisenseBuildFailedDescriptionExtra, reason);
         }
 
         private string GetLogFile()
@@ -93,19 +97,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var manager = BuildManager.DefaultBuildManager;
             if (manager == null)
             {
-                return GeneralLogFile;
+                return null;
             }
 
             var buildParameters = s_fieldInfo.GetValue(manager) as BuildParameters;
             if (buildParameters == null)
             {
-                return GeneralLogFile;
+                return null;
             }
 
             var fileLogger = buildParameters.Loggers?.OfType<FileLogger>()?.FirstOrDefault();
             if (fileLogger == null || fileLogger.Parameters == null)
             {
-                return GeneralLogFile;
+                return null;
             }
 
             const string logFile = "logfile=";
@@ -115,13 +119,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var endIndex = fileLogger.Parameters.IndexOf(designTime, StringComparison.OrdinalIgnoreCase);
             if (startIndex < 0 || endIndex < 0 || endIndex <= startIndex + logFile.Length)
             {
-                return GeneralLogFile;
+                return null;
             }
 
             var logFilename = fileLogger.Parameters.Substring(startIndex + logFile.Length, endIndex - startIndex - logFile.Length) + designTime;
             if (!File.Exists(logFilename))
             {
-                return GeneralLogFile;
+                return null;
             }
 
             return logFilename;

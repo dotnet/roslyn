@@ -532,4 +532,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="IntellisenseBuildFailedDescriptionExtra" xml:space="preserve">
     <value>Additional information:</value>
   </data>
+  <data name="IntellisenseBuildFailedDescriptionWithLog" xml:space="preserve">
+    <value>To see what caused the issue, see the log file below.
+
+Open '{0}' and look for the failed tasks (FAILED)</value>
+  </data>
 </root>
