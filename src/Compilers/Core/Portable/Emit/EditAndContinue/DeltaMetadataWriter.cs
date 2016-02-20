@@ -340,22 +340,14 @@ namespace Microsoft.CodeAnalysis.Emit
 
         protected override int GetOrAddAssemblyRefIndex(AssemblyIdentity reference)
         {
-            return _assemblyRefIndex.GetOrAdd(reference);
+            AssemblyIdentity mapped;
+            var map = _previousGeneration.InitialBaseline.LazyMetadataSymbols.AssemblyReferenceIdentityMap;
+            return _assemblyRefIndex.GetOrAdd(map.TryGetValue(reference, out mapped) ? mapped : reference);
         }
 
         protected override IReadOnlyList<AssemblyIdentity> GetAssemblyRefs()
         {
-            if (_previousGeneration.InitialBaseline.LazyMetadataSymbols.AssemblyReferenceIdentityMap.IsEmpty)
-            {
-                return _assemblyRefIndex.Rows;
-            }
-
-            // only happens in presence of wildcard versions:
-            return _assemblyRefIndex.Rows.Select(identity =>
-            {
-                AssemblyIdentity mapped;
-                return _previousGeneration.InitialBaseline.LazyMetadataSymbols.AssemblyReferenceIdentityMap.TryGetValue(identity, out mapped) ? mapped : identity;
-            }).Distinct().ToArray();
+            return _assemblyRefIndex.Rows;
         }
 
         protected override int GetOrAddModuleRefIndex(string reference)

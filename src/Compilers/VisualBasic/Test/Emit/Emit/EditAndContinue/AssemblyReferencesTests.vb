@@ -18,6 +18,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class AssemblyReferencesTests
         Inherits EditAndContinueTestBase
 
+        Private Shared s_signedDll As VisualBasicCompilationOptions =
+            TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2)
+
         ''' <summary>
         ''' Symbol matcher considers two source types that only differ in the declaring compilations different.
         ''' </summary>
@@ -170,6 +173,74 @@ End Class
                 "mscorlib, 4.0.0.0",
                 "Lib, " & lib0.Assembly.Identity.Version.ToString()
             })
+        End Sub
+
+        <Fact>
+        Public Sub DependencyVersionWildcardsCollisions()
+            Dim srcLib01 = "
+<Assembly: System.Reflection.AssemblyVersion(""1.0.0.1"")>
+
+Public Class D0
+End Class
+"
+            Dim srcLib02 = "
+<Assembly: System.Reflection.AssemblyVersion(""1.0.0.2"")>
+
+Public Class D0
+End Class
+"
+            Dim srcLib11 = "
+<Assembly: System.Reflection.AssemblyVersion(""1.0.1.1"")>
+
+Public Class D1
+End Class
+"
+            Dim srcLib12 = "
+<Assembly: System.Reflection.AssemblyVersion(""1.0.1.2"")>
+
+Public Class D1
+End Class 
+"
+            Dim src0 = "
+Class C 
+    Public Shared Function F(a As D0, b As D1) As Integer
+        Return 1
+    End Function
+End Class
+"
+            Dim src1 = "
+Class C 
+    Public Shared Function F(a As D0, b As D1) As Integer
+        Return 2
+    End Function
+End Class
+"
+            Dim lib01 = CreateCompilationWithMscorlib({srcLib01}, assemblyName:="Lib", options:=s_signedDll).VerifyDiagnostics()
+            Dim ref01 = lib01.ToMetadataReference()
+            Dim lib02 = CreateCompilationWithMscorlib({srcLib02}, assemblyName:="Lib", options:=s_signedDll).VerifyDiagnostics()
+            Dim ref02 = lib02.ToMetadataReference()
+            Dim lib11 = CreateCompilationWithMscorlib({srcLib11}, assemblyName:="Lib", options:=s_signedDll).VerifyDiagnostics()
+            Dim ref11 = lib11.ToMetadataReference()
+            Dim lib12 = CreateCompilationWithMscorlib({srcLib12}, assemblyName:="Lib", options:=s_signedDll).VerifyDiagnostics()
+            Dim ref12 = lib12.ToMetadataReference()
+
+            Dim compilation0 = CreateCompilationWithMscorlib({src0}, {ref01, ref11}, assemblyName:="C", options:=TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(src1).WithReferences({MscorlibRef, ref02, ref12})
+
+            Dim v0 = CompileAndVerify(compilation0)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+
+            Dim diff1 = compilation1.EmitDifference(generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1)))
+
+            diff1.EmitResult.Diagnostics.Verify(
+                Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments("C"))
         End Sub
 
         Public Sub VerifyAssemblyReferences(reader As AggregatedMetadataReader, expected As String())

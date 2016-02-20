@@ -186,16 +186,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '''  time-based versioning pattern, e.g. AssemblyVersion("1.0.*"). In that case we assume only the version
             '''  changed And nothing else.
             '''  
-            '''  Each AssemblyRef Is matched against the assembly identities using an exact equality comparison modulo version. 
-            '''  AssemblyRef with lower version in metadata Is matched to a PE assembly symbol with the higher version 
-            '''  (provided that the assembly name, culture, PKT And flags are the same) if there Is no symbol with the exactly matching version. 
+            '''  Each AssemblyRef is matched against the assembly identities using an exact equality comparison modulo version. 
+            '''  AssemblyRef with lower version in metadata is matched to a PE assembly symbol with the higher version 
+            '''  (provided that the assembly name, culture, PKT And flags are the same) if there is no symbol with the exactly matching version. 
             '''  If there are multiple symbols with higher versions selects the one with the minimal version among them.
             '''  
-            '''  Matching to a higher version Is necessary to support EnC for projects whose P2P dependencies use time-based versioning pattern. 
+            '''  Matching to a higher version is necessary to support EnC for projects whose P2P dependencies use time-based versioning pattern. 
             '''  The versions of the dependent projects seen from the IDE will be higher than 
             '''  the one written in the metadata at the time their respective baselines are built.
             '''  
-            '''  No other unification Or further resolution Is performed.
+            '''  No other unification or further resolution is performed.
             '''  </remarks>
             ''' <param name="metadata"></param>
             ''' <param name="importOptions"></param>

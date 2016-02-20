@@ -503,6 +503,8 @@ namespace Microsoft.CodeAnalysis
                 var symbolIdentity = symbols[i].Identity;
                 var originalIdentity = originalIdentities[i];
 
+                Debug.Assert(AssemblyIdentityComparer.SimpleNameComparer.Equals(originalIdentity.Name, symbolIdentity.Name));
+
                 if (originalIdentity.Version != symbolIdentity.Version)
                 {
                     lazyBuilder = lazyBuilder ?? ImmutableDictionary.CreateBuilder<AssemblyIdentity, AssemblyIdentity>(AssemblyIdentityEqualityIgnoringBuildAndRevisionComparer.Instance);
@@ -510,11 +512,8 @@ namespace Microsoft.CodeAnalysis
                     AssemblyIdentity anotherOriginalIdentity;
                     if (lazyBuilder.TryGetValue(symbolIdentity, out anotherOriginalIdentity))
                     {
-                        // We have two assembly symbols with same identity modulo build and revision versions.
-                        // Pick the higher version. This si somewhat arbitrary since we don't really know whether 
-                        // the versions had a wildcard and on what position they had it. To be precise we'd need
-                        // the compiler to store the original form of the version (including the wildcard) to metadata.
-                        lazyBuilder[symbolIdentity] = (originalIdentity.Version > anotherOriginalIdentity.Version) ? originalIdentity : anotherOriginalIdentity;
+                        // TODO: localize message, report as diagnostic (https://github.com/dotnet/roslyn/issues/8910)
+                        throw new NotSupportedException("The compilation references multiple assemblies whose versions only differ in build or revision number.");
                     }
                     else
                     {

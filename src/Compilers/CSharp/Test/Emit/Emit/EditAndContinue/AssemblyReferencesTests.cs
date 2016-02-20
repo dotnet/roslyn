@@ -22,6 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class AssemblyReferencesTests : EditAndContinueTestBase
     {
+        private static readonly CSharpCompilationOptions s_signedDll =
+            TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2);
+
         /// <summary>
         /// The baseline metadata might have less (or even different) references than
         /// the current compilation. We shouldn't assume that the reference sets are the same.
@@ -319,6 +322,81 @@ class C
                 "mscorlib, 4.0.0.0",
                 "Lib, " + lib0.Assembly.Identity.Version,
             });
+        }
+        
+        [Fact]
+        public void DependencyVersionWildcardsCollisions()
+        {
+            string srcLib01 = @"
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.1"")]
+
+public class D { }
+";
+            string srcLib02 = @"
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.2"")]
+
+public class D { }
+";
+
+            string srcLib11 = @"
+[assembly: System.Reflection.AssemblyVersion(""1.0.1.1"")]
+
+public class D { }
+";
+            string srcLib12 = @"
+[assembly: System.Reflection.AssemblyVersion(""1.0.1.2"")]
+
+public class D { }
+";
+
+            string src0 = @"
+extern alias L0;
+extern alias L1;
+
+class C 
+{ 
+    public static int F(L0::D a, L1::D b) => 1;
+}
+";
+            string src1 = @"
+extern alias L0;
+extern alias L1;
+
+class C 
+{ 
+    public static int F(L0::D a, L1::D b) => 2;
+}
+";
+            var lib01 = CreateCompilationWithMscorlib(srcLib01, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            var ref01 = lib01.ToMetadataReference(ImmutableArray.Create("L0"));
+
+            var lib02 = CreateCompilationWithMscorlib(srcLib02, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            var ref02 = lib02.ToMetadataReference(ImmutableArray.Create("L0"));
+
+            var lib11 = CreateCompilationWithMscorlib(srcLib11, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            var ref11 = lib11.ToMetadataReference(ImmutableArray.Create("L1"));
+
+            var lib12 = CreateCompilationWithMscorlib(srcLib12, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            var ref12 = lib12.ToMetadataReference(ImmutableArray.Create("L1"));
+
+            var compilation0 = CreateCompilation(src0, new[] { MscorlibRef, ref01, ref11 }, assemblyName: "C", options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, ref02, ref12 });
+
+            var v0 = CompileAndVerify(compilation0);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
+
+            diff1.EmitResult.Diagnostics.Verify(
+                // error CS7038: Failed to emit module 'The compilation references multiple assemblies whose versions only differ in build or revision number.'.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("C"));
         }
 
         public void VerifyAssemblyReferences(AggregatedMetadataReader reader, string[] expected)
