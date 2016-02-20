@@ -124,6 +124,35 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 current = current._next;
             }
 
+            // Find the document for the first non-hidden sequence point (issue #4370)
+            current = this;
+            while (current != null)
+            {
+                for (var i = 0; i < this._points.Length; i++)
+                {
+                    var span = this._points[i].Span;
+                    bool isHidden = span == RawSequencePoint.HiddenSequencePointSpan;
+                    if (!isHidden)
+                    {
+                        FileLinePositionSpan fileLinePositionSpan = this._tree.GetMappedLineSpanAndVisibility(span, out isHidden);
+                        if (!isHidden)
+                        {
+                            lastPath = fileLinePositionSpan.Path;
+                            lastPathIsMapped = fileLinePositionSpan.HasMappedPath;
+                            lastDebugDocument = documentProvider(lastPath, basePath: lastPathIsMapped ? this._tree.FilePath : null);
+
+                            current = null;
+                            break;
+                        }
+                    }
+                }
+                if (current != null)
+                {
+                    current = current._next;
+                }
+            }
+            
+
             ArrayBuilder<Cci.SequencePoint> result = ArrayBuilder<Cci.SequencePoint>.GetInstance(count);
             current = this;
             while (current != null)

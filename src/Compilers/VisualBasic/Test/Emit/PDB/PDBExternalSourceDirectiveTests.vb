@@ -69,8 +69,8 @@ End Class
         </method>
         <method containingType="C1" name="Main">
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x1" hidden="true" document="1"/>
+                <entry offset="0x0" hidden="true" document="2"/>
+                <entry offset="0x1" hidden="true" document="2"/>
                 <entry offset="0xc" startLine="23" startColumn="9" endLine="23" endColumn="41" document="2"/>
                 <entry offset="0x17" hidden="true" document="2"/>
                 <entry offset="0x22" hidden="true" document="2"/>
@@ -170,8 +170,8 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x1" hidden="true" document="1"/>
+                <entry offset="0x0" hidden="true" document="2"/>
+                <entry offset="0x1" hidden="true" document="2"/>
                 <entry offset="0xc" startLine="23" startColumn="9" endLine="23" endColumn="41" document="2"/>
                 <entry offset="0x17" startLine="24" startColumn="9" endLine="24" endColumn="41" document="2"/>
                 <entry offset="0x22" startLine="44" startColumn="9" endLine="44" endColumn="46" document="3"/>
@@ -578,17 +578,17 @@ End Class
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="C:\Abc\ACTUAL.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="27, 52, E9, 85, 5A, AC, 31,  5, A5, 6F, 70, 40, 55, 3A, 9C, 43, D2,  7,  D, 4B, "/>
-        <file id="2" name="C:\abc\def1.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-        <file id="3" name="C:\abc\def2.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a799" checkSum="12, 34, "/>
+        <file id="1" name="C:\abc\def1.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="2" name="C:\abc\def2.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a799" checkSum="12, 34, "/>
+        <file id="3" name="C:\Abc\ACTUAL.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="27, 52, E9, 85, 5A, AC, 31,  5, A5, 6F, 70, 40, 55, 3A, 9C, 43, D2,  7,  D, 4B, "/>
     </files>
     <entryPoint declaringType="C1" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="C1" name=".ctor">
             <sequencePoints>
                 <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x7" startLine="46" startColumn="12" endLine="46" endColumn="30" document="2"/>
-                <entry offset="0xf" startLine="27" startColumn="36" endLine="27" endColumn="54" document="3"/>
+                <entry offset="0x7" startLine="46" startColumn="12" endLine="46" endColumn="30" document="1"/>
+                <entry offset="0xf" startLine="27" startColumn="36" endLine="27" endColumn="54" document="2"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x18">
                 <namespace name="System" importlevel="file"/>
@@ -597,10 +597,10 @@ End Class
         </method>
         <method containingType="C1" name="DumpFields">
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="28" document="2"/>
-                <entry offset="0x1" startLine="11" startColumn="9" endLine="11" endColumn="30" document="2"/>
-                <entry offset="0xd" startLine="12" startColumn="9" endLine="12" endColumn="30" document="2"/>
-                <entry offset="0x19" startLine="13" startColumn="5" endLine="13" endColumn="12" document="2"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="28" document="1"/>
+                <entry offset="0x1" startLine="11" startColumn="9" endLine="11" endColumn="30" document="1"/>
+                <entry offset="0xd" startLine="12" startColumn="9" endLine="12" endColumn="30" document="1"/>
+                <entry offset="0x19" startLine="13" startColumn="5" endLine="13" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x1a">
                 <importsforward declaringType="C1" methodName=".ctor"/>
@@ -613,10 +613,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="1" startColumn="5" endLine="1" endColumn="45" document="2"/>
-                <entry offset="0x1" startLine="2" startColumn="13" endLine="2" endColumn="24" document="2"/>
-                <entry offset="0x7" startLine="3" startColumn="9" endLine="3" endColumn="23" document="2"/>
-                <entry offset="0xe" startLine="4" startColumn="5" endLine="4" endColumn="12" document="2"/>
+                <entry offset="0x0" startLine="1" startColumn="5" endLine="1" endColumn="45" document="1"/>
+                <entry offset="0x1" startLine="2" startColumn="13" endLine="2" endColumn="24" document="1"/>
+                <entry offset="0x7" startLine="3" startColumn="9" endLine="3" endColumn="23" document="1"/>
+                <entry offset="0xe" startLine="4" startColumn="5" endLine="4" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xf">
                 <importsforward declaringType="C1" methodName=".ctor"/>
@@ -625,8 +625,8 @@ End Class
         </method>
         <method containingType="InActual" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x7" hidden="true" document="1"/>
+                <entry offset="0x0" hidden="true" document="3"/>
+                <entry offset="0x7" hidden="true" document="3"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="C1" methodName=".ctor"/>
@@ -788,8 +788,7 @@ End Module
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="D2, FF,  5, F8, B7, A2, 25, B0, 96, D9, 97, 2F,  5, F8, F0, B5, 81, 8D, 98, 1D, "/>
-        <file id="2" name="C:\abc\def.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="C:\abc\def.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
     </files>
     <entryPoint declaringType="Program" methodName="Main"/>
     <methods>
@@ -797,14 +796,14 @@ End Module
             <sequencePoints>
                 <entry offset="0x0" hidden="true" document="1"/>
                 <entry offset="0x1" hidden="true" document="1"/>
-                <entry offset="0xc" startLine="0" startColumn="9" endLine="0" endColumn="41" document="2"/>
-                <entry offset="0x17" startLine="1" startColumn="9" endLine="1" endColumn="41" document="2"/>
-                <entry offset="0x22" startLine="16777215" startColumn="9" endLine="16777215" endColumn="41" document="2"/>
-                <entry offset="0x2d" startLine="16777215" startColumn="9" endLine="16777215" endColumn="41" document="2"/>
-                <entry offset="0x38" startLine="16777215" startColumn="9" endLine="16777215" endColumn="41" document="2"/>
-                <entry offset="0x43" startLine="16707565" startColumn="9" endLine="16707565" endColumn="41" document="2"/>
-                <entry offset="0x4e" hidden="true" document="2"/>
-                <entry offset="0x59" hidden="true" document="2"/>
+                <entry offset="0xc" startLine="0" startColumn="9" endLine="0" endColumn="41" document="1"/>
+                <entry offset="0x17" startLine="1" startColumn="9" endLine="1" endColumn="41" document="1"/>
+                <entry offset="0x22" startLine="16777215" startColumn="9" endLine="16777215" endColumn="41" document="1"/>
+                <entry offset="0x2d" startLine="16777215" startColumn="9" endLine="16777215" endColumn="41" document="1"/>
+                <entry offset="0x38" startLine="16777215" startColumn="9" endLine="16777215" endColumn="41" document="1"/>
+                <entry offset="0x43" startLine="16707565" startColumn="9" endLine="16707565" endColumn="41" document="1"/>
+                <entry offset="0x4e" hidden="true" document="1"/>
+                <entry offset="0x59" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x5a">
                 <namespace name="System" importlevel="file"/>
@@ -840,15 +839,14 @@ End Class
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="C:\Folder1\Folder2\Test1.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="B9, 49, 3D, 62, 89, 9B, B2, 2F, B6, 72, 90, A1, 2D,  1, 11, 89, B4, C2, 83, B4, "/>
-        <file id="2" name="C:\Folder1\Test2.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a799" checkSum="DB, 78, 88, 82, 72, 1B, 2B, 27, C9,  5, 79, D5, FE, 2A,  4, 18, "/>
+        <file id="1" name="C:\Folder1\Test2.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a799" checkSum="DB, 78, 88, 82, 72, 1B, 2B, 27, C9,  5, 79, D5, FE, 2A,  4, 18, "/>
     </files>
     <methods>
         <method containingType="Test1" name="Main">
             <sequencePoints>
                 <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x1" startLine="4" startColumn="2" endLine="4" endColumn="8" document="2"/>
-                <entry offset="0x8" hidden="true" document="2"/>
+                <entry offset="0x1" startLine="4" startColumn="2" endLine="4" endColumn="8" document="1"/>
+                <entry offset="0x8" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <currentnamespace name=""/>
