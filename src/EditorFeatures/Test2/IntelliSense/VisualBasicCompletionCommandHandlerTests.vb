@@ -157,7 +157,6 @@ End Class
                 state.SendLeftKey()
                 Await state.AssertSelectedCompletionItem(isSoftSelected:=True)
                 state.SendTypeChars("(")
-                Await state.AssertNoCompletionSession()
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("If (tru", state.GetLineTextFromCaretPosition().Trim())
                 Assert.Equal("t", state.GetCaretPoint().BufferPosition.GetChar())
