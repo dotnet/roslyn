@@ -24,7 +24,7 @@ namespace Roslyn.VisualStudio.Setup
                 AssemblyName = Path.GetFileNameWithoutExtension(fileName),
                 PublicKeyToken = "31BF3856AD364E35",
                 OldVersionLowerBound = "0.7.0.0",
-                OldVersionUpperBound = "1.2.0.0",
+                OldVersionUpperBound = "1.3.0.0",
                 CodeBase = fileName,
             };
         }

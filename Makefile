@@ -1,4 +1,4 @@
-SHELL = /bin/bash
+SHELL = /usr/bin/env bash
 OS_NAME = $(shell uname -s)
 NUGET_PACKAGE_NAME = nuget.54
 BUILD_CONFIGURATION = Debug
@@ -41,7 +41,7 @@ bootstrap: toolset
 	mkdir -p $(BOOTSTRAP_PATH) ; \
 	cp Binaries/$(BUILD_CONFIGURATION)/csccore/* $(BOOTSTRAP_PATH) ; \
 	cp Binaries/$(BUILD_CONFIGURATION)/vbccore/* $(BOOTSTRAP_PATH) ; \
-	# build/scripts/crossgen.sh $(BOOTSTRAP_PATH) ;
+	build/scripts/crossgen.sh $(BOOTSTRAP_PATH) ;
 	rm -rf Binaries/$(BUILD_CONFIGURATION)
 
 test:

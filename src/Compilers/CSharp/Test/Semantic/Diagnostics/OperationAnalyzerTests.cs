@@ -1145,6 +1145,27 @@ class C
         M0(1, new int[] { 2, 3, 4 });
         M0(1, new int[] { 2, 3, 4, 5 });
         M0(1, new int[] { 2, 3, 4, 5, 6 });
+        M2(1, c: 2);
+        D d = new D(3, c: 40);
+        d = new D(""Hello"", 1, 2, 3, 4);
+        d = new D(""Hello"", new int[] { 1, 2, 3, 4 });
+        d = new D(""Hello"", 1, 2, 3);
+        d = new D(""Hello"", new int[] { 1, 2, 3 });
+    }
+
+    public void M2(int a, int b = 10, int c = 20, params int[] d)
+    {
+    }
+
+    class D
+    {
+        public D(int a, int b = 10, int c = 20, params int[] d)
+        {
+        }
+
+        public D(string a, params int[] b)
+        {
+        }
     }
 }
 ";
@@ -1158,7 +1179,9 @@ class C
                 Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5 }").WithLocation(16, 15),
                 Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5 }").WithLocation(16, 15),
                 Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5, 6 }").WithLocation(17, 15),
-                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5, 6 }").WithLocation(17, 15)
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5, 6 }").WithLocation(17, 15),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "1").WithLocation(20, 28),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 1, 2, 3, 4 }").WithLocation(21, 28)
                 );
         }
 
@@ -1443,6 +1466,99 @@ class C
                 // https://github.com/dotnet/roslyn/issues/8566
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "1").WithLocation(11, 12),
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "1").WithLocation(12, 12));
+        }
+
+        [WorkItem(8114, "https://github.com/dotnet/roslyn/issues/8114")]
+        [Fact]
+        public void InvalidOperatorCSharp()
+        {
+            const string source = @"
+public class A
+{
+    public bool Compare(float f)
+    {
+        return f == float.Nan; // Misspelled
+    }
+
+    public string Negate(string f)
+    {
+        return -f;
+    }
+
+    public void Increment(string f)
+    {
+        f++;
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Nan").WithArguments("float", "Nan").WithLocation(6, 27),
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-f").WithArguments("-", "string").WithLocation(11, 16),
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "f++").WithArguments("++", "string").WithLocation(16, 9))
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new InvalidOperatorExpressionTestAnalyzer() }, null, null, false,
+                Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidBinaryDescriptor.Id, "f == float.Nan").WithLocation(6, 16),
+                Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidUnaryDescriptor.Id, "-f").WithLocation(11, 16),
+                Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidIncrementDescriptor.Id, "f++").WithLocation(16, 9));
+        }
+
+        [Fact]
+        public void ConditionalAccessOperationsCSharp()
+        {
+            const string source = @"
+class C
+{
+    public int Prop { get; set; }
+
+    public int Field;
+
+    public int this[int i]
+    {
+        get
+        {
+            return this.Field;
+        }
+        set
+        {
+            this.Field = value;
+        }
+    }
+
+    public C Field1 = null;
+
+    public void M0(C p)
+    {
+        var x = p?.Prop;
+        x = p?.Field;
+        x = p?[0];
+        p?.M0(null);
+
+        x = Field1?.Prop;
+        x = Field1?.Field;
+        x = Field1?[0];
+        Field1?.M0(null);
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ConditionalAccessOperationTestAnalyzer() }, null, null, false,
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "p?.Prop").WithLocation(24, 17),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "p").WithLocation(24, 17),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "p?.Field").WithLocation(25, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "p").WithLocation(25, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "p?[0]").WithLocation(26, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "p").WithLocation(26, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "p?.M0(null)").WithLocation(27, 9),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "p").WithLocation(27, 9),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?.Prop").WithLocation(29, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1").WithLocation(29, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?.Field").WithLocation(30, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1").WithLocation(30, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?[0]").WithLocation(31, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1").WithLocation(31, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?.M0(null)").WithLocation(32, 9),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1").WithLocation(32, 9));
         }
     }
 }

@@ -24,7 +24,11 @@ try
 
     # List of binary names that should be skipped because they have a known issue that
     # makes them non-deterministic.  
-    $skipList = @()
+    $skipList = @(
+
+        # https://github.com/dotnet/roslyn/issues/8739
+        "Microsoft.VisualStudio.ProjectSystem.Managed.dll"
+    )
 
     $allGood = $true
     $map = @{}

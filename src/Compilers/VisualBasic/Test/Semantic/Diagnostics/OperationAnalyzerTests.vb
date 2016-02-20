@@ -1191,6 +1191,15 @@ Class C
         M0(1, New Integer() { 2, 3, 4 })
         M0(1, New Integer() { 2, 3, 4, 5 })
         M0(1, New Integer() { 2, 3, 4, 5, 6 })
+        Dim local As D = new D(1, 2, 3, 4, 5)
+        local = new D(1, New Integer() { 2, 3, 4, 5 })
+        local = new D(1, 2, 3, 4)
+        local = new D(1, New Integer() { 2, 3, 4 })
+    End Sub
+End Class
+
+Class D
+    Public Sub New(a As Integer, ParamArray b As Integer())
     End Sub
 End Class
 ]]>
@@ -1207,7 +1216,9 @@ End Class
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5 }").WithLocation(12, 15),
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5 }").WithLocation(12, 15),
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15),
-                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15))
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15),
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "D").WithLocation(14, 30),
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5 }").WithLocation(15, 26))
         End Sub
 
         <Fact>
@@ -1547,6 +1558,101 @@ End Class
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "New Integer() {  }").WithLocation(9, 12),
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "New Integer() { 1 }").WithLocation(10, 12),
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "New Integer() { 1, 2 }").WithLocation(11, 12))
+        End Sub
+
+        <WorkItem(8114, "https://github.com/dotnet/roslyn/issues/8114")>
+        <Fact>
+        Public Sub InvalidOperatorVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Function M1(a As Double, b as C) as Double
+        Return b + c
+    End Sub
+
+    Public Function M2(s As C) As C
+        Return -s
+    End Function
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_EndFunctionExpected, "Public Function M1(a As Double, b as C) as Double").WithLocation(2, 5),
+                Diagnostic(ERRID.ERR_InvalidEndSub, "End Sub").WithLocation(4, 5),
+                Diagnostic(ERRID.ERR_InvInsideEndsProc, "Public Function M2(s As C) As C").WithLocation(6, 5),
+                Diagnostic(ERRID.ERR_ClassNotExpression1, "c").WithArguments("C").WithLocation(3, 20),
+                Diagnostic(ERRID.ERR_UnaryOperand2, "-s").WithArguments("-", "C").WithLocation(7, 16))
+            comp.VerifyAnalyzerDiagnostics({New InvalidOperatorExpressionTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidBinaryDescriptor.Id, "b + c").WithLocation(3, 16),
+                Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidUnaryDescriptor.Id, "-s").WithLocation(7, 16))
+        End Sub
+
+        <Fact>
+        Public Sub ConditionalAccessOperationsVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Property Prop As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+
+    Public Field As Integer
+    
+    Default Public Property Mumble(i As Integer)
+        Get
+            return Field
+        End Get
+        Set
+            Field = Value
+        End Set
+    End Property
+    
+    Public Field1 As C = Nothing
+
+    Public Sub M0(p As C)
+        Dim x = p?.Prop
+        x = p?.Field
+        x = p?(0)
+        p?.M0(Nothing)
+
+        x = Field1?.Prop
+        x = Field1?.Field
+        x = Field1?(0)
+        Field1?.M0(Nothing)
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New ConditionalAccessOperationTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "p?.Prop").WithLocation(24, 17),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "p?.Prop").WithLocation(24, 17),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "p?.Field").WithLocation(25, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "p?.Field").WithLocation(25, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "p?(0)").WithLocation(26, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "p?(0)").WithLocation(26, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "p?.M0(Nothing)").WithLocation(27, 9),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "p?.M0(Nothing)").WithLocation(27, 9),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?.Prop").WithLocation(29, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1?.Prop").WithLocation(29, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?.Field").WithLocation(30, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1?.Field").WithLocation(30, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?(0)").WithLocation(31, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1?(0)").WithLocation(31, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?.M0(Nothing)").WithLocation(32, 9),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1?.M0(Nothing)").WithLocation(32, 9))
         End Sub
     End Class
 End Namespace

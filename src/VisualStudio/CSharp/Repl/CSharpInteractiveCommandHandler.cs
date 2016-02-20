@@ -9,11 +9,12 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
+using Microsoft.CodeAnalysis.Editor.CommandHandlers;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
 {
-    [ExportCommandHandler("Interactive Command Handler", ContentTypeNames.CSharpContentType)]
-    internal sealed class CSharpInteractiveCommandHandler : InteractiveCommandHandler
+    [ExportInteractive(typeof(IExecuteInInteractiveCommandHandler), ContentTypeNames.CSharpContentType)]
+    internal sealed class CSharpInteractiveCommandHandler : InteractiveCommandHandler, IExecuteInInteractiveCommandHandler
     {
         private readonly CSharpVsInteractiveWindowProvider _interactiveWindowProvider;
 

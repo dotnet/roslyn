@@ -139,10 +139,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Private Sub ValidateReferencedAssembly(assembly As AssemblySymbol, asmRef As AssemblyReference, diagnostics As DiagnosticBag)
             Dim asmIdentity As AssemblyIdentity = SourceModule.ContainingAssembly.Identity
-            Dim refIdentity As AssemblyIdentity = asmRef.MetadataIdentity
+            Dim refIdentity As AssemblyIdentity = asmRef.Identity
 
             If asmIdentity.IsStrongName AndAlso Not refIdentity.IsStrongName AndAlso
-               DirectCast(asmRef, Cci.IAssemblyReference).ContentType <> Reflection.AssemblyContentType.WindowsRuntime Then
+               asmRef.Identity.ContentType <> Reflection.AssemblyContentType.WindowsRuntime Then
                 ' Dev12 reported error, we have changed it to a warning to allow referencing libraries 
                 ' built for platforms that don't support strong names.
                 diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.WRN_ReferencedAssemblyDoesNotHaveStrongName, assembly), NoLocation.Singleton)

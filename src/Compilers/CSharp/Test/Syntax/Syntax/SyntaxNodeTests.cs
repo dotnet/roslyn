@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -2935,6 +2936,31 @@ namespace HelloWorld
             Assert.Equal(true, nodeOrToken.HasTrailingTrivia);
             Assert.Equal(1, nodeOrToken.GetTrailingTrivia().Count);
             Assert.Equal(2, nodeOrToken.GetTrailingTrivia().Span.Length); // zero-width elastic trivia
+        }
+
+
+        [WorkItem(6536, "https://github.com/dotnet/roslyn/issues/6536")]
+        [Fact]
+        public void TestFindTrivia_NoStackOverflowOnLargeExpression()
+        {
+            StringBuilder code = new StringBuilder();
+            code.Append(
+@"class Foo
+{
+    void Bar()
+    {
+        string test = ");
+            for (var i = 0; i < 3000; i++)
+            {
+                code.Append(@"""asdf"" + ");
+            }
+            code.Append(@"""last"";
+    }
+}");
+            var tree = SyntaxFactory.ParseSyntaxTree(code.ToString());
+            var position = 4000;
+            var trivia = tree.GetCompilationUnitRoot().FindTrivia(position);
+            // no stack overflow
         }
     }
 }
