@@ -308,7 +308,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             ValidateReferences();
 
-            return ProjectInfo.Create(
+            var info = ProjectInfo.Create(
                 this.Id,
                 this.Version,
                 this.DisplayName,
@@ -322,8 +322,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 metadataReferences: _metadataReferences.Select(r => r.CurrentSnapshot),
                 projectReferences: _projectReferences,
                 analyzerReferences: _analyzers.Values.Select(a => a.GetReference()),
-                additionalDocuments: _additionalDocuments.Values.Select(d => d.GetInitialState()),
-                isComplete: _intellisenseBuildSucceeded);
+                additionalDocuments: _additionalDocuments.Values.Select(d => d.GetInitialState()));
+
+            return info.WithIsComplete(_intellisenseBuildSucceeded);
         }
 
         protected ImmutableArray<string> GetStrongNameKeyPaths()
@@ -495,10 +496,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // path to the reference. since it doesn't know where dll is, it can't (or currently doesn't) 
             // setup file change notification either to find out when dll becomes available. 
             //
-            // so it looks like only way to connect to the missing metadata reference once it become 
-            // available seems explicitly clicking that missing reference from solution explorer reference node.
-            // at that point, project system will refresh that reference which will discover new dll 
-            // and connect to us. once it is connected, we will take care of it.
+            // at this point, user has 2 ways to recover missing metadata reference once it becomes available.
+            //
+            // one way is explicitly clicking that missing reference from solution explorer reference node.
+            // the other is building the project. at that point, project system will refresh references 
+            // which will discover new dll and connect to us. once it is connected, we will take care of it.
             return VSConstants.S_OK;
         }
 

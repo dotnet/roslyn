@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 using System.Diagnostics;
@@ -101,7 +99,7 @@ namespace Microsoft.CodeAnalysis
         /// a project only has partial information. In such cases, a project might not have all
         /// information on its files or references.
         /// </summary>
-        public bool IsComplete { get; }
+        internal bool IsComplete { get; }
 
         private ProjectInfo(
             ProjectId id,
@@ -164,8 +162,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a new instance of a ProjectInfo.
         /// </summary>
-        // 1.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
-        public static ProjectInfo Create(
+        internal static ProjectInfo Create(
             ProjectId id,
             VersionStamp version,
             string name,
@@ -181,13 +178,27 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<AnalyzerReference> analyzerReferences,
             IEnumerable<DocumentInfo> additionalDocuments,
             bool isSubmission,
-            Type hostObjectType)
+            Type hostObjectType,
+            bool isComplete)
         {
-            return Create(
-                id, version, name, assemblyName, language,
-                filePath, outputFilePath, compilationOptions, parseOptions,
-                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
-                isSubmission, hostObjectType, isComplete: true);
+            return new ProjectInfo(
+                id,
+                version,
+                name,
+                assemblyName,
+                language,
+                filePath,
+                outputFilePath,
+                compilationOptions,
+                parseOptions,
+                documents,
+                projectReferences,
+                metadataReferences,
+                analyzerReferences,
+                additionalDocuments,
+                isSubmission,
+                hostObjectType,
+                isComplete);
         }
 
         /// <summary>
@@ -209,27 +220,13 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<AnalyzerReference> analyzerReferences = null,
             IEnumerable<DocumentInfo> additionalDocuments = null,
             bool isSubmission = false,
-            Type hostObjectType = null,
-            bool isComplete = true)
+            Type hostObjectType = null)
         {
-            return new ProjectInfo(
-                id,
-                version,
-                name,
-                assemblyName,
-                language,
-                filePath,
-                outputFilePath,
-                compilationOptions,
-                parseOptions,
-                documents,
-                projectReferences,
-                metadataReferences,
-                analyzerReferences,
-                additionalDocuments,
-                isSubmission,
-                hostObjectType,
-                isComplete);
+            return Create(
+                id, version, name, assemblyName, language,
+                filePath, outputFilePath, compilationOptions, parseOptions,
+                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
+                isSubmission, hostObjectType, isComplete: true);
         }
 
         private ProjectInfo With(
@@ -370,7 +367,7 @@ namespace Microsoft.CodeAnalysis
             return this.With(analyzerReferences: analyzerReferences.ToImmutableReadOnlyListOrEmpty());
         }
 
-        public ProjectInfo WithIsComplete(bool isComplete)
+        internal ProjectInfo WithIsComplete(bool isComplete)
         {
             return this.With(isComplete: isComplete);
         }

@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis
         /// Determines if the compilation returned by <see cref="GetCompilationAsync"/> has full information.
         /// see <see cref="ProjectInfo.IsComplete"/> for more info.
         /// </summary>
-        public Task<bool> IsCompleteAsync(CancellationToken cancellationToken = default(CancellationToken))
+        internal Task<bool> IsCompleteAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             return _solution.IsCompleteAsync(this, cancellationToken);
         }
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis
         /// Determines if the compilation returned by <see cref="GetCompilationAsync"/> and all its referenced projects have full information.
         /// see <see cref="IsCompleteAsync(CancellationToken)"/> and <see cref="ProjectInfo.IsComplete"/> for more info.
         /// </summary>
-        public Task<bool> IsDependentCompleteAsync(CancellationToken cancellationToken = default(CancellationToken))
+        internal Task<bool> IsDependentCompleteAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             return _solution.IsDependentCompleteAsync(this, cancellationToken);
         }
