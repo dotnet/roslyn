@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         /// <summary>
         /// The task that produces the spell checker we use for fuzzy match queries.
-        /// We use a task so that we can generate the symbol tree info without having
-        /// to wait for the spell checker construction to finish.
+        /// We use a task so that we can generate the <see cref="SymbolTreeInfo"/> 
+        /// without having to wait for the spell checker construction to finish.
         /// 
         /// Features that don't need fuzzy matching don't want to incur the cost of 
         /// the creation of this value.  And the only feature which does want fuzzy
