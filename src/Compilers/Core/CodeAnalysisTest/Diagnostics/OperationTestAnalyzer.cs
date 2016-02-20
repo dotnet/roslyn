@@ -1739,8 +1739,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          IForLoopStatement forLoop = (IForLoopStatement)loop;
                          var forCondition = forLoop.Condition;
 
-                         // Generate a warning to prove we didn't crash
-                         operationContext.ReportDiagnostic(Diagnostic.Create(ForLoopConditionCrashDescriptor, forLoop.Condition.Syntax.GetLocation()));
+                         if (forCondition.IsInvalid)
+                         {
+                             // Generate a warning to prove we didn't crash
+                             operationContext.ReportDiagnostic(Diagnostic.Create(ForLoopConditionCrashDescriptor, forLoop.Condition.Syntax.GetLocation()));
+                         }
                      }
                  },
                  OperationKind.LoopStatement);

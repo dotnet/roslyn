@@ -628,7 +628,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim limitValue As IOperation = If(BoundFor.LimitValue.IsConstant, DirectCast(BoundFor.LimitValue, IOperation), New Temporary(SyntheticLocalKind.ForLoopLimitValue, BoundFor, BoundFor.LimitValue))
                         Dim controlVariable As BoundExpression = BoundFor.ControlVariable
 
-                        Dim booleanType As ITypeSymbol = controlVariable.ExpressionSymbol.DeclaringCompilation.GetSpecialType(SpecialType.System_Boolean)
+                        ' controlVariable can be a BoundBadExpression in case of error
+                        Dim booleanType As ITypeSymbol = controlVariable.ExpressionSymbol?.DeclaringCompilation.GetSpecialType(SpecialType.System_Boolean)
 
                         Dim operators As BoundForToUserDefinedOperators = Me.OperatorsOpt
                         If operators IsNot Nothing Then
@@ -645,7 +646,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                                 Dim stepValue As IOperation = New Temporary(SyntheticLocalKind.ForLoopStepValue, BoundFor, BoundFor.StepValue)
                                 Dim stepRelationalCode As BinaryOperationKind = DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, BoundFor.StepValue)
-                                Dim stepCondition As IOperation = New Binary(stepRelationalCode, stepValue, New BoundLiteral(BoundFor.StepValue.Syntax, Semantics.Expression.SynthesizeNumeric(stepValue.Type, 0), BoundFor.StepValue.Type), booleanType, BoundFor.StepValue.Syntax)
+                                Dim stepCondition As IOperation = New Binary(stepRelationalCode,
+                                                                             stepValue,
+                                                                             New Literal(Semantics.Expression.SynthesizeNumeric(stepValue.Type, 0), BoundFor.StepValue.Type, BoundFor.StepValue.Syntax),
+                                                                             booleanType,
+                                                                             BoundFor.StepValue.Syntax)
 
                                 Dim positiveStepRelationalCode As BinaryOperationKind = DeriveBinaryOperationKind(BinaryOperatorKind.LessThanOrEqual, controlVariable)
                                 Dim positiveStepCondition As IOperation = New Binary(positiveStepRelationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)

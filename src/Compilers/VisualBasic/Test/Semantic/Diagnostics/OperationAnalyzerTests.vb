@@ -1661,6 +1661,8 @@ End Class
             Dim source = <compilation>
                              <file name="c.vb">
                                  <![CDATA[
+Imports System   
+
 Module M1
     Class C1(Of t)
         Shared Widening Operator CType(ByVal p1 As C1(Of t)) As Integer
@@ -1681,16 +1683,46 @@ Module M1
         Next
     End Sub
 End Module
+     
+Module M2
+    ReadOnly Property Moo As Integer
+        Get
+            Return 1
+        End Get
+    End Property
+
+    WriteOnly Property Boo As integer
+        Set(value As integer)
+
+        End Set
+    End Property
+
+    Sub Main()
+        For Moo = 1 to Moo step Moo
+        Next
+
+        For Boo = 1 to Boo step Boo
+        Next
+    End Sub
+End Module
 ]]>
                              </file>
                          </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_UnacceptableForLoopOperator2, "For i As C1(Of Integer) = 1 To 10").WithArguments("Public Shared Operator -(p1 As M1.C1(Of Integer), p2 As M1.C1(Of Integer)) As M1.C1(Of Short)", "M1.C1(Of Integer)").WithLocation(17, 9),
-                                   Diagnostic(ERRID.ERR_ForLoopOperatorRequired2, "For i As C1(Of Integer) = 1 To 10").WithArguments("M1.C1(Of Integer)", "<=").WithLocation(17, 9),
-                                   Diagnostic(ERRID.ERR_ForLoopOperatorRequired2, "For i As C1(Of Integer) = 1 To 10").WithArguments("M1.C1(Of Integer)", ">=").WithLocation(17, 9))
+            comp.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_LoopControlMustNotBeProperty, "Moo").WithLocation(38, 13),
+                Diagnostic(ERRID.ERR_LoopControlMustNotBeProperty, "Boo").WithLocation(41, 13),
+                Diagnostic(ERRID.ERR_NoGetProperty1, "Boo").WithArguments("Boo").WithLocation(41, 24),
+                Diagnostic(ERRID.ERR_NoGetProperty1, "Boo").WithArguments("Boo").WithLocation(41, 33),
+                Diagnostic(ERRID.ERR_UnacceptableForLoopOperator2, "For i As C1(Of Integer) = 1 To 10").WithArguments("Public Shared Operator -(p1 As M1.C1(Of Integer), p2 As M1.C1(Of Integer)) As M1.C1(Of Short)", "M1.C1(Of Integer)").WithLocation(19, 9),
+                Diagnostic(ERRID.ERR_ForLoopOperatorRequired2, "For i As C1(Of Integer) = 1 To 10").WithArguments("M1.C1(Of Integer)", "<=").WithLocation(19, 9),
+                Diagnostic(ERRID.ERR_ForLoopOperatorRequired2, "For i As C1(Of Integer) = 1 To 10").WithArguments("M1.C1(Of Integer)", ">=").WithLocation(19, 9),
+                Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports System").WithLocation(1, 1))
             comp.VerifyAnalyzerDiagnostics({New ForLoopConditionCrashVBTestAnalyzer}, Nothing, Nothing, False,
-                                           Diagnostic(ForLoopConditionCrashVBTestAnalyzer.ForLoopConditionCrashDescriptor.Id, "10").WithLocation(17, 40))
+                Diagnostic(ForLoopConditionCrashVBTestAnalyzer.ForLoopConditionCrashDescriptor.Id, "Moo").WithLocation(38, 24),
+                Diagnostic(ForLoopConditionCrashVBTestAnalyzer.ForLoopConditionCrashDescriptor.Id, "Boo").WithLocation(41, 24),
+                Diagnostic(ForLoopConditionCrashVBTestAnalyzer.ForLoopConditionCrashDescriptor.Id, "10").WithLocation(19, 40))
         End Sub
     End Class
 End Namespace

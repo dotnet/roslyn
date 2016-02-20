@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Semantics
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public OperationKind Kind => OperationKind.ConditionalChoiceExpression;
 
-        public bool IsInvalid => Condition == null || Condition.IsInvalid || IfTrueValue == null || IfTrueValue.IsInvalid || IfFalseValue == null || IfFalseValue.IsInvalid;
+        public bool IsInvalid => Condition == null || Condition.IsInvalid || IfTrueValue == null || IfTrueValue.IsInvalid || IfFalseValue == null || IfFalseValue.IsInvalid || Type == null;
 
         public Optional<object> ConstantValue => default(Optional<object>);
 
@@ -301,6 +302,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public Literal(ConstantValue value, ITypeSymbol resultType, SyntaxNode syntax)
         {
+            Debug.Assert(value != null, "value can't be null");
             _value = value;
             this.Type = resultType;
             this.Syntax = syntax;
@@ -312,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public OperationKind Kind => OperationKind.LiteralExpression;
 
-        public bool IsInvalid => false;
+        public bool IsInvalid => _value.IsBad;
 
         public Optional<object> ConstantValue => new Optional<object>(_value.Value);
 
@@ -354,7 +356,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public OperationKind Kind => OperationKind.BinaryOperatorExpression;
 
-        public bool IsInvalid => LeftOperand == null || LeftOperand.IsInvalid || RightOperand == null || RightOperand.IsInvalid;
+        public bool IsInvalid => LeftOperand == null 
+                                || LeftOperand.IsInvalid 
+                                || RightOperand == null
+                                || RightOperand.IsInvalid 
+                                || BinaryOperationKind == BinaryOperationKind.Invalid 
+                                || Type == null;
 
         public Optional<object> ConstantValue => default(Optional<object>);
 
