@@ -85,8 +85,8 @@ namespace ResetInteractiveTestsDocument
                 References = ImmutableArray.CreateRange(GetProjectReferences(workspace, project)),
                 ReferenceSearchPaths = ImmutableArray.Create("rsp1", "rsp2"),
                 SourceSearchPaths = ImmutableArray.Create("ssp1", "ssp2"),
-                NamespacesToImport = ImmutableArray.Create("System", "ResetInteractiveTestsDocument", "VisualBasicResetInteractiveTestsDocument"),
-                ExistingNamespaces = ImmutableArray.Create("System", "ResetInteractiveTestsDocument"),
+                ProjectNamespaces = ImmutableArray.Create("System", "ResetInteractiveTestsDocument", "VisualBasicResetInteractiveTestsDocument"),
+                NamespacesToImport = ImmutableArray.Create("System", "ResetInteractiveTestsDocument"),
                 ProjectDirectory = "pj",
             };
 

@@ -38,10 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
         internal Task Execute(IInteractiveWindow interactiveWindow, string title)
         {
-            ImmutableArray<string> references, referenceSearchPaths, sourceSearchPaths, namespacesToImport;
+            ImmutableArray<string> references, referenceSearchPaths, sourceSearchPaths, projectNamespaces;
             string projectDirectory;
 
-            if (GetProjectProperties(out references, out referenceSearchPaths, out sourceSearchPaths, out namespacesToImport, out projectDirectory))
+            if (GetProjectProperties(out references, out referenceSearchPaths, out sourceSearchPaths, out projectNamespaces, out projectDirectory))
             {
                 // Now, we're going to do a bunch of async operations.  So create a wait
                 // indicator so the user knows something is happening, and also so they cancel.
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                     references,
                     referenceSearchPaths,
                     sourceSearchPaths,
-                    namespacesToImport,
+                    projectNamespaces,
                     projectDirectory,
                     waitContext);
 
@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             ImmutableArray<string> referencePaths,
             ImmutableArray<string> referenceSearchPaths,
             ImmutableArray<string> sourceSearchPaths,
-            ImmutableArray<string> namespacesToImport,
+            ImmutableArray<string> projectNamespaces,
             string projectDirectory,
             IWaitContext waitContext)
         {
@@ -116,8 +116,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             // Project's default namespace might be different from namespace used within project.
             // Filter out namespace imports that do not exist in interactive compilation.
-            IEnumerable<string> existingNamespaces = await GetNamespacesToImport(namespacesToImport, interactiveWindow).ConfigureAwait(true);
-            var importNamespacesCommand = existingNamespaces.Select(_createImport).Join(editorOptions.GetNewLineCharacter());
+            IEnumerable<string> namespacesToImport = await GetNamespacesToImportAsync(projectNamespaces, interactiveWindow).ConfigureAwait(true);
+            var importNamespacesCommand = namespacesToImport.Select(_createImport).Join(editorOptions.GetNewLineCharacter());
 
             if (!string.IsNullOrWhiteSpace(importNamespacesCommand))
             {
@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             }
         }
 
-        protected abstract Task<IEnumerable<string>> GetNamespacesToImport(IEnumerable<string> namespacesToImport, IInteractiveWindow interactiveWindow);
+        protected abstract Task<IEnumerable<string>> GetNamespacesToImportAsync(IEnumerable<string> namespacesToImport, IInteractiveWindow interactiveWindow);
 
         /// <summary>
         /// Gets the properties of the currently selected projects necessary for reset.
@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             out ImmutableArray<string> references,
             out ImmutableArray<string> referenceSearchPaths,
             out ImmutableArray<string> sourceSearchPaths,
-            out ImmutableArray<string> namespacesToImport,
+            out ImmutableArray<string> projectNamespaces,
             out string projectDirectory);
 
         /// <summary>

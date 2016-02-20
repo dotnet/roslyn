@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 
         internal ImmutableArray<string> SourceSearchPaths { get; set; }
 
-        internal ImmutableArray<string> NamespacesToImport { get; set; }
+        internal ImmutableArray<string> ProjectNamespaces { get; set; }
 
-        internal ImmutableArray<string> ExistingNamespaces { get; set; }
+        internal ImmutableArray<string> NamespacesToImport { get; set; }
 
         internal string ProjectDirectory { get; set; }
 
@@ -60,13 +60,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
             out ImmutableArray<string> references,
             out ImmutableArray<string> referenceSearchPaths,
             out ImmutableArray<string> sourceSearchPaths,
-            out ImmutableArray<string> namespacesToImport,
+            out ImmutableArray<string> projectNamespaces,
             out string projectDirectory)
         {
             references = References;
             referenceSearchPaths = ReferenceSearchPaths;
             sourceSearchPaths = SourceSearchPaths;
-            namespacesToImport = NamespacesToImport;
+            projectNamespaces = ProjectNamespaces;
             projectDirectory = ProjectDirectory;
             return true;
         }
@@ -76,9 +76,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
             return _waitIndicator;
         }
 
-        protected override Task<IEnumerable<string>> GetNamespacesToImport(IEnumerable<string> namespacesToImport, IInteractiveWindow interactiveWindow)
+        protected override Task<IEnumerable<string>> GetNamespacesToImportAsync(IEnumerable<string> namespacesToImport, IInteractiveWindow interactiveWindow)
         {
-            return Task.FromResult((IEnumerable<string>)ExistingNamespaces);
+            return Task.FromResult((IEnumerable<string>)NamespacesToImport);
         }
     }
 }
