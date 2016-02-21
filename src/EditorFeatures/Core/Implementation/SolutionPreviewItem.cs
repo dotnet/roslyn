@@ -31,11 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         public SolutionPreviewItem(ProjectId projectId, DocumentId documentId, string text)
+            : this(projectId, documentId, c => Task.FromResult<object>(text))
         {
-            ProjectId = projectId;
-            DocumentId = documentId;
             Text = text;
-            LazyPreview = c => Task.FromResult<object>(text);
         }
     }
 }
