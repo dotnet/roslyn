@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         // TODO: get sign off on public api changes.
         public static readonly Option<bool> UseVarWhenDeclaringLocals = new Option<bool>(FeatureName, "UseVarWhenDeclaringLocals", defaultValue: true);
 
-        public static readonly Option<CodeStyleOption> UseVarForIntrinsicTypes = new Option<CodeStyleOption>(FeatureName, "UseImplicitTypingForIntrinsics", defaultValue: CodeStyleOption.Default);
-        public static readonly Option<CodeStyleOption> UseVarWhenTypeIsApparent = new Option<CodeStyleOption>(FeatureName, "UseImplicitTypingWhereApparent", defaultValue: CodeStyleOption.Default);
-        public static readonly Option<CodeStyleOption> UseVarWherePossible = new Option<CodeStyleOption>(FeatureName, "UseImplicitTypingWherePossible", defaultValue: CodeStyleOption.Default);
+        public static readonly Option<SimpleCodeStyleOption> UseVarForIntrinsicTypes = new Option<SimpleCodeStyleOption>(FeatureName, "UseImplicitTypingForIntrinsics", defaultValue: SimpleCodeStyleOption.Default);
+        public static readonly Option<SimpleCodeStyleOption> UseVarWhenTypeIsApparent = new Option<SimpleCodeStyleOption>(FeatureName, "UseImplicitTypingWhereApparent", defaultValue: SimpleCodeStyleOption.Default);
+        public static readonly Option<SimpleCodeStyleOption> UseVarWherePossible = new Option<SimpleCodeStyleOption>(FeatureName, "UseImplicitTypingWherePossible", defaultValue: SimpleCodeStyleOption.Default);
     }
 }

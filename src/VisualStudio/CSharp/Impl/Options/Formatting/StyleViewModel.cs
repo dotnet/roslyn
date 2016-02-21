@@ -183,12 +183,12 @@ class C{
 
             Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.SetTypeInferencePreferences });
 
-            var notificationOptions = new List<CodeStyleOptionsViewModel>
+            var notificationOptions = new List<NotificationOptionViewModel>
                                       {
-                                          new CodeStyleOptionsViewModel(NotificationOption.None, KnownMonikers.None),
-                                          new CodeStyleOptionsViewModel(NotificationOption.Info, KnownMonikers.StatusInformation),
-                                          new CodeStyleOptionsViewModel(NotificationOption.Warning, KnownMonikers.StatusWarning),
-                                          new CodeStyleOptionsViewModel(NotificationOption.Error, KnownMonikers.StatusError)
+                                          new NotificationOptionViewModel(NotificationOption.None, KnownMonikers.None),
+                                          new NotificationOptionViewModel(NotificationOption.Info, KnownMonikers.StatusInformation),
+                                          new NotificationOptionViewModel(NotificationOption.Warning, KnownMonikers.StatusWarning),
+                                          new NotificationOptionViewModel(NotificationOption.Error, KnownMonikers.StatusError)
                                       };
 
             Items.Add(new CheckBoxWithComboOptionViewModel(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, CSharpVSResources.UseVarForIntrinsicTypes, s_varForIntrinsicsPreviewTrue, s_varForIntrinsicsPreviewFalse, this, optionSet, notificationOptions));

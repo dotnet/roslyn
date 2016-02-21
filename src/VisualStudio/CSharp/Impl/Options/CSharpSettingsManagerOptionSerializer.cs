@@ -315,7 +315,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         private bool PersistUseVarOption(string option, object value)
         {
-            var convertedValue = (CodeStyleOption)value;
+            var convertedValue = (SimpleCodeStyleOption)value;
 
             if (!convertedValue.IsChecked)
             {
@@ -350,19 +350,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             switch (useVarOptionValue)
             {
                 case 0:
-                    value = new CodeStyleOption(false, NotificationOption.None);
+                    value = new SimpleCodeStyleOption(false, NotificationOption.None);
                     break;
                 case 1:
-                    value = new CodeStyleOption(true, NotificationOption.None);
+                    value = new SimpleCodeStyleOption(true, NotificationOption.None);
                     break;
                 case 2:
-                    value = new CodeStyleOption(true, NotificationOption.Info);
+                    value = new SimpleCodeStyleOption(true, NotificationOption.Info);
                     break;
                 case 3:
-                    value = new CodeStyleOption(true, NotificationOption.Warning);
+                    value = new SimpleCodeStyleOption(true, NotificationOption.Warning);
                     break;
                 case 4:
-                    value = new CodeStyleOption(true, NotificationOption.Error);
+                    value = new SimpleCodeStyleOption(true, NotificationOption.Error);
                     break;
                 default:
                     value = null;

@@ -54,8 +54,8 @@
 
                         <!-- TODO: remove hardcoded width -->
                         <ComboBox x:Uid="ComboBoxOptions"
-                                  ItemsSource="{Binding Items}"
-                                  SelectedItem="{Binding SelectedItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  ItemsSource="{Binding NotificationOptions}"
+                                  SelectedItem="{Binding SelectedNotificationOption, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                   HorizontalContentAlignment="Left"
                                   VerticalContentAlignment="Center"
                                   Margin="5, 0, 0, 0"

@@ -32,10 +32,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public string Description { get; set; }
 
         // keep this as abstract - IList<object>?
-        public IList<CodeStyleOptionsViewModel> Items { get; }
-        private CodeStyleOptionsViewModel _selectedItem;
+        public IList<NotificationOptionViewModel> NotificationOptions { get; }
+        private NotificationOptionViewModel _selectedNotificationOption;
 
-        public CheckBoxWithComboOptionViewModel(IOption option, string description, string preview, AbstractOptionPreviewViewModel info, OptionSet options, IList<CodeStyleOptionsViewModel> items)
+        public CheckBoxWithComboOptionViewModel(IOption option, string description, string preview, AbstractOptionPreviewViewModel info, OptionSet options, IList<NotificationOptionViewModel> items)
         {
             this.Option = option;
 
@@ -44,16 +44,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _falsePreview = preview;
             _info = info;
 
-            Items = items;
+            NotificationOptions = items;
 
-            var opt = ((CodeStyleOption)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
+            var opt = ((SimpleCodeStyleOption)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
             SetProperty(ref _isChecked, opt.IsChecked);
 
             var notificationViewModel = items.Where(i => i.Notification == opt.Notification).Single();
-            SetProperty(ref _selectedItem, notificationViewModel);
+            SetProperty(ref _selectedNotificationOption, notificationViewModel);
         }
 
-        public CheckBoxWithComboOptionViewModel(IOption option, string description, string truePreview, string falsePreview, AbstractOptionPreviewViewModel info, OptionSet options, IList<CodeStyleOptionsViewModel> items)
+        public CheckBoxWithComboOptionViewModel(IOption option, string description, string truePreview, string falsePreview, AbstractOptionPreviewViewModel info, OptionSet options, IList<NotificationOptionViewModel> items)
         {
             this.Option = option;
 
@@ -61,13 +61,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _truePreview = truePreview;
             _falsePreview = falsePreview;
             _info = info;
-            Items = items;
+            NotificationOptions = items;
 
-            var opt = ((CodeStyleOption)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
+            var opt = ((SimpleCodeStyleOption)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
             SetProperty(ref _isChecked, opt.IsChecked);
 
             var notificationViewModel = items.Where(i => i.Notification == opt.Notification).Single();
-            SetProperty(ref _selectedItem, notificationViewModel);
+            SetProperty(ref _selectedNotificationOption, notificationViewModel);
         }
 
         public bool IsChecked
@@ -80,20 +80,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             set
             {
                 SetProperty(ref _isChecked, value);
-                _info.SetOptionAndUpdatePreview(new CodeStyleOption(_isChecked, _selectedItem.Notification), Option, GetPreview());
+                _info.SetOptionAndUpdatePreview(new SimpleCodeStyleOption(_isChecked, _selectedNotificationOption.Notification), Option, GetPreview());
             }
         }
 
-        public CodeStyleOptionsViewModel SelectedItem
+        public NotificationOptionViewModel SelectedNotificationOption
         {
             get
             {
-                return _selectedItem;
+                return _selectedNotificationOption;
             }
             set
             {
-                SetProperty(ref _selectedItem, value);
-                _info.SetOptionAndUpdatePreview(new CodeStyleOption(_isChecked, _selectedItem.Notification), Option, GetPreview());
+                SetProperty(ref _selectedNotificationOption, value);
+                _info.SetOptionAndUpdatePreview(new SimpleCodeStyleOption(_isChecked, _selectedNotificationOption.Notification), Option, GetPreview());
             }
         }
     }

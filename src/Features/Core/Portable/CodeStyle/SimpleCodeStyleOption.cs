@@ -2,13 +2,11 @@
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    // TODO: make this a generic class with a T and Notification.
-    // If we're using a checkbox, T is bool.
-    internal class CodeStyleOption
+    internal class SimpleCodeStyleOption
     {
-        public static readonly CodeStyleOption Default = new CodeStyleOption(false, NotificationOption.None);
+        public static readonly SimpleCodeStyleOption Default = new SimpleCodeStyleOption(false, NotificationOption.None);
 
-        public CodeStyleOption(bool isChecked, NotificationOption notification)
+        public SimpleCodeStyleOption(bool isChecked, NotificationOption notification)
         {
             IsChecked = isChecked;
             Notification = notification;

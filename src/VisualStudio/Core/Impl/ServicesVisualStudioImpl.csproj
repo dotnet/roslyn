@@ -311,6 +311,7 @@
     <Compile Include="CodeModel\TextManagerAdapter.cs" />
     <Compile Include="Options\CheckBoxWithComboViewModel.cs" />
     <Compile Include="Options\CodeStyleOptionsViewModel.cs" />
+    <Compile Include="Options\NotificationOptionViewModel.cs" />
     <Compile Include="Options\FullSolutionAnalysisOptionBinding.cs" />
     <Compile Include="Options\OptionLogger.cs" />
     <Compile Include="Options\OptionPreviewControl.xaml.cs">

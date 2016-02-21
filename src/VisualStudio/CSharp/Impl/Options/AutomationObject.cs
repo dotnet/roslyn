@@ -562,7 +562,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             _optionService.SetOptions(optionSet);
         }
 
-        private static int GetUseVarOption(CodeStyleOption option)
+        private static int GetUseVarOption(SimpleCodeStyleOption option)
         {
             if (!option.IsChecked)
             {
@@ -586,27 +586,27 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             }
         }
 
-        private void SetUseVarOption(Option<CodeStyleOption> option, int value)
+        private void SetUseVarOption(Option<SimpleCodeStyleOption> option, int value)
         {
-            CodeStyleOption convertedValue = CodeStyleOption.Default;
+            SimpleCodeStyleOption convertedValue = SimpleCodeStyleOption.Default;
 
             var optionSet = _optionService.GetOptions();
             switch (value)
             {
                 case 0:
-                    convertedValue = new CodeStyleOption(false, NotificationOption.None);
+                    convertedValue = new SimpleCodeStyleOption(false, NotificationOption.None);
                     break;
                 case 1:
-                    convertedValue = new CodeStyleOption(true, NotificationOption.None);
+                    convertedValue = new SimpleCodeStyleOption(true, NotificationOption.None);
                     break;
                 case 2:
-                    convertedValue = new CodeStyleOption(true, NotificationOption.Info);
+                    convertedValue = new SimpleCodeStyleOption(true, NotificationOption.Info);
                     break;
                 case 3:
-                    convertedValue = new CodeStyleOption(true, NotificationOption.Warning);
+                    convertedValue = new SimpleCodeStyleOption(true, NotificationOption.Warning);
                     break;
                 case 4:
-                    convertedValue = new CodeStyleOption(true, NotificationOption.Error);
+                    convertedValue = new SimpleCodeStyleOption(true, NotificationOption.Error);
                     break;
                 default:
                     break;

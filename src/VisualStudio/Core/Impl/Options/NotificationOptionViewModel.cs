@@ -10,14 +10,13 @@ using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
-    internal class CodeStyleOptionsViewModel
+    internal class NotificationOptionViewModel
     {
-        public CodeStyleOptionsViewModel(NotificationOption notification, ImageMoniker moniker, bool isChecked = false)
+        public NotificationOptionViewModel(NotificationOption notification, ImageMoniker moniker)
         {
             Notification = notification;
             Name = notification.Name;
             Moniker = moniker;
-            Checked = isChecked;
         }
 
         public ImageMoniker Moniker { get; }
@@ -25,9 +24,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public string Name { get; }
 
         public NotificationOption Notification { get; }
-
-        // TODO: rename to IsChecked if it doesn't muck up WPF binding
-        // Or even remove this class?
-        public bool Checked { get; }
     }
 }
