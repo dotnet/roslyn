@@ -55,7 +55,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             // Codebase specifies where the assembly is on disk.  However, it's in 
                             // full URI format (i.e. file://c:/...). This will allow us to get the 
                             // actual local in the normal path format.
-                            return new Uri(assembly.CodeBase).LocalPath;
+                            Uri uri;
+                            if (Uri.TryCreate(assembly.CodeBase, UriKind.RelativeOrAbsolute, out uri))
+                            {
+                                return uri.LocalPath;
+                            }
                         }
                         catch (InvalidOperationException)
                         {
