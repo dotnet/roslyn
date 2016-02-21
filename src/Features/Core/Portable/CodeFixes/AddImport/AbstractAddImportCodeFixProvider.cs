@@ -85,7 +85,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         if (allSymbolReferences.Count == 0)
                         {
                             // No exact matches found.  Fall back to fuzzy searching.
-                            await FindResults(projectToAssembly, referenceToCompilation, project, allSymbolReferences, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                            // Only bother doing this for host workspaces.  We don't want this for 
+                            // things like the Interactive workspace as this will cause us to 
+                            // create expensive bktrees which we won't even be able to save for 
+                            // future use.
+                            if (IsHostOrTestWorkspace(project))
+                            {
+                                await FindResults(projectToAssembly, referenceToCompilation, project, allSymbolReferences, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                            }
                         }
 
                         // Nothing found at all. No need to proceed.
@@ -112,6 +119,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
+        private static bool IsHostOrTestWorkspace(Project project)
+        {
+            return project.Solution.Workspace.Kind == WorkspaceKind.Host ||
+                   project.Solution.Workspace.Kind == "Test";
+        }
+
         private async Task FindResults(
             ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
             ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
@@ -121,12 +134,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             // search string.
             await FindResultsInAllProjectSymbolsAsync(project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
 
-            // Now search unreferenced projects, and see if they have any source symbols that match
-            // the search string.
-            await FindResultsInUnreferencedProjectSourceSymbolsAsync(projectToAssembly, project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+            // Only bother doing this for host workspaces.  We don't want this for 
+            // things like the Interactive workspace as we can't even add project
+            // references to the interactive window.  We could consider adding metadata
+            // references with #r in the future.
+            if (IsHostOrTestWorkspace(project))
+            {
+                // Now search unreferenced projects, and see if they have any source symbols that match
+                // the search string.
+                await FindResultsInUnreferencedProjectSourceSymbolsAsync(projectToAssembly, project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
 
-            // Finally, check and see if we have any metadata symbols that match the search string.
-            await FindResultsInUnreferencedMetadataSymbolsAsync(referenceToCompilation, project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+                // Finally, check and see if we have any metadata symbols that match the search string.
+                await FindResultsInUnreferencedMetadataSymbolsAsync(referenceToCompilation, project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private async Task FindResultsInAllProjectSymbolsAsync(

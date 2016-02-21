@@ -177,7 +177,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     _metadataReference);
             }
 
-            protected override async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery searchQuery)
+            protected override async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
+                string name, SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
                 var info = await service.TryGetSymbolTreeInfoAsync(_solution, _assembly, _metadataReference, CancellationToken).ConfigureAwait(false);
