@@ -98,6 +98,7 @@
     <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SearchScope.cs" />
     <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SymbolReference.cs" />
     <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SymbolReferenceFinder.cs" />
+    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SymbolResult.cs" />
     <Compile Include="CodeFixes\CodeFixContextExtensions.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixMultipleCodeAction.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllCodeAction.cs" />
@@ -569,7 +570,6 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
