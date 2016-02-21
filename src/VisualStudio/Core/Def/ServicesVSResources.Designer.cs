@@ -529,6 +529,33 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Install &apos;{0}&apos;.
+        /// </summary>
+        internal static string Install_0 {
+            get {
+                return ResourceManager.GetString("Install_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Installing &apos;{0}&apos;.
+        /// </summary>
+        internal static string Installing_0 {
+            get {
+                return ResourceManager.GetString("Installing_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Installing &apos;{0}&apos; completed.
+        /// </summary>
+        internal static string Installing_0_completed {
+            get {
+                return ResourceManager.GetString("Installing_0_completed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Interface name conflicts with an existing type name..
         /// </summary>
         internal static string InterfaceNameConflictsWithTypeName {
@@ -806,6 +833,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Overrides {
             get {
                 return ResourceManager.GetString("Overrides", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package install failed: {0}.
+        /// </summary>
+        internal static string Package_install_failed_0 {
+            get {
+                return ResourceManager.GetString("Package_install_failed_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package uninstall failed: {0}.
+        /// </summary>
+        internal static string Package_uninstall_failed_0 {
+            get {
+                return ResourceManager.GetString("Package_uninstall_failed_0", resourceCulture);
             }
         }
         
@@ -1125,6 +1170,33 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string TypeDetails {
             get {
                 return ResourceManager.GetString("TypeDetails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Uninstall &apos;{0}&apos;.
+        /// </summary>
+        internal static string Uninstall_0 {
+            get {
+                return ResourceManager.GetString("Uninstall_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Uninstalling &apos;{0}&apos;.
+        /// </summary>
+        internal static string Uninstalling_0 {
+            get {
+                return ResourceManager.GetString("Uninstalling_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Uninstalling &apos;{0}&apos; completed.
+        /// </summary>
+        internal static string Uninstalling_0_completed {
+            get {
+                return ResourceManager.GetString("Uninstalling_0_completed", resourceCulture);
             }
         }
         
