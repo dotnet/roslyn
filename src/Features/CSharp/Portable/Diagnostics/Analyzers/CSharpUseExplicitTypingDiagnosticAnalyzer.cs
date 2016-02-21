@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         private static readonly LocalizableString s_Message =
             new LocalizableResourceString(nameof(CSharpFeaturesResources.UseExplicitTyping), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
-        public CSharpUseExplicitTypingDiagnosticAnalyzer() 
+        public CSharpUseExplicitTypingDiagnosticAnalyzer()
             : base(diagnosticId: IDEDiagnosticIds.UseExplicitTypingDiagnosticId,
                    title: s_Title,
                    message: s_Message)
@@ -30,10 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         protected override bool IsStylePreferred(SyntaxNode declarationStatement, SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken)
         {
             var stylePreferences = state.StylePreferences;
+            var shouldNotify = state.ShouldNotify();
 
-            return !stylePreferences.HasFlag(TypingStyles.VarForIntrinsic) && state.IsInIntrinsicTypeContext
-                || !stylePreferences.HasFlag(TypingStyles.VarWhereApparent) && state.IsTypingApparentInContext
-                || !stylePreferences.HasFlag(TypingStyles.VarWherePossible) && !(state.IsInIntrinsicTypeContext || state.IsTypingApparentInContext);
+            return shouldNotify &&
+                       ((!stylePreferences.HasFlag(TypingStyles.VarForIntrinsic) && state.IsInIntrinsicTypeContext)
+                     || (!stylePreferences.HasFlag(TypingStyles.VarWhereApparent) && state.IsTypingApparentInContext)
+                     || (!stylePreferences.HasFlag(TypingStyles.VarWherePossible) && !(state.IsInIntrinsicTypeContext || state.IsTypingApparentInContext)));
         }
 
         protected override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)

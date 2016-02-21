@@ -52,6 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                 }
             }
 
+            public bool ShouldNotify() => 
+                GetDiagnosticSeverityPreference() != DiagnosticSeverity.Hidden;
+
             private void Initialize(SyntaxNode declaration, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
             {
                 this.StylePreferences = GetCurrentTypingStylePreferences(optionSet);
