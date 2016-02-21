@@ -53,18 +53,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             var assembly = frameworkProvider.GetReflectionAssembly(new AssemblyName(assemblyName));
 
                             // Codebase specifies where the assembly is on disk.  However, it's in 
-                            // full URI format (i.e. file://c:/...).
-                            var codeBase = assembly.CodeBase;
-
-                            // Make an actual URI out of it.
-                            var uri = new UriBuilder(codeBase);
-
-                            // Strip off the "file://" bit.
-                            string path = Uri.UnescapeDataString(uri.Path);
-
-                            // Use FileInfo to convert the path properly (this will replace 
-                            // forward slashes with the appropriate slashes for the platform).
-                            return new FileInfo(path).FullName;
+                            // full URI format (i.e. file://c:/...). This will allow us to get the 
+                            // actual local in the normal path format.
+                            return new Uri(assembly.CodeBase).LocalPath;
                         }
                         catch (InvalidOperationException)
                         {
