@@ -6,26 +6,21 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    [ExportWorkspaceServiceFactory(typeof(IFrameworkAssemblyPathResolver), ServiceLayer.Default), Shared]
-    internal sealed class FrameworkAssemblyPathResolverFactory : IWorkspaceServiceFactory
+    [ExportWorkspaceServiceFactory(typeof(IAssemblyPathResolver), ServiceLayer.Default), Shared]
+    internal sealed class AssemblyPathResolverFactory : IWorkspaceServiceFactory
     {
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new Service();
         }
 
-        private sealed class Service : IFrameworkAssemblyPathResolver
+        private sealed class Service : IAssemblyPathResolver
         {
             public Service()
             {
             }
 
-            //public bool CanResolveType(ProjectId projectId, string assemblyName, string fullyQualifiedTypeName)
-            //{
-            //    return false;
-            //}
-
-            public string ResolveAssemblyPath(ProjectId projectId, string assemblyName, string fullyQualifiedTypeName = null)
+            public string ResolveAssemblyPath(ProjectId projectId, string assemblyName)
             {
                 // Assembly path resolution not supported at the default workspace level.
                 return null;

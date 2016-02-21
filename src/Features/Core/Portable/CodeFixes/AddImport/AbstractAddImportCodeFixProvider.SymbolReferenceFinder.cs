@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 var desiredName = GetDesiredName(isAttributeSearch, result);
                 allReferences.Add(new AssemblyReference(_owner, installerService,
-                    new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames, weight), result.AssemblyName));
+                    new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames, weight), result));
             }
 
             private Task HandleNugetReferenceAsync(

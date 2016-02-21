@@ -16,16 +16,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
     {
         private class AssemblyReference : Reference
         {
-            private readonly string _assemblyName;
+            private readonly PackageWithTypeResult _packageWithType;
 
             public AssemblyReference(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
                 IPackageInstallerService installerService,
                 SearchResult searchResult,
-                string assemblyName)
+                PackageWithTypeResult packageWithType)
                 : base(provider, searchResult)
             {
-                _assemblyName = assemblyName;
+                _packageWithType = packageWithType;
             }
 
             public override Task<CodeAction> CreateCodeActionAsync(
@@ -39,12 +39,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
                 var reference = obj as AssemblyReference;
                 return base.Equals(obj) &&
-                    _assemblyName == reference._assemblyName;
+                    _packageWithType.AssemblyName == reference._packageWithType.AssemblyName;
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(_assemblyName, base.GetHashCode());
+                return Hash.Combine(_packageWithType.AssemblyName, base.GetHashCode());
             }
 
             private class AssemblyReferenceCodeAction : CodeAction
@@ -72,14 +72,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     _node = node;
                     _placeSystemNamespaceFirst = placeSystemNamespaceFirst;
 
-                    _title = $"{reference.provider.GetDescription(reference.SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, reference._assemblyName)})";
+                    _title = $"{reference.provider.GetDescription(reference.SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, reference._packageWithType.AssemblyName)})";
                     _lazyResolvedPath = new Lazy<string>(ResolvePath);
                 }
 
                 private string ResolvePath()
                 {
-                    var metadataService = _document.Project.Solution.Workspace.Services.GetService<IFrameworkAssemblyPathResolver>();
-                    var assemblyPath = metadataService?.ResolveAssemblyPath(_document.Project.Id, _reference._assemblyName);
+                    var assemblyResolverService = _document.Project.Solution.Workspace.Services.GetService<IFrameworkAssemblyPathResolver>();
+
+                    var packageWithType = _reference._packageWithType;
+                    var fullyQualifiedName = string.Join(".", packageWithType.ContainingNamespaceNames.Concat(packageWithType.TypeName));
+                    var assemblyPath = assemblyResolverService?.ResolveAssemblyPath(
+                        _document.Project.Id, packageWithType.AssemblyName, fullyQualifiedName);
+
                     return assemblyPath;
                 }
 
