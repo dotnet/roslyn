@@ -8,7 +8,9 @@
     "System.Globalization": "4.0.10",
     "System.Runtime": "4.0.20",
     "System.Runtime.Extensions": "4.0.10",
-    "System.Threading": "4.0.10"
+    "System.Threading": "4.0.10",
+    "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2",
+    "NuGet.VisualStudio": { "version": "3.3.0", "suppressParent": "all" },
   },
   "frameworks": {
     "net46": {}
