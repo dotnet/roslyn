@@ -126,6 +126,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             {
                 // Make a linked undo to wrap all these operations.  This way we should
                 // be able to undo them all with one user action.
+                //
+                // Note: we only wrap things with an undo action if:
+                // 
+                //  1. We have multiple operations (this code here).
+                //  2. We have a SolutionChangedAction and we're making changes to multiple 
+                //     documents. (Below in ProcessOperations).
+                //
+                // Or, in other words, if we know we're only editing a single file, then we
+                // don't wrap things with a global undo action.
+                //
+                // The reason for this is a global undo forces all files to save.  And that's
+                // rather a heavyweight and unexpected experience for users (for the common 
+                // case where a single file got edited).
+                //
+                // When we have multiple operations we assume that this is going to be 
+                // more heavyweight. (After all, a full Roslyn solution change can be represented
+                // with a single operation).  As such, we wrap with an undo so all the operations
+                // can be undone at once.
                 using (var transaction = workspace.OpenGlobalUndoTransaction(title))
                 {
                     updatedSolution = ProcessOperations(workspace, fromDocument, title, oldSolution, updatedSolution, operationsList, cancellationToken);
