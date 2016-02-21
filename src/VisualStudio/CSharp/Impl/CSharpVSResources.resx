@@ -415,12 +415,12 @@
     <value>Type Inference preferences:</value>
   </data>
   <data name="UseVarForIntrinsicTypes" xml:space="preserve">
-    <value>Use 'var' for intrinsic types</value>
+    <value>Use 'var' for built-in types</value>
   </data>
   <data name="UseVarWhenPossible" xml:space="preserve">
-    <value>Use 'var' in all other places as well</value>
+    <value>Use 'var' elsewhere</value>
   </data>
   <data name="UseVarWhenTypeIsApparent" xml:space="preserve">
-    <value>Use 'var' when type information is apparent</value>
+    <value>Use 'var' when typing is apparent</value>
   </data>
 </root>
