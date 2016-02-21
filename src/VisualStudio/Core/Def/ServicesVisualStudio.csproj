@@ -71,6 +71,7 @@
     <Compile Include="Implementation\ProjectSystem\Interop\ICompilerOptionsHostObject.cs" />
     <Compile Include="Implementation\ProjectSystem\IVisualStudioWorkingFolder.cs" />
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioAnalyzerAssemblyLoaderService.cs" />
+    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioAssemblyPathResolverFactory.cs" />
     <Compile Include="Implementation\ProjectSystem\RuleSets\RuleSetEventHandler.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker_IVsSolutionWorkingFoldersEvents.cs" />
     <Compile Include="Implementation\Diagnostics\MiscellaneousDiagnosticAnalyzerService.cs" />
@@ -197,6 +198,9 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll">
       <HintPath>$(DevEnvDir)\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Design.dll">
+      <HintPath>$(DevEnvDir)\Microsoft.VisualStudio.Shell.Design.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.TextManager.Interop.11.0, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>True</EmbedInteropTypes>
