@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles;
@@ -20,26 +22,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
                 new CSharpUseImplicitTypingDiagnosticAnalyzer(), new UseImplicitTypingCodeFixProvider());
 
+        private readonly SimpleCodeStyleOption onWithNone = new SimpleCodeStyleOption(true, NotificationOption.None);
+        private readonly SimpleCodeStyleOption offWithNone = new SimpleCodeStyleOption(false, NotificationOption.None);
+        private readonly SimpleCodeStyleOption onWithInfo = new SimpleCodeStyleOption(true, NotificationOption.Info);
+        private readonly SimpleCodeStyleOption offWithInfo = new SimpleCodeStyleOption(false, NotificationOption.Info);
+        private readonly SimpleCodeStyleOption onWithWarning = new SimpleCodeStyleOption(true, NotificationOption.Warning);
+        private readonly SimpleCodeStyleOption offWithWarning = new SimpleCodeStyleOption(false, NotificationOption.Warning);
+        private readonly SimpleCodeStyleOption onWithError = new SimpleCodeStyleOption(true, NotificationOption.Error);
+        private readonly SimpleCodeStyleOption offWithError = new SimpleCodeStyleOption(false, NotificationOption.Error);
+
         // specify all options explicitly to override defaults.
-        private IDictionary<OptionKey, object> ImplicitTypingEverywhere() =>
-            Options(CSharpCodeStyleOptions.UseVarWherePossible, true)
-            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, true)
-            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, true);
+        private IDictionary<OptionKey, object> ImplicitTypingEverywhere() => 
+            Options(CSharpCodeStyleOptions.UseVarWherePossible, onWithInfo)
+            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, onWithInfo)
+            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, onWithInfo);
 
         private IDictionary<OptionKey, object> ImplicitTypingWhereApparent() =>
-            Options(CSharpCodeStyleOptions.UseVarWherePossible, false)
-            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, true)
-            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, false);
+            Options(CSharpCodeStyleOptions.UseVarWherePossible, offWithInfo)
+            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, onWithInfo)
+            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, offWithInfo);
 
         private IDictionary<OptionKey, object> ImplicitTypingWhereApparentAndForIntrinsics() =>
-            Options(CSharpCodeStyleOptions.UseVarWherePossible, false)
-            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, true)
-            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, true);
+            Options(CSharpCodeStyleOptions.UseVarWherePossible, offWithInfo)
+            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, onWithInfo)
+            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, onWithInfo);
 
         private IDictionary<OptionKey, object> ImplicitTypingButKeepIntrinsics() =>
-            Options(CSharpCodeStyleOptions.UseVarWherePossible, true)
-            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, false)
-            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, true);
+            Options(CSharpCodeStyleOptions.UseVarWherePossible, onWithInfo)
+            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, offWithInfo)
+            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, onWithInfo);
+
+        private IDictionary<OptionKey, object> ImplicitTypingEnforcements() =>
+            Options(CSharpCodeStyleOptions.UseVarWherePossible, onWithWarning)
+            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, onWithError)
+            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, onWithInfo);
+
+        private IDictionary<OptionKey, object> ImplicitTypingNoneEnforcement() =>
+            Options(CSharpCodeStyleOptions.UseVarWherePossible, onWithNone)
+            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, onWithNone)
+            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, onWithNone);
 
         private IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {
@@ -1209,6 +1230,78 @@ class C
         var ch = iConv.ToChar(null);
     }
 }", options: ImplicitTypingWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarNotificationLevelNone()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void M()
+    {
+        [|C|] n1 = new C();
+    }
+}";
+            await TestMissingAsync(source, ImplicitTypingNoneEnforcement());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarNotificationLevelInfo()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void M()
+    {
+        [|int|] s = 5;
+    }
+}";
+            await TestDiagnosticSeverityAndCountAsync(source, 
+                options: ImplicitTypingEnforcements(), 
+                diagnosticCount: 1, 
+                diagnosticId: IDEDiagnosticIds.UseImplicitTypingDiagnosticId, 
+                diagnosticSeverity: DiagnosticSeverity.Info);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarNotificationLevelWarning()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void M()
+    {
+        [|int[]|] n1 = new[] {2, 4, 6, 8};
+    }
+}";
+            await TestDiagnosticSeverityAndCountAsync(source,
+                options: ImplicitTypingEnforcements(),
+                diagnosticCount: 1,
+                diagnosticId: IDEDiagnosticIds.UseImplicitTypingDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Warning);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarNotificationLevelError()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void M()
+    {
+        [|C|] n1 = new C();
+    }
+}";
+            await TestDiagnosticSeverityAndCountAsync(source,
+                options: ImplicitTypingEnforcements(),
+                diagnosticCount: 1,
+                diagnosticId: IDEDiagnosticIds.UseImplicitTypingDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Error);
         }
     }
 }
