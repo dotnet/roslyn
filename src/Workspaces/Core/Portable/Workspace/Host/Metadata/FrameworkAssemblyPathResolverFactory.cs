@@ -6,15 +6,15 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    [ExportWorkspaceServiceFactory(typeof(IAssemblyPathResolver), ServiceLayer.Default), Shared]
-    internal sealed class AssemblyPathResolverFactory : IWorkspaceServiceFactory
+    [ExportWorkspaceServiceFactory(typeof(IFrameworkAssemblyPathResolver), ServiceLayer.Default), Shared]
+    internal sealed class FrameworkAssemblyPathResolverFactory : IWorkspaceServiceFactory
     {
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new Service();
         }
 
-        private sealed class Service : IAssemblyPathResolver
+        private sealed class Service : IFrameworkAssemblyPathResolver
         {
             public Service()
             {

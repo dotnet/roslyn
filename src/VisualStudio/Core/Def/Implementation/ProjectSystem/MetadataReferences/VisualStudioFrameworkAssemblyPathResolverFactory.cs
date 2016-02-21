@@ -14,15 +14,15 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    [ExportWorkspaceServiceFactory(typeof(IAssemblyPathResolver), ServiceLayer.Host), Shared]
-    internal sealed class VisualStudioAssemblyPathResolverFactory : IWorkspaceServiceFactory
+    [ExportWorkspaceServiceFactory(typeof(IFrameworkAssemblyPathResolver), ServiceLayer.Host), Shared]
+    internal sealed class VisualStudiorFrameworkAssemblyPathResolverFactory : IWorkspaceServiceFactory
     {
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new Service(workspaceServices.Workspace as VisualStudioWorkspaceImpl);
         }
 
-        private sealed class Service : ForegroundThreadAffinitizedObject, IAssemblyPathResolver
+        private sealed class Service : ForegroundThreadAffinitizedObject, IFrameworkAssemblyPathResolver
         {
             private readonly VisualStudioWorkspaceImpl _workspace;
 
