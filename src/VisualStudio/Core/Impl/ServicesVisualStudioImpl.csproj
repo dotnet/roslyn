@@ -309,6 +309,7 @@
     <Compile Include="CodeModel\RootCodeModel.cs" />
     <Compile Include="CodeModel\SyntaxNodeKey.cs" />
     <Compile Include="CodeModel\TextManagerAdapter.cs" />
+    <Compile Include="Options\AbstractCheckBoxViewModel.cs" />
     <Compile Include="Options\CheckBoxWithComboViewModel.cs" />
     <Compile Include="Options\CodeStyleOptionsViewModel.cs" />
     <Compile Include="Options\NotificationOptionViewModel.cs" />
