@@ -4,10 +4,12 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CaseCorrection
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.AddImport
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Packaging
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -15,6 +17,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddUsingOrImport), [Shared]>
     Friend Class VisualBasicAddImportCodeFixProvider
         Inherits AbstractAddImportCodeFixProvider(Of SimpleNameSyntax)
+
+        Public Sub New()
+        End Sub
+
+        ''' <summary>
+        ''' For testing purposes so that tests can pass in mocks for these values.
+        ''' </summary>
+        Friend Sub New(installerService As IPackageInstallerService, searchService As IPackageSearchService)
+            MyBase.New(installerService, searchService)
+        End Sub
 
         ''' <summary>
         ''' Type xxx is not defined
@@ -229,7 +241,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
             Return Nothing
         End Function
 
-        Protected Overrides Function GetDescription(namespaceSymbol As INamespaceOrTypeSymbol, semanticModel As SemanticModel, root As SyntaxNode) As String
+        Protected Overrides Function GetDescription(nameParts As IReadOnlyList(Of String)) As String
+            Return $"Imports { String.Join(".", nameParts) }"
+        End Function
+
+        Protected Overrides Function GetDescription(namespaceSymbol As INamespaceOrTypeSymbol, semanticModel As SemanticModel,
+                                                    root As SyntaxNode, checkForExistingImport As Boolean) As String
             Return $"Imports {namespaceSymbol.ToDisplayString()}"
         End Function
 
@@ -297,17 +314,56 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
                 placeSystemNamespaceFirst As Boolean,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
+            Dim nameSyntax = DirectCast(symbol.GenerateTypeSyntax(addGlobal:=False), NameSyntax)
+
+            Return Await AddImportsAsync(
+                contextNode, document, placeSystemNamespaceFirst, nameSyntax,
+                additionalAnnotation:=Nothing, cancellationToken:=cancellationToken).ConfigureAwait(False)
+        End Function
+
+        Private Shared Async Function AddImportsAsync(
+                contextNode As SyntaxNode,
+                document As Document,
+                placeSystemNamespaceFirst As Boolean,
+                nameSyntax As NameSyntax,
+                additionalAnnotation As SyntaxAnnotation,
+                cancellationToken As CancellationToken) As Task(Of Document)
             Dim root = DirectCast(Await contextNode.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(False), CompilationUnitSyntax)
 
             Dim memberImportsClause =
-                SyntaxFactory.SimpleImportsClause(name:=DirectCast(symbol.GenerateTypeSyntax(addGlobal:=False), NameSyntax).WithAdditionalAnnotations(Simplifier.Annotation))
+                SyntaxFactory.SimpleImportsClause(name:=nameSyntax.WithAdditionalAnnotations(Simplifier.Annotation))
             Dim newImport = SyntaxFactory.ImportsStatement(
                 importsClauses:=SyntaxFactory.SingletonSeparatedList(Of ImportsClauseSyntax)(memberImportsClause))
 
+            If additionalAnnotation IsNot Nothing Then
+                newImport = newImport.WithAdditionalAnnotations(additionalAnnotation)
+            End If
+
+            ' Don't add the import if an eqiuvalent one is already there.
+            If root.Imports.Any(Function(i) i.IsEquivalentTo(newImport, topLevel:=False)) Then
+                Return document
+            End If
+
             Dim syntaxTree = contextNode.SyntaxTree
             Return document.WithSyntaxRoot(
-                root.AddImportsStatement(newImport, placeSystemNamespaceFirst,
-                                         CaseCorrector.Annotation, Formatter.Annotation))
+                root.AddImportsStatement(newImport, placeSystemNamespaceFirst, CaseCorrector.Annotation, Formatter.Annotation))
+        End Function
+
+        Protected Overrides Function AddImportAsync(contextNode As SyntaxNode, nameSpaceParts As IReadOnlyList(Of String), document As Document, specialCaseSystem As Boolean, cancellationToken As CancellationToken) As Task(Of Document)
+            Dim nameSyntax = CreateNameSyntax(nameSpaceParts, nameSpaceParts.Count - 1)
+
+            ' Suppress diagnostics on the import we create.  Because we only get here when we are 
+            ' adding a nuget package, it is certainly the case that in the preview this will not
+            ' bind properly.  It will look silly to show such an error, so we just suppress things.
+            Return AddImportsAsync(contextNode, document, specialCaseSystem, nameSyntax,
+                                   SuppressDiagnosticsAnnotation.Create(), cancellationToken)
+        End Function
+
+        Private Function CreateNameSyntax(nameSpaceParts As IReadOnlyList(Of String), index As Integer) As NameSyntax
+            Dim namePiece = SyntaxFactory.IdentifierName(nameSpaceParts(index))
+            Return If(index = 0,
+                DirectCast(namePiece, NameSyntax),
+                SyntaxFactory.QualifiedName(CreateNameSyntax(nameSpaceParts, index - 1), namePiece))
         End Function
 
         Protected Overrides Function IsViableExtensionMethod(method As IMethodSymbol,
