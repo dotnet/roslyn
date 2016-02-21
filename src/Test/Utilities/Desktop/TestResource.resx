@@ -154,6 +154,10 @@ using ConsoleApplication2.Test;
 using X = int1;
 using Y = ABC.X&lt;int&gt;;
 
+using static System.Math;
+using static System.DayOfWeek;
+using static System.Linq.Enumerable;
+
 #endregion
 
 [assembly: System.Copyright(@"(C)"" 
@@ -242,22 +246,29 @@ namespace My
             
             dynamic dynamic = local5;
             var add = 0;
+            var alias = 0;
+            var arglist = 0;
             var ascending = 0;
+            var async = 0;
+            var await = 0;
+            var by = 0;
             var descending = 0;
+            var dynamic = 0;
+            var equals = 0;
             var from = 0;
             var get = 0;
-            var global = 0;
             var group = 0;
             var into = 0;
             var join = 0;
             var let = 0;
+            var nameof = 0;
+            var on = 0;
             var orderby = 0;
             var partial = 0;
             var remove = 0;
             var select = 0;
             var set = 0;
-            var value = 0;
-            var var = 0;
+            var when = 0;
             var where = 0;
             var yield = 0;
             where = yield = 0;
@@ -798,6 +809,81 @@ namespace Comments.XmlComments.UndocumentedKeywords
         }
 
         struct Point { public int X; public int Y; public void ThisAccess() { this = this; } }
+    }
+    
+    // From here:https://github.com/dotnet/roslyn/wiki/New-Language-Features-in-C%23-6
+    class CSharp6Features
+    {
+        // Initializers for auto-properties
+        public string First { get; set; } = "Jane";
+        public string Last { get; set; } = "Doe";
+    
+        // Getter-only auto-properties
+        public string First { get; } = "Jane";
+        public string Last { get; } = "Doe";
+        
+        // Expression bodies on method-like members
+        public Point Move(int dx, int dy) =&gt; new Point(x + dx, y + dy); 
+        public static Complex operator +(Complex a, Complex b) =&gt; a.Add(b);
+        public static implicit operator string(Person p) =&gt; p.First + " " + p.Last;
+        public void Print() =&gt; Console.WriteLine(First + " " + Last);
+        
+        // Expression bodies on property-like function members
+        public string Name =&gt; First + " " + Last;
+        public Customer this[long id] =&gt; store.LookupCustomer(id);
+        
+        static void Main()
+        {
+            // Using static
+            WriteLine(Sqrt(3*3 + 4*4));
+            WriteLine(Friday - Monday);            
+            var range = Range(5, 17);                // Ok: not extension
+            var even = range.Where(i =&gt; i % 2 == 0); // Ok
+            
+            // Null-conditional operators
+            int? length = customers?.Length; // null if customers is null
+            Customer first = customers?[0];  // null if customers is null            
+            int length = customers?.Length ?? 0; // 0 if customers is null
+            int? first = customers?[0].Orders?.Count();
+            PropertyChanged?.Invoke(this, args);
+            
+            // String interpolation
+            var s = $"{p.Name,20} is {p.Age:D3} year{{s}} old";
+            var s = $"{p.Name} is {p.Age} year{(p.Age == 1 ? "" : "s")} old";
+            
+            // nameof expressions
+            if (x == null)
+                throw new ArgumentNullException(nameof(x));
+            WriteLine(nameof(person.Address.ZipCode)); // prints "ZipCode"
+            
+            // Index initializers
+            var numbers = new Dictionary&lt;int, string&gt; {
+                [7] = "seven",
+                [9] = "nine",
+                [13] = "thirteen"
+            };
+            
+            // Exception filters
+            try {}
+            catch (MyException e) when (myfilter(e))
+            { }
+            
+            // Await in catch and finally blocks
+            Resource res = null;
+            try
+            {
+                res = await Resource.OpenAsync();       // You could do this.
+            } 
+            catch(ResourceException e)
+            {
+                await Resource.LogAsync(res, e);         // Now you can do this …
+            }
+            finally
+            {
+                if (res != null)
+                    await res.CloseAsync(); // … and this.
+            }
+        }
     }
 }
 
