@@ -83,7 +83,14 @@
                       Exclude="$(OutputDirectory)\Roslyn.Interactive*" />
 
       <CoreTestAssemblies Include="$(CoreClrTestDirectory)\$(IncludePattern)" />
+
+      <MisplacedTestAssemblies Include="$(OutputDirectory)\**\$(IncludePattern)"
+                               Exclude="$(OutputDirectory)\$(IncludePattern);@(CoreTestAssemblies)" />
     </ItemGroup>
+
+    <Error Condition="'@(MisplacedTestAssemblies->Count())' &gt; 0"
+        Text="Found test assemblies outside a well-known test directory: 
+@(MisplacedTestAssemblies, '%0a')" />
 
     <Exec Command="$(CoreClrTestDirectory)\CoreRun.exe $(CoreClrTestDirectory)\xunit.console.netcore.exe @(CoreTestAssemblies, ' ') -parallel all -xml $(CoreClrTestDirectory)\TestResults.xml" />
 
