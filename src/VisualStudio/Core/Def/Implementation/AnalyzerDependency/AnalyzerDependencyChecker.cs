@@ -11,6 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using System.Reflection;
 using System.Diagnostics;
+using SystemMetadataReader = System.Reflection.Metadata.MetadataReader;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
@@ -135,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return null;
         }
 
-        private static ImmutableArray<AssemblyIdentity> ReadReferences(MetadataReader metadataReader)
+        private static ImmutableArray<AssemblyIdentity> ReadReferences(SystemMetadataReader metadataReader)
         {
             var builder = ImmutableArray.CreateBuilder<AssemblyIdentity>();
             foreach (var referenceHandle in metadataReader.AssemblyReferences)
@@ -155,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return builder.ToImmutable();
         }
 
-        private static AssemblyIdentity ReadAssemblyIdentity(MetadataReader metadataReader)
+        private static AssemblyIdentity ReadAssemblyIdentity(SystemMetadataReader metadataReader)
         {
             var assemblyDefinition = metadataReader.GetAssemblyDefinition();
             string name = metadataReader.GetString(assemblyDefinition.Name);
@@ -168,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return new AssemblyIdentity(name, version, cultureName, publicKeyOrToken, hasPublicKey: hasPublicKey);
         }
 
-        private static Guid ReadMvid(MetadataReader metadataReader)
+        private static Guid ReadMvid(SystemMetadataReader metadataReader)
         {
             var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
             return metadataReader.GetGuid(mvidHandle);
