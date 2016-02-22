@@ -48,8 +48,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var document = workspace.CurrentSolution.GetDocument(documentId);
             var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            var vsTextSpan = text.GetVsTextSpanForSpan(textSpan);
+            if (textSpan.Start < 0 || textSpan.End > text.Length)
+            {
+                return false;
+            }
 
+            var vsTextSpan = text.GetVsTextSpanForSpan(textSpan);
             return CanMapFromSecondaryBufferToPrimaryBuffer(workspace, documentId, vsTextSpan);
         }
 
@@ -104,7 +108,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            var textBuffer = text.Container.GetTextBuffer();
+            if (textSpan.Start < 0 || textSpan.End > text.Length)
+            {
+                return false;
+            }
 
             var vsTextSpan = text.GetVsTextSpanForSpan(textSpan);
             if (IsSecondaryBuffer(workspace, documentId) &&
@@ -113,6 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
+            var textBuffer = text.Container.GetTextBuffer();
             return NavigateTo(textBuffer, vsTextSpan);
         }
 
