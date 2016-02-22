@@ -564,26 +564,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         private static int GetUseVarOption(SimpleCodeStyleOption option)
         {
-            if (!option.IsChecked)
-            {
-                return 0;
-            }
-            else
-            {
-                switch (option.Notification.Value)
-                {
-                    case DiagnosticSeverity.Hidden:
-                        return (int)DiagnosticSeverity.Hidden + 1;
-                    case DiagnosticSeverity.Info:
-                        return (int)DiagnosticSeverity.Info + 1;
-                    case DiagnosticSeverity.Warning:
-                        return (int)DiagnosticSeverity.Warning + 1;
-                    case DiagnosticSeverity.Error:
-                        return (int)DiagnosticSeverity.Error + 1;
-                    default:
-                        return 0;
-                }
-            }
+            var offset = option.IsChecked ? 0 : Enum.GetValues(typeof(DiagnosticSeverity)).Length;
+            var baseValue = (int)option.Notification.Value;
+
+            return offset + baseValue;
         }
 
         private void SetUseVarOption(Option<SimpleCodeStyleOption> option, int value)
@@ -594,19 +578,28 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             switch (value)
             {
                 case 0:
-                    convertedValue = new SimpleCodeStyleOption(false, NotificationOption.None);
-                    break;
-                case 1:
                     convertedValue = new SimpleCodeStyleOption(true, NotificationOption.None);
                     break;
-                case 2:
+                case 1:
                     convertedValue = new SimpleCodeStyleOption(true, NotificationOption.Info);
                     break;
-                case 3:
+                case 2:
                     convertedValue = new SimpleCodeStyleOption(true, NotificationOption.Warning);
                     break;
-                case 4:
+                case 3:
                     convertedValue = new SimpleCodeStyleOption(true, NotificationOption.Error);
+                    break;
+                case 4:
+                    convertedValue = new SimpleCodeStyleOption(false, NotificationOption.None);
+                    break;
+                case 5:
+                    convertedValue = new SimpleCodeStyleOption(false, NotificationOption.Info);
+                    break;
+                case 6:
+                    convertedValue = new SimpleCodeStyleOption(false, NotificationOption.Warning);
+                    break;
+                case 7:
+                    convertedValue = new SimpleCodeStyleOption(false, NotificationOption.Error);
                     break;
                 default:
                     break;

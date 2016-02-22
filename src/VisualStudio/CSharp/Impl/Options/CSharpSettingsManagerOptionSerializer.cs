@@ -316,33 +316,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private bool PersistUseVarOption(string option, object value)
         {
             var convertedValue = (SimpleCodeStyleOption)value;
+            var offset = convertedValue.IsChecked ? 0 : Enum.GetValues(typeof(DiagnosticSeverity)).Length;
+            var baseValue = (int)convertedValue.Notification.Value;
 
-            if (!convertedValue.IsChecked)
-            {
-                this.Manager.SetValueAsync(option, value: 0, isMachineLocal: false);
-                return true;
-            }
-            else
-            {
-                switch (convertedValue.Notification.Value)
-                {
-                    case DiagnosticSeverity.Hidden:
-                        this.Manager.SetValueAsync(option, value: 1, isMachineLocal: false);
-                        break;
-                    case DiagnosticSeverity.Info:
-                        this.Manager.SetValueAsync(option, value: 2, isMachineLocal: false);
-                        break;
-                    case DiagnosticSeverity.Warning:
-                        this.Manager.SetValueAsync(option, value: 3, isMachineLocal: false);
-                        break;
-                    case DiagnosticSeverity.Error:
-                        this.Manager.SetValueAsync(option, value: 4, isMachineLocal: false);
-                        break;
-                    default:
-                        break;
-                }
-                return true;
-            }
+            this.Manager.SetValueAsync(option, value: baseValue + offset, isMachineLocal: false);
+            return true;
         }
 
         private static bool FetchUseVarOption(int useVarOptionValue, out object value)
@@ -350,19 +328,28 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             switch (useVarOptionValue)
             {
                 case 0:
-                    value = new SimpleCodeStyleOption(false, NotificationOption.None);
-                    break;
-                case 1:
                     value = new SimpleCodeStyleOption(true, NotificationOption.None);
                     break;
-                case 2:
+                case 1:
                     value = new SimpleCodeStyleOption(true, NotificationOption.Info);
                     break;
-                case 3:
+                case 2:
                     value = new SimpleCodeStyleOption(true, NotificationOption.Warning);
                     break;
-                case 4:
+                case 3:
                     value = new SimpleCodeStyleOption(true, NotificationOption.Error);
+                    break;
+                case 4:
+                    value = new SimpleCodeStyleOption(false, NotificationOption.None);
+                    break;
+                case 5:
+                    value = new SimpleCodeStyleOption(false, NotificationOption.Info);
+                    break;
+                case 6:
+                    value = new SimpleCodeStyleOption(false, NotificationOption.Warning);
+                    break;
+                case 7:
+                    value = new SimpleCodeStyleOption(false, NotificationOption.Error);
                     break;
                 default:
                     value = null;
