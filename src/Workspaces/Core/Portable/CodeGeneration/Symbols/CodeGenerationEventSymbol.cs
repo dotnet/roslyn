@@ -60,13 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 this.Name, this.AddMethod, this.RemoveMethod, this.RaiseMethod, this.ParameterList);
         }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Event;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.Event;
 
         public override void Accept(SymbolVisitor visitor)
         {
@@ -78,13 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return visitor.VisitEvent(this);
         }
 
-        public new IEventSymbol OriginalDefinition
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public new IEventSymbol OriginalDefinition => this;
 
         public IEventSymbol OverriddenEvent
         {

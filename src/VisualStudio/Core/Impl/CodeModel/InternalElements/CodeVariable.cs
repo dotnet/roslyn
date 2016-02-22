@@ -71,10 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             return null;
         }
 
-        public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementVariable; }
-        }
+        public override EnvDTE.vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementVariable;
 
         public EnvDTE80.vsCMConstKind ConstKind
         {
@@ -89,10 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             }
         }
 
-        public override EnvDTE.CodeElements Children
-        {
-            get { return Attributes; }
-        }
+        public override EnvDTE.CodeElements Children => Attributes;
 
         public object InitExpression
         {

@@ -85,10 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             return CodeModelService.GetPropertyExtender(name, LookupNode(), LookupSymbol());
         }
 
-        public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementProperty; }
-        }
+        public override EnvDTE.vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementProperty;
 
         public override object Parent
         {
@@ -138,10 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             }
         }
 
-        public override EnvDTE.CodeElements Children
-        {
-            get { return this.Attributes; }
-        }
+        public override EnvDTE.CodeElements Children => this.Attributes;
 
         private bool HasAccessorNode(MethodKind methodKind)
         {

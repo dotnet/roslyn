@@ -41,13 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return new CodeGenerationNamespaceSymbol(this.Name, _members);
         }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Namespace;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.Namespace;
 
         public override void Accept(SymbolVisitor visitor)
         {
@@ -82,10 +76,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public NamespaceKind NamespaceKind
-        {
-            get { return NamespaceKind.Module; }
-        }
+        public NamespaceKind NamespaceKind => NamespaceKind.Module;
 
         public Compilation ContainingCompilation
         {

@@ -38,13 +38,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         private string _notificationMessage = null;
 
         private readonly TestHostDocument _hostDocument;
-        public TestHostDocument HostDocument { get { return _hostDocument; } }
+        public TestHostDocument HostDocument => _hostDocument;
 
         private readonly IEditorOperations _editorOperations;
-        public IEditorOperations EditorOperations { get { return _editorOperations; } }
+        public IEditorOperations EditorOperations => _editorOperations;
 
         private readonly MockRefactorNotifyService _mockRefactorNotifyService;
-        public MockRefactorNotifyService RefactorNotifyService { get { return _mockRefactorNotifyService; } }
+        public MockRefactorNotifyService RefactorNotifyService => _mockRefactorNotifyService;
 
         private readonly CodeFixProvider _codeFixProvider;
         private readonly RenameTrackingCancellationCommandHandler _commandHandler = new RenameTrackingCancellationCommandHandler();

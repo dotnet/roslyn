@@ -796,21 +796,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         {
             private Project _project;
 
-            public string Name
-            {
-                get
-                {
-                    return _project.Name;
-                }
-            }
+            public string Name => _project.Name;
 
-            public Project Project
-            {
-                get
-                {
-                    return _project;
-                }
-            }
+            public Project Project => _project;
 
             public ProjectSelectItem(Project project)
             {
@@ -821,22 +809,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         public class DocumentSelectItem
         {
             private Document _document;
-            public Document Document
-            {
-                get
-                {
-                    return _document;
-                }
-            }
+            public Document Document => _document;
 
             private string _name;
-            public string Name
-            {
-                get
-                {
-                    return _name;
-                }
-            }
+            public string Name => _name;
 
             public DocumentSelectItem(Document document, string documentName)
             {

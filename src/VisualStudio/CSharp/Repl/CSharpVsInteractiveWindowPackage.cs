@@ -24,15 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
         private const string IdString = "CA8CC5C7-0231-406A-95CD-AA5ED6AC0190";
         internal static readonly Guid Id = new Guid(IdString);
 
-        protected override Guid ToolWindowId
-        {
-            get { return Id; }
-        }
+        protected override Guid ToolWindowId => Id;
 
-        protected override Guid LanguageServiceGuid
-        {
-            get { return LanguageServiceGuids.CSharpLanguageServiceId; }
-        }
+        protected override Guid LanguageServiceGuid => LanguageServiceGuids.CSharpLanguageServiceId;
 
         protected override void InitializeMenuCommands(OleMenuCommandService menuCommandService)
         {

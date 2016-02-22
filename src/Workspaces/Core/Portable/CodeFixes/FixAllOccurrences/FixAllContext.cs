@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Solution to fix all occurrences.
         /// </summary>
-        public Solution Solution { get { return this.Project.Solution; } }
+        public Solution Solution => this.Project.Solution;
 
         /// <summary>
         /// Project within which fix all occurrences was triggered.

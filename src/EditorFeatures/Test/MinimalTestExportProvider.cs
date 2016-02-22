@@ -20,13 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         private static readonly PartDiscovery s_partDiscovery = CreatePartDiscovery(Resolver.DefaultInstance);
         private static readonly Lazy<ComposableCatalog> s_lazyLanguageNeutralCatalog = new Lazy<ComposableCatalog>(() => CreateAssemblyCatalog(GetVisualStudioAssemblies()).WithParts(CreateAssemblyCatalog(GetLanguageNeutralTypes().Select(t => t.Assembly).Distinct())));
 
-        public static ComposableCatalog LanguageNeutralCatalog
-        {
-            get
-            {
-                return s_lazyLanguageNeutralCatalog.Value;
-            }
-        }
+        public static ComposableCatalog LanguageNeutralCatalog => s_lazyLanguageNeutralCatalog.Value;
 
         public static Type[] GetLanguageNeutralTypes()
         {

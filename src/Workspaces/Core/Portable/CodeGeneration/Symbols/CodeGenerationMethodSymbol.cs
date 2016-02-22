@@ -44,37 +44,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             _methodKind = methodKind;
         }
 
-        public override ITypeSymbol ReturnType
-        {
-            get
-            {
-                return _returnType;
-            }
-        }
+        public override ITypeSymbol ReturnType => _returnType;
 
-        public override ImmutableArray<ITypeParameterSymbol> TypeParameters
-        {
-            get
-            {
-                return _typeParameters;
-            }
-        }
+        public override ImmutableArray<ITypeParameterSymbol> TypeParameters => _typeParameters;
 
-        public override ImmutableArray<IParameterSymbol> Parameters
-        {
-            get
-            {
-                return _parameters;
-            }
-        }
+        public override ImmutableArray<IParameterSymbol> Parameters => _parameters;
 
-        public override ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations
-        {
-            get
-            {
-                return _explicitInterfaceImplementations;
-            }
-        }
+        public override ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations => _explicitInterfaceImplementations;
 
         protected override CodeGenerationSymbol Clone()
         {
@@ -94,13 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return result;
         }
 
-        public override int Arity
-        {
-            get
-            {
-                return this.TypeParameters.Length;
-            }
-        }
+        public override int Arity => this.TypeParameters.Length;
 
         public override bool ReturnsVoid
         {
@@ -118,13 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override IMethodSymbol ConstructedFrom
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public override IMethodSymbol ConstructedFrom => this;
 
         public override IMethodSymbol OverriddenMethod
         {
@@ -142,13 +106,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override MethodKind MethodKind
-        {
-            get
-            {
-                return _methodKind;
-            }
-        }
+        public override MethodKind MethodKind => _methodKind;
 
         public override ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter)
         {

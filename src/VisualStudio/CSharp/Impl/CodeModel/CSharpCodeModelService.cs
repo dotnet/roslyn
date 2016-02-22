@@ -486,10 +486,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
         }
 
-        public override string Language
-        {
-            get { return EnvDTE.CodeModelLanguageConstants.vsCMLanguageCSharp; }
-        }
+        public override string Language => EnvDTE.CodeModelLanguageConstants.vsCMLanguageCSharp;
 
         public override string AssemblyAttributeString
         {

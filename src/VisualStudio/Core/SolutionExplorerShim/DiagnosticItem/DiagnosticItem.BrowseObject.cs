@@ -21,13 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemIDDisplayName))]
-            public string Id
-            {
-                get
-                {
-                    return _diagnosticItem.Descriptor.Id;
-                }
-            }
+            public string Id => _diagnosticItem.Descriptor.Id;
 
             [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemTitleDisplayName))]
             public string Title
@@ -57,13 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemCategoryDisplayName))]
-            public string Category
-            {
-                get
-                {
-                    return _diagnosticItem.Descriptor.Category;
-                }
-            }
+            public string Category => _diagnosticItem.Descriptor.Category;
 
             [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemDefaultSeverityDisplayName))]
             public string DefaultSeverity
@@ -75,13 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemEnabledByDefaultDisplayName))]
-            public bool EnabledByDefault
-            {
-                get
-                {
-                    return _diagnosticItem.Descriptor.IsEnabledByDefault;
-                }
-            }
+            public bool EnabledByDefault => _diagnosticItem.Descriptor.IsEnabledByDefault;
 
             [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemMessageDisplayName))]
             public string Message
@@ -121,10 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             [Browsable(false)]
-            public DiagnosticItem DiagnosticItem
-            {
-                get { return _diagnosticItem; }
-            }
+            public DiagnosticItem DiagnosticItem => _diagnosticItem;
 
             private string MapDiagnosticSeverityToText(DiagnosticSeverity severity)
             {

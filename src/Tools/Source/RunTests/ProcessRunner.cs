@@ -15,20 +15,11 @@ namespace RunTests
         private readonly IList<string> _outputLines;
         private readonly IList<string> _errorLines;
 
-        public int ExitCode
-        {
-            get { return _exitCode; }
-        }
+        public int ExitCode => _exitCode;
 
-        public IList<string> OutputLines
-        {
-            get { return _outputLines; }
-        }
+        public IList<string> OutputLines => _outputLines;
 
-        public IList<string> ErrorLines
-        {
-            get { return _errorLines; }
-        }
+        public IList<string> ErrorLines => _errorLines;
 
         public ProcessOutput(int exitCode, IList<string> outputLines, IList<string> errorLines)
         {

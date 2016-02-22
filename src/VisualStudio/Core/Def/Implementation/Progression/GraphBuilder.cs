@@ -716,13 +716,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        public Graph Graph
-        {
-            get
-            {
-                return _graph;
-            }
-        }
+        public Graph Graph => _graph;
 
         public IEnumerable<GraphNode> CreatedNodes
         {

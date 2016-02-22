@@ -24,15 +24,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         internal static event Action TEST_DialogLoaded;
 
         // Expose localized strings for binding
-        public string ExtractInterfaceDialogTitle { get { return ServicesVSResources.ExtractInterface; } }
-        public string NewInterfaceName { get { return ServicesVSResources.NewInterfaceName; } }
-        public string GeneratedName { get { return ServicesVSResources.GeneratedName; } }
-        public string NewFileName { get { return ServicesVSResources.NewFileName; } }
-        public string SelectPublicMembersToFormInterface { get { return ServicesVSResources.SelectPublicMembersToFormInterface; } }
-        public string SelectAll { get { return ServicesVSResources.SelectAll; } }
-        public string DeselectAll { get { return ServicesVSResources.DeselectAll; } }
-        public string OK { get { return ServicesVSResources.OK; } }
-        public string Cancel { get { return ServicesVSResources.Cancel; } }
+        public string ExtractInterfaceDialogTitle => ServicesVSResources.ExtractInterface;
+        public string NewInterfaceName => ServicesVSResources.NewInterfaceName;
+        public string GeneratedName => ServicesVSResources.GeneratedName;
+        public string NewFileName => ServicesVSResources.NewFileName;
+        public string SelectPublicMembersToFormInterface => ServicesVSResources.SelectPublicMembersToFormInterface;
+        public string SelectAll => ServicesVSResources.SelectAll;
+        public string DeselectAll => ServicesVSResources.DeselectAll;
+        public string OK => ServicesVSResources.OK;
+        public string Cancel => ServicesVSResources.Cancel;
 
         // Use C# Extract Interface helpTopic for C# and VB.
         internal ExtractInterfaceDialog(ExtractInterfaceDialogViewModel viewModel)

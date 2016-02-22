@@ -71,10 +71,7 @@ namespace Roslyn.Collections.Immutable
         /// <summary>
         /// Gets an empty map with default equality comparers.
         /// </summary>
-        public static ImmutableHashMap<TKey, TValue> Empty
-        {
-            get { return s_emptySingleton; }
-        }
+        public static ImmutableHashMap<TKey, TValue> Empty => s_emptySingleton;
 
         /// <summary>
         /// See the <see cref="IImmutableDictionary&lt;TKey, TValue&gt;"/> interface.
@@ -728,10 +725,7 @@ namespace Roslyn.Collections.Immutable
                 _buckets = buckets;
             }
 
-            internal override int Count
-            {
-                get { return _buckets.Length; }
-            }
+            internal override int Count => _buckets.Length;
 
             internal override Bucket Add(int suggestedHashRoll, ValueBucket bucket, IEqualityComparer<TKey> comparer, IEqualityComparer<TValue> valueComparer, bool overwriteExistingValue)
             {
@@ -887,10 +881,7 @@ namespace Roslyn.Collections.Immutable
                 throw new InvalidOperationException();
             }
 
-            internal override int Count
-            {
-                get { return _count; }
-            }
+            internal override int Count => _count;
 
             internal override Bucket Add(int suggestedHashRoll, ValueBucket bucket, IEqualityComparer<TKey> keyComparer, IEqualityComparer<TValue> valueComparer, bool overwriteExistingValue)
             {
@@ -1169,13 +1160,7 @@ namespace Roslyn.Collections.Immutable
 
         private static class Strings
         {
-            public static string DuplicateKey
-            {
-                get
-                {
-                    return Microsoft.CodeAnalysis.WorkspacesResources.DuplicateKey;
-                }
-            }
+            public static string DuplicateKey => Microsoft.CodeAnalysis.WorkspacesResources.DuplicateKey;
         }
     }
 }

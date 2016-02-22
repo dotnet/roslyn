@@ -62,13 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             return VSConstants.E_INVALIDARG;
         }
 
-        public object Parent
-        {
-            get
-            {
-                return _parentHandle.Value;
-            }
-        }
+        public object Parent => _parentHandle.Value;
 
         public bool CreateUniqueID(string prefix, ref string newName)
         {

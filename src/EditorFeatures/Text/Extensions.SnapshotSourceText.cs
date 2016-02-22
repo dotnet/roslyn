@@ -96,10 +96,7 @@ namespace Microsoft.CodeAnalysis.Text
                 return text;
             }
 
-            public override Encoding Encoding
-            {
-                get { return _encodingOpt; }
-            }
+            public override Encoding Encoding => _encodingOpt;
 
             public ITextSnapshot EditorSnapshot
             {
@@ -158,10 +155,7 @@ namespace Microsoft.CodeAnalysis.Text
                     _text = text;
                 }
 
-                public override int Count
-                {
-                    get { return _text.RoslynSnapshot.LineCount; }
-                }
+                public override int Count => _text.RoslynSnapshot.LineCount;
 
                 public override TextLine this[int index]
                 {

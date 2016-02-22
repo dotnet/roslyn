@@ -22,36 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
             return document.WithSyntaxRoot(newRoot);
         }
 
-        public string OrganizeImportsDisplayStringWithAccelerator
-        {
-            get
-            {
-                return CSharpFeaturesResources.OrganizeUsingsWithAccelerator;
-            }
-        }
+        public string OrganizeImportsDisplayStringWithAccelerator => CSharpFeaturesResources.OrganizeUsingsWithAccelerator;
 
-        public string SortImportsDisplayStringWithAccelerator
-        {
-            get
-            {
-                return CSharpFeaturesResources.SortUsingsWithAccelerator;
-            }
-        }
+        public string SortImportsDisplayStringWithAccelerator => CSharpFeaturesResources.SortUsingsWithAccelerator;
 
-        public string RemoveUnusedImportsDisplayStringWithAccelerator
-        {
-            get
-            {
-                return CSharpFeaturesResources.RemoveUnnecessaryUsingsWithAccelerator;
-            }
-        }
+        public string RemoveUnusedImportsDisplayStringWithAccelerator => CSharpFeaturesResources.RemoveUnnecessaryUsingsWithAccelerator;
 
-        public string SortAndRemoveUnusedImportsDisplayStringWithAccelerator
-        {
-            get
-            {
-                return CSharpFeaturesResources.RemoveAndSortUsingsWithAccelerator;
-            }
-        }
+        public string SortAndRemoveUnusedImportsDisplayStringWithAccelerator => CSharpFeaturesResources.RemoveAndSortUsingsWithAccelerator;
     }
 }

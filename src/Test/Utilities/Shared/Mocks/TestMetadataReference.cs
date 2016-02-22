@@ -19,13 +19,7 @@ namespace Roslyn.Test.Utilities
             _display = display;
         }
 
-        public override string Display
-        {
-            get
-            {
-                return _display;
-            }
-        }
+        public override string Display => _display;
 
         protected override DocumentationProvider CreateDocumentationProvider()
         {
@@ -65,13 +59,7 @@ namespace Roslyn.Test.Utilities
             _display = display;
         }
 
-        public override string Display
-        {
-            get
-            {
-                return _display;
-            }
-        }
+        public override string Display => _display;
 
         protected override DocumentationProvider CreateDocumentationProvider()
         {

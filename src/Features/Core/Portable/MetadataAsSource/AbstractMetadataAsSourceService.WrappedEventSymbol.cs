@@ -17,13 +17,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 _symbol = eventSymbol;
             }
 
-            public IMethodSymbol AddMethod
-            {
-                get
-                {
-                    return _symbol.AddMethod;
-                }
-            }
+            public IMethodSymbol AddMethod => _symbol.AddMethod;
 
             public ImmutableArray<IEventSymbol> ExplicitInterfaceImplementations
             {
@@ -35,53 +29,17 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
-            public bool IsWindowsRuntimeEvent
-            {
-                get
-                {
-                    return _symbol.IsWindowsRuntimeEvent;
-                }
-            }
+            public bool IsWindowsRuntimeEvent => _symbol.IsWindowsRuntimeEvent;
 
-            public new IEventSymbol OriginalDefinition
-            {
-                get
-                {
-                    return this;
-                }
-            }
+            public new IEventSymbol OriginalDefinition => this;
 
-            public IEventSymbol OverriddenEvent
-            {
-                get
-                {
-                    return _symbol.OverriddenEvent;
-                }
-            }
+            public IEventSymbol OverriddenEvent => _symbol.OverriddenEvent;
 
-            public IMethodSymbol RaiseMethod
-            {
-                get
-                {
-                    return _symbol.RaiseMethod;
-                }
-            }
+            public IMethodSymbol RaiseMethod => _symbol.RaiseMethod;
 
-            public IMethodSymbol RemoveMethod
-            {
-                get
-                {
-                    return _symbol.RemoveMethod;
-                }
-            }
+            public IMethodSymbol RemoveMethod => _symbol.RemoveMethod;
 
-            public ITypeSymbol Type
-            {
-                get
-                {
-                    return _symbol.Type;
-                }
-            }
+            public ITypeSymbol Type => _symbol.Type;
         }
     }
 }

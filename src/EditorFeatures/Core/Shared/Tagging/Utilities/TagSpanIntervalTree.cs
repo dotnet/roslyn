@@ -37,21 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             _tree = IntervalTree.Create(introspector, nodeValues);
         }
 
-        public ITextBuffer Buffer
-        {
-            get
-            {
-                return _textBuffer;
-            }
-        }
+        public ITextBuffer Buffer => _textBuffer;
 
-        public SpanTrackingMode SpanTrackingMode
-        {
-            get
-            {
-                return _spanTrackingMode;
-            }
-        }
+        public SpanTrackingMode SpanTrackingMode => _spanTrackingMode;
 
         public IList<ITagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
         {

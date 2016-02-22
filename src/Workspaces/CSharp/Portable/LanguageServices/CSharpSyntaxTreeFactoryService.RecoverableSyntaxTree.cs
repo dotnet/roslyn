@@ -63,10 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     get { return (CSharpParseOptions)_info.Options; }
                 }
 
-                public override int Length
-                {
-                    get { return _info.Length; }
-                }
+                public override int Length => _info.Length;
 
                 public override bool TryGetText(out SourceText text)
                 {
@@ -83,10 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _info.GetTextAsync(cancellationToken);
                 }
 
-                public override Encoding Encoding
-                {
-                    get { return _info.Encoding; }
-                }
+                public override Encoding Encoding => _info.Encoding;
 
                 private CompilationUnitSyntax CacheRootNode(CompilationUnitSyntax node)
                 {

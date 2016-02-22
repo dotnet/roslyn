@@ -124,10 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
             }
 
-            public override string BuildTool
-            {
-                get { return PredefinedBuildTools.EnC; }
-            }
+            public override string BuildTool => PredefinedBuildTools.EnC;
         }
     }
 }

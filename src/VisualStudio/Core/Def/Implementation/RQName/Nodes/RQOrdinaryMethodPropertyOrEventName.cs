@@ -18,10 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName.Nodes
             this.Name = name;
         }
 
-        public override string OrdinaryNameValue
-        {
-            get { return Name; }
-        }
+        public override string OrdinaryNameValue => Name;
 
         public static RQOrdinaryMethodPropertyOrEventName CreateConstructorName()
         {

@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Options
             _value = value;
         }
 
-        public IOption Option { get { return _optionKey.Option; } }
-        public string Language { get { return _optionKey.Language; } }
-        public object Value { get { return _value; } }
+        public IOption Option => _optionKey.Option;
+        public string Language => _optionKey.Language;
+        public object Value => _value;
     }
 }

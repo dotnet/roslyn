@@ -59,10 +59,7 @@ namespace Roslyn.Test.PdbUtilities
                 _buffer = new byte[capacity];
             }
 
-            internal byte[] Buffer
-            {
-                get { return _buffer; }
-            }
+            internal byte[] Buffer => _buffer;
             private byte[] _buffer;
 
             internal void FillBuffer(Stream stream, int capacity)
@@ -946,10 +943,7 @@ namespace Roslyn.Test.PdbUtilities
                 }
             }
 
-            internal int Length
-            {
-                get { return contentSize; }
-            }
+            internal int Length => contentSize;
 
             internal readonly int contentSize;
             internal readonly int[] pages;

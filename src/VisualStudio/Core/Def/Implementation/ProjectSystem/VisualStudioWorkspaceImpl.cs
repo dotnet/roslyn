@@ -110,13 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _projectTracker = projectTracker;
         }
 
-        internal VisualStudioProjectTracker ProjectTracker
-        {
-            get
-            {
-                return _projectTracker;
-            }
-        }
+        internal VisualStudioProjectTracker ProjectTracker => _projectTracker;
 
         internal void ClearReferenceCache()
         {

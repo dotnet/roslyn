@@ -60,25 +60,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             get { return _virtualSpaces != 0; }
         }
 
-        public int Position
-        {
-            get { return _position; }
-        }
+        public int Position => _position;
 
-        public int VirtualSpaces
-        {
-            get { return _virtualSpaces; }
-        }
+        public int VirtualSpaces => _virtualSpaces;
 
-        public SourceText Text
-        {
-            get { return _text; }
-        }
+        public SourceText Text => _text;
 
-        public SyntaxTree Tree
-        {
-            get { return _tree; }
-        }
+        public SyntaxTree Tree => _tree;
 
         public int CompareTo(VirtualTreePoint other)
         {

@@ -98,9 +98,6 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
             this.IsActiveChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public IReadOnlyCollection<ActivityLevel> Children
-        {
-            get { return _children; }
-        }
+        public IReadOnlyCollection<ActivityLevel> Children => _children;
     }
 }

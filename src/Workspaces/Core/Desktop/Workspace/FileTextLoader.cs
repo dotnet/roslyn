@@ -38,10 +38,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Absolute path of the file.
         /// </summary>
-        public string Path
-        {
-            get { return _path; }
-        }
+        public string Path => _path;
 
         /// <summary>
         /// Specifies an encoding to be used if the actual encoding of the file 
@@ -50,10 +47,7 @@ namespace Microsoft.CodeAnalysis
         /// If these heuristics fail the decoding is assumed to be <see cref="Encoding.Default"/>.
         /// Note that if the stream starts with Byte Order Mark the value of <see cref="DefaultEncoding"/> is ignored.
         /// </summary>
-        public Encoding DefaultEncoding
-        {
-            get { return _defaultEncoding; }
-        }
+        public Encoding DefaultEncoding => _defaultEncoding;
 
         protected virtual SourceText CreateText(Stream stream, Workspace workspace)
         {

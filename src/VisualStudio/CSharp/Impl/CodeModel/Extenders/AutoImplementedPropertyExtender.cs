@@ -23,9 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Extenders
             _isAutoImplemented = isAutoImplemented;
         }
 
-        public bool IsAutoImplemented
-        {
-            get { return _isAutoImplemented; }
-        }
+        public bool IsAutoImplemented => _isAutoImplemented;
     }
 }

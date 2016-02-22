@@ -32,18 +32,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         internal static event Action TEST_DialogLoaded;
 
         // Expose localized strings for binding
-        public string GenerateTypeDialogTitle { get { return ServicesVSResources.GenerateType; } }
-        public string TypeDetails { get { return ServicesVSResources.TypeDetails; } }
-        public string Access { get { return ServicesVSResources.Access; } }
-        public string Kind { get { return ServicesVSResources.Kind; } }
-        public string NameLabel { get { return ServicesVSResources.Name; } }
-        public string Location { get { return ServicesVSResources.Location; } }
-        public string Project { get { return ServicesVSResources.Project; } }
-        public string FileName { get { return ServicesVSResources.FileName; } }
-        public string CreateNewFile { get { return ServicesVSResources.CreateNewFile; } }
-        public string AddToExistingFile { get { return ServicesVSResources.AddToExistingFile; } }
-        public string OK { get { return ServicesVSResources.OK; } }
-        public string Cancel { get { return ServicesVSResources.Cancel; } }
+        public string GenerateTypeDialogTitle => ServicesVSResources.GenerateType;
+        public string TypeDetails => ServicesVSResources.TypeDetails;
+        public string Access => ServicesVSResources.Access;
+        public string Kind => ServicesVSResources.Kind;
+        public string NameLabel => ServicesVSResources.Name;
+        public string Location => ServicesVSResources.Location;
+        public string Project => ServicesVSResources.Project;
+        public string FileName => ServicesVSResources.FileName;
+        public string CreateNewFile => ServicesVSResources.CreateNewFile;
+        public string AddToExistingFile => ServicesVSResources.AddToExistingFile;
+        public string OK => ServicesVSResources.OK;
+        public string Cancel => ServicesVSResources.Cancel;
 
         public GenerateTypeDialog(GenerateTypeDialogViewModel viewModel)
             : base("vsl.GenerateFromUsage")

@@ -34,13 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _diagnosticAnalyzerService = diagnosticAnalyzerService;
         }
 
-        public object SourceItem
-        {
-            get
-            {
-                return _item;
-            }
-        }
+        public object SourceItem => _item;
 
         public bool HasItems
         {

@@ -33,46 +33,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _contextMenuController = contextMenuController;
         }
 
-        public override ImageMoniker IconMoniker
-        {
-            get
-            {
-                return KnownMonikers.CodeInformation;
-            }
-        }
+        public override ImageMoniker IconMoniker => KnownMonikers.CodeInformation;
 
-        public override ImageMoniker ExpandedIconMoniker
-        {
-            get
-            {
-                return KnownMonikers.CodeInformation;
-            }
-        }
+        public override ImageMoniker ExpandedIconMoniker => KnownMonikers.CodeInformation;
 
-        public Workspace Workspace
-        {
-            get { return _workspace; }
-        }
+        public Workspace Workspace => _workspace;
 
-        public ProjectId ProjectId
-        {
-            get { return _projectId; }
-        }
+        public ProjectId ProjectId => _projectId;
 
-        public IVsHierarchyItem ParentItem
-        {
-            get { return _parentItem; }
-        }
+        public IVsHierarchyItem ParentItem => _parentItem;
 
         public override object GetBrowseObject()
         {
             return new BrowseObject(this);
         }
 
-        public override IContextMenuController ContextMenuController
-        {
-            get { return _contextMenuController; }
-        }
+        public override IContextMenuController ContextMenuController => _contextMenuController;
 
         /// <summary>
         /// Get the DTE object for the Project.

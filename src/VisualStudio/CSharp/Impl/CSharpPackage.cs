@@ -148,12 +148,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 CSharpParseOptions.Default);
         }
 
-        protected override string RoslynLanguageName
-        {
-            get
-            {
-                return LanguageNames.CSharp;
-            }
-        }
+        protected override string RoslynLanguageName => LanguageNames.CSharp;
     }
 }

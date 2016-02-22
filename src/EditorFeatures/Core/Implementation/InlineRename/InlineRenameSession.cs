@@ -150,13 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        public string OriginalSymbolName
-        {
-            get
-            {
-                return _renameInfo.DisplayName;
-            }
-        }
+        public string OriginalSymbolName => _renameInfo.DisplayName;
 
         private void InitializeOpenBuffers(SnapshotSpan triggerSpan)
         {
@@ -258,10 +252,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             UpdateConflictResolutionTask();
         }
 
-        public Workspace Workspace { get { return _workspace; } }
-        public OptionSet OptionSet { get { return _optionSet; } }
-        public bool HasRenameOverloads { get { return _renameInfo.HasOverloads; } }
-        public bool ForceRenameOverloads { get { return _renameInfo.ForceRenameOverloads; } }
+        public Workspace Workspace => _workspace;
+        public OptionSet OptionSet => _optionSet;
+        public bool HasRenameOverloads => _renameInfo.HasOverloads;
+        public bool ForceRenameOverloads => _renameInfo.ForceRenameOverloads;
 
         public IInlineRenameUndoManager UndoManager { get; }
 

@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             return result.ToImmutable();
         }
 
-        protected override string LanguageName { get { return LanguageNames.CSharp; } }
+        protected override string LanguageName => LanguageNames.CSharp;
 
         protected override string SettingStorageRoot { get { return "TextEditor.CSharp.Specific."; } }
 

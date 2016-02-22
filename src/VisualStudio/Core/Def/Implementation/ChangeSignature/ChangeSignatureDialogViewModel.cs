@@ -368,10 +368,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             private readonly IParameterSymbol _parameter;
             private ChangeSignatureDialogViewModel _changeSignatureDialogViewModel;
 
-            public IParameterSymbol ParameterSymbol
-            {
-                get { return _parameter; }
-            }
+            public IParameterSymbol ParameterSymbol => _parameter;
 
             public ParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, IParameterSymbol parameter)
             {
@@ -412,10 +409,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 get { return _parameter.Type.ToDisplayString(s_parameterDisplayFormat); }
             }
 
-            public string Parameter
-            {
-                get { return _parameter.Name; }
-            }
+            public string Parameter => _parameter.Name;
 
             public string Default
             {

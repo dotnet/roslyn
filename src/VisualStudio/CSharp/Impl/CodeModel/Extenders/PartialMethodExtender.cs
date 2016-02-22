@@ -27,19 +27,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Extenders
             _hasOtherPart = hasOtherPart;
         }
 
-        public bool IsPartial
-        {
-            get { return _isPartial; }
-        }
+        public bool IsPartial => _isPartial;
 
-        public bool IsDeclaration
-        {
-            get { return _isDeclaration; }
-        }
+        public bool IsDeclaration => _isDeclaration;
 
-        public bool HasOtherPart
-        {
-            get { return _hasOtherPart; }
-        }
+        public bool HasOtherPart => _hasOtherPart;
     }
 }

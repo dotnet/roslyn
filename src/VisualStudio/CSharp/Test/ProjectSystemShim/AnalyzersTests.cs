@@ -28,10 +28,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 File.Delete(_filePath);
             }
 
-            public string Path
-            {
-                get { return _filePath; }
-            }
+            public string Path => _filePath;
         }
 
         [Fact]

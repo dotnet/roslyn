@@ -17,25 +17,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             _reference = reference;
         }
 
-        public override string DisplayText
-        {
-            get { return _name; }
-        }
+        public override string DisplayText => _name;
 
-        public override string FullNameText
-        {
-            get { return _name; }
-        }
+        public override string FullNameText => _name;
 
-        public override string SearchText
-        {
-            get { return _name; }
-        }
+        public override string SearchText => _name;
 
-        public MetadataReference MetadataReference
-        {
-            get { return _reference; }
-        }
+        public MetadataReference MetadataReference => _reference;
 
         public IAssemblySymbol GetAssembly(Compilation compilation)
         {

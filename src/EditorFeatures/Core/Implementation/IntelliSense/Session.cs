@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             this.PresenterSession.Dismissed += OnPresenterSessionDismissed;
         }
 
-        public TModel InitialUnfilteredModel { get { return this.Computation.InitialUnfilteredModel; } }
+        public TModel InitialUnfilteredModel => this.Computation.InitialUnfilteredModel;
 
         private void OnPresenterSessionDismissed(object sender, EventArgs e)
         {

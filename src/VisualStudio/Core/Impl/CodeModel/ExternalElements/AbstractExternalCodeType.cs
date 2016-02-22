@@ -81,20 +81,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             get { throw Exceptions.ThrowENotImpl(); }
         }
 
-        public bool IsAbstract
-        {
-            get { return TypeSymbol.IsAbstract; }
-        }
+        public bool IsAbstract => TypeSymbol.IsAbstract;
 
         public override bool IsCodeType
         {
             get { return true; }
         }
 
-        public bool IsSealed
-        {
-            get { return TypeSymbol.IsSealed; }
-        }
+        public bool IsSealed => TypeSymbol.IsSealed;
 
         public EnvDTE.CodeElements Members
         {

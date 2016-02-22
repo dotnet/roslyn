@@ -43,13 +43,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             this.UpdatedMethods = methodHandles;
         }
 
-        public EmitBaseline NextGeneration
-        {
-            get
-            {
-                return EmitResult.Baseline;
-            }
-        }
+        public EmitBaseline NextGeneration => EmitResult.Baseline;
 
         public PinnedMetadata GetMetadata()
         {

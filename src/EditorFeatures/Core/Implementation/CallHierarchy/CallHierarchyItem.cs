@@ -75,29 +75,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             }
         }
 
-        public string ContainingNamespaceName
-        {
-            get
-            {
-                return _containingNamespaceName;
-            }
-        }
+        public string ContainingNamespaceName => _containingNamespaceName;
 
-        public string ContainingTypeName
-        {
-            get
-            {
-                return _containingTypeName;
-            }
-        }
+        public string ContainingTypeName => _containingTypeName;
 
-        public IEnumerable<ICallHierarchyItemDetails> Details
-        {
-            get
-            {
-                return _callsites;
-            }
-        }
+        public IEnumerable<ICallHierarchyItemDetails> Details => _callsites;
 
         public ImageSource DisplayGlyph
         {
@@ -107,13 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             }
         }
 
-        public string MemberName
-        {
-            get
-            {
-                return _name;
-            }
-        }
+        public string MemberName => _name;
 
         public string NameSeparator
         {
@@ -123,13 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             }
         }
 
-        public string SortText
-        {
-            get
-            {
-                return _sortText;
-            }
-        }
+        public string SortText => _sortText;
 
         public IEnumerable<CallHierarchySearchCategory> SupportedSearchCategories
         {

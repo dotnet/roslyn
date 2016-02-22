@@ -70,10 +70,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return _enumerator.MoveNext();
             }
 
-            public SyntaxTrivia Current
-            {
-                get { return _enumerator.Current; }
-            }
+            public SyntaxTrivia Current => _enumerator.Current;
 
             void IDisposable.Dispose()
             {
@@ -83,10 +80,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
             }
 
-            object IEnumerator.Current
-            {
-                get { return this.Current; }
-            }
+            object IEnumerator.Current => this.Current;
         }
     }
 }

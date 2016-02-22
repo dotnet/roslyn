@@ -50,25 +50,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return new CompilationVerifier(_test, _compilation, _dependencies);
             }
 
-            internal CompilationTestData TestData
-            {
-                get { return _testData; }
-            }
+            internal CompilationTestData TestData => _testData;
 
-            public Compilation Compilation
-            {
-                get { return _compilation; }
-            }
+            public Compilation Compilation => _compilation;
 
-            public TempRoot Temp
-            {
-                get { return _test.Temp; }
-            }
+            public TempRoot Temp => _test.Temp;
 
-            internal ImmutableArray<Diagnostic> Diagnostics
-            {
-                get { return _diagnostics; }
-            }
+            internal ImmutableArray<Diagnostic> Diagnostics => _diagnostics;
 
             internal ImmutableArray<ModuleMetadata> GetAllModuleMetadata()
             {

@@ -205,14 +205,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             PositionDashboard();
         }
 
-        public string RenameOverloads { get { return EditorFeaturesResources.RenameOverloads; } }
-        public Visibility RenameOverloadsVisibility { get { return _model.RenameOverloadsVisibility; } }
-        public bool IsRenameOverloadsEditable { get { return _model.IsRenameOverloadsEditable; } }
-        public string SearchInComments { get { return EditorFeaturesResources.SearchInComments; } }
-        public string SearchInStrings { get { return EditorFeaturesResources.SearchInStrings; } }
-        public string ApplyRename { get { return EditorFeaturesResources.ApplyRename; } }
-        public string PreviewChanges { get { return EditorFeaturesResources.RenamePreviewChanges; } }
-        public string RenameInstructions { get { return EditorFeaturesResources.InlineRenameInstructions; } }
+        public string RenameOverloads => EditorFeaturesResources.RenameOverloads;
+        public Visibility RenameOverloadsVisibility => _model.RenameOverloadsVisibility;
+        public bool IsRenameOverloadsEditable => _model.IsRenameOverloadsEditable;
+        public string SearchInComments => EditorFeaturesResources.SearchInComments;
+        public string SearchInStrings => EditorFeaturesResources.SearchInStrings;
+        public string ApplyRename => EditorFeaturesResources.ApplyRename;
+        public string PreviewChanges => EditorFeaturesResources.RenamePreviewChanges;
+        public string RenameInstructions => EditorFeaturesResources.InlineRenameInstructions;
         public string ApplyToolTip { get { return EditorFeaturesResources.RenameApplyToolTip + " (Enter)"; } }
         public string CancelToolTip { get { return EditorFeaturesResources.RenameCancelToolTip + " (Esc)"; } }
 

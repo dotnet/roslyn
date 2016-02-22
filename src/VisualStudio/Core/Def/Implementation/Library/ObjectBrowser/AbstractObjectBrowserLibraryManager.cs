@@ -129,10 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
         }
 
-        internal uint PackageVersion
-        {
-            get { return _packageVersion; }
-        }
+        internal uint PackageVersion => _packageVersion;
 
         internal void UpdateClassAndMemberVersions()
         {

@@ -47,13 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
                 }
             }
 
-            public TextSpan SourceSpan
-            {
-                get
-                {
-                    return _location.SourceSpan;
-                }
-            }
+            public TextSpan SourceSpan => _location.SourceSpan;
 
             public ImmutableArray<INavigableItem> ChildItems => ImmutableArray<INavigableItem>.Empty;
         }

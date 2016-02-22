@@ -516,10 +516,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             {
             }
 
-            public override string BuildTool
-            {
-                get { return PredefinedBuildTools.Build; }
-            }
+            public override string BuildTool => PredefinedBuildTools.Build;
 
             public override bool Equals(object obj)
             {

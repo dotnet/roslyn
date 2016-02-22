@@ -35,13 +35,7 @@ namespace Microsoft.CodeAnalysis
             _state = state;
         }
 
-        internal DocumentState State
-        {
-            get
-            {
-                return _state;
-            }
-        }
+        internal DocumentState State => _state;
 
         internal override TextDocumentState GetDocumentState()
         {
@@ -51,13 +45,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The kind of source code this document contains.
         /// </summary>
-        public SourceCodeKind SourceCodeKind
-        {
-            get
-            {
-                return _state.SourceCodeKind;
-            }
-        }
+        public SourceCodeKind SourceCodeKind => _state.SourceCodeKind;
 
         /// <summary>
         /// Get the current syntax tree for the document if the text is already loaded and the tree is already parsed.
@@ -132,13 +120,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// If <code>false</code> then these methods will return <code>null</code> instead.
         /// </summary>
-        public bool SupportsSyntaxTree
-        {
-            get
-            {
-                return this.State.SupportsSyntaxTree;
-            }
-        }
+        public bool SupportsSyntaxTree => this.State.SupportsSyntaxTree;
 
         /// <summary>
         /// <code>true</code> if this Document supports providing data through the

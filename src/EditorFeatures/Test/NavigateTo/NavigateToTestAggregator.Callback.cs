@@ -61,10 +61,7 @@ namespace Roslyn.Test.EditorUtilities.NavigateTo
                 return items;
             }
 
-            public INavigateToOptions Options
-            {
-                get { return _options; }
-            }
+            public INavigateToOptions Options => _options;
 
             public void ReportProgress(int current, int maximum)
             {

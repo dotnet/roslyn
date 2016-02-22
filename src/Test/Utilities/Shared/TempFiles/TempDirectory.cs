@@ -42,10 +42,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public string Path
-        {
-            get { return _path; }
-        }
+        public string Path => _path;
 
         /// <summary>
         /// Creates a file in this directory.

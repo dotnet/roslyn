@@ -90,15 +90,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }).Select(FileUtilities.NormalizeDirectoryPath).ToImmutableArray();
         }
 
-        internal IVsXMLMemberIndexService XmlMemberIndexService
-        {
-            get { return _xmlMemberIndexService; }
-        }
+        internal IVsXMLMemberIndexService XmlMemberIndexService => _xmlMemberIndexService;
 
-        internal IVsFileChangeEx FileChangeService
-        {
-            get { return _fileChangeService; }
-        }
+        internal IVsFileChangeEx FileChangeService => _fileChangeService;
 
         /// <exception cref="IOException"/>
         /// <exception cref="BadImageFormatException" />

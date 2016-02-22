@@ -13,13 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             _workspace = workspace;
         }
 
-        public override Workspace Workspace
-        {
-            get
-            {
-                return _workspace;
-            }
-        }
+        public override Workspace Workspace => _workspace;
 
         public override int GetHashCode()
         {

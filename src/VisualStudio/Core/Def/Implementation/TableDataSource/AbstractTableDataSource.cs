@@ -271,10 +271,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        internal int NumberOfSubscription_TestOnly
-        {
-            get { return _subscriptions.Length; }
-        }
+        internal int NumberOfSubscription_TestOnly => _subscriptions.Length;
 
         protected class SubscriptionWithoutLock : IDisposable
         {

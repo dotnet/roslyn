@@ -9,9 +9,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName.Nodes
     {
         public RQNamespace(IList<string> namespaceNames) : base(namespaceNames) { }
 
-        protected override string RQKeyword
-        {
-            get { return RQNameStrings.Namespace; }
-        }
+        protected override string RQKeyword => RQNameStrings.Namespace;
     }
 }

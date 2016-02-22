@@ -15,19 +15,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             _displayText = displayText;
         }
 
-        public override string DisplayText
-        {
-            get { return _displayText; }
-        }
+        public override string DisplayText => _displayText;
 
-        public override string FullNameText
-        {
-            get { return _displayText; }
-        }
+        public override string FullNameText => _displayText;
 
-        public override string SearchText
-        {
-            get { return _displayText; }
-        }
+        public override string SearchText => _displayText;
     }
 }

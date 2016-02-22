@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         private int _onBeforeSymbolRenamedCount = 0;
         private int _onAfterSymbolRenamedCount = 0;
 
-        public int OnBeforeSymbolRenamedCount { get { return _onBeforeSymbolRenamedCount; } }
-        public int OnAfterSymbolRenamedCount { get { return _onAfterSymbolRenamedCount; } }
+        public int OnBeforeSymbolRenamedCount => _onBeforeSymbolRenamedCount;
+        public int OnAfterSymbolRenamedCount => _onAfterSymbolRenamedCount;
 
         public bool OnBeforeSymbolRenamedReturnValue { get; set; }
         public bool OnAfterSymbolRenamedReturnValue { get; set; }

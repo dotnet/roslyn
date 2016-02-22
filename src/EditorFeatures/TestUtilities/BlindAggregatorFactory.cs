@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // underlying native memory will be freed when finalizers run at shutdown.
                 private static readonly CoTaskMemPtr s_instance = new CoTaskMemPtr();
 
-                public static IntPtr AddressOfVTable { get { return s_instance.VTablePtr; } }
+                public static IntPtr AddressOfVTable => s_instance.VTablePtr;
             }
 
             private const int S_OK = 0;

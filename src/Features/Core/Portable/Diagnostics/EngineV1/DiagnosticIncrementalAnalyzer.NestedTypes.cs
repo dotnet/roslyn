@@ -36,10 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return new AnalysisData(TextVersion, DataVersion, Items);
             }
 
-            public bool FromCache
-            {
-                get { return this.OldItems.IsDefault; }
-            }
+            public bool FromCache => this.OldItems.IsDefault;
         }
 
         public struct SolutionArgument
@@ -93,13 +90,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 _analyzerPackageName = analyzerPackageName;
             }
 
-            public override string BuildTool
-            {
-                get
-                {
-                    return _analyzerPackageName;
-                }
-            }
+            public override string BuildTool => _analyzerPackageName;
         }
 
         public class ArgumentKey : AnalyzerUpdateArgsId

@@ -36,10 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             _changedSolution = changedSolution;
         }
 
-        public Solution ChangedSolution
-        {
-            get { return _changedSolution; }
-        }
+        public Solution ChangedSolution => _changedSolution;
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
         {

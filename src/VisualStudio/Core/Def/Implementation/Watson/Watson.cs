@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 255)]
             internal string Component;
 
-            internal string EventType { get { return _pszEventTypeName; } }
+            internal string EventType => _pszEventTypeName;
 
             internal IEnumerable<KeyValuePair<string, string>> Parameters
             {

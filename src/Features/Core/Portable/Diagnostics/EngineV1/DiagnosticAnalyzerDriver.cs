@@ -112,13 +112,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        public CancellationToken CancellationToken
-        {
-            get
-            {
-                return _cancellationToken;
-            }
-        }
+        public CancellationToken CancellationToken => _cancellationToken;
 
         private CompilationWithAnalyzers GetCompilationWithAnalyzers(Compilation compilation)
         {

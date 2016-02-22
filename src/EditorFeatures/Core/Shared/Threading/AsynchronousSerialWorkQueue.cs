@@ -52,13 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Threading
             _currentBackgroundTask = SpecializedTasks.EmptyTask;
         }
 
-        public CancellationToken CancellationToken
-        {
-            get
-            {
-                return _cancellationTokenSource.Token;
-            }
-        }
+        public CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
         public void CancelCurrentWork()
         {

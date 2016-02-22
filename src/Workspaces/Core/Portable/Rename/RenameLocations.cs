@@ -92,11 +92,11 @@ namespace Microsoft.CodeAnalysis.Rename
             _mergedResult = new SearchResult(mergedLocations, mergedImplicitLocations, mergedReferencedSymbols);
         }
 
-        public ISet<RenameLocation> Locations { get { return _mergedResult.Locations; } }
-        public ISymbol Symbol { get { return _symbol; } }
-        public Solution Solution { get { return _solution; } }
-        public IEnumerable<ISymbol> ReferencedSymbols { get { return _mergedResult.ReferencedSymbols; } }
-        public IEnumerable<ReferenceLocation> ImplicitLocations { get { return _mergedResult.ImplicitLocations; } }
+        public ISet<RenameLocation> Locations => _mergedResult.Locations;
+        public ISymbol Symbol => _symbol;
+        public Solution Solution => _solution;
+        public IEnumerable<ISymbol> ReferencedSymbols => _mergedResult.ReferencedSymbols;
+        public IEnumerable<ReferenceLocation> ImplicitLocations => _mergedResult.ImplicitLocations;
 
         /// <summary>
         /// Find the locations that need to be renamed.

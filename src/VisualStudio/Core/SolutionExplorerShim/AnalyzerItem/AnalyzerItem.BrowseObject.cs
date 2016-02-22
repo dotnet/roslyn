@@ -17,22 +17,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             [BrowseObjectDisplayName(nameof(SolutionExplorerShim.AnalyzerItemNameDisplayName))]
-            public string Name
-            {
-                get
-                {
-                    return _analyzerItem.AnalyzerReference.Display;
-                }
-            }
+            public string Name => _analyzerItem.AnalyzerReference.Display;
 
             [BrowseObjectDisplayName(nameof(SolutionExplorerShim.AnalyzerItemPathDisplayName))]
-            public string Path
-            {
-                get
-                {
-                    return _analyzerItem.AnalyzerReference.FullPath;
-                }
-            }
+            public string Path => _analyzerItem.AnalyzerReference.FullPath;
 
             public override string GetClassName()
             {
@@ -45,10 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             [Browsable(false)]
-            public AnalyzerItem AnalyzerItem
-            {
-                get { return _analyzerItem; }
-            }
+            public AnalyzerItem AnalyzerItem => _analyzerItem;
         }
     }
 }

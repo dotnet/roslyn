@@ -47,10 +47,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// The MSBuild properties used when interpreting project files.
         /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.
         /// </summary>
-        public ImmutableDictionary<string, string> Properties
-        {
-            get { return _properties; }
-        }
+        public ImmutableDictionary<string, string> Properties => _properties;
 
         /// <summary>
         /// Determines if metadata from existing output assemblies is loaded instead of opening referenced projects.
@@ -284,10 +281,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 return _projectIdToProjectInfoMap.TryGetValue(id, out info);
             }
 
-            public IReadOnlyList<ProjectInfo> Projects
-            {
-                get { return _projectInfoList; }
-            }
+            public IReadOnlyList<ProjectInfo> Projects => _projectInfoList;
 
             public ProjectId GetProjectId(string fullProjectPath)
             {

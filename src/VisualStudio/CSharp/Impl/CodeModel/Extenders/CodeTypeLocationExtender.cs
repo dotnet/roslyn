@@ -23,12 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Extenders
             _externalLocation = externalLocation;
         }
 
-        public string ExternalLocation
-        {
-            get
-            {
-                return _externalLocation;
-            }
-        }
+        public string ExternalLocation => _externalLocation;
     }
 }

@@ -975,10 +975,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return true;
         }
 
-        public ObjectListKind Kind
-        {
-            get { return _kind; }
-        }
+        public ObjectListKind Kind => _kind;
 
         public ObjectListKind ParentKind
         {
@@ -990,9 +987,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
         }
 
-        public ObjectListItem ParentListItem
-        {
-            get { return _parentListItem; }
-        }
+        public ObjectListItem ParentListItem => _parentListItem;
     }
 }

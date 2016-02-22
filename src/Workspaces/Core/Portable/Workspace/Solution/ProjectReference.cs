@@ -25,17 +25,17 @@ namespace Microsoft.CodeAnalysis
             _embedInteropTypes = embedInteropTypes;
         }
 
-        public ProjectId ProjectId { get { return _projectId; } }
+        public ProjectId ProjectId => _projectId;
 
         /// <summary>
         /// Aliases for the reference. Empty if the reference has no aliases.
         /// </summary>
-        public ImmutableArray<string> Aliases { get { return _aliases; } }
+        public ImmutableArray<string> Aliases => _aliases;
 
         /// <summary>
         /// True if interop types defined in the referenced project should be embedded into the referencing project.
         /// </summary>
-        public bool EmbedInteropTypes { get { return _embedInteropTypes; } }
+        public bool EmbedInteropTypes => _embedInteropTypes;
 
         public override bool Equals(object obj)
         {

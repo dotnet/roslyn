@@ -68,13 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 _updater = new Update(_session.SessionId, TableId, mode);
             }
 
-            protected JET_SESID SessionId
-            {
-                get
-                {
-                    return _session.SessionId;
-                }
-            }
+            protected JET_SESID SessionId => _session.SessionId;
 
             protected JET_TABLEID TableId
             {

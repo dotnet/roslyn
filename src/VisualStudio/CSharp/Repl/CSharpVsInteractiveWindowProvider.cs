@@ -32,15 +32,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
         {
         }
 
-        protected override Guid LanguageServiceGuid
-        {
-            get { return LanguageServiceGuids.CSharpLanguageServiceId; }
-        }
+        protected override Guid LanguageServiceGuid => LanguageServiceGuids.CSharpLanguageServiceId;
 
-        protected override Guid Id
-        {
-            get { return CSharpVsInteractiveWindowPackage.Id; }
-        }
+        protected override Guid Id => CSharpVsInteractiveWindowPackage.Id;
 
         protected override string Title
         {
@@ -64,12 +58,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
                 CommonVsUtils.GetWorkingDirectory());
         }
 
-        protected override FunctionId InteractiveWindowFunctionId
-        {
-            get
-            {
-                return FunctionId.CSharp_Interactive_Window;
-            }
-        }
+        protected override FunctionId InteractiveWindowFunctionId => FunctionId.CSharp_Interactive_Window;
     }
 }

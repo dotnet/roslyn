@@ -38,18 +38,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             /// <summary>
             /// Only For Testing
             /// </summary>
-            internal string Name_TestingOnly
-            {
-                get { return _stateName; }
-            }
+            internal string Name_TestingOnly => _stateName;
 
             /// <summary>
             /// Only For Testing
             /// </summary>
-            internal string Language_TestingOnly
-            {
-                get { return _language; }
-            }
+            internal string Language_TestingOnly => _language;
 
             protected override object GetCacheKey(object value)
             {

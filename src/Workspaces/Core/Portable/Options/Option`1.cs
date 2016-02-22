@@ -54,10 +54,7 @@ namespace Microsoft.CodeAnalysis.Options
             get { return typeof(T); }
         }
 
-        object IOption.DefaultValue
-        {
-            get { return this.DefaultValue; }
-        }
+        object IOption.DefaultValue => this.DefaultValue;
 
         bool IOption.IsPerLanguage
         {

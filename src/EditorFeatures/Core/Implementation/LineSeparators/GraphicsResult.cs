@@ -26,12 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
             }
         }
 
-        public UIElement VisualElement
-        {
-            get
-            {
-                return _visualElement;
-            }
-        }
+        public UIElement VisualElement => _visualElement;
     }
 }

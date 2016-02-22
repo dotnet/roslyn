@@ -173,12 +173,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        public object SourceItem
-        {
-            get
-            {
-                return _analyzersFolder;
-            }
-        }
+        public object SourceItem => _analyzersFolder;
     }
 }

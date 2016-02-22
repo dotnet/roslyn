@@ -245,10 +245,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return token;
             }
 
-            public override SyntaxAnnotation IdentifierTokenAnnotation
-            {
-                get { return _annotation; }
-            }
+            public override SyntaxAnnotation IdentifierTokenAnnotation => _annotation;
 
             public override void AddIdentifierTokenAnnotationPair(
                 List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)

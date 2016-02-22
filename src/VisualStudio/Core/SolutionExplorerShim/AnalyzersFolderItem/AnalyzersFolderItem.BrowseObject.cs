@@ -27,10 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             [Browsable(false)]
-            public AnalyzersFolderItem Folder
-            {
-                get { return _analyzersFolderItem; }
-            }
+            public AnalyzersFolderItem Folder => _analyzersFolderItem;
         }
     }
 }

@@ -35,30 +35,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _projectSections = projectSections.ToList().AsReadOnly();
         }
 
-        public Guid ProjectTypeGuid
-        {
-            get { return _projectTypeGuid; }
-        }
+        public Guid ProjectTypeGuid => _projectTypeGuid;
 
-        public string ProjectName
-        {
-            get { return _projectName; }
-        }
+        public string ProjectName => _projectName;
 
-        public string ProjectPath
-        {
-            get { return _projectPath; }
-        }
+        public string ProjectPath => _projectPath;
 
-        public Guid ProjectGuid
-        {
-            get { return _projectGuid; }
-        }
+        public Guid ProjectGuid => _projectGuid;
 
-        public IEnumerable<SectionBlock> ProjectSections
-        {
-            get { return _projectSections; }
-        }
+        public IEnumerable<SectionBlock> ProjectSections => _projectSections;
 
         internal string GetText()
         {

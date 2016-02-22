@@ -215,25 +215,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        protected TreeData TreeInfo
-        {
-            get { return this.Context.TreeData; }
-        }
+        protected TreeData TreeInfo => this.Context.TreeData;
 
-        protected OptionSet OptionSet
-        {
-            get { return this.Context.OptionSet; }
-        }
+        protected OptionSet OptionSet => this.Context.OptionSet;
 
-        protected string Language
-        {
-            get { return _language; }
-        }
+        protected string Language => _language;
 
-        protected TokenStream TokenStream
-        {
-            get { return this.Context.TokenStream; }
-        }
+        protected TokenStream TokenStream => this.Context.TokenStream;
 
         public List<SyntaxTrivia> FormatToSyntaxTrivia(CancellationToken cancellationToken)
         {

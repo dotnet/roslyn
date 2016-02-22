@@ -60,21 +60,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 throw ExceptionUtilities.Unreachable;
             }
 
-            public int Arity
-            {
-                get
-                {
-                    return _symbol.Arity;
-                }
-            }
+            public int Arity => _symbol.Arity;
 
-            public bool IsGenericType
-            {
-                get
-                {
-                    return _symbol.IsGenericType;
-                }
-            }
+            public bool IsGenericType => _symbol.IsGenericType;
 
             public bool IsUnboundGenericType
             {
@@ -84,21 +72,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
-            public bool IsScriptClass
-            {
-                get
-                {
-                    return _symbol.IsScriptClass;
-                }
-            }
+            public bool IsScriptClass => _symbol.IsScriptClass;
 
-            public bool IsImplicitClass
-            {
-                get
-                {
-                    return _symbol.IsImplicitClass;
-                }
-            }
+            public bool IsImplicitClass => _symbol.IsImplicitClass;
 
             public IEnumerable<string> MemberNames
             {
@@ -108,45 +84,15 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
-            public ImmutableArray<ITypeParameterSymbol> TypeParameters
-            {
-                get
-                {
-                    return _symbol.TypeParameters;
-                }
-            }
+            public ImmutableArray<ITypeParameterSymbol> TypeParameters => _symbol.TypeParameters;
 
-            public ImmutableArray<ITypeSymbol> TypeArguments
-            {
-                get
-                {
-                    return _symbol.TypeArguments;
-                }
-            }
+            public ImmutableArray<ITypeSymbol> TypeArguments => _symbol.TypeArguments;
 
-            public IMethodSymbol DelegateInvokeMethod
-            {
-                get
-                {
-                    return _symbol.DelegateInvokeMethod;
-                }
-            }
+            public IMethodSymbol DelegateInvokeMethod => _symbol.DelegateInvokeMethod;
 
-            public INamedTypeSymbol EnumUnderlyingType
-            {
-                get
-                {
-                    return _symbol.EnumUnderlyingType;
-                }
-            }
+            public INamedTypeSymbol EnumUnderlyingType => _symbol.EnumUnderlyingType;
 
-            public INamedTypeSymbol ConstructedFrom
-            {
-                get
-                {
-                    return _symbol.ConstructedFrom;
-                }
-            }
+            public INamedTypeSymbol ConstructedFrom => _symbol.ConstructedFrom;
 
             public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments)
             {
@@ -158,53 +104,17 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 return _symbol.ConstructUnboundGenericType();
             }
 
-            public ImmutableArray<IMethodSymbol> InstanceConstructors
-            {
-                get
-                {
-                    return _symbol.InstanceConstructors;
-                }
-            }
+            public ImmutableArray<IMethodSymbol> InstanceConstructors => _symbol.InstanceConstructors;
 
-            public ImmutableArray<IMethodSymbol> StaticConstructors
-            {
-                get
-                {
-                    return _symbol.StaticConstructors;
-                }
-            }
+            public ImmutableArray<IMethodSymbol> StaticConstructors => _symbol.StaticConstructors;
 
-            public ImmutableArray<IMethodSymbol> Constructors
-            {
-                get
-                {
-                    return _symbol.Constructors;
-                }
-            }
+            public ImmutableArray<IMethodSymbol> Constructors => _symbol.Constructors;
 
-            public ISymbol AssociatedSymbol
-            {
-                get
-                {
-                    return _symbol.AssociatedSymbol;
-                }
-            }
+            public ISymbol AssociatedSymbol => _symbol.AssociatedSymbol;
 
-            public TypeKind TypeKind
-            {
-                get
-                {
-                    return _symbol.TypeKind;
-                }
-            }
+            public TypeKind TypeKind => _symbol.TypeKind;
 
-            public INamedTypeSymbol BaseType
-            {
-                get
-                {
-                    return _symbol.BaseType;
-                }
-            }
+            public INamedTypeSymbol BaseType => _symbol.BaseType;
 
             public ImmutableArray<INamedTypeSymbol> Interfaces
             {

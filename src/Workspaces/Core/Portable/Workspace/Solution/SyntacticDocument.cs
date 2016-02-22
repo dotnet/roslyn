@@ -24,10 +24,7 @@ namespace Microsoft.CodeAnalysis
             this.Root = root;
         }
 
-        public Project Project
-        {
-            get { return this.Document.Project; }
-        }
+        public Project Project => this.Document.Project;
 
         public static async Task<SyntacticDocument> CreateAsync(Document document, CancellationToken cancellationToken)
         {

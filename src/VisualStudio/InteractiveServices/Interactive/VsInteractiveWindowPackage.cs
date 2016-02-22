@@ -53,10 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             InitializeMenuCommands(menuCommandService);
         }
 
-        protected TVsInteractiveWindowProvider InteractiveWindowProvider
-        {
-            get { return _interactiveWindowProvider; }
-        }
+        protected TVsInteractiveWindowProvider InteractiveWindowProvider => _interactiveWindowProvider;
 
         /// <summary>
         /// When a VSPackage supports multi-instance tool windows, each window uses the same rguidPersistenceSlot.

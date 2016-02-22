@@ -137,10 +137,7 @@ namespace Microsoft.CodeAnalysis
             {
                 private readonly bool _hasCompleteReferences;
 
-                public override ValueSource<Compilation> FinalCompilation
-                {
-                    get { return this.Compilation; }
-                }
+                public override ValueSource<Compilation> FinalCompilation => this.Compilation;
 
                 public override bool? HasCompleteReferences => _hasCompleteReferences;
 

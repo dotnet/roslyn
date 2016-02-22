@@ -52,10 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return Visit(_outmostCallSiteContainer);
                 }
 
-                private SyntaxNode ContainerOfStatementsOrFieldToReplace
-                {
-                    get { return _firstStatementOrFieldToReplace.Parent; }
-                }
+                private SyntaxNode ContainerOfStatementsOrFieldToReplace => _firstStatementOrFieldToReplace.Parent;
 
                 public override SyntaxNode VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
                 {

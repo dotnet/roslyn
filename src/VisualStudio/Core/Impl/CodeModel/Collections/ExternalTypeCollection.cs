@@ -59,9 +59,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             return false;
         }
 
-        public override int Count
-        {
-            get { return _typeSymbols.Length; }
-        }
+        public override int Count => _typeSymbols.Length;
     }
 }

@@ -95,13 +95,7 @@ namespace Roslyn.Test.Utilities
         }
 
         /// <summary>Gets the maximum concurrency level supported by this scheduler.</summary>
-        public override int MaximumConcurrencyLevel
-        {
-            get
-            {
-                return _threads.Length;
-            }
-        }
+        public override int MaximumConcurrencyLevel => _threads.Length;
 
         /// <summary>
         /// Cleans up the scheduler by indicating that no more tasks will be queued.

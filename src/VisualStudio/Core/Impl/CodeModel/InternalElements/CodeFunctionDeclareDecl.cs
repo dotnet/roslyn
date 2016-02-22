@@ -56,9 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
         }
 
-        public override vsCMElement Kind
-        {
-            get { return vsCMElement.vsCMElementDeclareDecl; }
-        }
+        public override vsCMElement Kind => vsCMElement.vsCMElementDeclareDecl;
     }
 }

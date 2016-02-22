@@ -74,13 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public new ITypeSymbol OriginalDefinition
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public new ITypeSymbol OriginalDefinition => this;
 
         public ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember)
         {

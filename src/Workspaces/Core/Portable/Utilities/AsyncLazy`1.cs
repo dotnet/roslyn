@@ -534,13 +534,7 @@ namespace Roslyn.Utilities
                 var ignored = _taskBuilder.Task;
             }
 
-            public Task<T> Task
-            {
-                get
-                {
-                    return _taskBuilder.Task;
-                }
-            }
+            public Task<T> Task => _taskBuilder.Task;
 
             public void RegisterForCancellation(Action<object> callback, CancellationToken cancellationToken)
             {

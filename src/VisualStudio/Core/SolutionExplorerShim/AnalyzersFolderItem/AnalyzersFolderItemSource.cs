@@ -36,21 +36,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        public IEnumerable Items
-        {
-            get
-            {
-                return _folderItems;
-            }
-        }
+        public IEnumerable Items => _folderItems;
 
-        public object SourceItem
-        {
-            get
-            {
-                return _projectHierarchyItem;
-            }
-        }
+        public object SourceItem => _projectHierarchyItem;
 
         internal void Update()
         {

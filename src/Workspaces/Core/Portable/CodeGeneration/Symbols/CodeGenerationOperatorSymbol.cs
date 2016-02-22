@@ -35,13 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
         }
 
-        public override MethodKind MethodKind
-        {
-            get
-            {
-                return MethodKind.UserDefinedOperator;
-            }
-        }
+        public override MethodKind MethodKind => MethodKind.UserDefinedOperator;
 
         public static int GetParameterCount(CodeGenerationOperatorKind operatorKind)
         {

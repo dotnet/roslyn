@@ -43,10 +43,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 _title = CreateDisplayText(expression);
             }
 
-            public override string Title
-            {
-                get { return _title; }
-            }
+            public override string Title => _title;
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {

@@ -167,13 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 {
                 }
 
-                public override string BuildTool
-                {
-                    get
-                    {
-                        return PredefinedBuildTools.Live;
-                    }
-                }
+                public override string BuildTool => PredefinedBuildTools.Live;
 
                 public override bool Equals(object obj)
                 {

@@ -54,13 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 this.EnumUnderlyingType);
         }
 
-        public override TypeKind TypeKind
-        {
-            get
-            {
-                return _typeKind;
-            }
-        }
+        public override TypeKind TypeKind => _typeKind;
 
         public override SymbolKind Kind
         {
@@ -128,21 +122,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override INamedTypeSymbol EnumUnderlyingType
-        {
-            get
-            {
-                return _enumUnderlyingType;
-            }
-        }
+        public override INamedTypeSymbol EnumUnderlyingType => _enumUnderlyingType;
 
-        public override INamedTypeSymbol ConstructedFrom
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public override INamedTypeSymbol ConstructedFrom => this;
 
         public override INamedTypeSymbol ConstructUnboundGenericType()
         {
@@ -173,13 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override INamedTypeSymbol BaseType
-        {
-            get
-            {
-                return _baseType;
-            }
-        }
+        public override INamedTypeSymbol BaseType => _baseType;
 
         public override ImmutableArray<INamedTypeSymbol> Interfaces
         {

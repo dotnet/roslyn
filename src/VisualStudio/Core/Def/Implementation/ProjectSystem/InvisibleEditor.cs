@@ -77,13 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        public IVsTextLines VsTextLines
-        {
-            get
-            {
-                return _vsTextLines;
-            }
-        }
+        public IVsTextLines VsTextLines => _vsTextLines;
 
         public ITextBuffer TextBuffer
         {

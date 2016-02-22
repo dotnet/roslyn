@@ -73,12 +73,6 @@ namespace Roslyn.Utilities
                 cancellationToken);
         }
 
-        public Task LastScheduledTask
-        {
-            get
-            {
-                return _latestTask;
-            }
-        }
+        public Task LastScheduledTask => _latestTask;
     }
 }

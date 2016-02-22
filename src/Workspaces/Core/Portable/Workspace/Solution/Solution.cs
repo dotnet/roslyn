@@ -117,15 +117,9 @@ namespace Microsoft.CodeAnalysis
             return latestVersion;
         }
 
-        internal int WorkspaceVersion
-        {
-            get { return _workspaceVersion; }
-        }
+        internal int WorkspaceVersion => _workspaceVersion;
 
-        internal SolutionServices Services
-        {
-            get { return _solutionServices; }
-        }
+        internal SolutionServices Services => _solutionServices;
 
         /// <summary>
         /// branch id of this solution
@@ -138,50 +132,32 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// version only has a meaning between primary solution and branched one or between solutions from same branch.
         /// </summary>
-        internal BranchId BranchId
-        {
-            get { return _branchId; }
-        }
+        internal BranchId BranchId => _branchId;
 
         /// <summary>
         /// The Workspace this solution is associated with.
         /// </summary>
-        public Workspace Workspace
-        {
-            get { return _solutionServices.Workspace; }
-        }
+        public Workspace Workspace => _solutionServices.Workspace;
 
         /// <summary>
         /// The Id of the solution. Multiple solution instances may share the same Id.
         /// </summary>
-        public SolutionId Id
-        {
-            get { return _id; }
-        }
+        public SolutionId Id => _id;
 
         /// <summary>
         /// The path to the solution file or null if there is no solution file.
         /// </summary>
-        public string FilePath
-        {
-            get { return _filePath; }
-        }
+        public string FilePath => _filePath;
 
         /// <summary>
         /// The solution version. This equates to the solution file's version.
         /// </summary>
-        public VersionStamp Version
-        {
-            get { return _version; }
-        }
+        public VersionStamp Version => _version;
 
         /// <summary>
         /// A list of all the ids for all the projects contained by the solution.
         /// </summary>
-        public IReadOnlyList<ProjectId> ProjectIds
-        {
-            get { return _projectIds; }
-        }
+        public IReadOnlyList<ProjectId> ProjectIds => _projectIds;
 
         /// <summary>
         /// A list of all the projects contained by the solution.

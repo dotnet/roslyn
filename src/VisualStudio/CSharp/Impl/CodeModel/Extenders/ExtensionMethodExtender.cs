@@ -23,9 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Extenders
             _isExtension = isExtension;
         }
 
-        public bool IsExtension
-        {
-            get { return _isExtension; }
-        }
+        public bool IsExtension => _isExtension;
     }
 }

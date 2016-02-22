@@ -47,21 +47,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 this.ExplicitDefaultValue);
         }
 
-        public new IParameterSymbol OriginalDefinition
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public new IParameterSymbol OriginalDefinition => this;
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Parameter;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.Parameter;
 
         public override void Accept(SymbolVisitor visitor)
         {

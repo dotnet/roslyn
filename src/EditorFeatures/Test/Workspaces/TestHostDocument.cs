@@ -34,45 +34,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly IReadOnlyList<string> _folders;
         private readonly TextLoader _loader;
 
-        public DocumentId Id
-        {
-            get
-            {
-                return _id;
-            }
-        }
+        public DocumentId Id => _id;
 
-        public TestHostProject Project
-        {
-            get
-            {
-                return _project;
-            }
-        }
+        public TestHostProject Project => _project;
 
-        public string Name
-        {
-            get
-            {
-                return _name;
-            }
-        }
+        public string Name => _name;
 
-        public SourceCodeKind SourceCodeKind
-        {
-            get
-            {
-                return _sourceCodeKind;
-            }
-        }
+        public SourceCodeKind SourceCodeKind => _sourceCodeKind;
 
-        public string FilePath
-        {
-            get
-            {
-                return _filePath;
-            }
-        }
+        public string FilePath => _filePath;
 
         public bool IsGenerated
         {
@@ -82,13 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public TextLoader Loader
-        {
-            get
-            {
-                return _loader;
-            }
-        }
+        public TextLoader Loader => _loader;
 
         public int? CursorPosition { get; }
         public IList<TextSpan> SelectedSpans { get; }
@@ -193,13 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public IContentType ContentType
-        {
-            get
-            {
-                return this.TextBuffer.ContentType;
-            }
-        }
+        public IContentType ContentType => this.TextBuffer.ContentType;
 
         public IWpfTextView GetTextView()
         {

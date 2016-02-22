@@ -13,15 +13,9 @@ namespace Roslyn.Test.Utilities
         private readonly int _id;
         private readonly string _description;
 
-        public int Id
-        {
-            get { return _id; }
-        }
+        public int Id => _id;
 
-        public string Description
-        {
-            get { return _description; }
-        }
+        public string Description => _description;
 
         public WorkItemAttribute(int id, string description)
         {

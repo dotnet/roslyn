@@ -84,20 +84,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 .Select(d => d.Id);
         }
 
-        public IEnumerable<Diagnostic> OriginalDiagnostics
-        {
-            get { return _originalFixDiagnostics; }
-        }
+        public IEnumerable<Diagnostic> OriginalDiagnostics => _originalFixDiagnostics;
 
-        public FixAllProvider FixAllProvider
-        {
-            get { return _fixAllProviderInfo.FixAllProvider; }
-        }
+        public FixAllProvider FixAllProvider => _fixAllProviderInfo.FixAllProvider;
 
-        public IEnumerable<FixAllScope> SupportedScopes
-        {
-            get { return _fixAllProviderInfo.SupportedScopes; }
-        }
+        public IEnumerable<FixAllScope> SupportedScopes => _fixAllProviderInfo.SupportedScopes;
 
         /// <summary>
         /// Transforms this context into the public <see cref="FixAllContext"/> to be used for <see cref="FixAllProvider.GetFixAsync(FixAllContext)"/> invocation.

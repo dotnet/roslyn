@@ -36,21 +36,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public abstract bool TryGetValue(int index, string columnName, out object content);
         protected abstract bool IsEquivalent(TData item1, TData item2);
 
-        public int VersionNumber
-        {
-            get
-            {
-                return _version;
-            }
-        }
+        public int VersionNumber => _version;
 
-        public int Count
-        {
-            get
-            {
-                return _items.Length;
-            }
-        }
+        public int Count => _items.Length;
 
         public int IndexOf(int index, ITableEntriesSnapshot newerSnapshot)
         {

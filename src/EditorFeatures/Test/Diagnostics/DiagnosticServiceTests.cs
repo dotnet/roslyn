@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 _diagnosticData = (diagnosticData ?? Array.Empty<DiagnosticData>()).ToImmutableArray();
             }
 
-            public bool SupportGetDiagnostics { get { return _support; } }
+            public bool SupportGetDiagnostics => _support;
             public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
 
             public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))

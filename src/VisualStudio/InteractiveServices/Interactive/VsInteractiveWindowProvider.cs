@@ -63,21 +63,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         protected abstract string Title { get; }
         protected abstract core::Microsoft.CodeAnalysis.Internal.Log.FunctionId InteractiveWindowFunctionId { get; }
 
-        protected IInteractiveWindowCommandsFactory CommandsFactory
-        {
-            get
-            {
-                return _commandsFactory;
-            }
-        }
+        protected IInteractiveWindowCommandsFactory CommandsFactory => _commandsFactory;
 
-        protected ImmutableArray<IInteractiveWindowCommand> Commands
-        {
-            get
-            {
-                return _commands;
-            }
-        }
+        protected ImmutableArray<IInteractiveWindowCommand> Commands => _commands;
 
         public void Create(int instanceId)
         {
