@@ -1,14 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio.Text.Differencing;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
@@ -17,6 +13,11 @@ namespace Microsoft.CodeAnalysis.Editor
     {
         private readonly IList<SolutionPreviewItem> _previews;
         public readonly SolutionChangeSummary ChangeSummary;
+
+        public SolutionPreviewResult(SolutionPreviewItem preview, SolutionChangeSummary changeSummary = null)
+            : this(new List<SolutionPreviewItem> { preview }, changeSummary)
+        {
+        }
 
         public SolutionPreviewResult(IList<SolutionPreviewItem> previews, SolutionChangeSummary changeSummary = null)
         {
@@ -70,6 +71,25 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             return result.Count == 0 ? null : result;
+        }
+
+        /// <summary>Merge two different previews into one final preview result.  The final preview will
+        /// have a concatenation of all the inidivual previews contained within each result.</summary>
+        internal static SolutionPreviewResult Merge(SolutionPreviewResult result1, SolutionPreviewResult result2)
+        {
+            if (result1 == null)
+            {
+                return result2;
+            }
+
+            if (result2 == null)
+            {
+                return result1;
+            }
+
+            return new SolutionPreviewResult(
+                result1._previews.Concat(result2._previews).ToList(),
+                result1.ChangeSummary ?? result2.ChangeSummary);
         }
     }
 }
