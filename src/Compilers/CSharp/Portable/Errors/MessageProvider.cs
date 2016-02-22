@@ -202,6 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int ERR_MetadataNameTooLong { get { return (int)ErrorCode.ERR_MetadataNameTooLong; } }
         public override int ERR_EncReferenceToAddedMember { get { return (int)ErrorCode.ERR_EncReferenceToAddedMember; } }
         public override int ERR_TooManyUserStrings { get { return (int)ErrorCode.ERR_TooManyUserStrings; } }
+        public override int ERR_PeWritingFailure { get { return (int)ErrorCode.ERR_PeWritingFailure; } }
 
         public override void ReportInvalidAttributeArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, AttributeData attribute)
         {
