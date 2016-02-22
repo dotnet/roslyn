@@ -32,10 +32,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
             var stylePreferences = state.StylePreferences;
             var shouldNotify = state.ShouldNotify();
 
-            return shouldNotify &&
-                       ((!stylePreferences.HasFlag(TypingStyles.VarForIntrinsic) && state.IsInIntrinsicTypeContext)
-                     || (!stylePreferences.HasFlag(TypingStyles.VarWhereApparent) && state.IsTypingApparentInContext)
-                     || (!stylePreferences.HasFlag(TypingStyles.VarWherePossible) && !(state.IsInIntrinsicTypeContext || state.IsTypingApparentInContext)));
+            // If notification preference is None, don't offer the suggestion.
+            if (!shouldNotify)
+            {
+                return false;
+            }
+
+            if (state.IsInIntrinsicTypeContext)
+            {
+                return !stylePreferences.HasFlag(TypingStyles.VarForIntrinsic);
+            }
+            else if (state.IsTypingApparentInContext)
+            {
+                return !stylePreferences.HasFlag(TypingStyles.VarWhereApparent);
+            }
+            else
+            {
+                return !stylePreferences.HasFlag(TypingStyles.VarWherePossible);
+            }
         }
 
         protected override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)
