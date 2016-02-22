@@ -2957,7 +2957,6 @@ class C4
 
         [Fact]
         [WorkItem(3240, "https://github.com/dotnet/roslyn/pull/8227")]
-
         public void FailingEmitter()
         {
             string source = @"

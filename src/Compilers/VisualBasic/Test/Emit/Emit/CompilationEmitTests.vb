@@ -2997,7 +2997,8 @@ End Module
 
             Dim emitResult As EmitResult
 
-            Using output = New FailingStream()
+            Using output = New BrokenStream()
+                output.BreakHow = 0
                 emitResult = compilation.Emit(output, Nothing, Nothing, Nothing)
             End Using
 
