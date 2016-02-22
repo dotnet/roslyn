@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private Task<bool> _newIdentifierBindsTask = SpecializedTasks.False;
 
             private readonly string _originalName;
-            public string OriginalName { get { return _originalName; } }
+            public string OriginalName => _originalName; 
 
             private readonly ITrackingSpan _trackingSpan;
             public ITrackingSpan TrackingSpan => _trackingSpan;

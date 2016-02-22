@@ -100,10 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         public override EnvDTE.vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementParameter;
 
-        public override object Parent
-        {
-            get { return _parentHandle.Value; }
-        }
+        public override object Parent => _parentHandle.Value; 
 
         EnvDTE.CodeElement EnvDTE.CodeParameter.Parent
         {

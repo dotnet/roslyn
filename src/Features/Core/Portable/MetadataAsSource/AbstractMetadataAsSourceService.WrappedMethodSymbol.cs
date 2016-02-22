@@ -47,13 +47,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public new IMethodSymbol OriginalDefinition => this;
 
-            public IMethodSymbol OverriddenMethod
-            {
-                get
-                {
-                    return _symbol.OverriddenMethod;
-                }
-            }
+            public IMethodSymbol OverriddenMethod => _symbol.OverriddenMethod;
 
             public ImmutableArray<IParameterSymbol> Parameters => _symbol.Parameters;
 

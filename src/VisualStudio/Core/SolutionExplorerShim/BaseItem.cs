@@ -55,10 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        public FontStyle FontStyle
-        {
-            get { return FontStyles.Normal; }
-        }
+        public FontStyle FontStyle => FontStyles.Normal; 
 
         public FontWeight FontWeight
         {

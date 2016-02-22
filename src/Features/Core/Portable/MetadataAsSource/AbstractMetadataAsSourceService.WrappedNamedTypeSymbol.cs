@@ -64,13 +64,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public bool IsGenericType => _symbol.IsGenericType;
 
-            public bool IsUnboundGenericType
-            {
-                get
-                {
-                    return _symbol.IsUnboundGenericType;
-                }
-            }
+            public bool IsUnboundGenericType => _symbol.IsUnboundGenericType;
 
             public bool IsScriptClass => _symbol.IsScriptClass;
 
@@ -116,58 +110,19 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public INamedTypeSymbol BaseType => _symbol.BaseType;
 
-            public ImmutableArray<INamedTypeSymbol> Interfaces
-            {
-                get
-                {
-                    return _symbol.Interfaces;
-                }
-            }
+            public ImmutableArray<INamedTypeSymbol> Interfaces => _symbol.Interfaces;
 
-            public ImmutableArray<INamedTypeSymbol> AllInterfaces
-            {
-                get { return _symbol.AllInterfaces; }
-            }
+            public ImmutableArray<INamedTypeSymbol> AllInterfaces => _symbol.AllInterfaces; 
 
-            public bool IsReferenceType
-            {
-                get
-                {
-                    return _symbol.IsReferenceType;
-                }
-            }
+            public bool IsReferenceType => _symbol.IsReferenceType;
 
-            public bool IsValueType
-            {
-                get
-                {
-                    return _symbol.IsValueType;
-                }
-            }
+            public bool IsValueType => _symbol.IsValueType;
 
-            public bool IsAnonymousType
-            {
-                get
-                {
-                    return _symbol.IsAnonymousType;
-                }
-            }
+            public bool IsAnonymousType => _symbol.IsAnonymousType;
 
-            ITypeSymbol ITypeSymbol.OriginalDefinition
-            {
-                get
-                {
-                    return _symbol.OriginalDefinition;
-                }
-            }
+            ITypeSymbol ITypeSymbol.OriginalDefinition => _symbol.OriginalDefinition;
 
-            public SpecialType SpecialType
-            {
-                get
-                {
-                    return _symbol.SpecialType;
-                }
-            }
+            public SpecialType SpecialType => _symbol.SpecialType;
 
             public ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember)
             {
@@ -199,18 +154,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 throw new NotImplementedException();
             }
 
-            public new INamedTypeSymbol OriginalDefinition
-            {
-                get
-                {
-                    return this;
-                }
-            }
+            public new INamedTypeSymbol OriginalDefinition => this;
 
-            public bool MightContainExtensionMethods
-            {
-                get { return _symbol.MightContainExtensionMethods; }
-            }
+            public bool MightContainExtensionMethods => _symbol.MightContainExtensionMethods; 
         }
     }
 }

@@ -215,10 +215,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     _outputDirectory = projectFile.GetOutputDirectory();
                 }
 
-                public bool Initialized
-                {
-                    get { return _initialized; }
-                }
+                public bool Initialized => _initialized; 
 
                 public List<string> CommandLineArgs => _commandLineArgs;
 

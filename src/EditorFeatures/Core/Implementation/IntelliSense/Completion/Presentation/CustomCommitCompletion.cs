@@ -43,13 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         public override string DisplayText => _displayText;
 
-        public override string InsertionText
-        {
-            get
-            {
-                return _displayText; // [sic] Same as DisplayText
-            }
-        }
+        public override string InsertionText => _displayText; // [sic] Same as DisplayText
 
         public override string Description
         {

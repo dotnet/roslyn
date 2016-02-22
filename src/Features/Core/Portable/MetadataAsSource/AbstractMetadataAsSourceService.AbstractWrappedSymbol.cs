@@ -36,13 +36,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public Accessibility DeclaredAccessibility => _symbol.DeclaredAccessibility;
 
-            public ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-            {
-                get
-                {
-                    return _symbol.DeclaringSyntaxReferences;
-                }
-            }
+            public ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => _symbol.DeclaringSyntaxReferences;
 
             public bool IsAbstract
             {
