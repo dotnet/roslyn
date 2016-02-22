@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             // Get the analyzer assets for installed VSIX extensions through the VSIX extension manager.
             var extensionManager = workspace.GetVsService(assembly.GetType("Microsoft.VisualStudio.ExtensionManager.SVsExtensionManager"));
 
-            _hostDiagnosticAnalyzerInfo = GetHostAnalyzerPackagesWithName(extensionManager);
+            _hostDiagnosticAnalyzerInfo = GetHostAnalyzerPackagesWithName(extensionManager, assembly.GetType("Microsoft.VisualStudio.ExtensionManager.IExtensionContent"));
         }
 
         public IEnumerable<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages()
@@ -61,22 +61,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         }
 
         // internal for testing purpose
-        internal static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostAnalyzerPackagesWithName(dynamic extensionManager)
+        internal static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostAnalyzerPackagesWithName(object extensionManager, Type parameterType)
         {
+            // dynamic is wierd. it can't see internal type with public interface even if callee is
+            // implementation of the public interface in internal type. so we can't use dynamic here
+
             var builder = ImmutableArray.CreateBuilder<HostDiagnosticAnalyzerPackage>();
-            foreach (var extension in extensionManager.GetEnabledExtensions(AnalyzerContentTypeName))
+
+            // var enabledExtensions = extensionManager.GetEnabledExtensions(AnalyzerContentTypeName);
+            var extensionManagerType = extensionManager.GetType();
+            var extensionManager_GetEnabledExtensionsMethod = extensionManagerType.GetRuntimeMethod("GetEnabledExtensions", new Type[] { typeof(string) });
+            var enabledExtensions = extensionManager_GetEnabledExtensionsMethod.Invoke(extensionManager, new object[] { AnalyzerContentTypeName }) as IEnumerable<object>;
+
+            foreach (var extension in enabledExtensions)
             {
-                var name = extension.Header.LocalizedName;
+                // var name = extension.Header.LocalizedName;
+                var extensionType = extension.GetType();
+                var extensionType_HeaderProperty = extensionType.GetRuntimeProperty("Header");
+                var extension_Header = extensionType_HeaderProperty.GetValue(extension);
+                var extension_HeaderType = extension_Header.GetType();
+                var extension_HeaderType_LocalizedNameProperty = extension_HeaderType.GetRuntimeProperty("LocalizedName");
+                var name = extension_HeaderType_LocalizedNameProperty.GetValue(extension_Header) as string;
 
                 var assemblies = ImmutableArray.CreateBuilder<string>();
-                foreach (var content in extension.Content)
+
+                // var extension_Content = extension.Content;
+                var extensionType_ContentProperty = extensionType.GetRuntimeProperty("Content");
+                var extension_Content = extensionType_ContentProperty.GetValue(extension) as IEnumerable<object>;
+
+                foreach (var content in extension_Content)
                 {
                     if (!ShouldInclude(content))
                     {
                         continue;
                     }
 
-                    var assembly = (string)extension.GetContentLocation(content);
+                    var extensionType_GetContentMethod = extensionType.GetRuntimeMethod("GetContentLocation", new Type[] { parameterType });
+                    var assembly = extensionType_GetContentMethod?.Invoke(extension, new object[] { content }) as string;
                     if (assembly == null)
                     {
                         continue;
@@ -108,9 +129,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             return ImmutableArray.Create(new HostDiagnosticAnalyzerPackage(name: null, assemblies: references.ToImmutable()));
         }
 
-        private static bool ShouldInclude(dynamic content)
+        private static bool ShouldInclude(object content)
         {
-            return string.Equals((string)content.ContentTypeName, AnalyzerContentTypeName, StringComparison.InvariantCultureIgnoreCase);
+            // var content_ContentTypeName = content.ContentTypeName;
+            var contentType = content.GetType();
+            var contentType_ContentTypeNameProperty = contentType.GetRuntimeProperty("ContentTypeName");
+            var content_ContentTypeName = contentType_ContentTypeNameProperty.GetValue(content) as string;
+
+            return string.Equals(content_ContentTypeName, AnalyzerContentTypeName, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

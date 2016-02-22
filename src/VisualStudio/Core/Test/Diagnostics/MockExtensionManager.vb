@@ -9,7 +9,7 @@ Imports Moq
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
-    Friend Class MockExtensionManager
+    Public Class MockExtensionManager
 
         Private ReadOnly _contentType As String
         Private ReadOnly _locations() As String
@@ -53,17 +53,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Next
         End Function
 
-        Friend Interface IMockInstalledExtension
+        Public Interface IMockInstalledExtension
             ReadOnly Property Content As IEnumerable(Of MockContent)
             Function GetContentLocation(content As MockContent) As String
             ReadOnly Property Header As IMockHeader
         End Interface
 
-        Friend Interface IMockHeader
+        Public Interface IMockHeader
             ReadOnly Property LocalizedName As String
         End Interface
 
-        Friend Class MockContent
+        Public Class MockContent
             Private ReadOnly _contentType As String
             Private ReadOnly _location As String
 
