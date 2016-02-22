@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
+using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.Cci
 {
@@ -95,13 +96,9 @@ namespace Microsoft.Cci
 
                 return peWriter.WritePeToStream(mdWriter, getPeStream, getPortablePdbStreamOpt, nativePdbWriterOpt);
             }
-            catch (Exception ex) when (ex is PdbWritingException || ex is ResourceException || ex is CodeAnalysis.CodeGen.PermissionSetFileReadException)
+            catch (Exception ex) when (!(ex is PdbWritingException || ex is ResourceException || ex is PermissionSetFileReadException))
             {
-                throw;
-            }
-            catch (Exception e)
-            {
-                throw new PeWritingException(e);
+                throw new PeWritingException(ex);
             }
         }
 

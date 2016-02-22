@@ -1478,7 +1478,6 @@ namespace Microsoft.CodeAnalysis
 
             if (!peStream.CanWrite)
             {
-
                 throw new ArgumentException(CodeAnalysisResources.StreamMustSupportWrite, nameof(peStream));
             }
 

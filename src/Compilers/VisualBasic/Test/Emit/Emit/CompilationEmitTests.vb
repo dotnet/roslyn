@@ -2983,9 +2983,9 @@ End Class
         End Class
 
         <Fact>
-            Public Sub FailingEmitter()
-                ' Check that Compilation.Emit actually produces compilation errors.
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+        Public Sub FailingEmitter()
+            ' Check that Compilation.Emit actually produces compilation errors.
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
         <file name="a.vb">
 Module M1
@@ -2995,7 +2995,7 @@ End Module
     </file>
     </compilation>)
 
-                Dim emitResult As EmitResult
+            Dim emitResult As EmitResult
 
             Using output = New FailingStream()
                 emitResult = compilation.Emit(output, Nothing, Nothing, Nothing)
@@ -3006,5 +3006,5 @@ End Module
 BC37256: An error occurred while writing the Portable Executable file.
 </expected>)
         End Sub
-        End Class
+    End Class
 End Namespace
