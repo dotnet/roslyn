@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -118,7 +119,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 this.AssertIsForeground();
 
                 // Then proceed and actually do the invoke.
-                await InvokeAsync(linkedSource.Token).ConfigureAwait(true);
+                try
+                {
+                    await InvokeAsync(linkedSource.Token).ConfigureAwait(true);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+                catch (Exception e) when(FatalError.Report(e))
+                {
+                }
             }
         }
 
