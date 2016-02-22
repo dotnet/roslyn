@@ -1,6 +1,6 @@
 SHELL = /usr/bin/env bash
 OS_NAME = $(shell uname -s)
-NUGET_PACKAGE_NAME = nuget.54
+NUGET_PACKAGE_NAME = nuget.58
 BUILD_CONFIGURATION = Debug
 BOOTSTRAP_PATH = $(shell pwd)/Binaries/Bootstrap
 BUILD_LOG_PATH =
