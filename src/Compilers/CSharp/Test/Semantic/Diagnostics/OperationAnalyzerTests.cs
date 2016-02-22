@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class OperationAnalyzerTests : CompilingTestBase
+    public class OperationAnalyzerTests : CompilingTestBases
     {
         [Fact]
         public void EmptyArrayCSharp()
