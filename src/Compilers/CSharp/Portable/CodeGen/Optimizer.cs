@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             foreach (var info in locals.Values)
             {
-                info.LocalDefs.Free();
+                info.Free();
             }
 
             locals.Free();
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else if (locInfo.CannotSchedule)
                 {
-                    locInfo.LocalDefs.Free();
+                    locInfo.Free();
                     info.Remove(local);
                 }
             }
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             foreach (var dummy in dummies)
             {
-                dummy.LocalDefs.Free();
+                dummy.Free();
             }
             dummies.Free();
         }
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 foreach (var def in dummy.LocalDefs)
                 {
                     // not interested in single node definitions
-                    if (def.start != def.end)
+                    if (def.Start != def.End)
                     {
                         defs.Add(def);
                     }
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // also order by usage, giving preference to spans at the beginning of the method
             var ordered = from i in info
                           from d in i.Value.LocalDefs
-                          orderby d.end - d.start, d.end ascending
+                          orderby d.End - d.Start, d.End ascending
                           select new { i = i.Key, d = d };
 
             // collect non-intersecting def-use spans. 
@@ -232,7 +232,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     internal class LocalDefUseInfo
     {
         // stack at variable declaration, may be > 0 in sequences.
-        public readonly int stackAtDeclaration;
+        public int StackAtDeclaration { get; private set; }
+        private readonly ObjectPool<LocalDefUseInfo> _pool;
+
+        // global pool
+        private static readonly ObjectPool<LocalDefUseInfo> s_poolInstance = CreatePool();
 
         // value definitions for this variable.
         private ArrayBuilder<LocalDefUseSpan> _localDefs;
@@ -258,9 +262,42 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             this.CannotSchedule = true;
         }
 
-        public LocalDefUseInfo(int stackAtDeclaration)
+        private LocalDefUseInfo(ObjectPool<LocalDefUseInfo> pool)
         {
-            this.stackAtDeclaration = stackAtDeclaration;
+            _pool = pool;
+        }
+
+        public void Free()
+        {
+            if (_localDefs != null)
+            {
+                foreach (var def in _localDefs)
+                {
+                    def.Free();
+                }
+
+                _localDefs.Free();
+                _localDefs = null;
+            }
+
+            _pool?.Free(this);
+        }
+
+        // if someone needs to create a pool;
+        public static ObjectPool<LocalDefUseInfo> CreatePool()
+        {
+            ObjectPool<LocalDefUseInfo> pool = null;
+            pool = new ObjectPool<LocalDefUseInfo>(() => new LocalDefUseInfo(pool), 128);
+            return pool;
+        }
+
+        public static LocalDefUseInfo GetInstance(int stackAtDeclaration)
+        {
+            var instance = s_poolInstance.Allocate();
+            Debug.Assert(instance._localDefs == null);
+            instance.StackAtDeclaration = stackAtDeclaration;
+            instance.CannotSchedule = false;
+            return instance;
         }
     }
 
@@ -269,18 +306,43 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     // StackOptimizer visitors. (i.e. recursive walk not looking into constants)
     internal class LocalDefUseSpan
     {
-        public readonly int start;
-        public int end;
+        public int Start { get; private set; }
+        public int End { get; set; }
 
-        public LocalDefUseSpan(int assigned)
+        private readonly ObjectPool<LocalDefUseSpan> _pool;
+
+        // global pool
+        private static readonly ObjectPool<LocalDefUseSpan> s_poolInstance = CreatePool();
+
+        private LocalDefUseSpan(ObjectPool<LocalDefUseSpan> pool)
         {
-            this.end = assigned;
-            this.start = assigned;
+            _pool = pool;
+        }
+
+        public void Free()
+        {
+            _pool?.Free(this);
+        }
+
+        // if someone needs to create a pool;
+        public static ObjectPool<LocalDefUseSpan> CreatePool()
+        {
+            ObjectPool<LocalDefUseSpan> pool = null;
+            pool = new ObjectPool<LocalDefUseSpan>(() => new LocalDefUseSpan(pool), 128);
+            return pool;
+        }
+
+        public static LocalDefUseSpan GetInstance(int assigned)
+        {
+            var instance = s_poolInstance.Allocate();
+            instance.Start = assigned;
+            instance.End = assigned;
+            return instance;
         }
 
         public override string ToString()
         {
-            return "[" + this.start + " ," + this.end + ")";
+            return "[" + this.Start + " ," + this.End + ")";
         }
 
         /// <summary>
@@ -296,12 +358,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         public bool ConflictsWith(LocalDefUseSpan other)
         {
-            return Contains(other.start) ^ Contains(other.end);
+            return Contains(other.Start) ^ Contains(other.End);
         }
 
         private bool Contains(int val)
         {
-            return this.start < val && this.end > val;
+            return this.Start < val && this.End > val;
         }
 
         /// <summary>
@@ -315,12 +377,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         public bool ConflictsWithDummy(LocalDefUseSpan dummy)
         {
-            return Includes(dummy.start) ^ Includes(dummy.end);
+            return Includes(dummy.Start) ^ Includes(dummy.End);
         }
 
         private bool Includes(int val)
         {
-            return this.start <= val && this.end >= val;
+            return this.Start <= val && this.End >= val;
         }
     }
 
@@ -1560,7 +1622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // create a dummy and start tracing it
             var dummy = new DummyLocal();
             _dummyVariables.Add(dummy, dummy);
-            _locals.Add(dummy, new LocalDefUseInfo(StackDepth()));
+            _locals.Add(dummy, LocalDefUseInfo.GetInstance(StackDepth()));
             RecordDummyWrite(dummy);
 
             return dummy;
@@ -1584,7 +1646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // create a dummy and start tracing it
                 dummy = new DummyLocal();
                 _dummyVariables.Add(label, dummy);
-                _locals.Add(dummy, new LocalDefUseInfo(StackDepth()));
+                _locals.Add(dummy, LocalDefUseInfo.GetInstance(StackDepth()));
                 RecordDummyWrite(dummy);
             }
         }
@@ -1652,7 +1714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // if accessing real val, check stack
             if (local.SynthesizedKind != SynthesizedLocalKind.OptimizerTemp)
             {
-                if (locInfo.stackAtDeclaration != StackDepth() &&
+                if (locInfo.StackAtDeclaration != StackDepth() &&
                     !EvalStackHasLocal(local))
                 {
                     //reading at different eval stack.
@@ -1663,13 +1725,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 // dummy must be accessed on same stack.
-                Debug.Assert(local == empty || locInfo.stackAtDeclaration == StackDepth());
+                Debug.Assert(local == empty || locInfo.StackAtDeclaration == StackDepth());
             }
 
             var definedAt = locInfo.LocalDefs.Last();
-            definedAt.end = _counter;
+            definedAt.End = _counter;
 
-            var locDef = new LocalDefUseSpan(_counter);
+            var locDef = LocalDefUseSpan.GetInstance(_counter);
             locInfo.LocalDefs.Add(locDef);
         }
 
@@ -1689,9 +1751,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var locInfo = _locals[local];
 
             // dummy must be accessed on same stack.
-            Debug.Assert(local == empty || locInfo.stackAtDeclaration == StackDepth());
+            Debug.Assert(local == empty || locInfo.StackAtDeclaration == StackDepth());
 
-            var locDef = new LocalDefUseSpan(_counter);
+            var locDef = LocalDefUseSpan.GetInstance(_counter);
             locInfo.LocalDefs.Add(locDef);
         }
 
@@ -1714,14 +1776,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // -1 because real assignment "consumes, assigns, and then pushes back" the value.
             var evalStack = StackDepth() - 1;
 
-            if (locInfo.stackAtDeclaration != evalStack)
+            if (locInfo.StackAtDeclaration != evalStack)
             {
                 //writing at different eval stack.
                 locInfo.ShouldNotSchedule();
                 return;
             }
 
-            var locDef = new LocalDefUseSpan(_counter);
+            var locDef = LocalDefUseSpan.GetInstance(_counter);
             locInfo.LocalDefs.Add(locDef);
         }
 
@@ -1748,12 +1810,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     LocalDefUseInfo info;
                     if (!_locals.TryGetValue(local, out info))
                     {
-                        _locals.Add(local, new LocalDefUseInfo(stack));
+                        _locals.Add(local, LocalDefUseInfo.GetInstance(stack));
                     }
                     else
                     {
                         Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.LoweringTemp, "only lowering temps may be sometimes reused");
-                        if (info.stackAtDeclaration != stack)
+                        if (info.StackAtDeclaration != stack)
                         {
                             info.ShouldNotSchedule();
                         }
@@ -1862,7 +1924,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private static bool IsLastAccess(LocalDefUseInfo locInfo, int counter)
         {
-            return locInfo.LocalDefs.Any((d) => counter == d.start && counter == d.end);
+            return locInfo.LocalDefs.Any((d) => counter == d.Start && counter == d.End);
         }
 
         public override BoundNode VisitLocal(BoundLocal node)
@@ -1927,7 +1989,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // do actual assignment
 
-            Debug.Assert(locInfo.LocalDefs.Any((d) => _nodeCounter == d.start && _nodeCounter <= d.end));
+            Debug.Assert(locInfo.LocalDefs.Any((d) => _nodeCounter == d.Start && _nodeCounter <= d.End));
             var isLast = IsLastAccess(locInfo, _nodeCounter);
 
             if (isLast)
