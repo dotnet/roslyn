@@ -2923,65 +2923,6 @@ End Class
             End Using
         End Sub
 
-        Private Class FailingStream
-            Inherits Stream
-
-            Shared exception As IOException = New IOException()
-
-            Public Overrides ReadOnly Property CanRead As Boolean
-                Get
-                    Return True
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property CanSeek As Boolean
-                Get
-                    Return True
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property CanWrite As Boolean
-                Get
-                    Return True
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property Length As Long
-                Get
-                    Throw exception
-                End Get
-            End Property
-
-            Public Overrides Property Position As Long
-                Get
-                    Throw exception
-                End Get
-                Set(value As Long)
-                    Throw exception
-                End Set
-            End Property
-
-            Public Overrides Sub Flush()
-                Throw exception
-            End Sub
-
-            Public Overrides Sub SetLength(value As Long)
-                Throw exception
-            End Sub
-
-            Public Overrides Sub Write(buffer() As Byte, offset As Integer, count As Integer)
-                Throw exception
-            End Sub
-
-            Public Overrides Function Read(buffer() As Byte, offset As Integer, count As Integer) As Integer
-                Throw exception
-            End Function
-
-            Public Overrides Function Seek(offset As Long, origin As SeekOrigin) As Long
-                Throw exception
-            End Function
-        End Class
-
         <Fact>
         Public Sub FailingEmitter()
             ' Check that Compilation.Emit actually produces compilation errors.
@@ -3004,7 +2945,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(emitResult.Diagnostics,
 <expected>
-BC37256: An error occurred while writing the Portable Executable file.
+BC37256: An error occurred while writing the output file.
 </expected>)
         End Sub
     End Class
