@@ -455,6 +455,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddToMap(node, patternBinder);
         }
 
+        public override void VisitReturnStatement(ReturnStatementSyntax node)
+        {
+            if (node.Expression != null)
+            {
+                var patternBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
+                AddToMap(node, patternBinder);
+            }
+        }
+
+        public override void VisitThrowStatement(ThrowStatementSyntax node)
+        {
+            if (node.Expression != null)
+            {
+                var patternBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
+                AddToMap(node, patternBinder);
+            }
+        }
+
         public override void DefaultVisit(SyntaxNode node)
         {
             // We should only get here for statements that don't introduce new scopes.
@@ -490,6 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (statement.Kind())
                 {
                     case SyntaxKind.LocalDeclarationStatement:
+                    case SyntaxKind.LetStatement:
                     case SyntaxKind.LabeledStatement:
                         // It is an error to have a declaration or a label in an embedded statement,
                         // but we still want to bind it.  We'll pretend that the statement was
