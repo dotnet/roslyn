@@ -229,8 +229,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         internal string TryGetBinOutputPath() => _binOutputPathOpt;
 
-        internal VisualStudioWorkspaceImpl VisualStudioWorkspace => _visualStudioWorkspaceOpt;
-
         internal IRuleSetFile RuleSetFile => this.ruleSet;
 
         internal HostDiagnosticUpdateSource HostDiagnosticUpdateSource => _hostDiagnosticUpdateSourceOpt;

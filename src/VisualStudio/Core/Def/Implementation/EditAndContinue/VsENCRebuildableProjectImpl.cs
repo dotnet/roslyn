@@ -102,9 +102,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         {
             _vsProject = project;
 
-            _encService = _vsProject.VisualStudioWorkspace.Services.GetService<IEditAndContinueWorkspaceService>();
-            _trackingService = _vsProject.VisualStudioWorkspace.Services.GetService<IActiveStatementTrackingService>();
-            _notifications = _vsProject.VisualStudioWorkspace.Services.GetService<INotificationService>();
+            _encService = _vsProject.Workspace.Services.GetService<IEditAndContinueWorkspaceService>();
+            _trackingService = _vsProject.Workspace.Services.GetService<IActiveStatementTrackingService>();
+            _notifications = _vsProject.Workspace.Services.GetService<INotificationService>();
 
             _debugEncNotify = (IDebugEncNotify)project.ServiceProvider.GetService(typeof(ShellInterop.SVsShellDebugger));
 
@@ -143,11 +143,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 return;
             }
 
-            var hostProject = _vsProject.VisualStudioWorkspace.GetHostProject(documentId.ProjectId) as AbstractRoslynProject;
+            var visualStudioWorkspace = _vsProject.Workspace as VisualStudioWorkspaceImpl;
+            var hostProject = visualStudioWorkspace?.GetHostProject(documentId.ProjectId) as AbstractRoslynProject;
             if (hostProject?.EditAndContinueImplOpt?._metadata != null)
             {
-                var projectHierarchy = _vsProject.VisualStudioWorkspace.GetHierarchy(documentId.ProjectId);
-                _debugEncNotify.NotifyEncEditDisallowedByProject(projectHierarchy);
+                _debugEncNotify.NotifyEncEditDisallowedByProject(hostProject.Hierarchy);
                 return;
             }
 
@@ -219,7 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     _encService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run);
 
-                    _encService.StartDebuggingSession(_vsProject.VisualStudioWorkspace.CurrentSolution);
+                    _encService.StartDebuggingSession(_vsProject.Workspace.CurrentSolution);
                     s_encDebuggingSessionInfo = new EncDebuggingSessionInfo();
 
                     s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_encService, _editorAdaptersFactoryService, _vsProject);
@@ -322,7 +322,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 else
                 {
                     // an error might have been reported:
-                    _diagnosticProvider.ClearDiagnostics(_encService.DebuggingSession, _vsProject.VisualStudioWorkspace, EditAndContinueDiagnosticUpdateSource.DebuggerErrorId, _vsProject.Id, documentId: null);
+                    _diagnosticProvider.ClearDiagnostics(_encService.DebuggingSession, _vsProject.Workspace, EditAndContinueDiagnosticUpdateSource.DebuggerErrorId, _vsProject.Id, documentId: null);
                 }
 
                 _activeMethods = null;
@@ -436,7 +436,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     {
                         _encService.OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Break);
 
-                        s_breakStateEntrySolution = _vsProject.VisualStudioWorkspace.CurrentSolution;
+                        s_breakStateEntrySolution = _vsProject.Workspace.CurrentSolution;
 
                         // TODO: This is a workaround for a debugger bug in which not all projects exit the break state.
                         // Reset the project count.
@@ -730,7 +730,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                         return VSConstants.E_FAIL;
                     }
 
-                    Document document = _vsProject.VisualStudioWorkspace.CurrentSolution.GetDocument(id.DocumentId);
+                    Document document = _vsProject.Workspace.CurrentSolution.GetDocument(id.DocumentId);
                     SourceText text = document.GetTextAsync(default(CancellationToken)).Result;
 
                     // Try to get spans from the tracking service first.
@@ -801,7 +801,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     {
                         // Fetch the latest snapshot of the project and get an analysis summary for any changes 
                         // made since the break mode was entered.
-                        var currentProject = _vsProject.VisualStudioWorkspace.CurrentSolution.GetProject(_vsProject.Id);
+                        var currentProject = _vsProject.Workspace.CurrentSolution.GetProject(_vsProject.Id);
                         if (currentProject == null)
                         {
                             // If the project has yet to be loaded into the solution (which may be the case,
@@ -908,7 +908,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     Debug.Assert(s_breakStateProjectCount >= 0);
 
                     _changesApplied = false;
-                    _diagnosticProvider.ClearDiagnostics(_encService.DebuggingSession, _vsProject.VisualStudioWorkspace, EditAndContinueDiagnosticUpdateSource.EmitErrorId, _vsProject.Id, _documentsWithEmitError);
+                    _diagnosticProvider.ClearDiagnostics(_encService.DebuggingSession, _vsProject.Workspace, EditAndContinueDiagnosticUpdateSource.EmitErrorId, _vsProject.Id, _documentsWithEmitError);
                     _documentsWithEmitError = default(ImmutableArray<DocumentId>);
                 }
 
@@ -972,7 +972,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 }
 
                 // Clear diagnostics, in case the project was built before and failed due to errors.
-                _diagnosticProvider.ClearDiagnostics(_encService.DebuggingSession, _vsProject.VisualStudioWorkspace, EditAndContinueDiagnosticUpdateSource.EmitErrorId, _vsProject.Id, _documentsWithEmitError);
+                _diagnosticProvider.ClearDiagnostics(_encService.DebuggingSession, _vsProject.Workspace, EditAndContinueDiagnosticUpdateSource.EmitErrorId, _vsProject.Id, _documentsWithEmitError);
 
                 if (!delta.EmitResult.Success)
                 {
