@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 this.DocumentId = documentId;
             }
 
-            public SolutionArgument(Document document) :
+            public SolutionArgument(TextDocument document) :
                 this(document.Project.Solution, document.Id.ProjectId, document.Id)
             { }
 

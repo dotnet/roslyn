@@ -4,7 +4,6 @@ using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -60,7 +59,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             foreach (var documentId in _workspace.GetOpenDocumentIds())
             {
                 var document = _workspace.CurrentSolution.GetDocument(documentId);
-                Debug.Assert(document != null);
+                if (document == null)
+                {
+                    continue;
+                }
 
                 SetReadOnly(document);
             }

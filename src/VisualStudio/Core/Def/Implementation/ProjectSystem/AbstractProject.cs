@@ -687,7 +687,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private static void OnAdditionalDocumentClosing(object sender, bool notUsed)
+        private static void OnAdditionalDocumentClosing(object sender, bool updateActiveContext)
         {
             IVisualStudioHostDocument document = (IVisualStudioHostDocument)sender;
             AbstractProject project = (AbstractProject)document.Project;
@@ -695,7 +695,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (project._pushingChangesToWorkspaceHosts)
             {
-                projectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentClosed(document.Id, document.GetOpenTextBuffer(), document.Loader));
+                // we don't actually need active context for additional files, but make all other services happy, we track
+                // all information regular C#/VB documents track
+                projectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentClosed(document.Id, document.GetOpenTextBuffer(), document.Loader, updateActiveContext));
             }
         }
 
@@ -999,7 +1001,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (document.IsOpen)
                 {
-                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentClosed(document.Id, document.GetOpenTextBuffer(), document.Loader));
+                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentClosed(document.Id, document.GetOpenTextBuffer(), document.Loader, updateActiveContext: true));
                 }
 
                 this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentRemoved(document.Id));

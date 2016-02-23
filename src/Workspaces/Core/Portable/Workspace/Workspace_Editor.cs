@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// 
+        /// Set current active document context
         /// </summary>
         internal virtual void SetDocumentContext(DocumentId documentId)
         {
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// 
+        /// Document active context has changed.
         /// </summary>
         protected void OnDocumentContextUpdated(DocumentId documentId)
         {
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// 
+        /// Document active context has changed.
         /// </summary>
         internal void OnDocumentContextUpdated(DocumentId documentId, SourceTextContainer container)
         {
@@ -361,7 +361,15 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // fire and forget
-                this.RaiseDocumentActiveContextChangedEventAsync(this.CurrentSolution.GetDocument(documentId));
+                var document = this.CurrentSolution.GetDocument(documentId);
+                if (document != null)
+                {
+                    // document can be null if it is additional document.
+                    // we don't raise any context change event for additional files since
+                    // technically additional file doesn't have context 
+                    // (or anyway explicit way for user to change context)
+                    this.RaiseDocumentActiveContextChangedEventAsync(document);
+                }
             }
         }
 
@@ -516,6 +524,11 @@ namespace Microsoft.CodeAnalysis
             {
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetAdditionalDocument(documentId);
+
+                // register opened additioanl file in opened document map
+                // so that things like document navigation service works with additional document
+                AddToOpenDocumentMap(documentId);
+
                 var oldText = oldDocument.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
                 // keep open document text alive by using PreserveIdentity
@@ -538,6 +551,9 @@ namespace Microsoft.CodeAnalysis
 
                 SignupForTextChanges(documentId, textContainer, isCurrentContext, (w, id, text, mode) => w.OnAdditionalDocumentTextChanged(id, text, mode));
 
+                // REVIEW: currently we dont fire events such as TextChanged, DocumentClosed events
+                //         since those events are hard coded to "Document" type. for now, we will
+                //         just not fire those events for additional files. just workspace changed events
                 // Fire and forget.
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentChanged, oldSolution, newSolution, documentId: documentId);
             }
@@ -581,7 +597,6 @@ namespace Microsoft.CodeAnalysis
                 // Closing this document did not result in the buffer closing, so some 
                 // document is now the current context of that buffer. Fire the appropriate
                 // events to set that document as the current context of that buffer.
-
                 SetDocumentContext(currentContextDocumentId);
             }
         }
@@ -596,12 +611,23 @@ namespace Microsoft.CodeAnalysis
 
         protected internal void OnAdditionalDocumentClosed(DocumentId documentId, TextLoader reloader)
         {
+            OnAdditionalDocumentClosed(documentId, reloader, updateActiveContext: false);
+        }
+
+        protected internal void OnAdditionalDocumentClosed(DocumentId documentId, TextLoader reloader, bool updateActiveContext)
+        {
             this.CheckAdditionalDocumentIsInCurrentSolution(documentId);
+
+            // When one file from a set of linked or shared documents is closed, we first update
+            // our data structures and then call SetDocumentContext to tell the project system 
+            // what the new active context is. This can cause reentrancy, so we call 
+            // SetDocumentContext after releasing the serializationLock.
+            DocumentId currentContextDocumentId;
 
             using (_serializationLock.DisposableWait())
             {
                 // forget any open document info
-                ForgetAnyOpenDocumentInfo(documentId);
+                currentContextDocumentId = ForgetAnyOpenDocumentInfo(documentId);
 
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetAdditionalDocument(documentId);
@@ -609,7 +635,18 @@ namespace Microsoft.CodeAnalysis
                 var newSolution = oldSolution.WithAdditionalDocumentTextLoader(documentId, reloader, PreservationMode.PreserveValue);
                 newSolution = this.SetCurrentSolution(newSolution);
 
+                // REVIEW: currently we dont fire events such as TextChanged, DocumentClosed events
+                //         since those events are hard coded to "Document" type. for now, we will
+                //         just not fire those events for additional files. just workspace changed events
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentChanged, oldSolution, newSolution, documentId: documentId); // don't wait for this
+            }
+
+            if (updateActiveContext && currentContextDocumentId != null && this.CanChangeActiveContextDocument)
+            {
+                // Closing this document did not result in the buffer closing, so some 
+                // document is now the current context of that buffer. Fire the appropriate
+                // events to set that document as the current context of that buffer.
+                SetDocumentContext(currentContextDocumentId);
             }
         }
 

@@ -3,14 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Collections.Immutable;
 using Roslyn.Utilities;
@@ -612,7 +611,7 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateLinkedFilesMapWithAddedProject(ProjectState projectState)
         {
-            return CreateLinkedFilesMapWithAddedDocuments(projectState, projectState.DocumentIds);
+            return CreateLinkedFilesMapWithAddedDocuments(projectState, projectState.GetTextDocumentIds());
         }
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateLinkedFilesMapWithAddedDocuments(ProjectState projectState, IEnumerable<DocumentId> documentIds)
@@ -621,8 +620,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var documentId in documentIds)
             {
-                var filePath = projectState.GetDocumentState(documentId).FilePath;
-
+                var filePath = projectState.GetTextDocumentState(documentId).FilePath;
                 if (string.IsNullOrEmpty(filePath))
                 {
                     continue;
@@ -666,7 +664,7 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateLinkedFilesMapWithRemovedProject(ProjectState projectState)
         {
-            return CreateLinkedFilesMapWithRemovedDocuments(projectState, projectState.DocumentIds);
+            return CreateLinkedFilesMapWithRemovedDocuments(projectState, projectState.GetTextDocumentIds());
         }
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateLinkedFilesMapWithRemovedDocuments(
@@ -677,8 +675,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var documentId in documentIds)
             {
-                var filePath = projectState.GetDocumentState(documentId).FilePath;
-
+                var filePath = projectState.GetTextDocumentState(documentId).FilePath;
                 if (string.IsNullOrEmpty(filePath))
                 {
                     continue;
@@ -1798,7 +1795,7 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray<DocumentId>.Empty;
             }
 
-            var documentState = projectState.GetDocumentState(documentId);
+            var documentState = projectState.GetTextDocumentState(documentId);
             if (documentState == null)
             {
                 // this document no longer exist

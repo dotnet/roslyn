@@ -20,7 +20,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 InternalDiagnosticsOptions.BuildErrorIsTheGod,
                 InternalDiagnosticsOptions.ClearLiveErrorsForProjectBuilt,
                 InternalDiagnosticsOptions.PreferLiveErrorsOnOpenedFiles,
-                InternalDiagnosticsOptions.PreferBuildErrorsOverLiveErrors
+                InternalDiagnosticsOptions.PreferBuildErrorsOverLiveErrors,
+                InternalDiagnosticsOptions.CrashOnAnalyzerException,
+                InternalDiagnosticsOptions.PutCustomTypeInBingSearch,
+                InternalDiagnosticsOptions.AllowDiagnosticOnAdditionalFiles
             }.ToImmutableArray();
 
         public IEnumerable<IOption> GetOptions()

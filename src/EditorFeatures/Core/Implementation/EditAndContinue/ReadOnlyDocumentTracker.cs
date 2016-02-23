@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
@@ -127,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         private static ITextBuffer GetTextBuffer(Workspace workspace, DocumentId documentId)
         {
-            var doc = workspace.CurrentSolution.GetDocument(documentId);
+            var doc = workspace.CurrentSolution.GetTextDocument(documentId);
             SourceText text;
             doc.TryGetText(out text);
             var snapshot = text.FindCorrespondingEditorTextSnapshot();

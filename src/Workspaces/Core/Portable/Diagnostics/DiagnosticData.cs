@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 isSuppressed: diagnostic.IsSuppressed);
         }
 
-        private static DiagnosticDataLocation CreateLocation(Document document, Location location)
+        private static DiagnosticDataLocation CreateLocation(TextDocument document, Location location)
         {
             if (document == null)
             {
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 mappedLineInfo.GetMappedFilePathIfExist(), mappedStartLine, mappedStartColumn, mappedEndLine, mappedEndColumn);
         }
 
-        public static DiagnosticData Create(Document document, Diagnostic diagnostic)
+        public static DiagnosticData Create(TextDocument document, Diagnostic diagnostic)
         {
             var location = CreateLocation(document, diagnostic.Location);
 
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 isSuppressed: diagnostic.IsSuppressed);
         }
 
-        private static void GetLocationInfo(Document document, Location location, out TextSpan sourceSpan, out FileLinePositionSpan originalLineInfo, out FileLinePositionSpan mappedLineInfo)
+        private static void GetLocationInfo(TextDocument document, Location location, out TextSpan sourceSpan, out FileLinePositionSpan originalLineInfo, out FileLinePositionSpan mappedLineInfo)
         {
             var diagnosticSpanMappingService = document.Project.Solution.Workspace.Services.GetService<IWorkspaceVenusSpanMappingService>();
             if (diagnosticSpanMappingService != null)

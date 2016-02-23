@@ -175,7 +175,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         protected bool TryNavigateTo(Workspace workspace, DocumentId documentId, int line, int column, bool previewTab)
         {
-            var document = workspace.CurrentSolution.GetDocument(documentId);
+            var solution = workspace.CurrentSolution;
+            var document = solution.GetTextDocument(documentId);
             if (document == null)
             {
                 // document could be already removed from the solution

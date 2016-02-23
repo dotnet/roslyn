@@ -245,6 +245,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                     public Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default(CancellationToken))
                     {
+                        return ReadStreamAsync((TextDocument)document, name, cancellationToken);
+                    }
+
+                    public Task<Stream> ReadStreamAsync(TextDocument document, string name, CancellationToken cancellationToken = default(CancellationToken))
+                    {
                         var stream = _map[Tuple.Create(document, name)];
                         stream.Position = 0;
 
@@ -268,6 +273,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     }
 
                     public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+                    {
+                        return WriteStreamAsync((TextDocument)document, name, stream, cancellationToken);
+                    }
+
+                    public Task<bool> WriteStreamAsync(TextDocument document, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
                     {
                         _map[Tuple.Create(document, name)] = new MemoryStream();
                         stream.CopyTo(_map[Tuple.Create(document, name)]);

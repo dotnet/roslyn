@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             protected override object GetCacheKey(object value)
             {
-                var document = value as Document;
+                var document = value as TextDocument;
                 if (document != null)
                 {
                     return document.Id;
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             protected override Solution GetSolution(object value)
             {
-                var document = value as Document;
+                var document = value as TextDocument;
                 if (document != null)
                 {
                     return document.Project.Solution;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             protected override bool ShouldCache(object value)
             {
-                var document = value as Document;
+                var document = value as TextDocument;
                 if (document != null)
                 {
                     return document.IsOpen();
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             protected override Task<Stream> ReadStreamAsync(IPersistentStorage storage, object value, CancellationToken cancellationToken)
             {
-                var document = value as Document;
+                var document = value as TextDocument;
                 if (document != null)
                 {
                     return storage.ReadStreamAsync(document, _stateName, cancellationToken);
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             protected override AnalysisData TryGetExistingData(Stream stream, object value, CancellationToken cancellationToken)
             {
-                var document = value as Document;
+                var document = value as TextDocument;
                 if (document != null)
                 {
                     return TryGetExistingData(stream, document.Project, document, cancellationToken);
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return TryGetExistingData(stream, project, null, cancellationToken);
             }
 
-            private AnalysisData TryGetExistingData(Stream stream, Project project, Document document, CancellationToken cancellationToken)
+            private AnalysisData TryGetExistingData(Stream stream, Project project, TextDocument document, CancellationToken cancellationToken)
             {
                 var list = SharedPools.Default<List<DiagnosticData>>().AllocateAndClear();
                 try
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
             }
 
-            private void AppendItems(ObjectReader reader, Project project, Document document, List<DiagnosticData> list, CancellationToken cancellationToken)
+            private void AppendItems(ObjectReader reader, Project project, TextDocument document, List<DiagnosticData> list, CancellationToken cancellationToken)
             {
                 var count = reader.ReadInt32();
 
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
             }
 
-            private DiagnosticDataLocation ReadLocation(Project project, ObjectReader reader, Document documentOpt)
+            private DiagnosticDataLocation ReadLocation(Project project, ObjectReader reader, TextDocument documentOpt)
             {
                 var exists = reader.ReadBoolean();
                 if (!exists)
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             protected override Task<bool> WriteStreamAsync(IPersistentStorage storage, object value, Stream stream, CancellationToken cancellationToken)
             {
-                var document = value as Document;
+                var document = value as TextDocument;
                 if (document != null)
                 {
                     return storage.WriteStreamAsync(document, _stateName, stream, cancellationToken);
