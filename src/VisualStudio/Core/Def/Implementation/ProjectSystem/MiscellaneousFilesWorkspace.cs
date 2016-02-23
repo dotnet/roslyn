@@ -161,6 +161,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
+            if ((grfAttribs & (uint)__VSRDTATTRIB3.RDTA_DocumentInitialized) != 0)
+            {
+                // The document is now initialized, we should try tracking it
+                TrackOpenedDocument(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
+            }
+
             return VSConstants.S_OK;
         }
 
@@ -204,7 +210,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
-            if (_runningDocumentTable.IsDocumentInitialized(docCookie))
+            // We don't want to realize the document here unless it's already initialized. Document initialization is watched in 
+            // OnAfterAttributeChangeEx and will retrigger this if it wasn't already done.
+            if (_runningDocumentTable.IsDocumentInitialized(docCookie) && !_docCookieToWorkspaceRegistration.ContainsKey(docCookie))
             {
                 var vsTextBuffer = (IVsTextBuffer)_runningDocumentTable.GetDocumentData(docCookie);
                 var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(vsTextBuffer);
