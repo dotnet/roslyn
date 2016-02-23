@@ -181,6 +181,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public abstract Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// True if given project has any diagnostics
+        /// </summary>
+        public abstract bool ContainsDiagnostics(Workspace workspace, ProjectId projectId);
         #endregion
 
         #region build error synchronization

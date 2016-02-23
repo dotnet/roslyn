@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
@@ -18,16 +19,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 private readonly object _gate;
                 private readonly SemaphoreSlim _semaphore;
+
+                private readonly Workspace _workspace;
                 private readonly SolutionCrawlerProgressReporter _progressReporter;
 
                 // map containing cancellation source for the item given out.
                 private readonly Dictionary<object, CancellationTokenSource> _cancellationMap;
 
-                public AsyncWorkItemQueue(SolutionCrawlerProgressReporter progressReporter)
+                public AsyncWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace)
                 {
                     _gate = new object();
                     _semaphore = new SemaphoreSlim(initialCount: 0);
                     _cancellationMap = new Dictionary<object, CancellationTokenSource>();
+
+                    _workspace = workspace;
                     _progressReporter = progressReporter;
                 }
 
@@ -39,7 +44,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected abstract bool TryTake_NoLock(TKey key, out WorkItem workInfo);
 
-                protected abstract bool TryTakeAnyWork_NoLock(ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, out WorkItem workItem);
+                protected abstract bool TryTakeAnyWork_NoLock(ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService service, out WorkItem workItem);
 
                 public bool HasAnyWork
                 {
@@ -117,6 +122,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     RaiseCancellation_NoLock(cancellations);
                 }
 
+                private bool HasAnyWork_NoLock => WorkItemCount_NoLock > 0;
+                protected Workspace Workspace => _workspace;
+
                 private static void RaiseCancellation_NoLock(List<CancellationTokenSource> cancellations)
                 {
                     if (cancellations == null)
@@ -126,14 +134,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     // cancel can cause outer code to be run inlined, run it outside of the lock.
                     cancellations.Do(s => s.Cancel());
-                }
-
-                private bool HasAnyWork_NoLock
-                {
-                    get
-                    {
-                        return WorkItemCount_NoLock > 0;
-                    }
                 }
 
                 private List<CancellationTokenSource> CancelAll_NoLock()
@@ -187,12 +187,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                public bool TryTakeAnyWork(ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, out WorkItem workItem, out CancellationTokenSource source)
+                public bool TryTakeAnyWork(
+                    ProjectId preferableProjectId,
+                    ProjectDependencyGraph dependencyGraph,
+                    IDiagnosticAnalyzerService analyzerService,
+                    out WorkItem workItem, out CancellationTokenSource source)
                 {
                     lock (_gate)
                     {
                         // there must be at least one item in the map when this is called unless host is shutting down.
-                        if (TryTakeAnyWork_NoLock(preferableProjectId, dependencyGraph, out workItem))
+                        if (TryTakeAnyWork_NoLock(preferableProjectId, dependencyGraph, analyzerService, out workItem))
                         {
                             if (!HasAnyWork_NoLock)
                             {
@@ -220,6 +224,46 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _cancellationMap.Add(key, source);
 
                     return source;
+                }
+
+                protected ProjectId GetBestProjectId_NoLock<T>(
+                    Dictionary<ProjectId, T> workQueue, ProjectId projectId,
+                    ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService analyzerService)
+                {
+                    if (projectId != null)
+                    {
+                        if (workQueue.ContainsKey(projectId))
+                        {
+                            return projectId;
+                        }
+
+                        // prefer project that directly depends on the given project and has diagnostics as next project to
+                        // process
+                        foreach (var dependingProjectId in dependencyGraph.GetProjectsThatDirectlyDependOnThisProject(projectId))
+                        {
+                            if (workQueue.ContainsKey(dependingProjectId) && analyzerService.ContainsDiagnostics(Workspace, dependingProjectId))
+                            {
+                                return dependingProjectId;
+                            }
+                        }
+                    }
+
+                    // prefer a project that has diagnostics as next project to process.
+                    foreach (var pendingProjectId in workQueue.Keys)
+                    {
+                        if (analyzerService.ContainsDiagnostics(Workspace, pendingProjectId))
+                        {
+                            return pendingProjectId;
+                        }
+                    }
+
+                    // explicitly iterate so that we can use struct enumerator
+                    foreach (var pair in workQueue)
+                    {
+                        return pair.Key;
+                    }
+
+                    return Contract.FailWithReturn<ProjectId>("Shouldn't reach here");
                 }
             }
         }

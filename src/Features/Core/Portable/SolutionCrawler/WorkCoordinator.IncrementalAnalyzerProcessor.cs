@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private readonly NormalPriorityProcessor _normalPriorityProcessor;
                 private readonly LowPriorityProcessor _lowPriorityProcessor;
 
+                private readonly Lazy<IDiagnosticAnalyzerService> _lazyDiagnosticAnalyzerService;
+
                 private LogAggregator _logAggregator;
 
                 public IncrementalAnalyzerProcessor(
@@ -48,6 +50,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _registration = registration;
                     _cacheService = registration.GetService<IProjectCacheService>();
 
+                    _lazyDiagnosticAnalyzerService = new Lazy<IDiagnosticAnalyzerService>(() => GetDiagnosticAnalyzerService(analyzerProviders));
+
                     var lazyActiveFileAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetActiveFileIncrementalAnalyzers(_registration, analyzerProviders));
                     var lazyAllAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzerProviders));
 
@@ -59,6 +63,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _highPriorityProcessor = new HighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpanInMs, shutdownToken);
                     _normalPriorityProcessor = new NormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpanInMs, shutdownToken);
                     _lowPriorityProcessor = new LowPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, lowBackOffTimeSpanInMs, shutdownToken);
+                }
+
+                private IDiagnosticAnalyzerService GetDiagnosticAnalyzerService(IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
+                {
+                    // alternatively, we could just MEF import IDiagnosticAnalyzerService directly
+                    return (IDiagnosticAnalyzerService)analyzerProviders.Where(p => p.Value is IDiagnosticAnalyzerService).Single().Value;
                 }
 
                 private static ImmutableArray<IIncrementalAnalyzer> GetActiveFileIncrementalAnalyzers(
@@ -120,13 +130,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     diagnosticAnalyzer.TurnOff(useV2Engine);
                 }
 
-                public ImmutableArray<IIncrementalAnalyzer> Analyzers
-                {
-                    get
-                    {
-                        return _normalPriorityProcessor.Analyzers;
-                    }
-                }
+                public ImmutableArray<IIncrementalAnalyzer> Analyzers => _normalPriorityProcessor.Analyzers;
+
+                private Solution CurrentSolution => _registration.CurrentSolution;
+                private ProjectDependencyGraph DependencyGraph => CurrentSolution.GetProjectDependencyGraph();
+                private IDiagnosticAnalyzerService DiagnosticAnalyzerService => _lazyDiagnosticAnalyzerService.Value;
 
                 public Task AsyncProcessorTask
                 {
@@ -139,25 +147,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                private Solution CurrentSolution
-                {
-                    get
-                    {
-                        return _registration.CurrentSolution;
-                    }
-                }
-
                 private IDisposable EnableCaching(ProjectId projectId)
                 {
                     return _cacheService?.EnableCaching(projectId) ?? NullDisposable.Instance;
-                }
-
-                private ProjectDependencyGraph DependencyGraph
-                {
-                    get
-                    {
-                        return CurrentSolution.GetProjectDependencyGraph();
-                    }
                 }
 
                 private IEnumerable<DocumentId> GetOpenDocumentIds()
