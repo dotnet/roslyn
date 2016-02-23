@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -173,32 +174,56 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(compilation._lazyAssemblySymbol IsNot Nothing)
             End Sub
 
-            ''' <summary>
-            ''' Creates a <see cref="PEAssemblySymbol"/> from specified metadata. 
-            ''' </summary>
-            ''' <remarks>
-            ''' Used by EnC to create symbols for emit baseline. The PE symbols are used by <see cref="VisualBasicSymbolMatcher"/>.
-            ''' 
-            ''' The assembly references listed in the metadata AssemblyRef table are matched to the resolved references 
-            ''' stored on this <see cref="ReferenceManager"/>. Each AssemblyRef is matched against the assembly identities
-            ''' using an exact equality comparison. No unification Or further resolution is performed.
-            ''' </remarks>
-            Friend Function CreatePEAssemblyForAssemblyMetadata(metadata As AssemblyMetadata, importOptions As MetadataImportOptions) As PEAssemblySymbol
+            '''  <summary>
+            '''  Creates a <see cref="PEAssemblySymbol"/> from specified metadata. 
+            '''  </summary>
+            '''  <remarks>
+            '''  Used by EnC to create symbols for emit baseline. The PE symbols are used by <see cref="VisualBasicSymbolMatcher"/>.
+            '''  
+            '''  The assembly references listed in the metadata AssemblyRef table are matched to the resolved references 
+            '''  stored on this <see cref="ReferenceManager"/>. We assume that the dependencies of the baseline metadata are 
+            '''  the same as the dependencies of the current compilation. This is not exactly true when the dependencies use 
+            '''  time-based versioning pattern, e.g. AssemblyVersion("1.0.*"). In that case we assume only the version
+            '''  changed And nothing else.
+            '''  
+            '''  Each AssemblyRef is matched against the assembly identities using an exact equality comparison modulo version. 
+            '''  AssemblyRef with lower version in metadata is matched to a PE assembly symbol with the higher version 
+            '''  (provided that the assembly name, culture, PKT And flags are the same) if there is no symbol with the exactly matching version. 
+            '''  If there are multiple symbols with higher versions selects the one with the minimal version among them.
+            '''  
+            '''  Matching to a higher version is necessary to support EnC for projects whose P2P dependencies use time-based versioning pattern. 
+            '''  The versions of the dependent projects seen from the IDE will be higher than 
+            '''  the one written in the metadata at the time their respective baselines are built.
+            '''  
+            '''  No other unification or further resolution is performed.
+            '''  </remarks>
+            ''' <param name="metadata"></param>
+            ''' <param name="importOptions"></param>
+            ''' <param name="assemblyReferenceIdentityMap">
+            ''' A map of the PE assembly symbol identities to the identities of the original metadata AssemblyRefs.
+            ''' This map will be used in emit when serializing AssemblyRef table of the delta. For the delta to be compatible with
+            ''' the original metadata we need to map the identities of the PE assembly symbols back to the original AssemblyRefs (if different).
+            ''' In other words, we pretend that the versions of the dependencies haven't changed.
+            ''' </param>
+            Friend Function CreatePEAssemblyForAssemblyMetadata(metadata As AssemblyMetadata, importOptions As MetadataImportOptions, <Out> ByRef assemblyReferenceIdentityMap As ImmutableDictionary(Of AssemblyIdentity, AssemblyIdentity)) As PEAssemblySymbol
                 AssertBound()
 
                 ' If the compilation has a reference from metadata to source assembly we can't share the referenced PE symbols.
                 Debug.Assert(Not HasCircularReference)
 
-                Dim referencedAssembliesByIdentity = New Dictionary(Of AssemblyIdentity, AssemblySymbol)()
+                Dim referencedAssembliesByIdentity = New AssemblyIdentityMap(Of AssemblySymbol)()
                 For Each symbol In Me.ReferencedAssemblies
                     referencedAssembliesByIdentity.Add(symbol.Identity, symbol)
                 Next
 
                 Dim assembly = metadata.GetAssembly
                 Dim peReferences = assembly.AssemblyReferences.SelectAsArray(AddressOf MapAssemblyIdentityToResolvedSymbol, referencedAssembliesByIdentity)
+
+                assemblyReferenceIdentityMap = GetAssemblyReferenceIdentityBaselineMap(peReferences, assembly.AssemblyReferences)
+
                 Dim assemblySymbol = New PEAssemblySymbol(assembly, DocumentationProvider.Default, isLinked:=False, importOptions:=importOptions)
 
-                Dim unifiedAssemblies = Me.UnifiedAssemblies.WhereAsArray(Function(unified) referencedAssembliesByIdentity.ContainsKey(unified.OriginalReference))
+                Dim unifiedAssemblies = Me.UnifiedAssemblies.WhereAsArray(Function(unified) referencedAssembliesByIdentity.Contains(unified.OriginalReference, allowHigherVersion:=False))
                 InitializeAssemblyReuseData(assemblySymbol, peReferences, unifiedAssemblies)
 
                 If assembly.ContainsNoPiaLocalTypes() Then
@@ -208,11 +233,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return assemblySymbol
             End Function
 
-            Private Shared Function MapAssemblyIdentityToResolvedSymbol(identity As AssemblyIdentity, map As Dictionary(Of AssemblyIdentity, AssemblySymbol)) As AssemblySymbol
+            Private Shared Function MapAssemblyIdentityToResolvedSymbol(identity As AssemblyIdentity, map As AssemblyIdentityMap(Of AssemblySymbol)) As AssemblySymbol
                 Dim symbol As AssemblySymbol = Nothing
-                If map.TryGetValue(identity, symbol) Then
+                If map.TryGetValue(identity, symbol, AddressOf CompareVersionPartsSpecifiedInSource) Then
                     Return symbol
                 End If
+
+                If map.TryGetValue(identity, symbol, Function(v1, v2, s) True) Then
+                    ' TODO: https://github.com/dotnet/roslyn/issues/9004
+                    Throw New NotSupportedException($"Changing the version of an assembly reference is not allowed during debugging: '{identity}' changed version to {symbol.Identity.Version}")
+                End If
+
                 Return New MissingAssemblySymbol(identity)
             End Function
 
@@ -395,7 +426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     referencedModulesMap,
                                     boundReferenceDirectiveMap,
                                     boundReferenceDirectives,
-                                    ExplicitReferences,
+                                    explicitReferences,
                                     implicitlyResolvedReferences,
                                     hasCircularReference,
                                     resolutionDiagnostics.ToReadOnly(),
