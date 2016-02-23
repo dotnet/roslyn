@@ -1658,7 +1658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Function ShouldAddEvent(symbol As Symbol) As Boolean
-            If EventQueue Is Nothing OrElse EventQueue.IsCompleted Then
+            If EventQueue Is Nothing Then
                 Return False
             End If
 
