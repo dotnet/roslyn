@@ -1591,6 +1591,32 @@ End Class
                 Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidUnaryDescriptor.Id, "-s").WithLocation(7, 16))
         End Sub
 
+        <WorkItem(9014, "https://github.com/dotnet/roslyn/issues/9014")>
+        <Fact>
+        Public Sub InvalidConstructorVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Protected Structure S
+    End Structure
+End Class
+Class D
+    Shared Sub M(o)
+        M(New C.S())
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_InaccessibleSymbol2, "C.S").WithArguments("C.S", "Protected").WithLocation(7, 15))
+            ' Reuse ParamsArrayTestAnalyzer for this test.
+            comp.VerifyAnalyzerDiagnostics({New ParamsArrayTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(ParamsArrayTestAnalyzer.InvalidConstructorDescriptor.Id, "New C.S()").WithLocation(7, 11))
+        End Sub
+
         <Fact>
         Public Sub ConditionalAccessOperationsVisualBasic()
             Dim source = <compilation>
