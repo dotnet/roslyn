@@ -175,14 +175,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             #endregion
 
             #region build synchronization
-            public override Task SynchronizeWithBuildAsync(Project project, ImmutableArray<DiagnosticData> diagnostics)
+            public override Task SynchronizeWithBuildAsync(DiagnosticAnalyzerService.BatchUpdateToken token, Project project, ImmutableArray<DiagnosticData> diagnostics)
             {
-                return Analyzer.SynchronizeWithBuildAsync(project, diagnostics);
+                return Analyzer.SynchronizeWithBuildAsync(token, project, diagnostics);
             }
 
-            public override Task SynchronizeWithBuildAsync(Document document, ImmutableArray<DiagnosticData> diagnostics)
+            public override Task SynchronizeWithBuildAsync(DiagnosticAnalyzerService.BatchUpdateToken token, Document document, ImmutableArray<DiagnosticData> diagnostics)
             {
-                return Analyzer.SynchronizeWithBuildAsync(document, diagnostics);
+                return Analyzer.SynchronizeWithBuildAsync(token, document, diagnostics);
             }
             #endregion
 

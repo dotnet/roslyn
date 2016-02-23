@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// 
         /// given diagnostics are project wide diagnostics that doesn't contain a source location.
         /// </summary>
-        public abstract Task SynchronizeWithBuildAsync(Project project, ImmutableArray<DiagnosticData> diagnostics);
+        public abstract Task SynchronizeWithBuildAsync(DiagnosticAnalyzerService.BatchUpdateToken token, Project project, ImmutableArray<DiagnosticData> diagnostics);
 
         /// <summary>
         /// Callback from build listener.
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// 
         /// given diagnostics are ones that has a source location.
         /// </summary>
-        public abstract Task SynchronizeWithBuildAsync(Document document, ImmutableArray<DiagnosticData> diagnostics);
+        public abstract Task SynchronizeWithBuildAsync(DiagnosticAnalyzerService.BatchUpdateToken token, Document document, ImmutableArray<DiagnosticData> diagnostics);
         #endregion
 
         internal DiagnosticAnalyzerService Owner { get; }
