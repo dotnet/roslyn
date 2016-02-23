@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundAssignmentOperator : IAssignmentExpression
     {
-        IReferenceExpression IAssignmentExpression.Target => this.Left as IReferenceExpression;
+        IOperation IAssignmentExpression.Target => this.Left;
 
         IOperation IAssignmentExpression.Value => this.Right;
 
@@ -980,7 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         BinaryOperationKind ICompoundAssignmentExpression.BinaryOperationKind => Expression.DeriveBinaryOperationKind(this.Operator.Kind);
 
-        IReferenceExpression IAssignmentExpression.Target => this.Left as IReferenceExpression;
+        IOperation IAssignmentExpression.Target => this.Left;
 
         IOperation IAssignmentExpression.Value => this.Right;
 
@@ -1007,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         BinaryOperationKind ICompoundAssignmentExpression.BinaryOperationKind => Expression.DeriveBinaryOperationKind(((IIncrementExpression)this).IncrementOperationKind);
 
-        IReferenceExpression IAssignmentExpression.Target => this.Operand as IReferenceExpression;
+        IOperation IAssignmentExpression.Target => this.Operand;
 
         private static readonly ConditionalWeakTable<BoundIncrementOperator, IOperation> s_incrementValueMappings = new ConditionalWeakTable<BoundIncrementOperator, IOperation>();
 
