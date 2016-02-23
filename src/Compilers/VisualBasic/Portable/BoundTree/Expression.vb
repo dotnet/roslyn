@@ -1167,6 +1167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IHasArgumentsExpression_ArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
             Get
+                Debug.Assert(Me.ConstructorOpt IsNot Nothing OrElse Me.Arguments.IsEmpty())
                 Return If(Me.ConstructorOpt Is Nothing, ImmutableArray(Of IArgument).Empty, BoundCall.DeriveArguments(Me.Arguments, Me.ConstructorOpt.Parameters))
             End Get
         End Property

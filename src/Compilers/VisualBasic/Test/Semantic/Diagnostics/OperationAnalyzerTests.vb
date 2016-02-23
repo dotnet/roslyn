@@ -1611,7 +1611,11 @@ End Class
                          </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_InaccessibleSymbol2, "C.S").WithArguments("C.S", "Protected").WithLocation(7, 15))
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC30389: 'C.S' is not accessible in this context because it is 'Protected'.
+        M(New C.S())
+              ~~~
+]]></errors>)
             ' Reuse ParamsArrayTestAnalyzer for this test.
             comp.VerifyAnalyzerDiagnostics({New ParamsArrayTestAnalyzer}, Nothing, Nothing, False,
                 Diagnostic(ParamsArrayTestAnalyzer.InvalidConstructorDescriptor.Id, "New C.S()").WithLocation(7, 11))
