@@ -127,7 +127,7 @@ namespace Roslyn.Test.Utilities
                 // might cause a deadlock.
                 result = process.StandardOutput.ReadToEnd();
                 process.WaitForExit();
-                Assert.Equal(expectedRetCode, process.ExitCode);
+                Assert.True(expectedRetCode == process.ExitCode, $"Unexpected exit code: {process.ExitCode} (expecting {expectedRetCode}). Process output: {result}");
             }
 
             return result;

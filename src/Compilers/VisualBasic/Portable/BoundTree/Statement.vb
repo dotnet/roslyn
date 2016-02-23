@@ -1545,7 +1545,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property EventInstance As IOperation Implements IEventAssignmentExpression.EventInstance
                 Get
-                    If [Event].IsStatic Then
+                    If [Event] Is Nothing OrElse [Event].IsStatic Then
                         Return Nothing
                     End If
 

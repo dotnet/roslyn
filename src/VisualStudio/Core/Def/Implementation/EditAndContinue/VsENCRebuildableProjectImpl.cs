@@ -234,7 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     try
                     {
                         InjectFault_MvidRead();
-                        _metadata = ModuleMetadata.CreateFromFile(outputPath);
+                        _metadata = ModuleMetadata.CreateFromStream(new FileStream(outputPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete));
                         _metadata.GetModuleVersionId();
                     }
                     catch (FileNotFoundException)
