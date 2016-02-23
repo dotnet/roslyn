@@ -999,7 +999,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Addressed reference.
         /// </summary>
-        IReferenceExpression Reference { get; }
+        IOperation Reference { get; }
     }
 
     /// <summary>

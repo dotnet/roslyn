@@ -1231,7 +1231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundAddressOfOperator : IAddressOfExpression
     {
-        IReferenceExpression IAddressOfExpression.Reference => (IReferenceExpression)this.Operand;
+        IOperation IAddressOfExpression.Reference => this.Operand;
 
         protected override OperationKind ExpressionKind => OperationKind.AddressOfExpression;
 
