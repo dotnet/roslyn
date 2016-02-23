@@ -935,6 +935,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor InvalidEventDescriptor = new DiagnosticDescriptor(
+            "InvalidEvent",
+            "Invalid Event",
+            "A EventAssignmentExpression with invalid event found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
         public static readonly DiagnosticDescriptor HandlerAddedDescriptor = new DiagnosticDescriptor(
             "HandlerAdded",
             "Handler Added",
@@ -975,7 +983,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(EventReferenceDescriptor, HandlerAddedDescriptor, HandlerRemovedDescriptor, PropertyReferenceDescriptor, FieldReferenceDescriptor, MethodBindingDescriptor);
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => 
+            ImmutableArray.Create(EventReferenceDescriptor, 
+                HandlerAddedDescriptor, 
+                HandlerRemovedDescriptor, 
+                PropertyReferenceDescriptor, 
+                FieldReferenceDescriptor, 
+                MethodBindingDescriptor,
+                InvalidEventDescriptor);
 
         public sealed override void Initialize(AnalysisContext context)
         {
@@ -991,6 +1006,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  {
                      IEventAssignmentExpression eventAssignment = (IEventAssignmentExpression)operationContext.Operation;
                      operationContext.ReportDiagnostic(Diagnostic.Create(eventAssignment.Adds ? HandlerAddedDescriptor : HandlerRemovedDescriptor, operationContext.Operation.Syntax.GetLocation()));
+
+                     if (eventAssignment.Event == null)
+                     {
+                         if (eventAssignment.EventInstance == null && eventAssignment.IsInvalid)
+                         {
+                             // report inside after checking for null to make sure it does't crash.
+                             operationContext.ReportDiagnostic(Diagnostic.Create(InvalidEventDescriptor, eventAssignment.Syntax.GetLocation()));
+                         }
+                     }
                  },
                  OperationKind.EventAssignmentExpression);
 
