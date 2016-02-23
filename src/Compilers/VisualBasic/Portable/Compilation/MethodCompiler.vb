@@ -1139,6 +1139,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             _cancellationToken.ThrowIfCancellationRequested()
 
+            Debug.Assert(Not (method.IsPartial AndAlso method.PartialImplementationPart Is Nothing))
+
             Dim sourceMethod = TryCast(method, SourceMethodSymbol)
             'get cached diagnostics if not building and we have 'em
             If Not DoEmitPhase AndAlso (sourceMethod IsNot Nothing) Then
