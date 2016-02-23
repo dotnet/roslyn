@@ -233,13 +233,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                            otherSynthesizedMembersOpt As ImmutableDictionary(Of Cci.ITypeDefinition, ImmutableArray(Of Cci.ITypeDefinitionMember)),
                            deepTranslatorOpt As DeepTranslator)
 
-                Me._anonymousTypeMap = anonymousTypeMap
-                Me._sourceAssembly = sourceAssembly
-                Me._otherAssembly = otherAssembly
-                Me._otherSynthesizedMembersOpt = otherSynthesizedMembersOpt
-                Me._comparer = New SymbolComparer(Me, deepTranslatorOpt)
-                Me._matches = New ConcurrentDictionary(Of Symbol, Symbol)(ReferenceEqualityComparer.Instance)
-                Me._typeMembers = New ConcurrentDictionary(Of NamedTypeSymbol, IReadOnlyDictionary(Of String, ImmutableArray(Of Cci.ITypeDefinitionMember)))()
+                _anonymousTypeMap = anonymousTypeMap
+                _sourceAssembly = sourceAssembly
+                _otherAssembly = otherAssembly
+                _otherSynthesizedMembersOpt = otherSynthesizedMembersOpt
+                _comparer = New SymbolComparer(Me, deepTranslatorOpt)
+                _matches = New ConcurrentDictionary(Of Symbol, Symbol)(ReferenceEqualityComparer.Instance)
+                _typeMembers = New ConcurrentDictionary(Of NamedTypeSymbol, IReadOnlyDictionary(Of String, ImmutableArray(Of Cci.ITypeDefinitionMember)))()
             End Sub
 
             Friend Function TryGetAnonymousTypeName(type As NamedTypeSymbol, <Out()> ByRef name As String, <Out()> ByRef index As Integer) As Boolean
@@ -256,27 +256,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Public Overrides Function DefaultVisit(symbol As Symbol) As Symbol
                 ' Symbol should have been handled elsewhere.
-                Throw New NotImplementedException()
+                Throw ExceptionUtilities.Unreachable
             End Function
 
             Public Overrides Function Visit(symbol As Symbol) As Symbol
                 Debug.Assert(symbol.ContainingAssembly IsNot Me._otherAssembly)
-
-                ' If the symbol is not defined in any of the previous source assemblies and not a constructed symbol
-                ' no matching is necessary, just return the symbol.
-                If TypeOf symbol.ContainingAssembly IsNot SourceAssemblySymbol Then
-                    Dim kind As SymbolKind = symbol.Kind
-                    If kind <> SymbolKind.ArrayType Then
-                        If kind <> SymbolKind.NamedType Then
-                            Debug.Assert(symbol.IsDefinition)
-                            Return symbol
-                        Else
-                            If symbol.IsDefinition Then
-                                Return symbol
-                            End If
-                        End If
-                    End If
-                End If
 
                 ' Add an entry for the match, even if there Is no match, to avoid
                 ' matching the same symbol unsuccessfully multiple times.
@@ -313,13 +297,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Function
 
             Public Overrides Function VisitModule([module] As ModuleSymbol) As Symbol
-                ' Only map symbols from source assembly and its previous generations to the other assembly. 
-                ' All other symbols should map to themselves.
-                If [module].ContainingAssembly.Identity.Equals(_sourceAssembly.Identity) Then
-                    Return _otherAssembly.Modules([module].Ordinal)
-                Else
-                    Return [module]
+                Dim otherAssembly = DirectCast(Visit([module].ContainingAssembly), AssemblySymbol)
+                If otherAssembly Is Nothing Then
+                    Return Nothing
                 End If
+
+                ' manifest module:
+                If [module].Ordinal = 0 Then
+                    Return otherAssembly.Modules(0)
+                End If
+
+                ' match non-manifest module by name:
+                For i = 1 To otherAssembly.Modules.Length - 1
+                    Dim otherModule = otherAssembly.Modules(i)
+
+                    ' use case sensitive comparison -- modules whose names differ in casing are considered distinct
+                    If StringComparer.Ordinal.Equals(otherModule.Name, [module].Name) Then
+                        Return otherModule
+                    End If
+                Next
+
+                Return Nothing
+            End Function
+
+            Public Overrides Function VisitAssembly(symbol As AssemblySymbol) As Symbol
+                If symbol.IsLinked Then
+                    Return symbol
+                End If
+
+                ' the current source assembly:
+                If symbol.Identity.Equals(_sourceAssembly.Identity) Then
+                    Return _otherAssembly
+                End If
+
+                ' find a referenced assembly with the exactly same identity:
+                For Each otherReferencedAssembly In _otherAssembly.Modules(0).ReferencedAssemblySymbols
+                    If symbol.Identity.Equals(otherReferencedAssembly.Identity) Then
+                        Return otherReferencedAssembly
+                    End If
+                Next
+
+                Return Nothing
             End Function
 
             Public Overrides Function VisitNamespace([namespace] As NamespaceSymbol) As Symbol
@@ -400,7 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Function
 
             Public Overrides Function VisitParameter(parameter As ParameterSymbol) As Symbol
-                Throw New InvalidOperationException()
+                Throw ExceptionUtilities.Unreachable
             End Function
 
             Public Overrides Function VisitProperty(symbol As PropertySymbol) As Symbol
@@ -408,7 +426,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Function
 
             Public Overrides Function VisitTypeParameter(symbol As TypeParameterSymbol) As Symbol
-                Dim otherContainer As symbol = Me.Visit(symbol.ContainingSymbol)
+                Dim indexed = TryCast(symbol, IndexedTypeParameterSymbol)
+                If indexed IsNot Nothing Then
+                    Return indexed
+                End If
+
+                Dim otherContainer As Symbol = Me.Visit(symbol.ContainingSymbol)
                 Debug.Assert(otherContainer IsNot Nothing)
 
                 Dim otherTypeParameters As ImmutableArray(Of TypeParameterSymbol)
@@ -416,10 +439,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Select Case otherContainer.Kind
                     Case SymbolKind.NamedType,
                          SymbolKind.ErrorType
-                        otherTypeParameters = (DirectCast(otherContainer, NamedTypeSymbol)).TypeParameters
+                        otherTypeParameters = DirectCast(otherContainer, NamedTypeSymbol).TypeParameters
 
                     Case SymbolKind.Method
-                        otherTypeParameters = (DirectCast(otherContainer, MethodSymbol)).TypeParameters
+                        otherTypeParameters = DirectCast(otherContainer, MethodSymbol).TypeParameters
 
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(otherContainer.Kind)
@@ -626,7 +649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Public Overrides Function DefaultVisit(symbol As Symbol) As Symbol
                 ' Symbol should have been handled elsewhere.
-                Throw New NotImplementedException()
+                Throw ExceptionUtilities.Unreachable
             End Function
 
             Public Overrides Function Visit(symbol As Symbol) As Symbol
