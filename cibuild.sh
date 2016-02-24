@@ -57,7 +57,7 @@ run_make()
     local is_good=false
  
     MAKE="make"
-    if [[ $OSTYPE == *bsd* ]]; then
+    if [[ $OSTYPE == *[Bb][Ss][Dd]* ]]; then
         MAKE="gmake"
     fi
 
