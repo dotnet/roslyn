@@ -28,6 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Try
                 moduleVersionId = baseline.OriginalMetadata.GetModuleVersionId()
             Catch ex As BadImageFormatException
+                ' https://github.com/dotnet/roslyn/issues/8910:
                 ' Return MakeEmitResult(success:=False, diagnostics:= ..., baseline:=Nothing)
                 Throw
             End Try
@@ -40,7 +41,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim serializationProperties = compilation.ConstructModuleSerializationProperties(emitOpts, runtimeMDVersion, moduleVersionId)
             Dim manifestResources = SpecializedCollections.EmptyEnumerable(Of ResourceDescription)()
 
-            Dim moduleBeingBuilt = New PEDeltaAssemblyBuilder(
+            Dim moduleBeingBuilt As PEDeltaAssemblyBuilder
+            Try
+                moduleBeingBuilt = New PEDeltaAssemblyBuilder(
                     compilation.SourceAssembly,
                     emitOptions:=emitOpts,
                     outputKind:=compilation.Options.OutputKind,
@@ -49,6 +52,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     previousGeneration:=baseline,
                     edits:=edits,
                     isAddedSymbol:=isAddedSymbol)
+            Catch e As NotSupportedException
+                ' TODO: better error code (https://github.com/dotnet/roslyn/issues/8910)
+                diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName)
+                Return New EmitDifferenceResult(success:=False, diagnostics:=diagnostics.ToReadOnlyAndFree(), baseline:=Nothing)
+            End Try
 
             If testData IsNot Nothing Then
                 moduleBeingBuilt.SetMethodTestData(testData.Methods)
@@ -111,12 +119,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             ' Mapping from previous compilation to the current.
             Dim anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap()
+            Dim assemblyRefMap = previousGeneration.InitialBaseline.LazyMetadataSymbols.AssemblyReferenceIdentityMap
             Dim sourceAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
             Dim sourceContext = New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag())
             Dim otherContext = New EmitContext(moduleBeingBuilt, Nothing, New DiagnosticBag())
 
             Dim matcher = New VisualBasicSymbolMatcher(
                 anonymousTypeMap,
+                assemblyRefMap,
                 sourceAssembly,
                 sourceContext,
                 compilation.SourceAssembly,
@@ -128,6 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' TODO can we reuse some data from the previous matcher?
             Dim matcherWithAllSynthesizedMembers = New VisualBasicSymbolMatcher(
                 anonymousTypeMap,
+                assemblyRefMap,
                 sourceAssembly,
                 sourceContext,
                 compilation.SourceAssembly,

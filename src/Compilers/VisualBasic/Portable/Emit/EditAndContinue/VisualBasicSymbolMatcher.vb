@@ -16,25 +16,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Private ReadOnly _defs As MatchDefs
         Private ReadOnly _symbols As MatchSymbols
+        Private ReadOnly _assemblyReferenceIdentityBaselineMap As ImmutableDictionary(Of AssemblyIdentity, AssemblyIdentity)
 
         Public Sub New(anonymousTypeMap As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue),
-                      sourceAssembly As SourceAssemblySymbol,
-                      sourceContext As EmitContext,
-                      otherAssembly As SourceAssemblySymbol,
-                      otherContext As EmitContext,
-                      otherSynthesizedMembersOpt As ImmutableDictionary(Of Cci.ITypeDefinition, ImmutableArray(Of Cci.ITypeDefinitionMember)))
+                       assemblyReferenceIdentityBaselineMap As ImmutableDictionary(Of AssemblyIdentity, AssemblyIdentity),
+                       sourceAssembly As SourceAssemblySymbol,
+                       sourceContext As EmitContext,
+                       otherAssembly As SourceAssemblySymbol,
+                       otherContext As EmitContext,
+                       otherSynthesizedMembersOpt As ImmutableDictionary(Of Cci.ITypeDefinition, ImmutableArray(Of Cci.ITypeDefinitionMember)))
 
-            Me._defs = New MatchDefsToSource(sourceContext, otherContext)
-            Me._symbols = New MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt, New DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)))
+            _defs = New MatchDefsToSource(sourceContext, otherContext)
+            _symbols = New MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, assemblyReferenceIdentityBaselineMap, otherSynthesizedMembersOpt, New DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)))
         End Sub
 
         Public Sub New(anonymousTypeMap As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue),
-                      sourceAssembly As SourceAssemblySymbol,
-                      sourceContext As EmitContext,
-                      otherAssembly As PEAssemblySymbol)
+                       assemblyReferenceIdentityBaselineMap As ImmutableDictionary(Of AssemblyIdentity, AssemblyIdentity),
+                       sourceAssembly As SourceAssemblySymbol,
+                       sourceContext As EmitContext,
+                       otherAssembly As PEAssemblySymbol)
 
-            Me._defs = New MatchDefsToMetadata(sourceContext, otherAssembly)
-            Me._symbols = New MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt:=Nothing, deepTranslatorOpt:=Nothing)
+            _defs = New MatchDefsToMetadata(sourceContext, otherAssembly)
+            _symbols = New MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, assemblyReferenceIdentityBaselineMap, otherSynthesizedMembersOpt:=Nothing, deepTranslatorOpt:=Nothing)
         End Sub
 
         Public Overrides Function MapDefinition(def As Cci.IDefinition) As Cci.IDefinition
@@ -227,9 +230,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' through all members of a given kind each time a member Is matched.
             Private ReadOnly _typeMembers As ConcurrentDictionary(Of NamedTypeSymbol, IReadOnlyDictionary(Of String, ImmutableArray(Of Cci.ITypeDefinitionMember)))
 
+            Private ReadOnly _assemblyReferenceIdentityBaselineMap As ImmutableDictionary(Of AssemblyIdentity, AssemblyIdentity)
+
             Public Sub New(anonymousTypeMap As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue),
                            sourceAssembly As SourceAssemblySymbol,
                            otherAssembly As AssemblySymbol,
+                           assemblyReferenceIdentityBaselineMap As ImmutableDictionary(Of AssemblyIdentity, AssemblyIdentity),
                            otherSynthesizedMembersOpt As ImmutableDictionary(Of Cci.ITypeDefinition, ImmutableArray(Of Cci.ITypeDefinitionMember)),
                            deepTranslatorOpt As DeepTranslator)
 
@@ -240,6 +246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 _comparer = New SymbolComparer(Me, deepTranslatorOpt)
                 _matches = New ConcurrentDictionary(Of Symbol, Symbol)(ReferenceEqualityComparer.Instance)
                 _typeMembers = New ConcurrentDictionary(Of NamedTypeSymbol, IReadOnlyDictionary(Of String, ImmutableArray(Of Cci.ITypeDefinitionMember)))()
+                _assemblyReferenceIdentityBaselineMap = assemblyReferenceIdentityBaselineMap
             End Sub
 
             Friend Function TryGetAnonymousTypeName(type As NamedTypeSymbol, <Out()> ByRef name As String, <Out()> ByRef index As Integer) As Boolean
@@ -332,12 +339,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                 ' find a referenced assembly with the exactly same identity:
                 For Each otherReferencedAssembly In _otherAssembly.Modules(0).ReferencedAssemblySymbols
-                    If symbol.Identity.Equals(otherReferencedAssembly.Identity) Then
+                    If MapAssemblyIdentity(symbol.Identity).Equals(MapAssemblyIdentity(otherReferencedAssembly.Identity)) Then
                         Return otherReferencedAssembly
                     End If
                 Next
 
                 Return Nothing
+            End Function
+
+            Private Function MapAssemblyIdentity(identity As AssemblyIdentity) As AssemblyIdentity
+                Dim mapped As AssemblyIdentity = Nothing
+                Return If(_assemblyReferenceIdentityBaselineMap.TryGetValue(identity, mapped), mapped, identity)
             End Function
 
             Public Overrides Function VisitNamespace([namespace] As NamespaceSymbol) As Symbol

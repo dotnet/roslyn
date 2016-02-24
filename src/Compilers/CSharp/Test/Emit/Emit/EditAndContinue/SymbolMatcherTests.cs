@@ -60,6 +60,7 @@ class B
             {
                 var matcher = new CSharpSymbolMatcher(
                     null,
+                    ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Empty,
                     compilation1.SourceAssembly,
                     default(EmitContext),
                     compilation0.SourceAssembly,
@@ -117,6 +118,7 @@ class B
 
             var matcher = new CSharpSymbolMatcher(
                 null,
+                ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Empty,
                 compilation1.SourceAssembly,
                 default(EmitContext),
                 compilation0.SourceAssembly,
@@ -149,6 +151,7 @@ class C
 
             var matcher = new CSharpSymbolMatcher(
                 null,
+                ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Empty,
                 compilation1.SourceAssembly,
                 default(EmitContext),
                 compilation0.SourceAssembly,
@@ -183,6 +186,7 @@ class C
 
             var matcher = new CSharpSymbolMatcher(
                 null,
+                ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Empty,
                 compilation1.SourceAssembly,
                 default(EmitContext),
                 compilation0.SourceAssembly,
@@ -215,6 +219,7 @@ public class C
 
             var matcher = new CSharpSymbolMatcher(
                 null,
+                ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Empty,
                 compilation1.SourceAssembly,
                 default(EmitContext),
                 compilation0.SourceAssembly,
@@ -255,6 +260,7 @@ class C
 
             var matcher = new CSharpSymbolMatcher(
                 null,
+                ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Empty,
                 compilation1.SourceAssembly,
                 default(EmitContext),
                 compilation0.SourceAssembly,
@@ -292,6 +298,7 @@ class C
 
             var matcher = new CSharpSymbolMatcher(
                 null,
+                ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Empty,
                 compilation1.SourceAssembly,
                 default(EmitContext),
                 compilation0.SourceAssembly,
@@ -330,6 +337,7 @@ class C
 
             var matcher = new CSharpSymbolMatcher(
                 null,
+                ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Empty,
                 compilation1.SourceAssembly,
                 default(EmitContext),
                 compilation0.SourceAssembly,
@@ -370,7 +378,8 @@ class C
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
-                null,
+                null, 
+                ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Empty,
                 compilation1.SourceAssembly,
                 default(EmitContext),
                 compilation0.SourceAssembly,
@@ -442,7 +451,12 @@ class C
             Assert.Equal("x1", x1.Name);
             Assert.Equal("x2", x2.Name);
 
-            var matcher = new CSharpSymbolMatcher(anonymousTypeMap0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
+            var matcher = new CSharpSymbolMatcher(
+                anonymousTypeMap0,
+                ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Empty,
+                compilation1.SourceAssembly,
+                emitContext, 
+                peAssemblySymbol0);
 
             var mappedX1 = (Cci.IFieldDefinition)matcher.MapDefinition(x1);
             var mappedX2 = (Cci.IFieldDefinition)matcher.MapDefinition(x2);
@@ -512,7 +526,12 @@ class C
             Assert.Equal("x1", x1.Name);
             Assert.Equal("x2", x2.Name);
 
-            var matcher = new CSharpSymbolMatcher(anonymousTypeMap0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
+            var matcher = new CSharpSymbolMatcher(
+                anonymousTypeMap0,
+                ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Empty,
+                compilation1.SourceAssembly, 
+                emitContext, 
+                peAssemblySymbol0);
 
             var mappedX1 = (Cci.IFieldDefinition)matcher.MapDefinition(x1);
             var mappedX2 = (Cci.IFieldDefinition)matcher.MapDefinition(x2);

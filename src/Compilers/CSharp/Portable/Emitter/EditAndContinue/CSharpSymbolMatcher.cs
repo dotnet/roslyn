@@ -20,9 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private readonly MatchDefs _defs;
         private readonly MatchSymbols _symbols;
+        private readonly ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> _assemblyReferenceIdentityBaselineMap;
 
         public CSharpSymbolMatcher(
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
+            ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> assemblyReferenceIdentityBaselineMap,
             SourceAssemblySymbol sourceAssembly,
             EmitContext sourceContext,
             SourceAssemblySymbol otherAssembly,
@@ -30,11 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> otherSynthesizedMembersOpt)
         {
             _defs = new MatchDefsToSource(sourceContext, otherContext);
-            _symbols = new MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt, new DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)));
+            _symbols = new MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, assemblyReferenceIdentityBaselineMap, otherSynthesizedMembersOpt, new DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)));
         }
 
         public CSharpSymbolMatcher(
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
+            ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> assemblyReferenceIdentityBaselineMap,
             SourceAssemblySymbol sourceAssembly,
             EmitContext sourceContext,
             PEAssemblySymbol otherAssembly)
@@ -45,8 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 anonymousTypeMap,
                 sourceAssembly,
                 otherAssembly,
+                assemblyReferenceIdentityBaselineMap,
                 otherSynthesizedMembersOpt: null,
                 deepTranslatorOpt: null);
+
+            _assemblyReferenceIdentityBaselineMap = assemblyReferenceIdentityBaselineMap;
         }
 
         public override Cci.IDefinition MapDefinition(Cci.IDefinition definition)
@@ -280,10 +286,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // through all members of a given kind each time a member is matched.
             private readonly ConcurrentDictionary<NamedTypeSymbol, IReadOnlyDictionary<string, ImmutableArray<Cci.ITypeDefinitionMember>>> _otherTypeMembers;
 
+            private readonly ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> _assemblyReferenceIdentityBaselineMap;
+
             public MatchSymbols(
                 IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
                 SourceAssemblySymbol sourceAssembly,
                 AssemblySymbol otherAssembly,
+                ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> assemblyReferenceIdentityBaselineMap,
                 ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> otherSynthesizedMembersOpt,
                 DeepTranslator deepTranslatorOpt)
             {
@@ -294,6 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 _comparer = new SymbolComparer(this, deepTranslatorOpt);
                 _matches = new ConcurrentDictionary<Symbol, Symbol>(ReferenceEqualityComparer.Instance);
                 _otherTypeMembers = new ConcurrentDictionary<NamedTypeSymbol, IReadOnlyDictionary<string, ImmutableArray<Cci.ITypeDefinitionMember>>>();
+                _assemblyReferenceIdentityBaselineMap = assemblyReferenceIdentityBaselineMap;
             }
 
             internal bool TryGetAnonymousTypeName(NamedTypeSymbol type, out string name, out int index)
@@ -405,13 +415,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // find a referenced assembly with the exactly same identity:
                 foreach (var otherReferencedAssembly in _otherAssembly.Modules[0].ReferencedAssemblySymbols)
                 {
-                    if (symbol.Identity.Equals(otherReferencedAssembly.Identity))
+                    if (MapAssemblyIdentity(symbol.Identity).Equals(MapAssemblyIdentity(otherReferencedAssembly.Identity)))
                     {
                         return otherReferencedAssembly;
                     }
                 }
 
                 return null;
+            }
+
+            private AssemblyIdentity MapAssemblyIdentity(AssemblyIdentity identity)
+            {
+                AssemblyIdentity mapped;
+                return _assemblyReferenceIdentityBaselineMap.TryGetValue(identity, out mapped) ? mapped : identity; 
             }
 
             public override Symbol VisitNamespace(NamespaceSymbol @namespace)
