@@ -1220,7 +1220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Given a declaration pattern syntax, get the corresponding symbol.
+        /// Given a let statement syntax, get the corresponding symbol if the statement uses [let &lt;identifier&gt; = ...] form.
         /// </summary>
         public static ISymbol GetDeclaredSymbol(this SemanticModel semanticModel, LetStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
