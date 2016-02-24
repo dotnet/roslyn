@@ -1,5 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#Const TEST_OPERATION = True
+
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.IO
@@ -223,6 +225,11 @@ Friend Module CompilationUtils
             End If
         End If
 
+#If TEST_OPERATION Then
+        Dim compilationForOperationWalking = VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), sourceTrees, references, options)
+        WalkOperationTrees(compilationForOperationWalking)
+#End If
+
         Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), sourceTrees, references, options)
     End Function
 
@@ -253,6 +260,28 @@ Friend Module CompilationUtils
         DirectCast(c.Assembly, SourceAssemblySymbol).m_lazyIdentity = identity
         Return c
     End Function
+
+#If TEST_OPERATION Then
+    Private Sub WalkOperationTrees(compilation As VisualBasicCompilation)
+        Dim operationWalker = TestOperationWalker.GetInstance()
+
+        For Each tree In compilation.SyntaxTrees
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim root = tree.GetRoot()
+
+            ' need to check other operation root as well (property, etc)
+            For Each methodNode As MethodBlockSyntax In root.DescendantNodesAndSelf().Where(Function(n)
+                                                                                                Dim kind = n.Kind()
+                                                                                                Return kind = SyntaxKind.FunctionBlock OrElse kind = SyntaxKind.SubBlock
+                                                                                            End Function)
+                For Each statement In methodNode.Statements
+                    Dim operation = semanticModel.GetOperation(statement)
+                    operationWalker.Visit(operation)
+                Next
+            Next
+        Next
+    End Sub
+#End If
 
     ''' <summary>
     ''' 

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#define TEST_OPERATION
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,6 +22,7 @@ using Roslyn.Test.MetadataUtilities;
 using Roslyn.Utilities;
 using Xunit;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -515,6 +518,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 options = options.WithConcurrentBuild(false);
             }
 
+#if TEST_OPERATION
+            // Create a compilation for the purpose of verifying operation tree only,
+            // so this won't interfere with test.
+            var compilationForOperationWalking = CSharpCompilation.Create(
+                assemblyName == "" ? GetUniqueName() : assemblyName,
+                trees,
+                references,
+                options);
+            WalkOperationTree(compilationForOperationWalking);
+#endif
             return CSharpCompilation.Create(
                 assemblyName == "" ? GetUniqueName() : assemblyName,
                 trees,
@@ -530,12 +543,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpParseOptions parseOptions = null)
         {
             var trees = (sources == null) ? null : sources.Select(s => Parse(s, options: parseOptions)).ToArray();
+
+#if TEST_OPERATION
+            // Create a compilation for the purpose of verifying operation tree only,
+            // so this won't interfere with test.
+            var compilationForOperationWalking = CSharpCompilation.Create(
+                identity.Name,
+                options: options ?? TestOptions.ReleaseDll,
+                references: references,
+                syntaxTrees: trees);
+            WalkOperationTree(compilationForOperationWalking);
+#endif
+
             var c = CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
             Assert.NotNull(c.Assembly); // force creation of SourceAssemblySymbol
 
             ((SourceAssemblySymbol)c.Assembly).lazyAssemblyIdentity = identity;
             return c;
         }
+
+#if TEST_OPERATION
+        private static void WalkOperationTree(CSharpCompilation compilation)
+        {
+            var operationWalker = TestOperationWalker.GetInstance();
+
+            foreach (var tree in compilation.SyntaxTrees)
+            {
+                var semanticModel = compilation.GetSemanticModel(tree);
+                var root = tree.GetRoot();
+
+                // TODO: check other operation root as well (property, etc.)
+                foreach (MethodDeclarationSyntax methodNode in root.DescendantNodesAndSelf().Where(n => n.Kind() == SyntaxKind.MethodDeclaration))
+                {
+                    var bodyNode = methodNode.Body;
+                    if (bodyNode != null)
+                    {
+                        var operation = semanticModel.GetOperation(bodyNode);
+                        operationWalker.Visit(operation);
+                    }
+                }
+            }
+        }
+#endif
 
         public static CSharpCompilation CreateSubmissionWithExactReferences(
            string code,
@@ -648,9 +697,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CompileAndVerify(comp);
         }
 
-        #endregion
+#endregion
 
-        #region Semantic Model Helpers
+#region Semantic Model Helpers
 
         public Tuple<TNode, SemanticModel> GetBindingNodeAndModel<TNode>(CSharpCompilation compilation, int treeIndex = 0) where TNode : SyntaxNode
         {
@@ -775,9 +824,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Assert.Equal(bindText, node.ToString());
             return ((TNode)node);
         }
-        #endregion
+#endregion
 
-        #region Attributes
+#region Attributes
 
         internal IEnumerable<string> GetAttributeNames(ImmutableArray<SynthesizedAttributeData> attributes)
         {
@@ -789,9 +838,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return attributes.Select(a => a.AttributeClass.Name);
         }
 
-        #endregion
+#endregion
 
-        #region Documentation Comments
+#region Documentation Comments
 
         internal static string GetDocumentationCommentText(CSharpCompilation compilation, params DiagnosticDescription[] expectedDiagnostics)
         {
@@ -853,9 +902,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
         }
 
-        #endregion
+#endregion
 
-        #region IL Validation
+#region IL Validation
 
         internal override string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers)
         {
@@ -989,6 +1038,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
         }
 
-        #endregion
+#endregion
     }
 }
