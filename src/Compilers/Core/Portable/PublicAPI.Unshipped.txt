@@ -13,9 +13,8 @@ Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.CompilationWi
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.CompilationWithAnalyzersOptions(Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<System.Exception, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostic> onAnalyzerException, System.Func<System.Exception, bool> analyzerExceptionFilter, bool concurrentAnalysis, bool logAnalyzerExecutionTime, bool reportSuppressedDiagnostics) -> void
 Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
 Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.Analyze = 1 -> Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
-Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.Default = Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.Analyze | Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.ReportDiagnostics -> Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
 Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.None = 0 -> Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
-Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.ReportDiagnostics = 16 -> Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
+Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.ReportDiagnostics = 2 -> Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
