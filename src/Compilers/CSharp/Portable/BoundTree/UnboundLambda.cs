@@ -870,7 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return lambdaBodyBinder.BindBlock((BlockSyntax)this.Body, diagnostics);
+                return lambdaBodyBinder.BindEmbeddedBlock((BlockSyntax)this.Body, diagnostics);
             }
         }
     }

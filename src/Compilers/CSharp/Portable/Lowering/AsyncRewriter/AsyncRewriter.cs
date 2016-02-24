@@ -193,7 +193,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return F.Block(
                     ImmutableArray.Create(builderVariable),
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     bodyBuilder.ToImmutableAndFree());
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
