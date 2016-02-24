@@ -7512,6 +7512,15 @@ End Class
             Assert.False(args.CompilationOptions.PublicSign)
         End Sub
 
+
+        <WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")>
+        <Fact>
+        Public Sub PublicSign_KeyFileRelativePath()
+            Dim parsedArgs = FullParse("/publicsign /keyfile:test.snk a.cs", _baseDirectory)
+            Assert.Equal(Path.Combine(_baseDirectory, "test.snk"), parsedArgs.CompilationOptions.CryptoKeyFile)
+            parsedArgs.Errors.Verify()
+        End Sub
+
         <ConditionalFact(GetType(WindowsOnly))>
         Public Sub CommandLineMisc()
             Dim args As VisualBasicCommandLineArguments

@@ -143,6 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // compilation options:
         public override int ERR_BadCompilationOptionValue { get { return (int)ErrorCode.ERR_BadCompilationOptionValue; } }
+        public override int ERR_MutuallyExclusiveOptions => (int)ErrorCode.ERR_MutuallyExclusiveOptions;
 
         // emit options:
         public override int ERR_InvalidDebugInformationFormat { get { return (int)ErrorCode.ERR_InvalidDebugInformationFormat; } }

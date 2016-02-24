@@ -155,6 +155,7 @@ namespace Microsoft.CodeAnalysis
 
         // compilation options:
         public abstract int ERR_BadCompilationOptionValue { get; }
+        public abstract int ERR_MutuallyExclusiveOptions { get; }
 
         // emit options:
         public abstract int ERR_InvalidDebugInformationFormat { get; }

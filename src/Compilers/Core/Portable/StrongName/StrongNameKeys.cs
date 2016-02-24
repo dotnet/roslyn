@@ -88,14 +88,13 @@ namespace Microsoft.CodeAnalysis
 
         internal static StrongNameKeys Create(string keyFilePath, CommonMessageProvider messageProvider)
         {
-            if (string.IsNullOrEmpty(keyFilePath))
+            if (string.IsNullOrEmpty(keyFilePath) || !PathUtilities.IsAbsolute(keyFilePath))
             {
                 return None;
             }
 
             try
             {
-                Debug.Assert(PathUtilities.IsAbsolute(keyFilePath));
                 var fileContent = ImmutableArray.Create(PortableShim.File.ReadAllBytes(keyFilePath));
 
                 return CreateHelper(fileContent, keyFilePath);

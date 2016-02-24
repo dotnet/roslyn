@@ -1587,10 +1587,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' make sure keycontainer and keyfile attribute contents fields will be set
             EnsureAttributesAreBound()
 
-            ' when both attributes and command-line options specified, cmd line wins.
+            ' Creating strong names is a potentially expensive operation, so we will check
+            ' if keys could have been created and published already.
+            If _lazyStrongNameKeys IsNot Nothing Then
+                Return
+            End If
 
             Dim keyFile As String = _compilation.Options.CryptoKeyFile
 
+            ' Public sign requires a keyfile
+            If DeclaringCompilation.Options.PublicSign Then
+                ' Public signing doesn't require a strong name provider to be used. 
+                Interlocked.CompareExchange(_lazyStrongNameKeys, StrongNameKeys.Create(keyFile, MessageProvider.Instance), Nothing)
+                Return
+            End If
+
+            ' when both attributes and command-line options specified, cmd line wins.
             If String.IsNullOrEmpty(keyFile) Then
                 keyFile = Me.AssemblyKeyFileAttributeSetting
 
@@ -1609,19 +1621,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            ' Creating strong names is a potentially expensive operation, so we will check again here
-            ' if keys could have been created and published already.
-            If _lazyStrongNameKeys Is Nothing Then
-                Dim keys As StrongNameKeys
-
-                ' Public signing doesn't require a strong name provider to be used. 
-                If DeclaringCompilation.Options.PublicSign AndAlso keyFile IsNot Nothing Then
-                    keys = StrongNameKeys.Create(keyFile, MessageProvider.Instance)
-                Else
-                    keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
-                End If
-                Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
-            End If
+            Dim keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
+            Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
         End Sub
 
         Private Function ComputeIdentity() As AssemblyIdentity
