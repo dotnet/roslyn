@@ -27,7 +27,7 @@ IEnumerable<string> AllCsiRecursive(string start, HashSet<string> skip)
 
 /// Runs the script at fileName and returns a task containing the
 /// state of the script.
-async Task<ScriptState<int>> RunFile(string fileName)
+async Task<ScriptState<object>> RunFile(string fileName)
 {
     var scriptOptions = ScriptOptions.Default.WithFilePath(fileName);
     var text = File.ReadAllText(fileName);
@@ -35,6 +35,6 @@ async Task<ScriptState<int>> RunFile(string fileName)
     var state = await CSharpScript.RunAsync(prelude);
     var args = state.GetVariable("Args");
     args.Value = Args;
-    return await state.ContinueWithAsync<int>(text, scriptOptions);
+    return await state.ContinueWithAsync<object>(text, scriptOptions);
 }
 

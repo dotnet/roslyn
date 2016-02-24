@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 #load "..\util\test_util.csx"
+using System.IO;
+using System;
 
 InitUtilities();
 
@@ -26,7 +28,7 @@ string machineName = StdoutFrom("hostname");
 string architecture = System.Environment.Is64BitOperatingSystem ? "x86-64" : "x86";
 
 // File locations
-string workingDir = Path.Combine(MyWorkingDirectory(), "../", "temp");
+string workingDir = Path.Combine(MyWorkingDirectory(), "..", "temp");
 string inCompilerTime = Path.Combine(workingDir, "compiler_time.csv");
 string inRunTime = Path.Combine(workingDir, "run_time.csv");
 string inFileSize = Path.Combine(workingDir, "file_size.csv");
