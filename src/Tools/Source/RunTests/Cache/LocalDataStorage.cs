@@ -35,8 +35,20 @@ namespace RunTests.Cache
             _storagePath = storagePath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DirectoryName);
         }
 
-        public bool TryGetCachedTestResult(string checksum, out CachedTestResult testResult)
+        public Task<CachedTestResult?> TryGetCachedTestResult(string checksum)
         {
+            CachedTestResult testResult;
+            CachedTestResult? value = null;
+            if (TryGetCachedTestResult(checksum, out testResult))
+            {
+                value = testResult;
+            }
+
+            return Task.FromResult(value);
+        }
+
+        public bool TryGetCachedTestResult(string checksum, out CachedTestResult testResult)
+        { 
             testResult = default(CachedTestResult);
 
             var storageFolder = GetStorageFolder(checksum);
@@ -70,7 +82,7 @@ namespace RunTests.Cache
             return false;
         }
 
-        public void AddCachedTestResult(ContentFile contentFile, CachedTestResult testResult)
+        public Task AddCachedTestResult(ContentFile contentFile, CachedTestResult testResult)
         {
             var checksum = contentFile.Checksum;
             var storagePath = Path.Combine(_storagePath, checksum);
@@ -78,7 +90,7 @@ namespace RunTests.Cache
             {
                 if (!FileUtil.EnsureDirectory(storagePath))
                 {
-                    return;
+                    return Task.FromResult(true);
                 }
 
                 Write(checksum, StorageKind.ExitCode, testResult.ExitCode.ToString());
@@ -94,6 +106,8 @@ namespace RunTests.Cache
                 Logger.Log($"Failed to log {checksum} {e.Message}");
                 FileUtil.DeleteDirectory(storagePath);
             }
+
+            return Task.FromResult(true);
         }
 
         private string GetStorageFolder(string checksum)
