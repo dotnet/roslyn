@@ -437,11 +437,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(conversion.Kind != ConversionKind.NoConversion);
                 if (conversion.Kind != ConversionKind.Identity)
                 {
+                    Debug.Assert(CurrentMethod.RefKind == RefKind.None);
                     expression = BoundConversion.Synthesized(Syntax, expression, conversion, false, false, ConstantValue.NotAvailable, CurrentMethod.ReturnType);
                 }
             }
 
-            return new BoundReturnStatement(Syntax, expression) { WasCompilerGenerated = true };
+            return new BoundReturnStatement(Syntax, CurrentMethod.RefKind, expression) { WasCompilerGenerated = true };
         }
 
         public void CloseMethod(BoundStatement body)

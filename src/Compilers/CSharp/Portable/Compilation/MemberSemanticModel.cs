@@ -241,6 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder = new ExecutableCodeBinder(unexpectedAnonymousFunction,
                                                   new LambdaSymbol(binder.ContainingMemberOrLambda,
                                                                    ImmutableArray<ParameterSymbol>.Empty,
+                                                                   RefKind.None,
                                                                    ErrorTypeSymbol.UnknownResultType,
                                                                    unexpectedAnonymousFunction.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda,
                                                                    unexpectedAnonymousFunction,
@@ -492,16 +493,38 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override ISymbol GetDeclaredSymbol(VariableDeclaratorSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);
+            return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
+        }
 
+        private LocalSymbol GetDeclaredLocal(CSharpSyntaxNode declarationSyntax, SyntaxToken declaredIdentifier)
+        {
             for (var binder = this.GetEnclosingBinder(GetAdjustedNodePosition(declarationSyntax)); binder != null; binder = binder.Next)
             {
                 foreach (var local in binder.Locals)
                 {
-                    if (local.IdentifierToken == declarationSyntax.Identifier)
+                    if (local.IdentifierToken == declaredIdentifier)
                     {
                         return local;
                     }
                 }
+            }
+
+            return null;
+        }
+
+        public override ISymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(declarationSyntax);
+            return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
+        }
+
+        public override ISymbol GetDeclaredSymbol(LetStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(declarationSyntax);
+
+            if (declarationSyntax.Pattern == null)
+            {
+                return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
             }
 
             return null;

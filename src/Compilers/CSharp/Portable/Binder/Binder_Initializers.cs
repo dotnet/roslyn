@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var collisionDetector = new LocalScopeBinder(binder);
             var patternBinder = new PatternVariableBinder(equalsValueClauseNode, equalsValueClauseNode.Value, collisionDetector);
-            var boundInitValue = patternBinder.BindVariableOrAutoPropInitializer(equalsValueClauseNode, fieldSymbol.GetFieldType(fieldsBeingBound), initializerDiagnostics);
+            var boundInitValue = patternBinder.BindVariableOrAutoPropInitializer(equalsValueClauseNode, RefKind.None, fieldSymbol.GetFieldType(fieldsBeingBound), initializerDiagnostics);
             boundInitValue = patternBinder.WrapWithPatternVariables(boundInitValue);
 
             if (isImplicitlyTypedField)

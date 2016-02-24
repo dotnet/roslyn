@@ -60,6 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType))
             {
+                var property = symbol as PropertySymbol;
+                if (property != null)
+                {
+                    AddRefKindIfRequired(property.RefKind);
+                }
+
                 symbol.Type.Accept(this.NotFirstVisitor);
                 AddSpace();
 
@@ -225,6 +231,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // The display code is called by the debugger; if a developer is debugging Roslyn and attempts
                             // to visualize a symbol *during its construction*, the parameters and return type might 
                             // still be null. 
+
+                            var method = symbol as MethodSymbol;
+                            if (method != null)
+                            {
+                                AddRefKindIfRequired(method.RefKind);
+                            }
 
                             if (symbol.ReturnsVoid)
                             {
@@ -449,25 +461,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (includeType)
             {
-                if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
-                {
-                    switch (symbol.RefKind)
-                    {
-                        case RefKind.Out:
-                            AddKeyword(SyntaxKind.OutKeyword);
-                            AddSpace();
-                            break;
-                        case RefKind.Ref:
-                            AddKeyword(SyntaxKind.RefKeyword);
-                            AddSpace();
-                            break;
-                    }
+                AddRefKindIfRequired(symbol.RefKind);
 
-                    if (symbol.IsParams)
-                    {
-                        AddKeyword(SyntaxKind.ParamsKeyword);
-                        AddSpace();
-                    }
+                if (symbol.IsParams && format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
+                {
+                    AddKeyword(SyntaxKind.ParamsKeyword);
+                    AddSpace();
                 }
 
                 ushort countOfCustomModifiersPrecedingByRef = 0;
@@ -715,6 +714,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (trailingSpace)
                 {
                     AddSpace();
+                }
+            }
+        }
+
+        private void AddRefKindIfRequired(RefKind refKind)
+        {
+            if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
+            {
+                switch (refKind)
+                {
+                    case RefKind.Out:
+                        AddKeyword(SyntaxKind.OutKeyword);
+                        AddSpace();
+                        break;
+                    case RefKind.Ref:
+                        AddKeyword(SyntaxKind.RefKeyword);
+                        AddSpace();
+                        break;
                 }
             }
         }

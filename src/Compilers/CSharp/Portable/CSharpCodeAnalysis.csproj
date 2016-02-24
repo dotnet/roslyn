@@ -758,6 +758,11 @@
     <Compile Include="Syntax\GenericNameSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\BinaryExpressionSyntax.cs" />
     <Compile Include="Syntax\CSharpSyntaxTree.DebuggerSyntaxTree.cs" />
+    <Compile Include="Syntax\ForStatementSyntax.cs" />
+    <Compile Include="Syntax\LocalDeclarationStatementSyntax.cs" />
+    <Compile Include="Syntax\ParenthesizedLambdaExpressionSyntax.cs" />
+    <Compile Include="Syntax\ReturnStatementSyntax.cs" />
+    <Compile Include="Syntax\SimpleLambdaExpressionSyntax.cs" />
     <Compile Include="Syntax\IdentifierNameSyntax.cs" />
     <Compile Include="Syntax\PropertyDeclarationSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.cs" />
@@ -807,6 +812,9 @@
     <Compile Include="Syntax\ParameterListSyntax.cs" />
     <Compile Include="Syntax\ParameterSyntax.cs" />
     <Compile Include="Syntax\QualifiedNameSyntax.cs" />
+    <Compile Include="Syntax\ArrowExpressionClauseSyntax.cs" />
+    <Compile Include="Syntax\EqualsValueClauseSyntax.cs" />
+    <Compile Include="Syntax\IncompleteMemberSyntax.cs" />
     <Compile Include="Syntax\SeparatedSyntaxListBuilder.cs" />
     <Compile Include="Syntax\SimpleNameSyntax.cs" />
     <Compile Include="Syntax\SimpleSyntaxReference.cs" />

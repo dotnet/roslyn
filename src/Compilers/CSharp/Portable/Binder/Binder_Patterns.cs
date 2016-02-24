@@ -317,6 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localSymbol = SourceLocalSymbol.MakeLocal(
                     ContainingMemberOrLambda,
                     this,
+                    RefKind.None,
                     typeSyntax,
                     identifier,
                     LocalDeclarationKind.PatternVariable);
@@ -484,6 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     localSymbol = SourceLocalSymbol.MakeLocal(
                         ContainingMemberOrLambda,
                         this,
+                        RefKind.None,
                         null,
                         node.Identifier,
                         LocalDeclarationKind.PatternVariable,
@@ -491,7 +493,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 localSymbol.SetTypeSymbol(expression.Type);
-                pattern = new BoundDeclarationPattern(node, localSymbol, null, true, expression.HasErrors);
+
+                pattern = new BoundDeclarationPattern(node, localSymbol, null, true, 
+                                                      expression.HasErrors | 
+                                                          this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics)); // Check for variable declaration errors.
             }
             else
             {

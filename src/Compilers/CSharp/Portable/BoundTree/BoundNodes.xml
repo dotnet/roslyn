@@ -26,6 +26,7 @@
   <ValueType Name="BinaryOperatorKind"/>
   <ValueType Name="LookupResultKind"/>
   <ValueType Name="NoOpStatementFlavor"/>
+  <ValueType Name="RefKind"/>
   <ValueType Name="BoundTypeOrValueData"/>
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
@@ -662,6 +663,7 @@
   </Node>
 
   <Node Name="BoundReturnStatement" Base="BoundStatement">
+    <Field Name="RefKind" Type="RefKind"/>
     <Field Name="ExpressionOpt" Type="BoundExpression" Null="allow"/>
   </Node>
 

@@ -332,6 +332,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
+        internal virtual bool IsReturnable
+        {
+            get
+            {
+                // by default all locals are returnable
+                return true;
+            }
+        }
+
         #region ILocalSymbol Members
 
         ITypeSymbol ILocalSymbol.Type
