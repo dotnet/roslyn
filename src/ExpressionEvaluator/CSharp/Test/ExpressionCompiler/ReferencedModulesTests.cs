@@ -162,15 +162,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     typeBlocks,
                     moduleVersionId,
                     typeToken);
+
+                Assert.Equal(identityAS2, context.Compilation.GlobalNamespace.GetMembers("A").OfType<INamedTypeSymbol>().Single().ContainingAssembly.Identity);
+                Assert.Equal(identityBS2, context.Compilation.GlobalNamespace.GetMembers("B").OfType<INamedTypeSymbol>().Single().ContainingAssembly.Identity);
+
                 string error;
-                // A is ambiguous.
+                // A could be ambiguous, but the ambiguity is resolved in favor of the newer assembly.
                 var testData = new CompilationTestData();
                 context.CompileExpression("new A()", out error, testData);
-                Assert.True(error.StartsWith("error CS0433: The type 'A' exists in both "));
+                Assert.Null(error);
+                // B could be ambiguous, but the ambiguity is resolved in favor of the newer assembly.
                 testData = new CompilationTestData();
-                // B is ambiguous.
                 context.CompileExpression("new B()", out error, testData);
-                Assert.True(error.StartsWith("error CS0433: The type 'B' exists in both "));
+                Assert.Null(error);
                 var previous = new CSharpMetadataContext(typeBlocks, context);
 
                 // Compile expression with type context with referenced modules only.
@@ -222,14 +226,14 @@ IL_0005:  ret
                     localSignatureToken: localSignatureToken);
                 Assert.Equal(previous.Compilation, context.Compilation); // re-use type context compilation
                 testData = new CompilationTestData();
-                // A is ambiguous.
+                // A could be ambiguous, but the ambiguity is resolved in favor of the newer assembly.
                 testData = new CompilationTestData();
                 context.CompileExpression("new A()", out error, testData);
-                Assert.True(error.StartsWith("error CS0433: The type 'A' exists in both "));
+                Assert.Null(error);
+                // B could be ambiguous, but the ambiguity is resolved in favor of the newer assembly.
                 testData = new CompilationTestData();
-                // B is ambiguous.
                 context.CompileExpression("new B()", out error, testData);
-                Assert.True(error.StartsWith("error CS0433: The type 'B' exists in both "));
+                Assert.Null(error);
 
                 // Compile expression with method context with referenced modules only.
                 context = EvaluationContext.CreateMethodContext(

@@ -1191,6 +1191,15 @@ Class C
         M0(1, New Integer() { 2, 3, 4 })
         M0(1, New Integer() { 2, 3, 4, 5 })
         M0(1, New Integer() { 2, 3, 4, 5, 6 })
+        Dim local As D = new D(1, 2, 3, 4, 5)
+        local = new D(1, New Integer() { 2, 3, 4, 5 })
+        local = new D(1, 2, 3, 4)
+        local = new D(1, New Integer() { 2, 3, 4 })
+    End Sub
+End Class
+
+Class D
+    Public Sub New(a As Integer, ParamArray b As Integer())
     End Sub
 End Class
 ]]>
@@ -1207,7 +1216,9 @@ End Class
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5 }").WithLocation(12, 15),
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5 }").WithLocation(12, 15),
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15),
-                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15))
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15),
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "D").WithLocation(14, 30),
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5 }").WithLocation(15, 26))
         End Sub
 
         <Fact>
@@ -1642,6 +1653,155 @@ End Class
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1?(0)").WithLocation(31, 13),
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?.M0(Nothing)").WithLocation(32, 9),
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1?.M0(Nothing)").WithLocation(32, 9))
+        End Sub
+
+        <WorkItem(8955, "https://github.com/dotnet/roslyn/issues/8955")>
+        <Fact>
+        Public Sub ForToLoopConditionCrashVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Imports System   
+
+Module M1
+    Class C1(Of t)
+        Shared Widening Operator CType(ByVal p1 As C1(Of t)) As Integer
+            Return 1
+        End Operator
+        Shared Widening Operator CType(ByVal p1 As Integer) As C1(Of t)
+            Return Nothing
+        End Operator
+        Shared Operator -(ByVal p1 As C1(Of t), ByVal p2 As C1(Of t)) As C1(Of Short)
+            Return Nothing
+        End Operator
+        Shared Operator +(ByVal p1 As C1(Of t), ByVal p2 As C1(Of t)) As C1(Of Integer)
+            Return Nothing
+        End Operator
+    End Class
+    Sub foo()
+        For i As C1(Of Integer) = 1 To 10
+        Next
+    End Sub
+End Module
+     
+Module M2
+    ReadOnly Property Moo As Integer
+        Get
+            Return 1
+        End Get
+    End Property
+
+    WriteOnly Property Boo As integer
+        Set(value As integer)
+
+        End Set
+    End Property
+
+    Sub Main()
+        For Moo = 1 to Moo step Moo
+        Next
+
+        For Boo = 1 to Boo step Boo
+        Next
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_LoopControlMustNotBeProperty, "Moo").WithLocation(38, 13),
+                Diagnostic(ERRID.ERR_LoopControlMustNotBeProperty, "Boo").WithLocation(41, 13),
+                Diagnostic(ERRID.ERR_NoGetProperty1, "Boo").WithArguments("Boo").WithLocation(41, 24),
+                Diagnostic(ERRID.ERR_NoGetProperty1, "Boo").WithArguments("Boo").WithLocation(41, 33),
+                Diagnostic(ERRID.ERR_UnacceptableForLoopOperator2, "For i As C1(Of Integer) = 1 To 10").WithArguments("Public Shared Operator -(p1 As M1.C1(Of Integer), p2 As M1.C1(Of Integer)) As M1.C1(Of Short)", "M1.C1(Of Integer)").WithLocation(19, 9),
+                Diagnostic(ERRID.ERR_ForLoopOperatorRequired2, "For i As C1(Of Integer) = 1 To 10").WithArguments("M1.C1(Of Integer)", "<=").WithLocation(19, 9),
+                Diagnostic(ERRID.ERR_ForLoopOperatorRequired2, "For i As C1(Of Integer) = 1 To 10").WithArguments("M1.C1(Of Integer)", ">=").WithLocation(19, 9),
+                Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports System").WithLocation(1, 1))
+            comp.VerifyAnalyzerDiagnostics({New ForLoopConditionCrashVBTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(ForLoopConditionCrashVBTestAnalyzer.ForLoopConditionCrashDescriptor.Id, "Moo").WithLocation(38, 24),
+                Diagnostic(ForLoopConditionCrashVBTestAnalyzer.ForLoopConditionCrashDescriptor.Id, "Boo").WithLocation(41, 24),
+                Diagnostic(ForLoopConditionCrashVBTestAnalyzer.ForLoopConditionCrashDescriptor.Id, "10").WithLocation(19, 40))
+        End Sub
+
+        <WorkItem(9012, "https://github.com/dotnet/roslyn/issues/9012")>
+        <Fact>
+        Public Sub InvalidEventInstanceVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Module Program
+    Sub Main(args As String())
+        AddHandler Function(ByVal x) x
+    End Sub
+End Module
+
+Class TestClass
+
+    Event TestEvent As Action
+
+    Shared Sub Test(receiver As TestClass)
+        AddHandler receiver?.TestEvent, AddressOf Main
+    End Sub
+
+    Shared Sub Main()
+    End Sub
+End Class
+
+Module Module1
+    Sub Main()
+        Dim x = {Iterator sub() yield, new object}
+        Dim y = {Iterator sub() yield 1, Iterator sub() yield, new object}
+        Dim z = {Sub() AddHandler, New Object}
+        g0(Iterator sub() Yield)
+        g1(Iterator Sub() Yield, 5)
+    End Sub
+
+    Sub g0(ByVal x As Func(Of IEnumerator))
+    End Sub
+    Sub g1(ByVal x As Func(Of IEnumerator), ByVal y As Integer)
+    End Sub
+
+    Iterator Function f() As IEnumerator
+        Yield
+    End Function
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_ExpectedComma, "").WithLocation(6, 39),
+                Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(6, 39),
+                Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(24, 38),
+                Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(25, 62),
+                Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(26, 34),
+                Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(27, 32),
+                Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(28, 32),
+                Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(37, 14),
+                Diagnostic(ERRID.ERR_TooFewGenericArguments1, "IEnumerator").WithArguments("System.Collections.Generic.IEnumerator(Of Out T)").WithLocation(31, 31),
+                Diagnostic(ERRID.ERR_TooFewGenericArguments1, "IEnumerator").WithArguments("System.Collections.Generic.IEnumerator(Of Out T)").WithLocation(33, 31),
+                Diagnostic(ERRID.ERR_TooFewGenericArguments1, "IEnumerator").WithArguments("System.Collections.Generic.IEnumerator(Of Out T)").WithLocation(36, 30),
+                Diagnostic(ERRID.ERR_AddOrRemoveHandlerEvent, "receiver?.TestEvent").WithLocation(15, 20),
+                Diagnostic(ERRID.ERR_AddOrRemoveHandlerEvent, "Function(ByVal x) x").WithLocation(6, 20),
+                Diagnostic(ERRID.ERR_BadIteratorReturn, "sub").WithLocation(24, 27),
+                Diagnostic(ERRID.ERR_BadIteratorReturn, "sub").WithLocation(25, 27),
+                Diagnostic(ERRID.ERR_BadIteratorReturn, "sub").WithLocation(25, 51),
+                Diagnostic(ERRID.ERR_BadIteratorReturn, "sub").WithLocation(27, 21),
+                Diagnostic(ERRID.ERR_BadIteratorReturn, "Sub").WithLocation(28, 21),
+                Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports System.Collections.Generic").WithLocation(2, 1))
+            comp.VerifyAnalyzerDiagnostics({New MemberReferenceAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler, New Object").WithLocation(26, 24),
+                Diagnostic(MemberReferenceAnalyzer.InvalidEventDescriptor.Id, "AddHandler, New Object").WithLocation(26, 24),
+                Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler receiver?.TestEvent, AddressOf Main").WithLocation(15, 9),
+                Diagnostic(MemberReferenceAnalyzer.InvalidEventDescriptor.Id, "AddHandler receiver?.TestEvent, AddressOf Main").WithLocation(15, 9),
+                Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Function(ByVal x) x").WithLocation(6, 9),
+                Diagnostic(MemberReferenceAnalyzer.InvalidEventDescriptor.Id, "AddHandler Function(ByVal x) x").WithLocation(6, 9))
         End Sub
     End Class
 End Namespace

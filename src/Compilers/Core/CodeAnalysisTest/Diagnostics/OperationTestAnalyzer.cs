@@ -935,6 +935,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor InvalidEventDescriptor = new DiagnosticDescriptor(
+            "InvalidEvent",
+            "Invalid Event",
+            "A EventAssignmentExpression with invalid event found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
         public static readonly DiagnosticDescriptor HandlerAddedDescriptor = new DiagnosticDescriptor(
             "HandlerAdded",
             "Handler Added",
@@ -975,7 +983,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(EventReferenceDescriptor, HandlerAddedDescriptor, HandlerRemovedDescriptor, PropertyReferenceDescriptor, FieldReferenceDescriptor, MethodBindingDescriptor);
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => 
+            ImmutableArray.Create(EventReferenceDescriptor, 
+                HandlerAddedDescriptor, 
+                HandlerRemovedDescriptor, 
+                PropertyReferenceDescriptor, 
+                FieldReferenceDescriptor, 
+                MethodBindingDescriptor,
+                InvalidEventDescriptor);
 
         public sealed override void Initialize(AnalysisContext context)
         {
@@ -991,6 +1006,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  {
                      IEventAssignmentExpression eventAssignment = (IEventAssignmentExpression)operationContext.Operation;
                      operationContext.ReportDiagnostic(Diagnostic.Create(eventAssignment.Adds ? HandlerAddedDescriptor : HandlerRemovedDescriptor, operationContext.Operation.Syntax.GetLocation()));
+
+                     if (eventAssignment.Event == null)
+                     {
+                         if (eventAssignment.EventInstance == null && eventAssignment.IsInvalid)
+                         {
+                             // report inside after checking for null to make sure it does't crash.
+                             operationContext.ReportDiagnostic(Diagnostic.Create(InvalidEventDescriptor, eventAssignment.Syntax.GetLocation()));
+                         }
+                     }
                  },
                  OperationKind.EventAssignmentExpression);
 
@@ -1070,6 +1094,29 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      }
                  },
                  OperationKind.InvocationExpression);
+
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    IObjectCreationExpression creation = (IObjectCreationExpression)operationContext.Operation;
+                    
+                    foreach (IArgument argument in creation.ArgumentsInParameterOrder)
+                    {
+                        if (argument.Parameter.IsParams)
+                        {
+                            IArrayCreationExpression arrayValue = argument.Value as IArrayCreationExpression;
+                            if (arrayValue != null)
+                            {
+                                Optional<object> dimensionSize = arrayValue.DimensionSizes[0].ConstantValue;
+                                if (dimensionSize.HasValue && IntegralValue(dimensionSize.Value) > 3)
+                                {
+                                    operationContext.ReportDiagnostic(Diagnostic.Create(LongParamsDescriptor, argument.Value.Syntax.GetLocation()));
+                                }
+                            }
+                        }
+                    }
+                },
+                OperationKind.ObjectCreationExpression);
         }
 
         private static long IntegralValue(object value)
@@ -1684,6 +1731,46 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     operationContext.ReportDiagnostic(Diagnostic.Create(ConditionalAccessInstanceOperationDescriptor, placeholder.Syntax.GetLocation()));
                 },
                 OperationKind.PlaceholderExpression);
+        }
+    }
+    
+
+    public class ForLoopConditionCrashVBTestAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+        
+        public static readonly DiagnosticDescriptor ForLoopConditionCrashDescriptor = new DiagnosticDescriptor(
+            "ForLoopConditionCrash",
+            "Ensure ForLoopCondition property doesn't crash",
+            "Ensure ForLoopCondition property doesn't crash",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(ForLoopConditionCrashDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     ILoopStatement loop = (ILoopStatement)operationContext.Operation;
+                     if (loop.LoopKind == LoopKind.For)
+                     {
+                         IForLoopStatement forLoop = (IForLoopStatement)loop;
+                         var forCondition = forLoop.Condition;
+
+                         if (forCondition.IsInvalid)
+                         {
+                             // Generate a warning to prove we didn't crash
+                             operationContext.ReportDiagnostic(Diagnostic.Create(ForLoopConditionCrashDescriptor, forLoop.Condition.Syntax.GetLocation()));
+                         }
+                     }
+                 },
+                 OperationKind.LoopStatement);
         }
     }
 }

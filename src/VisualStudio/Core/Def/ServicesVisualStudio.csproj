@@ -43,6 +43,10 @@
     <Compile Include="Implementation\AnalyzerDependency\IIgnorableAssemblyList.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IBindingRedirectionService.cs" />
     <Compile Include="Implementation\Extensions\ServiceProviderExtensions.cs" />
+    <Compile Include="ID.InteractiveCommands.cs" />
+    <Compile Include="Implementation\Interactive\CSharpResetInteractiveMenuCommand.cs" />
+    <Compile Include="Implementation\Interactive\AbstractResetInteractiveMenuCommand.cs" />
+    <Compile Include="Implementation\Interactive\VisualBasicResetInteractiveMenuCommand.cs" />
     <Compile Include="Implementation\Interop\CleanableWeakComHandleTable.cs" />
     <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageBlock.cs" />
     <Compile Include="Implementation\Library\AbstractLibraryService.cs" />
