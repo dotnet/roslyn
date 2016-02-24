@@ -908,38 +908,38 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use explicit typing instead of &apos;var&apos;.
+        ///   Looks up a localized string similar to Use explicit type instead of &apos;var&apos;.
         /// </summary>
-        internal static string UseExplicitTyping {
+        internal static string UseExplicitType {
             get {
-                return ResourceManager.GetString("UseExplicitTyping", resourceCulture);
+                return ResourceManager.GetString("UseExplicitType", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use explicit typing.
+        ///   Looks up a localized string similar to Use explicit type.
         /// </summary>
-        internal static string UseExplicitTypingDiagnosticTitle {
+        internal static string UseExplicitTypeDiagnosticTitle {
             get {
-                return ResourceManager.GetString("UseExplicitTypingDiagnosticTitle", resourceCulture);
+                return ResourceManager.GetString("UseExplicitTypeDiagnosticTitle", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to use &apos;var&apos; instead of typename.
+        ///   Looks up a localized string similar to use &apos;var&apos; instead of explicit type.
         /// </summary>
-        internal static string UseImplicitTyping {
+        internal static string UseImplicitType {
             get {
-                return ResourceManager.GetString("UseImplicitTyping", resourceCulture);
+                return ResourceManager.GetString("UseImplicitType", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use implicit typing.
+        ///   Looks up a localized string similar to Use implicit type.
         /// </summary>
-        internal static string UseImplicitTypingDiagnosticTitle {
+        internal static string UseImplicitTypeDiagnosticTitle {
             get {
-                return ResourceManager.GetString("UseImplicitTypingDiagnosticTitle", resourceCulture);
+                return ResourceManager.GetString("UseImplicitTypeDiagnosticTitle", resourceCulture);
             }
         }
         

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
 {
@@ -16,9 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
     {
         internal class State
         {
-            private readonly Dictionary<TypingStyles, DiagnosticSeverity> _styleToSeverityMap;
+            private readonly Dictionary<TypeStyle, DiagnosticSeverity> _styleToSeverityMap;
 
-            public TypingStyles StylePreferences { get; private set; }
+            public TypeStyle TypeStyle { get; private set; }
             public bool IsInIntrinsicTypeContext { get; private set; }
             public bool IsTypingApparentInContext { get; private set; }
             public bool IsInVariableDeclarationContext { get; }
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
             public State(bool isVariableDeclarationContext)
             {
                 this.IsInVariableDeclarationContext = isVariableDeclarationContext;
-                _styleToSeverityMap = new Dictionary<TypingStyles, DiagnosticSeverity>();
+                _styleToSeverityMap = new Dictionary<TypeStyle, DiagnosticSeverity>();
             }
 
             public static State Generate(SyntaxNode declaration, SemanticModel semanticModel, OptionSet optionSet, bool isVariableDeclarationContext, CancellationToken cancellationToken)
@@ -40,30 +41,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
             {
                 if (IsInIntrinsicTypeContext)
                 {
-                    return _styleToSeverityMap[TypingStyles.VarForIntrinsic];
+                    return _styleToSeverityMap[TypeStyle.ImplicitTypeForIntrinsicTypes];
                 }
                 else if (IsTypingApparentInContext)
                 {
-                    return _styleToSeverityMap[TypingStyles.VarWhereApparent];
+                    return _styleToSeverityMap[TypeStyle.ImplicitTypeWhereApparent];
                 }
                 else
                 {
-                    return _styleToSeverityMap[TypingStyles.VarWherePossible];
+                    return _styleToSeverityMap[TypeStyle.ImplicitTypeWherePossible];
                 }
             }
 
-            public bool ShouldNotify() => 
+            public bool ShouldNotify() =>
                 GetDiagnosticSeverityPreference() != DiagnosticSeverity.Hidden;
 
             private void Initialize(SyntaxNode declaration, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
             {
-                this.StylePreferences = GetCurrentTypingStylePreferences(optionSet);
+                this.TypeStyle = GetCurrentTypingStylePreferences(optionSet);
 
                 IsTypingApparentInContext =
-                    IsInVariableDeclarationContext
-                        ? IsTypeApparentInDeclaration((VariableDeclarationSyntax)declaration,
-                            semanticModel, StylePreferences, cancellationToken)
-                        : false;
+                        IsInVariableDeclarationContext
+                     && IsTypeApparentInDeclaration((VariableDeclarationSyntax)declaration, semanticModel, TypeStyle, cancellationToken);
 
                 IsInIntrinsicTypeContext = IsIntrinsicType(declaration);
             }
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
             /// Returns true if type information could be gleaned by simply looking at the given statement.
             /// This typically means that the type name occurs in either left hand or right hand side of an assignment.
             /// </summary>
-            private bool IsTypeApparentInDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, TypingStyles stylePreferences, CancellationToken cancellationToken)
+            private bool IsTypeApparentInDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, TypeStyle stylePreferences, CancellationToken cancellationToken)
             {
                 var initializer = variableDeclaration.Variables.Single().Initializer;
                 var initializerExpression = GetInitializerExpression(initializer);
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                 // literals, use var if options allow usage here.
                 if (initializerExpression.IsAnyLiteralExpression())
                 {
-                    return stylePreferences.HasFlag(TypingStyles.VarForIntrinsic);
+                    return stylePreferences.HasFlag(TypeStyle.ImplicitTypeForIntrinsicTypes);
                 }
 
                 // constructor invocations cases:
@@ -107,13 +106,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                 }
 
                 // other Conversion cases:
-                //      a. conversion with helpers like: int.Parse, TextSpan.From methods 
+                //      a. conversion with helpers like: int.Parse methods
                 //      b. types that implement IConvertible and then invoking .ToType()
                 //      c. System.Convert.Totype()
                 var declaredTypeSymbol = semanticModel.GetTypeInfo(variableDeclaration.Type, cancellationToken).Type;
-                var expressionOnRightSide = initializerExpression.WalkDownParentheses();
 
-                var memberName = expressionOnRightSide.GetRightmostName();
+                var memberName = initializerExpression.GetRightmostName();
                 if (memberName == null)
                 {
                     return false;
@@ -135,14 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
             }
 
             private bool IsIntrinsicType(SyntaxNode declarationStatement) =>
-                declarationStatement.IsKind(SyntaxKind.VariableDeclaration)
-                ? ((VariableDeclarationSyntax)declarationStatement).Variables.Single().Initializer.Value.IsAnyLiteralExpression()
-                : false;
-
-            private ExpressionSyntax GetInitializerExpression(EqualsValueClauseSyntax initializer) =>
-                initializer.Value is CheckedExpressionSyntax
-                    ? ((CheckedExpressionSyntax)initializer.Value).Expression
-                    : initializer.Value;
+                (declarationStatement as VariableDeclarationSyntax)?.Variables.Single().Initializer.Value.IsAnyLiteralExpression() == true;
 
             private bool IsPossibleCreationOrConversionMethod(IMethodSymbol methodSymbol, ITypeSymbol declaredType, SemanticModel semanticModel, ExpressionSyntax typeName, CancellationToken cancellationToken)
             {
@@ -157,32 +148,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                     || IsPossibleConversionMethod(methodSymbol, declaredType, typeInInvocation, semanticModel, cancellationToken);
             }
 
+            /// <summary>
+            /// Looks for types that have static methods that return the same type as the container.
+            /// e.g: int.Parse, XElement.Load, Tuple.Create etc.
+            /// </summary>
             private bool IsPossibleCreationMethod(IMethodSymbol methodSymbol, ITypeSymbol declaredType, ITypeSymbol typeInInvocation)
             {
-                var isTypeInfoSame = false;
-
-                // Pattern: Method name is a prefix match of one of these well known method names
-                //          and method is a member of type being created.
-                // cases: int.ParseXXX, TextSpan.FromBounds, 
-                if (methodSymbol.Name.StartsWith("Parse", StringComparison.Ordinal)
-                    || methodSymbol.Name.StartsWith("From", StringComparison.Ordinal))
+                if (!methodSymbol.IsStatic)
                 {
-                    isTypeInfoSame = typeInInvocation.Equals(declaredType);
+                    return false;
                 }
 
-                // Pattern: Method name is an exact match of one of these well known creation methods
-                //          and method is a member of type being created.
-                // cases: node.With, Tuple.Create, State.Generate
-                if (methodSymbol.Name.Equals("With", StringComparison.Ordinal)
-                    || methodSymbol.Name.Equals("Create", StringComparison.Ordinal)
-                    || methodSymbol.Name.Equals("Generate", StringComparison.Ordinal))
-                {
-                    isTypeInfoSame = typeInInvocation.Equals(declaredType);
-                }
-
-                return isTypeInfoSame;
+                return IsDeclaredTypeEqualToReturnType(methodSymbol, declaredType, typeInInvocation);
             }
 
+            /// <summary>
+            /// If we have a method ToXXX and its return type is also XXX, then type name is apparent
+            /// e.g: Convert.ToString.
+            /// </summary>
             private bool IsPossibleConversionMethod(IMethodSymbol methodSymbol, ITypeSymbol declaredType, ITypeSymbol typeInInvocation, SemanticModel semanticModel, CancellationToken cancellationToken)
             {
                 // take `char` from `char? c = `
@@ -190,44 +173,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                         ? declaredType.GetTypeArguments().First().Name
                         : declaredType.Name;
 
-                // case: Convert.ToString or iConvertible.ToChar
+                var returnType = methodSymbol.ReturnType;
+
                 if (methodSymbol.Name.Equals("To" + declaredTypeName, StringComparison.Ordinal))
                 {
-                    var convertType = semanticModel.Compilation.ConvertType();
-                    var iConvertibleType = semanticModel.Compilation.IConvertibleType();
-
-                    return typeInInvocation.Equals(convertType)
-                        || typeInInvocation.Equals(iConvertibleType);
+                    return IsDeclaredTypeEqualToReturnType(methodSymbol, declaredType, typeInInvocation);
                 }
 
                 return false;
             }
 
-            private TypingStyles GetCurrentTypingStylePreferences(OptionSet optionSet)
+            /// <remarks>
+            /// If there are type arguments on either side of assignment, we match type names instead of type equality 
+            /// to account for inferred generic type arguments.
+            /// e.g: Tuple.Create(0, true) returns Tuple&lt;X,y&gt; which isn't the same as type Tuple.
+            /// otherwise, we match for type equivalence
+            /// </remarks>
+            private static bool IsDeclaredTypeEqualToReturnType(IMethodSymbol methodSymbol, ITypeSymbol declaredType, ITypeSymbol typeInInvocation)
             {
-                var stylePreferences = TypingStyles.None;
+                var returnType = methodSymbol.ReturnType;
 
-                var styleForIntrinsicTypes = optionSet.GetOption(CSharpCodeStyleOptions.UseVarForIntrinsicTypes);
-                var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent);
-                var styleForElsewhere = optionSet.GetOption(CSharpCodeStyleOptions.UseVarWherePossible);
+                if (declaredType.GetTypeArguments().Length > 0 ||
+                    typeInInvocation.GetTypeArguments().Length > 0)
+                {
+                    return declaredType.Name.Equals(returnType.Name);
+                }
+                else
+                {
+                    return declaredType.Equals(returnType);
+                }
+            }
 
-                _styleToSeverityMap.Add(TypingStyles.VarForIntrinsic, styleForIntrinsicTypes.Notification.Value);
-                _styleToSeverityMap.Add(TypingStyles.VarWhereApparent, styleForApparent.Notification.Value);
-                _styleToSeverityMap.Add(TypingStyles.VarWherePossible, styleForElsewhere.Notification.Value);
+            private TypeStyle GetCurrentTypingStylePreferences(OptionSet optionSet)
+            {
+                var stylePreferences = TypeStyle.None;
+
+                var styleForIntrinsicTypes = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes);
+                var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent);
+                var styleForElsewhere = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible);
+
+                _styleToSeverityMap.Add(TypeStyle.ImplicitTypeForIntrinsicTypes, styleForIntrinsicTypes.Notification.Value);
+                _styleToSeverityMap.Add(TypeStyle.ImplicitTypeWhereApparent, styleForApparent.Notification.Value);
+                _styleToSeverityMap.Add(TypeStyle.ImplicitTypeWherePossible, styleForElsewhere.Notification.Value);
 
                 if (styleForIntrinsicTypes.IsChecked)
                 {
-                    stylePreferences |= TypingStyles.VarForIntrinsic;
+                    stylePreferences |= TypeStyle.ImplicitTypeForIntrinsicTypes;
                 }
 
                 if (styleForApparent.IsChecked)
                 {
-                    stylePreferences |= TypingStyles.VarWhereApparent;
+                    stylePreferences |= TypeStyle.ImplicitTypeWhereApparent;
                 }
 
                 if (styleForElsewhere.IsChecked)
                 {
-                    stylePreferences |= TypingStyles.VarWherePossible;
+                    stylePreferences |= TypeStyle.ImplicitTypeWherePossible;
                 }
 
                 return stylePreferences;

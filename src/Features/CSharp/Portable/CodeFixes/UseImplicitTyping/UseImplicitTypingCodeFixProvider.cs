@@ -32,25 +32,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping
                 return;
             }
 
-            var node = token.GetAncestors<SyntaxNode>().First(n => n.Span.Contains(span));
-            if (node == null ||
-                !(node.IsKind(SyntaxKind.PredefinedType) ||
-                  node.IsKind(SyntaxKind.ArrayType) ||
-                  node.IsKind(SyntaxKind.IdentifierName) ||
-                  node.IsKind(SyntaxKind.GenericName) || 
-                  node.IsKind(SyntaxKind.AliasQualifiedName)))
+            var node = root.FindNode(span, getInnermostNodeForTie: true);
+            if (node == null || !SyntaxFacts.IsTypeSyntax(node.Kind()))
             {
                 return;
             }
 
             var codeAction = new MyCodeAction(
-                                CSharpFeaturesResources.UseImplicitTyping,
-                                c => ReplaceTypeWithVar(document, root, node));
+                CSharpFeaturesResources.UseImplicitType,
+                c => ReplaceTypeWithVarAsync(document, root, node));
 
             context.RegisterCodeFix(codeAction, context.Diagnostics.First());
         }
 
-        private static Task<Document> ReplaceTypeWithVar(Document document, SyntaxNode root, SyntaxNode node)
+        private static Task<Document> ReplaceTypeWithVarAsync(Document document, SyntaxNode root, SyntaxNode node)
         {
             var implicitType = SyntaxFactory.IdentifierName("var")
                                             .WithLeadingTrivia(node.GetLeadingTrivia())

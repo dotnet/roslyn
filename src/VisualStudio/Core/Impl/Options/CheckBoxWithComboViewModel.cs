@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             var codeStyleOption = ((SimpleCodeStyleOption)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
             SetProperty(ref _isChecked, codeStyleOption.IsChecked);
 
-            var notificationViewModel = items.Where(i => i.Notification == codeStyleOption.Notification).Single();
+            var notificationViewModel = items.Where(i => i.Notification.Value == codeStyleOption.Notification.Value).Single();
             SetProperty(ref _selectedNotificationOption, notificationViewModel);
         }
 

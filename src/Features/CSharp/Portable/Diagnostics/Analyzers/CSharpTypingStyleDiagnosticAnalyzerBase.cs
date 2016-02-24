@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -16,34 +17,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
     internal abstract partial class CSharpTypingStyleDiagnosticAnalyzerBase : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         [Flags]
-        internal enum TypingStyles
+        internal enum TypeStyle
         {
             None = 0,
-            VarForIntrinsic = 1 << 0,
-            VarWhereApparent = 1 << 1,
-            VarWherePossible = 1 << 2,
+            ImplicitTypeForIntrinsicTypes = 1 << 0,
+            ImplicitTypeWhereApparent = 1 << 1,
+            ImplicitTypeWherePossible = 1 << 2,
         }
 
         private readonly string _diagnosticId;
         private readonly LocalizableString _title;
         private readonly LocalizableString _message;
-        private readonly Lazy<DiagnosticDescriptor> _noneDiagnosticDescriptor;
-        private readonly Lazy<DiagnosticDescriptor> _infoDiagnosticDescriptor;
-        private readonly Lazy<DiagnosticDescriptor> _warningDiagnosticDescriptor;
-        private readonly Lazy<DiagnosticDescriptor> _errorDiagnosticDescriptor;
-        private readonly Dictionary<DiagnosticSeverity, Lazy<DiagnosticDescriptor>> _severityToDescriptorMap;
+        private readonly DiagnosticDescriptor _noneDiagnosticDescriptor;
+        private readonly DiagnosticDescriptor _infoDiagnosticDescriptor;
+        private readonly DiagnosticDescriptor _warningDiagnosticDescriptor;
+        private readonly DiagnosticDescriptor _errorDiagnosticDescriptor;
+        private readonly Dictionary<DiagnosticSeverity, DiagnosticDescriptor> _severityToDescriptorMap;
 
         public CSharpTypingStyleDiagnosticAnalyzerBase(string diagnosticId, LocalizableString title, LocalizableString message)
         {
             _diagnosticId = diagnosticId;
             _title = title;
             _message = message;
-            _noneDiagnosticDescriptor = new Lazy<DiagnosticDescriptor>(() => CreateDiagnosticDescriptor(DiagnosticSeverity.Hidden));
-            _infoDiagnosticDescriptor = new Lazy<DiagnosticDescriptor>(() => CreateDiagnosticDescriptor(DiagnosticSeverity.Info));
-            _warningDiagnosticDescriptor = new Lazy<DiagnosticDescriptor>(() => CreateDiagnosticDescriptor(DiagnosticSeverity.Warning));
-            _errorDiagnosticDescriptor = new Lazy<DiagnosticDescriptor>(() => CreateDiagnosticDescriptor(DiagnosticSeverity.Error));
+            _noneDiagnosticDescriptor = CreateDiagnosticDescriptor(DiagnosticSeverity.Hidden);
+            _infoDiagnosticDescriptor = CreateDiagnosticDescriptor(DiagnosticSeverity.Info);
+            _warningDiagnosticDescriptor = CreateDiagnosticDescriptor(DiagnosticSeverity.Warning);
+            _errorDiagnosticDescriptor = CreateDiagnosticDescriptor(DiagnosticSeverity.Error);
             _severityToDescriptorMap =
-                new Dictionary<DiagnosticSeverity, Lazy<DiagnosticDescriptor>>
+                new Dictionary<DiagnosticSeverity, DiagnosticDescriptor>
                 {
                     {DiagnosticSeverity.Hidden, _noneDiagnosticDescriptor },
                     {DiagnosticSeverity.Info, _infoDiagnosticDescriptor },
@@ -62,8 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                 isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-            ImmutableArray.Create(_noneDiagnosticDescriptor.Value, _infoDiagnosticDescriptor.Value,
-                                  _warningDiagnosticDescriptor.Value, _errorDiagnosticDescriptor.Value);
+            ImmutableArray.Create(_noneDiagnosticDescriptor, _infoDiagnosticDescriptor,
+                                  _warningDiagnosticDescriptor, _errorDiagnosticDescriptor);
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory() =>
             DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -73,29 +74,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
             context.RegisterSyntaxNodeAction(HandleVariableDeclaration, SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement);
         }
 
-        protected abstract bool IsStylePreferred(SyntaxNode declarationStatement, SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken);
+        protected abstract bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken);
         protected abstract bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan);
         protected abstract bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
+
+        protected static ExpressionSyntax GetInitializerExpression(EqualsValueClauseSyntax initializer) =>
+            initializer.Value is CheckedExpressionSyntax
+                ? ((CheckedExpressionSyntax)initializer.Value).Expression.WalkDownParentheses()
+                : initializer.Value.WalkDownParentheses();
 
         private void HandleVariableDeclaration(SyntaxNodeAnalysisContext context)
         {
             TypeSyntax declaredType;
+            State state = null;
             var shouldAnalyze = false;
             var declarationStatement = context.Node;
             var optionSet = GetOptionSet(context.Options);
-            State state = null;
+            var semanticModel = context.SemanticModel;
+            var cancellationToken = context.CancellationToken;
 
             if (declarationStatement.IsKind(SyntaxKind.VariableDeclaration))
             {
                 var declaration = (VariableDeclarationSyntax)declarationStatement;
                 declaredType = declaration.Type;
 
-                shouldAnalyze = ShouldAnalyzeVariableDeclaration(declaration, context.SemanticModel, context.CancellationToken);
+                shouldAnalyze = ShouldAnalyzeVariableDeclaration(declaration, semanticModel, cancellationToken);
 
                 if (shouldAnalyze)
                 {
-                    state = State.Generate(declarationStatement, context.SemanticModel, optionSet, isVariableDeclarationContext: true, cancellationToken: context.CancellationToken);
-                    shouldAnalyze = IsStylePreferred(declaration, context.SemanticModel, optionSet, state, context.CancellationToken);
+                    state = State.Generate(declarationStatement, semanticModel, optionSet, isVariableDeclarationContext: true, cancellationToken: cancellationToken);
+                    shouldAnalyze = IsStylePreferred(semanticModel, optionSet, state, cancellationToken);
                 }
             }
             else if (declarationStatement.IsKind(SyntaxKind.ForEachStatement))
@@ -103,8 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                 var declaration = (ForEachStatementSyntax)declarationStatement;
                 declaredType = declaration.Type;
 
-                state = State.Generate(declarationStatement, context.SemanticModel, optionSet, isVariableDeclarationContext: false, cancellationToken: context.CancellationToken);
-                shouldAnalyze = IsStylePreferred(declaration, context.SemanticModel, optionSet, state, context.CancellationToken);
+                state = State.Generate(declarationStatement, semanticModel, optionSet, isVariableDeclarationContext: false, cancellationToken: cancellationToken);
+                shouldAnalyze = IsStylePreferred(semanticModel, optionSet, state, cancellationToken);
             }
             else
             {
@@ -118,10 +126,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
 
                 TextSpan diagnosticSpan;
 
-                if (TryAnalyzeVariableDeclaration(declaredType, context.SemanticModel, optionSet, context.CancellationToken, out diagnosticSpan))
+                if (TryAnalyzeVariableDeclaration(declaredType, semanticModel, optionSet, cancellationToken, out diagnosticSpan))
                 {
                     var descriptor = _severityToDescriptorMap[state.GetDiagnosticSeverityPreference()];
-                    context.ReportDiagnostic(CreateDiagnostic(descriptor.Value, declarationStatement, diagnosticSpan));
+                    context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, diagnosticSpan));
                 }
             }
         }
@@ -132,15 +140,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         private bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             // var is applicable only for local variables.
-            if (variableDeclaration.Parent.IsKind(SyntaxKind.FieldDeclaration) ||
-                variableDeclaration.Parent.IsKind(SyntaxKind.EventFieldDeclaration))
+            if (variableDeclaration.IsParentKind(SyntaxKind.FieldDeclaration,
+                                                SyntaxKind.EventFieldDeclaration))
             {
                 return false;
             }
 
             // implicitly typed variables cannot have multiple declarators and
             // must have an initializer.
-            if (variableDeclaration.Variables.Count > 1 ||
+            if (variableDeclaration.Variables.Count != 1 ||
                 !variableDeclaration.Variables.Single().Initializer.IsKind(SyntaxKind.EqualsValueClause))
             {
                 return false;

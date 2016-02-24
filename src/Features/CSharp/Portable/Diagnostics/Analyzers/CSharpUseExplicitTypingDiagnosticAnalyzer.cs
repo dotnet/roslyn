@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
     internal sealed class CSharpUseExplicitTypingDiagnosticAnalyzer : CSharpTypingStyleDiagnosticAnalyzerBase
     {
         private static readonly LocalizableString s_Title =
-            new LocalizableResourceString(nameof(CSharpFeaturesResources.UseExplicitTypingDiagnosticTitle), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.UseExplicitTypeDiagnosticTitle), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
         private static readonly LocalizableString s_Message =
-            new LocalizableResourceString(nameof(CSharpFeaturesResources.UseExplicitTyping), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.UseExplicitType), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
         public CSharpUseExplicitTypingDiagnosticAnalyzer()
             : base(diagnosticId: IDEDiagnosticIds.UseExplicitTypingDiagnosticId,
@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         {
         }
 
-        protected override bool IsStylePreferred(SyntaxNode declarationStatement, SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken)
+        protected override bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken)
         {
-            var stylePreferences = state.StylePreferences;
+            var stylePreferences = state.TypeStyle;
             var shouldNotify = state.ShouldNotify();
 
             // If notification preference is None, don't offer the suggestion.
@@ -40,15 +40,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
 
             if (state.IsInIntrinsicTypeContext)
             {
-                return !stylePreferences.HasFlag(TypingStyles.VarForIntrinsic);
+                return !stylePreferences.HasFlag(TypeStyle.ImplicitTypeForIntrinsicTypes);
             }
             else if (state.IsTypingApparentInContext)
             {
-                return !stylePreferences.HasFlag(TypingStyles.VarWhereApparent);
+                return !stylePreferences.HasFlag(TypeStyle.ImplicitTypeWhereApparent);
             }
             else
             {
-                return !stylePreferences.HasFlag(TypingStyles.VarWherePossible);
+                return !stylePreferences.HasFlag(TypeStyle.ImplicitTypeWherePossible);
             }
         }
 

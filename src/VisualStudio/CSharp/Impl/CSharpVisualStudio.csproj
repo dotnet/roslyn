@@ -158,6 +158,7 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
@@ -206,6 +207,7 @@
     <Compile Include="ObjectBrowser\ListItemFactory.cs" />
     <Compile Include="Options\AdvancedOptionPageStrings.cs" />
     <Compile Include="Options\IntelliSenseOptionPageStrings.cs" />
+    <Compile Include="Options\SerializationHelpers.cs" />
     <Compile Include="Venus\CSharpAdditionalFormattingRuleLanguageService.cs" />
     <Compile Include="CSharpPackage.cs" />
     <Compile Include="CSharpVSResources.Designer.cs">

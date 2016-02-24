@@ -211,19 +211,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             }
 
             // code style: use var options.
-            if (optionKey.Option == CSharpCodeStyleOptions.UseVarForIntrinsicTypes)
+            if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes)
             {
-                var useVarValue = this.Manager.GetValueOrDefault(Style_UseVarForIntrinsicTypes, defaultValue: 0);
+                var useVarValue = this.Manager.GetValueOrDefault<string>(Style_UseVarForIntrinsicTypes);
                 return FetchUseVarOption(useVarValue, out value);
             }
-            else if (optionKey.Option == CSharpCodeStyleOptions.UseVarWhenTypeIsApparent)
+            else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWhereApparent)
             {
-                var useVarValue = this.Manager.GetValueOrDefault(Style_UseVarWhenTypeIsApparent, defaultValue: 0);
+                var useVarValue = this.Manager.GetValueOrDefault<string>(Style_UseVarWhenTypeIsApparent);
                 return FetchUseVarOption(useVarValue, out value);
             }
-            else if (optionKey.Option == CSharpCodeStyleOptions.UseVarWherePossible)
+            else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWherePossible)
             {
-                var useVarValue = this.Manager.GetValueOrDefault(Style_UseVarWherePossible, defaultValue: 0);
+                var useVarValue = this.Manager.GetValueOrDefault<string>(Style_UseVarWherePossible);
                 return FetchUseVarOption(useVarValue, out value);
             }
 
@@ -297,15 +297,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             }
 
             // code style: use var options.
-            if (optionKey.Option == CSharpCodeStyleOptions.UseVarForIntrinsicTypes)
+            if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes)
             {
                 return PersistUseVarOption(Style_UseVarForIntrinsicTypes, value);
             }
-            else if (optionKey.Option == CSharpCodeStyleOptions.UseVarWhenTypeIsApparent)
+            else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWhereApparent)
             {
                 return PersistUseVarOption(Style_UseVarWhenTypeIsApparent, value);
             }
-            else if (optionKey.Option == CSharpCodeStyleOptions.UseVarWherePossible)
+            else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWherePossible)
             {
                 return PersistUseVarOption(Style_UseVarWherePossible, value);
             }
@@ -315,48 +315,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         private bool PersistUseVarOption(string option, object value)
         {
-            var convertedValue = (SimpleCodeStyleOption)value;
-            var offset = convertedValue.IsChecked ? 0 : Enum.GetValues(typeof(DiagnosticSeverity)).Length;
-            var baseValue = (int)convertedValue.Notification.Value;
-
-            this.Manager.SetValueAsync(option, value: baseValue + offset, isMachineLocal: false);
+            var serializedValue = ((SimpleCodeStyleOption)value).SerializeObject();
+            this.Manager.SetValueAsync(option, value: serializedValue, isMachineLocal: false);
             return true;
         }
 
-        private static bool FetchUseVarOption(int useVarOptionValue, out object value)
+        private static bool FetchUseVarOption(string useVarOptionValue, out object value)
         {
-            switch (useVarOptionValue)
+            if (string.IsNullOrEmpty(useVarOptionValue))
             {
-                case 0:
-                    value = new SimpleCodeStyleOption(true, NotificationOption.None);
-                    break;
-                case 1:
-                    value = new SimpleCodeStyleOption(true, NotificationOption.Info);
-                    break;
-                case 2:
-                    value = new SimpleCodeStyleOption(true, NotificationOption.Warning);
-                    break;
-                case 3:
-                    value = new SimpleCodeStyleOption(true, NotificationOption.Error);
-                    break;
-                case 4:
-                    value = new SimpleCodeStyleOption(false, NotificationOption.None);
-                    break;
-                case 5:
-                    value = new SimpleCodeStyleOption(false, NotificationOption.Info);
-                    break;
-                case 6:
-                    value = new SimpleCodeStyleOption(false, NotificationOption.Warning);
-                    break;
-                case 7:
-                    value = new SimpleCodeStyleOption(false, NotificationOption.Error);
-                    break;
-                default:
-                    value = null;
-                    break;
+                value = SimpleCodeStyleOption.Default;
+            }
+            else
+            {
+                value = useVarOptionValue.DeserializeObject<SimpleCodeStyleOption>();
             }
 
-            return value != null;
+            return true;
         }
     }
 }

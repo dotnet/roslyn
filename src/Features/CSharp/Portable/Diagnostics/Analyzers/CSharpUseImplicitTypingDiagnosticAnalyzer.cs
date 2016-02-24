@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
     {
 
         private static readonly LocalizableString s_Title =
-            new LocalizableResourceString(nameof(CSharpFeaturesResources.UseImplicitTypingDiagnosticTitle), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.UseImplicitTypeDiagnosticTitle), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
         private static readonly LocalizableString s_Message =
-            new LocalizableResourceString(nameof(CSharpFeaturesResources.UseImplicitTyping), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.UseImplicitType), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
         public CSharpUseImplicitTypingDiagnosticAnalyzer()
             : base(diagnosticId: IDEDiagnosticIds.UseImplicitTypingDiagnosticId,
@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         {
         }
 
-        protected override bool IsStylePreferred(SyntaxNode declarationStatement, SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken)
+        protected override bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken)
         {
-            var stylePreferences = state.StylePreferences;
+            var stylePreferences = state.TypeStyle;
             var shouldNotify = state.ShouldNotify();
 
             // If notification preference is None, don't offer the suggestion.
@@ -42,25 +42,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
 
             if (state.IsInIntrinsicTypeContext)
             {
-                return stylePreferences.HasFlag(TypingStyles.VarForIntrinsic);
+                return stylePreferences.HasFlag(TypeStyle.ImplicitTypeForIntrinsicTypes);
             }
             else if (state.IsTypingApparentInContext)
             {
-                return stylePreferences.HasFlag(TypingStyles.VarWhereApparent);
+                return stylePreferences.HasFlag(TypeStyle.ImplicitTypeWhereApparent);
             }
             else
             {
-                return stylePreferences.HasFlag(TypingStyles.VarWherePossible);
+                return stylePreferences.HasFlag(TypeStyle.ImplicitTypeWherePossible);
             }
         }
 
         protected override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)
         {
-            issueSpan = default(TextSpan);
-
             // If it is already var, return.
             if (typeName.IsTypeInferred(semanticModel))
             {
+                issueSpan = default(TextSpan);
                 return false;
             }
 
@@ -74,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
             var conflict = semanticModel.GetSpeculativeSymbolInfo(typeName.SpanStart, candidateReplacementNode, SpeculativeBindingOption.BindAsTypeOrNamespace).Symbol;
             if (conflict?.IsKind(SymbolKind.NamedType) == true)
             {
+                issueSpan = default(TextSpan);
                 return false;
             }
 
@@ -85,6 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                 // implicitly typed variables cannot be constants.
                 if ((variableDeclaration.Parent as LocalDeclarationStatementSyntax)?.IsConst == true)
                 {
+                    issueSpan = default(TextSpan);
                     return false;
                 }
 
@@ -92,14 +93,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                 if (AssignmentSupportsStylePreference(variable.Identifier, typeName, variable.Initializer, semanticModel, optionSet, cancellationToken))
                 {
                     issueSpan = candidateIssueSpan;
+                    return true;
                 }
             }
             else if (typeName.IsParentKind(SyntaxKind.ForEachStatement))
             {
                 issueSpan = candidateIssueSpan;
+                return true;
             }
 
-            return issueSpan != default(TextSpan);
+            issueSpan = default(TextSpan);
+            return false;
         }
 
         /// <summary>
@@ -111,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         /// </returns>
         protected override bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
         {
-            var expression = initializer.Value;
+            var expression = GetInitializerExpression(initializer);
 
             // var cannot be assigned null
             if (expression.IsKind(SyntaxKind.NullLiteralExpression))
@@ -121,9 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
 
             // cannot use implicit typing on method group, anonymous function or on dynamic
             var declaredType = semanticModel.GetTypeInfo(typeName, cancellationToken).Type;
-            if (declaredType != null
-                && (declaredType.TypeKind == TypeKind.Delegate
-                || declaredType.TypeKind == TypeKind.Dynamic))
+            if (declaredType != null &&
+               (declaredType.TypeKind == TypeKind.Delegate || declaredType.TypeKind == TypeKind.Dynamic))
             {
                 return false;
             }

@@ -33,34 +33,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
 
         // specify all options explicitly to override defaults.
         private IDictionary<OptionKey, object> ImplicitTypingEverywhere() => 
-            Options(CSharpCodeStyleOptions.UseVarWherePossible, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, onWithInfo);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo);
 
         private IDictionary<OptionKey, object> ImplicitTypingWhereApparent() =>
-            Options(CSharpCodeStyleOptions.UseVarWherePossible, offWithInfo)
-            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, offWithInfo);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
 
         private IDictionary<OptionKey, object> ImplicitTypingWhereApparentAndForIntrinsics() =>
-            Options(CSharpCodeStyleOptions.UseVarWherePossible, offWithInfo)
-            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, onWithInfo);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo);
 
         private IDictionary<OptionKey, object> ImplicitTypingButKeepIntrinsics() =>
-            Options(CSharpCodeStyleOptions.UseVarWherePossible, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, offWithInfo)
-            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, onWithInfo);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo);
 
         private IDictionary<OptionKey, object> ImplicitTypingEnforcements() =>
-            Options(CSharpCodeStyleOptions.UseVarWherePossible, onWithWarning)
-            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, onWithError)
-            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, onWithInfo);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithWarning)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithError)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo);
 
         private IDictionary<OptionKey, object> ImplicitTypingNoneEnforcement() =>
-            Options(CSharpCodeStyleOptions.UseVarWherePossible, onWithNone)
-            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, onWithNone)
-            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, onWithNone);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithNone)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone);
 
         private IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {
@@ -907,6 +907,30 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarInUnCheckedExpression()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    static void M()
+    {
+       long number1 = int.MaxValue + 20L;
+       [|int|] intNumber = unchecked((int)number1);
+    }
+}",
+@"using System;
+class C
+{
+    static void M()
+    {
+       long number1 = int.MaxValue + 20L;
+       var intNumber = unchecked((int)number1);
+    }
+}", options: ImplicitTypingEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
         public async Task SuggestVarInAwaitExpression()
         {
             await TestAsync(
@@ -1178,6 +1202,56 @@ class C
     public void Process()
     {
         var a = int.Parse(""1"");
+    }
+}", options: ImplicitTypingWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarWhereTypingIsEvident_CreationHelpers()
+        {
+            await TestAsync(
+@"class C
+{
+    public void Process()
+    {
+        [|XElement|] a = XElement.Load();
+    }
+}
+class XElement
+{
+    internal static XElement Load() => return null;
+}",
+@"class C
+{
+    public void Process()
+    {
+        var a = XElement.Load();
+    }
+}
+class XElement
+{
+    internal static XElement Load() => return null;
+}", options: ImplicitTypingWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarWhereTypingIsEvident_CreationHelpersWithInferredTypeArguments()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    public void Process()
+    {
+        [|Tuple<int, bool>|] a = Tuple.Create(0, true);
+    }
+}",
+@"using System;
+class C
+{
+    public void Process()
+    {
+        var a = Tuple.Create(0, true);
     }
 }", options: ImplicitTypingWhereApparent());
         }

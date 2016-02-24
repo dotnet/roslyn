@@ -32,19 +32,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
 
         // specify all options explicitly to override defaults.
         private IDictionary<OptionKey, object> ExplicitTypingEverywhere() =>
-            Options(CSharpCodeStyleOptions.UseVarWherePossible, offWithInfo)
-            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, offWithInfo)
-            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, offWithInfo);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
 
         private IDictionary<OptionKey, object> ExplicitTypingEnforcements() =>
-            Options(CSharpCodeStyleOptions.UseVarWherePossible, offWithWarning)
-            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, offWithError)
-            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, offWithInfo);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithWarning)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithError)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
 
         private IDictionary<OptionKey, object> ExplicitTypingNoneEnforcement() =>
-            Options(CSharpCodeStyleOptions.UseVarWherePossible, offWithNone)
-            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, offWithNone)
-            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, offWithNone);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithNone)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithNone)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithNone);
 
         private IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {

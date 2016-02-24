@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         private readonly IEnumerable<IOption> _options = new List<IOption>
             {
                 CSharpCodeStyleOptions.UseVarWhenDeclaringLocals,
-                CSharpCodeStyleOptions.UseVarWherePossible,
-                CSharpCodeStyleOptions.UseVarWhenTypeIsApparent,
-                CSharpCodeStyleOptions.UseVarForIntrinsicTypes
+                CSharpCodeStyleOptions.UseImplicitTypeWherePossible,
+                CSharpCodeStyleOptions.UseImplicitTypeWhereApparent,
+                CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes
             }.ToImmutableArray();
 
         public IEnumerable<IOption> GetOptions()

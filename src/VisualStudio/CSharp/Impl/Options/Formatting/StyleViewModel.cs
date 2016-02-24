@@ -191,9 +191,9 @@ class C{
                                           new NotificationOptionViewModel(NotificationOption.Error, KnownMonikers.StatusError)
                                       };
 
-            Items.Add(new CheckBoxWithComboOptionViewModel(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, CSharpVSResources.UseVarForIntrinsicTypes, s_varForIntrinsicsPreviewTrue, s_varForIntrinsicsPreviewFalse, this, optionSet, notificationOptions));
-            Items.Add(new CheckBoxWithComboOptionViewModel(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, CSharpVSResources.UseVarWhenTypeIsApparent, s_varWhereApparentPreviewTrue, s_varWhereApparentPreviewFalse, this, optionSet, notificationOptions));
-            Items.Add(new CheckBoxWithComboOptionViewModel(CSharpCodeStyleOptions.UseVarWherePossible, CSharpVSResources.UseVarWhenPossible, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, notificationOptions));
+            Items.Add(new CheckBoxWithComboOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CSharpVSResources.UseVarForIntrinsicTypes, s_varForIntrinsicsPreviewTrue, s_varForIntrinsicsPreviewFalse, this, optionSet, notificationOptions));
+            Items.Add(new CheckBoxWithComboOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CSharpVSResources.UseVarWhenTypeIsApparent, s_varWhereApparentPreviewTrue, s_varWhereApparentPreviewFalse, this, optionSet, notificationOptions));
+            Items.Add(new CheckBoxWithComboOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CSharpVSResources.UseVarWhenPossible, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, notificationOptions));
         }
     }
 }

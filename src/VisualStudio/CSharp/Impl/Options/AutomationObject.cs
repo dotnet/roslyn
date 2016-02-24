@@ -459,42 +459,42 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, value); }
         }
 
-        public int Style_UseVarWherePossible
+        public string Style_UseVarWherePossible
         {
             get
             {
-                var option = _optionService.GetOption(CSharpCodeStyleOptions.UseVarWherePossible);
+                var option = _optionService.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible);
                 return GetUseVarOption(option);
             }
             set
             {
-                SetUseVarOption(CSharpCodeStyleOptions.UseVarWherePossible, value);
+                SetUseVarOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, value);
             }
         }
 
-        public int Style_UseVarWhenTypeIsApparent
+        public string Style_UseVarWhenTypeIsApparent
         {
             get
             {
-                var option = _optionService.GetOption(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent);
+                var option = _optionService.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent);
                 return GetUseVarOption(option);
             }
             set
             {
-                SetUseVarOption(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, value);
+                SetUseVarOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, value);
             }
         }
 
-        public int Style_UseVarForIntrinsicTypes
+        public string Style_UseVarForIntrinsicTypes
         {
             get
             {
-                var option = _optionService.GetOption(CSharpCodeStyleOptions.UseVarForIntrinsicTypes);
+                var option = _optionService.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes);
                 return GetUseVarOption(option);
             }
             set
             {
-                SetUseVarOption(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, value);
+                SetUseVarOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, value);
             }
         }
 
@@ -562,49 +562,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             _optionService.SetOptions(optionSet);
         }
 
-        private static int GetUseVarOption(SimpleCodeStyleOption option)
+        private static string GetUseVarOption(SimpleCodeStyleOption option)
         {
-            var offset = option.IsChecked ? 0 : Enum.GetValues(typeof(DiagnosticSeverity)).Length;
-            var baseValue = (int)option.Notification.Value;
-
-            return offset + baseValue;
+            return option.SerializeObject();
         }
 
-        private void SetUseVarOption(Option<SimpleCodeStyleOption> option, int value)
+        private void SetUseVarOption(Option<SimpleCodeStyleOption> option, string value)
         {
             SimpleCodeStyleOption convertedValue = SimpleCodeStyleOption.Default;
-
             var optionSet = _optionService.GetOptions();
-            switch (value)
-            {
-                case 0:
-                    convertedValue = new SimpleCodeStyleOption(true, NotificationOption.None);
-                    break;
-                case 1:
-                    convertedValue = new SimpleCodeStyleOption(true, NotificationOption.Info);
-                    break;
-                case 2:
-                    convertedValue = new SimpleCodeStyleOption(true, NotificationOption.Warning);
-                    break;
-                case 3:
-                    convertedValue = new SimpleCodeStyleOption(true, NotificationOption.Error);
-                    break;
-                case 4:
-                    convertedValue = new SimpleCodeStyleOption(false, NotificationOption.None);
-                    break;
-                case 5:
-                    convertedValue = new SimpleCodeStyleOption(false, NotificationOption.Info);
-                    break;
-                case 6:
-                    convertedValue = new SimpleCodeStyleOption(false, NotificationOption.Warning);
-                    break;
-                case 7:
-                    convertedValue = new SimpleCodeStyleOption(false, NotificationOption.Error);
-                    break;
-                default:
-                    break;
-            }
 
+            convertedValue = (SimpleCodeStyleOption)value.DeserializeObject<SimpleCodeStyleOption>();
             optionSet = optionSet.WithChangedOption(option, convertedValue);
             _optionService.SetOptions(optionSet);
         }

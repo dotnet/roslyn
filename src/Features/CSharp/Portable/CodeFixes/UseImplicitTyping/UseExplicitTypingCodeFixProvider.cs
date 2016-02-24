@@ -35,18 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping
                 return;
             }
 
-            var node = token.GetAncestors<SyntaxNode>().First(n => n.Span.Contains(span));
-            if (node?.IsKind(SyntaxKind.PredefinedType,
-                             SyntaxKind.ArrayType,
-                             SyntaxKind.IdentifierName,
-                             SyntaxKind.GenericName,
-                             SyntaxKind.AliasQualifiedName) == false)
-            {
-                return;
-            }
+            var node = root.FindNode(span, getInnermostNodeForTie: true);
 
             var codeAction = new MyCodeAction(
-                CSharpFeaturesResources.UseExplicitTyping,
+                CSharpFeaturesResources.UseExplicitType,
                 c => HandleDeclaration(document, root, node, context.CancellationToken));
 
             context.RegisterCodeFix(codeAction, context.Diagnostics.First());
@@ -69,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping
             else
             {
                 Debug.Assert(false, $"unhandled kind {declarationContext.Kind().ToString()}");
-                return null;
+                return document;
             }
 
             var typeSymbol = semanticModel.GetTypeInfo(typeSyntax).ConvertedType;
