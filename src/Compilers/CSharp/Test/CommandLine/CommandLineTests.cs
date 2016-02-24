@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
@@ -2676,6 +2677,27 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             Assert.Null(parsedArgs.OutputFileName);
             Assert.Null(parsedArgs.CompilationName);
             Assert.Null(parsedArgs.CompilationOptions.ModuleName);
+        }
+
+        [Fact]
+        public void ParseInstrumentTestNames()
+        {
+            var parsedArgs = DefaultParse(SpecializedCollections.EmptyEnumerable<string>(), _baseDirectory);
+            Assert.Equal("", parsedArgs.EmitOptions.Instrument);
+
+            parsedArgs = DefaultParse(new[] { @"/instrument:", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing '<text>' for 'instrument' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "instrument"));
+
+            parsedArgs = DefaultParse(new[] { "/instrument:", "Test.Flag.Name", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing '<attribute>' for 'instrument' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "instrument"));
+
+            parsedArgs = DefaultParse(new[] { "/instrument:Test.Flag.Name", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal("Test.Flag.Name", parsedArgs.EmitOptions.Instrument);
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
