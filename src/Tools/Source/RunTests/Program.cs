@@ -33,7 +33,7 @@ namespace RunTests
             ITestExecutor testExecutor = new ProcessTestExecutor(options);
             if (options.UseCachedResults)
             {
-                testExecutor = new CachingTestExecutor(options, testExecutor, new LocalDataStorage());
+                testExecutor = new CachingTestExecutor(options, testExecutor, new WebDataStorage());
             }
 
             var testRunner = new TestRunner(options, testExecutor);
