@@ -18,6 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private class EmitCancelledException : Exception
         { }
 
+        private enum UseKind
+        {
+            Unused,
+            UsedAsValue,
+            UsedAsAddress
+        }
+
         private void EmitExpression(BoundExpression expression, bool used)
         {
             if (expression == null)
@@ -79,16 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             switch (expression.Kind)
             {
                 case BoundKind.AssignmentOperator:
-                    var assignment = (BoundAssignmentOperator)expression;
-                    EmitAssignmentExpression(assignment, used);
-                    if (used && assignment.RefKind != RefKind.None)
-                    {
-                        EmitLoadIndirect(assignment.Type, assignment.Syntax);
-                    }
+                    EmitAssignmentExpression((BoundAssignmentOperator)expression, used ? UseKind.UsedAsValue : UseKind.Unused);
                     break;
 
                 case BoundKind.Call:
-                    EmitCallExpression((BoundCall)expression, used);
+                    EmitCallExpression((BoundCall)expression, used ? UseKind.UsedAsValue : UseKind.Unused);
                     break;
 
                 case BoundKind.ObjectCreationExpression:
@@ -357,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             LocalDefinition cloneTemp = null;
 
             // we need a copy if we deal with nonlocal value (to capture the value)
-            // or if we have a ref-constrained T (to do box just once)
+            // or if we have a ref-constrained T (to do box just once) 
             // or if we deal with stack local (reads are destructive)
             var nullCheckOnCopy = LocalRewriter.CanChangeValueBetweenReads(receiver, localsMayBeAssignedOrCaptured: false) ||
                                    (receiverType.IsReferenceType && receiverType.TypeKind == TypeKind.TypeParameter) ||
@@ -1304,7 +1306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             ConstrainedCallVirt,
         }
 
-        private void EmitCallExpression(BoundCall call, bool used)
+        private void EmitCallExpression(BoundCall call, UseKind useKind)
         {
             var method = call.Method;
             var receiver = call.ReceiverOpt;
@@ -1473,13 +1475,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (!method.ReturnsVoid)
             {
-                EmitPopIfUnused(used);
+                EmitPopIfUnused(useKind != UseKind.Unused);
             }
             else if (_ilEmitStyle == ILEmitStyle.Debug)
             {
                 // The only void methods with usable return values are constructors and we represent those
                 // as BoundObjectCreationExpressions, not BoundCalls.
-                Debug.Assert(!used, "Using the return value of a void method.");
+                Debug.Assert(useKind == UseKind.Unused, "Using the return value of a void method.");
                 Debug.Assert(_method.GenerateDebugInfo, "Implied by this.emitSequencePoints");
 
                 // DevDiv #15135.  When a method like System.Diagnostics.Debugger.Break() is called, the
@@ -1513,6 +1515,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _builder.EmitOpCode(ILOpCode.Nop);
             }
 
+            if (useKind == UseKind.UsedAsValue && method.RefKind != RefKind.None)
+            {
+                EmitLoadIndirect(method.ReturnType, call.Syntax);
+            }
+            else if (useKind == UseKind.UsedAsAddress)
+            {
+                Debug.Assert(method.RefKind != RefKind.None);
+            }
+
             FreeOptTemp(tempOpt);
         }
 
@@ -1528,6 +1539,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Parameter:
                     return ((BoundParameter)receiver).ParameterSymbol.RefKind != RefKind.None;
+
+                case BoundKind.Call:
+                    return ((BoundCall)receiver).Method.RefKind != RefKind.None;
 
                 case BoundKind.Dup:
                     return ((BoundDup)receiver).RefKind != RefKind.None;
@@ -1736,10 +1750,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitAssignmentExpression(BoundAssignmentOperator assignmentOperator, bool used)
+        private void EmitAssignmentExpression(BoundAssignmentOperator assignmentOperator, UseKind useKind)
         {
-            if (TryEmitAssignmentInPlace(assignmentOperator, used))
+            if (TryEmitAssignmentInPlace(assignmentOperator, useKind != UseKind.Unused))
             {
+                Debug.Assert(assignmentOperator.RefKind == RefKind.None);
                 return;
             }
 
@@ -1789,9 +1804,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             bool lhsUsesStack = EmitAssignmentPreamble(assignmentOperator);
             EmitAssignmentValue(assignmentOperator);
-            LocalDefinition temp = EmitAssignmentDuplication(assignmentOperator, used, lhsUsesStack);
+            LocalDefinition temp = EmitAssignmentDuplication(assignmentOperator, useKind, lhsUsesStack);
             EmitStore(assignmentOperator);
-            EmitAssignmentPostfix(temp);
+            EmitAssignmentPostfix(assignmentOperator, temp, useKind);
         }
 
         // sometimes it is possible and advantageous to get an address of the lHS and 
@@ -2106,6 +2121,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     break;
 
+                case BoundKind.Call:
+                    {
+                        var left = (BoundCall)assignmentOperator.Left;
+
+                        Debug.Assert(left.Method.RefKind != RefKind.None);
+                        EmitCallExpression(left, UseKind.UsedAsAddress);
+
+                        lhsUsesStack = true;
+                    }
+                    break;
+
+                case BoundKind.AssignmentOperator:
+                    {
+                        var left = (BoundAssignmentOperator)assignmentOperator.Left;
+
+                        Debug.Assert(left.RefKind != RefKind.None);
+                        EmitAssignmentExpression(left, UseKind.UsedAsAddress);
+
+                        lhsUsesStack = true;
+                    }
+                    break;
+
                 case BoundKind.PropertyAccess:
                 case BoundKind.IndexerAccess:
                 // Property access should have been rewritten.
@@ -2141,10 +2178,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private LocalDefinition EmitAssignmentDuplication(BoundAssignmentOperator assignmentOperator, bool used, bool lhsUsesStack)
+        private LocalDefinition EmitAssignmentDuplication(BoundAssignmentOperator assignmentOperator, UseKind useKind, bool lhsUsesStack)
         {
             LocalDefinition temp = null;
-            if (used)
+            if (useKind != UseKind.Unused)
             {
                 _builder.EmitOpCode(ILOpCode.Dup);
 
@@ -2257,6 +2294,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     break;
 
+                case BoundKind.Call:
+                    Debug.Assert(((BoundCall)expression).Method.RefKind != RefKind.None);
+                    EmitIndirectStore(expression.Type, expression.Syntax);
+                    break;
+
+                case BoundKind.AssignmentOperator:
+                    Debug.Assert(((BoundAssignmentOperator)expression).RefKind != RefKind.None);
+                    EmitIndirectStore(expression.Type, expression.Syntax);
+                    break;
+
                 case BoundKind.PreviousSubmissionReference:
                 // Script references are lowered to a this reference and a field access.
                 default:
@@ -2264,12 +2311,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitAssignmentPostfix(LocalDefinition temp)
+        private void EmitAssignmentPostfix(BoundAssignmentOperator assignment, LocalDefinition temp, UseKind useKind)
         {
             if (temp != null)
             {
                 _builder.EmitLocalLoad(temp);
                 FreeTemp(temp);
+            }
+
+            if (useKind == UseKind.UsedAsValue && assignment.RefKind != RefKind.None)
+            {
+                EmitLoadIndirect(assignment.Type, assignment.Syntax);
             }
         }
 

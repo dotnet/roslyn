@@ -105,7 +105,9 @@
     <Compile Include="CodeGen\CodeGenOperators.cs" />
     <Compile Include="CodeGen\CodeGenOptimizedNullableOperators.cs" />
     <Compile Include="CodeGen\CodeGenOverridingAndHiding.cs" />
+    <Compile Include="CodeGen\CodeGenRefLocalTests.cs" />
     <Compile Include="CodeGen\CodeGenRefOutTests.cs" />
+    <Compile Include="CodeGen\CodeGenRefReturnTests.cs" />
     <Compile Include="CodeGen\CodeGenShortCircuitOperatorTests.cs" />
     <Compile Include="CodeGen\CodeGenStringConcat.cs" />
     <Compile Include="CodeGen\CodeGenStructsAndEnum.cs" />
@@ -182,7 +184,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

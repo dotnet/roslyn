@@ -209,6 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localSymbol = SourceLocalSymbol.MakeLocal(
                     ContainingMemberOrLambda,
                     this,
+                    RefKind.None,
                     typeSyntax,
                     identifier,
                     LocalDeclarationKind.PatternVariable);
@@ -376,6 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     localSymbol = SourceLocalSymbol.MakeLocal(
                         ContainingMemberOrLambda,
                         this,
+                        RefKind.None,
                         null,
                         node.Identifier,
                         LocalDeclarationKind.PatternVariable,

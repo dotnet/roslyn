@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseCompilationUnit(text, options: parseOptions);
         }
 
+        private CompilationUnitSyntax ParseFileExperimental(string text)
+        {
+            return ParseFile(text, parseOptions: TestOptions.ExperimentalParseOptions);
+        }
+
         [Fact]
         public void TestExternAlias()
         {
@@ -1952,6 +1957,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDelegateWithRefReturnType()
+        {
+            var text = "delegate ref a b();";
+            var file = this.ParseFileExperimental(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
+            var ds = (DelegateDeclarationSyntax)file.Members[0];
+            Assert.NotNull(ds.DelegateKeyword);
+            Assert.NotNull(ds.RefKeyword);
+            Assert.NotNull(ds.ReturnType);
+            Assert.Equal("a", ds.ReturnType.ToString());
+            Assert.NotNull(ds.Identifier);
+            Assert.Equal("b", ds.Identifier.ToString());
+            Assert.NotNull(ds.ParameterList.OpenParenToken);
+            Assert.False(ds.ParameterList.OpenParenToken.IsMissing);
+            Assert.Equal(0, ds.ParameterList.Parameters.Count);
+            Assert.NotNull(ds.ParameterList.CloseParenToken);
+            Assert.False(ds.ParameterList.CloseParenToken.IsMissing);
+            Assert.NotNull(ds.SemicolonToken);
+            Assert.False(ds.SemicolonToken.IsMissing);
+        }
+
+        [Fact]
         public void TestDelegateWithBuiltInReturnTypes()
         {
             TestDelegateWithBuiltInReturnType(SyntaxKind.VoidKeyword);
@@ -2393,6 +2426,81 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
             Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
             Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
+        }
+
+        [Fact]
+        public void TestClassMethodWithRefReturn()
+        {
+            var text = "class a { ref b X() { } }";
+            var file = this.ParseFileExperimental(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var cs = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(0, cs.AttributeLists.Count);
+            Assert.Equal(0, cs.Modifiers.Count);
+            Assert.NotNull(cs.Keyword);
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.NotNull(cs.Identifier);
+            Assert.Equal("a", cs.Identifier.ToString());
+            Assert.Null(cs.BaseList);
+            Assert.Equal(0, cs.ConstraintClauses.Count);
+            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotNull(cs.CloseBraceToken);
+
+            Assert.Equal(1, cs.Members.Count);
+
+            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind());
+            var ms = (MethodDeclarationSyntax)cs.Members[0];
+            Assert.Equal(0, ms.AttributeLists.Count);
+            Assert.Equal(0, ms.Modifiers.Count);
+            Assert.NotNull(ms.RefKeyword);
+            Assert.NotNull(ms.ReturnType);
+            Assert.Equal("b", ms.ReturnType.ToString());
+            Assert.NotNull(ms.Identifier);
+            Assert.Equal("X", ms.Identifier.ToString());
+            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
+            Assert.Equal(0, ms.ParameterList.Parameters.Count);
+            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
+            Assert.Equal(0, ms.ConstraintClauses.Count);
+            Assert.NotNull(ms.Body);
+            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
+            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
+        }
+
+        public void TestClassMethodWithRef()
+        {
+            var text = "class a { ref }";
+            var file = this.ParseFileExperimental(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(1, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var cs = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(0, cs.AttributeLists.Count);
+            Assert.Equal(0, cs.Modifiers.Count);
+            Assert.NotNull(cs.Keyword);
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.NotNull(cs.Identifier);
+            Assert.Equal("a", cs.Identifier.ToString());
+            Assert.Null(cs.BaseList);
+            Assert.Equal(0, cs.ConstraintClauses.Count);
+            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotNull(cs.CloseBraceToken);
+
+            Assert.Equal(1, cs.Members.Count);
+
+            Assert.Equal(SyntaxKind.IncompleteMember, cs.Members[0].Kind());
         }
 
         private void TestClassMethodModifiers(params SyntaxKind[] modifiers)
@@ -3686,6 +3794,61 @@ class Class1<T>{
         }
 
         [Fact]
+        public void TestClassPropertyWithRefReturn()
+        {
+            var text = "class a { ref b c { get; set; } }";
+            var file = this.ParseFileExperimental(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var cs = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(0, cs.AttributeLists.Count);
+            Assert.Equal(0, cs.Modifiers.Count);
+            Assert.NotNull(cs.Keyword);
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.NotNull(cs.Identifier);
+            Assert.Equal("a", cs.Identifier.ToString());
+            Assert.Null(cs.BaseList);
+            Assert.Equal(0, cs.ConstraintClauses.Count);
+            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotNull(cs.CloseBraceToken);
+
+            Assert.Equal(1, cs.Members.Count);
+
+            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind());
+            var ps = (PropertyDeclarationSyntax)cs.Members[0];
+            Assert.Equal(0, ps.AttributeLists.Count);
+            Assert.Equal(0, ps.Modifiers.Count);
+            Assert.NotNull(ps.RefKeyword);
+            Assert.NotNull(ps.Type);
+            Assert.Equal("b", ps.Type.ToString());
+            Assert.NotNull(ps.Identifier);
+            Assert.Equal("c", ps.Identifier.ToString());
+
+            Assert.NotNull(ps.AccessorList.OpenBraceToken);
+            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.Equal(2, ps.AccessorList.Accessors.Count);
+
+            Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
+            Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
+            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Null(ps.AccessorList.Accessors[0].Body);
+            Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
+
+            Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
+            Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
+            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
+            Assert.Null(ps.AccessorList.Accessors[1].Body);
+            Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
+        }
+
+        [Fact]
         public void TestClassPropertyWithBuiltInTypes()
         {
             TestClassPropertyWithBuiltInType(SyntaxKind.BoolKeyword);
@@ -4469,6 +4632,74 @@ class Class1<T>{
             var ps = (IndexerDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
+            Assert.NotNull(ps.Type);
+            Assert.Equal("b", ps.Type.ToString());
+            Assert.NotNull(ps.ThisKeyword);
+            Assert.Equal("this", ps.ThisKeyword.ToString());
+
+            Assert.NotNull(ps.ParameterList); // used with indexer property
+            Assert.NotNull(ps.ParameterList.OpenBracketToken);
+            Assert.Equal(SyntaxKind.OpenBracketToken, ps.ParameterList.OpenBracketToken.Kind());
+            Assert.NotNull(ps.ParameterList.CloseBracketToken);
+            Assert.Equal(SyntaxKind.CloseBracketToken, ps.ParameterList.CloseBracketToken.Kind());
+            Assert.Equal(1, ps.ParameterList.Parameters.Count);
+            Assert.Equal(0, ps.ParameterList.Parameters[0].AttributeLists.Count);
+            Assert.Equal(0, ps.ParameterList.Parameters[0].Modifiers.Count);
+            Assert.NotNull(ps.ParameterList.Parameters[0].Type);
+            Assert.Equal("c", ps.ParameterList.Parameters[0].Type.ToString());
+            Assert.NotNull(ps.ParameterList.Parameters[0].Identifier);
+            Assert.Equal("d", ps.ParameterList.Parameters[0].Identifier.ToString());
+
+            Assert.NotNull(ps.AccessorList.OpenBraceToken);
+            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.Equal(2, ps.AccessorList.Accessors.Count);
+
+            Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
+            Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
+            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Null(ps.AccessorList.Accessors[0].Body);
+            Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
+
+            Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
+            Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
+            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
+            Assert.Null(ps.AccessorList.Accessors[1].Body);
+            Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
+        }
+
+        [Fact]
+        public void TestClassIndexerWithRefReturn()
+        {
+            var text = "class a { ref b this[c d] { get; set; } }";
+            var file = this.ParseFileExperimental(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var cs = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(0, cs.AttributeLists.Count);
+            Assert.Equal(0, cs.Modifiers.Count);
+            Assert.NotNull(cs.Keyword);
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.NotNull(cs.Identifier);
+            Assert.Equal("a", cs.Identifier.ToString());
+            Assert.Null(cs.BaseList);
+            Assert.Equal(0, cs.ConstraintClauses.Count);
+            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotNull(cs.CloseBraceToken);
+
+            Assert.Equal(1, cs.Members.Count);
+
+            Assert.Equal(SyntaxKind.IndexerDeclaration, cs.Members[0].Kind());
+            var ps = (IndexerDeclarationSyntax)cs.Members[0];
+            Assert.Equal(0, ps.AttributeLists.Count);
+            Assert.Equal(0, ps.Modifiers.Count);
+            Assert.NotNull(ps.RefKeyword);
             Assert.NotNull(ps.Type);
             Assert.Equal("b", ps.Type.ToString());
             Assert.NotNull(ps.ThisKeyword);

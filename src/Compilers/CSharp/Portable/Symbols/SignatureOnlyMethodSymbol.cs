@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly Cci.CallingConvention _callingConvention;
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
+        private readonly RefKind _refKind;
         private readonly TypeSymbol _returnType;
         private readonly ImmutableArray<CustomModifier> _returnTypeCustomModifiers;
         private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
@@ -31,12 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Cci.CallingConvention callingConvention,
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ImmutableArray<ParameterSymbol> parameters,
+            RefKind refKind,
             TypeSymbol returnType,
             ImmutableArray<CustomModifier> returnTypeCustomModifiers,
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations)
         {
             _callingConvention = callingConvention;
             _typeParameters = typeParameters;
+            _refKind = refKind;
             _returnType = returnType;
             _returnTypeCustomModifiers = returnTypeCustomModifiers;
             _parameters = parameters;
@@ -57,6 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<TypeParameterSymbol> TypeParameters { get { return _typeParameters; } }
 
         public override bool ReturnsVoid { get { return _returnType.SpecialType == SpecialType.System_Void; } }
+
+        internal override RefKind RefKind { get { return _refKind; } }
 
         public override TypeSymbol ReturnType { get { return _returnType; } }
 

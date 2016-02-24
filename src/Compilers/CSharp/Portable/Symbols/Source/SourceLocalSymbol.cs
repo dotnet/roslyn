@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly SyntaxToken _identifierToken;
         private readonly ImmutableArray<Location> _locations;
+        private readonly RefKind _refKind;
         private readonly TypeSyntax _typeSyntax;
         private readonly LocalDeclarationKind _declarationKind;
         private TypeSymbol _type;
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private SourceLocalSymbol(
             Symbol containingSymbol,
             Binder binder,
+            RefKind refKind,
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
             LocalDeclarationKind declarationKind)
@@ -55,10 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(declarationKind != LocalDeclarationKind.None);
 
             this.binder = binder;
-            _containingSymbol = containingSymbol;
-            _identifierToken = identifierToken;
-            _typeSyntax = typeSyntax;
-            _declarationKind = declarationKind;
+            this._containingSymbol = containingSymbol;
+            this._identifierToken = identifierToken;
+            this._refKind = refKind;
+            this._typeSyntax = typeSyntax;
+            this._declarationKind = declarationKind;
 
             // create this eagerly as it will always be needed for the EnsureSingleDefinition
             _locations = ImmutableArray.Create<Location>(identifierToken.GetLocation());
@@ -77,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static SourceLocalSymbol MakeLocal(
             Symbol containingSymbol,
             Binder binder,
+            RefKind refKind,
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
             LocalDeclarationKind declarationKind,
@@ -84,8 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
             return (initializer == null) ?
-                new SourceLocalSymbol(containingSymbol, binder, typeSyntax, identifierToken, declarationKind) :
-                new LocalWithInitializer(containingSymbol, binder, typeSyntax, identifierToken, initializer, declarationKind);
+                new SourceLocalSymbol(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind) :
+                new LocalWithInitializer(containingSymbol, binder, refKind, typeSyntax, identifierToken, initializer, declarationKind);
         }
 
         internal override bool IsImportedFromMetadata
@@ -128,6 +132,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((_isSpecificallyNotPinned & 2) == 0, "Shouldn't be writing after first read.");
             Interlocked.CompareExchange(ref _isSpecificallyNotPinned, _isSpecificallyNotPinned | 1, _isSpecificallyNotPinned);
             Debug.Assert((_isSpecificallyNotPinned & 1) == 1, "Regardless of which thread won, the flag bit should be set.");
+        }
+
+        internal virtual void SetReturnable()
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override Symbol ContainingSymbol
@@ -334,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override RefKind RefKind
         {
-            get { return RefKind.None; }
+            get { return _refKind; }
         }
 
         public sealed override bool Equals(object obj)
@@ -366,25 +375,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             private EvaluatedConstant _constantTuple;
 
+            /// <summary>
+            /// Unfortunately we can only know a ref local is returnable after binding the initializer.
+            /// </summary>
+            private bool _returnable;
+
             public LocalWithInitializer(
                 Symbol containingSymbol,
                 Binder binder,
+                RefKind refKind,
                 TypeSyntax typeSyntax,
                 SyntaxToken identifierToken,
                 EqualsValueClauseSyntax initializer,
                 LocalDeclarationKind declarationKind) :
-                base(containingSymbol, binder, typeSyntax, identifierToken, declarationKind)
+                    base(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind)
             {
                 Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
                 Debug.Assert(initializer != null);
 
                 _initializer = initializer;
+
+                // byval locals are always returnable
+                // byref locals with initializers are assumed not returnable unless proven otherwise
+                // NOTE: if we assumed returnable, then self-referring initializer could result in 
+                //       a randomly changing returnability when initializer is bound concurrently.
+                _returnable = refKind == RefKind.None;
             }
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
                 var newBinder = new ImplicitlyTypedLocalBinder(this.binder, this);
-                var initializerOpt = newBinder.BindInferredVariableInitializer(diagnostics, _initializer, _initializer);
+                var initializerOpt = newBinder.BindInferredVariableInitializer(diagnostics, RefKind, _initializer, _initializer);
                 if (initializerOpt != null)
                 {
                     return initializerOpt.Type;
@@ -411,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (boundInitValue == null)
                     {
                         var inProgressBinder = new LocalInProgressBinder(this, this.binder);
-                        boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializer(_initializer, type, diagnostics);
+                        boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializer(_initializer, this.RefKind, type, diagnostics);
                     }
 
                     value = ConstantValueUtils.GetAndValidateConstantValue(boundInitValue, this, type, initValueNodeLocation, diagnostics);
@@ -441,6 +462,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MakeConstantTuple(inProgress: null, boundInitValue: boundInitValue);
                 return _constantTuple == null ? ImmutableArray<Diagnostic>.Empty : _constantTuple.Diagnostics;
             }
+
+            internal override void SetReturnable()
+            {
+                _returnable = true;
+            }
+
+            internal override bool IsReturnable
+            {
+                get
+                {
+                    return _returnable;
+                }
+            }
         }
 
         private sealed class ForEachLocal : SourceLocalSymbol
@@ -454,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SyntaxToken identifierToken,
                 ExpressionSyntax collection,
                 LocalDeclarationKind declarationKind) :
-                    base(containingSymbol, binder, typeSyntax, identifierToken, declarationKind)
+                    base(containingSymbol, binder, RefKind.None, typeSyntax, identifierToken, declarationKind)
             {
                 Debug.Assert(declarationKind == LocalDeclarationKind.ForEachIterationVariable);
                 _collection = collection;

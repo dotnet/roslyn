@@ -78,7 +78,6 @@
     <Compile Include="RuntimeInstance.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="project.json" />
     <None Include="Resources\Empty.dll" />
     <None Include="Resources\LibraryA.winmd" />

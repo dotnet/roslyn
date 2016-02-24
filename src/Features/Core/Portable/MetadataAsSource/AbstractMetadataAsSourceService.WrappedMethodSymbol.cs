@@ -170,6 +170,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
+            public bool ReturnsByRef
+            {
+                get
+                {
+                    return _symbol.ReturnsByRef;
+                }
+            }
+
             public ITypeSymbol ReturnType
             {
                 get

@@ -156,19 +156,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SyntaxKind.LocalDeclarationStatement:
                         {
-                            var decl = (LocalDeclarationStatementSyntax)innerStatement;
-                            if (locals == null)
-                            {
-                                locals = ArrayBuilder<LocalSymbol>.GetInstance();
-                            }
+                    var decl = (LocalDeclarationStatementSyntax)innerStatement;
+                    if (locals == null)
+                    {
+                        locals = ArrayBuilder<LocalSymbol>.GetInstance();
+                    }
 
-                            LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
+                    RefKind refKind = decl.RefKeyword.Kind().GetRefKind();
+                    LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
 
-                            foreach (var vdecl in decl.Declaration.Variables)
-                            {
-                                var localSymbol = MakeLocal(decl.Declaration, vdecl, kind);
-                                locals.Add(localSymbol);
-                            }
+                    foreach (var vdecl in decl.Declaration.Variables)
+                    {
+                        var localSymbol = MakeLocal(refKind, decl.Declaration, vdecl, kind);
+                        locals.Add(localSymbol);
+                    }
                         }
                         break;
                     case SyntaxKind.LetStatement:
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var patterns = PatternVariableFinder.FindPatternVariables(patterns: ImmutableArray.Create(decl.Pattern));
                                 foreach (var pattern in patterns)
                                 {
-                                    var localSymbol = SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, pattern.Type, pattern.Identifier, LocalDeclarationKind.PatternVariable);
+                                    var localSymbol = SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, RefKind.None, pattern.Type, pattern.Identifier, LocalDeclarationKind.PatternVariable);
                                     locals.Add(localSymbol);
                                 }
                                 patterns.Free();
@@ -193,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else
                             {
                                 TypeSyntax type = null; // in the syntax "var x = 1", there is no syntax for the variable's type.
-                                var localSymbol = SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, type, decl.Identifier, LocalDeclarationKind.PatternVariable);
+                                var localSymbol = SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, RefKind.None, type, decl.Identifier, LocalDeclarationKind.PatternVariable);
                                 locals.Add(localSymbol);
                             }
                         }
@@ -243,11 +244,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray<LocalFunctionSymbol>.Empty;
         }
 
-        protected SourceLocalSymbol MakeLocal(VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind)
+        protected SourceLocalSymbol MakeLocal(RefKind refKind, VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind)
         {
             return SourceLocalSymbol.MakeLocal(
                 this.ContainingMemberOrLambda,
                 this,
+                refKind,
                 declaration.Type,
                 declarator.Identifier,
                 kind,

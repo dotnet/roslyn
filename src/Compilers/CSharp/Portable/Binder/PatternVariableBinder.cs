@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<LocalSymbol>.GetInstance();
             foreach (var pattern in patterns)
             {
-                builder.Add(SourceLocalSymbol.MakeLocal(Next.ContainingMember(), this, pattern.Type, pattern.Identifier, LocalDeclarationKind.PatternVariable));
+                builder.Add(SourceLocalSymbol.MakeLocal(Next.ContainingMember(), this, RefKind.None, pattern.Type, pattern.Identifier, LocalDeclarationKind.PatternVariable));
             }
             patterns.Free();
             return builder.ToImmutableAndFree();

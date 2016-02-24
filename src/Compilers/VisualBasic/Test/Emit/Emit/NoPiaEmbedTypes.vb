@@ -1298,7 +1298,7 @@ End Class
 
                                                            Dim signatureHeader As SignatureHeader = Nothing
                                                            Dim mrEx As BadImageFormatException = Nothing
-                                                           Dim paramInfo = New MetadataDecoder(DirectCast([module], PEModuleSymbol), itest17).GetSignatureForMethod(gapMethodDef, signatureHeader, mrEx)
+                                                           Dim paramInfo = New MetadataDecoder(DirectCast([module], PEModuleSymbol), itest17).GetSignatureForMethod(gapMethodDef, allowByRefReturn:=False, signatureHeader:=signatureHeader, metadataException:=mrEx)
                                                            Assert.Null(mrEx)
                                                            Assert.Equal(CByte(SignatureCallingConvention.Default) Or CByte(SignatureAttributes.Instance), signatureHeader.RawValue)
                                                            Assert.Equal(1, paramInfo.Length)
