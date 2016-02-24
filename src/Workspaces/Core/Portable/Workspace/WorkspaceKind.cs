@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis
         public const string MetadataAsSource = nameof(MetadataAsSource);
         public const string MiscellaneousFiles = nameof(MiscellaneousFiles);
         public const string Preview = nameof(Preview);
-        public const string AnyCodeRoslynWorkspace = nameof(AnyCodeRoslynWorkspace);
+        internal const string AnyCodeRoslynWorkspace = nameof(AnyCodeRoslynWorkspace);
     }
 }
