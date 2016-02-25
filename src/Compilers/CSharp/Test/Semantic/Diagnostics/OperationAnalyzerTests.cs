@@ -749,7 +749,8 @@ enum E
                 Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(4, 40),
                 Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(9, 21),
                 Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(14, 16),
-                Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(24, 9)
+                Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(24, 9),
+                Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "M0()").WithLocation(16, 9)
                 );
         }
 
@@ -1523,8 +1524,7 @@ class C
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NullOperationSyntaxTestAnalyzer() }, null, null, false,
-                // TODO: missing a params array for M0() 
-                // https://github.com/dotnet/roslyn/issues/8566
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0()").WithLocation(10, 9),
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "1").WithLocation(11, 12),
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "1").WithLocation(12, 12));
         }
@@ -1620,6 +1620,44 @@ class C
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1").WithLocation(31, 13),
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?.M0(null)").WithLocation(32, 9),
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1").WithLocation(32, 9));
+        }
+
+        [WorkItem(9116, "https://github.com/dotnet/roslyn/issues/9116")]
+        [Fact]
+        public void LiteralCSharp()
+        {
+            const string source = @"
+public class A
+{
+    public void M()
+    {
+        object a = null;
+    }
+}
+
+struct S
+{
+    void M(
+        int i = 1,
+        string str = ""hello"",
+        object o = null,
+        S s = default(S))
+    {
+        M();
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+             .VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(6, 16))
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new LiteralTestAnalyzer() }, null, null, false,
+                Diagnostic("Literal", "null").WithArguments("null").WithLocation(6, 20),
+                Diagnostic("Literal", "1").WithArguments("1").WithLocation(13, 17),
+                Diagnostic("Literal", @"""hello""").WithArguments(@"""hello""").WithLocation(14, 22),
+                Diagnostic("Literal", "null").WithArguments("null").WithLocation(15, 20),
+                Diagnostic("Literal", "M()").WithArguments("1").WithLocation(18, 9),
+                Diagnostic("Literal", "M()").WithArguments(@"""hello""").WithLocation(18, 9),
+                Diagnostic("Literal", "M()").WithArguments("null").WithLocation(18, 9),
+                Diagnostic("Literal", "M()").WithArguments("null").WithLocation(18, 9));
         }
     }
 }

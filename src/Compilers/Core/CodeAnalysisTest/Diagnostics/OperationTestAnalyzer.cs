@@ -1825,4 +1825,33 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.LoopStatement);
         }
     }
+
+    public class LiteralTestAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+        
+        public static readonly DiagnosticDescriptor LiteralDescriptor = new DiagnosticDescriptor(
+            "Literal",
+            "A literal is found",
+            "A literal of value {0} is found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(LiteralDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     var literal = (ILiteralExpression)operationContext.Operation;
+                     operationContext.ReportDiagnostic(Diagnostic.Create(LiteralDescriptor, literal.Syntax.GetLocation(), literal.Text));
+                 },
+                 OperationKind.LiteralExpression);
+        }
+    }
 }
