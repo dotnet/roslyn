@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicitTyping
 {
-    public class UseExplicitTypingTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class UseExplicitTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace) =>
             new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
@@ -34,6 +34,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
         private IDictionary<OptionKey, object> ExplicitTypingEverywhere() =>
             Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
+
+        private IDictionary<OptionKey, object> ExplicitTypingExceptWhereApparent() =>
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
 
         private IDictionary<OptionKey, object> ExplicitTypingEnforcements() =>
