@@ -134,7 +134,6 @@
     <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
     <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
-    <InternalsVisibleToSlnx Include="Microsoft.VisualStudio.SourceExplorer.Extensions" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandArgs.cs" />
