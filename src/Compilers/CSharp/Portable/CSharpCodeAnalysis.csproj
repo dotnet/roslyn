@@ -256,6 +256,7 @@
     <Compile Include="Compiler\DocumentationCommentCompiler.DocumentationCommentWalker.cs" />
     <Compile Include="Compiler\DocumentationCommentCompiler.IncludeElementExpander.cs" />
     <Compile Include="Compiler\EntryPointCandidateFinder.cs" />
+    <Compile Include="Compiler\Instrumentation.cs" />
     <Compile Include="Compiler\MethodCompiler.cs" />
     <Compile Include="Compiler\MethodBodySynthesizer.cs" />
     <Compile Include="Compiler\MethodBodySynthesizer.Lowered.cs" />
