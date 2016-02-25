@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         if (tk == SyntaxKind.OpenParenToken)
                         {
                             node = _syntaxFactory.RecursivePattern(type, this.ParseSubRecursivePatternList());
+                            node = CheckFeatureAvailability(node, MessageID.IDS_FeaturePatternMatching2);
                         }
                         // X.Y.Z { ... } : PropertyPattern
                         else if (tk == SyntaxKind.OpenBraceToken)
@@ -203,6 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 return (PatternSyntax)node;
             }
+
             Debug.Assert(node is ExpressionSyntax);
             return _syntaxFactory.ConstantPattern((ExpressionSyntax)node);
         }
@@ -236,6 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         if (tk == SyntaxKind.OpenParenToken)
                         {
                             node = _syntaxFactory.RecursivePattern(type, this.ParseSubRecursivePatternList());
+                            node = CheckFeatureAvailability(node, MessageID.IDS_FeaturePatternMatching2);
                         }
                         // X.Y.Z { ... } : PropertyPattern
                         else if (tk == SyntaxKind.OpenBraceToken)

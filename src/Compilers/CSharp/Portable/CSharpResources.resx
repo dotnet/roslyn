@@ -210,6 +210,9 @@
   <data name="IDS_FeaturePatternMatching" xml:space="preserve">
     <value>pattern matching</value>
   </data>
+  <data name="IDS_FeaturePatternMatching2" xml:space="preserve">
+    <value>pattern matching experimental features</value>
+  </data>
   <data name="IDS_FeatureImplicitArray" xml:space="preserve">
     <value>implicitly typed array</value>
   </data>

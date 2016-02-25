@@ -9675,6 +9675,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to pattern matching experimental features.
+        /// </summary>
+        internal static string IDS_FeaturePatternMatching2 {
+            get {
+                return ResourceManager.GetString("IDS_FeaturePatternMatching2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to #pragma.
         /// </summary>
         internal static string IDS_FeaturePragma {

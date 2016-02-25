@@ -6698,7 +6698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // compiler it would simple call IsLocalDeclaration.
 
             var tk = this.CurrentToken.ContextualKind;
-            if (tk == SyntaxKind.LetKeyword && IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching))
+            if (tk == SyntaxKind.LetKeyword && IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching2))
             {
                 // accept a let statement if it begins with the contextual keyword 'let'.
                 // TODO: Note that we do not make any accomodation for the possible use of 'let' as the name
@@ -7913,11 +7913,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             {
                                 // if there is a 'where' token, we treat a case expression as a constant pattern.
                                 node = _syntaxFactory.ConstantPattern((ExpressionSyntax)node);
-                        }
+                            }
                             if (node is PatternSyntax)
                             {
                                 var whenClause = ParseWhenClauseOpt();
-                        colon = this.EatToken(SyntaxKind.ColonToken);
+                                colon = this.EatToken(SyntaxKind.ColonToken);
                                 label = _syntaxFactory.CasePatternSwitchLabel(specifier, (PatternSyntax)node, whenClause, colon);
                                 label = CheckFeatureAvailability(label, MessageID.IDS_FeaturePatternMatching);
                             }
@@ -8121,7 +8121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private StatementSyntax ParseLocalDeclarationStatement()
         {
             // First, check if it is a "let" statement.
-            if (this.CurrentToken.ContextualKind == SyntaxKind.LetKeyword && IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching))
+            if (this.CurrentToken.ContextualKind == SyntaxKind.LetKeyword && IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching2))
             {
                 return ParseLetStatement();
             }
@@ -8905,7 +8905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 else if (opKind == SyntaxKind.MatchExpression)
                 {
                     leftOperand = ParseMatchExpression(leftOperand, opToken);
-                    leftOperand = CheckFeatureAvailability(leftOperand, MessageID.IDS_FeaturePatternMatching);
+                    leftOperand = CheckFeatureAvailability(leftOperand, MessageID.IDS_FeaturePatternMatching2);
                 }
                 else
                 {
@@ -8954,7 +8954,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var thrown = this.ParseSubExpression(Precedence.Coalescing);
             var result = _syntaxFactory.ThrowExpression(throwToken, thrown);
 
-            if (!IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching))
+            if (!IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching2))
             {
                 // use the existing error message if the throw expression is not supported
                 result = this.AddError(result, ErrorCode.ERR_InvalidExprTerm, throwToken.Text);
