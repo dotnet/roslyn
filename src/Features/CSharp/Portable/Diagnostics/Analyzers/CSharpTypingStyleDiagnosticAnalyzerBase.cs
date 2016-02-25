@@ -139,22 +139,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
 
         private bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            // var is applicable only for local variables.
-            if (variableDeclaration.IsParentKind(SyntaxKind.FieldDeclaration,
-                                                SyntaxKind.EventFieldDeclaration))
-            {
-                return false;
-            }
-
-            // implicitly typed variables cannot have multiple declarators and
+            // implict type is applicable only for local variables and
+            // such declarations cannot have multiple declarators and
             // must have an initializer.
-            if (variableDeclaration.Variables.Count != 1 ||
-                !variableDeclaration.Variables.Single().Initializer.IsKind(SyntaxKind.EqualsValueClause))
-            {
-                return false;
-            }
+            var isSupportedParentKind = variableDeclaration.IsParentKind(
+                    SyntaxKind.LocalDeclarationStatement,
+                    SyntaxKind.ForStatement,
+                    SyntaxKind.UsingStatement);
 
-            return true;
+            return isSupportedParentKind &&
+                   variableDeclaration.Variables.Count == 1 &&
+                   variableDeclaration.Variables.Single().Initializer.IsKind(SyntaxKind.EqualsValueClause);
         }
 
         private OptionSet GetOptionSet(AnalyzerOptions analyzerOptions)
