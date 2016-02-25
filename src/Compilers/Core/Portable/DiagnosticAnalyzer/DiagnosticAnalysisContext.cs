@@ -229,16 +229,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         /// <summary>
         /// Disable analyzer action callbacks and diagnostic reporting for generated code.
+        /// Analyzer driver will not make callbacks into the analyzer for entities (source files, symbols, etc.) that it classifies as generated code.
+        /// Additionally, any diagnostic reported by the analyzer with location in generated code will not be reported.
         /// </summary>
         None = 0x00,
 
         /// <summary>
         /// Enable analyzer action callbacks for generated code.
+        /// Analyzer driver will make callbacks into the analyzer for all entities (source files, symbols, etc.) in the compilation, including generated code.
         /// </summary>
         Analyze = 0x01,
 
         /// <summary>
         /// Enable reporting diagnostics on generated code.
+        /// Analyzer driver will not suppress any analyzer diagnostic based on whether or not it's location is in generated code.
         /// </summary>
         ReportDiagnostics = 0x02,
     }
