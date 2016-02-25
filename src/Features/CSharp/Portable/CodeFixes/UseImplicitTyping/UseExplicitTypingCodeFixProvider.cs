@@ -59,10 +59,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping
 
             var typeSymbol = semanticModel.GetTypeInfo(typeSyntax).ConvertedType;
 
-            var typeName = SyntaxFactory.ParseTypeName(typeSymbol.ToDisplayString())
-                                            .WithLeadingTrivia(node.GetLeadingTrivia())
-                                            .WithTrailingTrivia(node.GetTrailingTrivia())
-                                            .WithAdditionalAnnotations(Simplifier.Annotation);
+            var typeName = typeSymbol.GenerateTypeSyntax()
+                                     .WithLeadingTrivia(node.GetLeadingTrivia())
+                                     .WithTrailingTrivia(node.GetTrailingTrivia());
 
             Debug.Assert(!typeName.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");
 
