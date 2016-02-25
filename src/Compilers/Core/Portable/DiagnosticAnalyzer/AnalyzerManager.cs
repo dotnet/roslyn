@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Returns <see cref="GeneratedCodeAnalysisFlags"/> for the given analyzer.
-        /// If an analyzer hasn't configured generated code analysis, returns <see cref="GeneratedCodeAnalysisFlags.Default"/>.
+        /// If an analyzer hasn't configured generated code analysis, returns <see cref="AnalyzerDriver.DefaultGeneratedCodeAnalysisFlags"/>.
         /// </summary>
         public async Task<GeneratedCodeAnalysisFlags> GetGeneratedCodeAnalysisFlagsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
         {
