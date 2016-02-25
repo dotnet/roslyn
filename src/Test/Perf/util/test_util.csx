@@ -5,12 +5,31 @@
 using System.IO;
 using System.IO.Compression;
 using System;
+using System.Linq;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Net;
+
+//
+// Arguments
+//
+
+/// Returns the path to log file if one exists.
+/// Returns null otherwise.
+string LogFile() {
+    var key = "--log=";
+    return(from arg in Args
+    where arg.StartsWith(key)
+    select arg.Substring(key.Length)).FirstOrDefault();
+}
+
+/// Returns true if --verbosity is passed on the command line
+bool IsVerbose() {
+    return Args.Contains("--verbose");
+}
 
 //
 // Directory Locating Functions
@@ -57,14 +76,19 @@ string RoslynDirectory()
     return workingDir.Substring(0, workingDir.IndexOf(srcTestPerf));
 }
 
+string BinDirectory()
+{
+    return Path.Combine(RoslynDirectory(), "Binaries");
+}
+
 string BinDebugDirectory()
 {
-    return Path.Combine(RoslynDirectory(), "Binaries", "Debug");
+    return Path.Combine(BinDirectory(), "Debug");
 }
 
 string BinReleaseDirectory()
 {
-    return Path.Combine(RoslynDirectory(), "Binaries", "Release");
+    return Path.Combine(BinDirectory(), "Release");
 }
 
 string DebugCscPath()
@@ -143,7 +167,9 @@ ProcessResult ShellOut(
         cancelationToken.Value.Register(() => process.Kill());
     }
 
-    Log($"running \"{file}\" with arguments \"{args}\" from directory {workingDirectory}");
+    if (IsVerbose()) {
+        Log($"running \"{file}\" with arguments \"{args}\" from directory {workingDirectory}");
+    }
     process.Start();
 
     var output = new StringWriter();
@@ -172,6 +198,15 @@ ProcessResult ShellOut(
         StdOut = output.ToString(),
         StdErr = error.ToString(),
     };
+}
+
+string StdoutFrom(string program, string args = "") {
+    var result = ShellOut(program, args);
+    if (result.Failed) {
+        LogProcessResult(result);
+        throw new Exception("Shelling out failed");
+    }
+    return result.StdOut.Trim();
 }
 
 //
@@ -214,6 +249,10 @@ var Metrics = new List<Tuple<int, string, object>>();
 void Log(string info)
 {
     System.Console.WriteLine(info);
+    var log = LogFile();
+    if (log != null) {
+        File.AppendAllText(log, info + System.Environment.NewLine);
+    }
 }
 
 /// Logs the result of a finished process

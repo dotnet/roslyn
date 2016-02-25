@@ -6,20 +6,11 @@ using System;
 
 InitUtilities();
 
-string StdoutFrom(string program, string args = "") {
-    var result = ShellOut(program, args);
-    if (result.Failed) {
-        LogProcessResult(result);
-        throw new Exception("Shelling out failed");
-    }
-    return result.StdOut.Trim();
-}
-
 string FirstLine(string input) {
     return input.Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None)[0];
 }
 
-string branch = StdoutFrom("git", "rev-parse --abbrev-ref HEAD").Trim();
+string branch = StdoutFrom("git", "rev-parse --abbrev-ref HEAD");
 string date = FirstLine(StdoutFrom("git", $"show --format=\"%aI\" {branch} --"));
 string hash = FirstLine(StdoutFrom("git", $"show --format=\"%h\" {branch} --"));
 string longHash = FirstLine(StdoutFrom("git", $"show --format=\"%H\" {branch} --"));

@@ -12,6 +12,7 @@ InitUtilities();
 var myDir = MyWorkingDirectory();
 var skip = new HashSet<string> {
     Path.Combine(myDir, "runner.csx"),
+    Path.Combine(myDir, "bootstrap.csx"),
     Path.Combine(myDir, "util"),
     Path.Combine(myDir, "infra"),
 };
@@ -19,10 +20,15 @@ var skip = new HashSet<string> {
 var allResults = new List<Tuple<string, List<Tuple<int, string, object>>>>();
 var failed = false;
 
+// Print message at startup
+Log("Starting Performance Test Run");
+Log("hash: " + StdoutFrom("git", "show --format=\"%h\" HEAD --").Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None)[0]);
+Log("time: " + DateTime.Now.ToString());
+
 // Run all the scripts that we've found and populate allResults.
 foreach (var script in AllCsiRecursive(myDir, skip)) {
     var scriptName = Path.GetFileNameWithoutExtension(script);
-    Log("\nRunning " + scriptName + "\n");
+    Log("\nRunning " + scriptName);
     try
     {
         var state = await RunFile(script);
@@ -37,7 +43,7 @@ foreach (var script in AllCsiRecursive(myDir, skip)) {
     }
 }
 
-Log("\nALL RESULTS\n");
+Log("\nALL RESULTS");
 
 // Write to separate csv files depending on the metric
 // that they are recording
@@ -69,22 +75,24 @@ foreach (var testResult in allResults)
                 throw new Exception("test specified an invalid report kind");
         }
 
+        if (builder.Length != 0) {
+            builder.AppendLine();
+        }
         builder.Append($"{test}, {caseDescription}, {caseValue}");
-        builder.AppendLine();
     }
 }
 
 Log("Compiler Time:");
 var cts = compileTimeBuilder.ToString();
 File.WriteAllText(Path.Combine(MyTempDirectory(), "compiler_time.csv"), cts);
-Log(cts);
+Log("\t" + cts.Replace("\n", "\n\t"));
 
 Log("Run Time:");
 var rts = runTimeBuilder.ToString();
 File.WriteAllText(Path.Combine(MyTempDirectory(), "run_time.csv"), rts);
-Log(rts);
+Log("\t" + rts.Replace("\n", "\n\t"));
 
 Log("File Size:");
 var fss = fileSizeBuilder.ToString();
 File.WriteAllText(Path.Combine(MyTempDirectory(), "file_size.csv"), fss);
-Log(fss);
+Log("\t" + fss.Replace("\n", "\n\t"));

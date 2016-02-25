@@ -1,6 +1,8 @@
 #load "..\util\test_util.csx"
 #load "..\util\runner_util.csx"
 
+using System.IO;
+
 InitUtilities();
 
 // Gather performance metrics and produce csv files
