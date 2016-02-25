@@ -537,4 +537,10 @@ Use the dropdown to view and switch to other projects this file may belong to.</
 
 Open '{0}' and look for the failed tasks (FAILED)</value>
   </data>
+  <data name="MissingMetadataReferenceMessage" xml:space="preserve">
+    <value>Metadata file or cross language p2p reference '{0}' is missing. Some project features, such as full solution analysis for the project and projects that depend on it, have been disabled. This can be caused by either file being missing on disk or intellisense build being failed.</value>
+  </data>
+  <data name="MissingMetadataReferenceTitle" xml:space="preserve">
+    <value>Metadata file is missing</value>
+  </data>
 </root>

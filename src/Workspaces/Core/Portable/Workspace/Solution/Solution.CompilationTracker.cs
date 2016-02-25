@@ -587,16 +587,10 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    // if projectInfo.HasAllInformation is false, then this project is always not completed.
-                    bool hasSuccessfullyLoaded = this.ProjectState.ProjectInfo.HasAllInformation;
+                    // if HasAllInformation or !HasMissingMetadataReference are false, then this project is always not completed.
+                    bool hasSuccessfullyLoaded = this.ProjectState.HasAllInformation && !this.ProjectState.HasMissingMetadataReference;
 
                     var newReferences = new List<MetadataReference>();
-
-                    // we don't consider metadata reference being actually exist on disk as a part of complete reference
-                    // since we know some projects do have those but many just work fine since those dlls are not actually used.
-                    // and if that actually causes issues, current system already shows that quite clearly to users and it is easy to fix.
-                    // right now, only things that are hard for users to figure out (broken intellisense build, skeleton assembly build failure)
-                    // are included in completereference. 
                     newReferences.AddRange(this.ProjectState.MetadataReferences);
 
                     foreach (var projectReference in this.ProjectState.ProjectReferences)

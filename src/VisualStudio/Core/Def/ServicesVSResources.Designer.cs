@@ -763,6 +763,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Metadata file or cross language p2p reference &apos;{0}&apos; is missing. Some project features, such as full solution analysis for the project and projects that depend on it, have been disabled. This can be caused by either file being missing on disk or intellisense build being failed..
+        /// </summary>
+        internal static string MissingMetadataReferenceMessage {
+            get {
+                return ResourceManager.GetString("MissingMetadataReferenceMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Metadata file is missing.
+        /// </summary>
+        internal static string MissingMetadataReferenceTitle {
+            get {
+                return ResourceManager.GetString("MissingMetadataReferenceTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Modifier.
         /// </summary>
         internal static string Modifier {

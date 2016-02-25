@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             // clean up states
             foreach (var stateSet in stateSets)
             {
-                stateSet.Remove(document.Id, includeProjectState: false);
+                stateSet.Remove(document.Id, onlyDocumentStates: true);
             }
 
             // raise events

@@ -707,16 +707,18 @@ namespace Microsoft.CodeAnalysis
         /// Call this method when status of project has changed to incomplete.
         /// See <see cref="ProjectInfo.HasAllInformation"/> for more information.
         /// </summary>
-        protected internal void OnHasAllInformationChanged(ProjectId projectId, bool hasAllInformation)
+        // TODO: make it public
+        internal void OnHasAllInformationChanged(ProjectId projectId, bool hasAllInformation)
         {
-            // this can't be null
-            var state = CurrentSolution.GetProjectState(projectId);
-            Contract.ThrowIfNull(state);
-
-            // if state is different than what we have
-            if (hasAllInformation != state.ProjectInfo.HasAllInformation)
+            using (_serializationLock.DisposableWait())
             {
-                OnProjectReloaded(state.ProjectInfo.WithHasAllInformation(hasAllInformation));
+                CheckProjectIsInCurrentSolution(projectId);
+
+                // if state is different than what we have
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.WithHasAllInformation(projectId, hasAllInformation));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
             }
         }
 

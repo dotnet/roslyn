@@ -151,11 +151,6 @@ namespace Microsoft.CodeAnalysis
         public IEnumerable<TextDocument> AdditionalDocuments => _projectState.AdditionalDocumentIds.Select(GetAdditionalDocument);
 
         /// <summary>
-        /// True if project has full information. <see cref="ProjectInfo.HasAllInformation"/> for more info.
-        /// </summary>
-        internal bool HasAllInformation => _projectState.ProjectInfo.HasAllInformation;
-
-        /// <summary>
         /// True if the project contains a document with the specified ID.
         /// </summary>
         public bool ContainsDocument(DocumentId documentId)

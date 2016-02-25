@@ -59,6 +59,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
             if (ev.HasHandlers)
             {
+                // we do this bulk update to reduce number of tasks (with captured data) enqueued.
+                // we saw some "out of memory" due to us having long list of pending tasks in memory. 
+                // this is to reduce for such case to happen.
                 Action<DiagnosticsUpdatedArgs> raiseEvents = args => ev.RaiseEvent(handler => handler(this, args));
 
                 var asyncToken = Listener.BeginAsyncOperation(nameof(RaiseDiagnosticsUpdated));
