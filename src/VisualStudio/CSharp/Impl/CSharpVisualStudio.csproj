@@ -100,6 +100,10 @@
       <Private>false</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.GraphModel, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.ImageCatalog, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
@@ -154,6 +158,7 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
@@ -202,6 +207,7 @@
     <Compile Include="ObjectBrowser\ListItemFactory.cs" />
     <Compile Include="Options\AdvancedOptionPageStrings.cs" />
     <Compile Include="Options\IntelliSenseOptionPageStrings.cs" />
+    <Compile Include="Options\SerializationHelpers.cs" />
     <Compile Include="Venus\CSharpAdditionalFormattingRuleLanguageService.cs" />
     <Compile Include="CSharpPackage.cs" />
     <Compile Include="CSharpVSResources.Designer.cs">

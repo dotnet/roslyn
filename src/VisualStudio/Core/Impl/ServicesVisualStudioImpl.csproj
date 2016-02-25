@@ -97,6 +97,10 @@
       <Private>false</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.GraphModel, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Imaging, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Language.CallHierarchy, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
@@ -305,6 +309,9 @@
     <Compile Include="CodeModel\RootCodeModel.cs" />
     <Compile Include="CodeModel\SyntaxNodeKey.cs" />
     <Compile Include="CodeModel\TextManagerAdapter.cs" />
+    <Compile Include="Options\AbstractCheckBoxViewModel.cs" />
+    <Compile Include="Options\CheckBoxWithComboViewModel.cs" />
+    <Compile Include="Options\NotificationOptionViewModel.cs" />
     <Compile Include="Options\FullSolutionAnalysisOptionBinding.cs" />
     <Compile Include="Options\OptionLogger.cs" />
     <Compile Include="Options\OptionPreviewControl.xaml.cs">

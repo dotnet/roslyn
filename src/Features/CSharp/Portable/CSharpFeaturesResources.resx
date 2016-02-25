@@ -437,4 +437,16 @@
   <data name="DelegateInvocationCanBeSimplified" xml:space="preserve">
     <value>Delegate invocation can be simplified.</value>
   </data>
+  <data name="UseExplicitType" xml:space="preserve">
+    <value>Use explicit type instead of 'var'</value>
+  </data>
+  <data name="UseExplicitTypeDiagnosticTitle" xml:space="preserve">
+    <value>Use explicit type</value>
+  </data>
+  <data name="UseImplicitType" xml:space="preserve">
+    <value>use 'var' instead of explicit type</value>
+  </data>
+  <data name="UseImplicitTypeDiagnosticTitle" xml:space="preserve">
+    <value>Use implicit type</value>
+  </data>
 </root>

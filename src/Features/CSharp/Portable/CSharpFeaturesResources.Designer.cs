@@ -908,6 +908,42 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use explicit type instead of &apos;var&apos;.
+        /// </summary>
+        internal static string UseExplicitType {
+            get {
+                return ResourceManager.GetString("UseExplicitType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use explicit type.
+        /// </summary>
+        internal static string UseExplicitTypeDiagnosticTitle {
+            get {
+                return ResourceManager.GetString("UseExplicitTypeDiagnosticTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to use &apos;var&apos; instead of explicit type.
+        /// </summary>
+        internal static string UseImplicitType {
+            get {
+                return ResourceManager.GetString("UseImplicitType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use implicit type.
+        /// </summary>
+        internal static string UseImplicitTypeDiagnosticTitle {
+            get {
+                return ResourceManager.GetString("UseImplicitTypeDiagnosticTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to using directive.
         /// </summary>
         internal static string UsingDirective {
