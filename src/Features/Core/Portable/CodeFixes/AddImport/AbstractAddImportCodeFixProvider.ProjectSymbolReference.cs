@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
                 return document.Project.Id == _project.Id
                     ? default(Glyph?)
-                    : _project.GetGlyph();
+                    : Glyph.AddReference;
             }
 
             protected override Solution UpdateSolution(Document newDocument)

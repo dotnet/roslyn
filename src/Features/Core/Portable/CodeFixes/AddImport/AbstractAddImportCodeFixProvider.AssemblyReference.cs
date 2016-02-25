@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 public override string Title => _title;
 
-                internal override int? Glyph => (int)CodeAnalysis.Glyph.Reference;
+                internal override int? Glyph => (int)CodeAnalysis.Glyph.AddReference;
 
                 private readonly Lazy<string> _lazyResolvedPath;
 
