@@ -53,7 +53,7 @@
       <Group guid="guidInteractiveWindowCmdSet" id="ConsoleMenuClearGroup" priority="0x300">
         <Parent guid="guidInteractiveWindowCmdSet" id="menuIdInteractiveContextMenu"/>
       </Group>
-      <Group guid="guidInteractiveWindowCmdSet" id="TextEditorGroup" priority="0x101">
+      <Group guid="guidInteractiveWindowCmdSet" id="TextEditorGroup" priority="0x370">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN"/>
       </Group>
     </Groups>
