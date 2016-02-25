@@ -493,6 +493,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor InvalidArgumentDescriptor = new DiagnosticDescriptor(
+            "InvalidArgument",
+            "Invalid argument",
+            "Invocation has invalid argument",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
         /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
@@ -500,7 +508,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             {
                 return ImmutableArray.Create(BigParamArrayArgumentsDescriptor,
                                              OutOfNumericalOrderArgumentsDescriptor,
-                                             UseDefaultArgumentDescriptor);
+                                             UseDefaultArgumentDescriptor,
+                                             InvalidArgumentDescriptor);
             }
         }
 
@@ -513,6 +522,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      long priorArgumentValue = long.MinValue;
                      foreach (IArgument argument in invocation.ArgumentsInParameterOrder)
                      {
+                         if (argument.IsInvalid)
+                         {
+                             operationContext.ReportDiagnostic(Diagnostic.Create(InvalidArgumentDescriptor, argument.Syntax.GetLocation()));
+                             return;
+                         }
+
                          if (argument.ArgumentKind == ArgumentKind.DefaultValue)
                          {
                              operationContext.ReportDiagnostic(Diagnostic.Create(UseDefaultArgumentDescriptor, invocation.Syntax.GetLocation(), argument.Parameter.Name));

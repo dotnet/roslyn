@@ -1563,6 +1563,36 @@ public class A
                 Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidIncrementDescriptor.Id, "f++").WithLocation(16, 9));
         }
 
+        [WorkItem(9114, "https://github.com/dotnet/roslyn/issues/9114")]
+        [Fact]
+        public void InvalidArgumentCSharp()
+        {
+            const string source = @"
+public class A
+{
+    public static void Foo(params int a) {}
+
+    public static int Main()
+    {
+        Foo();
+        Foo(1);
+        return 1;
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics(
+                // (4,28): error CS0225: The params parameter must be a single dimensional array
+                //     public static void Foo(params int a) {}
+                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(4, 28),
+                // (8,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'A.Foo(params int)'
+                //         Foo();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Foo").WithArguments("a", "A.Foo(params int)").WithLocation(8, 9))
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new InvocationTestAnalyzer() }, null, null, false,
+                Diagnostic(InvocationTestAnalyzer.InvalidArgumentDescriptor.Id, "Foo()").WithLocation(8, 9),
+                Diagnostic(InvocationTestAnalyzer.InvalidArgumentDescriptor.Id, "Foo(1)").WithLocation(9, 9));
+        }
+
         [Fact]
         public void ConditionalAccessOperationsCSharp()
         {

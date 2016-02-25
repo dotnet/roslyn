@@ -450,4 +450,32 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
         }
     }
+
+    internal sealed class InvalidExpression : IInvalidExpression
+    {
+        public InvalidExpression(SyntaxNode syntax)
+        {
+            this.Syntax = syntax;
+        }
+
+        public Optional<object> ConstantValue => default(Optional<object>);
+
+        public bool IsInvalid => true;
+
+        public OperationKind Kind => OperationKind.InvalidExpression;
+
+        public SyntaxNode Syntax { get; }
+
+        public ITypeSymbol Type => null;
+
+        public void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitInvalidExpression(this);
+        }
+
+        public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitInvalidExpression(this, argument);
+        }
+    }
 }
