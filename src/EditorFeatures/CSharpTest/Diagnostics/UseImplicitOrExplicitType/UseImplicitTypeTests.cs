@@ -987,7 +987,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
-        public async Task DoNotSuggestVarOnIntrinsicTypeWithOption()
+        public async Task DoNotSuggestVarOnBuiltInType_Literal_WithOption()
         {
             await TestMissingAsync(
 @"using System;
@@ -996,6 +996,48 @@ class C
     static void M()
     {
         [|int|] s = 5;
+    }
+}", options: ImplicitTypingButKeepIntrinsics());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task DoNotSuggestVarOnBuiltInType_WithOption()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    private const int maxValue = int.MaxValue;
+
+    static void M()
+    {
+        [|int|] s = (unchecked(maxValue + 10));
+    }
+}", options: ImplicitTypingButKeepIntrinsics());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarOnFrameworkTypeEquivalentToBuiltInType()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    private const int maxValue = int.MaxValue;
+
+    static void M()
+    {
+        [|Int32|] s = (unchecked(maxValue + 10));
+    }
+}",
+@"using System;
+class C
+{
+    private const int maxValue = int.MaxValue;
+
+    static void M()
+    {
+        var s = (unchecked(maxValue + 10));
     }
 }", options: ImplicitTypingButKeepIntrinsics());
         }

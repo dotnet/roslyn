@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                         IsInVariableDeclarationContext
                      && IsTypeApparentInDeclaration((VariableDeclarationSyntax)declaration, semanticModel, TypeStyle, cancellationToken);
 
-                IsInIntrinsicTypeContext = IsIntrinsicType(declaration);
+                IsInIntrinsicTypeContext = IsIntrinsicTypeInDeclaration(declaration);
             }
 
             /// <summary>
@@ -155,8 +155,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                 return node;
             }
 
-            private bool IsIntrinsicType(SyntaxNode declarationStatement) =>
-                (declarationStatement as VariableDeclarationSyntax)?.Variables.Single().Initializer.Value.IsAnyLiteralExpression() == true;
+            private bool IsIntrinsicTypeInDeclaration(SyntaxNode declarationStatement)
+            {
+                PredefinedTypeSyntax predefinedType = null;
+                if (declarationStatement is VariableDeclarationSyntax)
+                {
+                    predefinedType = ((VariableDeclarationSyntax)declarationStatement).Type as PredefinedTypeSyntax;
+                }
+                else if (declarationStatement is ForEachStatementSyntax)
+                {
+                    predefinedType = ((ForEachStatementSyntax)declarationStatement).Type as PredefinedTypeSyntax;
+                }
+
+                return predefinedType != null ? SyntaxFacts.IsPredefinedType(predefinedType.Keyword.Kind()) : false;
+            }
 
             private bool IsPossibleCreationOrConversionMethod(IMethodSymbol methodSymbol, ITypeSymbol declaredType, SemanticModel semanticModel, ExpressionSyntax typeName, CancellationToken cancellationToken)
             {
