@@ -570,6 +570,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         OperatorMethodSubtract = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Subtract,
         OperatorMethodMultiply = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Multiply,
         OperatorMethodDivide = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Divide,
+        OperatorMethodIntegerDivide = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.IntegerDivide,
         OperatorMethodRemainder = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.Remainder,
         OperatorMethodLeftShift = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.LeftShift,
         OperatorMethodRightShift = BinaryOperandsKind.OperatorMethod | SimpleBinaryOperationKind.RightShift,

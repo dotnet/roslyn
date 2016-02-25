@@ -739,6 +739,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return BinaryOperationKind.OperatorMethodMultiply
                     Case BinaryOperatorKind.Divide
                         Return BinaryOperationKind.OperatorMethodDivide
+                    Case BinaryOperatorKind.IntegerDivide
+                        Return BinaryOperationKind.OperatorMethodIntegerDivide
                     Case BinaryOperatorKind.Modulo
                         Return BinaryOperationKind.OperatorMethodRemainder
                     Case BinaryOperatorKind.And
