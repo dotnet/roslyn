@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class PatternMatchingTests : CSharpTestBase
     {
         private static CSharpParseOptions patternParseOptions =
-            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6).WithFeature("patterns", "true");
+            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)
+                    .WithFeature("patterns", "true")
+                    .WithFeature("patternsExperimental", "true");
 
         [Fact]
         public void SimplePatternTest()
