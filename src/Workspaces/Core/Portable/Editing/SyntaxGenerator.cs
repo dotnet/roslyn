@@ -157,13 +157,16 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a method declaration.
         /// </summary>
-        public abstract SyntaxNode OperatorDeclaration(
+        public virtual SyntaxNode OperatorDeclaration(
             OperatorKind kind,
             IEnumerable<SyntaxNode> parameters = null,
             SyntaxNode returnType = null,
             Accessibility accessibility = Accessibility.NotApplicable,
             DeclarationModifiers modifiers = default(DeclarationModifiers),
-            IEnumerable<SyntaxNode> statements = null);
+            IEnumerable<SyntaxNode> statements = null)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Creates a method declaration matching an existing method symbol.
