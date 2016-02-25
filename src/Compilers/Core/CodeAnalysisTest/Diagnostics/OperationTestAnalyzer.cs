@@ -1052,7 +1052,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(LongParamsDescriptor);
+        public static readonly DiagnosticDescriptor InvalidConstructorDescriptor = new DiagnosticDescriptor(
+            "InvalidConstructor",
+            "Invalid Constructor",
+            "Invalid Constructor.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(LongParamsDescriptor, InvalidConstructorDescriptor);
 
         public sealed override void Initialize(AnalysisContext context)
         {
@@ -1099,7 +1107,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 (operationContext) =>
                 {
                     IObjectCreationExpression creation = (IObjectCreationExpression)operationContext.Operation;
-                    
+
+                    if (creation.Constructor == null)
+                    {
+                        operationContext.ReportDiagnostic(Diagnostic.Create(InvalidConstructorDescriptor, creation.Syntax.GetLocation()));
+                    }
+
                     foreach (IArgument argument in creation.ArgumentsInParameterOrder)
                     {
                         if (argument.Parameter.IsParams)
