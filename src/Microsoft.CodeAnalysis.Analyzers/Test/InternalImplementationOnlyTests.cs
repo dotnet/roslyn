@@ -19,7 +19,7 @@ namespace System.Runtime.CompilerServices
         [Fact]
         public void CSharp_VerifySameAssembly()
         {
-            var source = AttributeStringCSharp + @"
+            string source = AttributeStringCSharp + @"
 
 [System.Runtime.CompilerServices.InternalImplementationOnly]
 public interface IFoo { }
@@ -34,7 +34,7 @@ class Foo : IFoo { }
         [Fact]
         public void CSharp_VerifyDifferentAssembly()
         {
-            var source1 = AttributeStringCSharp + @"
+            string source1 = AttributeStringCSharp + @"
 
 [System.Runtime.CompilerServices.InternalImplementationOnly]
 public interface IFoo { }
@@ -47,7 +47,7 @@ class Foo : IFoo { }
 
 class Boo : IBar { }";
 
-            var expected = new[] { GetCSharpExpectedDiagnostic(2, 7, "Foo", "IFoo"), GetCSharpExpectedDiagnostic(4, 7, "Boo", "IFoo") };
+            DiagnosticResult[] expected = new[] { GetCSharpExpectedDiagnostic(2, 7, "Foo", "IFoo"), GetCSharpExpectedDiagnostic(4, 7, "Boo", "IFoo") };
 
             // Verify errors since interface is not in a friend assembly.
             VerifyCSharpAcrossTwoAssemblies(source1, source2, expected);
@@ -56,7 +56,7 @@ class Boo : IBar { }";
         [Fact]
         public void CSharp_VerifyDifferentFriendAssembly()
         {
-            var source1 = @"
+            string source1 = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""TestProject"")]
 " + AttributeStringCSharp + @"
 
@@ -82,7 +82,7 @@ class Boo : IBar { }";
 class Foo : Microsoft.CodeAnalysis.ISymbol { }
 class Bar : Microsoft.CodeAnalysis.IAssemblySymbol { }
 ";
-            var expected = new[] { GetCSharpExpectedDiagnostic(2, 7, "Foo", "ISymbol"), GetCSharpExpectedDiagnostic(3, 7, "Bar", "ISymbol") };
+            DiagnosticResult[] expected = new[] { GetCSharpExpectedDiagnostic(2, 7, "Foo", "ISymbol"), GetCSharpExpectedDiagnostic(3, 7, "Bar", "ISymbol") };
 
             // Verify that ISymbol is not implementable.
             VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: true, expected: expected);
@@ -99,7 +99,7 @@ End Namespace
         [Fact]
         public void Basic_VerifySameAssembly()
         {
-            var source = AttributeStringBasic + @"
+            string source = AttributeStringBasic + @"
 
 <System.Runtime.CompilerServices.InternalImplementationOnly>
 Public Interface IFoo
@@ -117,7 +117,7 @@ End Class
         [Fact]
         public void Basic_VerifyDifferentAssembly()
         {
-            var source1 = AttributeStringBasic + @"
+            string source1 = AttributeStringBasic + @"
 
 <System.Runtime.CompilerServices.InternalImplementationOnly>
 Public Interface IFoo
@@ -137,7 +137,7 @@ Class Bar
     Implements IBar
 End Class
 ";
-            var expected = new[] { GetBasicExpectedDiagnostic(2, 7, "Foo", "IFoo"), GetBasicExpectedDiagnostic(6, 7, "Bar", "IFoo") };
+            DiagnosticResult[] expected = new[] { GetBasicExpectedDiagnostic(2, 7, "Foo", "IFoo"), GetBasicExpectedDiagnostic(6, 7, "Bar", "IFoo") };
 
             // Verify errors since interface is not in a friend assembly.
             VerifyBasicAcrossTwoAssemblies(source1, source2, expected);
@@ -146,7 +146,7 @@ End Class
         [Fact]
         public void Basic_VerifyDifferentFriendAssembly()
         {
-            var source1 = @"
+            string source1 = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""TestProject"")>
 " + AttributeStringBasic + @"
 
@@ -184,7 +184,7 @@ Class Bar
     Implements Microsoft.CodeAnalysis.IAssemblySymbol
 End Class
 ";
-            var expected = new[] { GetBasicExpectedDiagnostic(2, 7, "Foo", "ISymbol"), GetBasicExpectedDiagnostic(5, 7, "Bar", "ISymbol") };
+            DiagnosticResult[] expected = new[] { GetBasicExpectedDiagnostic(2, 7, "Foo", "ISymbol"), GetBasicExpectedDiagnostic(5, 7, "Bar", "ISymbol") };
 
             // Verify that ISymbol is not implementable.
             VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: true, expected: expected);
@@ -194,11 +194,11 @@ End Class
         {
             Debug.Assert(language == LanguageNames.CSharp || language == LanguageNames.VisualBasic);
 
-            var project1 = CreateProject(new string[] { source1 }, language: language, addLanguageSpecificCodeAnalysisReference: false);
-            var project2 = CreateProject(new string[] { source2 }, language: language, addLanguageSpecificCodeAnalysisReference: false, addToSolution: project1.Solution)
+            Project project1 = CreateProject(new string[] { source1 }, language: language, addLanguageSpecificCodeAnalysisReference: false);
+            Project project2 = CreateProject(new string[] { source2 }, language: language, addLanguageSpecificCodeAnalysisReference: false, addToSolution: project1.Solution)
                            .AddProjectReference(new ProjectReference(project1.Id));
 
-            var analyzer = language == LanguageNames.CSharp ? GetCSharpDiagnosticAnalyzer() : GetBasicDiagnosticAnalyzer();
+            DiagnosticAnalyzer analyzer = language == LanguageNames.CSharp ? GetCSharpDiagnosticAnalyzer() : GetBasicDiagnosticAnalyzer();
             GetSortedDiagnostics(analyzer, project2.Documents.ToArray()).Verify(analyzer, expected);
         }
 
@@ -234,7 +234,7 @@ End Class
 
         private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string typeName, string interfaceName)
         {
-            var fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
+            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
             return new DiagnosticResult
             {
                 Id = DiagnosticIds.InternalImplementationOnlyRuleId,

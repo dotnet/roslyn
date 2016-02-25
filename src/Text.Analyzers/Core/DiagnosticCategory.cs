@@ -3,5 +3,5 @@
 namespace Text.Analyzers
 {
     internal static class DiagnosticCategory
-    {        public static readonly string Naming = TextAnalyzersResources.CategoryNaming;}
+    { public static readonly string Naming = TextAnalyzersResources.CategoryNaming; }
 }
