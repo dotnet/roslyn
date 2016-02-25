@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpUseImplicitTypingDiagnosticAnalyzer : CSharpTypingStyleDiagnosticAnalyzerBase
     {
-
         private static readonly LocalizableString s_Title =
             new LocalizableResourceString(nameof(CSharpFeaturesResources.UseImplicitTypeDiagnosticTitle), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
@@ -63,10 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                 return false;
             }
 
-            var candidateReplacementNode = SyntaxFactory.IdentifierName("var")
-                                                .WithLeadingTrivia(typeName.GetLeadingTrivia())
-                                                .WithTrailingTrivia(typeName.GetTrailingTrivia());
-
+            var candidateReplacementNode = SyntaxFactory.IdentifierName("var");
             var candidateIssueSpan = typeName.Span;
 
             // If there exists a type named var, return.

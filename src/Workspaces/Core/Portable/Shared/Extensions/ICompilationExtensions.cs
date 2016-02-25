@@ -133,15 +133,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.SuppressMessageAttribute");
         }
-
-        public static INamedTypeSymbol ConvertType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Convert");
-        }
-
-        public static INamedTypeSymbol IConvertibleType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.IConvertible");
-        }
     }
 }

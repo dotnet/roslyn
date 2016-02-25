@@ -2291,18 +2291,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static SimpleNameSyntax GetRightmostName(this ExpressionSyntax node)
         {
-            var awaitExpression = node as AwaitExpressionSyntax;
-            if (awaitExpression != null && awaitExpression.Expression != null)
-            {
-                return awaitExpression.Expression.GetRightmostName();
-            }
-
-            var invocationExpression = node as InvocationExpressionSyntax;
-            if (invocationExpression != null && invocationExpression.Expression != null)
-            {
-                return invocationExpression.Expression.GetRightmostName();
-            }
-
             var memberAccess = node as MemberAccessExpressionSyntax;
             if (memberAccess != null && memberAccess.Name != null)
             {

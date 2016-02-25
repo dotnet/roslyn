@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                 //      c. System.Convert.Totype()
                 var declaredTypeSymbol = semanticModel.GetTypeInfo(variableDeclaration.Type, cancellationToken).Type;
 
-                var memberName = initializerExpression.GetRightmostName();
+                var memberName = GetRightmostInvocationExpression(initializerExpression).GetRightmostName();
                 if (memberName == null)
                 {
                     return false;
@@ -130,6 +130,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                 }
 
                 return false;
+            }
+
+            private ExpressionSyntax GetRightmostInvocationExpression(ExpressionSyntax node)
+            {
+                var awaitExpression = node as AwaitExpressionSyntax;
+                if (awaitExpression != null && awaitExpression.Expression != null)
+                {
+                    return GetRightmostInvocationExpression(awaitExpression.Expression);
+                }
+
+                var invocationExpression = node as InvocationExpressionSyntax;
+                if (invocationExpression != null && invocationExpression.Expression != null)
+                {
+                    return GetRightmostInvocationExpression(invocationExpression.Expression);
+                }
+
+                var conditional = node as ConditionalAccessExpressionSyntax;
+                if (conditional != null)
+                {
+                    return GetRightmostInvocationExpression(conditional.WhenNotNull);
+                }
+
+                return node;
             }
 
             private bool IsIntrinsicType(SyntaxNode declarationStatement) =>

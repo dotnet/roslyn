@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseImplicitTyping), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseImplicitType), Shared]
     internal class UseImplicitTypingCodeFixProvider : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds =>
@@ -25,18 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping
             var document = context.Document;
             var span = context.Span;
             var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-
-            var token = root.FindToken(span.Start);
-            if (!token.Span.IntersectsWith(span))
-            {
-                return;
-            }
-
             var node = root.FindNode(span, getInnermostNodeForTie: true);
-            if (node == null || !SyntaxFacts.IsTypeSyntax(node.Kind()))
-            {
-                return;
-            }
 
             var codeAction = new MyCodeAction(
                 CSharpFeaturesResources.UseImplicitType,
@@ -58,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+                base(title, createChangedDocument, equivalenceKey:title)
             {
             }
         }

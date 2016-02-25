@@ -14,10 +14,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExplicitTyping), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExplicitType), Shared]
     internal class UseExplicitTypingCodeFixProvider : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds =>
@@ -28,28 +29,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping
             var document = context.Document;
             var span = context.Span;
             var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-
-            var token = root.FindToken(span.Start);
-            if (!token.Span.IntersectsWith(span))
-            {
-                return;
-            }
-
             var node = root.FindNode(span, getInnermostNodeForTie: true);
 
             var codeAction = new MyCodeAction(
                 CSharpFeaturesResources.UseExplicitType,
-                c => HandleDeclaration(document, root, node, context.CancellationToken));
+                c => HandleDeclarationAsync(document, root, node, context.CancellationToken));
 
             context.RegisterCodeFix(codeAction, context.Diagnostics.First());
         }
 
-        private async Task<Document> HandleDeclaration(Document document, SyntaxNode root, SyntaxNode node, CancellationToken cancellationToken)
+        private async Task<Document> HandleDeclarationAsync(Document document, SyntaxNode root, SyntaxNode node, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var declarationContext = node.Parent;
 
-            TypeSyntax typeSyntax;
+            TypeSyntax typeSyntax = null;
             if (declarationContext is VariableDeclarationSyntax)
             {
                 typeSyntax = ((VariableDeclarationSyntax)declarationContext).Type;
@@ -60,8 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping
             }
             else
             {
-                Debug.Assert(false, $"unhandled kind {declarationContext.Kind().ToString()}");
-                return document;
+                Contract.Fail($"unhandled kind {declarationContext.Kind().ToString()}");
             }
 
             var typeSymbol = semanticModel.GetTypeInfo(typeSyntax).ConvertedType;
@@ -80,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+                base(title, createChangedDocument, equivalenceKey: title)
             {
             }
         }
