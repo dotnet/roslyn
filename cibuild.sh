@@ -88,6 +88,9 @@ if [ "$USE_CACHE" == "false" ]; then
     make clean_toolset
 fi
 
+echo Building this commit:
+git show --no-patch --pretty=raw HEAD
+
 echo Building Bootstrap
 run_make bootstrap
 

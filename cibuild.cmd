@@ -25,6 +25,10 @@ call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd
 
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
 
+REM Output the commit that we're building, for reference in Jenkins logs
+echo Building this commit:
+git show --no-patch --pretty=raw HEAD
+
 REM Restore the NuGet packages 
 call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
 
