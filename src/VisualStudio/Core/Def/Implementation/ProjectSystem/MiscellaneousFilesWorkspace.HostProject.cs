@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal partial class MiscellaneousFilesWorkspace
     {
-        private class HostProject : IVisualStudioHostProject
+        private sealed class HostProject : IVisualStudioHostProject
         {
             public ProjectId Id { get; }
             public string Language { get; }
@@ -108,6 +108,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public IReadOnlyList<string> GetFolderNames(uint documentItemID)
             {
                 return SpecializedCollections.EmptyReadOnlyList<string>();
+            }
+
+            public IVisualStudioHostDocument AddGeneratedDocument(DocumentId id, string filePath)
+            {
+                throw new InvalidOperationException();
+            }
+
+            public void RemoveGeneratedDocument(DocumentId id)
+            {
+                throw new InvalidOperationException();
             }
         }
     }

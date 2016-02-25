@@ -30,5 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         IReadOnlyList<string> GetFolderNames(uint documentItemID);
         bool ContainsFile(string moniker);
+
+        IVisualStudioHostDocument AddGeneratedDocument(DocumentId id, string filePath);
+        void RemoveGeneratedDocument(DocumentId id);
     }
 }

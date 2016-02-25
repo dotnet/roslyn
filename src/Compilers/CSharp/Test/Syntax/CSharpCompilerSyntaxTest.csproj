@@ -91,6 +91,7 @@
     <Compile Include="Parsing\DeclarationParsingTests.cs" />
     <Compile Include="Parsing\ExpressionParsingTests.cs" />
     <Compile Include="Parsing\ParserRegressionTests.cs" />
+    <Compile Include="Parsing\ReplaceParsingTests.cs" />
     <Compile Include="Parsing\ScriptParsingTests.cs" />
     <Compile Include="Parsing\LambdaParameterParsingTests.cs" />
     <Compile Include="Parsing\NameAttributeValueParsingTests.cs" />

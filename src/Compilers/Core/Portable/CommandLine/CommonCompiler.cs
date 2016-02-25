@@ -13,8 +13,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
 
         public CommonMessageProvider MessageProvider { get; }
         public CommandLineArguments Arguments { get; }
-        public IAnalyzerAssemblyLoader AnalyzerLoader { get; private set; }
+        public IAnalyzerAssemblyLoader AssemblyLoader { get; private set; }
         public abstract DiagnosticFormatter DiagnosticFormatter { get; }
         private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
 
@@ -43,8 +43,9 @@ namespace Microsoft.CodeAnalysis
         protected abstract bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code);
         protected abstract void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession);
         protected abstract ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles);
+        protected abstract ImmutableArray<SourceGenerator> ResolveGeneratorsFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles);
 
-        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories, IAnalyzerAssemblyLoader analyzerLoader)
+        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
         {
             IEnumerable<string> allArgs = args;
             _clientDirectory = clientDirectory;
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis
 
             this.Arguments = parser.Parse(allArgs, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories);
             this.MessageProvider = parser.MessageProvider;
-            this.AnalyzerLoader = analyzerLoader;
+            this.AssemblyLoader = assemblyLoader;
 
             if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
             {
@@ -220,10 +221,19 @@ namespace Microsoft.CodeAnalysis
                     hasErrors = true;
                 }
 
+                Debug.Assert(IsReportedError(diag));
                 _reportedDiagnostics.Add(diag);
             }
 
             return hasErrors;
+        }
+
+        /// <summary>
+        /// Returns true if the diagnostic is an error that should be reported.
+        /// </summary>
+        private static bool IsReportedError(Diagnostic diagnostic)
+        {
+            return (diagnostic.Severity == DiagnosticSeverity.Error) && !diagnostic.IsSuppressed;
         }
 
         public bool ReportErrors(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
@@ -347,25 +357,29 @@ namespace Microsoft.CodeAnalysis
                 return Failed;
             }
 
-
             var diagnostics = new List<DiagnosticInfo>();
             var analyzers = ResolveAnalyzersFromArguments(diagnostics, MessageProvider, touchedFilesLogger);
+            var sourceGenerators = ResolveGeneratorsFromArguments(diagnostics, MessageProvider, touchedFilesLogger);
             var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnostics, MessageProvider, touchedFilesLogger);
             if (ReportErrors(diagnostics, consoleOutput, errorLogger))
             {
                 return Failed;
             }
 
-            cancellationToken.ThrowIfCancellationRequested();
+            bool includeGenerators = !sourceGenerators.IsEmpty;
 
+retry:
+            bool reportAnalyzer = false;
             CancellationTokenSource analyzerCts = null;
             AnalyzerManager analyzerManager = null;
             AnalyzerDriver analyzerDriver = null;
+
             try
             {
-                Func<ImmutableArray<Diagnostic>> getAnalyzerDiagnostics = null;
+                Func<DiagnosticBag, bool, bool> getAnalyzerDiagnostics = null;
                 ConcurrentSet<Diagnostic> analyzerExceptionDiagnostics = null;
-                if (!analyzers.IsDefaultOrEmpty)
+
+                if (!analyzers.IsEmpty)
                 {
                     analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                     analyzerManager = new AnalyzerManager();
@@ -374,7 +388,34 @@ namespace Microsoft.CodeAnalysis
                     var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.CastUp(additionalTextFiles));
 
                     analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, Arguments.ReportAnalyzer, out compilation, analyzerCts.Token);
-                    getAnalyzerDiagnostics = () => analyzerDriver.GetDiagnosticsAsync(compilation).Result;
+                    reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
+                }
+
+                Compilation newCompilation = null;
+                if ((analyzerDriver != null) || includeGenerators)
+                {
+                    getAnalyzerDiagnostics = (diags, result) =>
+                    {
+                        if (result && (analyzerDriver != null))
+                        {
+                            var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
+                            diags.AddRange(hostDiagnostics);
+                            if (hostDiagnostics.Any(x => x.Severity == DiagnosticSeverity.Error))
+                            {
+                                result = false;
+                            }
+                        }
+                        if (includeGenerators)
+                        {
+                            newCompilation = AddGeneratedSource(compilation, sourceGenerators, cancellationToken);
+                            includeGenerators = false;
+                            if (newCompilation != compilation)
+                            {
+                                result = false;
+                            }
+                        }
+                        return result;
+                    };
                 }
 
                 // Print the diagnostics produced during the parsing stage and exit if there were any errors.
@@ -383,7 +424,21 @@ namespace Microsoft.CodeAnalysis
                     return Failed;
                 }
 
-                if (ReportErrors(compilation.GetDeclarationDiagnostics(), consoleOutput, errorLogger))
+                var declarationDiagnostics = compilation.GetDeclarationDiagnostics();
+                if (includeGenerators && declarationDiagnostics.Any(IsReportedError))
+                {
+                    // Run generators even if there are declaration errors since
+                    // the errors may be the resolved by the generated code.
+                    newCompilation = AddGeneratedSource(compilation, sourceGenerators, cancellationToken);
+                    includeGenerators = false;
+                    if (newCompilation != compilation)
+                    {
+                        compilation = newCompilation;
+                        goto retry;
+                    }
+                }
+
+                if (ReportErrors(declarationDiagnostics, consoleOutput, errorLogger))
                 {
                     return Failed;
                 }
@@ -447,8 +502,15 @@ namespace Microsoft.CodeAnalysis
                             Arguments.ManifestResources,
                             emitOptions,
                             debugEntryPoint: null,
+                            testData: null,
                             getHostDiagnostics: getAnalyzerDiagnostics,
                             cancellationToken: cancellationToken);
+
+                        if (!emitResult.Success && (newCompilation != null) && (newCompilation != compilation))
+                        {
+                            compilation = newCompilation;
+                            goto retry;
+                        }
 
                         if (emitResult.Success && touchedFilesLogger != null)
                         {
@@ -540,7 +602,7 @@ namespace Microsoft.CodeAnalysis
                         analyzerManager.ClearAnalyzerState(analyzers);
                     }
 
-                    if (Arguments.ReportAnalyzer && analyzerDriver != null && compilation != null)
+                    if (reportAnalyzer)
                     {
                         ReportAnalyzerExecutionTime(consoleOutput, analyzerDriver, Culture, compilation.Options.ConcurrentBuild);
                     }
@@ -548,6 +610,17 @@ namespace Microsoft.CodeAnalysis
             }
 
             return Succeeded;
+        }
+
+        private Compilation AddGeneratedSource(
+            Compilation compilation,
+            ImmutableArray<SourceGenerator> sourceGenerators,
+            CancellationToken cancellationToken)
+        {
+            // TODO: Generated source path should include a "GeneratedFiles" subdirectory
+            // so that "build clean" can be modified to delete the entire directory.
+            var trees = compilation.GenerateSource(sourceGenerators, this.Arguments.OutputDirectory, writeToDisk: true, cancellationToken: cancellationToken);
+            return compilation.AddSyntaxTrees(trees);
         }
 
         protected virtual ImmutableArray<AdditionalTextFile> ResolveAdditionalFilesFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFilesLogger)

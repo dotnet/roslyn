@@ -1076,6 +1076,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AsyncKeyword:
                 case SyntaxKind.AwaitKeyword:
                 case SyntaxKind.WhenKeyword:
+                case SyntaxKind.ReplaceKeyword:
+                case SyntaxKind.OriginalKeyword:
                     return true;
                 default:
                     return false;
@@ -1167,14 +1169,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.TypeVarKeyword;
                 case "global":
                     return SyntaxKind.GlobalKeyword;
+                case "nameof":
+                    return SyntaxKind.NameOfKeyword;
                 case "async":
                     return SyntaxKind.AsyncKeyword;
                 case "await":
                     return SyntaxKind.AwaitKeyword;
                 case "when":
                     return SyntaxKind.WhenKeyword;
-                case "nameof":
-                    return SyntaxKind.NameOfKeyword;
+                case "replace":
+                    return SyntaxKind.ReplaceKeyword;
+                case "original":
+                    return SyntaxKind.OriginalKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1564,14 +1570,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "typevar";
                 case SyntaxKind.GlobalKeyword:
                     return "global";
+                case SyntaxKind.NameOfKeyword:
+                    return "nameof";
                 case SyntaxKind.AsyncKeyword:
                     return "async";
                 case SyntaxKind.AwaitKeyword:
                     return "await";
                 case SyntaxKind.WhenKeyword:
                     return "when";
-                case SyntaxKind.NameOfKeyword:
-                    return "nameof";
+                case SyntaxKind.ReplaceKeyword:
+                    return "replace";
+                case SyntaxKind.OriginalKeyword:
+                    return "original";
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
                     return "$@\"";
                 case SyntaxKind.InterpolatedStringStartToken:

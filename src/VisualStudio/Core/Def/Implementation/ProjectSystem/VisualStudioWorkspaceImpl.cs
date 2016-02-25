@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -352,8 +354,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string filePath = GetMetadataPath(metadataReference);
             if (filePath != null)
             {
-                VSLangProj.VSProject vsProject = (VSLangProj.VSProject)project.Object;
-                VSLangProj.Reference reference = vsProject.References.Find(filePath);
+                VSProject vsProject = (VSProject)project.Object;
+                Reference reference = vsProject.References.Find(filePath);
                 if (reference != null)
                 {
                     reference.Remove();
@@ -383,7 +385,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             EnvDTE.Project refProject;
             GetProjectData(projectReference.ProjectId, out refHostProject, out refHierarchy, out refProject);
 
-            VSLangProj.VSProject vsProject = (VSLangProj.VSProject)project.Object;
+            var vsProject = (VSProject)project.Object;
             vsProject.References.AddProject(refProject);
         }
 
@@ -409,8 +411,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             EnvDTE.Project refProject;
             GetProjectData(projectReference.ProjectId, out refHostProject, out refHierarchy, out refProject);
 
-            VSLangProj.VSProject vsProject = (VSLangProj.VSProject)project.Object;
-            foreach (VSLangProj.Reference reference in vsProject.References)
+            var vsProject = (VSProject)project.Object;
+            foreach (Reference reference in vsProject.References)
             {
                 if (reference.SourceProject == refProject)
                 {
@@ -427,6 +429,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         protected override void ApplyAdditionalDocumentAdded(DocumentInfo info, SourceText text)
         {
             AddDocumentCore(info, text, isAdditionalDocument: true);
+        }
+
+        protected override void UpdateGeneratedDocuments(ImmutableArray<DocumentInfo> documentsRemoved, ImmutableArray<DocumentInfo> documentsAdded)
+        {
+            foreach (var info in documentsRemoved)
+            {
+                Debug.Assert(info.IsGenerated);
+                var documentId = info.Id;
+                var project = GetHostProject(documentId.ProjectId);
+                if (project != null)
+                {
+                    project.RemoveGeneratedDocument(documentId);
+                }
+            }
+
+            foreach (var info in documentsAdded)
+            {
+                Debug.Assert(info.IsGenerated);
+                var documentId = info.Id;
+                var project = GetHostProject(documentId.ProjectId);
+                if (project != null)
+                {
+                    project.AddGeneratedDocument(documentId, info.FilePath);
+                }
+            }
         }
 
         private void AddDocumentCore(DocumentInfo info, SourceText initialText, bool isAdditionalDocument)
@@ -1141,11 +1168,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// A trivial implementation of <see cref="IVisualStudioWorkspaceHost" /> that just
         /// forwards the calls down to the underlying Workspace.
         /// </summary>
-        protected class VisualStudioWorkspaceHost : IVisualStudioWorkspaceHost, IVisualStudioWorkingFolder
+        private sealed class VisualStudioWorkspaceHost : IVisualStudioWorkspaceHost, IVisualStudioWorkingFolder
         {
             private readonly VisualStudioWorkspaceImpl _workspace;
 
-            private Dictionary<DocumentId, uint> _documentIdToHierarchyEventsCookieMap = new Dictionary<DocumentId, uint>();
+            private readonly Dictionary<DocumentId, uint> _documentIdToHierarchyEventsCookieMap = new Dictionary<DocumentId, uint>();
 
             public VisualStudioWorkspaceHost(VisualStudioWorkspaceImpl workspace)
             {
@@ -1352,14 +1379,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _workspace.OnAnalyzerReferenceRemoved(projectId, analyzerReference);
             }
 
-            void IVisualStudioWorkspaceHost.OnAdditionalDocumentAdded(DocumentInfo additionalDocumentInfo)
+            void IVisualStudioWorkspaceHost.OnAdditionalDocumentAdded(DocumentInfo documentInfo)
             {
-                _workspace.OnAdditionalDocumentAdded(additionalDocumentInfo);
+                _workspace.OnAdditionalDocumentAdded(documentInfo);
             }
 
-            void IVisualStudioWorkspaceHost.OnAdditionalDocumentRemoved(DocumentId additionalDocumentId)
+            void IVisualStudioWorkspaceHost.OnAdditionalDocumentRemoved(DocumentId documentInfo)
             {
-                _workspace.OnAdditionalDocumentRemoved(additionalDocumentId);
+                _workspace.OnAdditionalDocumentRemoved(documentInfo);
             }
 
             void IVisualStudioWorkspaceHost.OnAdditionalDocumentOpened(DocumentId documentId, ITextBuffer textBuffer, bool isCurrentContext)
@@ -1375,6 +1402,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             void IVisualStudioWorkspaceHost.OnAdditionalDocumentTextUpdatedOnDisk(DocumentId id)
             {
                 _workspace.OnAdditionalDocumentTextUpdatedOnDisk(id);
+            }
+
+            void IVisualStudioWorkspaceHost.UpdateGeneratedDocumentsIfNecessary(ProjectId projectId)
+            {
+                _workspace.UpdateGeneratedDocumentsIfNecessary(projectId);
             }
 
             void IVisualStudioWorkingFolder.OnBeforeWorkingFolderChange()

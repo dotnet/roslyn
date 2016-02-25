@@ -202,7 +202,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function ResolveAnalyzersFromArguments(diagnostics As List(Of DiagnosticInfo), messageProvider As CommonMessageProvider, touchedFiles As TouchedFileLogger) As ImmutableArray(Of DiagnosticAnalyzer)
-            Return Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, touchedFiles, AnalyzerLoader)
+            Return Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, touchedFiles, AssemblyLoader)
+        End Function
+
+        Protected Overrides Function ResolveGeneratorsFromArguments(diagnostics As List(Of DiagnosticInfo), messageProvider As CommonMessageProvider, touchedFiles As TouchedFileLogger) As ImmutableArray(Of SourceGenerator)
+            Return Arguments.ResolveGeneratorsFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, touchedFiles, AssemblyLoader)
         End Function
     End Class
 End Namespace

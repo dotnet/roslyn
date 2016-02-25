@@ -31,5 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get { return QueryDepth > 0; }
         }
+
+        internal bool IsInReplace;
     }
 }

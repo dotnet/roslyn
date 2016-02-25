@@ -4,11 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -17,8 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         internal Compilation Compilation;
 
-        public MockCSharpCompiler(string responseFile, string baseDirectory, string[] args, DiagnosticAnalyzer analyzer = null)
-            : this(responseFile, baseDirectory, args, analyzer == null ? ImmutableArray<DiagnosticAnalyzer>.Empty : ImmutableArray.Create(analyzer))
+        public MockCSharpCompiler(string responseFile, string baseDirectory, string[] args)
+            : this(responseFile, baseDirectory, args, ImmutableArray<DiagnosticAnalyzer>.Empty)
         {
         }
 

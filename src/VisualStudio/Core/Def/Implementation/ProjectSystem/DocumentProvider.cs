@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
@@ -79,6 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             uint itemId,
             string filePath,
             SourceCodeKind sourceCodeKind,
+            bool isGenerated,
             Func<ITextBuffer, bool> canUseTextBuffer)
         {
             var documentKey = new DocumentKey(hostProject, filePath);
@@ -127,6 +129,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             DocumentId id = null;
             _documentIdHints.TryGetValue(filePath, out id);
 
+            Debug.Assert(isGenerated == DocumentInfo.IsGeneratedFile(filePath));
+
             document = new StandardTextDocument(
                 this,
                 hostProject,
@@ -136,7 +140,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _textUndoHistoryRegistry,
                 _fileChangeService,
                 openTextBuffer,
-                id);
+                id,
+                isGenerated);
 
             // Add this to our document map
             _documentMap.Add(documentKey, document);

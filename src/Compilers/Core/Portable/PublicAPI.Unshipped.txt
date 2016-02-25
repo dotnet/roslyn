@@ -678,12 +678,26 @@ Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPostfixDecrement = 7
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPostfixIncrement = 771 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPrefixDecrement = 774 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPrefixIncrement = 773 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
+Microsoft.CodeAnalysis.SourceGenerator
+Microsoft.CodeAnalysis.SourceGeneratorAttribute
+Microsoft.CodeAnalysis.SourceGeneratorAttribute.Languages.get -> string[]
+Microsoft.CodeAnalysis.SourceGeneratorAttribute.SourceGeneratorAttribute(string firstLanguage, params string[] additionalLanguages) -> void
+Microsoft.CodeAnalysis.SourceGeneratorContext
+Microsoft.CodeAnalysis.SourceGeneratorExtensions
 Microsoft.CodeAnalysis.SyntaxNode.FindTrivia(int position, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, bool> stepInto) -> Microsoft.CodeAnalysis.SyntaxTrivia
+abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetSourceGenerators(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SourceGenerator>
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationBlockEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
 abstract Microsoft.CodeAnalysis.SemanticModel.GetOperationCore(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.IOperation
+abstract Microsoft.CodeAnalysis.SourceGenerator.Execute(Microsoft.CodeAnalysis.SourceGeneratorContext context) -> void
+abstract Microsoft.CodeAnalysis.SourceGeneratorContext.AddCompilationUnit(string name, Microsoft.CodeAnalysis.SyntaxTree tree) -> void
+abstract Microsoft.CodeAnalysis.SourceGeneratorContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
+abstract Microsoft.CodeAnalysis.SourceGeneratorContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
 override Microsoft.CodeAnalysis.CompilationReference.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.CompilationReference.GetHashCode() -> int
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetSourceGenerators(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SourceGenerator>
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.GetSourceGenerators(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SourceGenerator>
+override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.GetSourceGenerators(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SourceGenerator>
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.Visit(Microsoft.CodeAnalysis.IOperation operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitAddressOfExpression(Microsoft.CodeAnalysis.Semantics.IAddressOfExpression operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitArgument(Microsoft.CodeAnalysis.Semantics.IArgument operation) -> void
@@ -773,6 +787,7 @@ static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetSim
 static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetUnaryOperandKind(Microsoft.CodeAnalysis.Semantics.UnaryOperationKind kind) -> Microsoft.CodeAnalysis.Semantics.UnaryOperandKind
 static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetUnaryOperandKind(this Microsoft.CodeAnalysis.Semantics.IIncrementExpression increment) -> Microsoft.CodeAnalysis.Semantics.UnaryOperandKind
 static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetUnaryOperandKind(this Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression unary) -> Microsoft.CodeAnalysis.Semantics.UnaryOperandKind
+static Microsoft.CodeAnalysis.SourceGeneratorExtensions.GenerateSource(this Microsoft.CodeAnalysis.Compilation compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SourceGenerator> generators, string path, bool writeToDisk, System.Threading.CancellationToken cancellationToken) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SyntaxTree>
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.ConfigureGeneratedCodeAnalysis(Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags analysisMode) -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.EnableConcurrentExecution() -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void

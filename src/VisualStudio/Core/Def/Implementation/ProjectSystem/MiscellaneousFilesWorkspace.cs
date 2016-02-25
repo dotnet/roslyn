@@ -245,7 +245,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var hostProject = new HostProject(this, CurrentSolution.Id, languageInformation.LanguageName, parseOptions, _metadataReferences);
 
                 // Now try to find the document. We accept any text buffer, since we've already verified it's an appropriate file in ShouldIncludeFile.
-                var document = _documentProvider.TryGetDocumentForFile(hostProject, (uint)VSConstants.VSITEMID.Nil, moniker, parseOptions.Kind, t => true);
+                var document = _documentProvider.TryGetDocumentForFile(
+                    hostProject,
+                    (uint)VSConstants.VSITEMID.Nil,
+                    moniker,
+                    parseOptions.Kind,
+                    isGenerated: false,
+                    canUseTextBuffer: _ => true);
 
                 // If the buffer has not yet been initialized, we won't get a document.
                 if (document == null)

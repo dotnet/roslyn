@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
         protected DocumentInfo info;
 
         /// <summary>
-        /// A direct reference to our source text.  This is only kept around in speicalized scenarios.
+        /// A direct reference to our source text.  This is only kept around in specialized scenarios.
         /// Specifically, we keep this around when a document is opened.  By providing this we can allow
         /// clients to easily get to the text of the document in a non-blocking fashion if that's all
         /// that they need.

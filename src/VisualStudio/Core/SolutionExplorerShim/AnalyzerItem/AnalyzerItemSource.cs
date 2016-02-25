@@ -2,83 +2,41 @@
 
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
-    internal class AnalyzerItemSource : IAttachedCollectionSource, INotifyPropertyChanged
+    internal sealed class AnalyzerItemSource : ProjectItemSource
     {
         private readonly AnalyzersFolderItem _analyzersFolder;
         private readonly IAnalyzersCommandHandler _commandHandler;
         private IReadOnlyCollection<AnalyzerReference> _analyzerReferences;
         private BulkObservableCollection<AnalyzerItem> _analyzerItems;
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public AnalyzerItemSource(AnalyzersFolderItem analyzersFolder, IAnalyzersCommandHandler commandHandler)
+        public AnalyzerItemSource(AnalyzersFolderItem analyzersFolder, IAnalyzersCommandHandler commandHandler) :
+            base(analyzersFolder, analyzersFolder.Workspace, analyzersFolder.ProjectId)
         {
             _analyzersFolder = analyzersFolder;
             _commandHandler = commandHandler;
-
-            _analyzersFolder.Workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
         }
 
-        private void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
-        {
-            switch (e.Kind)
-            {
-                case WorkspaceChangeKind.SolutionAdded:
-                case WorkspaceChangeKind.SolutionChanged:
-                case WorkspaceChangeKind.SolutionReloaded:
-                    UpdateAnalyzers();
-                    break;
-
-                case WorkspaceChangeKind.SolutionRemoved:
-                case WorkspaceChangeKind.SolutionCleared:
-                    _analyzersFolder.Workspace.WorkspaceChanged -= Workspace_WorkspaceChanged;
-                    break;
-
-                case WorkspaceChangeKind.ProjectAdded:
-                case WorkspaceChangeKind.ProjectReloaded:
-                case WorkspaceChangeKind.ProjectChanged:
-                    if (e.ProjectId == _analyzersFolder.ProjectId)
-                    {
-                        UpdateAnalyzers();
-                    }
-
-                    break;
-
-                case WorkspaceChangeKind.ProjectRemoved:
-                    if (e.ProjectId == _analyzersFolder.ProjectId)
-                    {
-                        _analyzersFolder.Workspace.WorkspaceChanged -= Workspace_WorkspaceChanged;
-                    }
-
-                    break;
-            }
-        }
-
-        private void UpdateAnalyzers()
+        protected override void Update()
         {
             if (_analyzerItems == null)
             {
                 // The set of AnalyzerItems hasn't been realized yet. Just signal that HasItems
                 // may have changed.
 
-                NotifyPropertyChanged("HasItems");
+                NotifyPropertyChanged(nameof(HasItems));
                 return;
             }
 
-            var project = _analyzersFolder.Workspace
-                            .CurrentSolution
-                            .GetProject(_analyzersFolder.ProjectId);
-
+            var project = _analyzersFolder.GetProject();
             if (project != null &&
                 project.AnalyzerReferences != _analyzerReferences)
             {
@@ -112,16 +70,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 _analyzerItems.EndBulkOperation();
 
-                NotifyPropertyChanged("HasItems");
+                NotifyPropertyChanged(nameof(HasItems));
             }
         }
 
-        private void NotifyPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        public bool HasItems
+        public override bool HasItems
         {
             get
             {
@@ -130,10 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     return _analyzerItems.Count > 0;
                 }
 
-                var project = _analyzersFolder.Workspace
-                                                .CurrentSolution
-                                                .GetProject(_analyzersFolder.ProjectId);
-
+                var project = _analyzersFolder.GetProject();
                 if (project != null)
                 {
                     return project.AnalyzerReferences.Count > 0;
@@ -143,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        public IEnumerable Items
+        public override IEnumerable Items
         {
             get
             {
@@ -151,10 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 {
                     _analyzerItems = new BulkObservableCollection<AnalyzerItem>();
 
-                    var project = _analyzersFolder.Workspace
-                                                .CurrentSolution
-                                                .GetProject(_analyzersFolder.ProjectId);
-
+                    var project = _analyzersFolder.GetProject();
                     if (project != null)
                     {
                         _analyzerReferences = project.AnalyzerReferences;
@@ -170,14 +117,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     KeyValueLogMessage.Create(m => m["Count"] = _analyzerItems.Count));
 
                 return _analyzerItems;
-            }
-        }
-
-        public object SourceItem
-        {
-            get
-            {
-                return _analyzersFolder;
             }
         }
     }
