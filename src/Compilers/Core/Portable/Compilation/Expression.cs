@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             this.Syntax = syntax;
         }
 
-        public string Text => _value.Value.ToString();
+        public string Text => _value.GetValueToDisplay();
 
         public ITypeSymbol Type { get; }
 

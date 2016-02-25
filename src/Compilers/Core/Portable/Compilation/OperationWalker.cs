@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitInvocationExpression(IInvocationExpression operation)
         {
             Visit(operation.Instance);
-            VisitArray(operation.ArgumentsInSourceOrder);
+            VisitArray(operation.ArgumentsInParameterOrder);
         }
 
         public override void VisitArgument(IArgument operation)
