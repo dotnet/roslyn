@@ -54,9 +54,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements IAssignmentExpression
         Implements ICompoundAssignmentExpression
 
-        Private ReadOnly Property IAssignmentExpression_Target As IReferenceExpression Implements IAssignmentExpression.Target
+        Private ReadOnly Property IAssignmentExpression_Target As IOperation Implements IAssignmentExpression.Target
             Get
-                Return TryCast(Me.Left, IReferenceExpression)
+                Return Me.Left
             End Get
         End Property
 

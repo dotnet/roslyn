@@ -1217,6 +1217,46 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.None);
         }
     }
+    
+    public class AddressOfTestAnalyzer : DiagnosticAnalyzer
+    {
+        private const string ReliabilityCategory = "Reliability";
+        
+        public static readonly DiagnosticDescriptor AddressOfDescriptor = new DiagnosticDescriptor(
+            "AddressOfOperation",
+            "AddressOf operation found",
+            "An AddressOf operation found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor InvalidAddressOfReferenceDescriptor = new DiagnosticDescriptor(
+            "InvalidAddressOfReference",
+            "Invalid AddressOf reference found",
+            "An invalid AddressOf reference found",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+            ImmutableArray.Create(AddressOfDescriptor, InvalidAddressOfReferenceDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     var addressOfOperation = (IAddressOfExpression)operationContext.Operation;
+                     operationContext.ReportDiagnostic(Diagnostic.Create(AddressOfDescriptor, addressOfOperation.Syntax.GetLocation()));
+
+                     if (addressOfOperation.Reference.Kind == OperationKind.InvalidExpression && addressOfOperation.IsInvalid)
+                     {
+                         operationContext.ReportDiagnostic(Diagnostic.Create(InvalidAddressOfReferenceDescriptor, addressOfOperation.Reference.Syntax.GetLocation()));
+                     }
+                 },
+                 OperationKind.AddressOfExpression);
+        }
+    }
 
     /// <summary>Analyzer used to test LambdaExpression IOperations.</summary>
     public class LambdaTestAnalyzer : DiagnosticAnalyzer
@@ -1745,8 +1785,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 },
                 OperationKind.PlaceholderExpression);
         }
-    }
-    
+    }    
 
     public class ForLoopConditionCrashVBTestAnalyzer : DiagnosticAnalyzer
     {
