@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            ushort[] values = new ushort[4];
+            ushort[] values = new ushort[] { 0, 0, ushort.MaxValue, ushort.MaxValue };
             int lastExplicitValue = hasWildcard ? elements.Length - 1 : elements.Length;
             for (int i = 0; i < lastExplicitValue; i++)
             {
@@ -72,37 +72,36 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            if (hasWildcard)
-            {
-                int seconds = ((int)(DateTime.Now.TimeOfDay.TotalSeconds)) / 2;
-                if (seconds > (int)maxValue)
-                {
-                    version = null;
-                    return false;
-                }
-                values[3] = (ushort)seconds;
-
-                if (elements.Length == 3)
-                {
-                    TimeSpan days = DateTime.Today - new DateTime(2000, 1, 1);
-                    int build = (int)days.TotalDays;
-
-                    if (build < 0 || build > (int)maxValue)
-                    {
-                        //alink would generate an error here saying "Cannot auto-generate build and 
-                        //revision version numbers for dates previous to January 1, 2000." Without
-                        //some refactoring here to relay the date problem, Roslyn
-                        //will generate an inaccurate error about the version string being of the wrong format.
-
-                        version = null;
-                        return false;
-                    }
-                    values[2] = (ushort)build;
-                }
-            }
-
             version = new Version(values[0], values[1], values[2], values[3]);
             return true;
+        }
+
+        /// <summary>
+        /// If build and/or revision numbers are 65535 they are replaced with time-based values.
+        /// </summary>
+        public static Version GenerateVersionFromPatternAndCurrentTime(Version pattern)
+        {
+            if (pattern == null || pattern.Revision != ushort.MaxValue)
+            {
+                return pattern;
+            }
+
+            int revision = (int)DateTime.Now.TimeOfDay.TotalSeconds / 2;
+
+            // 24 * 60 * 60 / 2 = 43200 < 65534
+            Debug.Assert(revision < 0xffff);
+
+            if (pattern.Build == ushort.MaxValue)
+            {
+                TimeSpan days = DateTime.Today - new DateTime(2000, 1, 1);
+                int build = Math.Min(ushort.MaxValue, (int)days.TotalDays);
+
+                return new Version(pattern.Major, pattern.Minor, (ushort)build, (ushort)revision);
+            }
+            else
+            {
+                return new Version(pattern.Major, pattern.Minor, pattern.Build, (ushort)revision);
+            }
         }
     }
 }

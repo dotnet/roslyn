@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis.Text
                 var index = 0;
                 if (lastWasCR)
                 {
-                    if (buffer.Length > 0 && buffer[0] == '\n')
+                    if (length > 0 && buffer[0] == '\n')
                     {
                         index++;
                     }
