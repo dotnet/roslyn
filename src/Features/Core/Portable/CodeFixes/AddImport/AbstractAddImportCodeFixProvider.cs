@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Roslyn.Utilities;
+using static Roslyn.Utilities.PortableShim;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
@@ -84,7 +85,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         if (allSymbolReferences.Count == 0)
                         {
                             // No exact matches found.  Fall back to fuzzy searching.
-                            await FindResults(projectToAssembly, referenceToCompilation, project, allSymbolReferences, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                            // Only bother doing this for host workspaces.  We don't want this for 
+                            // things like the Interactive workspace as this will cause us to 
+                            // create expensive bktrees which we won't even be able to save for 
+                            // future use.
+                            if (IsHostOrTestWorkspace(project))
+                            {
+                                await FindResults(projectToAssembly, referenceToCompilation, project, allSymbolReferences, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                            }
                         }
 
                         // Nothing found at all. No need to proceed.
@@ -101,13 +109,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                             if (description != null)
                             {
                                 var action = new MyCodeAction(description, reference.GetGlyph(document),
-                                    c => this.AddImportAndReferenceAsync(node, reference, document, placeSystemNamespaceFirst, c));
+                                    c => this.AddImportAndReferenceAsync(node, reference, document, placeSystemNamespaceFirst, c),
+                                    reference.GetIsApplicableCheck(document.Project));
                                 context.RegisterCodeFix(action, diagnostic);
                             }
                         }
                     }
                 }
             }
+        }
+
+        private static bool IsHostOrTestWorkspace(Project project)
+        {
+            return project.Solution.Workspace.Kind == WorkspaceKind.Host ||
+                   project.Solution.Workspace.Kind == "Test";
         }
 
         private async Task FindResults(
@@ -117,20 +132,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         {
             // First search the current project to see if any symbols (source or metadata) match the 
             // search string.
-            await FindResultsInAllProjectSymbolsAsync(project, allSymbolReferences, finder, exact).ConfigureAwait(false);
+            await FindResultsInAllProjectSymbolsAsync(project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
 
-            // Now search unreferenced projects, and see if they have any source symbols that match
-            // the search string.
-            await FindResultsInUnreferencedProjectSourceSymbolsAsync(projectToAssembly, project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+            // Only bother doing this for host workspaces.  We don't want this for 
+            // things like the Interactive workspace as we can't even add project
+            // references to the interactive window.  We could consider adding metadata
+            // references with #r in the future.
+            if (IsHostOrTestWorkspace(project))
+            {
+                // Now search unreferenced projects, and see if they have any source symbols that match
+                // the search string.
+                await FindResultsInUnreferencedProjectSourceSymbolsAsync(projectToAssembly, project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
 
-            // Finally, check and see if we have any metadata symbols that match the search string.
-            await FindResultsInUnreferencedMetadataSymbolsAsync(referenceToCompilation, project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+                // Finally, check and see if we have any metadata symbols that match the search string.
+                await FindResultsInUnreferencedMetadataSymbolsAsync(referenceToCompilation, project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private async Task FindResultsInAllProjectSymbolsAsync(
-            Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, bool exact)
+            Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
-            var references = await finder.FindInAllProjectSymbolsAsync(project, exact).ConfigureAwait(false);
+            var references = await finder.FindInAllProjectSymbolsAsync(project, exact, cancellationToken).ConfigureAwait(false);
             AddRange(allSymbolReferences, references);
         }
 
@@ -186,17 +208,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             var viableUnreferencedProjects = GetViableUnreferencedProjects(project);
-            foreach (var unreferencedProject in viableUnreferencedProjects)
+
+            // Search all unreferenced projects in parallel.
+            var findTasks = new HashSet<Task<List<SymbolReference>>>();
+
+            // Create another cancellation token so we can both search all projects in parallel,
+            // but also stop any searches once we get enough results.
+            using (var nestedTokenSource = new CancellationTokenSource())
+            using (var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken))
             {
-                // Search in this unreferenced project.  But don't search in any of its'
-                // direct references.  i.e. we don't want to search in its metadata references
-                // or in the projects it references itself. We'll be searching those entities
-                // individually.
-                AddRange(allSymbolReferences, await finder.FindInSourceProjectSymbolsAsync(projectToAssembly, unreferencedProject, exact: exact).ConfigureAwait(false));
-                if (allSymbolReferences.Count >= MaxResults)
+                foreach (var unreferencedProject in viableUnreferencedProjects)
                 {
-                    return;
+                    // Search in this unreferenced project.  But don't search in any of its'
+                    // direct references.  i.e. we don't want to search in its metadata references
+                    // or in the projects it references itself. We'll be searching those entities
+                    // individually.
+                    findTasks.Add(finder.FindInSourceProjectSymbolsAsync(projectToAssembly, unreferencedProject, exact, linkedTokenSource.Token));
                 }
+
+                await WaitForTasksAsync(allSymbolReferences, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -223,45 +253,94 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 project.Solution.Projects.Where(p => p != project)
                                          .SelectMany(p => p.MetadataReferences.OfType<PortableExecutableReference>())
                                          .Distinct(comparer: this)
-                                         .Where(r => !seenReferences.Contains(r));
+                                         .Where(r => !seenReferences.Contains(r))
+                                         .Where(r => !IsInPackagesDirectory(r));
 
             // Search all metadata references in parallel.
             var findTasks = new HashSet<Task<List<SymbolReference>>>();
 
-            foreach (var reference in newReferences)
+            // Create another cancellation token so we can both search all projects in parallel,
+            // but also stop any searches once we get enough results.
+            using (var nestedTokenSource = new CancellationTokenSource())
+            using (var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken))
             {
-                var compilation = referenceToCompilation.GetOrAdd(reference, r => CreateCompilation(project, r));
-
-                // Ignore netmodules.  First, they're incredibly esoteric and barely used.
-                // Second, the SymbolFinder api doesn't even support searching them. 
-                var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                if (assembly != null)
+                foreach (var reference in newReferences)
                 {
-                    findTasks.Add(finder.FindInMetadataAsync(project.Solution, assembly, reference, exact));
+                    var compilation = referenceToCompilation.GetOrAdd(reference, r => CreateCompilation(project, r));
+
+                    // Ignore netmodules.  First, they're incredibly esoteric and barely used.
+                    // Second, the SymbolFinder api doesn't even support searching them. 
+                    var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
+                    if (assembly != null)
+                    {
+                        findTasks.Add(finder.FindInMetadataAsync(project.Solution, assembly, reference, exact, linkedTokenSource.Token));
+                    }
+                }
+
+                await WaitForTasksAsync(allSymbolReferences, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private async Task WaitForTasksAsync(
+            List<SymbolReference> allSymbolReferences,
+            HashSet<Task<List<SymbolReference>>> findTasks,
+            CancellationTokenSource nestedTokenSource,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                while (findTasks.Count > 0)
+                {
+                    // Keep on looping through the 'find' tasks, processing each when they finish.
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var doneTask = await Task.WhenAny(findTasks).ConfigureAwait(false);
+
+                    // One of the tasks finished.  Remove it from the list we're waiting on.
+                    findTasks.Remove(doneTask);
+
+                    // Add its results to the final result set we're keeping.
+                    AddRange(allSymbolReferences, await doneTask.ConfigureAwait(false));
+
+                    // Once we get enough, just stop.
+                    if (allSymbolReferences.Count >= MaxResults)
+                    {
+                        return;
+                    }
                 }
             }
-
-            while (findTasks.Count > 0)
+            finally
             {
-                // Keep on looping through the 'find' tasks, processing each when they finish.
-                cancellationToken.ThrowIfCancellationRequested();
-                var doneTask = await Task.WhenAny(findTasks).ConfigureAwait(false);
-
-                // One of the tasks finished.  Remove it from the list we're waiting on.
-                findTasks.Remove(doneTask);
-
-                // Add its results to the final result set we're keeping.
-                AddRange(allSymbolReferences, await doneTask.ConfigureAwait(false));
-
-                // If we've got enough, no need to keep searching. 
-                // Note: We do not cancel the existing tasks that are still executing.  These tasks will
-                // cause our indices to be created if necessary.  And that's good for future searches which
-                // we will invariably perform.
-                if (allSymbolReferences.Count >= MaxResults)
-                {
-                    break;
-                }
+                // Cancel any nested work that's still happening.
+                nestedTokenSource.Cancel();
             }
+        }
+
+        /// <summary>
+        /// We ignore references that are in a directory that contains the names "Packages".
+        /// These directories are most likely the ones produced by NuGet, and we don't want
+        /// to offer to add .dll reference manually for dlls that are part of NuGet packages.
+        /// 
+        /// Note that this is only a heuristic (though a good one), and we should remove this
+        /// when we can get an API from NuGet that tells us if a reference is actually provided
+        /// by a nuget packages.
+        /// 
+        /// This heuristic will do the right thing in practically all cases for all. It 
+        /// prevents the very unpleasant experience of us offering to add a direct metadata 
+        /// reference to something that should only be referenced as a nuget package.
+        ///
+        /// It does mean that if the following is true:
+        /// You have a project that has a non-nuget metadata reference to something in a "packages"
+        /// directory, and you are in another project that uses a type name that would have matched
+        /// an accessible type from that dll. then we will not offer to add that .dll reference to
+        /// that other project.
+        /// 
+        /// However, that would be an exceedingly uncommon case that is degraded.  Whereas we're 
+        /// vastly improved in the common case. This is a totally acceptable and desirable outcome
+        /// for such a heuristic.
+        /// </summary>
+        private bool IsInPackagesDirectory(PortableExecutableReference reference)
+        {
+            return PathUtilities.ContainsPathComponent(reference.FilePath, "packages", ignoreCase: true);
         }
 
         /// <summary>
@@ -384,14 +463,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
             private readonly Glyph? _glyph;
+            private readonly Func<Workspace, bool> _isApplicable;
 
-            public MyCodeAction(string title, Glyph? glyph, Func<CancellationToken, Task<Solution>> createChangedSolution) :
+            public MyCodeAction(
+                string title,
+                Glyph? glyph,
+                Func<CancellationToken, Task<Solution>> createChangedSolution,
+                Func<Workspace, bool> isApplicable = null) :
                 base(title, createChangedSolution, equivalenceKey: title)
             {
                 _glyph = glyph;
+                _isApplicable = isApplicable;
             }
 
             internal override int? Glyph => _glyph.HasValue ? (int)_glyph.Value : (int?)null;
+
+            internal override bool PerformFinalApplicabilityCheck => _isApplicable != null;
+
+            internal override bool IsApplicable(Workspace workspace)
+            {
+                return _isApplicable == null ? true : _isApplicable(workspace);
+            }
         }
 
         private struct SearchResult<T> where T : ISymbol

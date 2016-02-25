@@ -4,6 +4,7 @@
     <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
+    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <!-- dynamic -->
     <Nonshipping>true</Nonshipping>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>

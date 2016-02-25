@@ -20,17 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class SymbolMatcherTests : EditAndContinueTestBase
     {
-        private static void MatchAll(CSharpSymbolMatcher matcher, ImmutableArray<Symbol> members, int startAt)
-        {
-            int n = members.Length;
-            for (int i = 0; i < n; i++)
-            {
-                var member = members[(i + startAt) % n];
-                var other = matcher.MapDefinition((Cci.IDefinition)member);
-                Assert.NotNull(other);
-            }
-        }
-
         [Fact]
         public void ConcurrentAccess()
         {
@@ -88,6 +77,17 @@ class B
                     });
                 }
                 Task.WaitAll(tasks);
+            }
+        }
+
+        private static void MatchAll(CSharpSymbolMatcher matcher, ImmutableArray<Symbol> members, int startAt)
+        {
+            int n = members.Length;
+            for (int i = 0; i < n; i++)
+            {
+                var member = members[(i + startAt) % n];
+                var other = matcher.MapDefinition((Cci.IDefinition)member);
+                Assert.NotNull(other);
             }
         }
 
@@ -155,7 +155,7 @@ class C
                 default(EmitContext),
                 null);
             var member = compilation1.GetMember<MethodSymbol>("C.M");
-            var other = matcher.MapDefinition((Cci.IMethodDefinition)member);
+            var other = matcher.MapDefinition(member);
             Assert.NotNull(other);
         }
 
@@ -192,6 +192,40 @@ class C
             Assert.NotNull(other);
             Assert.Equal(((PointerTypeSymbol)other.Parameters[0].Type).CustomModifiers.Length, 1);
             Assert.Equal(((ArrayTypeSymbol)other.ReturnType).CustomModifiers.Length, 1);
+        }
+
+        [Fact]
+        public void VaryingCompilationReferences()
+        {
+            string libSource = @"
+public class D { }
+";
+
+            string source = @"
+public class C
+{
+    public void F(D a) {}
+}
+";
+            var lib0 = CreateCompilationWithMscorlib(libSource, options: TestOptions.DebugDll, assemblyName: "Lib");
+            var lib1 = CreateCompilationWithMscorlib(libSource, options: TestOptions.DebugDll, assemblyName: "Lib");
+
+            var compilation0 = CreateCompilationWithMscorlib(source, new[] { lib0.ToMetadataReference() }, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source).WithReferences(MscorlibRef, lib1.ToMetadataReference());
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var mf1 = matcher.MapDefinition(f1);
+            Assert.Equal(f0, mf1);
         }
 
         [WorkItem(1533, "https://github.com/dotnet/roslyn/issues/1533")]

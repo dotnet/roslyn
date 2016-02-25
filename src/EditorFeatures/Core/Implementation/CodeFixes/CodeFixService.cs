@@ -22,11 +22,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
+    using Editor.Shared.Utilities;
     using DiagnosticId = String;
     using LanguageKind = String;
 
     [Export(typeof(ICodeFixService)), Shared]
-    internal partial class CodeFixService : ICodeFixService
+    internal partial class CodeFixService : ForegroundThreadAffinitizedObject, ICodeFixService
     {
         private readonly IDiagnosticAnalyzerService _diagnosticService;
 
@@ -52,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             [ImportMany]IEnumerable<Lazy<IErrorLoggerService>> loggers,
             [ImportMany]IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> fixers,
             [ImportMany]IEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>> suppressionProviders)
+            : base(assertIsForeground: false)
         {
             _errorLoggers = loggers;
             _diagnosticService = service;
@@ -407,12 +409,28 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var fixer in allFixers)
             {
                 await extensionManager.PerformActionAsync(fixer, () => fixer.RegisterCodeFixesAsync(context) ?? SpecializedTasks.EmptyTask).ConfigureAwait(false);
-                if (!fixes.Any())
+                foreach (var fix in fixes)
                 {
-                    continue;
-                }
+                    if (!fix.Action.PerformFinalApplicabilityCheck)
+                    {
+                        return true;
+                    }
 
-                return true;
+                    // Have to see if this fix is still applicable.  Jump to the foreground thread
+                    // to make that check.
+                    var applicable = await Task.Factory.StartNew(() =>
+                        {
+                            this.AssertIsForeground();
+                            return fix.Action.IsApplicable(document.Project.Solution.Workspace);
+                        },
+                        cancellationToken, TaskCreationOptions.None, this.ForegroundTaskScheduler).ConfigureAwait(false);
+                    this.AssertIsBackground();
+
+                    if (applicable)
+                    {
+                        return true;
+                    }
+                }
             }
 
             return false;

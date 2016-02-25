@@ -99,10 +99,6 @@
 
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
 
-    <!-- If we're on Visual Studio 2015 RTM and  we still have Roslyn installed, our VSIX-producing packages are not going to install, so let's not even try.
-         Update 1 supports this, so we'll use csi.exe's existence as a simple proxy for whether we have Update 1 installed or not. -->
-    <DeployExtension Condition="'$(DeployExtension)' == '' AND Exists('$(DevEnvDir)\CommonExtensions\Microsoft\Roslyn\Language Services\extension.vsixmanifest') AND !Exists('$(MSBuildBinPath)\csi.exe')">false</DeployExtension>
-
     <Deterministic>True</Deterministic>
   </PropertyGroup>
 
@@ -123,14 +119,6 @@
   <!-- Build reliability -->
   <PropertyGroup>
     <OverwriteReadOnlyFiles Condition="'$(OverwriteReadOnlyFiles)' == ''">true</OverwriteReadOnlyFiles>
-  </PropertyGroup>
-
-  <!-- Don't validate our .vsixmanifests for correct schemas. Right now our build machines are on Visual Studio 2015 RTM, but we want to set a property
-       (Experimental) that was added in Update 1. Since the schema is pulled from the box, you can't build with RTM unless we either disable schema
-       validation or otherwise copy the schemas in and then point the target to those. Since schema changes happen fairly rarely, I'll just disable
-       schema validation and turn it on as soon as we're on update 1 only. -->
-  <PropertyGroup>
-    <BypassVsixValidation>true</BypassVsixValidation>
   </PropertyGroup>
 
   <!-- Project language -->

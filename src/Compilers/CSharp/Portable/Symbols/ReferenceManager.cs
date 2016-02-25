@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var resolutionDiagnostics = DiagnosticBag.GetInstance();
                 var assemblyReferencesBySimpleName = PooledDictionary<string, List<ReferencedAssemblyIdentity>>.GetInstance();
-                bool supersedeLowerVersions = compilation.IsSubmission;
+                bool supersedeLowerVersions = compilation.Options.ReferencesSupersedeLowerVersions;
 
                 try
                 {

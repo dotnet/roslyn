@@ -43,6 +43,10 @@
     <Compile Include="Implementation\AnalyzerDependency\IIgnorableAssemblyList.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IBindingRedirectionService.cs" />
     <Compile Include="Implementation\Extensions\ServiceProviderExtensions.cs" />
+    <Compile Include="ID.InteractiveCommands.cs" />
+    <Compile Include="Implementation\Interactive\CSharpResetInteractiveMenuCommand.cs" />
+    <Compile Include="Implementation\Interactive\AbstractResetInteractiveMenuCommand.cs" />
+    <Compile Include="Implementation\Interactive\VisualBasicResetInteractiveMenuCommand.cs" />
     <Compile Include="Implementation\Interop\CleanableWeakComHandleTable.cs" />
     <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageBlock.cs" />
     <Compile Include="Implementation\Library\AbstractLibraryService.cs" />
@@ -67,6 +71,7 @@
     <Compile Include="Implementation\ProjectSystem\Interop\ICompilerOptionsHostObject.cs" />
     <Compile Include="Implementation\ProjectSystem\IVisualStudioWorkingFolder.cs" />
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioAnalyzerAssemblyLoaderService.cs" />
+    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioFrameworkAssemblyPathResolverFactory.cs" />
     <Compile Include="Implementation\ProjectSystem\RuleSets\RuleSetEventHandler.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker_IVsSolutionWorkingFoldersEvents.cs" />
     <Compile Include="Implementation\Diagnostics\MiscellaneousDiagnosticAnalyzerService.cs" />
@@ -193,6 +198,9 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll">
       <HintPath>$(DevEnvDir)\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Design.dll">
+      <HintPath>$(DevEnvDir)\Microsoft.VisualStudio.Shell.Design.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.TextManager.Interop.11.0, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>True</EmbedInteropTypes>

@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
     {
         private class SymbolReferenceFinder
         {
-            private readonly CancellationToken _cancellationToken;
             private readonly Diagnostic _diagnostic;
             private readonly Document _document;
             private readonly SemanticModel _semanticModel;
@@ -37,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _semanticModel = semanticModel;
                 _diagnostic = diagnostic;
                 _node = node;
-                _cancellationToken = cancellationToken;
 
                 _containingType = semanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
                 _containingTypeOrAssembly = _containingType ?? (ISymbol)semanticModel.Compilation.Assembly;
@@ -46,29 +44,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             internal Task<List<SymbolReference>> FindInAllProjectSymbolsAsync(
-                Project project, bool exact)
+                Project project, bool exact, CancellationToken cancellationToken)
             {
-                var searchScope = new AllSymbolsProjectSearchScope(project, exact, _cancellationToken);
+                var searchScope = new AllSymbolsProjectSearchScope(project, exact, cancellationToken);
                 return DoAsync(searchScope);
             }
 
             internal Task<List<SymbolReference>> FindInSourceProjectSymbolsAsync(
                 ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
-                Project project, bool exact)
+                Project project, bool exact, CancellationToken cancellationToken)
             {
-                var searchScope = new SourceSymbolsProjectSearchScope(projectToAssembly, project, exact, _cancellationToken);
+                var searchScope = new SourceSymbolsProjectSearchScope(projectToAssembly, project, exact, cancellationToken);
                 return DoAsync(searchScope);
             }
 
             internal Task<List<SymbolReference>> FindInMetadataAsync(
-                Solution solution, IAssemblySymbol assembly, PortableExecutableReference metadataReference, bool exact)
+                Solution solution, IAssemblySymbol assembly, PortableExecutableReference metadataReference, bool exact, CancellationToken cancellationToken)
             {
-                var searchScope = new MetadataSymbolsSearchScope(solution, assembly, metadataReference, exact, _cancellationToken);
+                var searchScope = new MetadataSymbolsSearchScope(solution, assembly, metadataReference, exact, cancellationToken);
                 return DoAsync(searchScope);
             }
 
             private async Task<List<SymbolReference>> DoAsync(SearchScope searchScope)
             {
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
+
                 // Spin off tasks to do all our searching.
                 var tasks = new List<Task<IList<SymbolReference>>>
                 {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
-                _cancellationToken.ThrowIfCancellationRequested();
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
 
                 List<SymbolReference> allReferences = null;
                 foreach (var task in tasks)
@@ -125,6 +125,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             private async Task<IList<SymbolReference>> GetNamespacesForMatchingTypesAsync(SearchScope searchScope)
             {
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
+
                 TSimpleNameSyntax nameNode;
                 if (!_owner.CanAddImportForType(_diagnostic, _node, out nameNode))
                 {
@@ -147,6 +149,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             private async Task<IList<SymbolReference>> GetMatchingTypesAsync(SearchScope searchScope)
             {
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
+
                 TSimpleNameSyntax nameNode;
                 if (!_owner.CanAddImportForType(_diagnostic, _node, out nameNode))
                 {
@@ -173,12 +177,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 TSimpleNameSyntax nameNode,
                 bool inAttributeContext)
             {
-                if (_cancellationToken.IsCancellationRequested)
+                if (searchScope.CancellationToken.IsCancellationRequested)
                 {
                     return null;
                 }
 
-                if (ExpressionBinds(nameNode, checkForExtensionMethods: false))
+                if (ExpressionBinds(searchScope, nameNode, checkForExtensionMethods: false))
                 {
                     return null;
                 }
@@ -197,12 +201,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return OfType<ITypeSymbol>(symbols);
             }
 
-            protected bool ExpressionBinds(TSimpleNameSyntax nameNode, bool checkForExtensionMethods)
+            protected bool ExpressionBinds(SearchScope searchScope, TSimpleNameSyntax nameNode, bool checkForExtensionMethods)
             {
                 // See if the name binds to something other then the error type. If it does, there's nothing further we need to do.
                 // For extension methods, however, we will continue to search if there exists any better matched method.
-                _cancellationToken.ThrowIfCancellationRequested();
-                var symbolInfo = _semanticModel.GetSymbolInfo(nameNode, _cancellationToken);
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
+                var symbolInfo = _semanticModel.GetSymbolInfo(nameNode, searchScope.CancellationToken);
                 if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure && !checkForExtensionMethods)
                 {
                     return true;
@@ -214,6 +218,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private async Task<IList<SymbolReference>> GetNamespacesForMatchingNamespacesAsync(
                 SearchScope searchScope)
             {
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
+
                 TSimpleNameSyntax nameNode;
                 if (!_owner.CanAddImportForNamespace(_diagnostic, _node, out nameNode))
                 {
@@ -229,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return null;
                 }
 
-                if (ExpressionBinds(nameNode, checkForExtensionMethods: false))
+                if (ExpressionBinds(searchScope, nameNode, checkForExtensionMethods: false))
                 {
                     return null;
                 }
@@ -242,6 +248,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             private async Task<IList<SymbolReference>> GetNamespacesForMatchingExtensionMethodsAsync(SearchScope searchScope)
             {
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
+
                 TSimpleNameSyntax nameNode;
                 if (!_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out nameNode))
                 {
@@ -261,6 +269,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             private async Task<IList<SymbolReference>> GetNamespacesForCollectionInitializerMethodsAsync(SearchScope searchScope)
             {
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
+
                 TSimpleNameSyntax nameNode;
                 if (!_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out nameNode))
                 {
@@ -274,6 +284,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private async Task<IList<SymbolReference>> GetNamespacesForMatchingFieldsAndPropertiesAsync(
                 SearchScope searchScope)
             {
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
+
                 TSimpleNameSyntax nameNode;
                 if (!_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out nameNode))
                 {
@@ -296,12 +308,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             private async Task<IList<SymbolReference>> GetNamespacesForQueryPatternsAsync(SearchScope searchScope)
             {
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
+
                 if (!_owner.CanAddImportForQuery(_diagnostic, _node))
                 {
                     return null;
                 }
 
-                ITypeSymbol type = _owner.GetQueryClauseInfo(_semanticModel, _node, _cancellationToken);
+                ITypeSymbol type = _owner.GetQueryClauseInfo(_semanticModel, _node, searchScope.CancellationToken);
                 if (type == null)
                 {
                     return null;
@@ -380,10 +394,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             private Task<IEnumerable<SearchResult<ISymbol>>> GetSymbolsAsync(SearchScope searchScope, TSimpleNameSyntax nameNode)
             {
-                _cancellationToken.ThrowIfCancellationRequested();
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
 
                 // See if the name binds.  If it does, there's nothing further we need to do.
-                if (ExpressionBinds(nameNode, checkForExtensionMethods: true))
+                if (ExpressionBinds(searchScope, nameNode, checkForExtensionMethods: true))
                 {
                     return SpecializedTasks.EmptyEnumerable<SearchResult<ISymbol>>();
                 }
@@ -405,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 var extensionMethodSymbols = OfType<IMethodSymbol>(symbols)
                     .Where(s => s.Symbol.IsExtensionMethod &&
                                 s.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly) == true &&
-                                _owner.IsViableExtensionMethod(s.Symbol, expression, _semanticModel, _syntaxFacts, _cancellationToken))
+                                _owner.IsViableExtensionMethod(s.Symbol, expression, _semanticModel, _syntaxFacts, searchScope.CancellationToken))
                     .ToList();
 
                 return GetProposedNamespaces(
@@ -417,12 +431,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
                 var propertySymbols = OfType<IPropertySymbol>(symbols)
                     .Where(property => property.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly) == true &&
-                                       _owner.IsViableProperty(property.Symbol, expression, _semanticModel, _syntaxFacts, _cancellationToken))
+                                       _owner.IsViableProperty(property.Symbol, expression, _semanticModel, _syntaxFacts, searchScope.CancellationToken))
                     .ToList();
 
                 var fieldSymbols = OfType<IFieldSymbol>(symbols)
                     .Where(field => field.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly) == true &&
-                                    _owner.IsViableField(field.Symbol, expression, _semanticModel, _syntaxFacts, _cancellationToken))
+                                    _owner.IsViableField(field.Symbol, expression, _semanticModel, _syntaxFacts, searchScope.CancellationToken))
                     .ToList();
 
                 return GetProposedNamespaces(
@@ -449,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return OfType<IMethodSymbol>(symbols)
                     .Where(s => s.Symbol.IsExtensionMethod &&
                                 s.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly) == true &&
-                                     _owner.IsViableExtensionMethod(s.Symbol, expression, _semanticModel, _syntaxFacts, _cancellationToken))
+                                     _owner.IsViableExtensionMethod(s.Symbol, expression, _semanticModel, _syntaxFacts, searchScope.CancellationToken))
                     .Select(s => s.WithDesiredName(null));
             }
 

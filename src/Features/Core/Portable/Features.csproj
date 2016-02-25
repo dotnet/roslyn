@@ -105,13 +105,10 @@
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllCodeActionContext.DiagnosticProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllProviderInfo.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllCodeActionContext.cs" />
-    <Compile Include="CodeFixes\CodeFixService.cs" />
-    <Compile Include="CodeFixes\CodeFixService.ProjectCodeFixProvider.cs" />
     <Compile Include="CodeFixes\FirstDiagnosticResult.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\IFixMultipleOccurrencesService.cs" />
     <Compile Include="CodeFixes\FullyQualify\AbstractFullyQualifyCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateMember\AbstractGenerateMemberCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\ICodeFixService.cs" />
     <Compile Include="CodeFixes\ICodeFixProviderFactory.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\IFixAllGetFixesService.cs" />
     <Compile Include="CodeFixes\Iterator\AbstractIteratorCodeFixProvider.cs" />

@@ -26,14 +26,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         internal abstract Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 
-        private Tuple<DiagnosticAnalyzer, CodeFixProvider> GetOrCreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal virtual Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(
+            Workspace workspace, object fixProviderData)
         {
-            return _analyzerAndFixerMap.GetOrAdd(workspace, CreateDiagnosticProviderAndFixer);
+            return CreateDiagnosticProviderAndFixer(workspace);
         }
 
-        internal async override Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(TestWorkspace workspace)
+        private Tuple<DiagnosticAnalyzer, CodeFixProvider> GetOrCreateDiagnosticProviderAndFixer(
+            Workspace workspace, object fixProviderData)
         {
-            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace);
+            return fixProviderData == null
+                ? _analyzerAndFixerMap.GetOrAdd(workspace, CreateDiagnosticProviderAndFixer)
+                : CreateDiagnosticProviderAndFixer(workspace, fixProviderData);
+        }
+
+        internal async override Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
+            TestWorkspace workspace, object fixProviderData = null)
+        {
+            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace, fixProviderData);
 
             var provider = providerAndFixer.Item1;
             TextSpan span;
@@ -43,9 +53,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return allDiagnostics;
         }
 
-        internal override async Task<IEnumerable<Tuple<Diagnostic, CodeFixCollection>>> GetDiagnosticAndFixesAsync(TestWorkspace workspace, string fixAllActionId)
+        internal override async Task<IEnumerable<Tuple<Diagnostic, CodeFixCollection>>> GetDiagnosticAndFixesAsync(
+            TestWorkspace workspace, string fixAllActionId, object fixProviderData)
         {
-            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace);
+            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace, fixProviderData);
 
             var provider = providerAndFixer.Item1;
             Document document;
