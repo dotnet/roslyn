@@ -173,6 +173,7 @@
       <DependentUpon>ServicesVSResources.resx</DependentUpon>
     </Compile>
     <Compile Include="Shared\LogicalStringComparer.cs" />
+    <Compile Include="Shared\VisualStudioImageMonikerService.cs" />
     <Compile Include="SolutionEventMonitor.cs" />
     <Compile Include="Utilities\VSCodeAnalysisColors.cs" />
     <Compile Include="Implementation\WorkspaceCacheService.cs" />

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return newDocument.Project.AddMetadataReference(_reference).Solution;
             }
 
-            protected override Glyph? GetGlyph(Document document) => Glyph.Reference;
+            protected override Glyph? GetGlyph(Document document) => Glyph.AddReference;
 
             public override bool Equals(object obj)
             {

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
@@ -292,9 +293,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         // same as display text
         string ISuggestedAction.IconAutomationText => DisplayText;
 
-        ImageMoniker ISuggestedAction.IconMoniker => CodeAction.Glyph.HasValue
-            ? ((Glyph)CodeAction.Glyph.Value).GetImageMoniker()
-            : default(ImageMoniker);
+        ImageMoniker ISuggestedAction.IconMoniker
+        {
+            get
+            {
+                if (CodeAction.Glyph.HasValue)
+                {
+                    var imageService = Workspace.Services.GetService<IImageMonikerService>();
+                    return imageService.GetImageMoniker((Glyph)CodeAction.Glyph.Value);
+                }
+
+                return default(ImageMoniker);
+            }
+        }
 
         string ISuggestedAction.InputGestureText
         {
