@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -24,6 +25,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected override Solution UpdateSolution(Document newDocument)
             {
                 return newDocument.Project.AddMetadataReference(_reference).Solution;
+            }
+
+            protected override CodeActionPriority GetPriority(Document document)
+            {
+                // Adding metadata references should be considered lower pri than anything else.
+                return CodeActionPriority.Low;
             }
 
             protected override Glyph? GetGlyph(Document document) => Glyph.AddReference;

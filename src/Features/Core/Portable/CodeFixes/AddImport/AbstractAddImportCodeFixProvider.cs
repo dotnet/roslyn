@@ -466,20 +466,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         {
             private readonly string _title;
             private readonly Glyph? _glyph;
+            private readonly CodeActionPriority _priority;
             private readonly Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>> _getOperations;
             private readonly Func<Workspace, bool> _isApplicable;
 
             public override string Title => _title;
             internal override int? Glyph => _glyph.HasValue ? (int)_glyph.Value : (int?)null;
             public override string EquivalenceKey => _title;
+            internal override CodeActionPriority Priority => _priority;
 
             public OperationBasedCodeAction(
-                string title, Glyph? glyph, 
+                string title, Glyph? glyph, CodeActionPriority priority,
                 Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>> getOperations,
                 Func<Workspace,bool> isApplicable)
             {
                 _title = title;
                 _glyph = glyph;
+                _priority = priority;
                 _getOperations = getOperations;
                 _isApplicable = isApplicable;
             }

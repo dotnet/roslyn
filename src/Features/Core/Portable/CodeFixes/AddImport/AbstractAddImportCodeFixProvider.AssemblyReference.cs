@@ -76,6 +76,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     _lazyResolvedPath = new Lazy<string>(ResolvePath);
                 }
 
+                // Adding a reference is always low priority.
+                internal override CodeActionPriority Priority => CodeActionPriority.Low;
+
                 private string ResolvePath()
                 {
                     var assemblyResolverService = _document.Project.Solution.Workspace.Services.GetService<IFrameworkAssemblyPathResolver>();

@@ -293,6 +293,7 @@
     <Compile Include="Classification\Classifiers\ISyntaxClassifier.cs" />
     <Compile Include="Classification\IClassificationService.cs" />
     <Compile Include="CodeActions\Annotations\SuppressDiagnosticsAnnotation.cs" />
+    <Compile Include="CodeActions\CodeActionPriority.cs" />
     <Compile Include="CodeActions\Operations\PreviewOperation.cs" />
     <Compile Include="CodeCleanup\AbstractCodeCleanerService.cs" />
     <Compile Include="CodeCleanup\CodeCleaner.cs" />

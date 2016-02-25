@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -38,6 +39,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return document.Project.Id == _project.Id
                     ? default(Glyph?)
                     : Glyph.AddReference;
+            }
+
+            protected override CodeActionPriority GetPriority(Document document)
+            {
+                // The only normal priority fix we have is when we find a hit in our
+                // own project and we don't need to do a rename.  Anything else (i.e.
+                // we need to add a project reference, or we need to rename) is low
+                // priority.
+
+                return document.Project.Id == _project.Id && !SearchResult.ShouldRenameNode()
+                    ? CodeActionPriority.Medium
+                    : CodeActionPriority.Low;
             }
 
             protected override Solution UpdateSolution(Document newDocument)
