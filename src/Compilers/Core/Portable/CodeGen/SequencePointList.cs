@@ -125,6 +125,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             ArrayBuilder<Cci.SequencePoint> result = ArrayBuilder<Cci.SequencePoint>.GetInstance(count);
+
+            FileLinePositionSpan? firstReal = FindFirstRealSequencePoint(documentProvider);
+            if (!firstReal.HasValue)
+            {
+                return result.ToImmutableAndFree();
+            }
+            lastPath = firstReal.Value.Path;
+            lastPathIsMapped = firstReal.Value.HasMappedPath;
+            lastDebugDocument = documentProvider(lastPath, basePath: lastPathIsMapped ? this._tree.FilePath : null);
+
             current = this;
             while (current != null)
             {
@@ -191,6 +201,34 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             return result.ToImmutableAndFree();
+        }
+
+        // Find the document for the first non-hidden sequence point (issue #4370)
+        // Returns null if a real sequence point was found.
+        private FileLinePositionSpan? FindFirstRealSequencePoint(DebugDocumentProvider documentProvider)
+        {
+            SequencePointList current = this;
+            
+            while (current != null)
+            {
+                foreach (var offsetAndSpan in current._points)
+                {
+                    TextSpan span = offsetAndSpan.Span;
+                    bool isHidden = span == RawSequencePoint.HiddenSequencePointSpan;
+                    if (!isHidden)
+                    {
+                        FileLinePositionSpan fileLinePositionSpan = this._tree.GetMappedLineSpanAndVisibility(span, out isHidden);
+                        if (!isHidden)
+                        {
+
+                            return fileLinePositionSpan;
+                        }
+                    }
+                }
+                current = current._next;
+            }
+
+            return null;
         }
 
         /// <summary>

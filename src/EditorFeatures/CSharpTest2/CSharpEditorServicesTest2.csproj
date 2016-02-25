@@ -8,11 +8,6 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="Microsoft.VisualStudio.Composition, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Composition.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -103,7 +98,7 @@
     <Nonshipping>true</Nonshipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{16e93074-4252-466c-89a3-3b905abaf779}</ProjectGuid>
+    <ProjectGuid>{16E93074-4252-466C-89A3-3B905ABAF779}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.Editor.CSharp.UnitTests2</AssemblyName>
@@ -277,7 +272,6 @@
     <Compile Include="Recommendations\WhereKeywordRecommenderTests.cs" />
     <Compile Include="Recommendations\WhileKeywordRecommenderTests.cs" />
     <Compile Include="Recommendations\YieldKeywordRecommenderTests.cs" />
-    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup />

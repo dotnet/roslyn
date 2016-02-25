@@ -29,7 +29,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CsiTests.cs" />
-    <Compile Include="EventListenerCrash_Workaround.cs" />
     <Compile Include="InteractiveSessionTests.cs" />
     <Compile Include="ObjectFormatterTests.cs" />
   </ItemGroup>

@@ -51,6 +51,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             public abstract Glyph? GetGlyph(Document document);
             public abstract Solution UpdateSolution(Document newDocument);
+
+            internal virtual Func<Workspace, bool> GetIsApplicableCheck(Project contextProject)
+            {
+                return null;
+            }
         }
 
         private class ProjectSymbolReference : SymbolReference
@@ -85,6 +90,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 newProject = newProject.AddProjectReference(new ProjectReference(_project.Id));
 
                 return newProject.Solution;
+            }
+
+            internal override Func<Workspace, bool> GetIsApplicableCheck(Project contextProject)
+            {
+                if (contextProject.Id == _project.Id)
+                {
+                    // no need to do applicability check for a reference in our own project.
+                    return null;
+                }
+
+                return workspace => workspace.CanAddProjectReference(contextProject.Id, _project.Id);
             }
         }
 

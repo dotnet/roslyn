@@ -934,7 +934,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return matchingDocumentId ?? base.GetDocumentIdInCurrentContext(documentId);
         }
 
-        private bool TryGetHierarchy(ProjectId projectId, out IVsHierarchy hierarchy)
+        internal bool TryGetHierarchy(ProjectId projectId, out IVsHierarchy hierarchy)
         {
             hierarchy = this.GetHierarchy(projectId);
             return hierarchy != null;
@@ -1045,6 +1045,86 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             where TInterface : class
         {
             return this.ServiceProvider.GetService(typeof(TService)) as TInterface;
+        }
+
+        internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
+        {
+            _foregroundObject.AssertIsForeground();
+
+            IVsHierarchy referencingHierarchy;
+            IVsHierarchy referencedHierarchy;
+            if (!TryGetHierarchy(referencingProject, out referencingHierarchy) ||
+                !TryGetHierarchy(referencedProject, out referencedHierarchy))
+            {
+                // Couldn't even get a hierarchy for this project. So we have to assume
+                // that adding a reference is disallowed.
+                return false;
+            }
+
+            // First we have to see if either project disallows the reference being added.
+            const int ContextFlags = (int)__VSQUERYFLAVORREFERENCESCONTEXT.VSQUERYFLAVORREFERENCESCONTEXT_RefreshReference;
+
+            uint canAddProjectReference = (uint)__VSREFERENCEQUERYRESULT.REFERENCE_UNKNOWN;
+            uint canBeReferenced = (uint)__VSREFERENCEQUERYRESULT.REFERENCE_UNKNOWN;
+
+            var referencingProjectFlavor3 = referencingHierarchy as IVsProjectFlavorReferences3;
+            if (referencingProjectFlavor3 != null)
+            {
+                string unused;
+                if (ErrorHandler.Failed(referencingProjectFlavor3.QueryAddProjectReferenceEx(referencedHierarchy, ContextFlags, out canAddProjectReference, out unused)))
+                {
+                    // Something went wrong even trying to see if the reference would be allowed.
+                    // Assume it won't be allowed.
+                    return false;
+                }
+
+                if (canAddProjectReference == (uint)__VSREFERENCEQUERYRESULT.REFERENCE_DENY)
+                {
+                    // Adding this project reference is not allowed.
+                    return false;
+                }
+            }
+
+            var referencedProjectFlavor3 = referencedHierarchy as IVsProjectFlavorReferences3;
+            if (referencedProjectFlavor3 != null)
+            {
+                string unused;
+                if (ErrorHandler.Failed(referencedProjectFlavor3.QueryCanBeReferencedEx(referencingHierarchy, ContextFlags, out canBeReferenced, out unused)))
+                {
+                    // Something went wrong even trying to see if the reference would be allowed.
+                    // Assume it won't be allowed.
+                    return false;
+                }
+
+                if (canBeReferenced == (uint)__VSREFERENCEQUERYRESULT.REFERENCE_DENY)
+                {
+                    // Adding this project reference is not allowed.
+                    return false;
+                }
+            }
+
+            // Neither project denied the reference being added.  At this point, if either project
+            // allows the reference to be added, and the other doesn't block it, then we can add 
+            // the reference.
+            if (canAddProjectReference == (int)__VSREFERENCEQUERYRESULT.REFERENCE_ALLOW ||
+                canBeReferenced == (int)__VSREFERENCEQUERYRESULT.REFERENCE_ALLOW)
+            {
+                return true;
+            }
+
+            // In both directions things are still unknown.  Fallback to the reference manager
+            // to make the determination here.
+            var referenceManager = GetVsService<SVsReferenceManager, IVsReferenceManager>();
+            if (referenceManager == null)
+            {
+                // Couldn't get the reference manager.  Have to assume it's not allowed.
+                return false;
+            }
+
+            // As long as the reference manager does not deny things, then we allow the 
+            // reference to be added.
+            var result = referenceManager.QueryCanReferenceProject(referencingHierarchy, referencedHierarchy);
+            return result != (uint)__VSREFERENCEQUERYRESULT.REFERENCE_DENY;
         }
 
         /// <summary>
