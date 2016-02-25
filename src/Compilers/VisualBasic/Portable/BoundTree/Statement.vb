@@ -556,7 +556,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If operators IsNot Nothing Then
                             ' Use the operator methods. Figure out the precise rules first.
                         Else
-                            Dim controlReference As IReferenceExpression = TryCast(BoundFor.ControlVariable, IReferenceExpression)
+                            Dim controlReference As IOperation = BoundFor.ControlVariable
                             If controlReference IsNot Nothing Then
 
                                 ' ControlVariable += StepValue
@@ -590,7 +590,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim statements As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance()
 
                         ' ControlVariable = InitialValue
-                        Dim controlReference As IReferenceExpression = TryCast(BoundFor.ControlVariable, IReferenceExpression)
+                        Dim controlReference As IOperation = BoundFor.ControlVariable
                         If controlReference IsNot Nothing Then
                             statements.Add(New Assignment(controlReference, BoundFor.InitialValue, BoundFor.InitialValue.Syntax))
                         End If
