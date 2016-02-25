@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 options: options,
                 debugEntryPoint: debugEntryPoint,
                 testData: testData,
-                getHostDiagnostics: null,
                 cancellationToken: default(CancellationToken));
 
             Assert.True(emitResult.Success, "Diagnostics:\r\n" + string.Join("\r\n", emitResult.Diagnostics.Select(d => d.ToString())));

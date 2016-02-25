@@ -247,6 +247,9 @@ override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitConstantPattern
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitDeclarationPattern(Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitIsPatternExpression(Microsoft.CodeAnalysis.CSharp.Syntax.IsPatternExpressionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitLetStatement(Microsoft.CodeAnalysis.CSharp.Syntax.LetStatementSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.OriginalExpression = 8755 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.OriginalKeyword = 8439 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.ReplaceKeyword = 8438 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitLocalFunctionStatement(Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitMatchExpression(Microsoft.CodeAnalysis.CSharp.Syntax.MatchExpressionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitMatchSection(Microsoft.CodeAnalysis.CSharp.Syntax.MatchSectionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode

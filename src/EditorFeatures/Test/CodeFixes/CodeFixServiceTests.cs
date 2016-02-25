@@ -241,6 +241,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 return ImmutableArray<DiagnosticAnalyzer>.Empty;
             }
 
+            public override ImmutableArray<SourceGenerator> GetSourceGenerators(string language)
+            {
+                return ImmutableArray<SourceGenerator>.Empty;
+            }
+
             public ImmutableArray<CodeFixProvider> GetFixers()
             {
                 return ImmutableArray.Create<CodeFixProvider>(Fixer);

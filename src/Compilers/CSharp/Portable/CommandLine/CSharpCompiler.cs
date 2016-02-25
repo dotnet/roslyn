@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -21,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly CommandLineDiagnosticFormatter _diagnosticFormatter;
 
-        protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories, IAnalyzerAssemblyLoader analyzerLoader)
-            : base(parser, responseFile, args, clientDirectory, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories, analyzerLoader)
+        protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
+            : base(parser, responseFile, args, clientDirectory, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories, assemblyLoader)
         {
             _diagnosticFormatter = new CommandLineDiagnosticFormatter(baseDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation);
         }
@@ -274,7 +273,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles)
         {
-            return Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, touchedFiles, AnalyzerLoader);
+            return Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, touchedFiles, AssemblyLoader);
+        }
+
+        protected override ImmutableArray<SourceGenerator> ResolveGeneratorsFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles)
+        {
+            return Arguments.ResolveGeneratorsFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, touchedFiles, AssemblyLoader);
         }
     }
 }

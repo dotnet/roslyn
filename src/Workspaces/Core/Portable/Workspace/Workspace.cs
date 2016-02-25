@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
         private readonly SemaphoreSlim _serializationLock = new SemaphoreSlim(initialCount: 1);
+        private bool _isLocked;
 
         // this lock guards all the mutable fields (do not share lock with derived classes)
         private readonly NonReentrantLock _stateLock = new NonReentrantLock(useThisInstanceForSynchronization: true);
@@ -297,7 +298,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnSolutionAdded(SolutionInfo solutionInfo)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 var oldSolution = this.CurrentSolution;
                 var solutionId = solutionInfo.Id;
@@ -317,7 +318,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnSolutionReloaded(SolutionInfo reloadedSolutionInfo)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 var oldSolution = this.CurrentSolution;
                 var newSolution = this.SetCurrentSolution(this.CreateSolution(reloadedSolutionInfo));
@@ -340,7 +341,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnSolutionRemoved()
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 var oldSolution = this.CurrentSolution;
 
@@ -363,7 +364,7 @@ namespace Microsoft.CodeAnalysis
 
         private void OnProjectAdded(ProjectInfo projectInfo, bool silent)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 this.OnProjectAdded_NoLock(projectInfo, silent);
             }
@@ -389,7 +390,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal virtual void OnProjectReloaded(ProjectInfo reloadedProjectInfo)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 var projectId = reloadedProjectInfo.Id;
 
@@ -410,7 +411,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal virtual void OnProjectRemoved(ProjectId projectId)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 CheckProjectIsInCurrentSolution(projectId);
                 this.CheckProjectCanBeRemoved(projectId);
@@ -434,7 +435,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAssemblyNameChanged(ProjectId projectId, string assemblyName)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 CheckProjectIsInCurrentSolution(projectId);
 
@@ -450,7 +451,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnOutputFilePathChanged(ProjectId projectId, string outputFilePath)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 CheckProjectIsInCurrentSolution(projectId);
 
@@ -466,7 +467,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnProjectNameChanged(ProjectId projectId, string name, string filePath)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 CheckProjectIsInCurrentSolution(projectId);
 
@@ -482,7 +483,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnCompilationOptionsChanged(ProjectId projectId, CompilationOptions options)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 CheckProjectIsInCurrentSolution(projectId);
 
@@ -498,7 +499,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnParseOptionsChanged(ProjectId projectId, ParseOptions options)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 CheckProjectIsInCurrentSolution(projectId);
 
@@ -514,7 +515,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnProjectReferenceAdded(ProjectId projectId, ProjectReference projectReference)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 CheckProjectIsInCurrentSolution(projectId);
                 CheckProjectIsInCurrentSolution(projectReference.ProjectId);
@@ -535,7 +536,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnProjectReferenceRemoved(ProjectId projectId, ProjectReference projectReference)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 CheckProjectIsInCurrentSolution(projectId);
                 CheckProjectIsInCurrentSolution(projectReference.ProjectId);
@@ -553,7 +554,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnMetadataReferenceAdded(ProjectId projectId, MetadataReference metadataReference)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 CheckProjectIsInCurrentSolution(projectId);
                 CheckProjectDoesNotHaveMetadataReference(projectId, metadataReference);
@@ -570,7 +571,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnMetadataReferenceRemoved(ProjectId projectId, MetadataReference metadataReference)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 CheckProjectIsInCurrentSolution(projectId);
                 CheckProjectHasMetadataReference(projectId, metadataReference);
@@ -587,7 +588,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 CheckProjectIsInCurrentSolution(projectId);
                 CheckProjectDoesNotHaveAnalyzerReference(projectId, analyzerReference);
@@ -604,7 +605,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAnalyzerReferenceRemoved(ProjectId projectId, AnalyzerReference analyzerReference)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 CheckProjectIsInCurrentSolution(projectId);
                 CheckProjectHasAnalyzerReference(projectId, analyzerReference);
@@ -617,11 +618,82 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Call this method when generated documents may have changed in a project in the host environment.
+        /// </summary>
+        protected internal void UpdateGeneratedDocumentsIfNecessary(ProjectId projectId)
+        {
+            using (new SerializationLock(this))
+            {
+                CheckProjectIsInCurrentSolution(projectId);
+
+                var solution = this.CurrentSolution;
+                var projectInfo = solution.GetProjectState(projectId).ProjectInfo;
+                var oldDocuments = projectInfo.Documents.Where(d => d.IsGenerated).ToImmutableArray();
+                var newDocuments = solution.GetGeneratedDocuments(projectId);
+                var oldDocumentPaths = GetFilePaths(oldDocuments);
+                var newDocumentPaths = GetFilePaths(newDocuments);
+                var documentsRemoved = oldDocuments.WhereAsArray(d => !newDocumentPaths.Contains(d.FilePath));
+                var documentsAdded = newDocuments.WhereAsArray(d => !oldDocumentPaths.Contains(d.FilePath));
+
+                if ((documentsRemoved.Length > 0) || (documentsAdded.Length > 0))
+                {
+                    UpdateGeneratedDocuments(documentsRemoved, documentsAdded);
+                }
+            }
+        }
+
+        private struct SerializationLock : IDisposable
+        {
+            private readonly Workspace _workspace;
+            private readonly IDisposable _disposable;
+
+            internal SerializationLock(Workspace workspace)
+            {
+                _workspace = workspace;
+                if (_workspace._isLocked)
+                {
+                    _disposable = null;
+                }
+                else
+                {
+                    _disposable = _workspace._serializationLock.DisposableWait();
+                    _workspace._isLocked = true;
+                }
+                Debug.Assert(_workspace._isLocked);
+            }
+
+            public void Dispose()
+            {
+                Debug.Assert(_workspace._isLocked);
+                if (_disposable != null)
+                {
+                    _workspace._isLocked = false;
+                    _disposable.Dispose();
+                }
+            }
+        }
+
+        protected virtual void UpdateGeneratedDocuments(ImmutableArray<DocumentInfo> documentsRemoved, ImmutableArray<DocumentInfo> documentsAdded)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static ImmutableHashSet<string> GetFilePaths(ImmutableArray<DocumentInfo> documents)
+        {
+            var map = ImmutableHashSet<string>.Empty.WithComparer(StringComparer.OrdinalIgnoreCase);
+            foreach (var document in documents)
+            {
+                map = map.Add(document.FilePath);
+            }
+            return map;
+        }
+
+        /// <summary>
         /// Call this method when a document is added to a project in the host environment.
         /// </summary>
         protected internal void OnDocumentAdded(DocumentInfo documentInfo)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 var documentId = documentInfo.Id;
 
@@ -640,7 +712,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentReloaded(DocumentInfo newDocumentInfo)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 var documentId = newDocumentInfo.Id;
 
@@ -659,7 +731,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentRemoved(DocumentId documentId)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 CheckDocumentIsInCurrentSolution(documentId);
 
@@ -685,7 +757,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 CheckDocumentIsInCurrentSolution(documentId);
 
@@ -706,7 +778,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAdditionalDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 CheckAdditionalDocumentIsInCurrentSolution(documentId);
 
@@ -743,7 +815,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 CheckDocumentIsInCurrentSolution(documentId);
 
@@ -762,7 +834,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAdditionalDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 CheckAdditionalDocumentIsInCurrentSolution(documentId);
 
@@ -780,7 +852,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentSourceCodeKindChanged(DocumentId documentId, SourceCodeKind sourceCodeKind)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 CheckDocumentIsInCurrentSolution(documentId);
 
@@ -799,7 +871,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAdditionalDocumentAdded(DocumentInfo documentInfo)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 var documentId = documentInfo.Id;
 
@@ -818,7 +890,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAdditionalDocumentRemoved(DocumentId documentId)
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 CheckAdditionalDocumentIsInCurrentSolution(documentId);
 
@@ -839,7 +911,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void UpdateReferencesAfterAdd()
         {
-            using (_serializationLock.DisposableWait())
+            using (new SerializationLock(this))
             {
                 var oldSolution = this.CurrentSolution;
                 var newSolution = this.UpdateReferencesAfterAdd(oldSolution);

@@ -1244,7 +1244,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Volatile = 0x1000,
             Unsafe = 0x2000,
             Partial = 0x4000,
-            Async = 0x8000
+            Async = 0x8000,
+            Replace = 0x10000
         }
 
         private const SyntaxModifier AccessModifiers = SyntaxModifier.Public | SyntaxModifier.Internal | SyntaxModifier.Protected | SyntaxModifier.Private;
@@ -1288,6 +1289,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             return SyntaxModifier.Partial;
                         case SyntaxKind.AsyncKeyword:
                             return SyntaxModifier.Async;
+                        case SyntaxKind.ReplaceKeyword:
+                            return SyntaxModifier.Replace;
                     }
 
                     goto default;
@@ -8851,7 +8854,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return false;
         }
 
-        private ExpressionSyntax ParseSubExpression(Precedence precedence)
+        private bool IsOriginalExpression()
+        {
+            return (this.CurrentToken.ContextualKind == SyntaxKind.OriginalKeyword) && this.IsInReplace;
+        }
+
+        private ExpressionSyntax ParseSubExpression(uint precedence)
         {
             _recursionDepth++;
 
@@ -11220,6 +11228,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(_syntaxFactoryContext.QueryDepth > 0);
             _syntaxFactoryContext.QueryDepth--;
+        }
+
+        private bool IsInReplace
+        {
+            get
+            {
+                return _syntaxFactoryContext.IsInReplace;
+            }
+            set
+            {
+                _syntaxFactoryContext.IsInReplace = value;
+            }
         }
 
         private new ResetPoint GetResetPoint()

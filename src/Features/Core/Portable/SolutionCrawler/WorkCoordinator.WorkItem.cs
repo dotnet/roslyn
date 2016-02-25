@@ -99,19 +99,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 private ImmutableHashSet<IIncrementalAnalyzer> Union(ImmutableHashSet<IIncrementalAnalyzer> analyzers)
                 {
-                    if (this.Analyzers.IsEmpty && analyzers.IsEmpty)
+                    if (analyzers.IsEmpty)
                     {
                         return this.Analyzers;
                     }
 
-                    if (this.Analyzers.IsEmpty && !analyzers.IsEmpty)
+                    if (this.Analyzers.IsEmpty)
                     {
                         return analyzers;
-                    }
-
-                    if (!this.Analyzers.IsEmpty && analyzers.IsEmpty)
-                    {
-                        return this.Analyzers;
                     }
 
                     return this.Analyzers.Union(analyzers);

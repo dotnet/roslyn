@@ -25,7 +25,7 @@ using VSLangProj140;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
     [Export]
-    internal class AnalyzersCommandHandler : IAnalyzersCommandHandler, IVsUpdateSolutionEvents
+    internal class AnalyzersCommandHandler : IAnalyzersCommandHandler, IVsUpdateSolutionEvents2
     {
         private readonly AnalyzerItemsTracker _tracker;
         private readonly AnalyzerReferenceManager _analyzerReferenceManager;
@@ -678,6 +678,55 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             return _workspace;
+        }
+
+        int IVsUpdateSolutionEvents2.UpdateSolution_Begin(ref int pfCancelUpdate)
+        {
+            return VSConstants.S_OK;
+        }
+
+        int IVsUpdateSolutionEvents2.UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand)
+        {
+            return VSConstants.S_OK;
+        }
+
+        int IVsUpdateSolutionEvents2.UpdateSolution_StartUpdate(ref int pfCancelUpdate)
+        {
+            return VSConstants.S_OK;
+        }
+
+        int IVsUpdateSolutionEvents2.UpdateSolution_Cancel()
+        {
+            return VSConstants.S_OK;
+        }
+
+        int IVsUpdateSolutionEvents2.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
+        {
+            return VSConstants.S_OK;
+        }
+
+        int IVsUpdateSolutionEvents2.UpdateProjectCfg_Begin(IVsHierarchy pHierarchy, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, ref int pfCancel)
+        {
+            var workspace = TryGetWorkspace() as VisualStudioWorkspaceImpl;
+            if (workspace != null)
+            {
+                var solution = workspace.CurrentSolution;
+                foreach (var projectId in solution.ProjectIds)
+                {
+                    // Mark the project that the generated documents have changed.
+                    var projectHierarchy = workspace.GetHostProject(projectId).Hierarchy;
+                    if (projectHierarchy == pHierarchy)
+                    {
+                        workspace.UpdateGeneratedDocumentsIfNecessary(projectId);
+                    }
+                }
+            }
+            return VSConstants.S_OK;
+        }
+
+        int IVsUpdateSolutionEvents2.UpdateProjectCfg_Done(IVsHierarchy pHierarchy, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, int fSuccess, int fCancel)
+        {
+            return VSConstants.S_OK;
         }
     }
 }
