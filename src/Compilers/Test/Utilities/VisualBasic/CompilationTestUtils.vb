@@ -1,7 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#Const TEST_OPERATION = True
-
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.IO
@@ -22,6 +20,10 @@ Friend Module CompilationUtils
                                                   Optional options As VisualBasicCompilationOptions = Nothing,
                                                   Optional assemblyName As String = Nothing,
                                                   Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
+#If TEST_OPERATION Then
+        Dim compilationForOperationWalking = VisualBasicCompilation.Create(If(assemblyName, "TestOperation"), sourceTrees.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions)), If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references)), options)
+        WalkOperationTrees(compilationForOperationWalking)
+#End If
         Return VisualBasicCompilation.Create(If(assemblyName, "Test"), sourceTrees.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions)), If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references)), options)
     End Function
 
