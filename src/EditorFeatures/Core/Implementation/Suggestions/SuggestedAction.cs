@@ -58,6 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             _actionSets = actionSets.AsImmutableOrEmpty();
         }
 
+        internal virtual CodeActionPriority Priority => CodeAction?.Priority ?? CodeActionPriority.Medium;
+
         public bool TryGetTelemetryId(out Guid telemetryId)
         {
             // TODO: this is temporary. Diagnostic team needs to figure out how to provide unique id per a fix.

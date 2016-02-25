@@ -61,6 +61,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 internal override int? Glyph => (int)CodeAnalysis.Glyph.NuGet;
 
+                // Adding a nuget reference is lower priority than other fixes..
+                internal override CodeActionPriority Priority => CodeActionPriority.Low;
+
                 public PackageReferenceCodeAction(
                     PackageReference reference,
                     Document document,
@@ -98,8 +101,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     var title = versionOpt == null
                         ? FeaturesResources.Find_and_install_latest_version
                         : string.Format(FeaturesResources.Use_local_version_0, versionOpt);
+
+                    // Nuget hits should always come after other results.
                     return new OperationBasedCodeAction(
-                        title, glyph: null, 
+                        title, glyph: null, priority: CodeActionPriority.Low,
                         getOperations: c => GetOperationsAsync(versionOpt, document, node, placeSystemNamespaceFirst, c),
                         isApplicable: null);
                 }

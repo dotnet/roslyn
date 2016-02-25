@@ -37,6 +37,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 NameNode = nameNode;
                 NameParts = nameParts;
             }
+
+            public bool ShouldRenameNode()
+            {
+                return !string.IsNullOrEmpty(this.DesiredName) &&
+                    this.NameNode != null &&
+                    this.NameNode.GetFirstToken().ValueText != this.DesiredName;
+            }
         }
 
         private struct SymbolResult<T> where T : ISymbol

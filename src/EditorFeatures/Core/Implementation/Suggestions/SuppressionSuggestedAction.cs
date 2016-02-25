@@ -42,6 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             _getFixAllSuggestedActionSet = getFixAllSuggestedActionSet;
         }
 
+        // Put suppressions at the end of everything.
+        internal override CodeActionPriority Priority => CodeActionPriority.None;
+
         public override bool HasActionSets
         {
             get

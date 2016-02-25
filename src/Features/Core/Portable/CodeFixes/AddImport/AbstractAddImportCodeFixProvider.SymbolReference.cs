@@ -90,10 +90,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return null;
                 }
 
-                return new OperationBasedCodeAction(description, GetGlyph(document),
+                return new OperationBasedCodeAction(description, GetGlyph(document), GetPriority(document),
                     c => this.GetOperationsAsync(document, node, placeSystemNamespaceFirst, c),
                     this.GetIsApplicableCheck(document.Project));
             }
+
+            protected abstract CodeActionPriority GetPriority(Document document);
 
             protected virtual Func<Workspace, bool> GetIsApplicableCheck(Project project)
             {
