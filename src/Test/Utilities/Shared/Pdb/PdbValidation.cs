@@ -133,11 +133,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     // remove scopes that only contained non-portable elements (namespace scopes)
                     RemoveEmptyScopes(expectedPdb);
-
+                    RemoveMethodsWithNoSequencePoints(expectedPdb);
                     RemoveEmptyMethods(expectedPdb);
                 }
 
                 AssertXml.Equal(expectedPdb, actualPortablePdb, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
+            }
+        }
+
+        private static void RemoveMethodsWithNoSequencePoints(XElement pdb)
+        {
+            var methods = (from e in pdb.DescendantsAndSelf()
+                              where e.Name == "method" 
+                              select e).ToArray();
+            foreach(var method in methods)
+            {
+                bool hasNoSequencePoints = method.DescendantsAndSelf().Where(node => node.Name == "entry").IsEmpty();
+                if (hasNoSequencePoints)
+                {
+                    method.Remove();
+                }  
             }
         }
 
