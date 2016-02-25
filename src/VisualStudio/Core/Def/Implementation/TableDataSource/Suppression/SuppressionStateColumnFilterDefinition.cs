@@ -7,17 +7,19 @@ using System;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    /// <summary>
-    /// Supporession column definition filter
-    /// </summary>
-    /// <remarks>
-    /// TODO: Move this column down to the shell as it is shared by multiple issue sources (Roslyn and FxCop).
-    /// </remarks>
-    [Export(typeof(EntryFilterDefinition))]
-    [Name(SuppressionStateColumnDefinition.ColumnName)]
-    internal class SuppressionStateColumnFilterDefinition : EntryFilterDefinition
-    {
-        public override bool HasAttribute(string key) => string.Equals(NonActionable, key, StringComparison.OrdinalIgnoreCase);
-    }
+    // we are disabling this due to this issue. https://github.com/dotnet/roslyn/pull/9201
+
+    // <summary>
+    // Supporession column definition filter
+    // </summary>
+    // <remarks>
+    // TODO: Move this column down to the shell as it is shared by multiple issue sources (Roslyn and FxCop).
+    // </remarks>
+    // [Export(typeof(EntryFilterDefinition))]
+    // [Name(SuppressionStateColumnDefinition.ColumnName)]
+    // internal class SuppressionStateColumnFilterDefinition : EntryFilterDefinition
+    // {
+    //    public override bool HasAttribute(string key) => string.Equals(NonActionable, key, StringComparison.OrdinalIgnoreCase);
+    // }
 }
 
