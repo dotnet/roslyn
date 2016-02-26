@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // The Initialize method should be run asynchronously in case it is not well behaved, e.g. does not terminate.
             ExecuteAndCatchIfThrows(analyzer,
-                () => analyzer.Initialize(new AnalyzerAnalysisContext(analyzer, sessionScope)));
+                () => analyzer.Initialize(new AnalyzerAnalysisContext(analyzer, sessionScope, _compilation.IsIOperationFeatureEnabled())));
         }
 
         /// <summary>
