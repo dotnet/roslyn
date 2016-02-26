@@ -3059,6 +3059,50 @@ End Class
                     result.AssertLabeledSpansAre("conflict", renameTo, RelatedLocationType.UnresolvedConflict)
                 End Using
             End Sub
+
+            <Fact>
+            <Trait(Traits.Feature, Traits.Features.Rename)>
+            <WorkItem(7440, "https://github.com/dotnet/roslyn/issues/7440")>
+            Public Sub RenameTypeParameterInPartialClass()
+                Using result = RenameEngineResult.Create(
+                        <Workspace>
+                            <Project Language="Visual Basic" CommonReferences="true">
+                                <Document><![CDATA[
+Partial Class C(Of [|$$T|])
+End Class
+
+Partial Class C(Of [|T|])
+End Class
+]]>
+                                </Document>
+                            </Project>
+                        </Workspace>, renameTo:="T2")
+                End Using
+            End Sub
+
+            <Fact>
+            <Trait(Traits.Feature, Traits.Features.Rename)>
+            <WorkItem(7440, "https://github.com/dotnet/roslyn/issues/7440")>
+            Public Sub RenameMethodToConflictWithTypeParameter()
+                Using result = RenameEngineResult.Create(
+                        <Workspace>
+                            <Project Language="Visual Basic" CommonReferences="true">
+                                <Document><![CDATA[
+Partial Class C(Of {|Conflict:T|})
+    Sub [|$$M|]()
+    End Sub
+End Class
+
+Partial Class C(Of {|Conflict:T|})
+End Class
+]]>
+                                </Document>
+                            </Project>
+                        </Workspace>, renameTo:="T")
+
+                    result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
+                End Using
+            End Sub
         End Class
     End Class
 End Namespace

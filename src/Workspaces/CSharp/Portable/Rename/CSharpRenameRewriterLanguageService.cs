@@ -875,15 +875,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
                 else if (renamedSymbol.Kind == SymbolKind.TypeParameter)
                 {
-                    var location = renamedSymbol.Locations.Single();
-                    var token = await location.SourceTree.GetTouchingTokenAsync(location.SourceSpan.Start, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
-                    var currentTypeParameter = token.Parent;
-
-                    foreach (var typeParameter in ((TypeParameterListSyntax)currentTypeParameter.Parent).Parameters)
+                    foreach (var location in renamedSymbol.Locations)
                     {
-                        if (typeParameter != currentTypeParameter && token.ValueText == typeParameter.Identifier.ValueText)
+                        var token = await location.SourceTree.GetTouchingTokenAsync(location.SourceSpan.Start, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
+                        var currentTypeParameter = token.Parent;
+
+                        foreach (var typeParameter in ((TypeParameterListSyntax)currentTypeParameter.Parent).Parameters)
                         {
-                            conflicts.Add(reverseMappedLocations[typeParameter.Identifier.GetLocation()]);
+                            if (typeParameter != currentTypeParameter && token.ValueText == typeParameter.Identifier.ValueText)
+                            {
+                                conflicts.Add(reverseMappedLocations[typeParameter.Identifier.GetLocation()]);
+                            }
                         }
                     }
                 }
@@ -891,13 +893,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 // if the renamed symbol is a type member, it's name should not conflict with a type parameter
                 if (renamedSymbol.ContainingType != null && renamedSymbol.ContainingType.GetMembers(renamedSymbol.Name).Contains(renamedSymbol))
                 {
-                    foreach (var typeParameter in renamedSymbol.ContainingType.TypeParameters)
+                    var conflictingLocations = renamedSymbol.ContainingType.TypeParameters
+                        .Where(t => t.Name == renamedSymbol.Name)
+                        .SelectMany(t => t.Locations);
+
+                    foreach (var location in conflictingLocations)
                     {
-                        if (typeParameter.Name == renamedSymbol.Name)
-                        {
-                            var typeParameterToken = typeParameter.Locations.Single().FindToken(cancellationToken);
-                            conflicts.Add(reverseMappedLocations[typeParameterToken.GetLocation()]);
-                        }
+                        var typeParameterToken = location.FindToken(cancellationToken);
+                        conflicts.Add(reverseMappedLocations[typeParameterToken.GetLocation()]);
                     }
                 }
 
