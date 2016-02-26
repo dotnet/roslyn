@@ -870,7 +870,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Conversion is implemented by a conversion operator method.
         /// </summary>
-        OperatorMethod = 0x5
+        OperatorMethod = 0x5,
+        /// <summary>
+        /// Conversion is invalid.
+        /// </summary>
+        Invalid = 0xf
     }
 
     /// <summary>
