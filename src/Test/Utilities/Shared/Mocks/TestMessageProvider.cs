@@ -363,7 +363,15 @@ namespace Roslyn.Test.Utilities
             }
         }
         
-        public override int ERR_PeWritingFailure 
+        public override int ERR_PeWritingFailure
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+        
+        public override int ERR_ModuleEmitFailure
         {
             get
             {

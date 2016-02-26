@@ -85,6 +85,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract bool TryGetFieldHandle(Cci.IFieldDefinition def, out FieldDefinitionHandle handle);
         internal abstract bool TryGetMethodHandle(Cci.IMethodDefinition def, out MethodDefinitionHandle handle);
         internal abstract bool TryGetPropertyHandle(Cci.IPropertyDefinition def, out PropertyDefinitionHandle handle);
+        internal abstract CommonMessageProvider MessageProvider { get; }
     }
 
     internal abstract class DefinitionMap<TSymbolMatcher> : DefinitionMap
@@ -260,6 +261,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return new EncVariableSlotAllocator(
+                MessageProvider,
                 symbolMap,
                 mappedMethod.SyntaxMap,
                 mappedMethod.PreviousMethod,

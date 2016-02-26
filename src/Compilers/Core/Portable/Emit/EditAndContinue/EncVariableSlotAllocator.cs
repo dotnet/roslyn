@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.Emit
 {
     internal sealed class EncVariableSlotAllocator : VariableSlotAllocator
     {
+        private readonly CommonMessageProvider _messageProvider;
+
         // symbols:
         private readonly SymbolMatcher _symbolMap;
 
@@ -37,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly IReadOnlyDictionary<int, DebugId> _closureMapOpt; // SyntaxOffset -> Id
 
         public EncVariableSlotAllocator(
+            CommonMessageProvider messageProvider,
             SymbolMatcher symbolMap,
             Func<SyntaxNode, SyntaxNode> syntaxMapOpt,
             IMethodSymbolInternal previousTopLevelMethod,
@@ -50,10 +53,12 @@ namespace Microsoft.CodeAnalysis.Emit
             int awaiterCount,
             IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMapOpt)
         {
+            Debug.Assert(messageProvider != null);
             Debug.Assert(symbolMap != null);
             Debug.Assert(previousTopLevelMethod != null);
             Debug.Assert(!previousLocals.IsDefault);
 
+            _messageProvider = messageProvider;
             _symbolMap = symbolMap;
             _syntaxMapOpt = syntaxMapOpt;
             _previousLocals = previousLocals;
@@ -177,9 +182,23 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public override string PreviousStateMachineTypeName => _stateMachineTypeNameOpt;
 
-        public override bool TryGetPreviousHoistedLocalSlotIndex(SyntaxNode currentDeclarator, Cci.ITypeReference currentType, SynthesizedLocalKind synthesizedKind, LocalDebugId currentId, out int slotIndex)
+        public override bool TryGetPreviousHoistedLocalSlotIndex(
+            SyntaxNode currentDeclarator, 
+            Cci.ITypeReference currentType,
+            SynthesizedLocalKind synthesizedKind,
+            LocalDebugId currentId,
+            DiagnosticBag diagnostics, 
+            out int slotIndex)
         {
-            Debug.Assert(_hoistedLocalSlotsOpt != null);
+            // Well-formed state machine attribute wasn't found in the baseline (the type is missing or bad).
+            // Should rarely happen since the IDE reports a rude edit if the attribute type doesn't exist.
+            if (_hoistedLocalSlotsOpt == null)
+            {
+                // TODO: better error message https://github.com/dotnet/roslyn/issues/9196
+                diagnostics.Add(_messageProvider.CreateDiagnostic(_messageProvider.ERR_ModuleEmitFailure, NoLocation.Singleton, _previousTopLevelMethod.ContainingModule.Name));
+                slotIndex = -1;
+                return false;
+            }
 
             LocalDebugId previousId;
             if (!TryGetPreviousLocalId(currentDeclarator, currentId, out previousId))
@@ -205,9 +224,18 @@ namespace Microsoft.CodeAnalysis.Emit
         public override int PreviousHoistedLocalSlotCount => _hoistedLocalSlotCount;
         public override int PreviousAwaiterSlotCount => _awaiterCount;
 
-        public override bool TryGetPreviousAwaiterSlotIndex(Cci.ITypeReference currentType, out int slotIndex)
+        public override bool TryGetPreviousAwaiterSlotIndex(Cci.ITypeReference currentType, DiagnosticBag diagnostics, out int slotIndex)
         {
-            Debug.Assert(_awaiterMapOpt != null);
+            // Well-formed state machine attribute wasn't found in the baseline (the type is missing or bad).
+            // Should rarely happen since the IDE reports a rude edit if the attribute type doesn't exist.
+            if (_awaiterMapOpt == null)
+            {
+                // TODO: better error message https://github.com/dotnet/roslyn/issues/9196
+                diagnostics.Add(_messageProvider.CreateDiagnostic(_messageProvider.ERR_ModuleEmitFailure, NoLocation.Singleton, _previousTopLevelMethod.ContainingModule.Name));
+                slotIndex = -1;
+                return false;
+            }
+
             return _awaiterMapOpt.TryGetValue(_symbolMap.MapReference(currentType), out slotIndex);
         }
 

@@ -15,6 +15,26 @@ Imports Xunit
 
 Friend Module CompilationUtils
 
+    Public Function CreateCompilation(trees As IEnumerable(Of SyntaxTree),
+                                      Optional references As IEnumerable(Of MetadataReference) = Nothing,
+                                      Optional options As VisualBasicCompilationOptions = Nothing,
+                                      Optional assemblyName As String = Nothing) As VisualBasicCompilation
+        If options Is Nothing Then
+            options = TestOptions.ReleaseDll
+        End If
+
+        ' Using single-threaded build if debugger attached, to simplify debugging.
+        If Debugger.IsAttached Then
+            options = options.WithConcurrentBuild(False)
+        End If
+
+        Return VisualBasicCompilation.Create(
+                If(assemblyName, GetUniqueName()),
+                trees,
+                references,
+                options)
+    End Function
+
     Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of String),
                                                   Optional references As IEnumerable(Of MetadataReference) = Nothing,
                                                   Optional options As VisualBasicCompilationOptions = Nothing,

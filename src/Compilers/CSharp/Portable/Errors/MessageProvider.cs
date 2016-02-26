@@ -203,6 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int ERR_EncReferenceToAddedMember { get { return (int)ErrorCode.ERR_EncReferenceToAddedMember; } }
         public override int ERR_TooManyUserStrings { get { return (int)ErrorCode.ERR_TooManyUserStrings; } }
         public override int ERR_PeWritingFailure { get { return (int)ErrorCode.ERR_PeWritingFailure; } }
+        public override int ERR_ModuleEmitFailure { get { return (int)ErrorCode.ERR_ModuleEmitFailure; } }
 
         public override void ReportInvalidAttributeArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, AttributeData attribute)
         {
