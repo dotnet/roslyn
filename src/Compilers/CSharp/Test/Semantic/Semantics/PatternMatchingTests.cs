@@ -1228,6 +1228,9 @@ public class X
     // (165,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
     //             var x18 = 11;
     Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var x18 = 11;").WithLocation(165, 13),
+    // (168,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+    //             let y18 = 11;
+    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "let y18 = 11;").WithLocation(168, 13),
     // (16,17): error CS0841: Cannot use local variable 'x2' before it is declared
     //         var y = x2;
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(16, 17),
@@ -1617,6 +1620,9 @@ public class X
     // (165,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
     //             var x18 = 11;
     Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var x18 = 11;").WithLocation(165, 13),
+    // (168,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+    //             let var y18 = 11;
+    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "let var y18 = 11;").WithLocation(168, 13),
     // (154,33): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
     //     void Test16(int x16) => let var x16 = 11;
     Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(154, 33),
@@ -1897,6 +1903,9 @@ class C1
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions.WithLocalFunctionsFeature());
 
             compilation.VerifyDiagnostics(
+    // (83,18): error CS1023: Embedded statement cannot be a declaration or labeled statement
+    //             else let z9 = x9 when z9 is true else System.Console.WriteLine();
+    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "let z9 = x9 when z9 is true else System.Console.WriteLine();").WithLocation(83, 18),
     // (12,42): error CS0165: Use of unassigned local variable 'y1'
     //             else throw (System.Exception)y1;
     Diagnostic(ErrorCode.ERR_UseDefViolation, "y1").WithArguments("y1").WithLocation(12, 42),
@@ -2595,6 +2604,9 @@ public class X
     // (110,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
     //             var y12 = 12;
     Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var y12 = 12;").WithLocation(110, 13),
+    // (116,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+    //             let y13 = 12;
+    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "let y13 = 12;").WithLocation(116, 13),
     // (18,38): error CS0103: The name 'x1' does not exist in the current context
     //             System.Console.WriteLine(x1);
     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(18, 38),

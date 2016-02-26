@@ -7248,9 +7248,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // An "embedded" statement is simply a statement that is not a labelled
             // statement or a declaration statement.  Parse a normal statement and post-
             // check for the error case.
-            if (statement != null && (statement.Kind == SyntaxKind.LabeledStatement || statement.Kind == SyntaxKind.LocalDeclarationStatement))
+            switch (statement?.Kind)
             {
-                statement = this.AddError(statement, ErrorCode.ERR_BadEmbeddedStmt);
+                case SyntaxKind.LabeledStatement:
+                case SyntaxKind.LocalDeclarationStatement:
+                case SyntaxKind.LocalFunctionStatement:
+                case SyntaxKind.LetStatement:
+                    statement = this.AddError(statement, ErrorCode.ERR_BadEmbeddedStmt);
+                    break;
             }
 
             return statement;
