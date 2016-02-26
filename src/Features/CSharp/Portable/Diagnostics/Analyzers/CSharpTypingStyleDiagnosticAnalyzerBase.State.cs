@@ -64,7 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                         IsInVariableDeclarationContext
                      && IsTypeApparentInDeclaration((VariableDeclarationSyntax)declaration, semanticModel, TypeStyle, cancellationToken);
 
-                IsInIntrinsicTypeContext = IsIntrinsicTypeInDeclaration(declaration);
+                IsInIntrinsicTypeContext =
+                        IsIntrinsicTypeInDeclaration(declaration)
+                     || IsInferredIntrinsicType(declaration, semanticModel, cancellationToken);
             }
 
             /// <summary>
@@ -155,19 +157,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                 return node;
             }
 
+            /// <summary>
+            /// checks if the type represented by the given symbol is one of the
+            /// simple types defined in the compiler.
+            /// </summary>
+            /// <remarks>
+            /// From the IDE perspective, we also include object and string to be simplified
+            /// to var. <see cref="SyntaxFacts.IsPredefinedType(SyntaxKind)"/> considers string
+            /// and object but the compiler's implementation of IsIntrinsicType does not.
+            /// </remarks>
             private bool IsIntrinsicTypeInDeclaration(SyntaxNode declarationStatement)
             {
-                PredefinedTypeSyntax predefinedType = null;
+                var predefinedType = GetTypeSyntaxFromDeclaration(declarationStatement) as PredefinedTypeSyntax;
+
+                return predefinedType != null
+                    ? SyntaxFacts.IsPredefinedType(predefinedType.Keyword.Kind())
+                    : false;
+            }
+
+            private bool IsInferredIntrinsicType(SyntaxNode declarationStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
+            {
+                TypeSyntax typeSyntax = GetTypeSyntaxFromDeclaration(declarationStatement);
+
+                return typeSyntax != null
+                     ? typeSyntax.IsTypeInferred(semanticModel) &&
+                        semanticModel.GetTypeInfo(typeSyntax).Type?.IsSpecialType() == true
+                     : false;
+            }
+
+            private TypeSyntax GetTypeSyntaxFromDeclaration(SyntaxNode declarationStatement)
+            {
                 if (declarationStatement is VariableDeclarationSyntax)
                 {
-                    predefinedType = ((VariableDeclarationSyntax)declarationStatement).Type as PredefinedTypeSyntax;
+                    return ((VariableDeclarationSyntax)declarationStatement).Type;
                 }
                 else if (declarationStatement is ForEachStatementSyntax)
                 {
-                    predefinedType = ((ForEachStatementSyntax)declarationStatement).Type as PredefinedTypeSyntax;
+                    return ((ForEachStatementSyntax)declarationStatement).Type;
                 }
 
-                return predefinedType != null ? SyntaxFacts.IsPredefinedType(predefinedType.Keyword.Kind()) : false;
+                return null;
             }
 
             private bool IsPossibleCreationOrConversionMethod(IMethodSymbol methodSymbol, ITypeSymbol declaredType, SemanticModel semanticModel, ExpressionSyntax typeName, CancellationToken cancellationToken)

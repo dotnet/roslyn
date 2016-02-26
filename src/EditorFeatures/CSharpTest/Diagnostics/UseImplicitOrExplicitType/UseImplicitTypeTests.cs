@@ -1147,6 +1147,28 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule()
+        {
+            // The option settings here say 
+            // "use explicit type for built-in types" and
+            // "use implicit type where apparent".
+            // The rationale for preferring explicit type for built-in types is 
+            // they have short names and using var doesn't gain anything.
+            // Accordingly, the `built-in type` rule precedes over the `where apparent` rule
+            // and we do not suggest `use var` here.
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    public void Process()
+    {
+        object o = int.MaxValue;
+        [|int|] i = (Int32)o;
+    }
+}", options: ImplicitTypingWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
         public async Task SuggestVarWhereTypingIsEvident_IsExpression()
         {
             await TestAsync(

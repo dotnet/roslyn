@@ -41,6 +41,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
 
+        private IDictionary<OptionKey, object> ExplicitTypingForBuiltInTypesOnly() =>
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
+
         private IDictionary<OptionKey, object> ExplicitTypingEnforcements() =>
             Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithWarning)
             .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithError)
@@ -834,6 +839,104 @@ class C
         return string.Empty;
     }
 }", options: ExplicitTypingEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestExplicitTypeInBuiltInNumericType()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    public void ProcessRead()
+    {
+        [|var|] text = 1;
+    }
+}",
+@"using System;
+class C
+{
+    public void ProcessRead()
+    {
+        int text = 1;
+    }
+}", options: ExplicitTypingForBuiltInTypesOnly());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestExplicitTypeInBuiltInCharType()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    public void ProcessRead()
+    {
+        [|var|] text = GetChar();
+    }
+
+    public char GetChar() => 'c';
+}",
+@"using System;
+class C
+{
+    public void ProcessRead()
+    {
+        char text = GetChar();
+    }
+
+    public char GetChar() => 'c';
+}", options: ExplicitTypingForBuiltInTypesOnly());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestExplicitTypeInBuiltInType_string()
+        {
+            // though string isn't an intrinsic type per the compiler
+            // we in the IDE treat it as an intrinsic type for this feature.
+            await TestAsync(
+@"using System;
+class C
+{
+    public void ProcessRead()
+    {
+        [|var|] text = string.Empty;
+    }
+}",
+@"using System;
+class C
+{
+    public void ProcessRead()
+    {
+        string text = string.Empty;
+    }
+}", options: ExplicitTypingForBuiltInTypesOnly());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestExplicitTypeInBuiltInType_object()
+        {
+            // object isn't an intrinsic type per the compiler
+            // we in the IDE treat it as an intrinsic type for this feature.
+            await TestAsync(
+@"using System;
+class C
+{
+    public void ProcessRead()
+    {
+        object j = new C();
+        [|var|] text = j;
+    }
+}",
+@"using System;
+class C
+{
+    public void ProcessRead()
+    {
+        object j = new C();
+        object text = j;
+    }
+}", options: ExplicitTypingForBuiltInTypesOnly());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
