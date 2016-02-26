@@ -25,5 +25,6 @@ namespace Microsoft.CodeAnalysis.Packaging
         void ShowManagePackagesDialog(string packageName);
 
         ImmutableArray<string> PackageSources { get; }
+        bool IsEnabled { get; }
     }
 }

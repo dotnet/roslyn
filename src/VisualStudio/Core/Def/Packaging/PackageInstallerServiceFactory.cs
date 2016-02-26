@@ -76,26 +76,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             this.AssertIsForeground();
 
-            _workspace = workspace;
-
             var componentModel = workspace.GetVsService<SComponentModel, IComponentModel>();
-            _packageInstallerServices = componentModel.GetService<IVsPackageInstallerServices>();
-            _packageInstaller = componentModel.GetService<IVsPackageInstaller>();
-            _packageUninstaller = componentModel.GetService<IVsPackageUninstaller>();
-            _packageSourceProvider = componentModel.GetService<IVsPackageSourceProvider>();
+            _packageInstallerServices = componentModel.GetExtensions<IVsPackageInstallerServices>().FirstOrDefault();
+            _packageInstaller = componentModel.GetExtensions<IVsPackageInstaller>().FirstOrDefault();
+            _packageUninstaller = componentModel.GetExtensions<IVsPackageUninstaller>().FirstOrDefault();
+            _packageSourceProvider = componentModel.GetExtensions<IVsPackageSourceProvider>().FirstOrDefault();
+
+            if (!this.IsEnabled)
+            {
+                return;
+            }
 
             // Start listening to workspace changes.
+            _workspace = workspace;
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
             _packageSourceProvider.SourcesChanged += OnSourceProviderSourcesChanged;
 
             OnSourceProviderSourcesChanged(null, EventArgs.Empty);
         }
 
+        public bool IsEnabled => 
+            _packageInstallerServices != null &&
+            _packageInstallerServices != null &&
+            _packageUninstaller != null &&
+            _packageSourceProvider != null;
+
         internal void Disconnect(VisualStudioWorkspaceImpl workspace)
         {
             this.AssertIsForeground();
 
             Debug.Assert(workspace == _workspace);
+
+            if (!this.IsEnabled)
+            {
+                return;
+            }
+
             _packageSourceProvider.SourcesChanged -= OnSourceProviderSourcesChanged;
             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
 

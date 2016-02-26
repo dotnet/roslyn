@@ -233,7 +233,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 var workspaceServices = _document.Project.Solution.Workspace.Services;
                 var searchService = _owner._packageSearchService ?? workspaceServices.GetService<IPackageSearchService>();
                 var installerService = _owner._packageInstallerService ?? workspaceServices.GetService<IPackageInstallerService>();
-                if (searchService != null && installerService != null)
+
+                if (searchService != null && installerService != null && installerService.IsEnabled)
                 {
                     foreach (var packageSource in installerService.PackageSources)
                     {

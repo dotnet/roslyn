@@ -37,6 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
                 ' Make a loose mock for the installer service.  We don't care what this test
                 ' calls on it.
                 Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Loose)
+                installerServiceMock.SetupGet(Function(i) i.IsEnabled).Returns(True)
                 installerServiceMock.SetupGet(Function(i) i.PackageSources).Returns(NugetPackageSources)
 
                 Dim packageServiceMock = New Mock(Of IPackageSearchService)()
@@ -61,6 +62,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
                 ' Make a loose mock for the installer service.  We don't care what this test
                 ' calls on it.
                 Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Loose)
+                installerServiceMock.SetupGet(Function(i) i.IsEnabled).Returns(True)
                 installerServiceMock.SetupGet(Function(i) i.PackageSources).Returns(NugetPackageSources)
 
                 Dim packageServiceMock = New Mock(Of IPackageSearchService)()
@@ -85,6 +87,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
                 ' Make a loose mock for the installer service.  We don't care what this test
                 ' calls on it.
                 Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Loose)
+                installerServiceMock.SetupGet(Function(i) i.IsEnabled).Returns(True)
                 installerServiceMock.SetupGet(Function(i) i.PackageSources).Returns(NugetPackageSources)
                 installerServiceMock.Setup(Function(s) s.IsInstalled(It.IsAny(Of Workspace)(), It.IsAny(Of ProjectId)(), "NuGetPackage")).
                     Returns(True)
@@ -106,6 +109,7 @@ fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMoc
                 ' Make a loose mock for the installer service.  We don't care what this test
                 ' calls on it.
                 Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Loose)
+                installerServiceMock.SetupGet(Function(i) i.IsEnabled).Returns(True)
                 installerServiceMock.SetupGet(Function(i) i.PackageSources).Returns(NugetPackageSources)
                 installerServiceMock.Setup(Function(s) s.GetInstalledVersions("NuGetPackage")).
                     Returns({"1.0", "2.0"})
@@ -146,6 +150,7 @@ fixProviderData:=data)
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
             Public Async Function TestInstallGetsCalledNoVersion() As Task
                 Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Loose)
+                installerServiceMock.SetupGet(Function(i) i.IsEnabled).Returns(True)
                 installerServiceMock.SetupGet(Function(i) i.PackageSources).Returns(NugetPackageSources)
                 installerServiceMock.Setup(Function(s) s.TryInstallPackage(
                     It.IsAny(Of Workspace), It.IsAny(Of DocumentId), "NuGetPackage", Nothing, It.IsAny(Of CancellationToken)))
@@ -171,6 +176,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
             Public Async Function TestInstallGetsCalledWithVersion() As Task
                 Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Loose)
+                installerServiceMock.SetupGet(Function(i) i.IsEnabled).Returns(True)
                 installerServiceMock.SetupGet(Function(i) i.PackageSources).Returns(NugetPackageSources)
                 installerServiceMock.Setup(Function(s) s.GetInstalledVersions("NuGetPackage")).
                     Returns({"1.0"})
