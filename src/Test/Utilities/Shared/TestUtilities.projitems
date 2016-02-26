@@ -60,6 +60,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Pdb\MockSymWriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Pdb\PdbTestUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Pdb\PdbValidation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Pe\BrokenStream.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Syntax\SourceUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TempFiles\DisposableDirectory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TempFiles\DisposableFile.cs" />
