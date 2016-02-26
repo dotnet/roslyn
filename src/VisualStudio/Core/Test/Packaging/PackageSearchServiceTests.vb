@@ -685,6 +685,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
 
             Public Shared ReadOnly Instance As IPackageInstallerService = New TestInstallerService()
 
+            Public ReadOnly Property IsEnabled As Boolean Implements IPackageInstallerService.IsEnabled
+                Get
+                    Return True
+                End Get
+            End Property
+
             Public ReadOnly Property PackageSources As ImmutableArray(Of String) Implements IPackageInstallerService.PackageSources
                 Get
                     Throw New NotImplementedException()
