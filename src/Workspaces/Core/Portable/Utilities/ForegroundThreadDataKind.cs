@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         Wpf,
         StaUnitTest,
         JoinableTask,
+        CommandLineMode,
         Unknown
     }
 
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Utilities
             s_fallbackForegroundThreadDataKind = CreateDefault();
         }
 
-        internal static ForegroundThreadDataKind CreateDefault()
+        internal static ForegroundThreadDataKind CreateDefault(ForegroundThreadDataKind? defaultKind = null)
         {
             var syncConextTypeName = SynchronizationContext.Current?.GetType().FullName;
 
@@ -43,7 +44,14 @@ namespace Microsoft.CodeAnalysis.Utilities
 
                 default:
 
-                    return ForegroundThreadDataKind.Unknown;
+                    if (defaultKind != null)
+                    {
+                        return defaultKind.Value;
+                    }
+                    else
+                    {
+                        return ForegroundThreadDataKind.Unknown;
+                    }
             }
         }
 

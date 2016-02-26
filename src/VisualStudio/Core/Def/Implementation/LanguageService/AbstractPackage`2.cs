@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -28,8 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         protected override void Initialize()
         {
             base.Initialize();
-
-            var defaultForegroundThreadData = ForegroundThreadData.CreateDefault();
+            var defaultForegroundThreadData = ForegroundThreadData.CreateDefault(defaultKind: CommandLineMode);
             ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = defaultForegroundThreadData;
             _foregroundObject = new ForegroundThreadAffinitizedObject(defaultForegroundThreadData);
 

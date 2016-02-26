@@ -23,9 +23,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             Kind = kind;
         }
 
-        internal static ForegroundThreadData CreateDefault()
+        /// <summary>
+        /// Creates the default ForegroundThreadData assuming that the current thread is the UI thread.
+        /// </summary>
+        /// <param name="defaultKind">The ForegroundThreadDataKind to fall back to if a UI thread cannot be found</param>
+        /// <returns>default ForegroundThreadData values</returns>
+        internal static ForegroundThreadData CreateDefault(ForegroundThreadDataKind? defaultKind = null)
         {
-            var kind = ForegroundThreadDataInfo.CreateDefault();
+            var kind = ForegroundThreadDataInfo.CreateDefault(defaultKind);
 
             // None of the work posted to the foregroundTaskScheduler should block pending keyboard/mouse input from the user.
             // So instead of using the default priority which is above user input, we use Background priority which is 1 level

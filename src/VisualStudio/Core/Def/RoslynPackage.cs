@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
@@ -24,6 +23,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
+using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
@@ -44,10 +44,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             base.Initialize();
 
-            ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = ForegroundThreadData.CreateDefault();
+            ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = ForegroundThreadData.CreateDefault(defaultKind: CommandLineMode);
             Debug.Assert(
-                ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Wpf ||
-                ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.JoinableTask);
+                ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.Kind == Wpf ||
+                ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.Kind == JoinableTask);
 
             FatalError.Handler = FailFast.OnFatalException;
             FatalError.NonFatalHandler = WatsonReporter.Report;
