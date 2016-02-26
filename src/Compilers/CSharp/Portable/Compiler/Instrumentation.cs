@@ -25,16 +25,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override void Visit(IOperation operation)
         {
-            switch (operation.Kind)
+            if (operation == null)
             {
-                case OperationKind.BlockStatement:
-                    base.Visit(operation);
-                    break;
-                case OperationKind.ExpressionStatement:
-                    break;
-                case OperationKind.LoopStatement:
-                    break;
+                return;
             }
+            
+            if (operation.IsStatement())
+            {
+
+            }
+
+            base.Visit(operation);
         }
     }
 }
